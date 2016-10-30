@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -69,12 +70,15 @@ public class TestRunner {
 		
 		
 		//String id = UUID.randomUUID().toString();
-		String id = "HI";
+		//String id = "HI";
+		String id = RandomStringUtils.randomAlphanumeric(10);
 		
 		tests.put(id, test);
 		EventLog eventLog = new SampleEventLog(id);
 		
-		test.configure(config, eventLog, id, browser);
+		String baseUrl = "http://localhost:8080" + "/test/" + test.getName() + "/" + id;
+		
+		test.configure(config, eventLog, id, browser, baseUrl);
 		
 		logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 		

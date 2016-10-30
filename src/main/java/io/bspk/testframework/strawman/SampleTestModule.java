@@ -44,6 +44,7 @@ public class SampleTestModule implements TestModule {
 	private EventLog eventLog;
 	private List<TestModuleEventListener> listeners;
 	private BrowserControl browser;
+	private String baseUrl;
 
 	/**
 	 * 
@@ -58,11 +59,12 @@ public class SampleTestModule implements TestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
-	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser) {
+	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl) {
 		this.id = id;
 		this.config = config;
 		this.eventLog = eventLog;
 		this.browser = browser;
+		this.baseUrl = baseUrl;
 		this.status = Status.CONFIGURED;
 	}
 
@@ -92,7 +94,7 @@ public class SampleTestModule implements TestModule {
 		this.status = Status.RUNNING;
 		
 		// send a front channel request to start things off
-		String redirctTo = "https://mitreid.org/authorize?client_id=client&response_type=code&redirect_uri=...";
+		String redirctTo = "https://mitreid.org/authorize?client_id=client&response_type=code&redirect_uri=" + baseUrl;
 		
 		eventLog.log("Redirecting to url" + redirctTo);
 
