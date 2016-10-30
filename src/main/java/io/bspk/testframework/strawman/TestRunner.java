@@ -115,7 +115,7 @@ public class TestRunner {
 	    
 	    TestModule test = tests.get(testId);
 		
-		return test.handleHttp(finalPath, req, res, session, params, m);
+		return test.handleHttp(restOfPath, req, res, session, params, m);
 	}
 	
 
