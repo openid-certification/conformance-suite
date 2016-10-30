@@ -22,5 +22,13 @@ package io.bspk.testframework.strawman;
  *
  */
 public interface TestModuleEventListener {
+	
+	void setupDone();
+	
+	void testSuccess();
+	
+	void testFailure();
+	
+	void interrupted();
 
 }

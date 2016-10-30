@@ -17,6 +17,18 @@
 
 package io.bspk.testframework.strawman;
 
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
 import com.google.gson.JsonObject;
 
 /**
@@ -25,14 +37,22 @@ import com.google.gson.JsonObject;
  */
 public interface TestModule {
 	
-	public enum Status { CREATED, CONFIGURED, RUNNING }
+	public enum Status { 
+		CREATED, // test has been instantiated 
+		CONFIGURED,  // configuration files have been sent and set up
+		RUNNING, // test is executing
+		WAITING, // test is waiting for external input
+		FINISHED // test is no longer running 
+		}
 
 	/**
 	 * @param config
 	 * @param eventLog 
 	 */
-	void configure(JsonObject config, EventLog eventLog);
+	void configure(JsonObject config, EventLog eventLog, String id);
 
+	String getName();
+	
 	/**
 	 * @return
 	 */
@@ -47,5 +67,25 @@ public interface TestModule {
 	 * 
 	 */
 	void start();
+	
+	void stop();
+
+	/**
+	 * @param e
+	 * @return
+	 */
+	boolean addListener(TestModuleEventListener e);
+
+	/**
+	 * @param o
+	 * @return
+	 */
+	boolean removeListener(TestModuleEventListener o);
+	
+	ModelAndView handleHttp(String path,
+			HttpServletRequest req, HttpServletResponse res,
+			HttpSession session,
+			@RequestParam MultiValueMap<String, String> params,
+			Model m);
 
 }

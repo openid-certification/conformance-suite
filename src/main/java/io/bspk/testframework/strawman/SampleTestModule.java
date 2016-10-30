@@ -20,13 +20,14 @@ package io.bspk.testframework.strawman;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.google.gson.JsonObject;
 
@@ -36,7 +37,8 @@ import com.google.gson.JsonObject;
  */
 public class SampleTestModule implements TestModule {
 
-	private String id;
+	private static final String name = "sample-test";
+	private String id = null;
 	private Status status;
 	private JsonObject config;
 	private EventLog eventLog;
@@ -50,20 +52,10 @@ public class SampleTestModule implements TestModule {
 	}
 
 	/**
-	 * @param dispatcher the dispatcher to set
-	 */
-	public void setDispatcher(Dispatcher dispatcher) {
-		this.dispatcher = dispatcher;
-	}
-
-	private Dispatcher dispatcher;
-	
-	/**
 	 * 
 	 */
 	public SampleTestModule() {
-		this.id = UUID.randomUUID().toString();
-		
+	
 		this.listeners = new ArrayList<>();
 		
 		this.status = Status.CREATED;
@@ -72,7 +64,8 @@ public class SampleTestModule implements TestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
-	public void configure(JsonObject config, EventLog eventLog) {
+	public void configure(JsonObject config, EventLog eventLog, String id) {
+		this.id = id;
 		this.config = config;
 		this.eventLog = eventLog;
 		this.status = Status.CONFIGURED;
@@ -96,55 +89,19 @@ public class SampleTestModule implements TestModule {
 	 * @see io.bspk.selenium.TestModule#start()
 	 */
 	public void start() {
+		
+		if (this.status != Status.CONFIGURED) {
+			throw new RuntimeException("WAT");
+		}
+		
 		this.status = Status.RUNNING;
 		
-		String backChannelUrl = dispatcher.registerUrl("/backchannel**", backChannelHandler());
-		
-		String frontChannelUrl = dispatcher.registerUrl("/frontchannel**", frontChannelResponseHandler());
-		
 		// send a front channel request to start things off
-		String redirctTo = "https://mitreid.org/authorize?client_id=client&response_type=code&redirect_uri=" + frontChannelUrl;
+		String redirctTo = "https://mitreid.org/authorize?client_id=client&response_type=code&redirect_uri=...";
 		
 		eventLog.log("Redirecting to url" + redirctTo);
+
 		browser.goToUrl(redirctTo);
-	}
-	
-	/**
-	 * @return
-	 */
-	private HttpHandlerMethod frontChannelResponseHandler() {
-		return new HttpHandlerMethod() {
-			@Override
-			public String handle(Model m, 
-					Map<String, String> parameters, 
-					HttpServletRequest req, 
-					HttpServletResponse res, 
-					HttpSession session) {
-				
-				// TODO: how do we return a response without views? Or can we allow tests to inject their own views?
-				return "display";
-			}
-		
-		};
-	}
-
-	/**
-	 * @return
-	 */
-	private HttpHandlerMethod backChannelHandler() {
-		return new HttpHandlerMethod() {
-			@Override
-			public String handle(Model m, 
-					Map<String, String> parameters, 
-					HttpServletRequest req, 
-					HttpServletResponse res, 
-					HttpSession session) {
-				
-				// TODO: how do we return a response without views? Or can we allow tests to inject their own views?
-				return "json";
-			}
-
-		};
 	}
 
 	/**
@@ -152,6 +109,7 @@ public class SampleTestModule implements TestModule {
 	 * @return
 	 * @see java.util.List#add(java.lang.Object)
 	 */
+	@Override
 	public boolean addListener(TestModuleEventListener e) {
 		return listeners.add(e);
 	}
@@ -161,8 +119,39 @@ public class SampleTestModule implements TestModule {
 	 * @return
 	 * @see java.util.List#remove(java.lang.Object)
 	 */
+	@Override
 	public boolean removeListener(TestModuleEventListener o) {
 		return listeners.remove(o);
+	}
+
+	/* (non-Javadoc)
+	 * @see io.bspk.testframework.strawman.TestModule#stop()
+	 */
+	@Override
+	public void stop() {
+
+		eventLog.log("Finsihed");
+		
+		this.status = Status.FINISHED;
+		
+	}
+
+	/**
+	 * @return the name
+	 */
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	/* (non-Javadoc)
+	 * @see io.bspk.testframework.strawman.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
+	 */
+	@Override
+	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+		// TODO Auto-generated method stub
+		return null;
+		
 	}
 
 }

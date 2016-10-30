@@ -17,8 +17,23 @@
 
 package io.bspk.testframework.strawman;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -27,11 +42,14 @@ import com.google.gson.JsonParser;
  * @author jricher
  *
  */
-public class SampleTestRunner {
+@Controller
+public class TestRunner {
 	
-	private static Logger logger = LoggerFactory.getLogger(SampleTestRunner.class);
+	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
+	private Map<String, TestModule> tests = new HashMap<>();
 	
-	public static void main(String[] args) {
+	@RequestMapping("/runner")
+	public String runner() {
 		
 		
 		TestModule test = new SampleTestModule();
@@ -45,14 +63,35 @@ public class SampleTestRunner {
 		
 		EventLog eventLog = new SampleEventLog(test.getId());
 		
-		test.configure(config, eventLog);
+		String id = UUID.randomUUID().toString();
+		
+		tests.put(id, test);
+		
+		test.configure(config, eventLog, id);
 		
 		logger.info("Status of " + test.getId() + ": " + test.getStatus());
 		
 		test.start();
 		
 		logger.info("Status of " + test.getId() + ": " + test.getStatus());
+		
+		return "no";
 	
+	}
+
+	@RequestMapping("/test/{test-name}/{test-id}/{path:.*}")
+	public ModelAndView handle (
+			@PathVariable("test-name") String testName, 
+			@PathVariable("test-id") String testId,
+			@PathVariable("path") String path,
+			HttpServletRequest req, HttpServletResponse res,
+			HttpSession session,
+			@RequestParam MultiValueMap<String, String> params,
+			Model m) {
+		
+		TestModule test = tests.get(testId);
+		
+		return test.handleHttp(path, req, res, session, params, m);
 	}
 	
 
