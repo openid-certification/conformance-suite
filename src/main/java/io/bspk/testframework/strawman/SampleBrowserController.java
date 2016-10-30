@@ -24,26 +24,16 @@ import org.slf4j.LoggerFactory;
  * @author jricher
  *
  */
-public class SampleEventLog implements EventLog {
+public class SampleBrowserController implements BrowserControl {
 
-	private static Logger logger = LoggerFactory.getLogger(SampleEventLog.class);
+	private static Logger logger = LoggerFactory.getLogger(SampleBrowserController.class);
 	
-	private String prefix;
-	
-	/**
-	 * @param id
-	 */
-	public SampleEventLog(String prefix) {
-		this.prefix = prefix;
-	}
 
-	/* (non-Javadoc)
-	 * @see io.bspk.selenium.EventLog#log(java.lang.String)
-	 */
 	@Override
-	public void log(String msg) {
-		logger.info(">> " + prefix + " " + msg);
+	public void goToUrl(String string) {
 		
+		logger.info("Browser going to: " + string);
+
 	}
 
 }

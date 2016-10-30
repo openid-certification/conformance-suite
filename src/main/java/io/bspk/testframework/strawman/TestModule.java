@@ -49,7 +49,7 @@ public interface TestModule {
 	 * @param config
 	 * @param eventLog 
 	 */
-	void configure(JsonObject config, EventLog eventLog, String id);
+	void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser);
 
 	String getName();
 	

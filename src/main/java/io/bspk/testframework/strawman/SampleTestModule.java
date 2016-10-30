@@ -44,12 +44,6 @@ public class SampleTestModule implements TestModule {
 	private EventLog eventLog;
 	private List<TestModuleEventListener> listeners;
 	private BrowserControl browser;
-	/**
-	 * @param browser the browser to set
-	 */
-	public void setBrowser(BrowserControl browser) {
-		this.browser = browser;
-	}
 
 	/**
 	 * 
@@ -64,10 +58,11 @@ public class SampleTestModule implements TestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
-	public void configure(JsonObject config, EventLog eventLog, String id) {
+	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser) {
 		this.id = id;
 		this.config = config;
 		this.eventLog = eventLog;
+		this.browser = browser;
 		this.status = Status.CONFIGURED;
 	}
 
@@ -149,8 +144,11 @@ public class SampleTestModule implements TestModule {
 	 */
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
-		// TODO Auto-generated method stub
-		return null;
+
+		eventLog.log("Path: " + path);
+		eventLog.log("Params: " + params);
+		
+		return new ModelAndView("huh");
 		
 	}
 

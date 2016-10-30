@@ -1,5 +1,5 @@
 
-package Bespoke.Heart;
+package io.bspk.testframework.strawman;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
