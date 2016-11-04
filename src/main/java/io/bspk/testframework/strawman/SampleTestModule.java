@@ -17,19 +17,33 @@
 
 package io.bspk.testframework.strawman;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * @author jricher
@@ -45,6 +59,7 @@ public class SampleTestModule implements TestModule {
 	private List<TestModuleEventListener> listeners;
 	private BrowserControl browser;
 	private String baseUrl;
+	private String testStateValue;
 
 	/**
 	 * 
@@ -66,6 +81,7 @@ public class SampleTestModule implements TestModule {
 		this.browser = browser;
 		this.baseUrl = baseUrl;
 		this.status = Status.CONFIGURED;
+		fireSetupDone();
 	}
 
 	/* (non-Javadoc)
@@ -88,17 +104,26 @@ public class SampleTestModule implements TestModule {
 	public void start() {
 		
 		if (this.status != Status.CONFIGURED) {
-			throw new RuntimeException("WAT");
+			throw new RuntimeException("Invalid State: " + this.status);
 		}
 		
 		this.status = Status.RUNNING;
 		
-		// send a front channel request to start things off
-		String redirctTo = "https://mitreid.org/authorize?client_id=client&response_type=code&redirect_uri=" + baseUrl;
+		this.testStateValue = RandomStringUtils.randomAlphanumeric(10);
 		
-		eventLog.log("Redirecting to url" + redirctTo);
+		// send a front channel request to start things off
+		String redirectTo = UriComponentsBuilder.fromHttpUrl("https://mitreid.org/authorize")
+				.queryParam("client_id", "client")
+				.queryParam("response_type", "code")
+				.queryParam("state", testStateValue)
+				.queryParam("redirect_uri", baseUrl + "/callback")
+				.build().toUriString();
+		
+		eventLog.log("Redirecting to url" + redirectTo);
 
-		browser.goToUrl(redirctTo);
+		browser.goToUrl(redirectTo);
+		
+		this.status = Status.WAITING;
 	}
 
 	/**
@@ -133,6 +158,31 @@ public class SampleTestModule implements TestModule {
 		
 	}
 
+	private void fireSetupDone() {
+		for (TestModuleEventListener listener : listeners) {
+			listener.setupDone();
+		}
+	}
+	
+	private void fireTestSuccess(){
+		for (TestModuleEventListener listener : listeners) {
+			listener.testSuccess();
+		}
+	}
+	
+	private void fireTestFailure() {
+		for (TestModuleEventListener listener : listeners) {
+			listener.testFailure();
+		}
+	}
+	
+	private void fireInterrupted() {
+		for (TestModuleEventListener listener : listeners) {
+			listener.interrupted();
+		}
+	}
+
+	
 	/**
 	 * @return the name
 	 */
@@ -150,8 +200,130 @@ public class SampleTestModule implements TestModule {
 		eventLog.log("Path: " + path);
 		eventLog.log("Params: " + params);
 		
-		return new ModelAndView("huh");
+		// dispatch based on the path
+		if (path.equals("callback")) {
+			return handleCallback(path, req, res, session, params, m);
+		} else {
+			// TODO: return an error page here for an unhandled page
+			return new ModelAndView("huh");
+		}
 		
+	}
+
+	/**
+	 * @param path
+	 * @param req
+	 * @param res
+	 * @param session
+	 * @param params
+	 * @param m
+	 * @return
+	 */
+	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+
+		// process the callback
+		this.status = Status.RUNNING;
+		
+		if (params.containsKey("state") && params.getFirst("state").equals(testStateValue)) {
+
+			String authorizationCode = params.getFirst("code");
+			
+			MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+			form.add("grant_type", "authorization_code");
+			form.add("code", authorizationCode);
+			
+			form.add("redirect_uri", baseUrl + "/callback");
+
+			// Handle Token Endpoint interaction
+
+			HttpClient httpClient = HttpClientBuilder.create()
+					.useSystemProperties()
+					.build();
+
+			HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+			
+			RestTemplate restTemplate = new RestTemplate(factory);
+
+			//Alternatively use form based auth
+			form.add("client_id", "client");
+			form.add("client_secret", "secret");
+			String jsonString = null;
+
+			try {
+				jsonString = restTemplate.postForObject("https://mitreid.org/token", form, String.class);
+			} catch (RestClientException e) {
+
+				// Handle error
+
+				eventLog.log("Token Endpoint error response:  " + e.getMessage());
+
+				this.status = Status.FINISHED;
+				fireTestFailure();
+				return null;
+			}
+
+			eventLog.log("from TokenEndpoint jsonString = " + jsonString);
+
+			JsonElement jsonRoot = new JsonParser().parse(jsonString);
+			if (!jsonRoot.isJsonObject()) {
+				eventLog.log("Token Endpoint did not return a JSON object: " + jsonRoot);
+				this.status = Status.FINISHED;
+				fireTestFailure();
+				return null;
+			}
+
+			JsonObject tokenResponse = jsonRoot.getAsJsonObject();
+
+			if (tokenResponse.get("error") != null) {
+
+				// Handle error
+
+				String error = tokenResponse.get("error").getAsString();
+
+				eventLog.log("Token Endpoint returned: " + error);
+
+				this.status = Status.FINISHED;
+				fireTestFailure();
+				return null;
+			} else {
+
+				// get out all the token strings
+				String accessTokenValue = null;
+				String idTokenValue = null;
+				String refreshTokenValue = null;
+
+				if (tokenResponse.has("access_token")) {
+					accessTokenValue = tokenResponse.get("access_token").getAsString();
+				} else {
+					eventLog.log("Token Endpoint did not return an access_token: " + jsonString);
+					this.status = Status.FINISHED;
+					fireTestFailure();
+
+				}
+
+				if (tokenResponse.has("id_token")) {
+					idTokenValue = tokenResponse.get("id_token").getAsString();
+				} else {
+					eventLog.log("Token Endpoint did not return an id_token");
+				}
+
+				if (tokenResponse.has("refresh_token")) {
+					refreshTokenValue = tokenResponse.get("refresh_token").getAsString();
+				}
+				
+				eventLog.log(refreshTokenValue);
+				this.status = Status.FINISHED;
+				fireTestSuccess();
+				return null;
+			}	
+		} else {
+			// no state value
+			eventLog.log("State value mismatch");
+			fireTestFailure();
+			this.status = Status.FINISHED;
+			return null;
+		}
+			
 	}
 
 }
