@@ -15,25 +15,17 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package io.bspk.testframework.strawman.frontChannel;
 
 /**
  * @author jricher
  *
  */
-public class SampleBrowserController implements BrowserControl {
+public interface BrowserControl {
 
-	private static Logger logger = LoggerFactory.getLogger(SampleBrowserController.class);
-	
-
-	@Override
-	public void goToUrl(String string) {
-		
-		logger.info("Browser going to: " + string);
-
-	}
+	/**
+	 * @param string
+	 */
+	void goToUrl(String string);
 
 }

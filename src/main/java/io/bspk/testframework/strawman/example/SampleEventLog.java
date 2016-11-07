@@ -15,17 +15,36 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman;
+package io.bspk.testframework.strawman.example;
+
+import io.bspk.testframework.strawman.logging.EventLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author jricher
  *
  */
-public interface BrowserControl {
+public class SampleEventLog implements EventLog {
 
+	private static Logger logger = LoggerFactory.getLogger(SampleEventLog.class);
+	
+	private String prefix;
+	
 	/**
-	 * @param string
+	 * @param id
 	 */
-	void goToUrl(String string);
+	public SampleEventLog(String prefix) {
+		this.prefix = prefix;
+	}
+
+	/* (non-Javadoc)
+	 * @see io.bspk.selenium.EventLog#log(java.lang.String)
+	 */
+	@Override
+	public void log(String msg) {
+		logger.info(">> " + prefix + " " + msg);
+		
+	}
 
 }
