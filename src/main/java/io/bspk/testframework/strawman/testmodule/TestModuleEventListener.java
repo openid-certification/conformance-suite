@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * Copyright 2016 The MITRE Corporation
  *   and the MIT Internet Trust Consortium
  *
@@ -13,22 +13,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-
-package io.bspk.testframework.strawman;
+ ****************************************************************************** */
+package io.bspk.testframework.strawman.testmodule;
 
 /**
  * @author jricher
  *
  */
 public interface TestModuleEventListener {
-	
-	void setupDone();
-	
-	void testSuccess();
-	
-	void testFailure();
-	
-	void interrupted();
+
+    /**
+     * Called when Set up is completed
+     */
+    void setupDone();
+
+    /**
+     * Called on a successful test run
+     */
+    void testSuccess();
+
+    /**
+     * Called on a failed test run
+     */
+    void testFailure();
+
+    /**
+     * Called when the test has been interrupted
+     */
+    void interrupted();
 
 }
