@@ -70,9 +70,7 @@ public class TestRunner {
 
 	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
     
-	private Map<String, TestModule> runningTests = new HashMap<>();
-
-    private Map <String, BrowserControl> browsers = new HashMap<>();
+	private Map<String, TestBundle> runningTests = new HashMap<>();
 
     @RequestMapping("/runner")
     public String runner() {
@@ -103,18 +101,24 @@ public class TestRunner {
 
         String id = RandomStringUtils.randomAlphanumeric(10);
 
-        runningTests.put(id, test);
         EventLog eventLog = new SampleEventLog(id);
 
         String baseUrl = BASE_URL + TEST_PATH + test.getName() + "/" + id;
         
         BrowserControl browser = new CollectingBrowserControl();
-        browsers.put(id, browser);
+
+        TestBundle bundle = new TestBundle();
+        bundle.test = test;
+        bundle.browser = browser;
+        bundle.log = eventLog;
+        
+        runningTests.put(id, bundle);
 
         test.configure(config, eventLog, id, browser, baseUrl);
 
         logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
+        // TODO: fire this off in a background task thread?
         test.start();
 
         logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
@@ -134,8 +138,9 @@ public class TestRunner {
     public String getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
-    	TestModule test = runningTests.get(testId);
-    	if (test != null) {
+    	TestBundle bundle = runningTests.get(testId);
+    	if (bundle != null) {
+    		TestModule test = bundle.test;
             Map<String, String> map = new HashMap<>();
             map.put("name", test.getName());
             map.put("id", test.getId());
@@ -156,8 +161,9 @@ public class TestRunner {
     public String getBrowserStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
-    	BrowserControl browser = browsers.get(testId);
-    	if (browser != null) {
+    	TestBundle bundle = runningTests.get(testId);
+    	if (bundle != null) {
+    		BrowserControl browser = bundle.browser;
             Map<String, Object> map = new HashMap<>();
             map.put("id", testId);
             if (browser instanceof CollectingBrowserControl) {
@@ -217,11 +223,23 @@ public class TestRunner {
 
         String restOfPath = Joiner.on("/").join(pathParts);
 
-        TestModule test = runningTests.get(testId);
+    	TestBundle bundle = runningTests.get(testId);
+    	if (bundle != null) {
+    		TestModule test = bundle.test;
         
-        //TODO: ensure test name matches for sanity check
+    		//TODO: ensure test name matches for sanity check
 
-        return test.handleHttp(restOfPath, req, res, session, params, m);
+    		return test.handleHttp(restOfPath, req, res, session, params, m);
+    	} else {
+    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
+    		return new ModelAndView(HttpCodeView.VIEWNAME);
+    	}
+    }
+
+    private static class TestBundle {
+    	public TestModule test;
+    	public BrowserControl browser;
+    	public EventLog log;
     }
 
 }
