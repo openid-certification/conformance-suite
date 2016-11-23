@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -134,7 +135,7 @@ public class TestRunner {
 
     }
     
-    @RequestMapping(value = "/status/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/runner/status/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public String getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
@@ -147,7 +148,6 @@ public class TestRunner {
             map.put("status", test.getStatus().toString());
             
             m.addAttribute(JsonEntityView.ENTITY, map);
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.OK);
             return JsonEntityView.VIEWNAME;
     		
     	} else {
@@ -157,7 +157,16 @@ public class TestRunner {
     	}
     }
     
-    @RequestMapping(value = "/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getAllRunningTestIds(Model m) {
+    	Set<String> testIds = runningTests.keySet();
+
+    	m.addAttribute(JsonEntityView.ENTITY, testIds);
+    	return JsonEntityView.VIEWNAME;
+    	
+    }
+    
+    @RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public String getBrowserStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
