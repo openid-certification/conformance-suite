@@ -15,26 +15,35 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman.example;
+package io.bspk.testframework.strawman.runner;
 
-import io.bspk.testframework.strawman.frontChannel.BrowserControl;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.bspk.testframework.strawman.frontChannel.BrowserControl;
 
 /**
  * @author jricher
  *
  */
-public class SampleBrowserController implements BrowserControl {
+public class CollectingBrowserControl implements BrowserControl {
 
-	private static Logger logger = LoggerFactory.getLogger(SampleBrowserController.class);
+	private static Logger logger = LoggerFactory.getLogger(CollectingBrowserControl.class);
 	
-
+	private List<String> urls = new ArrayList<>();
+	
 	@Override
 	public void goToUrl(String url) {
-		
 		logger.info("Browser going to: " + url);
-
+		
+		urls.add(url);
 	}
 
+	public List<String> getUrls() {
+		return urls;
+	}
+	
 }

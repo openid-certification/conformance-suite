@@ -24,8 +24,8 @@ package io.bspk.testframework.strawman.frontChannel;
 public interface BrowserControl {
 
 	/**
-	 * @param string
+	 * @param url
 	 */
-	void goToUrl(String string);
+	void goToUrl(String url);
 
 }

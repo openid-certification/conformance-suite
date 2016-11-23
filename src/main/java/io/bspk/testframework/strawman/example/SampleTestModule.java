@@ -55,7 +55,7 @@ import io.bspk.testframework.strawman.logging.EventLog;
  */
 public class SampleTestModule implements TestModule {
 
-	private static final String name = "sample-test";
+	public static final String name = "sample-test";
 	private String id = null;
 	private Status status;
 	private JsonObject config;
