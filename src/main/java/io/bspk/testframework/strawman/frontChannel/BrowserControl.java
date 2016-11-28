@@ -24,8 +24,15 @@ package io.bspk.testframework.strawman.frontChannel;
 public interface BrowserControl {
 
 	/**
+	 * Flag a URL as needing to be visited
 	 * @param url
 	 */
 	void goToUrl(String url);
+	
+	/**
+	 * Flag a URL as having been visited
+	 * @param url
+	 */
+	void urlVisited(String url);
 
 }

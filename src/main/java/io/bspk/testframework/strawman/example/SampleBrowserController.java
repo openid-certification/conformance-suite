@@ -37,4 +37,15 @@ public class SampleBrowserController implements BrowserControl {
 
 	}
 
+
+	/* (non-Javadoc)
+	 * @see io.bspk.testframework.strawman.frontChannel.BrowserControl#urlVisited(java.lang.String)
+	 */
+	@Override
+	public void urlVisited(String url) {
+	
+		logger.info("Browser went to: " + url);
+
+	}
+
 }

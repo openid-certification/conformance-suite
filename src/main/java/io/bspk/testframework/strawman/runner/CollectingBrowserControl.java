@@ -34,6 +34,7 @@ public class CollectingBrowserControl implements BrowserControl {
 	private static Logger logger = LoggerFactory.getLogger(CollectingBrowserControl.class);
 	
 	private List<String> urls = new ArrayList<>();
+	private List<String> visited = new ArrayList<>();
 	
 	@Override
 	public void goToUrl(String url) {
@@ -45,5 +46,24 @@ public class CollectingBrowserControl implements BrowserControl {
 	public List<String> getUrls() {
 		return urls;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see io.bspk.testframework.strawman.frontChannel.BrowserControl#urlVisited(java.lang.String)
+	 */
+	@Override
+	public void urlVisited(String url) {
+		logger.info("Browser went to: " + url);
+		
+		urls.remove(url);
+		visited.add(url);
+		
+	}
+
+	/**
+	 * @return the visited
+	 */
+	public List<String> getVisited() {
+		return visited;
+	}
+
 }

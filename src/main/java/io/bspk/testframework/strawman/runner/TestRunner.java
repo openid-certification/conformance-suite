@@ -94,9 +94,9 @@ public class TestRunner {
     	
         TestModule test = createTestModule(testName);
 
-        logger.info("Created: " + test.getName());
+        logger.info("Created: " + testName);
 
-        logger.info("Status of " + test.getName() + ": " + test.getStatus());
+        logger.info("Status of " + testName + ": " + test.getStatus());
 
         JsonObject config = new JsonParser().parse(body).getAsJsonObject();
 
@@ -104,7 +104,7 @@ public class TestRunner {
 
         EventLog eventLog = new SampleEventLog(id);
 
-        String baseUrl = BASE_URL + TEST_PATH + test.getName() + "/" + id;
+        String baseUrl = BASE_URL + TEST_PATH + testName + "/" + id;
         
         BrowserControl browser = new CollectingBrowserControl();
 
@@ -117,15 +117,15 @@ public class TestRunner {
 
         test.configure(config, eventLog, id, browser, baseUrl);
 
-        logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+        logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
         // TODO: fire this off in a background task thread?
         test.start();
 
-        logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+        logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
         Map<String, String> map = new HashMap<>();
-        map.put("name", test.getName());
+        map.put("name", testName);
         map.put("id", test.getId());
         map.put("url", baseUrl);
         
@@ -177,6 +177,7 @@ public class TestRunner {
             map.put("id", testId);
             if (browser instanceof CollectingBrowserControl) {
             	map.put("urls", ((CollectingBrowserControl) browser).getUrls());
+            	map.put("visited", ((CollectingBrowserControl) browser).getVisited());
             }
             
             m.addAttribute(JsonEntityView.ENTITY, map);
@@ -190,6 +191,23 @@ public class TestRunner {
     	}
     }
 
+    @RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
+    public String visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
+    	TestBundle bundle = runningTests.get(testId);
+    	if (bundle != null) {
+    		BrowserControl browser = bundle.browser;
+    		browser.urlVisited(url);
+    		
+    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT);
+            return HttpCodeView.VIEWNAME;
+    		
+    	} else {
+    		
+    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
+    		return JsonErrorView.VIEWNAME;
+    	}
+    }
+    
     // TODO: make this a factory bean
     private TestModule createTestModule(String testName) {
     	switch (testName) {

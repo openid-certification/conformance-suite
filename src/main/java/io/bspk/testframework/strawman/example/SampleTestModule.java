@@ -209,7 +209,7 @@ public class SampleTestModule implements TestModule {
 			return handleCallback(path, req, res, session, params, m);
 		} else {
 			// TODO: return an error page here for an unhandled page
-			return new ModelAndView("huh");
+			return new ModelAndView("/complete.html");
 		}
 		
 	}
@@ -263,7 +263,7 @@ public class SampleTestModule implements TestModule {
 
 				this.status = Status.FINISHED;
 				fireTestFailure();
-				return null;
+				return new ModelAndView("complete");
 			}
 
 			eventLog.log("from TokenEndpoint jsonString = " + jsonString);
@@ -318,7 +318,7 @@ public class SampleTestModule implements TestModule {
 				eventLog.log(refreshTokenValue);
 				this.status = Status.FINISHED;
 				fireTestSuccess();
-				return null;
+				return new ModelAndView("/complete.html");
 			}	
 		} else {
 			// no state value

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Bootstrap 101 Template</title>
+    <title>HEART Test Suite</title>
 
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -36,6 +36,8 @@
 
 		<h3>Running tests</h3>
 
+		<button class="btn" id="refresh">Refresh</button>
+
 		<div id="running-tests"></div>
 
       </div>
@@ -62,10 +64,10 @@ $(function() {
 		console.log('available: ', data);
 		
 		_.each(data, function(testName) {
-			$('#launch-buttons').append('<button class="btn">' + testName + '</button>')
+			$('#launch-buttons').append('<button class="btn">Start: ' + testName + '</button>')
 				.click(function() {
 					console.log('Button clicked: ' + testName);
-					$.ajax({url: 'runner/start?test=' + testName,
+					$.ajax({url: 'runner/start?test=' + encodeURIComponent(testName),
 							type: 'POST',
 							contentType: 'application/json',
 							data: $('#config').val(),
@@ -79,30 +81,56 @@ $(function() {
 		});
 	});
 	
-	function updateRunningTable() {
-		$.getJSON('runner/running', function(data) {
-				console.log('running: ', data);
-				$('#running-tests').html('');
-				
-				_.each(data, function(testId) {
-					$.getJSON('runner/status/' + testId, function(status) {
-						console.log('displaying test: ' + status);
-						$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + '</div>');
-						$.getJSON('runner/browser/' + testId, function(browser) {
-							$('#' + browser.id).append('<ul>');
-							_.each(browser.urls, function(url) {
-								$('#' + browser.id).append('<li><a href="' + url + '" target="_blank">' + url + '</a></li>');
-							});						
-							$('#' + browser.id).append('</ul>');
-						});
-					});
-				});
-		});
-	}
-	
 	updateRunningTable();
 	
+	$('#refresh').click(function(event) {
+		updateRunningTable();
+	});
+	
 });
+
+function updateRunningTable() {
+	$.getJSON('runner/running', function(data) {
+			console.log('running: ', data);
+			$('#running-tests').html('');
+			
+			_.each(data, function(testId) {
+				$.getJSON('runner/status/' + encodeURIComponent(testId), function(status) {
+					console.log('displaying test: ' + status);
+					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + '</div>');
+					$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
+						$('#' + browser.id).append('<ul>');
+						_.each(browser.urls, function(url) {
+							$('#' + browser.id).append('<li><a href="#">' + url + '</a></li>').click(function(event) {
+								event.preventDefault();
+								
+								
+								
+								var win = window.open(url, '_blank');
+								
+								if (win) {
+									win.focus();
+									$.ajax({url: 'runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+										type: 'POST',
+										success: function(data, status) {
+											console.log('Status: ', status);													
+											updateRunningTable();
+										}
+									});
+								} else {
+									// couldn't open the link?
+									console.log("Couldn't launch window");
+								}
+								
+							});
+						});						
+						$('#' + browser.id).append('</ul>');
+					});
+				});
+			});
+	});
+}
+
 
 </script>
 
