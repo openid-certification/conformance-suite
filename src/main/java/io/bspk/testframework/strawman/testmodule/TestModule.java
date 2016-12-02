@@ -38,12 +38,18 @@ import io.bspk.testframework.strawman.logging.EventLog;
  */
 public interface TestModule {
 
-    public enum Status {
+    public static enum Status {
         CREATED, // test has been instantiated 
         CONFIGURED, // configuration files have been sent and set up
         RUNNING, // test is executing
         WAITING, // test is waiting for external input
         FINISHED // test is no longer running 
+    }
+    
+    public static enum Result {
+    	PASSED, // test has passed successfully
+    	FAILED, // test has failed
+    	WARNING // test has warnings
     }
 
     /**

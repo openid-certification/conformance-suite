@@ -267,6 +267,7 @@ public class TestRunner {
     	public TestModule test;
     	public BrowserControl browser;
     	public EventLog log;
+    	public TestModule.Result result;
     }
 
 }
