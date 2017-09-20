@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package io.bspk.testframework.strawman.view;
+package io.fintechlabs.testframework.view;
 
 import java.io.IOException;
 import java.io.Writer;

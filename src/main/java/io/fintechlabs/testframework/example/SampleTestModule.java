@@ -1,7 +1,4 @@
 /*******************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,10 +12,8 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman.example;
+package io.fintechlabs.testframework.example;
 
-import io.bspk.testframework.strawman.testmodule.TestModule;
-import io.bspk.testframework.strawman.testmodule.TestModuleEventListener;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,8 +41,11 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.bspk.testframework.strawman.frontChannel.BrowserControl;
-import io.bspk.testframework.strawman.logging.EventLog;
+
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
 
 /**
  * @author jricher
@@ -151,7 +149,7 @@ public class SampleTestModule implements TestModule {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.bspk.testframework.strawman.TestModule#stop()
+	 * @see io.fintechlabs.testframework.TestModule#stop()
 	 */
 	@Override
 	public void stop() {
@@ -196,7 +194,7 @@ public class SampleTestModule implements TestModule {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.bspk.testframework.strawman.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
+	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {

@@ -9,8 +9,8 @@ services:
     ports:
      - "8080:8080"
     volumes:
-     - ./target/Heart-0.0.1-SNAPSHOT.jar:/server/heart.jar
-    command: java -jar /server/heart.jar
+     - ./target/fapi-test-suite.jar:/server/fapi-test-suite.jar
+    command: java -jar /server/fapi-test-suite.jar
     links:
      - mongodb:mongodb
 

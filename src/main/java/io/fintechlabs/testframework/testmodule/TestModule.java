@@ -1,7 +1,4 @@
 /** *****************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ****************************************************************************** */
-package io.bspk.testframework.strawman.testmodule;
+package io.fintechlabs.testframework.testmodule;
 
 import java.util.Map;
 
@@ -29,8 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.gson.JsonObject;
-import io.bspk.testframework.strawman.frontChannel.BrowserControl;
-import io.bspk.testframework.strawman.logging.EventLog;
+
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.logging.EventLog;
 
 /**
  * @author jricher

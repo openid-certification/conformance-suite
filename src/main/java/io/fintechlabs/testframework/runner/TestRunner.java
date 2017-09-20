@@ -1,7 +1,4 @@
 /** *****************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ****************************************************************************** */
-package io.bspk.testframework.strawman.runner;
+package io.fintechlabs.testframework.runner;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,15 +46,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.bspk.testframework.strawman.example.SampleBrowserController;
-import io.bspk.testframework.strawman.example.SampleEventLog;
-import io.bspk.testframework.strawman.example.SampleTestModule;
-import io.bspk.testframework.strawman.frontChannel.BrowserControl;
-import io.bspk.testframework.strawman.logging.EventLog;
-import io.bspk.testframework.strawman.testmodule.TestModule;
-import io.bspk.testframework.strawman.view.HttpCodeView;
-import io.bspk.testframework.strawman.view.JsonEntityView;
-import io.bspk.testframework.strawman.view.JsonErrorView;
+import io.fintechlabs.testframework.example.SampleBrowserController;
+import io.fintechlabs.testframework.example.SampleEventLog;
+import io.fintechlabs.testframework.example.SampleTestModule;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.view.HttpCodeView;
+import io.fintechlabs.testframework.view.JsonEntityView;
+import io.fintechlabs.testframework.view.JsonErrorView;
 
 /**
  * @author jricher

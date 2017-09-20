@@ -1,7 +1,4 @@
 /*******************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +12,24 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman.logging;
+package io.fintechlabs.testframework.frontChannel;
 
 /**
  * @author jricher
  *
  */
-public interface EventLog {
+public interface BrowserControl {
 
 	/**
-	 * @param string The message you want to log
+	 * Flag a URL as needing to be visited
+	 * @param url
 	 */
-	void log(String msg);
+	void goToUrl(String url);
+	
+	/**
+	 * Flag a URL as having been visited
+	 * @param url
+	 */
+	void urlVisited(String url);
 
 }

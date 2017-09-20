@@ -1,7 +1,4 @@
 /*******************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman.runner;
+package io.fintechlabs.testframework.runner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +20,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.bspk.testframework.strawman.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
 
 /**
  * @author jricher
@@ -48,7 +45,7 @@ public class CollectingBrowserControl implements BrowserControl {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.bspk.testframework.strawman.frontChannel.BrowserControl#urlVisited(java.lang.String)
+	 * @see io.fintechlabs.testframework.frontChannel.BrowserControl#urlVisited(java.lang.String)
 	 */
 	@Override
 	public void urlVisited(String url) {

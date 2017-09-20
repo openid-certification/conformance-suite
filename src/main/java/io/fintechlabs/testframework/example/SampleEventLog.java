@@ -1,7 +1,4 @@
 /*******************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,24 +12,37 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman.frontChannel;
+package io.fintechlabs.testframework.example;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.fintechlabs.testframework.logging.EventLog;
 
 /**
  * @author jricher
  *
  */
-public interface BrowserControl {
+public class SampleEventLog implements EventLog {
 
-	/**
-	 * Flag a URL as needing to be visited
-	 * @param url
-	 */
-	void goToUrl(String url);
+	private static Logger logger = LoggerFactory.getLogger(SampleEventLog.class);
+	
+	private String prefix;
 	
 	/**
-	 * Flag a URL as having been visited
-	 * @param url
+	 * @param id
 	 */
-	void urlVisited(String url);
+	public SampleEventLog(String prefix) {
+		this.prefix = prefix;
+	}
+
+	/* (non-Javadoc)
+	 * @see io.bspk.selenium.EventLog#log(java.lang.String)
+	 */
+	@Override
+	public void log(String msg) {
+		logger.info(">> " + prefix + " " + msg);
+		
+	}
 
 }

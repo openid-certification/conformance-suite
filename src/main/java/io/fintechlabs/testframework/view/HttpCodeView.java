@@ -17,7 +17,7 @@
 /**
  * 
  */
-package io.bspk.testframework.strawman.view;
+package io.fintechlabs.testframework.view;
 
 import java.util.Map;
 

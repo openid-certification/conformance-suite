@@ -3,13 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>Bespoke</groupId>
-    <artifactId>Heart</artifactId>
+    <groupId>io.fintechlabs</groupId>
+    <artifactId>conformance-test</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Heart</name>
-    <description>Heart Protocol Tester</description>
+    <name>FAPI Conformance Test</name>
+    <description>Network based protocol tester for FAPI and related systems.</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -91,6 +91,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>fapi-test-suite</finalName>
     </build>
 
 

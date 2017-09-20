@@ -1,7 +1,4 @@
 /*******************************************************************************
- * Copyright 2016 The MITRE Corporation
- *   and the MIT Internet Trust Consortium
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,36 +12,38 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.bspk.testframework.strawman.example;
+package io.fintechlabs.testframework.example;
 
-import io.bspk.testframework.strawman.logging.EventLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
 
 /**
  * @author jricher
  *
  */
-public class SampleEventLog implements EventLog {
+public class SampleBrowserController implements BrowserControl {
 
-	private static Logger logger = LoggerFactory.getLogger(SampleEventLog.class);
+	private static Logger logger = LoggerFactory.getLogger(SampleBrowserController.class);
 	
-	private String prefix;
-	
-	/**
-	 * @param id
-	 */
-	public SampleEventLog(String prefix) {
-		this.prefix = prefix;
+
+	@Override
+	public void goToUrl(String url) {
+		
+		logger.info("Browser going to: " + url);
+
 	}
 
+
 	/* (non-Javadoc)
-	 * @see io.bspk.selenium.EventLog#log(java.lang.String)
+	 * @see io.fintechlabs.testframework.frontChannel.BrowserControl#urlVisited(java.lang.String)
 	 */
 	@Override
-	public void log(String msg) {
-		logger.info(">> " + prefix + " " + msg);
-		
+	public void urlVisited(String url) {
+	
+		logger.info("Browser went to: " + url);
+
 	}
 
 }
