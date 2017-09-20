@@ -1,0 +1,16 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    volumes:
+     - ./mongo/data:/data/db
+  server:
+    image: openjdk
+    ports:
+     - "8080:8080"
+    volumes:
+     - ./target/Heart-0.0.1-SNAPSHOT.jar:/server/heart.jar
+    command: java -jar /server/heart.jar
+    links:
+     - mongodb:mongodb
+
