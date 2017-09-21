@@ -121,7 +121,7 @@ public class SampleTestModule implements TestModule {
 				.queryParam("redirect_uri", baseUrl + "/callback")
 				.build().toUriString();
 		
-		eventLog.log("Redirecting to url" + redirectTo);
+		eventLog.log(getId(), "Redirecting to url" + redirectTo);
 
 		browser.goToUrl(redirectTo);
 		
@@ -154,7 +154,7 @@ public class SampleTestModule implements TestModule {
 	@Override
 	public void stop() {
 
-		eventLog.log("Finsihed");
+		eventLog.log(getId(), "Finsihed");
 		
 		this.status = Status.FINISHED;
 		
@@ -199,8 +199,8 @@ public class SampleTestModule implements TestModule {
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
 
-		eventLog.log("Path: " + path);
-		eventLog.log("Params: " + params);
+		eventLog.log(getId(), "Path: " + path);
+		eventLog.log(getId(), "Params: " + params);
 		
 		// dispatch based on the path
 		if (path.equals("callback")) {
@@ -257,18 +257,18 @@ public class SampleTestModule implements TestModule {
 
 				// Handle error
 
-				eventLog.log("Token Endpoint error response:  " + e.getMessage());
+				eventLog.log(getId(), "Token Endpoint error response:  " + e.getMessage());
 
 				this.status = Status.FINISHED;
 				fireTestFailure();
 				return new ModelAndView("complete");
 			}
 
-			eventLog.log("from TokenEndpoint jsonString = " + jsonString);
+			eventLog.log(getId(), "from TokenEndpoint jsonString = " + jsonString);
 
 			JsonElement jsonRoot = new JsonParser().parse(jsonString);
 			if (!jsonRoot.isJsonObject()) {
-				eventLog.log("Token Endpoint did not return a JSON object: " + jsonRoot);
+				eventLog.log(getId(), "Token Endpoint did not return a JSON object: " + jsonRoot);
 				this.status = Status.FINISHED;
 				fireTestFailure();
 				return null;
@@ -282,7 +282,7 @@ public class SampleTestModule implements TestModule {
 
 				String error = tokenResponse.get("error").getAsString();
 
-				eventLog.log("Token Endpoint returned: " + error);
+				eventLog.log(getId(), "Token Endpoint returned: " + error);
 
 				this.status = Status.FINISHED;
 				fireTestFailure();
@@ -297,7 +297,7 @@ public class SampleTestModule implements TestModule {
 				if (tokenResponse.has("access_token")) {
 					accessTokenValue = tokenResponse.get("access_token").getAsString();
 				} else {
-					eventLog.log("Token Endpoint did not return an access_token: " + jsonString);
+					eventLog.log(getId(), "Token Endpoint did not return an access_token: " + jsonString);
 					this.status = Status.FINISHED;
 					fireTestFailure();
 
@@ -306,21 +306,21 @@ public class SampleTestModule implements TestModule {
 				if (tokenResponse.has("id_token")) {
 					idTokenValue = tokenResponse.get("id_token").getAsString();
 				} else {
-					eventLog.log("Token Endpoint did not return an id_token");
+					eventLog.log(getId(), "Token Endpoint did not return an id_token");
 				}
 
 				if (tokenResponse.has("refresh_token")) {
 					refreshTokenValue = tokenResponse.get("refresh_token").getAsString();
 				}
 				
-				eventLog.log(refreshTokenValue);
+				eventLog.log(getId(), refreshTokenValue);
 				this.status = Status.FINISHED;
 				fireTestSuccess();
 				return new ModelAndView("/complete.html");
 			}	
 		} else {
 			// no state value
-			eventLog.log("State value mismatch");
+			eventLog.log(getId(), "State value mismatch");
 			fireTestFailure();
 			this.status = Status.FINISHED;
 			return null;

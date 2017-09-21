@@ -12,25 +12,12 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.logging;
-
-import com.google.gson.JsonObject;
+package io.fintechlabs.testframework.testmodule;
 
 /**
  * @author jricher
  *
  */
-public interface EventLog {
+public class Environment {
 
-	/**
-	 * @param source The source of the event
-	 * @param msg The message to log
-	 */
-	void log(String source, String msg);
-
-	/**
-	 * @param source The source of the event
-	 * @param obj The message to log
-	 */
-	void log(String source, JsonObject obj);
 }

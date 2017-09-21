@@ -26,8 +26,10 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.AntPathMatcher;
@@ -38,7 +40,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -46,15 +47,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.example.SampleBrowserController;
-import io.fintechlabs.testframework.example.SampleEventLog;
 import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.TestModule;
-import io.fintechlabs.testframework.view.HttpCodeView;
-import io.fintechlabs.testframework.view.JsonEntityView;
-import io.fintechlabs.testframework.view.JsonErrorView;
 
 /**
  * @author jricher
@@ -69,6 +65,9 @@ public class TestRunner {
 	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
     
 	private Map<String, TestBundle> runningTests = new HashMap<>();
+	
+	@Autowired
+	private EventLog eventLog;
 
     @RequestMapping("/runner")
     public String runner() {
@@ -77,17 +76,15 @@ public class TestRunner {
     
     
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getAvailableTests(Model m) {
+    public ResponseEntity<List<String>> getAvailableTests(Model m) {
     	List<String> testModuleNames = getTestModuleNames();
     	
-    	m.addAttribute(JsonEntityView.ENTITY, testModuleNames);
-    	
-    	return JsonEntityView.VIEWNAME;
+    	return new ResponseEntity<>(testModuleNames, HttpStatus.OK);
     }
     
     
     @RequestMapping(value = "/runner/start", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public String startTest(@RequestParam("test") String testName, @RequestBody String body, Model m) {
+    public ResponseEntity<Map<String, String>> startTest(@RequestParam("test") String testName, @RequestBody String body, Model m) {
     	
         TestModule test = createTestModule(testName);
 
@@ -98,8 +95,6 @@ public class TestRunner {
         JsonObject config = new JsonParser().parse(body).getAsJsonObject();
 
         String id = RandomStringUtils.randomAlphanumeric(10);
-
-        EventLog eventLog = new SampleEventLog(id);
 
         String baseUrl = BASE_URL + TEST_PATH + testName + "/" + id;
         
@@ -126,14 +121,12 @@ public class TestRunner {
         map.put("id", test.getId());
         map.put("url", baseUrl);
         
-        m.addAttribute(JsonEntityView.ENTITY, map);
-        m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED);
-        return JsonEntityView.VIEWNAME;
+        return new ResponseEntity<>(map, HttpStatus.CREATED);
 
     }
     
     @RequestMapping(value = "/runner/status/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getTestStatus(@PathVariable("id") String testId, Model m) {
+    public ResponseEntity<Map<String, String>> getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
     	TestBundle bundle = runningTests.get(testId);
@@ -144,65 +137,54 @@ public class TestRunner {
             map.put("id", test.getId());
             map.put("status", test.getStatus().toString());
             
-            m.addAttribute(JsonEntityView.ENTITY, map);
-            return JsonEntityView.VIEWNAME;
+            return new ResponseEntity<>(map, HttpStatus.OK);
     		
     	} else {
-    		
-    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-    		return JsonErrorView.VIEWNAME;
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
     }
     
     @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getAllRunningTestIds(Model m) {
+    public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
     	Set<String> testIds = runningTests.keySet();
 
-    	m.addAttribute(JsonEntityView.ENTITY, testIds);
-    	return JsonEntityView.VIEWNAME;
-    	
+    	return new ResponseEntity<Set<String>>(testIds, HttpStatus.OK);
     }
     
     @RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getBrowserStatus(@PathVariable("id") String testId, Model m) {
+    public ResponseEntity<Map<String, Object>> getBrowserStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
     	TestBundle bundle = runningTests.get(testId);
     	if (bundle != null) {
     		BrowserControl browser = bundle.browser;
-            Map<String, Object> map = new HashMap<>();
+    		Map<String, Object> map = new HashMap<>();
             map.put("id", testId);
             if (browser instanceof CollectingBrowserControl) {
             	map.put("urls", ((CollectingBrowserControl) browser).getUrls());
             	map.put("visited", ((CollectingBrowserControl) browser).getVisited());
             }
             
-            m.addAttribute(JsonEntityView.ENTITY, map);
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.OK);
-            return JsonEntityView.VIEWNAME;
+            return new ResponseEntity<>(map, HttpStatus.OK);
     		
     	} else {
-    		
-    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-    		return JsonErrorView.VIEWNAME;
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
     }
 
     @RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
-    public String visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
+    public ResponseEntity<String> visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
     	TestBundle bundle = runningTests.get(testId);
     	if (bundle != null) {
     		BrowserControl browser = bundle.browser;
     		browser.urlVisited(url);
     		
-    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT);
-            return HttpCodeView.VIEWNAME;
+    		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     		
     	} else {
     		
-    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-    		return JsonErrorView.VIEWNAME;
-    	}
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+   	}
     }
     
     // TODO: make this a factory bean
@@ -221,7 +203,7 @@ public class TestRunner {
     }
     
     @RequestMapping(TEST_PATH + "**")
-    public ModelAndView handle(
+    public Object handle(
             HttpServletRequest req, HttpServletResponse res,
             HttpSession session,
             @RequestParam MultiValueMap<String, String> params,
@@ -242,8 +224,8 @@ public class TestRunner {
 
         Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
 
-        String testName = pathParts.next();
-        String testId = pathParts.next();
+        String testName = pathParts.next(); // maybe used for a sanity check
+        String testId = pathParts.next(); // used to route to the right test
 
         String restOfPath = Joiner.on("/").join(pathParts);
 
@@ -255,8 +237,7 @@ public class TestRunner {
 
     		return test.handleHttp(restOfPath, req, res, session, params, m);
     	} else {
-    		m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-    		return new ModelAndView(HttpCodeView.VIEWNAME);
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
     }
 

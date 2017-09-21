@@ -12,10 +12,9 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.testmodule;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 
@@ -23,26 +22,20 @@ import io.fintechlabs.testframework.logging.EventLog;
  * @author jricher
  *
  */
-public class SampleEventLog implements EventLog {
-
-	private static Logger logger = LoggerFactory.getLogger(SampleEventLog.class);
-	
-	private String prefix;
-	
-	/**
-	 * @param id
-	 */
-	public SampleEventLog(String prefix) {
-		this.prefix = prefix;
-	}
+public abstract class AbstractCondition implements Condition {
 
 	/* (non-Javadoc)
-	 * @see io.bspk.selenium.EventLog#log(java.lang.String)
+	 * @see io.fintechlabs.testframework.testmodule.Condition#getMessage()
 	 */
 	@Override
-	public void log(String msg) {
-		logger.info(">> " + prefix + " " + msg);
-		
+	public String getMessage() {
+		return this.getClass().getSimpleName();
 	}
 
+	
+	protected void logEvent(EventLog log, String source, JsonObject event) {
+		event.addProperty("condition", getMessage());
+		log.log(source, event);
+	}
+	
 }

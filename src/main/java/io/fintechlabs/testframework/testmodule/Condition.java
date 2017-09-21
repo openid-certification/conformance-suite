@@ -12,25 +12,26 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.logging;
+package io.fintechlabs.testframework.testmodule;
 
-import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.logging.EventLog;
 
 /**
  * @author jricher
  *
  */
-public interface EventLog {
+public interface Condition {
 
 	/**
-	 * @param source The source of the event
-	 * @param msg The message to log
+	 * Assert that the implemented test is true. Logs test events and results to the given log.
+	 * 
+	 * Throws ConditionError when condition isn't met.
 	 */
-	void log(String source, String msg);
+	Environment assertTrue(Environment in, EventLog log);
 
 	/**
-	 * @param source The source of the event
-	 * @param obj The message to log
+	 * Get a printable message describing this condition.
 	 */
-	void log(String source, JsonObject obj);
+	String getMessage();
+	
 }

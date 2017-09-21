@@ -13,4 +13,6 @@ services:
     command: java -jar /server/fapi-test-suite.jar
     links:
      - mongodb:mongodb
+    depends_on: mongodb
+    
 

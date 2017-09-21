@@ -37,6 +37,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<groupId>com.fasterxml.jackson.core</groupId>
+            		<artifactId>jackson-databind</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -54,10 +60,6 @@
         </dependency>
 
 
-        <dependency>
-        	<groupId>com.google.code.gson</groupId>
-        	<artifactId>gson</artifactId>
-        </dependency>
         <dependency>
         	<groupId>org.springframework</groupId>
         	<artifactId>spring-webmvc-portlet</artifactId>
@@ -81,6 +83,16 @@
         <dependency>
         	<groupId>org.springframework.boot</groupId>
         	<artifactId>spring-boot-starter-jersey</artifactId>
+        	<exclusions>
+        		<exclusion>
+        			<groupId>com.fasterxml.jackson.core</groupId>
+        			<artifactId>jackson-databind</artifactId>
+        		</exclusion>
+        	</exclusions>
+        </dependency>
+        <dependency>
+        	<groupId>com.google.code.gson</groupId>
+        	<artifactId>gson</artifactId>
         </dependency>
     </dependencies>
 
@@ -110,7 +122,7 @@
     		<dependency>
     			<groupId>com.google.code.gson</groupId>
     			<artifactId>gson</artifactId>
-    			<version>2.3.1</version>
+    			<version>2.8.1</version>
     		</dependency>
     		<dependency>
     			<groupId>org.scala-lang</groupId>
