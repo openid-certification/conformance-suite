@@ -80,10 +80,13 @@ public class SampleTestModule implements TestModule {
 		this.eventLog = eventLog;
 		this.browser = browser;
 		
-		env.put("base_url", baseUrl);
 
 		// TODO: this is an awkward way to call this
-		expose("redirect_uri", new CreateRedirectUri().evaluate(env, id, eventLog).getString("redirect_uri"));
+		env.put("base_url", baseUrl);
+		new CreateRedirectUri().evaluate(env, id, eventLog);
+
+		// this is inserted by the create call above, expose it to the test environment
+		exposeEnvString("redirect_uri");
 		
 		this.status = Status.CONFIGURED;
 		fireSetupDone();
@@ -358,6 +361,11 @@ public class SampleTestModule implements TestModule {
 	
 	private void expose(String key, String val) {
 		exposed.put(key, val);
+	}
+	
+	private void exposeEnvString(String key) {
+		String val = env.getString(key);
+		expose(key, val);
 	}
 
 	/* (non-Javadoc)
