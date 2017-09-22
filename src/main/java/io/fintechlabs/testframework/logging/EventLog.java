@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.logging;
 
+import java.util.Map;
+
 import com.google.gson.JsonObject;
 
 /**
@@ -33,4 +35,10 @@ public interface EventLog {
 	 * @param obj The message to log
 	 */
 	void log(String source, JsonObject obj);
+
+	/**
+	 * @param src
+	 * @param of
+	 */
+	void log(String src, Map<String, String> map);
 }

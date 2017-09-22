@@ -27,7 +27,7 @@ public interface Condition {
 	 * 
 	 * Throws ConditionError when condition isn't met.
 	 */
-	Environment assertTrue(Environment in, EventLog log);
+	Environment evaluate(Environment in, String src, EventLog log);
 
 	/**
 	 * Get a printable message describing this condition.

@@ -39,8 +39,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
 
@@ -55,20 +57,17 @@ public class SampleTestModule implements TestModule {
 	private Status status = Status.UNKNOWN;
 	private JsonObject config;
 	private EventLog eventLog;
-	private List<TestModuleEventListener> listeners;
+	private List<TestModuleEventListener> listeners = new ArrayList<>();
 	private BrowserControl browser;
-	private String baseUrl;
 	private String testStateValue;
 	private Result result = Result.UNKNOWN;
 	private Map<String, String> exposed = new HashMap<>();
+	private Environment env = new Environment();
 
 	/**
 	 * 
 	 */
 	public SampleTestModule() {
-	
-		this.listeners = new ArrayList<>();
-		
 		this.status = Status.CREATED;
 	}
 
@@ -80,9 +79,11 @@ public class SampleTestModule implements TestModule {
 		this.config = config;
 		this.eventLog = eventLog;
 		this.browser = browser;
-		this.baseUrl = baseUrl;
 		
-		expose("redirect_uri", baseUrl + "/callback");
+		env.put("base_url", baseUrl);
+
+		// TODO: this is an awkward way to call this
+		expose("redirect_uri", new CreateRedirectUri().evaluate(env, id, eventLog).getString("redirect_uri"));
 		
 		this.status = Status.CONFIGURED;
 		fireSetupDone();
@@ -120,7 +121,7 @@ public class SampleTestModule implements TestModule {
 				.queryParam("client_id", "client")
 				.queryParam("response_type", "code")
 				.queryParam("state", testStateValue)
-				.queryParam("redirect_uri", baseUrl + "/callback")
+				.queryParam("redirect_uri", env.getString("redirect_uri"))
 				.build().toUriString();
 		
 		eventLog.log(getId(), "Redirecting to url" + redirectTo);
@@ -247,7 +248,7 @@ public class SampleTestModule implements TestModule {
 			form.add("grant_type", "authorization_code");
 			form.add("code", authorizationCode);
 			
-			form.add("redirect_uri", baseUrl + "/callback");
+			form.add("redirect_uri", env.getString("redirect_uri"));
 
 			// Handle Token Endpoint interaction
 

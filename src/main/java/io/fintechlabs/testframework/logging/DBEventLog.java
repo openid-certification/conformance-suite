@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.logging;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -61,6 +62,18 @@ public class DBEventLog implements EventLog {
 		DBObject dbObject = (DBObject) JSON.parse(obj.toString());
 		
 		mongoTemplate.insert(dbObject, COLLECTION);
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.util.Map)
+	 */
+	@Override
+	public void log(String source, Map<String, String> map) {
+		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map)
+				.add("src", source)
+				.add("time", new Date().getTime());
+		
+		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
 
 }
