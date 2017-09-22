@@ -102,7 +102,7 @@ function updateRunningTable() {
 					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + ' / ' + status.result + '</div>');
 					
 					// list of exposed values
-					$('#' + status.id).append('<ul>');
+					$('#' + status.id).append('<ul class="exposed">');
 					_.each(status.exposed, function(val, key) {
 		                  $('#' + status.id).append('<li><b>' + key + '<b>: <i>' + val + '</i></li>');
 					});
@@ -132,11 +132,11 @@ function updateRunningTable() {
                     });
 					
 					$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
-						$('#' + status.id).append('<ul>');
+						$('#' + status.id).append('<ul class="browser">');
 						_.each(browser.urls, function(url) {
-							$('#' + browser.id + ' ul').append('<li>');
+							$('#' + browser.id + ' ul.browser').append('<li>');
 							var link = $('<a href="#">Go to URL: ' + url + '</a>');
-							$('#' + browser.id + ' ul').append(link);
+							$('#' + browser.id + ' ul.browser').append(link);
 							link.click(function(event) {
 								event.preventDefault();
 								var win = window.open(url, '_blank');
@@ -156,7 +156,7 @@ function updateRunningTable() {
 								}
 								
 							});
-							$('#' + browser.id + ' ul').append('</li>');
+							$('#' + browser.id + ' ul.browser').append('</li>');
 						});						
 						$('#' + status.id).append('</ul>');
 					});
