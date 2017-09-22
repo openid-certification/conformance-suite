@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>HEART Test Suite</title>
+    <title>FAPI Test Suite</title>
 
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -28,7 +28,7 @@
 
       <div class="starter-template">
       
-        <h1>HEART Test Framework</h1>
+        <h1>FAPI Test Framework</h1>
 
 		<textarea id="config">{}</textarea>
 		
@@ -67,7 +67,7 @@ $(function() {
 			$('#launch-buttons').append('<button class="btn">Start: ' + testName + '</button>')
 				.click(function() {
 					console.log('Button clicked: ' + testName);
-					$.ajax({url: 'runner/start?test=' + encodeURIComponent(testName),
+					$.ajax({url: 'runner/?test=' + encodeURIComponent(testName),
 							type: 'POST',
 							contentType: 'application/json',
 							data: $('#config').val(),
@@ -95,17 +95,40 @@ function updateRunningTable() {
 			$('#running-tests').html('');
 			
 			_.each(data, function(testId) {
-				$.getJSON('runner/status/' + encodeURIComponent(testId), function(status) {
+				$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
 					console.log('displaying test: ' + status);
-					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + '</div>');
+					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + ' / ' + status.result + '</div>');
+					var start = $('<button>Start</button>');
+					$('#' + status.id).append(start);
+					start.click(function (event) {
+					    $.ajax({url: 'runner/' + encodeURIComponent(testId),
+					    	type: 'POST',
+					    	sucess: function(data, status) {
+                                console.log('Status: ', status);                                                    
+                                updateRunningTable();
+					    	}
+					    });
+					});
+					var stop = $('<button>Stop</button>');
+                    $('#' + status.id).append(stop);
+                    stop.click(function (event) {
+                        $.ajax({url: 'runner/' + encodeURIComponent(testId),
+                            type: 'DELETE',
+                            sucess: function(data, status) {
+                                console.log('Status: ', status);                                                    
+                                updateRunningTable();
+                            }
+                        });
+                    });
+					
 					$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
-						$('#' + browser.id).append('<ul>');
+						$('#' + status.id).append('<ul>');
 						_.each(browser.urls, function(url) {
-							$('#' + browser.id).append('<li><a href="#">' + url + '</a></li>').click(function(event) {
+							$('#' + browser.id + ' ul').append('<li>');
+							var link = $('<a href="#">Go to URL: ' + url + '</a>');
+							$('#' + browser.id + ' ul').append(link);
+							link.click(function(event) {
 								event.preventDefault();
-								
-								
-								
 								var win = window.open(url, '_blank');
 								
 								if (win) {
@@ -123,8 +146,9 @@ function updateRunningTable() {
 								}
 								
 							});
+							$('#' + browser.id + ' ul').append('</li>');
 						});						
-						$('#' + browser.id).append('</ul>');
+						$('#' + status.id).append('</ul>');
 					});
 				});
 			});

@@ -55,13 +55,14 @@ public class SampleTestModule implements TestModule {
 
 	public static final String name = "sample-test";
 	private String id = null;
-	private Status status;
+	private Status status = Status.UNKNOWN;
 	private JsonObject config;
 	private EventLog eventLog;
 	private List<TestModuleEventListener> listeners;
 	private BrowserControl browser;
 	private String baseUrl;
 	private String testStateValue;
+	private Result result = Result.UNKNOWN;
 
 	/**
 	 * 
@@ -158,30 +159,41 @@ public class SampleTestModule implements TestModule {
 		
 		this.status = Status.FINISHED;
 		
+		if (getResult().equals(Result.UNKNOWN)) {
+			fireInterrupted();
+		}
+		
 	}
 
 	private void fireSetupDone() {
 		for (TestModuleEventListener listener : listeners) {
 			listener.setupDone();
 		}
+		
+		eventLog.log(getId(), "Setup Done");
 	}
 	
 	private void fireTestSuccess(){
+		setResult(Result.PASSED);
 		for (TestModuleEventListener listener : listeners) {
 			listener.testSuccess();
 		}
+		eventLog.log(getId(), "Success");
 	}
 	
 	private void fireTestFailure() {
+		setResult(Result.FAILED);
 		for (TestModuleEventListener listener : listeners) {
 			listener.testFailure();
 		}
+		eventLog.log(getId(), "Failure");
 	}
 	
 	private void fireInterrupted() {
 		for (TestModuleEventListener listener : listeners) {
 			listener.interrupted();
 		}
+		eventLog.log(getId(), "Interrupted");
 	}
 
 	
@@ -326,6 +338,20 @@ public class SampleTestModule implements TestModule {
 			return null;
 		}
 			
+	}
+
+	/**
+	 * @return the result
+	 */
+	public Result getResult() {
+		return result;
+	}
+
+	/**
+	 * @param result the result to set
+	 */
+	private void setResult(Result result) {
+		this.result = result;
 	}
 
 }

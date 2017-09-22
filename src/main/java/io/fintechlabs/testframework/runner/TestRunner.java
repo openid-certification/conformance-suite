@@ -34,6 +34,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,6 +54,16 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
 /**
+ * 
+ * GET /runner/available: list of available tests
+ * GET /runner/running: list of running tests
+ * POST /runner: create test
+ * GET /runner/id: get test status
+ * POST /runner/id: start test
+ * DELETE /runner/id: cancel test
+ * GET /runner/browser/id: get front-channel external URLs
+ * POST /runner/browser/id/visit: mark front-channel external URL as visited
+ * 
  * @author jricher
  *
  */
@@ -69,12 +80,6 @@ public class TestRunner {
 	@Autowired
 	private EventLog eventLog;
 
-    @RequestMapping("/runner")
-    public String runner() {
-    	return null;
-    }
-    
-    
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> getAvailableTests(Model m) {
     	List<String> testModuleNames = getTestModuleNames();
@@ -83,8 +88,8 @@ public class TestRunner {
     }
     
     
-    @RequestMapping(value = "/runner/start", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> startTest(@RequestParam("test") String testName, @RequestBody String body, Model m) {
+    @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestBody String body, Model m) {
     	
         TestModule test = createTestModule(testName);
 
@@ -111,11 +116,6 @@ public class TestRunner {
 
         logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
-        // TODO: fire this off in a background task thread?
-        test.start();
-
-        logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
-
         Map<String, String> map = new HashMap<>();
         map.put("name", testName);
         map.put("id", test.getId());
@@ -124,8 +124,36 @@ public class TestRunner {
         return new ResponseEntity<>(map, HttpStatus.CREATED);
 
     }
+
+    @RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
+    	TestBundle bundle = runningTests.get(testId);
+    	if (bundle != null) {
+    		TestModule test = bundle.test;
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", test.getName());
+            map.put("id", test.getId());
+            map.put("status", test.getStatus());
+            map.put("result", test.getResult());
+            //map.put("expose", test.getExposed());
+
+            logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+
+            // TODO: fire this off in a background task thread?
+            test.start();
+
+            logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+
+            return new ResponseEntity<>(map, HttpStatus.OK);
+    		
+    	} else {
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    	}
+
+
+    }
     
-    @RequestMapping(value = "/runner/status/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/runner/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
@@ -139,6 +167,29 @@ public class TestRunner {
             
             return new ResponseEntity<>(map, HttpStatus.OK);
     		
+    	} else {
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    	}
+    }
+    
+    @DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> cancelTest(@PathVariable("id") String testId) {
+    	logger.info("Canceling " + testId);
+    	
+    	TestBundle bundle = runningTests.get(testId);
+    	if (bundle != null) {
+    		TestModule test = bundle.test;
+
+    		// stop the test
+    		test.stop();
+    		
+    		// return its status
+            Map<String, String> map = new HashMap<>();
+            map.put("name", test.getName());
+            map.put("id", test.getId());
+            map.put("status", test.getStatus().toString());
+            
+            return new ResponseEntity<>(map, HttpStatus.OK);
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}

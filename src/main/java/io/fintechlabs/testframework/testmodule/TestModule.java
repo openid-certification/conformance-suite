@@ -41,13 +41,15 @@ public interface TestModule {
         CONFIGURED, // configuration files have been sent and set up
         RUNNING, // test is executing
         WAITING, // test is waiting for external input
-        FINISHED // test is no longer running 
+        FINISHED, // test is no longer running
+        UNKNOWN // test status is unknown, probably an error
     }
     
     public static enum Result {
-    	PASSED, // test has passed successfully
-    	FAILED, // test has failed
-    	WARNING // test has warnings
+    	PASSED,  // test has passed successfully
+    	FAILED,  // test has failed
+    	WARNING, // test has warnings
+    	UNKNOWN  // test results not yet known, probably still running (see status)
     }
 
     /**
@@ -125,5 +127,10 @@ public interface TestModule {
             HttpSession session,
             @RequestParam MultiValueMap<String, String> params,
             Model m);
+
+	/**
+	 * @return
+	 */
+	Result getResult();
 
 }
