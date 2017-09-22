@@ -101,14 +101,13 @@ public class TestRunner {
 
         String id = RandomStringUtils.randomAlphanumeric(10);
 
-        String baseUrl = BASE_URL + TEST_PATH + testName + "/" + id;
+        String baseUrl = BASE_URL + TEST_PATH + id;
         
         BrowserControl browser = new CollectingBrowserControl();
 
         TestBundle bundle = new TestBundle();
         bundle.test = test;
         bundle.browser = browser;
-        bundle.log = eventLog;
         
         runningTests.put(id, bundle);
 
@@ -135,7 +134,7 @@ public class TestRunner {
             map.put("id", test.getId());
             map.put("status", test.getStatus());
             map.put("result", test.getResult());
-            //map.put("expose", test.getExposed());
+            map.put("exposed", test.getExposedValues());
 
             logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
@@ -154,16 +153,18 @@ public class TestRunner {
     }
     
     @RequestMapping(value = "/runner/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> getTestStatus(@PathVariable("id") String testId, Model m) {
+    public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
     	TestBundle bundle = runningTests.get(testId);
     	if (bundle != null) {
     		TestModule test = bundle.test;
-            Map<String, String> map = new HashMap<>();
+            Map<String, Object> map = new HashMap<>();
             map.put("name", test.getName());
             map.put("id", test.getId());
             map.put("status", test.getStatus().toString());
+            map.put("result", test.getResult());
+            map.put("exposed", test.getExposedValues());
             
             return new ResponseEntity<>(map, HttpStatus.OK);
     		
@@ -184,11 +185,13 @@ public class TestRunner {
     		test.stop();
     		
     		// return its status
-            Map<String, String> map = new HashMap<>();
+            Map<String, Object> map = new HashMap<>();
             map.put("name", test.getName());
             map.put("id", test.getId());
-            map.put("status", test.getStatus().toString());
-            
+            map.put("status", test.getStatus());
+            map.put("result", test.getResult());
+            map.put("exposed", test.getExposedValues());
+          
             return new ResponseEntity<>(map, HttpStatus.OK);
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -275,8 +278,7 @@ public class TestRunner {
 
         Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
 
-        String testName = pathParts.next(); // maybe used for a sanity check
-        String testId = pathParts.next(); // used to route to the right test
+        String testId = pathParts.next(); // used to route to the right test        
 
         String restOfPath = Joiner.on("/").join(pathParts);
 
@@ -295,8 +297,6 @@ public class TestRunner {
     private static class TestBundle {
     	public TestModule test;
     	public BrowserControl browser;
-    	public EventLog log;
-    	public TestModule.Result result;
     }
 
 }

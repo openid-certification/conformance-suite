@@ -98,6 +98,14 @@ function updateRunningTable() {
 				$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
 					console.log('displaying test: ' + status);
 					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + ' / ' + status.result + '</div>');
+					
+					// list of exposed values
+					$('#' + status.id).append('<ul>');
+					_.each(status.exposed, function(val, key) {
+		                  $('#' + status.id).append('<li><b>' + key + '<b>: <i>' + val + '</i></li>');
+					});
+			        $('#' + status.id).append('</ul>');
+					
 					var start = $('<button>Start</button>');
 					$('#' + status.id).append(start);
 					start.click(function (event) {

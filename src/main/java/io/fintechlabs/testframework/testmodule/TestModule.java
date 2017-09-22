@@ -13,6 +13,7 @@
  ****************************************************************************** */
 package io.fintechlabs.testframework.testmodule;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +22,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -129,8 +129,13 @@ public interface TestModule {
             Model m);
 
 	/**
-	 * @return
+	 * @return get the test results
 	 */
 	Result getResult();
+	
+	/**
+	 * @return a map of runtime values exposed by the test itself, potentially useful for calculation
+	 */
+	Map<String, String> getExposedValues();
 
 }

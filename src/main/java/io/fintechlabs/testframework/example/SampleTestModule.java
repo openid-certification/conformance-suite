@@ -14,10 +14,10 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,9 +25,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
@@ -37,7 +35,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -63,6 +60,7 @@ public class SampleTestModule implements TestModule {
 	private String baseUrl;
 	private String testStateValue;
 	private Result result = Result.UNKNOWN;
+	private Map<String, String> exposed = new HashMap<>();
 
 	/**
 	 * 
@@ -83,6 +81,9 @@ public class SampleTestModule implements TestModule {
 		this.eventLog = eventLog;
 		this.browser = browser;
 		this.baseUrl = baseUrl;
+		
+		expose("redirect_uri", baseUrl + "/callback");
+		
 		this.status = Status.CONFIGURED;
 		fireSetupDone();
 	}
@@ -352,6 +353,18 @@ public class SampleTestModule implements TestModule {
 	 */
 	private void setResult(Result result) {
 		this.result = result;
+	}
+	
+	private void expose(String key, String val) {
+		exposed.put(key, val);
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#getExposedValues()
+	 */
+	@Override
+	public Map<String, String> getExposedValues() {
+		return exposed;
 	}
 
 }
