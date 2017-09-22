@@ -32,6 +32,8 @@
 
 		<textarea id="config">{}</textarea>
 		
+		<input type="text" id="alias"></input>
+		
 		<div id="launch-buttons"></div>
 
 		<h3>Running tests</h3>
@@ -64,10 +66,10 @@ $(function() {
 		console.log('available: ', data);
 		
 		_.each(data, function(testName) {
-			$('#launch-buttons').append('<button class="btn">Start: ' + testName + '</button>')
+			$('#launch-buttons').append('<button class="btn">Create: ' + testName + '</button>')
 				.click(function() {
 					console.log('Button clicked: ' + testName);
-					$.ajax({url: 'runner/?test=' + encodeURIComponent(testName),
+					$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
 							type: 'POST',
 							contentType: 'application/json',
 							data: $('#config').val(),

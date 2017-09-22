@@ -13,6 +13,7 @@
  ****************************************************************************** */
 package io.fintechlabs.testframework.runner;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,9 +42,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -75,7 +78,12 @@ public class TestRunner {
 
 	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
     
+	// collection of all currently running tests
 	private Map<String, TestBundle> runningTests = new HashMap<>();
+	
+	// collection of aliases assigned to tests
+	private Map<String, String> aliases = new HashMap<>();
+	
 	
 	@Autowired
 	private EventLog eventLog;
@@ -89,10 +97,12 @@ public class TestRunner {
     
     
     @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestBody String body, Model m) {
+    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, 
+    		@RequestParam("alias") String alias,
+    		@RequestBody String body, Model m) {
     	
         TestModule test = createTestModule(testName);
-
+        
         logger.info("Created: " + testName);
 
         logger.info("Status of " + testName + ": " + test.getStatus());
@@ -101,8 +111,6 @@ public class TestRunner {
 
         String id = RandomStringUtils.randomAlphanumeric(10);
 
-        String baseUrl = BASE_URL + TEST_PATH + id;
-        
         BrowserControl browser = new CollectingBrowserControl();
 
         TestBundle bundle = new TestBundle();
@@ -110,6 +118,26 @@ public class TestRunner {
         bundle.browser = browser;
         
         runningTests.put(id, bundle);
+
+        String baseUrl;
+        if (!Strings.isNullOrEmpty(alias)) {
+        	try {
+	        	// create an alias for the test
+	        	if (!createTestAlias(alias, id)) {
+	        		// there was a failure in creating the test alias, return an error
+	        		return new ResponseEntity<>(HttpStatus.CONFLICT);
+	        	}
+				baseUrl = BASE_URL + TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				// this should never happen, why is Java dumb
+				e.printStackTrace();
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+        } else {
+            baseUrl = BASE_URL + TEST_PATH + id;
+        }
+        
 
         test.configure(config, eventLog, id, browser, baseUrl);
 
@@ -124,7 +152,31 @@ public class TestRunner {
 
     }
 
-    @RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    /**
+	 * @param alias
+	 * @param id
+	 * @return
+	 */
+	private boolean createTestAlias(String alias, String id) {
+		// first see if the alias is already in use
+		if (aliases.containsKey(alias)) {
+			// find the test that has the alias
+			String existingId = aliases.get(alias);
+			TestBundle bundle = runningTests.get(existingId);
+
+			if (bundle != null) {
+				// TODO: make the override configurable to allow for conflict of re-used aliases
+				
+				bundle.test.stop(); // stop the currently-running test
+			}
+		}
+		
+		aliases.put(alias, id);
+		return true;
+	}
+
+
+	@RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
     	TestBundle bundle = runningTests.get(testId);
     	if (bundle != null) {
@@ -162,7 +214,7 @@ public class TestRunner {
             Map<String, Object> map = new HashMap<>();
             map.put("name", test.getName());
             map.put("id", test.getId());
-            map.put("status", test.getStatus().toString());
+            map.put("status", test.getStatus());
             map.put("result", test.getResult());
             map.put("exposed", test.getExposedValues());
             
@@ -278,16 +330,27 @@ public class TestRunner {
 
         Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
 
-        String testId = pathParts.next(); // used to route to the right test        
+        String testId = pathParts.next(); // used to route to the right test
+
+        if (testId.equals("a")) {
+        	// it's an aliased test, look it up
+        	String alias = pathParts.next();
+        	if (!aliases.containsKey(alias)) {
+        		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        	}
+        	testId = aliases.get(alias);
+        }
 
         String restOfPath = Joiner.on("/").join(pathParts);
 
+        if (!runningTests.containsKey(testId)) {
+    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
     	TestBundle bundle = runningTests.get(testId);
     	if (bundle != null) {
     		TestModule test = bundle.test;
         
-    		//TODO: ensure test name matches for sanity check
-
     		return test.handleHttp(restOfPath, req, res, session, params, m);
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);

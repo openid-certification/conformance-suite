@@ -134,7 +134,8 @@ public interface TestModule {
 	Result getResult();
 	
 	/**
-	 * @return a map of runtime values exposed by the test itself, potentially useful for calculation
+	 * @return a map of runtime values exposed by the test itself, potentially useful for configuration
+	 * of external entities.
 	 */
 	Map<String, String> getExposedValues();
 
