@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.example;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -35,15 +36,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.google.common.base.Splitter;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.GetServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModuleConfiguration;
 import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
 
 /**
@@ -53,16 +57,16 @@ import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
 public class SampleTestModule implements TestModule {
 
 	public static final String name = "sample-test";
-	private String id = null;
-	private Status status = Status.UNKNOWN;
-	private JsonObject config;
+	private String id = null; // unique identifier for the test, set from the outside
+	private Status status = Status.UNKNOWN; // current status of the test
+	private Result result = Result.UNKNOWN; // results of running the test
+	private TestModuleConfiguration config; // configuration, passed in from the outside as a JSON object
 	private EventLog eventLog;
 	private List<TestModuleEventListener> listeners = new ArrayList<>();
 	private BrowserControl browser;
 	private String testStateValue;
-	private Result result = Result.UNKNOWN;
-	private Map<String, String> exposed = new HashMap<>();
-	private Environment env = new Environment();
+	private Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
+	private Environment env = new Environment(); // keeps track of values at runtime
 
 	/**
 	 * 
@@ -76,14 +80,14 @@ public class SampleTestModule implements TestModule {
 	 */
 	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl) {
 		this.id = id;
-		this.config = config;
+		this.config = new TestModuleConfiguration(config);
 		this.eventLog = eventLog;
 		this.browser = browser;
 		
 
 		// TODO: this is an awkward way to call this
 		env.put("base_url", baseUrl);
-		new CreateRedirectUri().evaluate(env, id, eventLog);
+		env = new CreateRedirectUri().evaluate(env, id, eventLog);
 
 		// this is inserted by the create call above, expose it to the test environment
 		exposeEnvString("redirect_uri");
@@ -116,6 +120,10 @@ public class SampleTestModule implements TestModule {
 		}
 		
 		this.status = Status.RUNNING;
+		
+		// see if we're doing auto discovery or not
+		env.put("server", config.findElement("server").getAsJsonObject());
+		env = new GetServerConfiguration().evaluate(env, id, eventLog);
 		
 		this.testStateValue = RandomStringUtils.randomAlphanumeric(10);
 		
