@@ -54,7 +54,7 @@ public class LogApi {
 	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id) {
 		
 		List<DBObject> results = mongoTemplate.getCollection("EVENT_LOG").find(BasicDBObjectBuilder.start()
-				.add("src", id)
+				.add("testId", id)
 				.get())
 			.sort(BasicDBObjectBuilder.start()
 					.add("time", 1)

@@ -14,17 +14,17 @@
 
 package io.fintechlabs.testframework.condition;
 
-import org.assertj.core.util.Strings;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractCondition;
-import io.fintechlabs.testframework.testmodule.ConditionError;
 import io.fintechlabs.testframework.testmodule.Environment;
-import io.fintechlabs.testframework.testmodule.TestModuleConfiguration;
 
 /**
  * @author jricher
@@ -32,54 +32,69 @@ import io.fintechlabs.testframework.testmodule.TestModuleConfiguration;
  */
 public class GetServerConfiguration extends AbstractCondition {
 
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public GetServerConfiguration(String testId, EventLog log) {
+		super(testId, log);
+		// TODO Auto-generated constructor stub
+	}
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment, java.lang.String, io.fintechlabs.testframework.logging.EventLog)
 	 */
 	@Override
-	public Environment evaluate(Environment in, String src, EventLog log) {
+	public Environment evaluate(Environment in) {
 		
-		if (!in.containsKey("server")) {
-			throw new ConditionError(this, "Couldn't find a server configuration");
+		if (!in.containsObj("config")) {
+			throwError("Couldn't find a configuration");
+			return null; // never reached
 		}
 		
-		TestModuleConfiguration conf = new TestModuleConfiguration(in.get("server"));
-		
 		// get out the server configuration component
-		if (!Strings.isNullOrEmpty(conf.getString("discoveryUrl"))) {
+		if (!Strings.isNullOrEmpty(in.getString("config", "server.discoveryUrl"))) {
 			// do an auto-discovery here
 			
-			String discoveryUrl = conf.getString("discoveryUrl");
+			String discoveryUrl = in.getString("config", "server.discoveryUrl");
 			
 			RestTemplate restTemplate = new RestTemplate();
 			
-			// construct the well-known URI
+			// TODO: construct the well-known URI if needed from the issuer field
 			//String url = issuer + "/.well-known/openid-configuration";
 
 			// fetch the value
 			String jsonString = restTemplate.getForObject(discoveryUrl, String.class);
-			
+
+			log(ImmutableMap.of("msg", "Downloaded server configuration", 
+					"server_config_string", jsonString));
+
 			if (!Strings.isNullOrEmpty(jsonString)) {
-				JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
-				
-				// get the server information  that we were passed in
-				JsonObject passedIn = in.get("server");
-				
-				// copy over everything new that we've seen
-				for (String key : serverConfig.keySet()) {
-					passedIn.add(key, serverConfig.get(key));
+				try {
+					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
+					
+					log("Successfully parsed server configuration"); // TODO: add in the parsed serverConfig object to the log
+					
+					in.put("server", serverConfig);
+					
+					logSuccess();
+					return in;
+				} catch (JsonSyntaxException e) {
+					throwError(e);
+					return null; // never reached
 				}
 				
-				in.put("server", passedIn);
-				return in;
 				
 			} else {
-				throw new ConditionError(this, "empty server configuration");
+				throwError("empty server configuration");
+				return null; // never reached
 			}
 			
 		} else {
 			// check for manual configuration here
 			// TODO!
-			throw new ConditionError(this, "Static configuration not yet implemented");
+			throwError("Static configuration not yet implemented");
+			return null; // never reached
 		}
 
 		

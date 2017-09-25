@@ -16,7 +16,6 @@ package io.fintechlabs.testframework.example;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +35,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.base.Splitter;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -47,7 +45,6 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.TestModule;
-import io.fintechlabs.testframework.testmodule.TestModuleConfiguration;
 import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
 
 /**
@@ -60,7 +57,6 @@ public class SampleTestModule implements TestModule {
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
-	private TestModuleConfiguration config; // configuration, passed in from the outside as a JSON object
 	private EventLog eventLog;
 	private List<TestModuleEventListener> listeners = new ArrayList<>();
 	private BrowserControl browser;
@@ -80,14 +76,14 @@ public class SampleTestModule implements TestModule {
 	 */
 	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl) {
 		this.id = id;
-		this.config = new TestModuleConfiguration(config);
 		this.eventLog = eventLog;
 		this.browser = browser;
 		
+		env.putString("base_url", baseUrl);
+		env.put("config", config);
 
 		// TODO: this is an awkward way to call this
-		env.put("base_url", baseUrl);
-		env = new CreateRedirectUri().evaluate(env, id, eventLog);
+		env = new CreateRedirectUri(id, eventLog).evaluate(env);
 
 		// this is inserted by the create call above, expose it to the test environment
 		exposeEnvString("redirect_uri");
@@ -122,8 +118,7 @@ public class SampleTestModule implements TestModule {
 		this.status = Status.RUNNING;
 		
 		// see if we're doing auto discovery or not
-		env.put("server", config.findElement("server").getAsJsonObject());
-		env = new GetServerConfiguration().evaluate(env, id, eventLog);
+		env = new GetServerConfiguration(id, eventLog).evaluate(env);
 		
 		this.testStateValue = RandomStringUtils.randomAlphanumeric(10);
 		
@@ -135,7 +130,7 @@ public class SampleTestModule implements TestModule {
 				.queryParam("redirect_uri", env.getString("redirect_uri"))
 				.build().toUriString();
 		
-		eventLog.log(getId(), "Redirecting to url" + redirectTo);
+		eventLog.log(getId(), getName(), "Redirecting to url" + redirectTo);
 
 		browser.goToUrl(redirectTo);
 		
@@ -168,7 +163,7 @@ public class SampleTestModule implements TestModule {
 	@Override
 	public void stop() {
 
-		eventLog.log(getId(), "Finsihed");
+		eventLog.log(getId(), getName(), "Finsihed");
 		
 		this.status = Status.FINISHED;
 		
@@ -183,7 +178,7 @@ public class SampleTestModule implements TestModule {
 			listener.setupDone();
 		}
 		
-		eventLog.log(getId(), "Setup Done");
+		eventLog.log(getId(), getName(), "Setup Done");
 	}
 	
 	private void fireTestSuccess(){
@@ -191,7 +186,7 @@ public class SampleTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.testSuccess();
 		}
-		eventLog.log(getId(), "Success");
+		eventLog.log(getId(), getName(), "Success");
 	}
 	
 	private void fireTestFailure() {
@@ -199,14 +194,14 @@ public class SampleTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.testFailure();
 		}
-		eventLog.log(getId(), "Failure");
+		eventLog.log(getId(), getName(), "Failure");
 	}
 	
 	private void fireInterrupted() {
 		for (TestModuleEventListener listener : listeners) {
 			listener.interrupted();
 		}
-		eventLog.log(getId(), "Interrupted");
+		eventLog.log(getId(), getName(), "Interrupted");
 	}
 
 	
@@ -224,8 +219,8 @@ public class SampleTestModule implements TestModule {
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
 
-		eventLog.log(getId(), "Path: " + path);
-		eventLog.log(getId(), "Params: " + params);
+		eventLog.log(getId(), getName(), "Path: " + path);
+		eventLog.log(getId(), getName(), "Params: " + params);
 		
 		// dispatch based on the path
 		if (path.equals("callback")) {
@@ -282,18 +277,18 @@ public class SampleTestModule implements TestModule {
 
 				// Handle error
 
-				eventLog.log(getId(), "Token Endpoint error response:  " + e.getMessage());
+				eventLog.log(getId(), getName(), "Token Endpoint error response:  " + e.getMessage());
 
 				this.status = Status.FINISHED;
 				fireTestFailure();
 				return new ModelAndView("complete");
 			}
 
-			eventLog.log(getId(), "from TokenEndpoint jsonString = " + jsonString);
+			eventLog.log(getId(), getName(), "from TokenEndpoint jsonString = " + jsonString);
 
 			JsonElement jsonRoot = new JsonParser().parse(jsonString);
 			if (!jsonRoot.isJsonObject()) {
-				eventLog.log(getId(), "Token Endpoint did not return a JSON object: " + jsonRoot);
+				eventLog.log(getId(), getName(), "Token Endpoint did not return a JSON object: " + jsonRoot);
 				this.status = Status.FINISHED;
 				fireTestFailure();
 				return null;
@@ -307,7 +302,7 @@ public class SampleTestModule implements TestModule {
 
 				String error = tokenResponse.get("error").getAsString();
 
-				eventLog.log(getId(), "Token Endpoint returned: " + error);
+				eventLog.log(getId(), getName(), "Token Endpoint returned: " + error);
 
 				this.status = Status.FINISHED;
 				fireTestFailure();
@@ -322,7 +317,7 @@ public class SampleTestModule implements TestModule {
 				if (tokenResponse.has("access_token")) {
 					accessTokenValue = tokenResponse.get("access_token").getAsString();
 				} else {
-					eventLog.log(getId(), "Token Endpoint did not return an access_token: " + jsonString);
+					eventLog.log(getId(), getName(), "Token Endpoint did not return an access_token: " + jsonString);
 					this.status = Status.FINISHED;
 					fireTestFailure();
 
@@ -331,21 +326,21 @@ public class SampleTestModule implements TestModule {
 				if (tokenResponse.has("id_token")) {
 					idTokenValue = tokenResponse.get("id_token").getAsString();
 				} else {
-					eventLog.log(getId(), "Token Endpoint did not return an id_token");
+					eventLog.log(getId(), getName(), "Token Endpoint did not return an id_token");
 				}
 
 				if (tokenResponse.has("refresh_token")) {
 					refreshTokenValue = tokenResponse.get("refresh_token").getAsString();
 				}
 				
-				eventLog.log(getId(), refreshTokenValue);
+				eventLog.log(getId(), getName(), refreshTokenValue);
 				this.status = Status.FINISHED;
 				fireTestSuccess();
 				return new ModelAndView("/complete.html");
 			}	
 		} else {
 			// no state value
-			eventLog.log(getId(), "State value mismatch");
+			eventLog.log(getId(), getName(), "State value mismatch");
 			fireTestFailure();
 			this.status = Status.FINISHED;
 			return null;

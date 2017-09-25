@@ -23,28 +23,40 @@ import io.fintechlabs.testframework.testmodule.ConditionError;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
+ * Creates a callback URL based on the base_url environment value
+ * 
+ * 
  * @author jricher
  *
  */
 public class CreateRedirectUri extends AbstractCondition {
 
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public CreateRedirectUri(String testId, EventLog log) {
+		super(testId, log);
+		// TODO Auto-generated constructor stub
+	}
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
 	 */
 	@Override
-	public Environment evaluate(Environment in, String src, EventLog log) {
+	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
 		
 		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw new ConditionError(this, "Base URL was null or empty");
+			throwError("Base URL was null or empty");
 		}
 		
 		// calculate the redirect URI based on our given base URL
 		String redirectUri = baseUrl + "/callback";
-		in.put("redirect_uri", redirectUri);
+		in.putString("redirect_uri", redirectUri);
 		
-		log.log(src, ImmutableMap.of("msg", "Created redirect URI", 
-				"redirec_uri", redirectUri));
+		log(ImmutableMap.of("msg", "Created redirect URI", 
+				"redirect_uri", redirectUri));
 		
 		return in;
 	}

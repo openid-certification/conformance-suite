@@ -27,11 +27,6 @@ public interface Condition {
 	 * 
 	 * Throws ConditionError when condition isn't met.
 	 */
-	Environment evaluate(Environment in, String src, EventLog log);
+	Environment evaluate(Environment in);
 
-	/**
-	 * Get a printable message describing this condition.
-	 */
-	String getMessage();
-	
 }

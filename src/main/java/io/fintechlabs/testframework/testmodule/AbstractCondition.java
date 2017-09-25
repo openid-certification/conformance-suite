@@ -14,28 +14,89 @@
 
 package io.fintechlabs.testframework.testmodule;
 
+import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.TestModule.Result;
 
 /**
  * @author jricher
  *
  */
 public abstract class AbstractCondition implements Condition {
+	
+	private String testId;
+	private EventLog log;
+	
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public AbstractCondition(String testId, EventLog log) {
+		this.testId = testId;
+		this.log = log;
+	}
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.Condition#getMessage()
 	 */
-	@Override
 	public String getMessage() {
 		return this.getClass().getSimpleName();
 	}
 
+	/*
+	 * Logging utilities
+	 */
 	
-	protected void logEvent(EventLog log, String source, JsonObject event) {
-		event.addProperty("condition", getMessage());
-		log.log(source, event);
+	protected void log(JsonObject obj) {
+		log.log(testId, getMessage(), obj);
 	}
 	
+	protected void log(String msg) {
+		log.log(testId, getMessage(), msg);
+	}
+	
+	protected void log(Map<String, String> map) {
+		log.log(testId, getMessage(), map);
+	}
+	
+	protected void logSuccess() {
+		log(ImmutableMap.of("result", "SUCCESS"));
+	}
+
+	protected void logFailure() {
+		log(ImmutableMap.of("result", "FAILURE"));
+	}
+	
+	protected void logFailure(String msg) {
+		log(ImmutableMap.of("msg", msg, "result", "FAILURE"));
+	}
+
+	/*
+	 * Error utilities
+	 */
+
+	protected void throwError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		logFailure(message);
+		throw new ConditionError(testId, getMessage() + ": " + message, cause, enableSuppression, writableStackTrace);
+	}
+
+	protected void throwError(String message, Throwable cause) {
+		logFailure(message);
+		throw new ConditionError(testId, getMessage() + ": " + message, cause);
+	}
+
+	protected void throwError(String message) {
+		logFailure(message);
+		throw new ConditionError(testId, getMessage() + ": " + message);
+	}
+
+	protected void throwError(Throwable cause) {
+		logFailure();
+		throw new ConditionError(testId, getMessage(), cause);
+	}
 }

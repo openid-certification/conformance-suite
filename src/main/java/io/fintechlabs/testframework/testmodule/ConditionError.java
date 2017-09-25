@@ -21,6 +21,8 @@ package io.fintechlabs.testframework.testmodule;
 public class ConditionError extends RuntimeException {
 
 	private static final long serialVersionUID = 6331346678545936565L;
+	
+	private String testId;
 
 	/**
 	 * @param message
@@ -28,36 +30,33 @@ public class ConditionError extends RuntimeException {
 	 * @param enableSuppression
 	 * @param writableStackTrace
 	 */
-	public ConditionError(Condition source, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(source.getMessage() + ": " + message, cause, enableSuppression, writableStackTrace);
-		// TODO Auto-generated constructor stub
+	public ConditionError(String testId, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+		this.testId = testId;
 	}
 
 	/**
 	 * @param message
 	 * @param cause
 	 */
-	public ConditionError(Condition source, String message, Throwable cause) {
-		super(source.getMessage() + ": "  + message, cause);
-		// TODO Auto-generated constructor stub
+	public ConditionError(String testId, String message, Throwable cause) {
+		super(message, cause);
+		this.testId = testId;
 	}
 
 	/**
 	 * @param message
 	 */
-	public ConditionError(Condition source, String message) {
-		super(source.getMessage() + ": "  + message);
-		// TODO Auto-generated constructor stub
+	public ConditionError(String testId, String message) {
+		super(message);
+		this.testId = testId;
 	}
 
 	/**
-	 * @param cause
+	 * @return the testId
 	 */
-	public ConditionError(Condition source, Throwable cause) {
-		super(source.getMessage() + ": "  + cause);
-		// TODO Auto-generated constructor stub
+	public String getTestId() {
+		return testId;
 	}
 
-	
-	
 }

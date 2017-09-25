@@ -15,29 +15,40 @@
 package io.fintechlabs.testframework.testmodule;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
+ * 
+ * This object stores JSON indexed by strings. Furthermore, the JSON can be indexed by foo.bar.baz selectors. 
  * 
  * @author jricher
  *
  */
 public class Environment {
 
-	private Map<String, JsonObject> store = new HashMap<>();
+	private static final String STRING_VALUES = "_STRING_VALUES";
+	private Map<String, JsonObject> store = Maps.newHashMap(
+			ImmutableMap.of(STRING_VALUES, new JsonObject())); // make sure we start with a place to put the string values
 
 	/**
-	 * @param key
+	 * Look to see if the JSON object is in this environment
+	 * 
+	 * @param objId
 	 * @return
 	 * @see java.util.Map#containsKey(java.lang.Object)
 	 */
-	public boolean containsKey(String key) {
-		return store.containsKey(key);
+	public boolean containsObj(String objId) {
+		return store.containsKey(objId);
 	}
-
+	
 	/**
 	 * @param key
 	 * @return
@@ -53,17 +64,7 @@ public class Environment {
 	 * @return
 	 */
 	public String getString(String key) {
-		JsonObject o = get(key);
-		if (o != null) {
-			if (o.has("val")) {
-				if (o.get("val").isJsonPrimitive()) {
-					return o.get("val").getAsString();
-				}
-			}
-		}
-		
-		// otherwise, return null
-		return null;
+		return getString(STRING_VALUES, key);
 	}
 	
 	/**
@@ -82,11 +83,82 @@ public class Environment {
 	 * @param value
 	 * @return
 	 */
-	public JsonObject put(String key, String value) {
-		JsonObject o = new JsonObject();
-		o.addProperty("val", value);
-		return put(key, o);
+	public JsonObject putString(String key, String value) {
+		JsonObject o = get(STRING_VALUES);
+		o.addProperty(key, value);
+		return o;
+	}
+
+	/**
+	 * Search the environment for a key with lookup values separated by ".", so "foo.bar.baz" is found in:
+	 * 
+	 * {
+	 *  foo: { 
+	 *    bar: { 
+	 *      baz: "value" 
+	 *    } 
+	 *  } 
+	 * }
+	 *  
+	 * @param path
+	 */
+	public String getString(String objId, String path) {
+		JsonElement e = findElement(objId, path);
+
+		if (e != null) {
+			if (e.isJsonPrimitive()) {
+				return e.getAsString();
+			} else {
+				// it wasn't a primitive
+				return null;
+			}
+		} else {
+			// we didn't find it
+			return null;
+		}
 	}
 	
+	
+	public JsonElement findElement(String objId, String path) {
+	
+		//
+		// TODO: memoize this lookup for efficiency
+		// 
+		
+		// start at the top
+		JsonElement e = get(objId);
+		
+		if (e == null) {
+			return null;
+		}
+		
+		Iterable<String> parts = Splitter.on('.').split(path);
+		Iterator<String> it = parts.iterator();
+
+		while (it.hasNext()) {
+			String p = it.next();
+			if (e.isJsonObject()) {
+				JsonObject o = e.getAsJsonObject();
+				if (o.has(p)) {
+					e = o.get(p); // found the next level
+					if (!it.hasNext()) {
+						// we've reached a leaf at the right part of the key, return what we found
+						return e;
+					}
+				} else {
+					// didn't find it, stop processing
+					break;
+				}
+			} else {
+				// didn't find it, stop processing
+				break;
+			}
+		}
+
+		// didn't find it
+		return null;
+		
+	}
+
 	
 }

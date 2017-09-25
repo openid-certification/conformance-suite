@@ -42,8 +42,9 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String)
 	 */
 	@Override
-	public void log(String source, String msg) {
+	public void log(String testId, String source, String msg) {
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
+				.add("testId", testId)
 				.add("src", source)
 				.add("time", new Date().getTime())
 				.add("msg", msg);
@@ -55,7 +56,8 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, com.google.gson.JsonObject)
 	 */
 	@Override
-	public void log(String source, JsonObject obj) {
+	public void log(String testId, String source, JsonObject obj) {
+		obj.addProperty("testId", testId);
 		obj.addProperty("src", source);
 		obj.addProperty("time", new Date().getTime());
 
@@ -68,8 +70,9 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.util.Map)
 	 */
 	@Override
-	public void log(String source, Map<String, String> map) {
+	public void log(String testId, String source, Map<String, String> map) {
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map)
+				.add("testId", testId)
 				.add("src", source)
 				.add("time", new Date().getTime());
 		

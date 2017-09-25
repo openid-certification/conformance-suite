@@ -36,11 +36,13 @@ import org.springframework.ui.Model;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.util.UriUtils;
 
@@ -54,6 +56,7 @@ import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.ConditionError;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
 /**
@@ -308,6 +311,34 @@ public class TestRunner {
     	return ImmutableList.of(SampleTestModule.name);
     }
     
+    
+    // handle errors thrown by running tests
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Condition failure")
+    @ExceptionHandler(ConditionError.class)
+    public void conditionFailure(ConditionError error) {
+    	try {
+	    	TestBundle bundle = runningTests.get(error.getTestId());
+	    	if (bundle != null && bundle.test != null) {
+	    		logger.error("Caught an error while running the test, stopping the test", error);
+	    		bundle.test.stop();
+	    	}
+    	} catch (Exception e) {
+    		logger.error("Something terrible happened when handling an error, I give up", e);
+    	} finally {
+
+    	}
+    }
+    
+    /**
+     * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
+     * This requests may or may not be user-facing so we don't assume anything about the response.
+     * @param req
+     * @param res
+     * @param session
+     * @param params
+     * @param m
+     * @return
+     */
     @RequestMapping(TEST_PATH + "**")
     public Object handle(
             HttpServletRequest req, HttpServletResponse res,
