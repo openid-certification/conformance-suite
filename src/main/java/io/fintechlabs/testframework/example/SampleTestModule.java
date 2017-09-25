@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.example;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,8 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
@@ -43,6 +46,8 @@ import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.GetServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.Condition;
+import io.fintechlabs.testframework.testmodule.ConditionError;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
@@ -53,6 +58,8 @@ import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
  */
 public class SampleTestModule implements TestModule {
 
+	private static Logger logger = LoggerFactory.getLogger(SampleTestModule.class); 
+	
 	public static final String name = "sample-test";
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
@@ -81,15 +88,39 @@ public class SampleTestModule implements TestModule {
 		
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-
-		// TODO: this is an awkward way to call this
-		env = new CreateRedirectUri(id, eventLog).evaluate(env);
-
-		// this is inserted by the create call above, expose it to the test environment
-		exposeEnvString("redirect_uri");
 		
+		evaluate(CreateRedirectUri.class);
+
+		// this is inserted by the create call above, expose it to the test environment for publication
+		exposeEnvString("redirect_uri");
+
+		// Make sure we're calling the right server configuration
+		evaluate(GetServerConfiguration.class);
+
 		this.status = Status.CONFIGURED;
 		fireSetupDone();
+	}
+
+	/**
+	 * @param class1
+	 */
+	private void evaluate(Class<? extends Condition> conditionClass) {
+		try {
+			
+			// create a new condition object from the class above
+			Condition condition = conditionClass
+				.getDeclaredConstructor(String.class, EventLog.class)
+				.newInstance(id, eventLog);
+
+			// evaluate the condition and assign its results back to our environment
+			env = condition.evaluate(env);
+			
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logger.error("Couldn't create required condition object", e);
+		} catch (ConditionError error) {
+			logger.info("Test condition failure", error);
+			fireTestFailure();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -116,9 +147,6 @@ public class SampleTestModule implements TestModule {
 		}
 		
 		this.status = Status.RUNNING;
-		
-		// see if we're doing auto discovery or not
-		env = new GetServerConfiguration(id, eventLog).evaluate(env);
 		
 		this.testStateValue = RandomStringUtils.randomAlphanumeric(10);
 		
