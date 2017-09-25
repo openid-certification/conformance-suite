@@ -42,7 +42,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.GetClientConfiguration;
 import io.fintechlabs.testframework.condition.GetServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -67,7 +70,6 @@ public class SampleTestModule implements TestModule {
 	private EventLog eventLog;
 	private List<TestModuleEventListener> listeners = new ArrayList<>();
 	private BrowserControl browser;
-	private String testStateValue;
 	private Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	private Environment env = new Environment(); // keeps track of values at runtime
 
@@ -96,13 +98,21 @@ public class SampleTestModule implements TestModule {
 
 		// Make sure we're calling the right server configuration
 		evaluate(GetServerConfiguration.class);
+		
+		// make sure the server configuration passes some basic sanity checks
+		evaluate(CheckServerConfiguration.class);
+		
+		// Set up the client configuration
+		evaluate(GetClientConfiguration.class);
+		
+		exposeEnvString("client_id");
 
 		this.status = Status.CONFIGURED;
 		fireSetupDone();
 	}
 
 	/**
-	 * @param class1
+	 * @param conditionClass the condition to create and evaluate
 	 */
 	private void evaluate(Class<? extends Condition> conditionClass) {
 		try {
@@ -148,15 +158,12 @@ public class SampleTestModule implements TestModule {
 		
 		this.status = Status.RUNNING;
 		
-		this.testStateValue = RandomStringUtils.randomAlphanumeric(10);
+		env.putString("state", RandomStringUtils.randomAlphanumeric(10));
+		exposeEnvString("state");
 		
-		// send a front channel request to start things off
-		String redirectTo = UriComponentsBuilder.fromHttpUrl("https://mitreid.org/authorize")
-				.queryParam("client_id", "client")
-				.queryParam("response_type", "code")
-				.queryParam("state", testStateValue)
-				.queryParam("redirect_uri", env.getString("redirect_uri"))
-				.build().toUriString();
+		evaluate(BuildPlainRedirectToAuthorizationEndpoint.class);
+		
+		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
 		eventLog.log(getId(), getName(), "Redirecting to url" + redirectTo);
 
@@ -274,7 +281,7 @@ public class SampleTestModule implements TestModule {
 		// process the callback
 		this.status = Status.RUNNING;
 		
-		if (params.containsKey("state") && params.getFirst("state").equals(testStateValue)) {
+		if (params.containsKey("state") && params.getFirst("state").equals(env.getString("state"))) {
 
 			String authorizationCode = params.getFirst("code");
 			
