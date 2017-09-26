@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
@@ -63,7 +64,13 @@ public class GetServerConfiguration extends AbstractCondition {
 			//String url = issuer + "/.well-known/openid-configuration";
 
 			// fetch the value
-			String jsonString = restTemplate.getForObject(discoveryUrl, String.class);
+			String jsonString;
+			try {
+				jsonString = restTemplate.getForObject(discoveryUrl, String.class);
+			} catch (RestClientResponseException e) {
+				throwError("Unable to fetch server configuration from " + discoveryUrl, e);
+				return null;
+			}
 
 			log(ImmutableMap.of("msg", "Downloaded server configuration", 
 					"server_config_string", jsonString));

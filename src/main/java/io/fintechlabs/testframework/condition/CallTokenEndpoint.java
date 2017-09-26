@@ -24,7 +24,7 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
@@ -98,9 +98,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 
 		try {
 			jsonString = restTemplate.postForObject(env.getString("server", "token_endpoint"), form, String.class);
-		} catch (RestClientException e) {
-
-			log("Token endpoint error: " + e.getMessage());
+		} catch (RestClientResponseException e) {
 
 			throwError("Error from the token endpoint", e);
 			return null;

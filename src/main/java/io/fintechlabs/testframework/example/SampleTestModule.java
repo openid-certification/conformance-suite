@@ -53,6 +53,7 @@ import io.fintechlabs.testframework.condition.GetServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
 
@@ -92,19 +93,19 @@ public class SampleTestModule implements TestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		evaluate(CreateRedirectUri.class);
+		require(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		evaluate(GetServerConfiguration.class);
+		require(GetServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
-		evaluate(CheckServerConfiguration.class);
+		require(CheckServerConfiguration.class);
 		
 		// Set up the client configuration
-		evaluate(GetClientConfiguration.class);
+		require(GetClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -115,7 +116,7 @@ public class SampleTestModule implements TestModule {
 	/**
 	 * @param conditionClass the condition to create and evaluate
 	 */
-	private void evaluate(Class<? extends Condition> conditionClass) {
+	private void require(Class<? extends Condition> conditionClass) {
 		try {
 			
 			// create a new condition object from the class above
@@ -131,8 +132,29 @@ public class SampleTestModule implements TestModule {
 		} catch (ConditionError error) {
 			logger.info("Test condition failure", error);
 			fireTestFailure();
+			throw new TestFailureException(error);
 		}
 	}
+	
+	private void optional(Class<? extends Condition> conditionClass) {
+		try {
+			
+			// create a new condition object from the class above
+			Condition condition = conditionClass
+				.getDeclaredConstructor(String.class, EventLog.class)
+				.newInstance(id, eventLog);
+
+			// evaluate the condition and assign its results back to our environment
+			env = condition.evaluate(env);
+			
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logger.error("Couldn't create required condition object", e);
+		} catch (ConditionError error) {
+			logger.info("Ignoring optional condition failure", error);
+		}
+	}
+	
+	
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#getId()
@@ -162,7 +184,7 @@ public class SampleTestModule implements TestModule {
 		env.putString("state", RandomStringUtils.randomAlphanumeric(10));
 		exposeEnvString("state");
 		
-		evaluate(BuildPlainRedirectToAuthorizationEndpoint.class);
+		require(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
@@ -283,23 +305,25 @@ public class SampleTestModule implements TestModule {
 		this.status = Status.RUNNING;
 		
 		env.put("callback_params", mapToJsonObject(params));
-		evaluate(CheckIfAuthorizationEndpointError.class);
+		require(CheckIfAuthorizationEndpointError.class);
 		
-		evaluate(CheckMatchingStateParameter.class);
+		require(CheckMatchingStateParameter.class);
 
-		evaluate(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		
-		evaluate(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 		
-		evaluate(AddFormBasedClientSecretAuthenticationParameters.class);
+		require(AddFormBasedClientSecretAuthenticationParameters.class);
 		
-		evaluate(CallTokenEndpoint.class);
+		require(CallTokenEndpoint.class);
 
-		evaluate(CheckIfTokenEndpointResponseError.class);
+		require(CheckIfTokenEndpointResponseError.class);
 
-		evaluate(CheckForAccessTokenValue.class);
-		evaluate(CheckForIdTokenValue.class);
-		evaluate(CheckForRefreshTokenValue.class);
+		require(CheckForAccessTokenValue.class);
+		
+		optional(CheckForIdTokenValue.class);
+		
+		optional(CheckForRefreshTokenValue.class);
 		
 		this.status = Status.FINISHED;
 		fireTestSuccess();

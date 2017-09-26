@@ -53,10 +53,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
 /**
@@ -314,8 +314,8 @@ public class TestRunner {
     
     // handle errors thrown by running tests
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Condition failure")
-    @ExceptionHandler(ConditionError.class)
-    public void conditionFailure(ConditionError error) {
+    @ExceptionHandler(TestFailureException.class)
+    public void conditionFailure(TestFailureException error) {
     	try {
 	    	TestBundle bundle = runningTests.get(error.getTestId());
 	    	if (bundle != null && bundle.test != null) {
