@@ -21,42 +21,44 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * Creates a callback URL based on the base_url environment value
- * 
- * 
  * @author jricher
  *
  */
-public class CreateRedirectUri extends AbstractCondition {
+public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
+	public CheckIfTokenEndpointResponseError(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
+	public Environment evaluate(Environment env) {
 		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+		if (!env.containsObj("token_endpoint_response")) {
+			throwError("Couldn't find token endpoint response");
+			return null;
+		}
+
+		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "error"))) {
+			log(ImmutableMap.of("msg", "Token endpoint error response", 
+					"error", env.getString("token_endpoint_response", "error"), 
+					"error_description", env.getString("token_endpoint_response", "error_description"),
+					"error_uri", env.getString("token_endpoint_response", "error_uri")));
+			throwError("Token endpoint error response: " + env.getString("token_endpoint_response", "error"));
+			return null;
+		} else {
+			logSuccess();
+			return env;
 		}
 		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		in.putString("redirect_uri", redirectUri);
-		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
-		
-		return in;
+
 	}
 
 }

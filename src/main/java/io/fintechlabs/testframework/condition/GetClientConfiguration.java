@@ -18,7 +18,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
-import io.fintechlabs.testframework.testmodule.AbstractCondition;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**

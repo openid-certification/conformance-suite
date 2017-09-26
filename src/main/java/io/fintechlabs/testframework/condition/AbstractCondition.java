@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.testmodule;
+package io.fintechlabs.testframework.condition;
 
 import java.util.Map;
 

@@ -15,48 +15,49 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 /**
- * Creates a callback URL based on the base_url environment value
- * 
+ * Check if there was an error from the authorization endpoint. If so, log the error and quit. If not, pass.
  * 
  * @author jricher
  *
  */
-public class CreateRedirectUri extends AbstractCondition {
+public class CheckIfAuthorizationEndpointError extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
+	public CheckIfAuthorizationEndpointError(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
+	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
 	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
-		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+		if (!in.containsObj("callback_params")) {
+			throwError("Couldn't find callback parameters");
 		}
 		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		in.putString("redirect_uri", redirectUri);
-		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
-		
-		return in;
+		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
+			log(ImmutableMap.of("msg", "Error from the authorization endpoint",
+					"error", in.getString("callback_params", "error"),
+					"error_description", in.getString("callback_params", "error_description"),
+					"error_uri", in.getString("callback_params", "error_uri")));
+			throwError("Error from the authorization endpoint" + in.getString("callback_params", "error"));
+			return null; // never reached
+		} else {
+			logSuccess();
+			return in;
+		}
+
 	}
 
 }

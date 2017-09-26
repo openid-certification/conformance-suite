@@ -44,7 +44,7 @@ public class LogApi {
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<String>> getAllTests() {
 		
-		List<String> testIds = mongoTemplate.getCollection("EVENT_LOG").distinct("src", BasicDBObjectBuilder.start().get());
+		List<String> testIds = mongoTemplate.getCollection("EVENT_LOG").distinct("testId", BasicDBObjectBuilder.start().get());
 		
 		return new ResponseEntity<>(testIds, HttpStatus.OK);
 		

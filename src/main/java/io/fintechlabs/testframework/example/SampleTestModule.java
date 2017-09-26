@@ -25,32 +25,33 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.ui.Model;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
+import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.GetClientConfiguration;
 import io.fintechlabs.testframework.condition.GetServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
-import io.fintechlabs.testframework.testmodule.Condition;
-import io.fintechlabs.testframework.testmodule.ConditionError;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModuleEventListener;
@@ -281,106 +282,42 @@ public class SampleTestModule implements TestModule {
 		// process the callback
 		this.status = Status.RUNNING;
 		
-		if (params.containsKey("state") && params.getFirst("state").equals(env.getString("state"))) {
+		env.put("callback_params", mapToJsonObject(params));
+		evaluate(CheckIfAuthorizationEndpointError.class);
+		
+		evaluate(CheckMatchingStateParameter.class);
 
-			String authorizationCode = params.getFirst("code");
+		evaluate(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		
+		evaluate(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		
+		evaluate(AddFormBasedClientSecretAuthenticationParameters.class);
+		
+		evaluate(CallTokenEndpoint.class);
+
+		evaluate(CheckIfTokenEndpointResponseError.class);
+
+		evaluate(CheckForAccessTokenValue.class);
+		evaluate(CheckForIdTokenValue.class);
+		evaluate(CheckForRefreshTokenValue.class);
+		
+		this.status = Status.FINISHED;
+		fireTestSuccess();
+		return new ModelAndView("/complete.html");
 			
-			MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-			form.add("grant_type", "authorization_code");
-			form.add("code", authorizationCode);
-			
-			form.add("redirect_uri", env.getString("redirect_uri"));
+	}
 
-			// Handle Token Endpoint interaction
-
-			HttpClient httpClient = HttpClientBuilder.create()
-					.useSystemProperties()
-					.build();
-
-			HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-			
-			RestTemplate restTemplate = new RestTemplate(factory);
-
-			//Alternatively use form based auth
-			form.add("client_id", "client");
-			form.add("client_secret", "secret");
-			String jsonString = null;
-
-			try {
-				jsonString = restTemplate.postForObject("https://mitreid.org/token", form, String.class);
-			} catch (RestClientException e) {
-
-				// Handle error
-
-				eventLog.log(getId(), getName(), "Token Endpoint error response:  " + e.getMessage());
-
-				this.status = Status.FINISHED;
-				fireTestFailure();
-				return new ModelAndView("complete");
-			}
-
-			eventLog.log(getId(), getName(), "from TokenEndpoint jsonString = " + jsonString);
-
-			JsonElement jsonRoot = new JsonParser().parse(jsonString);
-			if (!jsonRoot.isJsonObject()) {
-				eventLog.log(getId(), getName(), "Token Endpoint did not return a JSON object: " + jsonRoot);
-				this.status = Status.FINISHED;
-				fireTestFailure();
-				return null;
-			}
-
-			JsonObject tokenResponse = jsonRoot.getAsJsonObject();
-
-			if (tokenResponse.get("error") != null) {
-
-				// Handle error
-
-				String error = tokenResponse.get("error").getAsString();
-
-				eventLog.log(getId(), getName(), "Token Endpoint returned: " + error);
-
-				this.status = Status.FINISHED;
-				fireTestFailure();
-				return null;
-			} else {
-
-				// get out all the token strings
-				String accessTokenValue = null;
-				String idTokenValue = null;
-				String refreshTokenValue = null;
-
-				if (tokenResponse.has("access_token")) {
-					accessTokenValue = tokenResponse.get("access_token").getAsString();
-				} else {
-					eventLog.log(getId(), getName(), "Token Endpoint did not return an access_token: " + jsonString);
-					this.status = Status.FINISHED;
-					fireTestFailure();
-
-				}
-
-				if (tokenResponse.has("id_token")) {
-					idTokenValue = tokenResponse.get("id_token").getAsString();
-				} else {
-					eventLog.log(getId(), getName(), "Token Endpoint did not return an id_token");
-				}
-
-				if (tokenResponse.has("refresh_token")) {
-					refreshTokenValue = tokenResponse.get("refresh_token").getAsString();
-				}
-				
-				eventLog.log(getId(), getName(), refreshTokenValue);
-				this.status = Status.FINISHED;
-				fireTestSuccess();
-				return new ModelAndView("/complete.html");
-			}	
-		} else {
-			// no state value
-			eventLog.log(getId(), getName(), "State value mismatch");
-			fireTestFailure();
-			this.status = Status.FINISHED;
-			return null;
+	/**
+	 * utility function to convert an incoming multi-value map to a JSonObject for storage
+	 * @param params
+	 * @return
+	 */
+	private JsonObject mapToJsonObject(MultiValueMap<String, String> params) {
+		JsonObject o = new JsonObject();
+		for (String key : params.keySet()) {
+			o.addProperty(key, params.getFirst(key));
 		}
-			
+		return o;
 	}
 
 	/**

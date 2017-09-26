@@ -21,42 +21,34 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * Creates a callback URL based on the base_url environment value
- * 
- * 
  * @author jricher
  *
  */
-public class CreateRedirectUri extends AbstractCondition {
+public class CheckForRefreshTokenValue extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
+	public CheckForRefreshTokenValue(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
-		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+	public Environment evaluate(Environment env) {
+		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "refresh_token"))) {
+			log(ImmutableMap.of("msg", "Found a refresh token",
+					"refresh_token", env.getString("token_endpoint_response", "refresh_token")));
+			logSuccess();
+			return env;
+		} else {
+			throwError("Couldn't find refresh token");
+			return null;
 		}
-		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		in.putString("redirect_uri", redirectUri);
-		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
-		
-		return in;
 	}
 
 }

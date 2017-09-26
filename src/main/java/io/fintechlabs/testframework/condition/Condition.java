@@ -12,9 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.testmodule;
+package io.fintechlabs.testframework.condition;
 
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
@@ -27,6 +28,6 @@ public interface Condition {
 	 * 
 	 * Throws ConditionError when condition isn't met.
 	 */
-	Environment evaluate(Environment in);
+	Environment evaluate(Environment env);
 
 }

@@ -21,42 +21,58 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * Creates a callback URL based on the base_url environment value
- * 
+ * Checks to make sure the "state" parameter matches the one that was saved previously.
  * 
  * @author jricher
  *
  */
-public class CreateRedirectUri extends AbstractCondition {
+public class CheckMatchingStateParameter extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
+	public CheckMatchingStateParameter(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
+	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
 	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
-		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+		if (!in.containsObj("callback_params")) {
+			throwError("Couldn't find callback parameters");
 		}
 		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		in.putString("redirect_uri", redirectUri);
+		String state = in.getString("state");
+		String incoming = in.getString("callback_params", "state");
 		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
+		log(ImmutableMap.of("msg", "Checking for state parameter", "state", state, "incoming", incoming));
 		
-		return in;
+		if (Strings.isNullOrEmpty(state)) {
+			// we didn't save a 'state' value, we need to make sure one wasn't returned
+			if (Strings.isNullOrEmpty(incoming)) {
+				// we're good
+				logSuccess();
+				return in;
+			} else {
+				throwError("State parameter did not match");
+				return null;
+			}
+		} else {
+			// we did save a state parameter, make sure it's the same as before
+			if (state.equals(incoming)) {
+				// we're good
+				logSuccess();
+				return in;
+			} else {
+				throwError("State parameter did not match");
+				return null;
+			}
+		}
+		
 	}
 
 }

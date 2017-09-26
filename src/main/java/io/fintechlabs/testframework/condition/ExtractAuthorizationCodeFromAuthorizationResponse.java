@@ -15,48 +15,45 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 /**
- * Creates a callback URL based on the base_url environment value
- * 
- * 
  * @author jricher
  *
  */
-public class CreateRedirectUri extends AbstractCondition {
+public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
+	public ExtractAuthorizationCodeFromAuthorizationResponse(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
+	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
 	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
-		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+		if (!in.containsObj("callback_params")) {
+			throwError("Couldn't find callback parameters");
+		}
+
+		if (Strings.isNullOrEmpty(in.getString("callback_params", "code"))) {
+			throwError("Couldn't find authorizaiton code in callback");
+			return null;
+		} else {
+			in.putString("code", in.getString("callback_params", "code"));
+			log(ImmutableMap.of("msg", "Found authorization code", "code", in.getString("callback_params", "code")));
+			logSuccess();
+			return in;
 		}
 		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		in.putString("redirect_uri", redirectUri);
-		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
-		
-		return in;
 	}
 
 }

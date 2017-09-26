@@ -19,7 +19,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.logging.EventLog;
-import io.fintechlabs.testframework.testmodule.AbstractCondition;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -48,6 +47,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 				.queryParam("response_type", "code")
 				.queryParam("state", in.getString("state"))
 				.queryParam("redirect_uri", in.getString("redirect_uri"))
+				.queryParam("scope", in.getString("client", "scope"))
 				.build().toUriString();
 
 		log(ImmutableMap.of("msg", "Sending to authorization endpoint", 

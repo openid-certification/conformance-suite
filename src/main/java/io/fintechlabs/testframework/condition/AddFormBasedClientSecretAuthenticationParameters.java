@@ -14,49 +14,45 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * Creates a callback URL based on the base_url environment value
- * 
- * 
  * @author jricher
  *
  */
-public class CreateRedirectUri extends AbstractCondition {
+public class AddFormBasedClientSecretAuthenticationParameters extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
+	public AddFormBasedClientSecretAuthenticationParameters(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
+	public Environment evaluate(Environment env) {
 		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+		if (!env.containsObj("token_endpoint_request_form_parameters")) {
+			throwError("Couldn't find request form");
+			return null;
 		}
 		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		in.putString("redirect_uri", redirectUri);
+		JsonObject o = env.get("token_endpoint_request_form_parameters");
 		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
+		o.addProperty("client_id", env.getString("client", "client_id"));
+		o.addProperty("client_secret", env.getString("client", "client_secret"));
+
+		env.put("token_endpoint_request_form_parameters", o);
 		
-		return in;
+		return env;
 	}
 
 }
