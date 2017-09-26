@@ -101,6 +101,16 @@ function updateRunningTable() {
 					console.log('displaying test: ' + status);
 					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + ' / ' + status.result + '</div>');
 					
+					if (status.result == 'FAILED') {
+						$('#' + status.id).addClass('bg-danger');
+					} else if (status.result == 'PASSED') {
+						$('#' + status.id).addClass('bg-success');
+					} else if (status.status == 'WAITING') {
+						$('#' + status.id).addClass('bg-warning');
+					} else if (status.status == 'CONFIGURED') {
+						$('#' + status.id).addClass('bg-info');
+					}
+					
 					// list of exposed values
 					$('#' + status.id).append('<ul class="exposed">');
 					_.each(status.exposed, function(val, key) {
