@@ -46,7 +46,7 @@ public class CreateRedirectUri extends AbstractCondition {
 		String baseUrl = in.getString("base_url");
 		
 		if (Strings.isNullOrEmpty(baseUrl)) {
-			throwError("Base URL was null or empty");
+			return error("Base URL was null or empty");
 		}
 		
 		// calculate the redirect URI based on our given base URL

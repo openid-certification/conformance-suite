@@ -46,8 +46,7 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 			logSuccess();
 			return env;
 		} else {
-			throwError("Couldn't find access token");
-			return null;
+			return error("Couldn't find access token");
 		}
 
 	}

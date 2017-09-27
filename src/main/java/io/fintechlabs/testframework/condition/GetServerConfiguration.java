@@ -48,8 +48,7 @@ public class GetServerConfiguration extends AbstractCondition {
 	public Environment evaluate(Environment in) {
 		
 		if (!in.containsObj("config")) {
-			throwError("Couldn't find a configuration");
-			return null; // never reached
+			return error("Couldn't find a configuration");
 		}
 		
 		// get out the server configuration component
@@ -68,8 +67,7 @@ public class GetServerConfiguration extends AbstractCondition {
 			try {
 				jsonString = restTemplate.getForObject(discoveryUrl, String.class);
 			} catch (RestClientResponseException e) {
-				throwError("Unable to fetch server configuration from " + discoveryUrl, e);
-				return null;
+				return error("Unable to fetch server configuration from " + discoveryUrl, e);
 			}
 
 			log(ImmutableMap.of("msg", "Downloaded server configuration", 
@@ -86,21 +84,18 @@ public class GetServerConfiguration extends AbstractCondition {
 					logSuccess();
 					return in;
 				} catch (JsonSyntaxException e) {
-					throwError(e);
-					return null; // never reached
+					return error(e);
 				}
 				
 				
 			} else {
-				throwError("empty server configuration");
-				return null; // never reached
+				return error("empty server configuration");
 			}
 			
 		} else {
 			// check for manual configuration here
 			// TODO!
-			throwError("Static configuration not yet implemented");
-			return null; // never reached
+			return error("Static configuration not yet implemented");
 		}
 
 		

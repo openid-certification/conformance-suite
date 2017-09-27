@@ -58,8 +58,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {
-			throwError("Couldn't find request form");
-			return null;
+			return error("Couldn't find request form");
 		}
 
 		// build up the form
@@ -100,20 +99,17 @@ public class CallTokenEndpoint extends AbstractCondition {
 			jsonString = restTemplate.postForObject(env.getString("server", "token_endpoint"), form, String.class);
 		} catch (RestClientResponseException e) {
 
-			throwError("Error from the token endpoint", e);
-			return null;
+			return error("Error from the token endpoint", e);
 		}
 		
 		if (Strings.isNullOrEmpty(jsonString)) {
-			throwError("Didn't get back a response from the token endpoint");
-			return null;
+			return error("Didn't get back a response from the token endpoint");
 		} else {
 			log(ImmutableMap.of("msg", "Token endpoint response", "token_endpoint_response", jsonString));
 			
 			JsonElement jsonRoot = new JsonParser().parse(jsonString);
 			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-				throwError("Token Endpoint did not return a JSON object");
-				return null;
+				return error("Token Endpoint did not return a JSON object");
 			}
 
 			env.put("token_endpoint_response", jsonRoot.getAsJsonObject());

@@ -46,8 +46,7 @@ public class CheckForIdTokenValue extends AbstractCondition {
 			logSuccess();
 			return env;
 		} else {
-			throwError("Couldn't find ID token");
-			return null;
+			return error("Couldn't find ID token");
 		}
 	}
 

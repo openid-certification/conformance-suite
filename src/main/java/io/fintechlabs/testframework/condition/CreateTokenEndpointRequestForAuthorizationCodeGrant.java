@@ -14,7 +14,6 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;

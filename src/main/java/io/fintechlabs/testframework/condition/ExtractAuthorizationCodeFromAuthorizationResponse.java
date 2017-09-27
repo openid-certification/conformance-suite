@@ -41,12 +41,11 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 	@Override
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
-			throwError("Couldn't find callback parameters");
+			return error("Couldn't find callback parameters");
 		}
 
 		if (Strings.isNullOrEmpty(in.getString("callback_params", "code"))) {
-			throwError("Couldn't find authorizaiton code in callback");
-			return null;
+			return error("Couldn't find authorizaiton code in callback");
 		} else {
 			in.putString("code", in.getString("callback_params", "code"));
 			log(ImmutableMap.of("msg", "Found authorization code", "code", in.getString("callback_params", "code")));

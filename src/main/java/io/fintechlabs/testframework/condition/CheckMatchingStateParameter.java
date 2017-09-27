@@ -43,7 +43,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
-			throwError("Couldn't find callback parameters");
+			return error("Couldn't find callback parameters");
 		}
 		
 		String state = in.getString("state");
@@ -58,8 +58,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 				logSuccess();
 				return in;
 			} else {
-				throwError("State parameter did not match");
-				return null;
+				return error("State parameter did not match");
 			}
 		} else {
 			// we did save a state parameter, make sure it's the same as before
@@ -68,8 +67,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 				logSuccess();
 				return in;
 			} else {
-				throwError("State parameter did not match");
-				return null;
+				return error("State parameter did not match");
 			}
 		}
 		

@@ -14,7 +14,6 @@
 
 package io.fintechlabs.testframework.condition;
 
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**

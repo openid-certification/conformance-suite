@@ -17,11 +17,10 @@ package io.fintechlabs.testframework.condition;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
-import io.fintechlabs.testframework.testmodule.TestModule.Result;
+import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
@@ -80,22 +79,26 @@ public abstract class AbstractCondition implements Condition {
 	 * Error utilities
 	 */
 
-	protected void throwError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		logFailure(message);
-		throw new ConditionError(testId, getMessage() + ": " + message, cause, enableSuppression, writableStackTrace);
-	}
-
-	protected void throwError(String message, Throwable cause) {
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(String message, Throwable cause) {
 		logFailure(message);
 		throw new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
-	protected void throwError(String message) {
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(String message) {
 		logFailure(message);
 		throw new ConditionError(testId, getMessage() + ": " + message);
 	}
 
-	protected void throwError(Throwable cause) {
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(Throwable cause) {
 		logFailure();
 		throw new ConditionError(testId, getMessage(), cause);
 	}

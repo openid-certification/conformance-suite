@@ -43,7 +43,7 @@ public class CheckIfAuthorizationEndpointError extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
-			throwError("Couldn't find callback parameters");
+			return error("Couldn't find callback parameters");
 		}
 		
 		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
@@ -51,8 +51,7 @@ public class CheckIfAuthorizationEndpointError extends AbstractCondition {
 					"error", in.getString("callback_params", "error"),
 					"error_description", in.getString("callback_params", "error_description"),
 					"error_uri", in.getString("callback_params", "error_uri")));
-			throwError("Error from the authorization endpoint" + in.getString("callback_params", "error"));
-			return null; // never reached
+			return error("Error from the authorization endpoint" + in.getString("callback_params", "error"));
 		} else {
 			logSuccess();
 			return in;

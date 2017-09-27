@@ -15,8 +15,6 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -42,15 +40,13 @@ public class GetClientConfiguration extends AbstractCondition {
 	public Environment evaluate(Environment in) {
 
 		if (!in.containsObj("config")) {
-			throwError("Couldn't find a configuration");
-			return null; // never reached
+			return error("Couldn't find a configuration");
 		}
 
 		// make sure we've got a client object
 		JsonElement client = in.findElement("config", "client");
 		if (client == null || !client.isJsonObject()) {
-			throwError("Couldn't find client object in configuration");
-			return null; // never reached
+			return error("Couldn't find client object in configuration");
 		} else {
 			// we've got a client object, put it in the environment
 			in.put("client", client.getAsJsonObject());

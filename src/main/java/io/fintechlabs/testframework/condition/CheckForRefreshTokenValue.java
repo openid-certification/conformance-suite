@@ -46,8 +46,7 @@ public class CheckForRefreshTokenValue extends AbstractCondition {
 			logSuccess();
 			return env;
 		} else {
-			throwError("Couldn't find refresh token");
-			return null;
+			return error("Couldn't find refresh token");
 		}
 	}
 
