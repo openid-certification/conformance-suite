@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
@@ -61,6 +62,17 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void log(Map<String, String> map) {
 		log.log(testId, getMessage(), map);
+	}
+	
+	protected void log(String msg, JsonObject obj) {
+		obj.addProperty("msg", msg);
+		log(obj);
+	}
+
+	protected void log(String msg, Map<String, String> map) {
+		Map<String, String> copy = new HashMap<>(map);
+		copy.put("msg", msg);
+		log(map);
 	}
 	
 	protected void logSuccess() {

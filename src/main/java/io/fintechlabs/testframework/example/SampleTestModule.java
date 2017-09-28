@@ -31,6 +31,7 @@ import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
@@ -130,7 +131,7 @@ public class SampleTestModule implements TestModule {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create required condition object", e);
 		} catch (ConditionError error) {
-			logger.info("Test condition failure", error);
+			logger.info("Test condition failure: " + error.getMessage());
 			fireTestFailure();
 			throw new TestFailureException(error);
 		}
@@ -150,7 +151,7 @@ public class SampleTestModule implements TestModule {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create required condition object", e);
 		} catch (ConditionError error) {
-			logger.info("Ignoring optional condition failure", error);
+			logger.info("Ignoring optional condition failure: " + error.getMessage());
 		}
 	}
 	
@@ -284,8 +285,7 @@ public class SampleTestModule implements TestModule {
 		if (path.equals("callback")) {
 			return handleCallback(path, req, res, session, params, m);
 		} else {
-			// TODO: return an error page here for an unhandled page
-			return new ModelAndView("/complete.html");
+			return new ModelAndView("testError");
 		}
 		
 	}

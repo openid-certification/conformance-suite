@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.logging.EventLog;
@@ -105,17 +106,24 @@ public class CallTokenEndpoint extends AbstractCondition {
 		if (Strings.isNullOrEmpty(jsonString)) {
 			return error("Didn't get back a response from the token endpoint");
 		} else {
-			log(ImmutableMap.of("msg", "Token endpoint response", "token_endpoint_response", jsonString));
+			log(ImmutableMap.of("msg", "Token endpoint response",
+					"token_endpoint_response", jsonString));
 			
-			JsonElement jsonRoot = new JsonParser().parse(jsonString);
-			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-				return error("Token Endpoint did not return a JSON object");
+			try {
+				JsonElement jsonRoot = new JsonParser().parse(jsonString);
+				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+					return error("Token Endpoint did not return a JSON object");
+				}
+	
+				log("Parsed token endpoint response", jsonRoot.getAsJsonObject());
+				
+				env.put("token_endpoint_response", jsonRoot.getAsJsonObject());
+				
+				logSuccess();
+				return env;
+			} catch (JsonParseException e) {
+				return error(e);
 			}
-
-			env.put("token_endpoint_response", jsonRoot.getAsJsonObject());
-			
-			logSuccess();
-			return env;
 		}
 		
 	}

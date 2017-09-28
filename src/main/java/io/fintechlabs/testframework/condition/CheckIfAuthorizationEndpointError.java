@@ -47,11 +47,8 @@ public class CheckIfAuthorizationEndpointError extends AbstractCondition {
 		}
 		
 		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
-			log(ImmutableMap.of("msg", "Error from the authorization endpoint",
-					"error", in.getString("callback_params", "error"),
-					"error_description", in.getString("callback_params", "error_description"),
-					"error_uri", in.getString("callback_params", "error_uri")));
-			return error("Error from the authorization endpoint" + in.getString("callback_params", "error"));
+			log("Error from the authorization endpoint", in.get("callback_params"));
+			return error("Error from the authorization endpoint: " + in.getString("callback_params", "error"));
 		} else {
 			logSuccess();
 			return in;

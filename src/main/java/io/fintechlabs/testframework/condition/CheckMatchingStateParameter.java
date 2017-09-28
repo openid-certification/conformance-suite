@@ -49,7 +49,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 		String state = in.getString("state");
 		String incoming = in.getString("callback_params", "state");
 		
-		log(ImmutableMap.of("msg", "Checking for state parameter", "state", state, "incoming", incoming));
+		log(ImmutableMap.of("msg", "Checking for state parameter", "state", Strings.nullToEmpty(state), "incoming", Strings.nullToEmpty(incoming)));
 		
 		if (Strings.isNullOrEmpty(state)) {
 			// we didn't save a 'state' value, we need to make sure one wasn't returned

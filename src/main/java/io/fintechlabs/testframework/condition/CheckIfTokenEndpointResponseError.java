@@ -46,10 +46,7 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 		}
 
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "error"))) {
-			log(ImmutableMap.of("msg", "Token endpoint error response", 
-					"error", env.getString("token_endpoint_response", "error"), 
-					"error_description", env.getString("token_endpoint_response", "error_description"),
-					"error_uri", env.getString("token_endpoint_response", "error_uri")));
+			log("Token endpoint error response", env.get("token_endpoint_response"));
 			return error("Token endpoint error response: " + env.getString("token_endpoint_response", "error"));
 		} else {
 			logSuccess();

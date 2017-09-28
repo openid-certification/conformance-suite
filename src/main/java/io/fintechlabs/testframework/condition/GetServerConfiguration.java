@@ -77,7 +77,7 @@ public class GetServerConfiguration extends AbstractCondition {
 				try {
 					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
 					
-					log("Successfully parsed server configuration"); // TODO: add in the parsed serverConfig object to the log
+					log("Successfully parsed server configuration", serverConfig);
 					
 					in.put("server", serverConfig);
 					

@@ -42,6 +42,4 @@ public interface EventLog {
 	 */
 	void log(String testId, String src, Map<String, String> map);
 
-	
-	
 }
