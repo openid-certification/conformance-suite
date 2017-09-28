@@ -130,6 +130,8 @@ public class SampleTestModule implements TestModule {
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create required condition object", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
 		} catch (ConditionError error) {
 			logger.info("Test condition failure: " + error.getMessage());
 			fireTestFailure();
