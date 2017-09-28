@@ -282,7 +282,7 @@ public class TestRunner {
     // TODO: make this a factory bean
     private TestModule createTestModule(String testName) {
     	switch (testName) {
-		case SampleTestModule.name:
+		case "sample-test":
 			return new SampleTestModule();
 		default:
 			return null;
@@ -291,7 +291,7 @@ public class TestRunner {
     
     // TODO: make this a factory bean
     private List<String> getTestModuleNames() {
-    	return ImmutableList.of(SampleTestModule.name);
+    	return ImmutableList.of("sample-test");
     }
     
     
