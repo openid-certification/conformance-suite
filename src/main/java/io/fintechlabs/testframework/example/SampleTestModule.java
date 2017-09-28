@@ -115,7 +115,7 @@ public class SampleTestModule implements TestModule {
 	}
 
 	/**
-	 * @param conditionClass the condition to create and evaluate
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
 	private void require(Class<? extends Condition> conditionClass) {
 		try {
@@ -139,6 +139,9 @@ public class SampleTestModule implements TestModule {
 		}
 	}
 	
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 */
 	private void optional(Class<? extends Condition> conditionClass) {
 		try {
 			
@@ -151,13 +154,38 @@ public class SampleTestModule implements TestModule {
 			env = condition.evaluate(env);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			logger.error("Couldn't create required condition object", e);
+			logger.error("Couldn't create optional condition object", e);
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional condition failure: " + error.getMessage());
 		}
 	}
 	
-	
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition succeeds. This is the inverse of require().
+	 */
+	private void expectFailure(Class<? extends Condition> conditionClass) {
+		try {
+			
+			// create a new condition object from the class above
+			Condition condition = conditionClass
+				.getDeclaredConstructor(String.class, EventLog.class)
+				.newInstance(id, eventLog);
+
+			// evaluate the condition and assign its results back to our environment
+			env = condition.evaluate(env);
+			
+			// if we got here, the condition succeeded but we're expecting a failure so throw an error
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Condition failure expected, but got success: " + conditionClass.getSimpleName());
+			
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logger.error("Couldn't create required condition object", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
+		} catch (ConditionError error) {
+			logger.info("Test condition failure as expected: " + error.getMessage());
+		}
+	}
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#getId()
@@ -231,7 +259,18 @@ public class SampleTestModule implements TestModule {
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
 		}
+
+		logFinalEnv();
 		
+	}
+
+	private void logFinalEnv() {
+		Map<String, Object> finalEnv = new HashMap<>();
+		for (String key : env.allObjectIds()) {
+			finalEnv.put(key, env.get(key));
+		}
+		
+		eventLog.log(getId(), "final_env", finalEnv);
 	}
 
 	private void fireSetupDone() {
@@ -240,6 +279,8 @@ public class SampleTestModule implements TestModule {
 		}
 		
 		eventLog.log(getId(), getName(), "Setup Done");
+
+		logFinalEnv();
 	}
 	
 	private void fireTestSuccess(){
@@ -248,6 +289,8 @@ public class SampleTestModule implements TestModule {
 			listener.testSuccess();
 		}
 		eventLog.log(getId(), getName(), "Success");
+
+		logFinalEnv();
 	}
 	
 	private void fireTestFailure() {
@@ -256,6 +299,8 @@ public class SampleTestModule implements TestModule {
 			listener.testFailure();
 		}
 		eventLog.log(getId(), getName(), "Failure");
+
+		logFinalEnv();
 	}
 	
 	private void fireInterrupted() {
@@ -263,6 +308,8 @@ public class SampleTestModule implements TestModule {
 			listener.interrupted();
 		}
 		eventLog.log(getId(), getName(), "Interrupted");
+
+		logFinalEnv();
 	}
 
 	
@@ -310,6 +357,7 @@ public class SampleTestModule implements TestModule {
 		require(CheckIfAuthorizationEndpointError.class);
 		
 		require(CheckMatchingStateParameter.class);
+		//expectFailure(CheckMatchingStateParameter.class);
 
 		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		
