@@ -24,13 +24,19 @@
   <body>
   
 
-	    <div class="container">
+      <div class="container">
 
       <div class="starter-template">
       
-        <h1>Test has completed</h1>
+        <h1>Test <span th:text="${test?.id}">TEST-ID</span> has completed</h1>
+        
+        <div>
+            Status: <b th:text="${test?.status}"></b> / Result: <i th:text="${test?.result}"></i>
+        </div>
         
         <div>Please return to the test framework.</div>
+
+    </div>
 
     </div><!-- /.container -->
 
