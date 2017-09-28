@@ -38,6 +38,7 @@ import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -105,7 +106,7 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		this.status = Status.RUNNING;
 		
-		env.putString("state", RandomStringUtils.randomAlphanumeric(10));
+		require(CreateRandomStateValue.class);
 		exposeEnvString("state");
 		
 		require(BuildPlainRedirectToAuthorizationEndpoint.class);
