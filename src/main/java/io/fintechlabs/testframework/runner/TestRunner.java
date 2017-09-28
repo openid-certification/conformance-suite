@@ -15,14 +15,9 @@ package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -33,8 +28,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,11 +36,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.util.UriUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
@@ -77,16 +67,11 @@ import io.fintechlabs.testframework.testmodule.TestModule;
 public class TestRunner {
 
 	private static final String BASE_URL = "http://localhost:8080";
-	private static final String TEST_PATH = "/test/";
 
 	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
-    
-	// collection of all currently running tests
-	private Map<String, TestBundle> runningTests = new HashMap<>();
-	
-	// collection of aliases assigned to tests
-	private Map<String, String> aliases = new HashMap<>();
-	
+
+	@Autowired
+	private TestRunnerSupport support;
 	
 	@Autowired
 	private EventLog eventLog;
@@ -116,11 +101,7 @@ public class TestRunner {
 
         BrowserControl browser = new CollectingBrowserControl();
 
-        TestBundle bundle = new TestBundle();
-        bundle.test = test;
-        bundle.browser = browser;
-        
-        runningTests.put(id, bundle);
+        support.addRunningTest(id, test);
 
         String baseUrl;
         if (!Strings.isNullOrEmpty(alias)) {
@@ -130,7 +111,7 @@ public class TestRunner {
 	        		// there was a failure in creating the test alias, return an error
 	        		return new ResponseEntity<>(HttpStatus.CONFLICT);
 	        	}
-				baseUrl = BASE_URL + TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+				baseUrl = BASE_URL + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				// this should never happen, why is Java dumb
 				e.printStackTrace();
@@ -138,7 +119,7 @@ public class TestRunner {
 			}
 
         } else {
-            baseUrl = BASE_URL + TEST_PATH + id;
+            baseUrl = BASE_URL + TestDispatcher.TEST_PATH + id;
         }
         
 
@@ -162,28 +143,26 @@ public class TestRunner {
 	 */
 	private boolean createTestAlias(String alias, String id) {
 		// first see if the alias is already in use
-		if (aliases.containsKey(alias)) {
+		if (support.hasAlias(alias)) {
 			// find the test that has the alias
-			String existingId = aliases.get(alias);
-			TestBundle bundle = runningTests.get(existingId);
+			TestModule test = support.getRunningTestByAlias(alias);
 
-			if (bundle != null) {
+			if (test != null) {
 				// TODO: make the override configurable to allow for conflict of re-used aliases
 				
-				bundle.test.stop(); // stop the currently-running test
+				test.stop(); // stop the currently-running test
 			}
 		}
 		
-		aliases.put(alias, id);
+		support.addAlias(alias, id);
 		return true;
 	}
 
 
 	@RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
-    	TestBundle bundle = runningTests.get(testId);
-    	if (bundle != null) {
-    		TestModule test = bundle.test;
+		TestModule test = support.getRunningTestById(testId);
+    	if (test != null) {
             Map<String, Object> map = new HashMap<>();
             map.put("name", test.getName());
             map.put("id", test.getId());
@@ -211,9 +190,8 @@ public class TestRunner {
     public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
-    	TestBundle bundle = runningTests.get(testId);
-    	if (bundle != null) {
-    		TestModule test = bundle.test;
+		TestModule test = support.getRunningTestById(testId);
+    	if (test != null) {
             Map<String, Object> map = new HashMap<>();
             map.put("name", test.getName());
             map.put("id", test.getId());
@@ -232,9 +210,8 @@ public class TestRunner {
     public ResponseEntity<Object> cancelTest(@PathVariable("id") String testId) {
     	logger.info("Canceling " + testId);
     	
-    	TestBundle bundle = runningTests.get(testId);
-    	if (bundle != null) {
-    		TestModule test = bundle.test;
+		TestModule test = support.getRunningTestById(testId);
+    	if (test != null) {
 
     		// stop the test
     		test.stop();
@@ -255,7 +232,7 @@ public class TestRunner {
     
     @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
-    	Set<String> testIds = runningTests.keySet();
+    	Set<String> testIds = support.getAllRunningTestIds();
 
     	return new ResponseEntity<Set<String>>(testIds, HttpStatus.OK);
     }
@@ -264,18 +241,21 @@ public class TestRunner {
     public ResponseEntity<Map<String, Object>> getBrowserStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
-    	TestBundle bundle = runningTests.get(testId);
-    	if (bundle != null) {
-    		BrowserControl browser = bundle.browser;
-    		Map<String, Object> map = new HashMap<>();
-            map.put("id", testId);
-            if (browser instanceof CollectingBrowserControl) {
-            	map.put("urls", ((CollectingBrowserControl) browser).getUrls());
-            	map.put("visited", ((CollectingBrowserControl) browser).getVisited());
-            }
-            
-            return new ResponseEntity<>(map, HttpStatus.OK);
-    		
+		TestModule test = support.getRunningTestById(testId);
+    	if (test != null) {
+    		BrowserControl browser = test.getBrowser();
+    		if (browser != null) {
+	    		Map<String, Object> map = new HashMap<>();
+	            map.put("id", testId);
+	            if (browser instanceof CollectingBrowserControl) {
+	            	map.put("urls", ((CollectingBrowserControl) browser).getUrls());
+	            	map.put("visited", ((CollectingBrowserControl) browser).getVisited());
+	            }
+	            
+	            return new ResponseEntity<>(map, HttpStatus.OK);
+    		} else {
+        		return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+    		}
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
@@ -283,17 +263,20 @@ public class TestRunner {
 
     @RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
     public ResponseEntity<String> visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
-    	TestBundle bundle = runningTests.get(testId);
-    	if (bundle != null) {
-    		BrowserControl browser = bundle.browser;
-    		browser.urlVisited(url);
-    		
-    		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		TestModule test = support.getRunningTestById(testId);
+    	if (test != null) {
+    		BrowserControl browser = test.getBrowser();
+    		if (browser != null) {
+	    		browser.urlVisited(url);
+	    		
+	    		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    		} else {
+        		return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+    		}
     		
     	} else {
-    		
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-   	}
+    	}
     }
     
     // TODO: make this a factory bean
@@ -317,80 +300,16 @@ public class TestRunner {
     @ExceptionHandler(TestFailureException.class)
     public void conditionFailure(TestFailureException error) {
     	try {
-	    	TestBundle bundle = runningTests.get(error.getTestId());
-	    	if (bundle != null && bundle.test != null) {
-	    		logger.error("Caught an error while running the test, stopping the test", error);
-	    		bundle.test.stop();
+	    	TestModule test = support.getRunningTestById(error.getTestId());
+	    	if (test != null) {
+	    		logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
+	    		test.stop();
 	    	}
     	} catch (Exception e) {
     		logger.error("Something terrible happened when handling an error, I give up", e);
     	} finally {
 
     	}
-    }
-    
-    /**
-     * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
-     * This requests may or may not be user-facing so we don't assume anything about the response.
-     * @param req
-     * @param res
-     * @param session
-     * @param params
-     * @param m
-     * @return
-     */
-    @RequestMapping(TEST_PATH + "**")
-    public Object handle(
-            HttpServletRequest req, HttpServletResponse res,
-            HttpSession session,
-            @RequestParam MultiValueMap<String, String> params,
-            Model m) {
-
-        /*
-         * We have to parse the path by hand so that we can match the substrings that apply
-         * to the test itself and also pull out the query parameters to be passed on to
-         * the underlying handler functions.
-         */
-
-    	String path = (String) req.getAttribute(
-                HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-        String bestMatchPattern = (String) req.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-
-        AntPathMatcher apm = new AntPathMatcher();
-        String finalPath = apm.extractPathWithinPattern(bestMatchPattern, path);
-
-        Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
-
-        String testId = pathParts.next(); // used to route to the right test
-
-        if (testId.equals("a")) {
-        	// it's an aliased test, look it up
-        	String alias = pathParts.next();
-        	if (!aliases.containsKey(alias)) {
-        		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        	}
-        	testId = aliases.get(alias);
-        }
-
-        String restOfPath = Joiner.on("/").join(pathParts);
-
-        if (!runningTests.containsKey(testId)) {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        
-    	TestBundle bundle = runningTests.get(testId);
-    	if (bundle != null) {
-    		TestModule test = bundle.test;
-        
-    		return test.handleHttp(restOfPath, req, res, session, params, m);
-    	} else {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    	}
-    }
-
-    private static class TestBundle {
-    	public TestModule test;
-    	public BrowserControl browser;
     }
 
 }

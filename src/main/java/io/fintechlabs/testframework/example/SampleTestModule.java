@@ -327,7 +327,7 @@ public class SampleTestModule implements TestModule {
 		
 		this.status = Status.FINISHED;
 		fireTestSuccess();
-		return new ModelAndView("/complete.html");
+		return new ModelAndView("complete", ImmutableMap.of("test", this));
 			
 	}
 
@@ -373,6 +373,14 @@ public class SampleTestModule implements TestModule {
 	@Override
 	public Map<String, String> getExposedValues() {
 		return exposed;
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#getBrowser()
+	 */
+	@Override
+	public BrowserControl getBrowser() {
+		return this.browser;
 	}
 
 }

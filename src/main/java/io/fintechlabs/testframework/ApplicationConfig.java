@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
+import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
+import io.fintechlabs.testframework.runner.TestRunnerSupport;
+
 /**
  * @author jricher
  *
@@ -38,6 +41,11 @@ public class ApplicationConfig {
         messageConverters.add(gsonHttpMessageConverter);
 
         return new HttpMessageConverters(true, messageConverters);
+    }
+    
+    @Bean
+    public TestRunnerSupport testRunnerSupport() {
+    	return new InMemoryTestRunnerSupport();
     }
 
 }

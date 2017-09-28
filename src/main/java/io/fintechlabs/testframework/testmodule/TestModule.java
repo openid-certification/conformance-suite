@@ -138,4 +138,9 @@ public interface TestModule {
 	 */
 	Map<String, String> getExposedValues();
 
+	/**
+	 * @return the associated browser control module
+	 */
+	BrowserControl getBrowser();
+
 }
