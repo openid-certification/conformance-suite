@@ -114,7 +114,8 @@ public class TestDispatcher {
     }
 
     // handle errors thrown by running tests
-    @ExceptionHandler(TestFailureException.class)
+    @SuppressWarnings("finally")
+	@ExceptionHandler(TestFailureException.class)
     public ModelAndView conditionFailure(TestFailureException error) {
     	try {
 	    	TestModule test = support.getRunningTestById(error.getTestId());

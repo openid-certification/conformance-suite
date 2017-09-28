@@ -18,7 +18,6 @@ import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 /**
  * Check if there was an error from the authorization endpoint. If so, log the error and quit. If not, pass.
