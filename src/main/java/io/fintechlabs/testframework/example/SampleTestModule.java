@@ -280,7 +280,6 @@ public class SampleTestModule implements TestModule {
 		
 		eventLog.log(getId(), getName(), "Setup Done");
 
-		logFinalEnv();
 	}
 	
 	private void fireTestSuccess(){
