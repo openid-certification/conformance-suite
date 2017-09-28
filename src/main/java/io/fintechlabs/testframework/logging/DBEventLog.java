@@ -70,7 +70,7 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.util.Map)
 	 */
 	@Override
-	public void log(String testId, String source, Map<String, String> map) {
+	public void log(String testId, String source, Map<String, Object> map) {
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map)
 				.add("testId", testId)
 				.add("src", source)

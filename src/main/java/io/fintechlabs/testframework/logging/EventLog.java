@@ -40,6 +40,6 @@ public interface EventLog {
 	 * @param src
 	 * @param of
 	 */
-	void log(String testId, String src, Map<String, String> map);
+	void log(String testId, String src, Map<String, Object> map);
 
 }

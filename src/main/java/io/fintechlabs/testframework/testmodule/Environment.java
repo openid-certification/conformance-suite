@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.testmodule;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -157,6 +158,13 @@ public class Environment {
 		// didn't find it
 		return null;
 		
+	}
+
+	/**
+	 * @return
+	 */
+	public Set<String> allObjectIds() {
+		return store.keySet();
 	}
 
 	

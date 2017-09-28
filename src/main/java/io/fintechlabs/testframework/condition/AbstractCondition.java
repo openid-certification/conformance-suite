@@ -60,7 +60,7 @@ public abstract class AbstractCondition implements Condition {
 		log.log(testId, getMessage(), msg);
 	}
 	
-	protected void log(Map<String, String> map) {
+	protected void log(Map<String, Object> map) {
 		log.log(testId, getMessage(), map);
 	}
 	
@@ -69,8 +69,8 @@ public abstract class AbstractCondition implements Condition {
 		log(obj);
 	}
 
-	protected void log(String msg, Map<String, String> map) {
-		Map<String, String> copy = new HashMap<>(map);
+	protected void log(String msg, Map<String, Object> map) {
+		Map<String, Object> copy = new HashMap<>(map);
 		copy.put("msg", msg);
 		log(map);
 	}
