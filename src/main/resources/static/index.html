@@ -123,7 +123,7 @@ function updateRunningTable() {
 					start.click(function (event) {
 					    $.ajax({url: 'runner/' + encodeURIComponent(testId),
 					    	type: 'POST',
-					    	sucess: function(data, status) {
+					    	success: function(data, status) {
                                 console.log('Status: ', status);                                                    
                                 updateRunningTable();
 					    	}
@@ -134,7 +134,7 @@ function updateRunningTable() {
                     stop.click(function (event) {
                         $.ajax({url: 'runner/' + encodeURIComponent(testId),
                             type: 'DELETE',
-                            sucess: function(data, status) {
+                            success: function(data, status) {
                                 console.log('Status: ', status);                                                    
                                 updateRunningTable();
                             }
