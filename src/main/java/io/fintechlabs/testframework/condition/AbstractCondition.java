@@ -14,8 +14,10 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -76,15 +78,15 @@ public abstract class AbstractCondition implements Condition {
 	}
 	
 	protected void logSuccess() {
-		log(ImmutableMap.of("result", "SUCCESS"));
+		log(ImmutableMap.of("result", "SUCCESS", "requirements", this.getRequirements()));
 	}
 
 	protected void logFailure() {
-		log(ImmutableMap.of("result", "FAILURE"));
+		log(ImmutableMap.of("result", "FAILURE", "requirements", this.getRequirements()));
 	}
 	
 	protected void logFailure(String msg) {
-		log(ImmutableMap.of("msg", msg, "result", "FAILURE"));
+		log(ImmutableMap.of("msg", msg, "result", "FAILURE", "requirements", this.getRequirements()));
 	}
 
 	/*
@@ -113,5 +115,14 @@ public abstract class AbstractCondition implements Condition {
 	protected Environment error(Throwable cause) {
 		logFailure();
 		throw new ConditionError(testId, getMessage(), cause);
+	}
+	
+	
+	/**
+	 * Get the list of requirements that this test would fulfill if it passed
+	 * @return
+	 */
+	protected Set<String> getRequirements() {
+		return Collections.emptySet();
 	}
 }

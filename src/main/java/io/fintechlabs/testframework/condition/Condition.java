@@ -23,10 +23,12 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public interface Condition {
 
 	/**
-	 * Assert that the implemented test is true. Logs test events and results to the given log.
+	 * Tests if the condition holds true. Reads from the given environment and returns a potentially modified environment.
 	 * 
 	 * Throws ConditionError when condition isn't met.
 	 */
 	Environment evaluate(Environment env);
 
+	
+	
 }
