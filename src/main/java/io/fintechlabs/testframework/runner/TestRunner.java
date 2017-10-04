@@ -23,6 +23,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,7 +67,8 @@ import io.fintechlabs.testframework.testmodule.TestModule;
 @Controller
 public class TestRunner {
 
-	private static final String BASE_URL = "http://localhost:8080";
+	@Value("${fintechlabs.base_url:http://localhost:8080}")
+	private String baseUrl;
 
 	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
@@ -103,7 +105,7 @@ public class TestRunner {
 
         support.addRunningTest(id, test);
 
-        String baseUrl;
+        String url;
         if (!Strings.isNullOrEmpty(alias)) {
         	try {
 	        	// create an alias for the test
@@ -111,7 +113,7 @@ public class TestRunner {
 	        		// there was a failure in creating the test alias, return an error
 	        		return new ResponseEntity<>(HttpStatus.CONFLICT);
 	        	}
-				baseUrl = BASE_URL + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+				url = baseUrl + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				// this should never happen, why is Java dumb
 				e.printStackTrace();
@@ -119,18 +121,18 @@ public class TestRunner {
 			}
 
         } else {
-            baseUrl = BASE_URL + TestDispatcher.TEST_PATH + id;
+            url = baseUrl + TestDispatcher.TEST_PATH + id;
         }
         
 
-        test.configure(config, eventLog, id, browser, baseUrl);
+        test.configure(config, eventLog, id, browser, url);
 
         logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
         Map<String, String> map = new HashMap<>();
         map.put("name", testName);
         map.put("id", test.getId());
-        map.put("url", baseUrl);
+        map.put("url", url);
         
         return new ResponseEntity<>(map, HttpStatus.CREATED);
 
