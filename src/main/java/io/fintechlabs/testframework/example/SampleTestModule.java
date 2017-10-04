@@ -41,6 +41,7 @@ import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.GetClientConfiguration;
 import io.fintechlabs.testframework.condition.GetServerConfiguration;
@@ -191,6 +192,8 @@ public class SampleTestModule extends AbstractTestModule {
 		optional(CheckForIdTokenValue.class);
 		
 		optional(CheckForRefreshTokenValue.class);
+		
+		require(EnsureMinimumTokenEntropy.class);
 		
 		this.status = Status.FINISHED;
 		fireTestSuccess();
