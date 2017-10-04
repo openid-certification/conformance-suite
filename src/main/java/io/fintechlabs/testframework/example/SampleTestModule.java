@@ -175,7 +175,6 @@ public class SampleTestModule extends AbstractTestModule {
 		require(CheckIfAuthorizationEndpointError.class);
 		
 		require(CheckMatchingStateParameter.class);
-		//expectFailure(CheckMatchingStateParameter.class);
 
 		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		

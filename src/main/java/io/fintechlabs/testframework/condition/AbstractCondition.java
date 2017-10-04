@@ -14,12 +14,14 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
@@ -41,6 +43,10 @@ public abstract class AbstractCondition implements Condition {
 	 */
 	public AbstractCondition(String testId, EventLog log) {
 		this(testId, log, Collections.emptySet());
+	}
+	
+	public AbstractCondition(String testId, EventLog log, String... requirements) {
+		this(testId, log, Sets.newHashSet(requirements));
 	}
 	
 	public AbstractCondition(String testId, EventLog log, Set<String> requirements) {

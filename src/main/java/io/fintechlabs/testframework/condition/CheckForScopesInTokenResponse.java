@@ -34,7 +34,7 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 * @param log
 	 */
 	public CheckForScopesInTokenResponse(String testId, EventLog log) {
-		super(testId, log, ImmutableSet.of("FAPI-1-5.2.2-15"));
+		super(testId, log, "FAPI-1-5.2.2-15");
 		// TODO Auto-generated constructor stub
 	}
 
