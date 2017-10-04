@@ -31,7 +31,7 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 	 * @param log
 	 */
 	public CheckForAccessTokenValue(String testId, EventLog log) {
-		super(testId, log);
+		super(testId, log, "FAPI-1-5.2.2-14");
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,8 +43,14 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "access_token"))) {
 			log(ImmutableMap.of("msg", "Found an access token",
 					"access_token", env.getString("token_endpoint_response", "access_token")));
-			logSuccess();
-			return env;
+			
+			if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "token_type"))) {
+				logSuccess();
+				return env;
+			} else {
+				return error("Couldn't find required token_type");
+			}
+			
 		} else {
 			return error("Couldn't find access token");
 		}
