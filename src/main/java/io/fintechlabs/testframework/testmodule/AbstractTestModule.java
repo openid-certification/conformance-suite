@@ -68,6 +68,7 @@ public abstract class AbstractTestModule implements TestModule {
 				.newInstance(id, eventLog);
 	
 			// evaluate the condition and assign its results back to our environment
+			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
 			env = condition.evaluate(env);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -75,7 +76,7 @@ public abstract class AbstractTestModule implements TestModule {
 			fireTestFailure();
 			throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
 		} catch (ConditionError error) {
-			logger.info("Test condition failure: " + error.getMessage());
+			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
 			throw new TestFailureException(error);
 		}
@@ -93,39 +94,13 @@ public abstract class AbstractTestModule implements TestModule {
 				.newInstance(id, eventLog);
 	
 			// evaluate the condition and assign its results back to our environment
+			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
 			env = condition.evaluate(env);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create optional condition object", e);
 		} catch (ConditionError error) {
-			logger.info("Ignoring optional condition failure: " + error.getMessage());
-		}
-	}
-
-	/**
-	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition succeeds. This is the inverse of require().
-	 */
-	protected void expectFailure(Class<? extends Condition> conditionClass) {
-		try {
-			
-			// create a new condition object from the class above
-			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class)
-				.newInstance(id, eventLog);
-	
-			// evaluate the condition and assign its results back to our environment
-			env = condition.evaluate(env);
-			
-			// if we got here, the condition succeeded but we're expecting a failure so throw an error
-			fireTestFailure();
-			throw new TestFailureException(getId(), "Condition failure expected, but got success: " + conditionClass.getSimpleName());
-			
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			logger.error("Couldn't create required condition object", e);
-			fireTestFailure();
-			throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
-		} catch (ConditionError error) {
-			logger.info("Test condition failure as expected: " + error.getMessage());
+			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 		}
 	}
 
@@ -158,12 +133,14 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void logFinalEnv() {
-		Map<String, Object> finalEnv = new HashMap<>();
-		for (String key : env.allObjectIds()) {
-			finalEnv.put(key, env.get(key));
-		}
-		
-		eventLog.log(getId(), "final_env", finalEnv);
+//		Map<String, Object> finalEnv = new HashMap<>();
+//		for (String key : env.allObjectIds()) {
+//			finalEnv.put(key, env.get(key));
+//		}
+//		
+//		eventLog.log(getId(), "final_env", finalEnv);
+//		
+		logger.info("Final environment: " + env);
 	}
 
 	protected void fireSetupDone() {

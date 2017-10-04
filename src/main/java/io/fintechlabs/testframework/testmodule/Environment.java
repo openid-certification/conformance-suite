@@ -167,5 +167,13 @@ public class Environment {
 		return store.keySet();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Environment [store=" + store + "]";
+	}
+
 	
 }
