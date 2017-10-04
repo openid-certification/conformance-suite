@@ -35,7 +35,7 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 	 * @param log
 	 */
 	public EnsureMinimumTokenEntropy(String testId, EventLog log) {
-		super(testId, log);
+		super(testId, log, ImmutableSet.of("FAPI-1-5.2.2-16"));
 		// TODO Auto-generated constructor stub
 	}
 
@@ -87,14 +87,5 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 	private static double log2(double a) {
 		return Math.log(a) / Math.log(2);
 	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.AbstractCondition#getRequirements()
-	 */
-	@Override
-	protected Set<String> getRequirements() {
-		return ImmutableSet.of("FAPI-1-5.2.2-16");
-	}
-
 
 }

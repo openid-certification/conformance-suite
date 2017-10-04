@@ -33,14 +33,20 @@ public abstract class AbstractCondition implements Condition {
 	
 	private String testId;
 	private EventLog log;
+	private Set<String> requirements;
 	
 	/**
 	 * @param testId
 	 * @param log
 	 */
 	public AbstractCondition(String testId, EventLog log) {
+		this(testId, log, Collections.emptySet());
+	}
+	
+	public AbstractCondition(String testId, EventLog log, Set<String> requirements) {
 		this.testId = testId;
 		this.log = log;
+		this.requirements = requirements;
 	}
 
 	/* (non-Javadoc)
@@ -123,6 +129,6 @@ public abstract class AbstractCondition implements Condition {
 	 * @return
 	 */
 	protected Set<String> getRequirements() {
-		return Collections.emptySet();
+		return requirements;
 	}
 }
