@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.runner;
 
+import java.lang.reflect.Method;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,8 +40,10 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 
+import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
  * @author jricher
@@ -114,19 +117,43 @@ public class TestDispatcher {
     }
 
     // handle errors thrown by running tests
-    @SuppressWarnings("finally")
-	@ExceptionHandler(TestFailureException.class)
-    public ModelAndView conditionFailure(TestFailureException error) {
+    @ExceptionHandler(TestFailureException.class)
+    public Object testFailure(TestFailureException error) {
     	try {
 	    	TestModule test = support.getRunningTestById(error.getTestId());
 	    	if (test != null) {
-	    		logger.error("Caught failure while running the test, stopping the test: " + error.getMessage());
+	    		logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 	    		test.stop();
 	    	}
+	    	
+	    	for (StackTraceElement ste : error.getCause().getStackTrace()) {
+	    		// look for the user-facing annotation in the stack
+	    		Class<?> clz = Class.forName(ste.getClassName());
+	    		
+	    		if (clz.equals(getClass())) {
+	    			// stop if we hit the dispatcher, no need to go further up the stack
+	    			break;
+	    		}
+
+	    		// check only the TestModule classes
+	    		if (!clz.equals(AbstractTestModule.class) && TestModule.class.isAssignableFrom(clz)) {
+	    			for (Method m : clz.getDeclaredMethods()) {
+		    			if (m.getName().equals(ste.getMethodName()) && m.isAnnotationPresent(UserFacing.class)) {
+		    				// if this is user-facing, return a user-facing view
+		    				return new ModelAndView("testError", ImmutableMap.of("error", error));
+		    			}
+						
+					}
+	    		}
+			}
+
+	    	// return a plain API view (no HTML)
+	    	return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+
     	} catch (Exception e) {
     		logger.error("Something terrible happened when handling an error, I give up", e);
-    	} finally {
-    		return new ModelAndView("testError", ImmutableMap.of("error", error));
+	    	return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
     	}
     }
+
 }

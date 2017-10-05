@@ -30,9 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpointImplicit;
-import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
@@ -43,9 +41,7 @@ import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
-import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.GetClientConfiguration;
 import io.fintechlabs.testframework.condition.GetServerConfiguration;
@@ -53,6 +49,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
  * @author jricher
@@ -154,13 +151,11 @@ public class SampleImplicitModule extends AbstractTestModule {
 		eventLog.log(getId(), getName(), "Params: " + params);
 		
 		// dispatch based on the path
+		
+		// these are all user-facing and will require user-facing error pages, so we wrap them
+		
 		if (path.equals("callback")) {
-			
-			require(CreateRandomImplicitSubmitUrl.class);
-			
-			return new ModelAndView("implicitCallback", 
-					ImmutableMap.of("test", this, 
-						"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+			return handleCallback(path, req, res, session, params, m);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
 			return handleImplicitSubmission(path, req, res, session, params, m);
 		} else {
@@ -169,6 +164,15 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 	}
 
+	@UserFacing
+	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+		require(CreateRandomImplicitSubmitUrl.class);
+		return new ModelAndView("implicitCallback", 
+				ImmutableMap.of("test", this, 
+					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+	}
+	
+	
 	/**
 	 * @param path
 	 * @param req
