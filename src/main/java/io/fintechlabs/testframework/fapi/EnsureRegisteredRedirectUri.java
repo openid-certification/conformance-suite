@@ -46,9 +46,8 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**
-	 * @param name
 	 */
-	public EnsureRegisteredRedirectUri(String name) {
+	public EnsureRegisteredRedirectUri() {
 		super("ensure-redirect-uri-is-registered");
 	}
 
