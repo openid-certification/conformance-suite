@@ -66,20 +66,21 @@ $(function() {
 		console.log('available: ', data);
 		
 		_.each(data, function(testName) {
-			$('#launch-buttons').append('<button class="btn">Create: ' + testName + '</button>')
-				.click(function() {
-					console.log('Button clicked: ' + testName);
-					$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
-							type: 'POST',
-							contentType: 'application/json',
-							data: $('#config').val(),
-							success: function(data, status) {
-								console.log('start results: ', data);
-								updateRunningTable();
-							},
-							dataTyle: 'json'
-					});
+			var btn = $('<button class="btn">Create: ' + testName + '</button>');
+			$('#launch-buttons').append(btn);
+			btn.click(function() {
+				console.log('Button clicked: ' + testName);
+				$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
+						type: 'POST',
+						contentType: 'application/json',
+						data: $('#config').val(),
+						success: function(data, status) {
+							console.log('start results: ', data);
+							updateRunningTable();
+						},
+						dataTyle: 'json'
 				});
+			});
 		});
 	});
 	
