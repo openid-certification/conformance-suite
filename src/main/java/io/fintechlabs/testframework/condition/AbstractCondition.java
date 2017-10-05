@@ -41,15 +41,15 @@ public abstract class AbstractCondition implements Condition {
 	 * @param testId
 	 * @param log
 	 */
-	public AbstractCondition(String testId, EventLog log) {
+	protected AbstractCondition(String testId, EventLog log) {
 		this(testId, log, Collections.emptySet());
 	}
 	
-	public AbstractCondition(String testId, EventLog log, String... requirements) {
+	protected AbstractCondition(String testId, EventLog log, String... requirements) {
 		this(testId, log, Sets.newHashSet(requirements));
 	}
 	
-	public AbstractCondition(String testId, EventLog log, Set<String> requirements) {
+	protected AbstractCondition(String testId, EventLog log, Set<String> requirements) {
 		this.testId = testId;
 		this.log = log;
 		this.requirements = requirements;
