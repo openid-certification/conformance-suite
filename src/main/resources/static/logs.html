@@ -1,0 +1,49 @@
+<!--
+
+
+
+-->
+<html>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>Fintech IO : UI for Test Output</title>
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
+
+    <script>
+
+
+        $(document).ready(function(){
+            FAPI_UI.loadContents();
+        });
+
+
+    </script>
+
+    <body>
+
+        <header style="cursor:default;"></header>
+
+        <div class="mainHolder">
+
+            <div id="logs">
+                <h1>Logs</h1>
+                <div class="content"></div>
+            </div>
+
+        </div>
+
+
+        <footer></footer>
+        
+    </body>
+
+</html>

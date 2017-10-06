@@ -1,0 +1,70 @@
+<!--
+
+
+
+-->
+<html>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>Fintech IO : UI for Test Output : Log Detail</title>
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
+
+    <script>
+
+        function getURLArgs() {
+            var args = new Object();
+            var query = location.search.substring(1);
+            var pairs = query.split("&");
+
+            for (var i = 0; i < pairs.length; i++) {
+                var pos = pairs[i].indexOf('=');
+                if (pos == -1) continue;
+                var argname = pairs[i].substring(0,pos);
+                var value = pairs[i].substring(pos+1);
+                args[argname] = unescape(value);
+            }
+
+            return args;
+        }
+
+        $(document).ready(function(){
+            
+            var args = getURLArgs();
+            FAPI_UI.showLogDetail(args.log);
+
+        });
+
+
+
+
+    </script>
+
+    <body>
+
+        <header onClick="FAPI_UI.goHome()"></header>
+
+        <div class="mainHolder">
+
+            <div id="logDetail">
+                <h1>Log detail</h1>
+                <div class="content"></div>
+            </div>
+            
+
+        </div>
+
+
+        <footer></footer>
+        
+    </body>
+
+</html>

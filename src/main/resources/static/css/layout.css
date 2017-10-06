@@ -1,0 +1,127 @@
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+/* prevents terrible flicker on interactive presses on iPad etc. */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/**CSS RESET END**/
+
+@font-face {
+    font-family: 'MyriadWebPro';
+    src: url(../fonts/Myriad/MyriadWebPro.ttf);
+}
+
+body {
+  font-family: 'MyriadWebPro';
+}
+
+header {
+  cursor:pointer;
+  margin:0px 20px;
+  width:calc(100% - 40px);
+  height:80px;
+  background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
+  background-size: 20% auto;
+  border-bottom:solid 1px #c0c0c0;
+}
+
+/* see: http://learnlayout.com/box-sizing.html as to why */
+/* e.g.: means that border:1px doesn't count in metrics */
+* {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+
+h1 {
+  font-size: 24px;
+  margin-bottom:20px;
+}
+
+.mainHolder {
+
+  margin:20px;
+
+}
+
+#logs .content .link {
+  margin:5px 0;
+}
+
+a {
+  text-decoration: none;
+  color: #1bc5f8;
+
+}
+
+a:hover {
+  text-decoration: underline;
+  
+}
+
+span.key {
+  color:#87c19c;
+}
+
+span.hypen {
+  color:#87c19c;
+}
+
+/* This is what designers mostly look at <= 3000 */
+@media all and (max-width : 3000px)  {
+
+  
+}
+
+
+/* <= 1400 */
+@media all and (max-width : 1400px)  {
+
+ 
+
+}
+
+/* < Tablet landscape */
+@media all and (max-width : 1023px)  {
+
+}
+
+/* <= Phones */
+@media all and (max-width : 640px)  {
+
+}
+
+/* <= Phones portrait */
+@media all and (max-width : 320px)  {
+
+
+}
+
