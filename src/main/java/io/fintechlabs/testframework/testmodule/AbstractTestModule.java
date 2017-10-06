@@ -157,7 +157,7 @@ public abstract class AbstractTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.testSuccess();
 		}
-		eventLog.log(getId(), getName(), "Success");
+		eventLog.log(getId(), getName(), "SUCCESS");
 	
 		logFinalEnv();
 	}
@@ -167,7 +167,7 @@ public abstract class AbstractTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.testFailure();
 		}
-		eventLog.log(getId(), getName(), "Failure");
+		eventLog.log(getId(), getName(), "FAILURE");
 	
 		logFinalEnv();
 	}
@@ -176,7 +176,7 @@ public abstract class AbstractTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.interrupted();
 		}
-		eventLog.log(getId(), getName(), "Interrupted");
+		eventLog.log(getId(), getName(), "INTERRUPTED");
 	
 		logFinalEnv();
 	}
