@@ -43,11 +43,13 @@ import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.GetClientConfiguration;
-import io.fintechlabs.testframework.condition.GetServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.TestDispatch;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -84,13 +86,13 @@ public class SampleImplicitModule extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetServerConfiguration.class);
+		require(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
 		
 		// Set up the client configuration
-		require(GetClientConfiguration.class);
+		require(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -137,8 +139,6 @@ public class SampleImplicitModule extends AbstractTestModule {
 			fireInterrupted();
 		}
 
-		logFinalEnv();
-		
 	}
 
 	/* (non-Javadoc)
@@ -146,7 +146,6 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 */
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
-
 		eventLog.log(getId(), getName(), "Path: " + path);
 		eventLog.log(getId(), getName(), "Params: " + params);
 		
@@ -165,6 +164,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	}
 
 	@UserFacing
+	@TestDispatch("callback")
 	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
 		require(CreateRandomImplicitSubmitUrl.class);
 		return new ModelAndView("implicitCallback", 
@@ -205,6 +205,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 			require(CheckForAccessTokenValue.class);
 			
 			optional(CheckForIdTokenValue.class);
+			
+			optional(ParseIdToken.class);
 			
 			optional(CheckForRefreshTokenValue.class);
 			

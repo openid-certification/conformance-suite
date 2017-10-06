@@ -30,13 +30,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GetServerConfiguration extends AbstractCondition {
+public class GetDynamicServerConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public GetServerConfiguration(String testId, EventLog log) {
+	public GetDynamicServerConfiguration(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
@@ -45,22 +45,28 @@ public class GetServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment, java.lang.String, io.fintechlabs.testframework.logging.EventLog)
 	 */
 	@Override
-	public Environment evaluate(Environment in) {
+	public Environment evaluate(Environment env) {
 		
-		if (!in.containsObj("config")) {
+		if (!env.containsObj("config")) {
 			return error("Couldn't find a configuration");
 		}
 		
+		String discoveryUrl = env.getString("config", "server.discoveryUrl");
+		
+		if (Strings.isNullOrEmpty(discoveryUrl)) {
+			String iss = env.getString("config", "server.issuer");
+			if (Strings.isNullOrEmpty(iss)) {
+				return error("Couldn't find discoveryUrl or issuer field for discovery purposes");
+			}
+			
+			discoveryUrl = iss + "/.well-known/openid-configuration";
+		}
+		
 		// get out the server configuration component
-		if (!Strings.isNullOrEmpty(in.getString("config", "server.discoveryUrl"))) {
+		if (!Strings.isNullOrEmpty(discoveryUrl)) {
 			// do an auto-discovery here
 			
-			String discoveryUrl = in.getString("config", "server.discoveryUrl");
-			
 			RestTemplate restTemplate = new RestTemplate();
-			
-			// TODO: construct the well-known URI if needed from the issuer field
-			//String url = issuer + "/.well-known/openid-configuration";
 
 			// fetch the value
 			String jsonString;
@@ -79,10 +85,10 @@ public class GetServerConfiguration extends AbstractCondition {
 					
 					log("Successfully parsed server configuration", serverConfig);
 					
-					in.put("server", serverConfig);
+					env.put("server", serverConfig);
 					
 					logSuccess();
-					return in;
+					return env;
 				} catch (JsonSyntaxException e) {
 					return error(e);
 				}

@@ -14,7 +14,8 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -22,43 +23,34 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GetClientConfiguration extends AbstractCondition {
+public class GetStaticServerConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public GetClientConfiguration(String testId, EventLog log) {
+	public GetStaticServerConfiguration(String testId, EventLog log) {
 		super(testId, log);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	public Environment evaluate(Environment in) {
+	public Environment evaluate(Environment env) {
 
-		if (!in.containsObj("config")) {
+		if (!env.containsObj("config")) {
 			return error("Couldn't find a configuration");
 		}
 
-		// make sure we've got a client object
-		JsonElement client = in.findElement("config", "client");
-		if (client == null || !client.isJsonObject()) {
-			return error("Couldn't find client object in configuration");
-		} else {
-			// we've got a client object, put it in the environment
-			in.put("client", client.getAsJsonObject());
-			
-			// pull out the client ID and put it in the root environment for easy access
-			in.putString("client_id", in.getString("client", "client_id"));
-			
-			logSuccess();
-			return in;
-		}
+		// do a simple copy
 		
+		JsonObject server = env.findElement("config", "server").getAsJsonObject();
 		
+		env.put("server", server);
+
+		return env;
 	}
 
 }

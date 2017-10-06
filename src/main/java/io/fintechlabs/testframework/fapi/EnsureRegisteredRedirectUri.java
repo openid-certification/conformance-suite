@@ -30,8 +30,8 @@ import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationE
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateBadRedirectUri;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
-import io.fintechlabs.testframework.condition.GetClientConfiguration;
-import io.fintechlabs.testframework.condition.GetServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
@@ -70,13 +70,13 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetServerConfiguration.class);
+		require(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
 		
 		// Set up the client configuration
-		require(GetClientConfiguration.class);
+		require(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -125,8 +125,6 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
 		}
-
-		logFinalEnv();
 
 	}
 

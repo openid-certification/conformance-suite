@@ -43,11 +43,17 @@ import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.GetClientConfiguration;
-import io.fintechlabs.testframework.condition.GetServerConfiguration;
+import io.fintechlabs.testframework.condition.FetchServerKeys;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.ParseIdToken;
+import io.fintechlabs.testframework.condition.ValidateIdToken;
+import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
  * @author jricher
@@ -81,14 +87,17 @@ public class SampleTestModule extends AbstractTestModule {
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
-		// Make sure we're calling the right server configuration
-		require(GetServerConfiguration.class);
+		// Get the server's configuration
+		optional(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
+
+		// fetch or load the server's keys as needed
+		require(FetchServerKeys.class);
 		
 		// Set up the client configuration
-		require(GetClientConfiguration.class);
+		require(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -135,8 +144,6 @@ public class SampleTestModule extends AbstractTestModule {
 			fireInterrupted();
 		}
 
-		logFinalEnv();
-		
 	}
 
 	/* (non-Javadoc)
@@ -166,6 +173,7 @@ public class SampleTestModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
+	@UserFacing
 	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
 
 		// process the callback
@@ -188,7 +196,13 @@ public class SampleTestModule extends AbstractTestModule {
 
 		require(CheckForAccessTokenValue.class);
 		
-		optional(CheckForIdTokenValue.class);
+		require(CheckForIdTokenValue.class);
+		
+		require(ParseIdToken.class);
+		
+		require(ValidateIdToken.class);
+		
+		require(ValidateIdTokenSignature.class);
 		
 		optional(CheckForRefreshTokenValue.class);
 		
