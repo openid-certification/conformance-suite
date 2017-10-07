@@ -7,14 +7,21 @@ var FAPI_UI = {
 	/**
 	 * 
 	 */
-	loadContents :  function() {
+	loadContentsFromURL : function(url) {
 		$.ajax({ 
 	        type: 'GET', 
-	        url: "log", 
+	        url: url, 
 	        data: {}, 
 	        success: function (data) { 
 
-	            FAPI_UI.renderTableOfContents(data);
+	        	var dataObj = $.parseJSON(data);
+	            var fileIds = [];
+	            
+	            for (var i=0;i<dataObj.length;i++) {
+	            	fileIds.push(dataObj[i]);
+	            }
+
+	            FAPI_UI.renderTableOfContents(fileIds);
 
 	        }
 	    });
@@ -34,10 +41,10 @@ var FAPI_UI = {
 	/**
 	 * 
 	 */
-	showLogDetail : function(name) {
+	showLogDetail : function(fileId) {
 
 		// load the project JSON
-		var file = "log/" + encodeURIComponent(name);
+		var file = "test-logs/"+fileId+".json";
 
 		$.ajax({ 
 	        type: 'GET', 
@@ -45,12 +52,17 @@ var FAPI_UI = {
 	        data: {}, 
 	        success: function (data) { 
 
-	            $.each(data, function(i, item) {
+	        	var dataObj = $.parseJSON(data);
+
+	            $.each(dataObj, function(i, item) {
+
+	            	$("#logDetail .content").append("<div class='item'>");
+
 	            	$.each(item, function(key, val) {
 	 
 	            		//filter out anything starting with an underscore as its injected by Mongo
 	            		if (key.charAt(0) != "_") {
-	            			var str = "<div>";
+	            			var str = "<div class='wordwrap'>";
 	            			str += "<span class='key'>"+key+"</span>";
 
 	            			if (key=="time") {
@@ -64,7 +76,7 @@ var FAPI_UI = {
 	            		}
 	            	});
 
-	            	$("#logDetail .content").append("<hr />");
+	            	$("#logDetail .content").append("</div>");
 
 	            });
 
