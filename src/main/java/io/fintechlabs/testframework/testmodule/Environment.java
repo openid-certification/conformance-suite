@@ -118,6 +118,20 @@ public class Environment {
 		}
 	}
 	
+	public Integer getInteger(String objId, String path) {
+		JsonElement e = findElement(objId, path);
+		if (e != null) {
+			if (e.isJsonPrimitive()) {
+				return e.getAsInt();
+			} else {
+				// it wasn't a primitive
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+	
 	
 	public Long getLong(String objId, String path) {
 		JsonElement e = findElement(objId, path);

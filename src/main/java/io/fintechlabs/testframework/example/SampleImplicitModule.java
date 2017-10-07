@@ -43,13 +43,12 @@ import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.TestDispatch;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -164,7 +163,6 @@ public class SampleImplicitModule extends AbstractTestModule {
 	}
 
 	@UserFacing
-	@TestDispatch("callback")
 	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
 		require(CreateRandomImplicitSubmitUrl.class);
 		return new ModelAndView("implicitCallback", 

@@ -42,6 +42,7 @@ import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.EnsureTls12;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
@@ -81,6 +82,8 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
+		
+		optional(EnsureTls12.class);
 		
 		require(CreateRedirectUri.class);
 
