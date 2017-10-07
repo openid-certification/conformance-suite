@@ -17,7 +17,7 @@
 
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-    
+
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -50,7 +50,18 @@
 
         });
 
+        function toggleShow(nodeID) {
 
+            if ($("#"+nodeID).hasClass("hidden")) {
+                $("#toggle_"+nodeID).html("HIDE");
+                $("#"+nodeID).removeClass("hidden");
+            } else {
+                $("#toggle_"+nodeID).html("SHOW");
+                $("#"+nodeID).addClass("hidden");
+            }
+            
+            
+        }
 
 
     </script>

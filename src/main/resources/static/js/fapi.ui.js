@@ -43,7 +43,6 @@ var FAPI_UI = {
 	 */
 	showLogDetail : function(fileId) {
 
-		// load the project JSON
 		var file = "test-logs/"+fileId+".json";
 
 		$.ajax({ 
@@ -60,19 +59,27 @@ var FAPI_UI = {
 
 	            	$.each(item, function(key, val) {
 	 
-	            		//filter out anything starting with an underscore as its injected by Mongo
+	            		// filter out anything starting with an underscore as its injected by Mongo
 	            		if (key.charAt(0) != "_") {
+	            			var nodeID = i + "_" + key;
 	            			var str = "<div class='wordwrap'>";
 	            			str += "<span class='key'>"+key+"</span>";
 
-	            			if (key=="time") {
+	            			if (key=="server_config_string" || key == "access_token" || key == "token_endpoint_response") {
+	            				str += "<span class='hypen'> : <a class='toggle' id='toggle_"+nodeID+"' href='javaScript:toggleShow(\""+nodeID+"\");'>SHOW</a></span>";
+	            				str += "<div id='"+nodeID+"' class='value hidden'>" + val + "</div>";
+	            			}
+	            			else if (key=="time") {
 	            				str += "<span class='hypen'> : </span><span class='value'>" + new Date(val) + "</span>";
 	            			} else {
 	            				str += "<span class='hypen'> : </span><span class='value'>" + val + "</span>";
 	            			}
 
 	            			str += "</div>";
+
 	            			$("#logDetail .content").append(str);
+	            			
+	            			
 	            		}
 	            	});
 

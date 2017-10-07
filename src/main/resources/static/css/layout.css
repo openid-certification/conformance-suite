@@ -61,6 +61,11 @@ span.hypen {
   color:#87c19c;
 }
 
+.hidden {
+  display:none;
+}
+
+
 /* This is what designers mostly look at <= 3000 */
 @media all and (max-width : 3000px)  {
 
