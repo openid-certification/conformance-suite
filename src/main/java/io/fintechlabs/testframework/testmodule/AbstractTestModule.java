@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -157,7 +158,7 @@ public abstract class AbstractTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.testSuccess();
 		}
-		eventLog.log(getId(), getName(), "SUCCESS");
+		eventLog.log(getId(), getName(), ImmutableMap.of("result", "SUCCESS"));
 	
 		logFinalEnv();
 	}
@@ -167,7 +168,7 @@ public abstract class AbstractTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.testFailure();
 		}
-		eventLog.log(getId(), getName(), "FAILURE");
+		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
 	
 		logFinalEnv();
 	}
@@ -176,7 +177,7 @@ public abstract class AbstractTestModule implements TestModule {
 		for (TestModuleEventListener listener : listeners) {
 			listener.interrupted();
 		}
-		eventLog.log(getId(), getName(), "INTERRUPTED");
+		eventLog.log(getId(), getName(), ImmutableMap.of("result", "INTERRUPTED"));
 	
 		logFinalEnv();
 	}
