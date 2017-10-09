@@ -7,22 +7,13 @@ var FAPI_UI = {
 	/**
 	 * 
 	 */
-	loadContentsFromURL : function(url) {
+	loadAvailableLogs : function(url) {
 		$.ajax({ 
 	        type: 'GET', 
-	        url: url, 
+	        url: "log", 
 	        data: {}, 
 	        success: function (data) { 
-
-	        	var dataObj = $.parseJSON(data);
-	            var fileIds = [];
-	            
-	            for (var i=0;i<dataObj.length;i++) {
-	            	fileIds.push(dataObj[i]);
-	            }
-
-	            FAPI_UI.renderTableOfContents(fileIds);
-
+	            FAPI_UI.renderTableOfContents(data);
 	        }
 	    });
 	},
@@ -43,17 +34,13 @@ var FAPI_UI = {
 	 */
 	showLogDetail : function(fileId) {
 
-		var file = "test-logs/"+fileId+".json";
-
 		$.ajax({ 
 	        type: 'GET', 
-	        url: file, 
+	        url: "log/" + encodeURIComponent(fileId), 
 	        data: {}, 
 	        success: function (data) { 
 
-	        	var dataObj = $.parseJSON(data);
-
-	            $.each(dataObj, function(i, item) {
+	            $.each(data, function(i, item) {
 
 	            	$("#logDetail .content").append("<div class='item'>");
 
