@@ -34,7 +34,9 @@
             <b th:text="${error?.cause?.message}">Error</b>
         </div>
         
-        <div>Please return to the test framework.</div>
+        <div><a th:href="|/log-detail.html?log=${error?.cause?.testId}|" class="btn btn-info">View log</a></div>
+        
+        <div>Please <a href="/index.html">return to the test framework</a>.</div>
 
     </div>
 

@@ -30,7 +30,10 @@
       
         <h1>Test <span th:text="${test?.id}">TEST-ID</span> is processing results</h1>
         
-        <div>Please return to the test framework to check its status.</div>
+        <div><a th:href="|/log-detail.html?log=${test?.id}|" class="btn btn-info">View log</a></div>
+        
+        <div>Please <a href="/index.html">return to the test framework</a>.</div>
+
 
     </div>
 
