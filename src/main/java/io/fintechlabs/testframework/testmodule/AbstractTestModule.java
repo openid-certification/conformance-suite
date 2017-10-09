@@ -45,7 +45,6 @@ public abstract class AbstractTestModule implements TestModule {
 	protected Status status = Status.UNKNOWN; // current status of the test
 	protected Result result = Result.UNKNOWN; // results of running the test
 	protected EventLog eventLog;
-	protected List<TestModuleEventListener> listeners = new ArrayList<>();
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
@@ -113,26 +112,6 @@ public abstract class AbstractTestModule implements TestModule {
 		return status;		
 	}
 
-	/**
-	 * @param e
-	 * @return
-	 * @see java.util.List#add(java.lang.Object)
-	 */
-	@Override
-	public boolean addListener(TestModuleEventListener e) {
-		return listeners.add(e);
-	}
-
-	/**
-	 * @param o
-	 * @return
-	 * @see java.util.List#remove(java.lang.Object)
-	 */
-	@Override
-	public boolean removeListener(TestModuleEventListener o) {
-		return listeners.remove(o);
-	}
-
 	protected void logFinalEnv() {
 //		Map<String, Object> finalEnv = new HashMap<>();
 //		for (String key : env.allObjectIds()) {
@@ -145,38 +124,22 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireSetupDone() {
-		for (TestModuleEventListener listener : listeners) {
-			listener.setupDone();
-		}
-		
 		eventLog.log(getId(), getName(), "Setup Done");
-	
 	}
 
 	protected void fireTestSuccess() {
-		setResult(Result.PASSED);
-		for (TestModuleEventListener listener : listeners) {
-			listener.testSuccess();
-		}
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "SUCCESS"));
 	
 		logFinalEnv();
 	}
 
 	private void fireTestFailure() {
-		setResult(Result.FAILED);
-		for (TestModuleEventListener listener : listeners) {
-			listener.testFailure();
-		}
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
 	
 		logFinalEnv();
 	}
 
 	protected void fireInterrupted() {
-		for (TestModuleEventListener listener : listeners) {
-			listener.interrupted();
-		}
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "INTERRUPTED"));
 	
 		logFinalEnv();

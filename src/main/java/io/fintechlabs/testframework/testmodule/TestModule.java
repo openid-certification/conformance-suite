@@ -93,24 +93,6 @@ public interface TestModule {
     void stop();
 
     /**
-     * *
-     * Adds an event listener to the test module. This provides communication
-     * Back to the listener regarding the current status of the test
-     *
-     * @param The testModuleEventLister to be added
-     * @return True if successful
-     */
-    boolean addListener(TestModuleEventListener e);
-
-    /**
-     * Remove an event listener
-     *
-     * @param o
-     * @return
-     */
-    boolean removeListener(TestModuleEventListener o);
-
-    /**
      * Called when a the test runner calls a URL
      *
      * @param path The path that was called
