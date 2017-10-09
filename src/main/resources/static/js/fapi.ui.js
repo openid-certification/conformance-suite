@@ -13,20 +13,11 @@ var FAPI_UI = {
 	        url: "log", 
 	        data: {}, 
 	        success: function (data) { 
-	            FAPI_UI.renderTableOfContents(data);
+	        	$.each(data, function(i, item) {
+	        		$("#logs .content").append("<div class='link'><a href='log-detail.html?log="+item+"' class='item'>"+item+"</a></div>");
+	        	});
 	        }
 	    });
-	},
-
-	/**
-	 * 
-	 */
-	renderTableOfContents : function(fileIds) {
-
-		for (var i=0;i<fileIds.length;i++) {
-			var item = fileIds[i];
-			$("#logs .content").append("<div class='link'><a href='log-detail.html?log="+item+"' class='item'>"+item+"</a></div>");
-		}
 	},
 
 	/**

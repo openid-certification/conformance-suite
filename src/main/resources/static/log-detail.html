@@ -22,47 +22,21 @@
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
-
     <script>
-
-        function getURLArgs() {
-            var args = new Object();
-            var query = location.search.substring(1);
-            var pairs = query.split("&");
-
-            for (var i = 0; i < pairs.length; i++) {
-                var pos = pairs[i].indexOf('=');
-                if (pos == -1) continue;
-                var argname = pairs[i].substring(0,pos);
-                var value = pairs[i].substring(pos+1);
-                args[argname] = unescape(value);
-            }
-
-            return args;
-        }
-
         $(document).ready(function(){
             
-            var args = getURLArgs();
-            FAPI_UI.showLogDetail(args.log);
+        	var urlParams = new URLSearchParams(window.location.search);
+        	
+        	FAPI_UI.showLogDetail(urlParams.get('log'));
 
         });
-
-        function toggleShow(nodeID) {
-
-            if ($("#"+nodeID).hasClass("hidden")) {
-                $("#toggle_"+nodeID).html("HIDE");
-                $("#"+nodeID).removeClass("hidden");
-            } else {
-                $("#toggle_"+nodeID).html("SHOW");
-                $("#"+nodeID).addClass("hidden");
-            }
-            
-            
-        }
-
 
     </script>
 
