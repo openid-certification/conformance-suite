@@ -16,13 +16,18 @@ package io.fintechlabs.testframework;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
+import com.google.common.collect.Lists;
+
+import io.fintechlabs.testframework.logging.GsonConverter;
 import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 
@@ -47,5 +52,9 @@ public class ApplicationConfig {
     public TestRunnerSupport testRunnerSupport() {
     	return new InMemoryTestRunnerSupport();
     }
-
+    
+    @Bean
+	public CustomConversions mongoCustomConversions() {
+		return new CustomConversions(Lists.newArrayList(new GsonConverter()));
+	}
 }
