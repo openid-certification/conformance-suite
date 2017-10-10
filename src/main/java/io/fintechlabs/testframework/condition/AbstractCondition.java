@@ -90,15 +90,27 @@ public abstract class AbstractCondition implements Condition {
 	}
 	
 	protected void logSuccess() {
-		log(ImmutableMap.of("result", "SUCCESS", "requirements", this.getRequirements()));
+		if (getRequirements().isEmpty()) {
+			log(ImmutableMap.of("result", "SUCCESS"));
+		} else {
+			log(ImmutableMap.of("result", "SUCCESS", "requirements", getRequirements()));
+		}
 	}
 
 	protected void logFailure() {
-		log(ImmutableMap.of("result", "FAILURE", "requirements", this.getRequirements()));
+		if (getRequirements().isEmpty()) {
+			log(ImmutableMap.of("result", "FAILURE"));
+		} else {
+			log(ImmutableMap.of("result", "FAILURE", "requirements", getRequirements()));
+		}
 	}
 	
 	protected void logFailure(String msg) {
-		log(ImmutableMap.of("msg", msg, "result", "FAILURE", "requirements", this.getRequirements()));
+		if (getRequirements().isEmpty()) {
+			log(msg, ImmutableMap.of("result", "FAILURE"));
+		} else {
+			log(msg, ImmutableMap.of("result", "FAILURE", "requirements", getRequirements()));
+		}
 	}
 
 	/*
