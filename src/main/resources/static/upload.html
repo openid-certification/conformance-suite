@@ -65,6 +65,7 @@
                     processData: false,
                     success: function (data) { 
                         $('#preview').prop('src', '');
+                        $('#success a').prop('href', '/log-detail.html?log=' + encodeURIComponent(testId));
                         $('#success').show();
                     }
 	        	});
@@ -96,6 +97,10 @@
                 </div>
             </div>
             
+            <div class="collapse" id="success">
+                <p class="info">Image uploaded! <a class="btn btn-info">Return to the logs.</a></p>
+            </div>
+
 
         </div>
 

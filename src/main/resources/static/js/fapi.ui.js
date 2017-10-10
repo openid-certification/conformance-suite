@@ -78,7 +78,7 @@ var FAPI_UI = {
 	            			} else if (key == 'img') {
 	            				wordwrap.append($('<span class="value"><img src="' + _.escape(val) + '"></span>'));
 	            			} else if (key == 'upload') {
-	            				wordwrap.append($('<span class="value"><span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info" href="/upload.html?log=' + encodeURIComponent(fileId) + '&placeholder=' + encodeURIComponent(val) + '">Attach image...</a></span>'))
+	            				wordwrap.append($('<span class="value"><span class="label label-warning">IMAGE REQUIRED</span> <a class="btn btn-primary" href="/upload.html?log=' + encodeURIComponent(fileId) + '&placeholder=' + encodeURIComponent(val) + '">Attach image...</a></span>'))
 	            			} else {
 	            				// default formatting
 	            				if (_.isString(val)) {
