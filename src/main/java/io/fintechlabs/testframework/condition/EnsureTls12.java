@@ -40,8 +40,8 @@ public class EnsureTls12 extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureTls12(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-7.1-1");
+	public EnsureTls12(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-7.1-1");
 		// TODO Auto-generated constructor stub
 	}
 

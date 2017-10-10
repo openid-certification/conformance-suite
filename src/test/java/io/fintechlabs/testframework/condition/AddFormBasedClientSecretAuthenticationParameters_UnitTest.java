@@ -59,7 +59,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new AddFormBasedClientSecretAuthenticationParameters("UNIT-TEST", eventLog);
+		cond = new AddFormBasedClientSecretAuthenticationParameters("UNIT-TEST", eventLog, false);
 		
 		client = new JsonParser().parse("{"
 				+ "\"client_id\":\"client\","

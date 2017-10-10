@@ -30,8 +30,8 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CheckForAccessTokenValue(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-5.2.2-14");
+	public CheckForAccessTokenValue(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-14");
 		// TODO Auto-generated constructor stub
 	}
 

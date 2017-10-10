@@ -33,8 +33,8 @@ public class CreateRedirectUri extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRedirectUri(String testId, EventLog log) {
-		super(testId, log);
+	public CreateRedirectUri(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -31,8 +31,8 @@ public class BuildPlainRedirectToAuthorizationEndpointImplicit extends AbstractC
 	 * @param testId
 	 * @param log
 	 */
-	public BuildPlainRedirectToAuthorizationEndpointImplicit(String testId, EventLog log) {
-		super(testId, log);
+	public BuildPlainRedirectToAuthorizationEndpointImplicit(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

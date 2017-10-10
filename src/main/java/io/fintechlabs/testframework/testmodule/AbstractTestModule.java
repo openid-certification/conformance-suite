@@ -15,9 +15,7 @@
 package io.fintechlabs.testframework.testmodule;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -64,8 +62,8 @@ public abstract class AbstractTestModule implements TestModule {
 			
 			// create a new condition object from the class above
 			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class)
-				.newInstance(id, eventLog);
+				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
+				.newInstance(id, eventLog, false);
 	
 			// evaluate the condition and assign its results back to our environment
 			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
@@ -90,11 +88,11 @@ public abstract class AbstractTestModule implements TestModule {
 			
 			// create a new condition object from the class above
 			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class)
-				.newInstance(id, eventLog);
+				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
+				.newInstance(id, eventLog, true);
 	
 			// evaluate the condition and assign its results back to our environment
-			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
+			logger.info("}} Calling Condition " + conditionClass.getSimpleName());
 			env = condition.evaluate(env);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -129,6 +127,8 @@ public abstract class AbstractTestModule implements TestModule {
 
 	protected void fireTestSuccess() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "SUCCESS"));
+		
+		setResult(Result.PASSED);
 	
 		logFinalEnv();
 	}
@@ -136,12 +136,16 @@ public abstract class AbstractTestModule implements TestModule {
 	private void fireTestFailure() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
 	
+		setResult(Result.FAILED);
+
 		logFinalEnv();
 	}
 
 	protected void fireInterrupted() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "INTERRUPTED"));
 	
+		setResult(Result.UNKNOWN);
+		
 		logFinalEnv();
 	}
 

@@ -47,8 +47,8 @@ public class CallTokenEndpoint extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CallTokenEndpoint(String testId, EventLog log) {
-		super(testId, log);
+	public CallTokenEndpoint(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

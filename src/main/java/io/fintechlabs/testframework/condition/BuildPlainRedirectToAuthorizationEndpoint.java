@@ -31,8 +31,8 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 	 * @param testId
 	 * @param log
 	 */
-	public BuildPlainRedirectToAuthorizationEndpoint(String testId, EventLog log) {
-		super(testId, log);
+	public BuildPlainRedirectToAuthorizationEndpoint(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
