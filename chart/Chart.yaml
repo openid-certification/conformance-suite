@@ -1,5 +1,4 @@
 apiVersion: v1
-description: GitLab's Auto-deploy Helm Chart
-icon: https://gitlab.com/gitlab-com/gitlab-artwork/raw/master/logo/logo-square.png
-name: auto-deploy-app
-version: 0.2.4
+description: Helm chart for FAPI conformance suite
+name: fapi-conformance-suite
+version: 0.1.0
