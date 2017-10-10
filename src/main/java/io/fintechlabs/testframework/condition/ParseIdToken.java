@@ -62,7 +62,7 @@ public class ParseIdToken extends AbstractCondition {
 			// save the parsed ID token
 			env.put("id_token", o);
 			
-			log("Found the ID Token", ImmutableMap.of("id_token", o));
+			log("Found the ID Token", o);
 			
 			logSuccess();
 			
