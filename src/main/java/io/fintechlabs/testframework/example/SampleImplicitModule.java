@@ -130,7 +130,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	@Override
 	public void stop() {
 
-		eventLog.log(getId(), getName(), "Finsihed");
+		eventLog.log(getId(), getName(), "Finished");
 		
 		this.status = Status.FINISHED;
 		
