@@ -37,8 +37,8 @@ public class ExtractImplicitHashToTokenEndpointResponse extends AbstractConditio
 	 * @param testId
 	 * @param log
 	 */
-	public ExtractImplicitHashToTokenEndpointResponse(String testId, EventLog log) {
-		super(testId, log);
+	public ExtractImplicitHashToTokenEndpointResponse(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

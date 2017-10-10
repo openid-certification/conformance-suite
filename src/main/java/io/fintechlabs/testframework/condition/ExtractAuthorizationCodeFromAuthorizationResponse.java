@@ -30,8 +30,8 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 	 * @param testId
 	 * @param log
 	 */
-	public ExtractAuthorizationCodeFromAuthorizationResponse(String testId, EventLog log) {
-		super(testId, log);
+	public ExtractAuthorizationCodeFromAuthorizationResponse(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

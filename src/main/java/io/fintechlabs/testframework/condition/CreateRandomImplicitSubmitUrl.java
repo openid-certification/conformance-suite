@@ -36,8 +36,8 @@ public class CreateRandomImplicitSubmitUrl extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRandomImplicitSubmitUrl(String testId, EventLog log) {
-		super(testId, log);
+	public CreateRandomImplicitSubmitUrl(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

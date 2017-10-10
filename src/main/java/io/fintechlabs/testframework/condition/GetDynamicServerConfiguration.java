@@ -36,8 +36,8 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public GetDynamicServerConfiguration(String testId, EventLog log) {
-		super(testId, log);
+	public GetDynamicServerConfiguration(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

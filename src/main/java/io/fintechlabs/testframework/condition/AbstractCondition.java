@@ -36,22 +36,24 @@ public abstract class AbstractCondition implements Condition {
 	private String testId;
 	private EventLog log;
 	private Set<String> requirements;
+	private boolean optional;
 	
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	protected AbstractCondition(String testId, EventLog log) {
-		this(testId, log, Collections.emptySet());
+	protected AbstractCondition(String testId, EventLog log, boolean optional) {
+		this(testId, log, optional, Collections.emptySet());
 	}
 	
-	protected AbstractCondition(String testId, EventLog log, String... requirements) {
-		this(testId, log, Sets.newHashSet(requirements));
+	protected AbstractCondition(String testId, EventLog log, boolean optional, String... requirements) {
+		this(testId, log, optional, Sets.newHashSet(requirements));
 	}
 	
-	protected AbstractCondition(String testId, EventLog log, Set<String> requirements) {
+	protected AbstractCondition(String testId, EventLog log, boolean optional, Set<String> requirements) {
 		this.testId = testId;
 		this.log = log;
+		this.optional = optional;
 		this.requirements = requirements;
 	}
 
@@ -99,17 +101,17 @@ public abstract class AbstractCondition implements Condition {
 
 	protected void logFailure() {
 		if (getRequirements().isEmpty()) {
-			log(ImmutableMap.of("result", "FAILURE"));
+			log(ImmutableMap.of("result", optional ? "WARNING" : "FAILURE"));
 		} else {
-			log(ImmutableMap.of("result", "FAILURE", "requirements", getRequirements()));
+			log(ImmutableMap.of("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
 		}
 	}
 	
 	protected void logFailure(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(msg, ImmutableMap.of("result", "FAILURE"));
+			log(msg, ImmutableMap.of("result", optional ? "WARNING" : "FAILURE"));
 		} else {
-			log(msg, ImmutableMap.of("result", "FAILURE", "requirements", getRequirements()));
+			log(msg, ImmutableMap.of("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
 		}
 	}
 

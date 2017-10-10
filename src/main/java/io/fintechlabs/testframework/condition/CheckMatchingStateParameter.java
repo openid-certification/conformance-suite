@@ -32,8 +32,8 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CheckMatchingStateParameter(String testId, EventLog log) {
-		super(testId, log);
+	public CheckMatchingStateParameter(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

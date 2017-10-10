@@ -39,8 +39,8 @@ public class FetchServerKeys extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public FetchServerKeys(String testId, EventLog log) {
-		super(testId, log);
+	public FetchServerKeys(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -28,8 +28,8 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CheckIfTokenEndpointResponseError(String testId, EventLog log) {
-		super(testId, log);
+	public CheckIfTokenEndpointResponseError(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
