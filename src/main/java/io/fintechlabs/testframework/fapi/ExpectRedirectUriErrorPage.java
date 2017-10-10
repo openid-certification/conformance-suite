@@ -28,8 +28,8 @@ public class ExpectRedirectUriErrorPage extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public ExpectRedirectUriErrorPage(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-5.2.2-8");
+	public ExpectRedirectUriErrorPage(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-8");
 	}
 
 	/* (non-Javadoc)
