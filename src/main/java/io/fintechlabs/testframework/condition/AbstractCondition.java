@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.RandomStringUtils;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
@@ -148,5 +150,21 @@ public abstract class AbstractCondition implements Condition {
 	 */
 	protected Set<String> getRequirements() {
 		return requirements;
+	}
+	
+	protected void createUploadPlaceholder(String msg) {
+		if (getRequirements().isEmpty()) {
+			log(msg, ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
+		} else {
+			log(msg, ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
+		}
+	}
+	
+	protected void createUploadPlaceholder() {
+		if (getRequirements().isEmpty()) {
+			log(ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
+		} else {
+			log(ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
+		}
 	}
 }

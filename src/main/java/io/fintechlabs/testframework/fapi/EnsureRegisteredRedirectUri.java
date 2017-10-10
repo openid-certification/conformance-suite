@@ -104,6 +104,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		
 		eventLog.log(getId(), getName(), "Redirecting to url" + redirectTo);
 
+		require(ExpectRedirectUriErrorPage.class);
+		
 		browser.goToUrl(redirectTo);
 
 		/**

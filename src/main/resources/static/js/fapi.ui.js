@@ -1,6 +1,6 @@
 var FAPI_UI = {
 		
-	visibleFields : ["msg", "src", "time", "result", "requirements"],
+	visibleFields : ["msg", "src", "time", "result", "requirements", "upload"],
 
 	goHome : function() {
 		window.location.replace("logs.html");
@@ -64,8 +64,12 @@ var FAPI_UI = {
 	            					wordwrap.append($('<span class="value"><span class="label label-success">' + _.escape(val) + "</span></span>"));
 	            				} else if (val == 'FAILURE') {
 	            					wordwrap.append($('<span class="value"><span class="label label-danger">' + _.escape(val) + "</span></span>"));
-	            				} else {
+	            				} else if (val == 'WARNING') {
+	            					wordwrap.append($('<span class="value"><span class="label label-warning">' + _.escape(val) + "</span></span>"));
+	            				} else if (val == 'REVIEW') {
 	            					wordwrap.append($('<span class="value"><span class="label label-info">' + _.escape(val) + "</span></span>"));
+	            				} else {
+	            					wordwrap.append($('<span class="value"><span class="label label-primary">' + _.escape(val) + "</span></span>"));
 	            				}
 	            			} else if (key == "requirements") {
 	            				_.each(val, function(req){
