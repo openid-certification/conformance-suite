@@ -35,7 +35,7 @@ import com.mongodb.util.JSON;
 @Component
 public class DBEventLog implements EventLog {
 
-	private static final String COLLECTION = "EVENT_LOG";
+	public static final String COLLECTION = "EVENT_LOG";
 	
 	@Autowired
 	private MongoTemplate mongoTemplate;

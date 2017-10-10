@@ -1,0 +1,107 @@
+<!--
+
+
+
+-->
+<html>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>Fintech IO : UI for Test Output : Image Uploader</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
+    <script>
+        $(document).ready(function(){
+
+        	$('#file').change(function(evt) {
+        		var reader = new FileReader();
+        		
+        		reader.onload = function(evt) {
+                    var content = evt.target.result;
+                    console.log(content);
+                    $('#preview').prop('src', content);
+                };
+        		
+        		reader.readAsDataURL($('#file').prop('files')[0]);
+        	});
+        	
+        	$('#upload').click(function(evt) {
+        		evt.preventDefault();
+        		
+	        	var urlParams = new URLSearchParams(window.location.search);
+	        	var testId = urlParams.get('log');
+	        	var placeholder = urlParams.get('placeholder');
+
+	        	if (placeholder) {
+	        		var url = "log/" + encodeURIComponent(testId) + '/imgfile/' + encodeURIComponent(placeholder);
+	        	} else {
+	        		var url = "log/" + encodeURIComponent(testId) + '/imgfile'
+	        	}
+	        	
+	        	$.ajax({
+                    type: 'POST', 
+                    url: url,
+                    data: $('#preview').prop('src'),
+                    contentType: false,
+                    processData: false,
+                    success: function (data) { 
+                        $('#preview').prop('src', '');
+                        $('#success').show();
+                    }
+	        	});
+	        	
+        		
+        	});
+        	
+
+        });
+        
+    </script>
+
+    <body>
+
+        <header onClick="FAPI_UI.goHome()"></header>
+
+        <div class="mainHolder">
+
+            <div>
+                <h1>Upload image to the log</h1>
+                <div class="content">
+                
+	                <form>
+	                    <img id="preview" />
+	                    <input type="file" id="file">
+	                    <button type="submit" id="upload">Upload</button>
+	                </form>
+                
+                </div>
+            </div>
+            
+
+        </div>
+
+
+        <footer></footer>
+        
+    </body>
+
+</html>

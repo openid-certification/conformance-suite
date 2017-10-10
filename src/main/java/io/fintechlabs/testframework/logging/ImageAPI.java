@@ -15,14 +15,23 @@
 package io.fintechlabs.testframework.logging;
 
 import java.io.IOException;
+import java.util.Date;
 
-import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.CriteriaDefinition;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.mongodb.BasicDBObjectBuilder;
 
 /**
  * @author jricher
@@ -31,16 +40,44 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 public class ImageAPI {
 
+	@Autowired
+	private MongoTemplate mongoTemplate;
 
-	@PostMapping(path = "/log/{id}/{entry}")
-	public ResponseEntity<Object> uploadImageToLogEntry(@RequestParam("file") MultipartFile file) throws IOException {
+	@PostMapping(path = "/log/{id}/imgfile")
+	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
+			@PathVariable(name="id") String testId) throws IOException {
 		
-		byte[] bytes = file.getBytes();
-		String contentType = file.getContentType();
+		// create a new entry in the database
+		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
+				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
+				.add("testId", testId)
+				.add("src", "_image-api")
+				.add("time", new Date().getTime())
+				.add("img", encoded);
+
+		mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
 		
-		String encoded = Base64.encodeBase64String(bytes);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+	
+	@PostMapping(path = "/log/{id}/imgfile/{placeholder}")
+	public ResponseEntity<Object> uploadImageToExitingLogEntry(@RequestBody String encoded,
+			@PathVariable(name="id") String testId,
+			@PathVariable(name="placeholder") String placeholder) throws IOException {
 		
-		return new ResponseEntity<>(HttpStatus.OK);
+		
+		// find the existing entity
+		Query query = Query.query(
+				Criteria.where("testId").is(testId).andOperator(
+						Criteria.where("upload").is(placeholder)));
+		
+		Update update = new Update();
+		update.unset("upload");
+		update.set("img", encoded);
+
+		mongoTemplate.updateFirst(query, update, DBEventLog.COLLECTION);
+		
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	
