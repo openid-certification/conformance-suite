@@ -30,17 +30,25 @@
       
         <h1>FAPI Test Framework</h1>
 
-		<textarea id="config">{}</textarea>
-		
-		<input type="text" id="alias"></input>
-		
-		<div id="launch-buttons"></div>
+        <div>
+			<textarea id="config">{}</textarea>
+			
+			<input type="text" id="alias" placeholder="alias"></input>
+			
+			<div id="launch-buttons"></div>
+        </div>
 
 		<h3>Running tests</h3>
 
-		<button class="btn" id="refresh">Refresh</button>
+        <div>
+			<button class="btn" id="refresh">Refresh</button>
+	
+			<div id="running-tests"></div>
+        </div>
 
-		<div id="running-tests"></div>
+        <div>
+            <a href="logs.html" class="btn btn-info">View all available logs.</a>
+        </div>
 
       </div>
 
@@ -113,13 +121,13 @@ function updateRunningTable() {
 					}
 					
 					// list of exposed values
-					$('#' + status.id).append('<ul class="exposed">');
+					var exposed = $('<ul class="exposed"></ul>');
+					$('#' + status.id).append(exposed);
 					_.each(status.exposed, function(val, key) {
-		                  $('#' + status.id).append('<li><b>' + key + '<b>: <i>' + val + '</i></li>');
+		                  $(exposed).append('<li><b>' + key + '<b>: <i>' + val + '</i></li>');
 					});
-			        $('#' + status.id).append('</ul>');
 					
-					var start = $('<button>Start</button>');
+					var start = $('<button class="btn btn-success">Start</button>');
 					$('#' + status.id).append(start);
 					start.click(function (event) {
 					    $.ajax({url: 'runner/' + encodeURIComponent(testId),
@@ -130,7 +138,7 @@ function updateRunningTable() {
 					    	}
 					    });
 					});
-					var stop = $('<button>Stop</button>');
+					var stop = $('<button class="btn btn-danger">Stop</button>');
                     $('#' + status.id).append(stop);
                     stop.click(function (event) {
                         $.ajax({url: 'runner/' + encodeURIComponent(testId),
@@ -141,13 +149,15 @@ function updateRunningTable() {
                             }
                         });
                     });
+                    
+                    $('#' + status.id).append('<a href="log-detail.html?log=' + encodeURIComponent(testId) + '" class="btn btn-info">View log</a>');
 					
 					$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
-						$('#' + status.id).append('<ul class="browser">');
+						var b = $('<ul class="browser"></ul>');
+						$('#' + status.id).append(b);
 						_.each(browser.urls, function(url) {
-							$('#' + browser.id + ' ul.browser').append('<li>');
-							var link = $('<a href="#">Go to URL: ' + url + '</a>');
-							$('#' + browser.id + ' ul.browser').append(link);
+							var link = $('<li><a href="#">Go to URL: ' + url + '</a></li>');
+							$(b).append(link);
 							link.click(function(event) {
 								event.preventDefault();
 								var win = window.open(url, '_blank');
@@ -167,9 +177,7 @@ function updateRunningTable() {
 								}
 								
 							});
-							$('#' + browser.id + ' ul.browser').append('</li>');
 						});						
-						$('#' + status.id).append('</ul>');
 					});
 				});
 			});

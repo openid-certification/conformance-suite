@@ -53,6 +53,13 @@ a:hover {
    word-wrap: break-word;      
 }
 
+.moreinfo {
+  background: #eeeeee;
+  border: thin #C0C0C0 solid;
+  border-radius: 4px;
+  padding: 6px;
+}
+
 span.key {
   color:#87c19c;
 }
