@@ -127,6 +127,8 @@ public abstract class AbstractTestModule implements TestModule {
 
 	protected void fireTestSuccess() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "SUCCESS"));
+		
+		setResult(Result.PASSED);
 	
 		logFinalEnv();
 	}
@@ -134,12 +136,16 @@ public abstract class AbstractTestModule implements TestModule {
 	private void fireTestFailure() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
 	
+		setResult(Result.FAILED);
+
 		logFinalEnv();
 	}
 
 	protected void fireInterrupted() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "INTERRUPTED"));
 	
+		setResult(Result.UNKNOWN);
+		
 		logFinalEnv();
 	}
 
