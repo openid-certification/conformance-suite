@@ -65,9 +65,13 @@ test:
   stage: test
   image: gliderlabs/herokuish:latest
   script:
+    # Run tests explicitly, since herokuish doesn't pick up the maven environment
     - setup_test_db
-    - cp -R . /tmp/app
-    - /bin/herokuish buildpack test
+    - cp -R * /tmp/build
+    - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
+    - source /tmp/build/.profile.d/maven.sh
+    - cd /tmp/build
+    - mvn -B test
   only:
     - branches
 
