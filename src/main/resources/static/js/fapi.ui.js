@@ -9,7 +9,7 @@ var FAPI_UI = {
 	/**
 	 * 
 	 */
-	loadAvailableLogs : function(url) {
+	loadAvailableLogs : function() {
 		$.ajax({ 
 	        type: 'GET', 
 	        url: "log", 
