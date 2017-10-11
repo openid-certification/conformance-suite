@@ -30,6 +30,7 @@ import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationE
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateBadRedirectUri;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
+import io.fintechlabs.testframework.condition.ExpectRedirectUriErrorPage;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;

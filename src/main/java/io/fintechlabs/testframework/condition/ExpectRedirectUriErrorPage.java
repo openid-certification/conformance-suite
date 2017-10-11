@@ -12,9 +12,8 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.fapi;
+package io.fintechlabs.testframework.condition;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
