@@ -144,7 +144,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
 		eventLog.log(getId(), getName(), "Path: " + path);
 		eventLog.log(getId(), getName(), "Params: " + params);
 		
@@ -163,7 +163,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	}
 
 	@UserFacing
-	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
 		require(CreateRandomImplicitSubmitUrl.class);
 		return new ModelAndView("implicitCallback", 
 				ImmutableMap.of("test", this, 
@@ -180,7 +180,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private ModelAndView handleImplicitSubmission(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+	private ModelAndView handleImplicitSubmission(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
 
 		// process the callback
 		this.status = Status.RUNNING;

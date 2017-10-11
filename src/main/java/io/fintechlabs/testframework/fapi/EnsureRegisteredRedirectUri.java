@@ -135,7 +135,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
 
 		// If we get any kind of callback to this, it's an error: the authorization server should not ever respond the authorization request
 		
@@ -144,7 +144,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 			"path", path,
 			"method", req.getMethod(),
 			"requirements", ImmutableSet.of("FAPI-1-5.2.2-15"),
-			"params", params.toSingleValueMap()
+			"params", params
 		));
 		
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");

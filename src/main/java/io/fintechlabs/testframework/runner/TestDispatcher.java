@@ -39,6 +39,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -102,15 +103,20 @@ public class TestDispatcher {
         	testId = support.getTestIdForAlias(alias);
         }
 
-        String restOfPath = Joiner.on("/").join(pathParts);
-
         if (!support.hasTestId(testId)) {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        // wrap up all the rest of the path as a string again, stripping off the initial bits
+        String restOfPath = Joiner.on("/").join(pathParts);
+        
+        // convert the parameters into a JSON object to make it easier for the test modules to injest
+        JsonObject p = mapToJsonObject(params);
+        
         
     	TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
-    		return test.handleHttp(restOfPath, req, res, session, params, m);
+    		return test.handleHttp(restOfPath, req, res, session, p, m);
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
@@ -155,5 +161,18 @@ public class TestDispatcher {
 	    	return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
     	}
     }
+
+	/**
+	 * utility function to convert an incoming multi-value map to a JSonObject for storage
+	 * @param params
+	 * @return
+	 */
+	protected JsonObject mapToJsonObject(MultiValueMap<String, String> params) {
+		JsonObject o = new JsonObject();
+		for (String key : params.keySet()) {
+			o.addProperty(key, params.getFirst(key));
+		}
+		return o;
+	}
 
 }
