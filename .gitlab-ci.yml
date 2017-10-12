@@ -139,7 +139,7 @@ stop_review:
 # only manually promote to production, enable this job by removing the dot (.),
 # and uncomment the `when: manual` line in the `production` job.
 
-.staging:
+staging:
   stage: staging
   script:
     - check_kube_domain
@@ -199,7 +199,7 @@ production:
   environment:
     name: production
     url: http://$CI_PROJECT_PATH_SLUG.$AUTO_DEVOPS_DOMAIN
-#  when: manual
+  when: manual
   only:
     refs:
       - master
