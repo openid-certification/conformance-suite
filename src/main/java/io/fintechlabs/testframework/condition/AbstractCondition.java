@@ -14,7 +14,6 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,12 +21,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
-
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;

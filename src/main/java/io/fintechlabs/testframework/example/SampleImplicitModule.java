@@ -144,18 +144,18 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
+	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		eventLog.log(getId(), getName(), "Path: " + path);
-		eventLog.log(getId(), getName(), "Params: " + params);
+		eventLog.log(getId(), getName(), "Params: " + requestParts);
 		
 		// dispatch based on the path
 		
 		// these are all user-facing and will require user-facing error pages, so we wrap them
 		
 		if (path.equals("callback")) {
-			return handleCallback(path, req, res, session, params, m);
+			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(path, req, res, session, params, m);
+			return handleImplicitSubmission(requestParts);
 		} else {
 			return new ModelAndView("testError");
 		}
@@ -163,7 +163,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	}
 
 	@UserFacing
-	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
+	private ModelAndView handleCallback(JsonObject requestParts) {
 		require(CreateRandomImplicitSubmitUrl.class);
 		return new ModelAndView("implicitCallback", 
 				ImmutableMap.of("test", this, 
@@ -180,43 +180,39 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private ModelAndView handleImplicitSubmission(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
+	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
 		this.status = Status.RUNNING;
 		
-		try {
-			String hash = CharStreams.toString(req.getReader());
-			
-			logger.info("Hash: " + hash);
-			
-			env.putString("implicit_hash", hash);
-			
-			require(ExtractImplicitHashToTokenEndpointResponse.class);
+		String hash = requestParts.get("body").getAsString();
 		
-			require(CheckIfAuthorizationEndpointError.class);
-			
-			require(CheckMatchingStateParameter.class);
+		logger.info("Hash: " + hash);
+		
+		env.putString("implicit_hash", hash);
+		
+		require(ExtractImplicitHashToTokenEndpointResponse.class);
 	
-			require(CheckIfTokenEndpointResponseError.class);
-	
-			require(CheckForAccessTokenValue.class);
-			
-			optional(CheckForIdTokenValue.class);
-			
-			optional(ParseIdToken.class);
-			
-			optional(CheckForRefreshTokenValue.class);
-			
-			require(EnsureMinimumTokenEntropy.class);
-			
-			this.status = Status.FINISHED;
-			fireTestSuccess();
-			return new ModelAndView("complete", ImmutableMap.of("test", this));
-			
-		} catch (IOException e) {
-			throw new TestFailureException(getId(), e.getMessage());
-		}
+		require(CheckIfAuthorizationEndpointError.class);
+		
+		require(CheckMatchingStateParameter.class);
+
+		require(CheckIfTokenEndpointResponseError.class);
+
+		require(CheckForAccessTokenValue.class);
+		
+		optional(CheckForIdTokenValue.class);
+		
+		optional(ParseIdToken.class);
+		
+		optional(CheckForRefreshTokenValue.class);
+		
+		require(EnsureMinimumTokenEntropy.class);
+		
+		this.status = Status.FINISHED;
+		fireTestSuccess();
+		return new ModelAndView("complete", ImmutableMap.of("test", this));
+
 	}
 
 }

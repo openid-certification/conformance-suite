@@ -25,12 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
@@ -39,7 +41,9 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -75,7 +79,9 @@ public class TestDispatcher {
             HttpServletRequest req, HttpServletResponse res,
             HttpSession session,
             @RequestParam MultiValueMap<String, String> params,
-            Model m) {
+            @RequestHeader MultiValueMap<String, String> headers,
+            @RequestBody(required = false) String body,
+            @RequestHeader(name = "Content-type", required = false) MediaType contentType) {
 
         /*
          * We have to parse the path by hand so that we can match the substrings that apply
@@ -110,13 +116,29 @@ public class TestDispatcher {
         // wrap up all the rest of the path as a string again, stripping off the initial bits
         String restOfPath = Joiner.on("/").join(pathParts);
         
-        // convert the parameters into a JSON object to make it easier for the test modules to injest
-        JsonObject p = mapToJsonObject(params);
+        // convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
+        JsonObject requestParts = new JsonObject();
+        requestParts.add("params", mapToJsonObject(params));
+        requestParts.add("headers", mapToJsonObject(headers));
+        requestParts.addProperty("method", req.getMethod());
+        
+        if (body != null) {
+	        requestParts.addProperty("body", body);
+	        
+	        // check the content type and try to parse it if it's JSON
+	        if (contentType != null) {
+	        	if (contentType.equals(MediaType.APPLICATION_JSON)) {
+	        		// parse the body as json
+	        		requestParts.add("json_body", new JsonParser().parse(body));
+	        	}
+	        	// TODO: convert other data types?
+	        }
+        }
         
         
     	TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
-    		return test.handleHttp(restOfPath, req, res, session, p, m);
+    		return test.handleHttp(restOfPath, req, res, session, requestParts);
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
