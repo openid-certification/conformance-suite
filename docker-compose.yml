@@ -1,5 +1,12 @@
 version: '3'
 services:
+  builder:
+    image: gliderlabs/herokuish
+    volumes:
+     - ${MAVEN_CACHE}:/tmp/cache/.m2
+     - .:/tmp/app:ro
+     - ./target:/target
+    command: /bin/bash -c '/bin/herokuish buildpack build && cp -v /app/target/*.jar /target'
   mongodb:
     image: mongo
     volumes:
