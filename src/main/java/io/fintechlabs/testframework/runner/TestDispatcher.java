@@ -129,7 +129,7 @@ public class TestDispatcher {
 	        if (contentType != null) {
 	        	if (contentType.equals(MediaType.APPLICATION_JSON)) {
 	        		// parse the body as json
-	        		requestParts.add("json_body", new JsonParser().parse(body));
+	        		requestParts.add("body_json", new JsonParser().parse(body));
 	        	}
 	        	// TODO: convert other data types?
 	        }

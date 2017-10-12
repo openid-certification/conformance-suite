@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.example;
 
+import java.util.Collections;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -27,6 +29,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -60,11 +63,18 @@ public class SampleClientTestModule extends AbstractTestModule {
 		env.put("config", config);
 
 		require(GenerateServerConfiguration.class);
+		exposeEnvString("discoveryUrl");
+		exposeEnvString("issuer");
 		
 		require(CheckServerConfiguration.class);
 		
-		exposeEnvString("discoveryUrl");
-		exposeEnvString("issuer");
+		require(LoadJWKs.class);
+		
+		
+		
+		require(GetStaticClientConfiguration.class);
+
+		
 		
 		this.status = Status.CONFIGURED;
 		fireSetupDone();
@@ -92,20 +102,20 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject params, Model m) {
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		if (path.equals("authorize")) {
-			return authorizationEndpoint(req, res, params, m);
+			return authorizationEndpoint(requestParts);
 		} else if (path.equals("token")) {
-			return tokenEndpoint(req, res, params, m);
+			return tokenEndpoint(requestParts);
 		} else if (path.equals("jwks")) {
-			return jwksEndpoint(req, res, params, m);
+			return jwksEndpoint();
 		} else if (path.equals("register")) {
-			return registrationEndpoint(req, res, params, m);
+			return registrationEndpoint(requestParts);
 		} else if (path.equals("userinfo")) {
-			return userinfoEndpoint(req, res, params, m);
+			return userinfoEndpoint(requestParts);
 		} else if (path.equals(".well-known/openid-configuration")) {
-			return discoveryEndpoint(req, res, params, m);
+			return discoveryEndpoint();
 		} else {
 			return new ModelAndView("testError");
 		}
@@ -119,7 +129,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private Object discoveryEndpoint(HttpServletRequest req, HttpServletResponse res, JsonObject params, Model m) {
+	private Object discoveryEndpoint() {
 		JsonObject serverConfiguration = env.get("server");
 		
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
@@ -132,7 +142,23 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private Object userinfoEndpoint(HttpServletRequest req, HttpServletResponse res, JsonObject params, Model m) {
+	private Object userinfoEndpoint(JsonObject requestParts) {
+
+		return null;
+
+	}
+
+	/**
+	 * @param req
+	 * @param res
+	 * @param params
+	 * @param m
+	 * @return
+	 */
+	private Object registrationEndpoint(JsonObject requestParts) {
+
+		//env.put("client_registration_request", requestParts.get("body_json"));
+		
 		// TODO Auto-generated method stub
 		return null;
 		
@@ -145,7 +171,21 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private Object registrationEndpoint(HttpServletRequest req, HttpServletResponse res, JsonObject params, Model m) {
+	private Object jwksEndpoint() {
+
+		JsonObject jwks = env.get("public_jwks");
+		
+		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
+	}
+
+	/**
+	 * @param req
+	 * @param res
+	 * @param params
+	 * @param m
+	 * @return
+	 */
+	private Object tokenEndpoint(JsonObject requestParts) {
 		// TODO Auto-generated method stub
 		return null;
 		
@@ -158,33 +198,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private Object jwksEndpoint(HttpServletRequest req, HttpServletResponse res, JsonObject params, Model m) {
-		// TODO Auto-generated method stub
-		return null;
-		
-	}
-
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	private Object tokenEndpoint(HttpServletRequest req, HttpServletResponse res, JsonObject params, Model m) {
-		// TODO Auto-generated method stub
-		return null;
-		
-	}
-
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	private Object authorizationEndpoint(HttpServletRequest req, HttpServletResponse res, JsonObject params, Model m) {
+	private Object authorizationEndpoint(JsonObject requestParts) {
 		// TODO
 		return null;
 	}
