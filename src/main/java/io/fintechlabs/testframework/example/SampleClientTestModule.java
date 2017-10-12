@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
 
@@ -87,6 +88,9 @@ public class SampleClientTestModule extends AbstractTestModule {
 	public void start() {
 		// TODO Auto-generated method stub
 
+		
+		
+		this.status = Status.WAITING;
 	}
 
 	/* (non-Javadoc)
@@ -199,8 +203,24 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object authorizationEndpoint(JsonObject requestParts) {
-		// TODO
-		return null;
+		
+		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+
+		require(EnsureMatchingClientId.class);
+		
+		require(EnsureMatchingRedirectUri.class);
+		
+		// TODO: check scopes
+		require(CreateAuthorizationCode.class);
+		
+		require(RedirectBackToClientWithAuthorizationCode.class);
+		
+		exposeEnvString("authorization_endpoint_response_redirect");
+		
+		String redirectTo = env.getString("authorization_endpoint_response_redirect");
+		
+		return new RedirectView(redirectTo, false, false, false);
+	
 	}
 
 }
