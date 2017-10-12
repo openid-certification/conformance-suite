@@ -34,8 +34,8 @@ public class ValidateIdToken extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public ValidateIdToken(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-5.2.2-24");
+	public ValidateIdToken(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-24");
 		// TODO Auto-generated constructor stub
 	}
 

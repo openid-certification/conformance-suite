@@ -17,10 +17,12 @@ package io.fintechlabs.testframework.logging;
 import java.util.Date;
 import java.util.Map;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
@@ -33,7 +35,7 @@ import com.mongodb.util.JSON;
 @Component
 public class DBEventLog implements EventLog {
 
-	private static final String COLLECTION = "EVENT_LOG";
+	public static final String COLLECTION = "EVENT_LOG";
 	
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -44,6 +46,7 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, String msg) {
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
+				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 				.add("testId", testId)
 				.add("src", source)
 				.add("time", new Date().getTime())
@@ -57,6 +60,7 @@ public class DBEventLog implements EventLog {
 	 */
 	@Override
 	public void log(String testId, String source, JsonObject obj) {
+		obj.addProperty("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
 		obj.addProperty("testId", testId);
 		obj.addProperty("src", source);
 		obj.addProperty("time", new Date().getTime());
@@ -72,6 +76,7 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, Map<String, Object> map) {
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map)
+				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 				.add("testId", testId)
 				.add("src", source)
 				.add("time", new Date().getTime());

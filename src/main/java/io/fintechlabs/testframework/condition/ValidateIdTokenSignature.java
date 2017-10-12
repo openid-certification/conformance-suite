@@ -45,8 +45,8 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public ValidateIdTokenSignature(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-5.2.2-24");
+	public ValidateIdTokenSignature(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-24");
 		// TODO Auto-generated constructor stub
 	}
 

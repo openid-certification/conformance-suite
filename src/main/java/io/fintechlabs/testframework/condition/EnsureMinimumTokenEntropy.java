@@ -34,8 +34,8 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureMinimumTokenEntropy(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-5.2.2-16");
+	public EnsureMinimumTokenEntropy(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-16");
 		// TODO Auto-generated constructor stub
 	}
 

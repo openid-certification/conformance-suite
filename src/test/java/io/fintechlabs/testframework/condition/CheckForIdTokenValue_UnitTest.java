@@ -55,7 +55,7 @@ public class CheckForIdTokenValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new CheckForIdTokenValue("UNIT-TEST", eventLog);
+		cond = new CheckForIdTokenValue("UNIT-TEST", eventLog, false);
 		
 		goodResponse = new JsonParser().parse("{"
 				+ "\"access_token\":"

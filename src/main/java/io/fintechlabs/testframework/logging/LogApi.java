@@ -41,7 +41,7 @@ public class LogApi {
 	public ResponseEntity<List<String>> getAllTests() {
 		
 		@SuppressWarnings("unchecked")
-		List<String> testIds = mongoTemplate.getCollection("EVENT_LOG").distinct("testId", BasicDBObjectBuilder.start().get());
+		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId", BasicDBObjectBuilder.start().get());
 		
 		return new ResponseEntity<>(testIds, HttpStatus.OK);
 		
@@ -50,7 +50,7 @@ public class LogApi {
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id) {
 		
-		List<DBObject> results = mongoTemplate.getCollection("EVENT_LOG").find(BasicDBObjectBuilder.start()
+		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(BasicDBObjectBuilder.start()
 				.add("testId", id)
 				.get())
 			.sort(BasicDBObjectBuilder.start()

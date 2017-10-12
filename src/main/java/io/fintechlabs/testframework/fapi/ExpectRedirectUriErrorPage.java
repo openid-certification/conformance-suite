@@ -12,12 +12,9 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition;
+package io.fintechlabs.testframework.fapi;
 
-import org.apache.commons.lang3.RandomStringUtils;
-
-import com.google.common.collect.ImmutableMap;
-
+import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -25,15 +22,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CreateRandomStateValue extends AbstractCondition {
+public class ExpectRedirectUriErrorPage extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateRandomStateValue(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
+	public ExpectRedirectUriErrorPage(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-8");
 	}
 
 	/* (non-Javadoc)
@@ -41,10 +37,8 @@ public class CreateRandomStateValue extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		String state = RandomStringUtils.randomAlphanumeric(10);
-		env.putString("state", state);
-
-		log("Created state value", ImmutableMap.of("state", state));
+		
+		createUploadPlaceholder("Show redirect URI error page");
 		
 		return env;
 	}

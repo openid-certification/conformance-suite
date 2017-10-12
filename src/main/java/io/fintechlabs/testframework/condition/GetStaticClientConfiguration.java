@@ -28,8 +28,8 @@ public class GetStaticClientConfiguration extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public GetStaticClientConfiguration(String testId, EventLog log) {
-		super(testId, log);
+	public GetStaticClientConfiguration(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -35,8 +35,8 @@ public class ParseIdToken extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public ParseIdToken(String testId, EventLog log) {
-		super(testId, log, "FAPI-1-5.2.2-24");
+	public ParseIdToken(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-24");
 	}
 
 	/* (non-Javadoc)
@@ -62,7 +62,7 @@ public class ParseIdToken extends AbstractCondition {
 			// save the parsed ID token
 			env.put("id_token", o);
 			
-			log("Found the ID Token", ImmutableMap.of("id_token", o));
+			log("Found the ID Token", o);
 			
 			logSuccess();
 			
