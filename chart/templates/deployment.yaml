@@ -23,10 +23,10 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: DATABASE_URL
-          value: {{ .Values.application.database_url | quote }}
         - name: BASE_URL
           value: {{ .Values.service.url | quote }}
+        - name: MONGODB_HOST
+          value: {{ template "appname" . }}-mongodb
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}

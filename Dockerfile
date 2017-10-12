@@ -1,9 +1,9 @@
-FROM gliderlabs/herokuish
-COPY . /tmp/app/
-RUN /bin/herokuish buildpack build
-
 FROM openjdk
-COPY --from=0 /app/target/fapi-test-suite.jar /server/
+COPY target/fapi-test-suite.jar /server/
 ENV BASE_URL http://localhost:8080
+ENV MONGODB_HOST mongodb
 EXPOSE 8080
-ENTRYPOINT java -jar /server/fapi-test-suite.jar -D "fintechlabs.base_url=${BASE_URL}"
+ENTRYPOINT java \
+  -D"fintechlabs.base_url=${BASE_URL}" \
+  -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
+  -jar /server/fapi-test-suite.jar

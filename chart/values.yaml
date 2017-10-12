@@ -18,8 +18,6 @@ service:
   url: http://my.host.com/
   externalPort: 8080
   internalPort: 8080
-postgresql:
-  enabled: true
 resources:
 #  limits:
 #    cpu: 100m
