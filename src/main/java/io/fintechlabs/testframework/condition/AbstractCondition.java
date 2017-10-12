@@ -23,8 +23,11 @@ import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
+
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -95,25 +98,25 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void logSuccess() {
 		if (getRequirements().isEmpty()) {
-			log(ImmutableMap.of("result", "SUCCESS"));
+			log(args("result", "SUCCESS"));
 		} else {
-			log(ImmutableMap.of("result", "SUCCESS", "requirements", getRequirements()));
+			log(args("result", "SUCCESS", "requirements", getRequirements()));
 		}
 	}
 
 	protected void logFailure() {
 		if (getRequirements().isEmpty()) {
-			log(ImmutableMap.of("result", optional ? "WARNING" : "FAILURE"));
+			log(args("result", optional ? "WARNING" : "FAILURE"));
 		} else {
-			log(ImmutableMap.of("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
+			log(args("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
 		}
 	}
 	
 	protected void logFailure(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(msg, ImmutableMap.of("result", optional ? "WARNING" : "FAILURE"));
+			log(msg, args("result", optional ? "WARNING" : "FAILURE"));
 		} else {
-			log(msg, ImmutableMap.of("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
+			log(msg, args("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
 		}
 	}
 
@@ -156,17 +159,33 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void createUploadPlaceholder(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(msg, ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
+			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
 		} else {
-			log(msg, ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
+			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
 		}
 	}
 	
 	protected void createUploadPlaceholder() {
 		if (getRequirements().isEmpty()) {
-			log(ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
+			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
 		} else {
-			log(ImmutableMap.of("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
+			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
 		}
+	}
+	
+	protected Map<String, Object> args(Object... a) {
+		if (a == null || (a.length % 2) != 0) {
+			throw new IllegalArgumentException("Need an even and nonzero number of arguments");
+		}
+		
+		HashMap<String, Object> m = new HashMap<>(a.length / 2);
+		
+		for (int i = 0; i < a.length; i += 2) {
+			String key = (String) a[i];
+			Object val = a[i + 1];
+			m.put(key, val);
+		}
+		
+		return m;
 	}
 }
