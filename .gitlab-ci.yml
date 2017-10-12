@@ -325,6 +325,10 @@ production:
   }
 
   function build() {
+    apk -q add --no-cache py-pip
+    pip -q install docker-compose
+    docker-compose --version
+
     docker-compose run builder
     docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
 
