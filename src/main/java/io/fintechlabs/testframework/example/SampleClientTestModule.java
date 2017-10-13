@@ -71,7 +71,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 		
 		require(LoadJWKs.class);
 		
-		
+		require(LoadUserInfo.class);
 		
 		require(GetStaticClientConfiguration.class);
 
@@ -148,7 +148,11 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 */
 	private Object userinfoEndpoint(JsonObject requestParts) {
 
-		return null;
+		JsonObject user = env.get("user_info");
+		
+		// TODO: FILTER
+		
+		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
 
@@ -190,8 +194,29 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object tokenEndpoint(JsonObject requestParts) {
-		// TODO Auto-generated method stub
-		return null;
+
+		env.put("token_endpoint_request", requestParts);
+		
+		optional(ExtractClientCredentialsFromFormPost.class);
+		
+		optional(AuthenticateClientWithClientSecret.class);
+		
+		require(EnsureClientIsAuthenticated.class);
+		
+		require(ValidateAuthorizationCode.class);
+		
+		require(ValidateRedirectUri.class);
+				
+		require(GenerateBearerAccessToken.class);
+		
+		require(GenerateIdTokenClaims.class);
+		
+		require(SignIdToken.class);
+		
+		require(CreateTokenEndpointResponse.class);
+		
+		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
+
 		
 	}
 
@@ -210,7 +235,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 		
 		require(EnsureMatchingRedirectUri.class);
 		
-		// TODO: check scopes
+		require(ExtractRequestedScopes.class);
+		
 		require(CreateAuthorizationCode.class);
 		
 		require(RedirectBackToClientWithAuthorizationCode.class);
