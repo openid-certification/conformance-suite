@@ -45,7 +45,8 @@ public class EnsureMatchingRedirectUri extends AbstractCondition {
 		String actual = env.getString("authorization_endpoint_request", "redirect_uri");
 		
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
-			logSuccess();
+			logSuccess("Redirect URI matched", 
+					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
 			return error("Mismatch between redirect URI: " + actual);

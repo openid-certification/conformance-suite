@@ -41,9 +41,8 @@ public class CheckForRefreshTokenValue extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "refresh_token"))) {
-			log(ImmutableMap.of("msg", "Found a refresh token",
-					"refresh_token", env.getString("token_endpoint_response", "refresh_token")));
-			logSuccess();
+			logSuccess("Found a refresh token",
+					args("refresh_token", env.getString("token_endpoint_response", "refresh_token")));
 			return env;
 		} else {
 			return error("Couldn't find refresh token");

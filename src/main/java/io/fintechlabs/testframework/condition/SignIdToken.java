@@ -100,8 +100,7 @@ public class SignIdToken extends AbstractCondition {
 				
 				env.putString("id_token", idToken.serialize());
 				
-				log("Signed the ID token", args("id_token", idToken.serialize()));
-				logSuccess();
+				logSuccess("Signed the ID token", args("id_token", idToken.serialize()));
 				
 				return env;
 				

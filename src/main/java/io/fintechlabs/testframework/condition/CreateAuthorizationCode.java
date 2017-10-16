@@ -45,9 +45,7 @@ public class CreateAuthorizationCode extends AbstractCondition {
 
 		env.putString("authorization_code", code);
 		
-		log("Created authorization code", args("authorization_code", code));
-		
-		logSuccess();
+		logSuccess("Created authorization code", args("authorization_code", code));
 		
 		return env;
 		

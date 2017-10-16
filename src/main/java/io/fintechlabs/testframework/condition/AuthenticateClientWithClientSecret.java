@@ -62,7 +62,7 @@ public class AuthenticateClientWithClientSecret extends AbstractCondition {
 			if (!Strings.isNullOrEmpty(expected) 
 					&& expected.equals(actual)) {
 				
-				logSuccess();
+				logSuccess("Authenticated the client", args("client_authentication_success", env.getString("client_authentication", "method")));
 				
 				env.putString("client_authentication_success", env.getString("client_authentication", "method"));
 				

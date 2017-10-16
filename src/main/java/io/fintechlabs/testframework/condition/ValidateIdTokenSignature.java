@@ -84,10 +84,11 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 				JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
 				
 				if (jwt.verify(verifier)) {
-					logSuccess();
+					logSuccess("ID Token signature validated", args("algorithm", key.getAlgorithm()));
 					return env;
 				} else {
 					// failed to verify with this key, moving on
+					// not a failure yet as it might pass a different key
 				}
 			}
 			

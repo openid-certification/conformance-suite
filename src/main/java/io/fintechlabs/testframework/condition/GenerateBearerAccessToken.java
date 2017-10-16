@@ -45,8 +45,7 @@ public class GenerateBearerAccessToken extends AbstractCondition {
 
 		String accessToken = RandomStringUtils.randomAlphanumeric(50);
 		
-		log("Generated access token", args("access_token", accessToken));
-		logSuccess();
+		logSuccess("Generated access token", args("access_token", accessToken));
 		
 		env.putString("access_token", accessToken);
 		env.putString("token_type", "Bearer");		

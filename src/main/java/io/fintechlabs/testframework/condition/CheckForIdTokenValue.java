@@ -41,9 +41,8 @@ public class CheckForIdTokenValue extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "id_token"))) {
-			log(ImmutableMap.of("msg", "Found an ID token",
-					"id_token", env.getString("token_endpoint_response", "id_token")));
-			logSuccess();
+			logSuccess("Found an ID token",
+					args("id_token", env.getString("token_endpoint_response", "id_token")));
 			return env;
 		} else {
 			return error("Couldn't find ID token");

@@ -50,12 +50,10 @@ public class BuildPlainRedirectToAuthorizationEndpointImplicit extends AbstractC
 				.queryParam("scope", in.getString("client", "scope"))
 				.build().toUriString();
 
-		log(ImmutableMap.of("msg", "Sending to authorization endpoint", 
-				"redirect_to_authorization_endpoint", redirectTo));
+		logSuccess("Sending to authorization endpoint", 
+				args("redirect_to_authorization_endpoint", redirectTo));
 		
 		in.putString("redirect_to_authorization_endpoint", redirectTo);
-		
-		logSuccess();
 		
 		return in;
 	}

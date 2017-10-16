@@ -51,9 +51,7 @@ public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition
 				.queryParam("code", code)
 				.toUriString();
 
-		log("Redirecting back to client", args("uri", redirectTo));
-		
-		logSuccess();
+		logSuccess("Redirecting back to client", args("uri", redirectTo));
 		
 		env.putString("authorization_endpoint_response_redirect", redirectTo);
 		

@@ -115,11 +115,10 @@ public class CallTokenEndpoint extends AbstractCondition {
 					return error("Token Endpoint did not return a JSON object");
 				}
 	
-				log("Parsed token endpoint response", jsonRoot.getAsJsonObject());
+				logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
 				
 				env.put("token_endpoint_response", jsonRoot.getAsJsonObject());
 				
-				logSuccess();
 				return env;
 			} catch (JsonParseException e) {
 				return error(e);

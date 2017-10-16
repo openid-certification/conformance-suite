@@ -54,7 +54,7 @@ public class GetStaticClientConfiguration extends AbstractCondition {
 			// pull out the client ID and put it in the root environment for easy access
 			in.putString("client_id", in.getString("client", "client_id"));
 			
-			logSuccess();
+			logSuccess("Found a static client object", client.getAsJsonObject());
 			return in;
 		}
 		

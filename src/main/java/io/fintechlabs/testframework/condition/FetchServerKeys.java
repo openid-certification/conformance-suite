@@ -57,9 +57,8 @@ public class FetchServerKeys extends AbstractCondition {
 		JsonElement jwks = env.findElement("server", "jwks");
 		
 		if (jwks != null && jwks.isJsonObject()) {
-			log("Found static server JWKS", ImmutableMap.of("jwks", jwks));
 			env.put("server_jwks", jwks.getAsJsonObject());
-			logSuccess();
+			logSuccess("Found static server JWKS", args("jwks", jwks));
 			return env;
 		} else {
 			// we don't have a key yet, see if we can fetch it
@@ -84,7 +83,7 @@ public class FetchServerKeys extends AbstractCondition {
 					JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
 					env.put("server_jwks", jwkSet);
 					
-					logSuccess();
+					logSuccess("Parsed server JWK", args("jwk", jwkSet));
 					return env;
 					
 				} catch (RestClientException e) {

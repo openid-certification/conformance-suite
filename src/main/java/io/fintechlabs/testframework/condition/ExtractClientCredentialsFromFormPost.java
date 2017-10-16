@@ -60,9 +60,7 @@ public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 		
 		env.put("client_authentication", clientAuthentication);
 		
-		log("Extracted client authentication", clientAuthentication);
-		
-		logSuccess();
+		logSuccess("Extracted client authentication", clientAuthentication);
 		
 		return env;
 		

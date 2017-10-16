@@ -46,8 +46,7 @@ public class ExtractRequestedScopes extends AbstractCondition {
 		if (Strings.isNullOrEmpty(scope)) {
 			return error("Missing scope parameter");
 		} else {
-			log("Requested scopes", args("scope", scope));
-			logSuccess();
+			logSuccess("Requested scopes", args("scope", scope));
 			
 			env.putString("scope", scope);
 			

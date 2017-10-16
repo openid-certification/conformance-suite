@@ -22,7 +22,10 @@ import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -80,31 +83,63 @@ public abstract class AbstractCondition implements Condition {
 		log.log(testId, getMessage(), map);
 	}
 	
-	protected void log(String msg, JsonObject obj) {
+	protected void log(String msg, JsonObject in) {
+		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		obj.addProperty("msg", msg);
 		log(obj);
 	}
 
 	protected void log(String msg, Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map);
+		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
 		copy.put("msg", msg);
 		log(map);
 	}
 	
-	protected void logSuccess() {
+	protected void logSuccess(JsonObject in) {
+		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		obj.addProperty("result", "SUCCESS");
+		log(obj);
+	}
+	
+	protected void logSuccess(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(args("result", "SUCCESS"));
+			log(args("msg", msg, "result", "SUCCESS"));
 		} else {
-			log(args("result", "SUCCESS", "requirements", getRequirements()));
+			log(args("msg", msg, "result", "SUCCESS", "requirements", getRequirements()));
 		}
 	}
-
-	protected void logFailure() {
-		if (getRequirements().isEmpty()) {
-			log(args("result", optional ? "WARNING" : "FAILURE"));
-		} else {
-			log(args("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
+	
+	protected void logSuccess(Map<String, Object> map) {
+		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		copy.put("result", "SUCCESS");
+		if (!getRequirements().isEmpty()) {
+			copy.put("requirements", getRequirements());
 		}
+		log(map);
+	}
+	
+	protected void logSuccess(String msg, JsonObject in) {
+		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		obj.addProperty("msg", msg);
+		obj.addProperty("result", "SUCCESS");
+		if (!getRequirements().isEmpty()) {
+			JsonArray reqs = new JsonArray(getRequirements().size());
+			for (String req : getRequirements()) {
+				reqs.add(req);
+			}
+			obj.add("requirements", reqs);
+		}
+		log(obj);
+	}
+
+	protected void logSuccess(String msg, Map<String, Object> map) {
+		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		copy.put("msg", msg);
+		copy.put("result", "SUCCESS");
+		if (!getRequirements().isEmpty()) {
+			copy.put("requirements", getRequirements());
+		}
+		log(map);
 	}
 	
 	protected void logFailure(String msg) {
@@ -139,7 +174,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause) {
-		logFailure();
+		logFailure(cause != null ? cause.getMessage() : "Error");
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	

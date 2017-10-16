@@ -81,9 +81,7 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 
 		env.put("id_token_claims", claims);
 
-		log("Created ID Token Claims", claims);
-		logSuccess();
-		
+		logSuccess("Created ID Token Claims", claims);
 		
 		return env;
 		

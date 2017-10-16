@@ -50,9 +50,7 @@ public class LoadUserInfo extends AbstractCondition {
 
 		env.put("user_info", user);
 
-		log("Added user information", args("user_info", user));
-		
-		logSuccess();
+		logSuccess("Added user information", args("user_info", user));
 		
 		return env;
 	}

@@ -46,7 +46,8 @@ public class EnsureMatchingClientId extends AbstractCondition {
 		String actual = env.getString("authorization_endpoint_request", "client_id");
 		
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
-			logSuccess();
+			logSuccess("Client ID matched",
+					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
 			return error("Mismatch between client ID: " + actual);

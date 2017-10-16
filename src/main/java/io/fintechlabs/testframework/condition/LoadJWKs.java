@@ -63,9 +63,7 @@ public class LoadJWKs extends AbstractCondition {
 			env.put("public_jwks", publicJwks);
 			env.put("jwks", privateJwks);
 			
-			log("Parsed public and private JWK sets", args("public_jwks", publicJwks, "jwks", jwks));
-			
-			logSuccess();
+			logSuccess("Parsed public and private JWK sets", args("public_jwks", publicJwks, "jwks", jwks));
 			
 			return env;
 			

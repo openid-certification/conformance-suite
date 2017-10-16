@@ -71,8 +71,7 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 		
 		env.put("token_endpoint_response", tokenEndpointResponse);
 		
-		log("Created token endpoint response", tokenEndpointResponse);
-		logSuccess();
+		logSuccess("Created token endpoint response", tokenEndpointResponse);
 		
 		return env;
 		

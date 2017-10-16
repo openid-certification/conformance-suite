@@ -44,9 +44,8 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			log(ImmutableMap.of("msg", "Found scopes returned with access token",
-					"scope", env.getString("token_endpoint_response", "scope")));
-			logSuccess();
+			logSuccess("Found scopes returned with access token",
+					args("scope", env.getString("token_endpoint_response", "scope")));
 			return env;
 		} else {
 			return error("Couldn't find scope");

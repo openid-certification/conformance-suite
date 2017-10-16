@@ -109,7 +109,7 @@ public class ValidateIdToken extends AbstractCondition {
 			}
 		}
 		
-		logSuccess();
+		logSuccess("ID token claims passed all validation checks");
 		return env;
 		
 	}
