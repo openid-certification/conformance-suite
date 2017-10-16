@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureClientIsAuthenticated extends AbstractCondition {
+public class ValidateAuthorizationCode extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public EnsureClientIsAuthenticated(String testId, EventLog log, boolean optional) {
+	public ValidateAuthorizationCode(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,16 +41,21 @@ public class EnsureClientIsAuthenticated extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		if (Strings.isNullOrEmpty(env.getString("client_authentication_success"))) {
-			return error("Client was not authenticated");
-		} else {
-			log("Found client authentication, passing", args("client_authentication_success", env.getString("client_authentication_success")));
-			
-			logSuccess();
-			
-			return env;
+		String expected = env.getString("authorization_code");
+		String actual = env.getString("token_endpoint_request", "params.code");
+		
+		if (Strings.isNullOrEmpty(expected)) {
+			return error("Couldn't find authorization code to compare");
 		}
 		
+		if (expected.equals(actual)) {
+			log("Found authorization code", args("authorization_code", actual));
+			logSuccess();
+			return env;
+		} else {
+			log("Didn't find matching authorization code", args("expected", expected, "actual", actual));
+			return error("Couldn't find authorization code");
+		}
 	}
 
 }

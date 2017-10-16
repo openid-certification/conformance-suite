@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ExtractRequestedScopes extends AbstractCondition {
+public class ValidateRedirectUri extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public ExtractRequestedScopes(String testId, EventLog log, boolean optional) {
+	public ValidateRedirectUri(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,20 +41,22 @@ public class ExtractRequestedScopes extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String scope = env.getString("authorization_endpoint_request", "scope");
-
-		if (Strings.isNullOrEmpty(scope)) {
-			return error("Missing scope parameter");
-		} else {
-			log("Requested scopes", args("scope", scope));
-			logSuccess();
-			
-			env.putString("scope", scope);
-			
-			return env;
+		String expected = env.getString("client", "redirect_uri");
+		String actual = env.getString("token_endpoint_request", "params.redirect_uri");
+		
+		if (Strings.isNullOrEmpty(expected)) {
+			return error("Couldn't find redirect uri to compare");
 		}
 		
-		
+		if (expected.equals(actual)) {
+			log("Found redirect uri", args("redirect_uri", actual));
+			logSuccess();
+			return env;
+		} else {
+			log("Didn't find matching redirect uri", args("expected", expected, "actual", actual));
+			return error("Couldn't find matching redirect uri");
+		}
+
 	}
 
 }

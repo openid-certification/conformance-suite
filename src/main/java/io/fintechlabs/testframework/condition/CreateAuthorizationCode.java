@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
-import com.google.gson.JsonObject;
+import org.apache.commons.lang3.RandomStringUtils;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class LoadUserInfo extends AbstractCondition {
+public class CreateAuthorizationCode extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public LoadUserInfo(String testId, EventLog log, boolean optional) {
+	public CreateAuthorizationCode(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -41,21 +40,17 @@ public class LoadUserInfo extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		
-		JsonObject user = new JsonObject();
-		
-		user.addProperty("sub", "user-subject-1234531");
-		user.addProperty("name", "Demo T. User");
-		user.addProperty("email", "user@example.com");
-		user.addProperty("email_verified", false);
 
-		env.put("user_info", user);
+		String code = RandomStringUtils.randomAlphanumeric(10);
 
-		log("Added user information", args("user_info", user));
+		env.putString("authorization_code", code);
+		
+		log("Created authorization code", args("authorization_code", code));
 		
 		logSuccess();
 		
 		return env;
+		
 	}
 
 }

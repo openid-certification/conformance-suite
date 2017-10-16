@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ValidateRedirectUri extends AbstractCondition {
+public class EnsureMatchingClientId extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public ValidateRedirectUri(String testId, EventLog log, boolean optional) {
+	public EnsureMatchingClientId(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,22 +41,18 @@ public class ValidateRedirectUri extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String expected = env.getString("client", "redirect_uri");
-		String actual = env.getString("token_endpoint_request", "params.redirect_uri");
+		// get the client ID from the configuration
+		String expected = env.getString("client", "client_id");
+		String actual = env.getString("authorization_endpoint_request", "client_id");
 		
-		if (Strings.isNullOrEmpty(expected)) {
-			return error("Couldn't find redirect uri to compare");
-		}
-		
-		if (expected.equals(actual)) {
-			log("Found redirect uri", args("redirect_uri", actual));
+		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess();
 			return env;
 		} else {
-			log("Didn't find matching redirect uri", args("expected", expected, "actual", actual));
-			return error("Couldn't find matching redirect uri");
+			return error("Mismatch between client ID: " + actual);
 		}
 
+		
 	}
 
 }

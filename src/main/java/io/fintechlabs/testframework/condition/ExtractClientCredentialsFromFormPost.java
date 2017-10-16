@@ -12,12 +12,11 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -25,14 +24,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CreateTokenEndpointResponse extends AbstractCondition {
+public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public CreateTokenEndpointResponse(String testId, EventLog log, boolean optional) {
+	public ExtractClientCredentialsFromFormPost(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,37 +41,27 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		
-		String accessToken = env.getString("access_token");
-		String tokenType = env.getString("token_type");
-		String idToken = env.getString("id_token");
-		String refreshToken = env.getString("refresh_token");
-		String scope = env.getString("scope");
 
-		if (Strings.isNullOrEmpty(accessToken) || Strings.isNullOrEmpty(tokenType)) {
-			return error("Missing required access token or token type");
+		if (env.containsObj("client_authentication")) {
+			return error("Found existing client authentication");
 		}
 		
-		JsonObject tokenEndpointResponse = new JsonObject();
-
-		tokenEndpointResponse.addProperty("access_token", accessToken);
-		tokenEndpointResponse.addProperty("token_type", tokenType);
+		String clientId = env.getString("token_endpoint_request", "params.client_id");
+		String clientSecret = env.getString("token_endpoint_request", "params.client_secret");
 		
-		if (!Strings.isNullOrEmpty(idToken)) {
-			tokenEndpointResponse.addProperty("id_token", idToken);
+		if (Strings.isNullOrEmpty(clientId) || Strings.isNullOrEmpty(clientSecret)) {
+			return error("Couldn't find client credentials in form post");
 		}
 		
-		if (!Strings.isNullOrEmpty(refreshToken)) {
-			tokenEndpointResponse.addProperty("refresh_token", refreshToken);
-		}
+		JsonObject clientAuthentication = new JsonObject();
+		clientAuthentication.addProperty("client_id", clientId);
+		clientAuthentication.addProperty("client_secret", clientSecret);
+		clientAuthentication.addProperty("method", "client_secret_post");
 		
-		if (!Strings.isNullOrEmpty(scope)) {
-			tokenEndpointResponse.addProperty("scope", scope);
-		}
+		env.put("client_authentication", clientAuthentication);
 		
-		env.put("token_endpoint_response", tokenEndpointResponse);
+		log("Extracted client authentication", clientAuthentication);
 		
-		log("Created token endpoint response", tokenEndpointResponse);
 		logSuccess();
 		
 		return env;

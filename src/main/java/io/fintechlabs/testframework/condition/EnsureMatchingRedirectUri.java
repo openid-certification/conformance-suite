@@ -12,12 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -25,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
+public class EnsureMatchingRedirectUri extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public ExtractClientCredentialsFromFormPost(String testId, EventLog log, boolean optional) {
+	public EnsureMatchingRedirectUri(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,31 +40,17 @@ public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
+		// get the client ID from the configuration
+		String expected = env.getString("client", "redirect_uri");
+		String actual = env.getString("authorization_endpoint_request", "redirect_uri");
+		
+		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
+			logSuccess();
+			return env;
+		} else {
+			return error("Mismatch between redirect URI: " + actual);
+		}
 
-		if (env.containsObj("client_authentication")) {
-			return error("Found existing client authentication");
-		}
-		
-		String clientId = env.getString("token_endpoint_request", "params.client_id");
-		String clientSecret = env.getString("token_endpoint_request", "params.client_secret");
-		
-		if (Strings.isNullOrEmpty(clientId) || Strings.isNullOrEmpty(clientSecret)) {
-			return error("Couldn't find client credentials in form post");
-		}
-		
-		JsonObject clientAuthentication = new JsonObject();
-		clientAuthentication.addProperty("client_id", clientId);
-		clientAuthentication.addProperty("client_secret", clientSecret);
-		clientAuthentication.addProperty("method", "client_secret_post");
-		
-		env.put("client_authentication", clientAuthentication);
-		
-		log("Extracted client authentication", clientAuthentication);
-		
-		logSuccess();
-		
-		return env;
-		
 	}
 
 }

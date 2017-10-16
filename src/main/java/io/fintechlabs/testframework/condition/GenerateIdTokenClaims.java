@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,7 +22,6 @@ import java.time.ZoneOffset;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 

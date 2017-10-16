@@ -12,12 +12,11 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -25,14 +24,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateServerConfiguration extends AbstractCondition {
+public class CreateTokenEndpointResponse extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateServerConfiguration(String testId, EventLog log, boolean optional) {
+	public CreateTokenEndpointResponse(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,34 +41,38 @@ public class GenerateServerConfiguration extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-
-		String baseUrl = env.getString("base_url");
 		
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			return error("Couldn't find a base URL");
+		String accessToken = env.getString("access_token");
+		String tokenType = env.getString("token_type");
+		String idToken = env.getString("id_token");
+		String refreshToken = env.getString("refresh_token");
+		String scope = env.getString("scope");
+
+		if (Strings.isNullOrEmpty(accessToken) || Strings.isNullOrEmpty(tokenType)) {
+			return error("Missing required access token or token type");
 		}
 		
-		// set off the URLs below with a slash, if needed
-		if (!baseUrl.endsWith("/")) {
-			baseUrl = baseUrl + "/";
+		JsonObject tokenEndpointResponse = new JsonObject();
+
+		tokenEndpointResponse.addProperty("access_token", accessToken);
+		tokenEndpointResponse.addProperty("token_type", tokenType);
+		
+		if (!Strings.isNullOrEmpty(idToken)) {
+			tokenEndpointResponse.addProperty("id_token", idToken);
 		}
 		
-		// create a base server configuration object based on the base URL
-		JsonObject server = new JsonObject();
+		if (!Strings.isNullOrEmpty(refreshToken)) {
+			tokenEndpointResponse.addProperty("refresh_token", refreshToken);
+		}
 		
-		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrl + "authorize");
-		server.addProperty("token_endpoint", baseUrl + "token");
-		server.addProperty("jwks_uri", baseUrl + "jwks");
+		if (!Strings.isNullOrEmpty(scope)) {
+			tokenEndpointResponse.addProperty("scope", scope);
+		}
 		
-		server.addProperty("registration_endpoint", baseUrl + "register"); // TODO: should this be pulled into an optional mix-in?
-		server.addProperty("userinfo_endpoint", baseUrl + "userinfo"); // TODO: should this be pulled into an optional mix-in?
-
-		// add this as the server configuration
-		env.put("server", server);
+		env.put("token_endpoint_response", tokenEndpointResponse);
 		
-		env.putString("issuer", baseUrl);
-		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
+		log("Created token endpoint response", tokenEndpointResponse);
+		logSuccess();
 		
 		return env;
 		

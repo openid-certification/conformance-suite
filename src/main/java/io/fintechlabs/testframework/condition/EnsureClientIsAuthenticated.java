@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CreateAuthorizationCode extends AbstractCondition {
+public class EnsureClientIsAuthenticated extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public CreateAuthorizationCode(String testId, EventLog log, boolean optional) {
+	public EnsureClientIsAuthenticated(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,15 +41,15 @@ public class CreateAuthorizationCode extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String code = RandomStringUtils.randomAlphanumeric(10);
-
-		env.putString("authorization_code", code);
-		
-		log("Created authorization code", args("authorization_code", code));
-		
-		logSuccess();
-		
-		return env;
+		if (Strings.isNullOrEmpty(env.getString("client_authentication_success"))) {
+			return error("Client was not authenticated");
+		} else {
+			log("Found client authentication, passing", args("client_authentication_success", env.getString("client_authentication_success")));
+			
+			logSuccess();
+			
+			return env;
+		}
 		
 	}
 

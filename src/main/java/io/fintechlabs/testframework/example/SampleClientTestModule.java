@@ -29,9 +29,26 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.CreateAuthorizationCode;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.EnsureClientIsAuthenticated;
+import io.fintechlabs.testframework.condition.EnsureMatchingClientId;
+import io.fintechlabs.testframework.condition.EnsureMatchingRedirectUri;
+import io.fintechlabs.testframework.condition.ExtractClientCredentialsFromFormPost;
+import io.fintechlabs.testframework.condition.ExtractRequestedScopes;
+import io.fintechlabs.testframework.condition.GenerateBearerAccessToken;
+import io.fintechlabs.testframework.condition.GenerateIdTokenClaims;
+import io.fintechlabs.testframework.condition.GenerateServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.LoadJWKs;
+import io.fintechlabs.testframework.condition.LoadUserInfo;
+import io.fintechlabs.testframework.condition.RedirectBackToClientWithAuthorizationCode;
+import io.fintechlabs.testframework.condition.SignIdToken;
+import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
+import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;

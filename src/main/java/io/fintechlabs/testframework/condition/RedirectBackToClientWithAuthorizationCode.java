@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureMatchingClientId extends AbstractCondition {
+public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public EnsureMatchingClientId(String testId, EventLog log, boolean optional) {
+	public RedirectBackToClientWithAuthorizationCode(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,17 +41,23 @@ public class EnsureMatchingClientId extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		// get the client ID from the configuration
-		String expected = env.getString("client", "client_id");
-		String actual = env.getString("authorization_endpoint_request", "client_id");
+		String redirectUri = env.getString("authorization_endpoint_request", "redirect_uri");
+		String code = env.getString("authorization_code");
+		String state = env.getString("authorization_endpoint_request", "state");
 		
-		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
-			logSuccess();
-			return env;
-		} else {
-			return error("Mismatch between client ID: " + actual);
-		}
+		
+		String redirectTo = UriComponentsBuilder.fromHttpUrl(redirectUri)
+				.queryParam("state", state)
+				.queryParam("code", code)
+				.toUriString();
 
+		log("Redirecting back to client", args("uri", redirectTo));
+		
+		logSuccess();
+		
+		env.putString("authorization_endpoint_response_redirect", redirectTo);
+		
+		return env;
 		
 	}
 

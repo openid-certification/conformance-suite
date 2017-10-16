@@ -12,11 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
-import org.springframework.web.util.UriComponentsBuilder;
+import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition {
+public class LoadUserInfo extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public RedirectBackToClientWithAuthorizationCode(String testId, EventLog log, boolean optional) {
+	public LoadUserInfo(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -41,25 +40,21 @@ public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-
-		String redirectUri = env.getString("authorization_endpoint_request", "redirect_uri");
-		String code = env.getString("authorization_code");
-		String state = env.getString("authorization_endpoint_request", "state");
 		
+		JsonObject user = new JsonObject();
 		
-		String redirectTo = UriComponentsBuilder.fromHttpUrl(redirectUri)
-				.queryParam("state", state)
-				.queryParam("code", code)
-				.toUriString();
+		user.addProperty("sub", "user-subject-1234531");
+		user.addProperty("name", "Demo T. User");
+		user.addProperty("email", "user@example.com");
+		user.addProperty("email_verified", false);
 
-		log("Redirecting back to client", args("uri", redirectTo));
+		env.put("user_info", user);
+
+		log("Added user information", args("user_info", user));
 		
 		logSuccess();
 		
-		env.putString("authorization_endpoint_response_redirect", redirectTo);
-		
 		return env;
-		
 	}
 
 }

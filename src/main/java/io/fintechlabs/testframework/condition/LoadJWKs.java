@@ -12,11 +12,16 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
+import java.text.ParseException;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.jwk.JWKSet;
+
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -24,14 +29,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ValidateAuthorizationCode extends AbstractCondition {
+public class LoadJWKs extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public ValidateAuthorizationCode(String testId, EventLog log, boolean optional) {
+	public LoadJWKs(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -42,21 +47,34 @@ public class ValidateAuthorizationCode extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String expected = env.getString("authorization_code");
-		String actual = env.getString("token_endpoint_request", "params.code");
+		JsonElement configured = env.findElement("config", "jwks");
 		
-		if (Strings.isNullOrEmpty(expected)) {
-			return error("Couldn't find authorization code to compare");
+		if (configured == null) {
+			return error("Couldn't find a JWK set in configuration");
 		}
 		
-		if (expected.equals(actual)) {
-			log("Found authorization code", args("authorization_code", actual));
+		// parse the JWKS to make sure it's valid
+		try {
+			JWKSet jwks = JWKSet.parse(configured.toString());
+			
+			JsonObject publicJwks = new JsonParser().parse(jwks.toJSONObject(true).toJSONString()).getAsJsonObject();
+			JsonObject privateJwks = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
+			
+			env.put("public_jwks", publicJwks);
+			env.put("jwks", privateJwks);
+			
+			log("Parsed public and private JWK sets", args("public_jwks", publicJwks, "jwks", jwks));
+			
 			logSuccess();
+			
 			return env;
-		} else {
-			log("Didn't find matching authorization code", args("expected", expected, "actual", actual));
-			return error("Couldn't find authorization code");
+			
+		} catch (ParseException e) {
+			return error("Failure parsing JWK Set", e);
 		}
+		
+
+		
 	}
 
 }

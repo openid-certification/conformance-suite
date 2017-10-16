@@ -12,13 +12,11 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.condition;
 
-import org.apache.commons.lang3.RandomStringUtils;
-
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -26,14 +24,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateBearerAccessToken extends AbstractCondition {
+public class GenerateServerConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateBearerAccessToken(String testId, EventLog log, boolean optional) {
+	public GenerateServerConfiguration(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -44,13 +42,34 @@ public class GenerateBearerAccessToken extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String accessToken = RandomStringUtils.randomAlphanumeric(50);
+		String baseUrl = env.getString("base_url");
 		
-		log("Generated access token", args("access_token", accessToken));
-		logSuccess();
+		if (Strings.isNullOrEmpty(baseUrl)) {
+			return error("Couldn't find a base URL");
+		}
 		
-		env.putString("access_token", accessToken);
-		env.putString("token_type", "Bearer");		
+		// set off the URLs below with a slash, if needed
+		if (!baseUrl.endsWith("/")) {
+			baseUrl = baseUrl + "/";
+		}
+		
+		// create a base server configuration object based on the base URL
+		JsonObject server = new JsonObject();
+		
+		server.addProperty("issuer", baseUrl);
+		server.addProperty("authorization_endpoint", baseUrl + "authorize");
+		server.addProperty("token_endpoint", baseUrl + "token");
+		server.addProperty("jwks_uri", baseUrl + "jwks");
+		
+		server.addProperty("registration_endpoint", baseUrl + "register"); // TODO: should this be pulled into an optional mix-in?
+		server.addProperty("userinfo_endpoint", baseUrl + "userinfo"); // TODO: should this be pulled into an optional mix-in?
+
+		// add this as the server configuration
+		env.put("server", server);
+		
+		env.putString("issuer", baseUrl);
+		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
+		
 		return env;
 		
 	}
