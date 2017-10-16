@@ -63,6 +63,7 @@ test:
     - cp -R * /tmp/build
     - cp -R .m2 /tmp/cache
     - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
+    - export JAVA_HOME=/tmp/build/.jdk
     - source /tmp/build/.profile.d/maven.sh
     - cd /tmp/build
     - mvn -B test
