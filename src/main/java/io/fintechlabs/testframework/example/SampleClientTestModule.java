@@ -36,8 +36,11 @@ import io.fintechlabs.testframework.condition.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.EnsureMatchingRedirectUri;
+import io.fintechlabs.testframework.condition.ExtractBearerAccessTokenFromHeader;
+import io.fintechlabs.testframework.condition.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.ExtractClientCredentialsFromFormPost;
 import io.fintechlabs.testframework.condition.ExtractRequestedScopes;
+import io.fintechlabs.testframework.condition.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.GenerateIdTokenClaims;
 import io.fintechlabs.testframework.condition.GenerateServerConfiguration;
@@ -46,6 +49,8 @@ import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.LoadJWKs;
 import io.fintechlabs.testframework.condition.LoadUserInfo;
 import io.fintechlabs.testframework.condition.RedirectBackToClientWithAuthorizationCode;
+import io.fintechlabs.testframework.condition.RequireBearerAccessToken;
+import io.fintechlabs.testframework.condition.RequireOpenIDScope;
 import io.fintechlabs.testframework.condition.SignIdToken;
 import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.ValidateRedirectUri;
@@ -164,10 +169,19 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object userinfoEndpoint(JsonObject requestParts) {
-
-		JsonObject user = env.get("user_info");
 		
-		// TODO: FILTER
+		env.put("incoming_request", requestParts);
+
+		optional(ExtractBearerAccessTokenFromHeader.class);
+		optional(ExtractBearerAccessTokenFromParams.class);
+
+		require(RequireBearerAccessToken.class);
+		
+		require(RequireOpenIDScope.class);
+		
+		require(FilterUserInfoForScopes.class);
+		
+		JsonObject user = env.get("user_info_endpoint_response");
 		
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
