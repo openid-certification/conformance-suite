@@ -14,7 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -44,13 +44,17 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 			return error("Couldn't find a configuration");
 		}
 
-		// do a simple copy
-		
-		JsonObject server = env.findElement("config", "server").getAsJsonObject();
-		
-		env.put("server", server);
-
-		return env;
+		// make sure we've got a server object
+		JsonElement server = env.findElement("config", "server");
+		if (server == null || !server.isJsonObject()) {
+			return error("Couldn't find server object in configuration");
+		} else {
+			// we've got a server object, put it in the environment
+			env.put("server", server.getAsJsonObject());
+			
+			logSuccess();
+			return env;
+		}
 	}
 
 }
