@@ -17,6 +17,7 @@ package io.fintechlabs.testframework.condition;
 import java.text.ParseException;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jwt.JWT;
@@ -44,6 +45,15 @@ public class ParseIdToken extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
+
+		if (!env.containsObj("token_endpoint_response")) {
+			return error("Couldn't find a Token Endpoint Response");
+		}
+		
+		JsonElement idTokenElement = env.findElement("token_endpoint_response", "id_token");
+		if (idTokenElement == null || !idTokenElement.isJsonPrimitive()) {
+			return error("Couldn't find an ID Token in Token Endpoint Response");
+		}
 
 		String idTokenString = env.getString("token_endpoint_response", "id_token");
 		
