@@ -48,8 +48,8 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 			return error("Couldn't find authorizaiton code in callback");
 		} else {
 			in.putString("code", in.getString("callback_params", "code"));
-			log(ImmutableMap.of("msg", "Found authorization code", "code", in.getString("callback_params", "code")));
-			logSuccess();
+			logSuccess("Found authorization code", 
+					args("code", in.getString("callback_params", "code")));
 			return in;
 		}
 		

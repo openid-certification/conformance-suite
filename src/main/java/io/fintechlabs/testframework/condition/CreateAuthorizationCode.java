@@ -14,11 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +23,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class CreateAuthorizationCode extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public CreateAuthorizationCode(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,13 +40,15 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
-			return env;
-		} else {
-			return error("Couldn't find scope");
-		}
+
+		String code = RandomStringUtils.randomAlphanumeric(10);
+
+		env.putString("authorization_code", code);
+		
+		logSuccess("Created authorization code", args("authorization_code", code));
+		
+		return env;
+		
 	}
 
 }

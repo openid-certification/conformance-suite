@@ -99,15 +99,13 @@ public interface TestModule {
      * @param req The request that passed to the server
      * @param res A response that will be sent from the server
      * @param session Session details
-     * @param params Parameters from the request
-     * @param m
-     * @return A ModelAndView for the response.
+     * @param requestParts elements from the request parsed out into a json object for use in condition classes
+     * @return A response (could be a ModelAndview, ResponseEntity, or other item)
      */
-    ModelAndView handleHttp(String path,
+    Object handleHttp(String path,
             HttpServletRequest req, HttpServletResponse res,
             HttpSession session,
-            @RequestParam MultiValueMap<String, String> params,
-            Model m);
+            JsonObject requestParts);
 
 	/**
 	 * @return get the test results

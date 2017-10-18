@@ -153,14 +153,14 @@ public class SampleTestModule extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		eventLog.log(getId(), getName(), "Path: " + path);
-		eventLog.log(getId(), getName(), "Params: " + params);
+		eventLog.log(getId(), getName(), "Params: " + requestParts);
 		
 		// dispatch based on the path
 		if (path.equals("callback")) {
-			return handleCallback(path, req, res, session, params, m);
+			return handleCallback(requestParts);
 		} else {
 			return new ModelAndView("testError");
 		}
@@ -177,12 +177,12 @@ public class SampleTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	@UserFacing
-	private ModelAndView handleCallback(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, MultiValueMap<String, String> params, Model m) {
+	private ModelAndView handleCallback(JsonObject requestParts) {
 
 		// process the callback
 		this.status = Status.RUNNING;
 		
-		env.put("callback_params", mapToJsonObject(params));
+		env.put("callback_params", requestParts.get("params").getAsJsonObject());
 		require(CheckIfAuthorizationEndpointError.class);
 		
 		require(CheckMatchingStateParameter.class);

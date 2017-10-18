@@ -49,7 +49,7 @@ public class CheckIfAuthorizationEndpointError extends AbstractCondition {
 			log("Error from the authorization endpoint", in.get("callback_params"));
 			return error("Error from the authorization endpoint: " + in.getString("callback_params", "error"));
 		} else {
-			logSuccess();
+			logSuccess("No error from authorization endpoint");
 			return in;
 		}
 

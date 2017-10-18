@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -30,14 +29,16 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ParseIdToken extends AbstractCondition {
+public class LoadJWKs extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public ParseIdToken(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-24");
+	public LoadJWKs(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
+		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -46,39 +47,31 @@ public class ParseIdToken extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("token_endpoint_response")) {
-			return error("Couldn't find a Token Endpoint Response");
+		JsonElement configured = env.findElement("config", "jwks");
+		
+		if (configured == null) {
+			return error("Couldn't find a JWK set in configuration");
 		}
 		
-		JsonElement idTokenElement = env.findElement("token_endpoint_response", "id_token");
-		if (idTokenElement == null || !idTokenElement.isJsonPrimitive()) {
-			return error("Couldn't find an ID Token in Token Endpoint Response");
-		}
-
-		String idTokenString = env.getString("token_endpoint_response", "id_token");
-		
+		// parse the JWKS to make sure it's valid
 		try {
-			JWT idToken = JWTParser.parse(idTokenString);
+			JWKSet jwks = JWKSet.parse(configured.toString());
 			
-			// Note: we need to round-trip this to get to GSON objects because the JWT library uses a different parser
-			JsonObject header = new JsonParser().parse(idToken.getHeader().toJSONObject().toJSONString()).getAsJsonObject(); 
-			JsonObject claims = new JsonParser().parse(idToken.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject publicJwks = new JsonParser().parse(jwks.toJSONObject(true).toJSONString()).getAsJsonObject();
+			JsonObject privateJwks = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 			
-			JsonObject o = new JsonObject();
-			o.addProperty("value", idTokenString); // save the original string to allow for crypto operations
-			o.add("header", header);
-			o.add("claims", claims);
+			env.put("public_jwks", publicJwks);
+			env.put("jwks", privateJwks);
 			
-			// save the parsed ID token
-			env.put("id_token", o);
-			
-			logSuccess("Found and parsed the ID Token", o);
+			logSuccess("Parsed public and private JWK sets", args("public_jwks", publicJwks, "jwks", jwks));
 			
 			return env;
 			
 		} catch (ParseException e) {
-			return error("Couldn't parse JWT", e);
+			return error("Failure parsing JWK Set", e);
 		}
+		
+
 		
 	}
 

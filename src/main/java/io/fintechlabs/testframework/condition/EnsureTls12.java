@@ -95,16 +95,16 @@ public class EnsureTls12 extends AbstractCondition {
 		    
 		    String cipherSuite = socket.getSession().getCipherSuite();
 		    
-		    // TODO: log the server certificates from: 
-		    //   socket.getSession().getPeerCertificates(); 
 		    
-		    log("TLS Connection information", ImmutableMap.of(
-		    	"cipher_suite", cipherSuite
-		    ));
 		    
 		    socket.close();
 		    
-		    logSuccess();
+		    logSuccess("TLS Connection information", ImmutableMap.of(
+		    		"cipher_suite", cipherSuite
+		    		// TODO: log the server certificates from: 
+		    		//   socket.getSession().getPeerCertificates(); 
+		    		));
+		    
 		    return env;
 		    
 		} catch (GeneralSecurityException e) {

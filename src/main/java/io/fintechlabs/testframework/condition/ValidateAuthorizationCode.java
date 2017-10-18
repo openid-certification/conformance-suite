@@ -14,11 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +23,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class ValidateAuthorizationCode extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public ValidateAuthorizationCode(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,12 +40,20 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
+
+		String expected = env.getString("authorization_code");
+		String actual = env.getString("token_endpoint_request", "params.code");
+		
+		if (Strings.isNullOrEmpty(expected)) {
+			return error("Couldn't find authorization code to compare");
+		}
+		
+		if (expected.equals(actual)) {
+			logSuccess("Found authorization code", args("authorization_code", actual));
 			return env;
 		} else {
-			return error("Couldn't find scope");
+			log("Didn't find matching authorization code", args("expected", expected, "actual", actual));
+			return error("Couldn't find authorization code");
 		}
 	}
 

@@ -45,11 +45,9 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant extends Abstrac
 		o.addProperty("code", env.getString("code"));
 		o.addProperty("redirect_uri", env.getString("redirect_uri"));
 		
-		log(o);
-		
 		env.put("token_endpoint_request_form_parameters", o);
 		
-		logSuccess();
+		logSuccess(o);
 
 		return env;
 	}

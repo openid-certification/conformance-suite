@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
@@ -60,12 +61,12 @@ public class DBEventLog implements EventLog {
 	 */
 	@Override
 	public void log(String testId, String source, JsonObject obj) {
-		obj.addProperty("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
-		obj.addProperty("testId", testId);
-		obj.addProperty("src", source);
-		obj.addProperty("time", new Date().getTime());
-
-		DBObject dbObject = (DBObject) JSON.parse(obj.toString());
+		
+		DBObject dbObject = (DBObject) JSON.parse(obj.toString()); // don't touch the incoming object
+		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
+		dbObject.put("testId", testId);
+		dbObject.put("src", source);
+		dbObject.put("time", new Date().getTime());
 		
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
@@ -75,7 +76,7 @@ public class DBEventLog implements EventLog {
 	 */
 	@Override
 	public void log(String testId, String source, Map<String, Object> map) {
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map)
+		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map) // this doesn't alter the incoming map
 				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 				.add("testId", testId)
 				.add("src", source)

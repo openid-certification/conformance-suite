@@ -14,11 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +23,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class EnsureMatchingClientId extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public EnsureMatchingClientId(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,13 +40,20 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
+
+		// get the client ID from the configuration
+		String expected = env.getString("client", "client_id");
+		String actual = env.getString("authorization_endpoint_request", "client_id");
+		
+		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
+			logSuccess("Client ID matched",
+					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Couldn't find scope");
+			return error("Mismatch between client ID: " + actual);
 		}
+
+		
 	}
 
 }

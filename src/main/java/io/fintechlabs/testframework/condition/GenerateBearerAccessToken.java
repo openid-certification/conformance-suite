@@ -14,11 +14,9 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
+import org.apache.commons.lang3.RandomStringUtils;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +25,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class GenerateBearerAccessToken extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public GenerateBearerAccessToken(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,13 +42,15 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
-			return env;
-		} else {
-			return error("Couldn't find scope");
-		}
+
+		String accessToken = RandomStringUtils.randomAlphanumeric(50);
+		
+		logSuccess("Generated access token", args("access_token", accessToken));
+		
+		env.putString("access_token", accessToken);
+		env.putString("token_type", "Bearer");		
+		return env;
+		
 	}
 
 }

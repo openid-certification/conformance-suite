@@ -14,27 +14,28 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
+import java.util.List;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Splitter;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import jersey.repackaged.com.google.common.collect.Lists;
 
 /**
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class RequireOpenIDScope extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public RequireOpenIDScope(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,12 +44,15 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
-			return env;
+		String scope = env.getString("scope");
+		
+		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope));
+		
+		if (!scopes.contains("openid")) {
+			return error("Couldn't find openid scope");
 		} else {
-			return error("Couldn't find scope");
+			logSuccess("Found openid scope in scopes list", args("scopes", scopes));
+			return env;
 		}
 	}
 

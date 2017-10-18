@@ -40,21 +40,17 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "access_token"))) {
-			log(ImmutableMap.of("msg", "Found an access token",
-					"access_token", env.getString("token_endpoint_response", "access_token")));
+		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "access_token"))
+			&& !Strings.isNullOrEmpty(env.getString("token_endpoint_response", "token_type"))) {
 			
-			if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "token_type"))) {
-				logSuccess();
+				logSuccess("Found an access token",
+						args("access_token", env.getString("token_endpoint_response", "access_token")));
 				return env;
-			} else {
-				return error("Couldn't find required token_type");
-			}
-			
+				
 		} else {
-			return error("Couldn't find access token");
+			return error("Couldn't find required access token or token_type");
 		}
-
+		
 	}
 
 }

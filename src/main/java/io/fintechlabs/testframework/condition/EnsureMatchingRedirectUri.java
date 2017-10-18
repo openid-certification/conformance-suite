@@ -12,9 +12,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.fapi;
+package io.fintechlabs.testframework.condition;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
+import com.google.common.base.Strings;
+
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -22,14 +23,16 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ExpectRedirectUriErrorPage extends AbstractCondition {
+public class EnsureMatchingRedirectUri extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public ExpectRedirectUriErrorPage(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-8");
+	public EnsureMatchingRedirectUri(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
+		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -37,10 +40,18 @@ public class ExpectRedirectUriErrorPage extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
+		// get the client ID from the configuration
+		String expected = env.getString("client", "redirect_uri");
+		String actual = env.getString("authorization_endpoint_request", "redirect_uri");
 		
-		createUploadPlaceholder("Show redirect URI error page");
-		
-		return env;
+		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
+			logSuccess("Redirect URI matched", 
+					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+			return env;
+		} else {
+			return error("Mismatch between redirect URI: " + actual);
+		}
+
 	}
 
 }

@@ -150,19 +150,6 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	/**
-	 * utility function to convert an incoming multi-value map to a JSonObject for storage
-	 * @param params
-	 * @return
-	 */
-	protected JsonObject mapToJsonObject(MultiValueMap<String, String> params) {
-		JsonObject o = new JsonObject();
-		for (String key : params.keySet()) {
-			o.addProperty(key, params.getFirst(key));
-		}
-		return o;
-	}
-
-	/**
 	 * @return the result
 	 */
 	public Result getResult() {

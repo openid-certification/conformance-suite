@@ -14,11 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +23,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class EnsureClientIsAuthenticated extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public EnsureClientIsAuthenticated(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,13 +40,15 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
-			return env;
+
+		if (Strings.isNullOrEmpty(env.getString("client_authentication_success"))) {
+			return error("Client was not authenticated");
 		} else {
-			return error("Couldn't find scope");
+			logSuccess("Found client authentication, passing", args("client_authentication_success", env.getString("client_authentication_success")));
+			
+			return env;
 		}
+		
 	}
 
 }

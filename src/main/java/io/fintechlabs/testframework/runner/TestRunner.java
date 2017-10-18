@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.example.SampleClientTestModule;
 import io.fintechlabs.testframework.example.SampleImplicitModule;
 import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
@@ -292,6 +293,8 @@ public class TestRunner {
 			return new SampleImplicitModule();
 		case "ensure-redirect-uri-is-registered":
 			return new EnsureRegisteredRedirectUri();
+		case "sample-client-test":
+			return new SampleClientTestModule();
 		
 		default:
 			return null;
@@ -301,7 +304,7 @@ public class TestRunner {
     // TODO: make this a factory bean
     private List<String> getTestModuleNames() {
     	return ImmutableList.of(
-    			"sample-test", "sample-implicit-test", "ensure-redirect-uri-is-registered");
+    			"sample-test", "sample-implicit-test", "ensure-redirect-uri-is-registered", "sample-client-test");
     }
     
     

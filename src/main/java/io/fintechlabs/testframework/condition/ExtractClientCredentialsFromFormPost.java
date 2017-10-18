@@ -14,11 +14,8 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +24,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public ExtractClientCredentialsFromFormPost(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,13 +41,29 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
-			return env;
-		} else {
-			return error("Couldn't find scope");
+
+		if (env.containsObj("client_authentication")) {
+			return error("Found existing client authentication");
 		}
+		
+		String clientId = env.getString("token_endpoint_request", "params.client_id");
+		String clientSecret = env.getString("token_endpoint_request", "params.client_secret");
+		
+		if (Strings.isNullOrEmpty(clientId) || Strings.isNullOrEmpty(clientSecret)) {
+			return error("Couldn't find client credentials in form post");
+		}
+		
+		JsonObject clientAuthentication = new JsonObject();
+		clientAuthentication.addProperty("client_id", clientId);
+		clientAuthentication.addProperty("client_secret", clientSecret);
+		clientAuthentication.addProperty("method", "client_secret_post");
+		
+		env.put("client_authentication", clientAuthentication);
+		
+		logSuccess("Extracted client authentication", clientAuthentication);
+		
+		return env;
+		
 	}
 
 }

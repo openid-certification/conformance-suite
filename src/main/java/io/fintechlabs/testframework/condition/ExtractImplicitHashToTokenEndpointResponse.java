@@ -65,7 +65,7 @@ public class ExtractImplicitHashToTokenEndpointResponse extends AbstractConditio
 			env.put("callback_params", o);
 			env.put("token_endpoint_response", o);
 			
-			logSuccess();
+			logSuccess("Extracted the hash values", o);
 			
 			return env;
 			

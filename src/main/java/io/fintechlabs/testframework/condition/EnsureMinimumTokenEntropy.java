@@ -50,13 +50,12 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 		
 		double entropy = bitsPerCharacter * (double) accessToken.length();
 		
-		log("Calculated entropy", ImmutableMap.of("entropy", entropy));
 		
 		if (entropy > 128) {
-			logSuccess();
+			logSuccess("Calculated entropy", ImmutableMap.of("entropy", entropy, "required", 128));
 			return env;
 		} else {
-			return error("Minimum entropy not met, got " + entropy);
+			return error("Minimum entropy (128) not met, got " + entropy);
 		}
 		
 	}

@@ -14,11 +14,8 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -27,14 +24,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForScopesInTokenResponse extends AbstractCondition {
+public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForScopesInTokenResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-15");
+	public ExtractBearerAccessTokenFromParams(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -43,13 +41,19 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
-			logSuccess("Found scopes returned with access token",
-					args("scope", env.getString("token_endpoint_response", "scope")));
+
+		log("Incoming request params", (JsonObject) env.findElement("incoming_request", "params"));
+
+		String incoming = env.getString("incoming_request", "params.access_token");
+
+		if (!Strings.isNullOrEmpty(incoming)) {
+			logSuccess("Found access token on incoming request", args("access_token", incoming));
+			env.putString("incoming_access_token", incoming);
 			return env;
 		} else {
-			return error("Couldn't find scope");
+			return error("Couldn't find access token in parameters");
 		}
+		
 	}
 
 }

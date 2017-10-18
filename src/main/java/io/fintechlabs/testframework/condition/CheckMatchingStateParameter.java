@@ -46,25 +46,25 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 			return error("Couldn't find callback parameters");
 		}
 		
-		String state = in.getString("state");
-		String incoming = in.getString("callback_params", "state");
+		String expected = in.getString("state");
+		String actual = in.getString("callback_params", "state");
 		
-		log(ImmutableMap.of("msg", "Checking for state parameter", "state", Strings.nullToEmpty(state), "incoming", Strings.nullToEmpty(incoming)));
-		
-		if (Strings.isNullOrEmpty(state)) {
+		if (Strings.isNullOrEmpty(expected)) {
 			// we didn't save a 'state' value, we need to make sure one wasn't returned
-			if (Strings.isNullOrEmpty(incoming)) {
+			if (Strings.isNullOrEmpty(actual)) {
 				// we're good
-				logSuccess();
+				logSuccess("No state parameter to check");
 				return in;
 			} else {
 				return error("State parameter did not match");
 			}
 		} else {
 			// we did save a state parameter, make sure it's the same as before
-			if (state.equals(incoming)) {
+			if (expected.equals(actual)) {
 				// we're good
-				logSuccess();
+				logSuccess("Checking for state parameter", 
+					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+				
 				return in;
 			} else {
 				return error("State parameter did not match");

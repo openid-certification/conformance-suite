@@ -15,7 +15,7 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -24,13 +24,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckForRefreshTokenValue extends AbstractCondition {
+public class CreateTokenEndpointResponse extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public CheckForRefreshTokenValue(String testId, EventLog log, boolean optional) {
+	public CreateTokenEndpointResponse(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -40,13 +41,40 @@ public class CheckForRefreshTokenValue extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "refresh_token"))) {
-			logSuccess("Found a refresh token",
-					args("refresh_token", env.getString("token_endpoint_response", "refresh_token")));
-			return env;
-		} else {
-			return error("Couldn't find refresh token");
+		
+		String accessToken = env.getString("access_token");
+		String tokenType = env.getString("token_type");
+		String idToken = env.getString("id_token");
+		String refreshToken = env.getString("refresh_token");
+		String scope = env.getString("scope");
+
+		if (Strings.isNullOrEmpty(accessToken) || Strings.isNullOrEmpty(tokenType)) {
+			return error("Missing required access token or token type");
 		}
+		
+		JsonObject tokenEndpointResponse = new JsonObject();
+
+		tokenEndpointResponse.addProperty("access_token", accessToken);
+		tokenEndpointResponse.addProperty("token_type", tokenType);
+		
+		if (!Strings.isNullOrEmpty(idToken)) {
+			tokenEndpointResponse.addProperty("id_token", idToken);
+		}
+		
+		if (!Strings.isNullOrEmpty(refreshToken)) {
+			tokenEndpointResponse.addProperty("refresh_token", refreshToken);
+		}
+		
+		if (!Strings.isNullOrEmpty(scope)) {
+			tokenEndpointResponse.addProperty("scope", scope);
+		}
+		
+		env.put("token_endpoint_response", tokenEndpointResponse);
+		
+		logSuccess("Created token endpoint response", tokenEndpointResponse);
+		
+		return env;
+		
 	}
 
 }
