@@ -52,7 +52,7 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 			// we've got a server object, put it in the environment
 			env.put("server", server.getAsJsonObject());
 			
-			logSuccess();
+			logSuccess("Found a static server object", server.getAsJsonObject());
 			return env;
 		}
 	}
