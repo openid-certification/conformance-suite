@@ -42,7 +42,6 @@ a:hover {
 
 #logDetail .content .item {
   margin: 10px 0;
-  border-bottom:1px solid #c0c0c0;
 }
 
 .wordwrap { 
@@ -60,18 +59,35 @@ a:hover {
   padding: 6px;
 }
 
+span {
+  display: inline-block;
+}
+
 span.key {
+  width:100px;
   color:#87c19c;
 }
 
 span.hypen {
-  color:#87c19c;
+  width:10px;
+  color:#c0c0c0;
+}
+
+span.value {
+  width:calc(100%-110px);
+  color:#000;
 }
 
 .hidden {
   display:none;
 }
 
+.label {
+  width:auto;
+  color:#fff;
+  height:20px;
+  line-height:20px;
+}
 
 /* This is what designers mostly look at <= 3000 */
 @media all and (max-width : 3000px)  {

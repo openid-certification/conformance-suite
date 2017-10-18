@@ -29,30 +29,160 @@
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
-    <script>
-        $(document).ready(function(){
-            
-        	var urlParams = new URLSearchParams(window.location.search);
-        	
-        	FAPI_UI.showLogDetail(urlParams.get('log'));
-
-        });
-
-    </script>
-
     <body>
 
         <header onClick="FAPI_UI.goHome()"></header>
 
-        <div class="mainHolder">
+        <script type="text/html" id='logDetailTemplate'>
+            <div class="mainHolder">
 
-            <div id="logDetail">
-                <h1>Log detail</h1>
-                <div class="content"></div>
+                <div id="logDetail">
+                    <h1>Log detail</h1>
+                    <div class="content">
+
+                        <%
+                            // repeat items 
+                            _.each(items, function(item,arrIndex) {
+
+                        %>
+                            <div class="list">
+
+                                <div class="item">
+
+                                    <% if (item.src) { %>
+                                        <span class="key">Source</span><span class="hypen">:</span><span class="value"> <%- item.src %></span><br/>
+                                        <% item.src_displayed = true; // register item as displayed
+                                    } 
+                                        %>
+
+                                    <% if (item.msg) { %>
+                                        <span class="key">Message</span><span class="hypen">:</span><span class="value"> <%- item.msg %></span><br/>
+                                        <% item.msg_displayed = true;
+                                    } 
+                                        %>
+
+                                    <% if (item.requirements) { %>
+                                        <span class="key">Requirements</span><span class="hypen">:</span><span class="value"> <%- item.requirements %></span><br/>
+                                        <% item.requirements_displayed = true;
+                                    } 
+                                        %>
+
+                                    <% if (item.upload) { %>
+                                        <span class="key">Upload</span><span class="hypen">:</span><span class="value"> <%- item.upload %></span><br/>
+                                        <% item.upload_displayed = true;
+                                    } 
+                                        %>
+
+                                    <% if (item.result) { 
+                                        var layoutClasses = "";
+                                        var itemResult = item.result.toUpperCase();
+
+                                        if (itemResult == "SUCCESS") {
+                                            layoutClasses = "label label-success";
+                                        } else if (itemResult == "FAILURE") {
+                                            layoutClasses = "label label-danger";
+                                        } else if (itemResult == "WARNING") {
+                                            layoutClasses = "label label-warning";
+                                        } else if (itemResult == "REVIEW") {
+                                            layoutClasses = "label label-info";
+                                        } else {
+                                            layoutClasses = "label label-primary";
+                                        }
+                                    %>
+                                        <span class="key">Result</span><span class="hypen">:</span><span class="<%- layoutClasses %>"><%- item.result %></span><br/>
+                                        <% item.result_displayed = true;
+                                    } 
+                                        %>
+
+                                    <% if (item.time) { %>
+                                        <span class="key">Time</span><span class="hypen">:</span><span class="value"> <%- item.time %></span><br/>
+                                        <% item.time_displayed = true;
+                                    } 
+                                        %>
+
+                                    <% 
+                                        // render any extra items which haven't been displayed yet
+                                        var extraItems = 0;
+                                        var extraItemsListing = "";
+                                        _.each(item.keys, function(key, index) {
+
+                                            if (index == item.keys.length-1 && extraItems > 0) {
+                                                
+                                                %>
+                                                    <button onClick="toggleMore(this)" id="btn_<%- arrIndex %>" class="btn btn-default btn-xs pull-right">
+                                                        <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
+                                                    </button>
+                                                    <div class="moreinfo collapse wordwrap"><%- extraItemsListing %></div>
+                                                    <div class="clearfix"></div>
+
+                                                <%
+                                            }
+                                            
+                                            if (!item[key+"_displayed"]) { 
+                                                extraItems++;
+                                                extraItemsListing += "<p/>"+key+ " : " + item[key];
+                                            }
+                                      
+                                        });
+                                    %>
+                                    <hr/>
+                                </div>
+                            </div>
+                        <%
+                            });
+                        %>
+                    </div>
+                </div>
             </div>
-            
+        </script>
 
-        </div>
+        <div id="logDetailTemplate_render"></div>
+
+        <script type="text/javascript">
+
+            $(document).ready(function(){
+                var urlParams = new URLSearchParams(window.location.search);
+                FAPI_UI.showLogDetail(urlParams.get('log'));
+            });
+
+            /**
+             * 
+             */
+            function render(logs) {
+                var template = _.template(
+                    $("#logDetailTemplate").html()
+                );
+
+                $('#logDetailTemplate_render').html(template({items:logs}));
+            }
+
+            /**
+             * 
+             */
+            function toggleMore(btn) {
+
+                var btnRef = "#"+btn.id;
+       
+                if ($(btnRef).hasClass('activated')) {
+                    // it's already been activated, need to hide things
+                    $($(btnRef).next()).hide(); // hide the content
+                    $('.glyphicon', btnRef).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+                    $(btnRef).removeClass('activated');
+                } else {
+                    // need to show the collapsed entity
+
+                    // note Underscore has converted code for <p/>, need to convert back to what we expect for html
+                    var myHTML = $(btnRef).next().html();
+                    myHTML = myHTML.replace(/&lt;p\/&gt;/g, "<p/>");
+
+                    $($(btnRef).next()).html(myHTML);
+                    $($(btnRef).next()).show(); // show the content
+                    $('.glyphicon', btnRef).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+                    $(btnRef).addClass('activated');
+                }
+            }
+
+        </script>
 
 
         <footer></footer>
