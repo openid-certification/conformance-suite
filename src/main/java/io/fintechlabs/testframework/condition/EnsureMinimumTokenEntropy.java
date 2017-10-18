@@ -29,6 +29,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 public class EnsureMinimumTokenEntropy extends AbstractCondition {
+	private final double requiredEntropy = 128;
 
 	/**
 	 * @param testId
@@ -51,11 +52,11 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 		double entropy = bitsPerCharacter * (double) accessToken.length();
 		
 		
-		if (entropy > 128) {
-			logSuccess("Calculated entropy", ImmutableMap.of("entropy", entropy, "required", 128));
+		if (entropy > requiredEntropy) {
+			logSuccess("Calculated entropy", ImmutableMap.of("entropy", entropy, "required", requiredEntropy));
 			return env;
 		} else {
-			return error("Minimum entropy (128) not met, got " + entropy);
+			return error("Minimum entropy (" + requiredEntropy + ") not met, got " + entropy);
 		}
 		
 	}
