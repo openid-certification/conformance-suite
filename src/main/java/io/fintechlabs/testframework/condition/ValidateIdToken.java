@@ -59,6 +59,11 @@ public class ValidateIdToken extends AbstractCondition {
 			return error("Couldn't find values to test ID token against");
 		}
 		
+		JsonElement iss = env.findElement("id_token", "claims.iss");
+		if (iss == null) {
+			return error("Missing issuer");
+		}
+		
 		if (!issuer.equals(env.getString("id_token", "claims.iss"))) {
 			log("Issuer mismatch", ImmutableMap.of("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
 			return error("Issuer mismatch");
