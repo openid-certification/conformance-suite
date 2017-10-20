@@ -44,7 +44,7 @@ public class CreateRandomStateValue extends AbstractCondition {
 		String state = RandomStringUtils.randomAlphanumeric(10);
 		env.putString("state", state);
 
-		log("Created state value", ImmutableMap.of("state", state));
+		log("Created state value", args("state", state));
 		
 		return env;
 	}

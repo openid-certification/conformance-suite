@@ -142,12 +142,55 @@ public abstract class AbstractCondition implements Condition {
 		log(map);
 	}
 	
+	/*
+	 * Automatically log failures or warnings, depending on if this is an optional test
+	 */
+	
+	protected void logFailure(JsonObject in) {
+		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		obj.addProperty("result", optional ? "WARNING" : "FAILURE");
+		log(obj);
+	}
+	
 	protected void logFailure(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(msg, args("result", optional ? "WARNING" : "FAILURE"));
+			log(args("msg", msg, "result", optional ? "WARNING" : "FAILURE"));
 		} else {
-			log(msg, args("result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
+			log(args("msg", msg, "result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
 		}
+	}
+	
+	protected void logFailure(Map<String, Object> map) {
+		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		copy.put("result", optional ? "WARNING" : "FAILURE");
+		if (!getRequirements().isEmpty()) {
+			copy.put("requirements", getRequirements());
+		}
+		log(map);
+	}
+	
+	protected void logFailure(String msg, JsonObject in) {
+		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		obj.addProperty("msg", msg);
+		obj.addProperty("result", optional ? "WARNING" : "FAILURE");
+		if (!getRequirements().isEmpty()) {
+			JsonArray reqs = new JsonArray(getRequirements().size());
+			for (String req : getRequirements()) {
+				reqs.add(req);
+			}
+			obj.add("requirements", reqs);
+		}
+		log(obj);
+	}
+
+	protected void logFailure(String msg, Map<String, Object> map) {
+		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		copy.put("msg", msg);
+		copy.put("result", optional ? "WARNING" : "FAILURE");
+		if (!getRequirements().isEmpty()) {
+			copy.put("requirements", getRequirements());
+		}
+		log(map);
 	}
 
 	/*
@@ -178,6 +221,52 @@ public abstract class AbstractCondition implements Condition {
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(String message, Throwable cause, Map<String, Object> map) {
+		logFailure(message, map);
+		throw new ConditionError(testId, getMessage() + ": " + message, cause);
+	}
+
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(String message, Map<String, Object> map) {
+		logFailure(message, map);
+		throw new ConditionError(testId, getMessage() + ": " + message);
+	}
+
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(Throwable cause, Map<String, Object> map) {
+		logFailure(map);
+		throw new ConditionError(testId, getMessage(), cause);
+	}
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(String message, Throwable cause, JsonObject in) {
+		logFailure(message);
+		throw new ConditionError(testId, getMessage() + ": " + message, cause);
+	}
+
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(String message, JsonObject in) {
+		logFailure(message);
+		throw new ConditionError(testId, getMessage() + ": " + message);
+	}
+
+	/**
+	 * Log a failure then throw a ConditionError
+	 */
+	protected Environment error(Throwable cause, JsonObject in) {
+		logFailure(cause != null ? cause.getMessage() : "Error");
+		throw new ConditionError(testId, getMessage(), cause);
+	}
 	
 	/**
 	 * Get the list of requirements that this test would fulfill if it passed

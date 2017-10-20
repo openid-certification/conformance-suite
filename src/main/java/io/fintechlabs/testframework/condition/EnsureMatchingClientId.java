@@ -47,10 +47,10 @@ public class EnsureMatchingClientId extends AbstractCondition {
 		
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess("Client ID matched",
-					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+					args("client_id", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Mismatch between client ID: " + actual);
+			return error("Mismatch between client ID", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
 
 		

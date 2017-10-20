@@ -99,7 +99,7 @@ public class EnsureTls12 extends AbstractCondition {
 		    
 		    socket.close();
 		    
-		    logSuccess("TLS Connection information", ImmutableMap.of(
+		    logSuccess("TLS Connection information", args(
 		    		"cipher_suite", cipherSuite
 		    		// TODO: log the server certificates from: 
 		    		//   socket.getSession().getPeerCertificates(); 

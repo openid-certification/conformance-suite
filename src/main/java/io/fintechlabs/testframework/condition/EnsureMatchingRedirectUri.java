@@ -46,10 +46,10 @@ public class EnsureMatchingRedirectUri extends AbstractCondition {
 		
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess("Redirect URI matched", 
-					args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+					args("actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Mismatch between redirect URI: " + actual);
+			return error("Mismatch between redirect URI", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
 
 	}

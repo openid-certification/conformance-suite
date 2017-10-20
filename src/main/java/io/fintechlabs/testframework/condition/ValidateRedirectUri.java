@@ -52,8 +52,7 @@ public class ValidateRedirectUri extends AbstractCondition {
 			logSuccess("Found redirect uri", args("redirect_uri", actual));
 			return env;
 		} else {
-			log("Didn't find matching redirect uri", args("expected", expected, "actual", actual));
-			return error("Couldn't find matching redirect uri");
+			return error("Didn't find matching redirect uri", args("expected", expected, "actual", actual));
 		}
 
 	}

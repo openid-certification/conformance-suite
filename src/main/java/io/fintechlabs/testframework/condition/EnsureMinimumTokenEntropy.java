@@ -53,10 +53,10 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 		
 		
 		if (entropy > requiredEntropy) {
-			logSuccess("Calculated entropy", ImmutableMap.of("entropy", entropy, "required", requiredEntropy));
+			logSuccess("Calculated entropy", args("expected", requiredEntropy, "actual", entropy));
 			return env;
 		} else {
-			return error("Minimum entropy (" + requiredEntropy + ") not met, got " + entropy);
+			return error("Minimum entropy not met", args("expected", requiredEntropy, "actual", entropy));
 		}
 		
 	}

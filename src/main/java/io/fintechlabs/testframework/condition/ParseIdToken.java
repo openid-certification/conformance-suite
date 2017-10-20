@@ -77,7 +77,7 @@ public class ParseIdToken extends AbstractCondition {
 			return env;
 			
 		} catch (ParseException e) {
-			return error("Couldn't parse JWT", e);
+			return error("Couldn't parse JWT", e, args("id_token_string", idTokenString));
 		}
 		
 	}
