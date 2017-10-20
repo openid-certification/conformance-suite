@@ -76,10 +76,10 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 				return error("Unable to fetch server configuration from " + discoveryUrl, e);
 			}
 
-			log(ImmutableMap.of("msg", "Downloaded server configuration", 
-					"server_config_string", jsonString));
-
 			if (!Strings.isNullOrEmpty(jsonString)) {
+				log(ImmutableMap.of("msg", "Downloaded server configuration", 
+						"server_config_string", jsonString));
+
 				try {
 					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
 					
