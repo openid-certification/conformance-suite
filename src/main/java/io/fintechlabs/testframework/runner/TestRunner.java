@@ -41,6 +41,7 @@ import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -49,6 +50,7 @@ import io.fintechlabs.testframework.example.SampleImplicitModule;
 import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -80,6 +82,9 @@ public class TestRunner {
 	
 	@Autowired
 	private EventLog eventLog;
+	
+	@Autowired
+	private TestInfoService testInfo;
 
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> getAvailableTests(Model m) {
@@ -94,15 +99,15 @@ public class TestRunner {
     		@RequestParam("alias") String alias,
     		@RequestBody JsonObject config, Model m) {
     	
-        TestModule test = createTestModule(testName);
+    	String id = RandomStringUtils.randomAlphanumeric(10);    	
+    	
+    	BrowserControl browser = new CollectingBrowserControl();
+    	
+        TestModule test = createTestModule(testName, id, browser);
         
         logger.info("Created: " + testName);
 
         logger.info("Status of " + testName + ": " + test.getStatus());
-
-        String id = RandomStringUtils.randomAlphanumeric(10);
-
-        BrowserControl browser = new CollectingBrowserControl();
 
         support.addRunningTest(id, test);
 
@@ -125,8 +130,18 @@ public class TestRunner {
             url = baseUrl + TestDispatcher.TEST_PATH + id;
         }
         
-
-        test.configure(config, eventLog, id, browser, url);
+        // log the test creation event in the event log
+        Map<String, Object> testCreated = ImmutableMap.of(
+        		"baseUrl", url,
+        		"config", config,
+        		"alias", alias,
+        		"testName", testName);        
+        eventLog.log(id, "TEST-RUNNER", testCreated);
+        
+        // add this test to the stack
+        testInfo.createTest(id, testName, url, config, alias);
+        
+        test.configure(config, url);
 
         logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
@@ -216,7 +231,7 @@ public class TestRunner {
 		TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
 
-    		// stop the test
+            // stop the test
     		test.stop();
     		
     		// return its status
@@ -283,20 +298,33 @@ public class TestRunner {
     }
     
     // TODO: make this a factory bean
-    private TestModule createTestModule(String testName) {
+    private TestModule createTestModule(String testName, String id, BrowserControl browser) {
+    	TestModule module = null;
+    	
     	switch (testName) {
-		case "sample-test":
-			return new SampleTestModule();
-		case "sample-implicit-test":
-			return new SampleImplicitModule();
-		case "ensure-redirect-uri-is-registered":
-			return new EnsureRegisteredRedirectUri();
-		case "sample-client-test":
-			return new SampleClientTestModule();
-		
-		default:
-			return null;
+			case "sample-test":
+				module = new SampleTestModule();
+				break;
+			case "sample-implicit-test":
+				module = new SampleImplicitModule();
+				break;
+			case "ensure-redirect-uri-is-registered":
+				module = new EnsureRegisteredRedirectUri();
+				break;
+			case "sample-client-test":
+				module = new SampleClientTestModule();
+				break;
+			
+			default:
+				module = null;
+				break;
     	}
+    	
+    	if (module != null) {
+    		module.wire(id, eventLog, browser, testInfo);
+    	}
+
+    	return module;
     }
     
     // TODO: make this a factory bean
