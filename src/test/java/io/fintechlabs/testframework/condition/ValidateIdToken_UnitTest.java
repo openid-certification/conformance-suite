@@ -265,12 +265,29 @@ public class ValidateIdToken_UnitTest {
 	public void testEvaluate_invalidExp() {
 		
 		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds - 3600);
+		claims.addProperty("exp", nowSeconds - (60 * 60)); // one hour in the past is not ok
 		
 		env.putString("client_id", clientId);
 		env.put("server", server);
 		addIdToken(env, claims);
 		
+		cond.evaluate(env);
+		
+	}
+	
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.ValidateIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test
+	public void testEvaluate_allowableExpSkew() {
+		
+		claims.remove("exp");
+		claims.addProperty("exp", nowSeconds - (3 * 60)); // 3 minutes out should be fine still
+
+		env.putString("client_id", clientId);
+		env.put("server", server);
+		addIdToken(env, claims);
+
 		cond.evaluate(env);
 		
 	}
@@ -304,6 +321,23 @@ public class ValidateIdToken_UnitTest {
 		env.put("server", server);
 		addIdToken(env, claims);
 		
+		cond.evaluate(env);
+		
+	}
+	
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.ValidateIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test
+	public void testEvaluate_allowableIatSkew() {
+		
+		claims.remove("iat");
+		claims.addProperty("iat", nowSeconds + (3 * 60)); // 3 minutes out should be fine still
+
+		env.putString("client_id", clientId);
+		env.put("server", server);
+		addIdToken(env, claims);
+
 		cond.evaluate(env);
 		
 	}
