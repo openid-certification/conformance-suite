@@ -28,6 +28,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 
 /**
@@ -46,6 +47,8 @@ public abstract class AbstractTestModule implements TestModule {
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
+
+	protected TestInfoService testInfo;
 
 	/**
 	 * @param name
@@ -188,6 +191,22 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * Wire up this test module instance with some callbacks from the framework
+	 * @param id
+	 * @param eventLog
+	 * @param browser
+	 * @param testInfo
+	 */
+	@Override
+	public void wire(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		this.id = id;
+		this.eventLog = eventLog;
+		this.browser = browser;
+		this.testInfo = testInfo;
+		
 	}
 
 }

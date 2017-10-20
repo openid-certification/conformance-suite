@@ -56,11 +56,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
 	 */
 	@Override
-	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl) {
-		this.id = id;
-		this.eventLog = eventLog;
-		this.browser = browser;
-		
+	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		

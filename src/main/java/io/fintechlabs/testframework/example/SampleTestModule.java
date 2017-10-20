@@ -53,8 +53,6 @@ import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -64,8 +62,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  */
 public class SampleTestModule extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class); 
-	
+	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);
 	/**
 	 * 
 	 */
@@ -77,11 +74,7 @@ public class SampleTestModule extends AbstractTestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
-	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl) {
-		this.id = id;
-		this.eventLog = eventLog;
-		this.browser = browser;
-		
+	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		

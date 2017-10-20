@@ -27,6 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 
 /**
@@ -57,13 +58,11 @@ public interface TestModule {
      *
      * @param config A JSON object consisting of details that the testRunner
      * doesn't need to know about
-     * @param eventLog The event Logging object to log details of the test
      * @param id The id of this test
-     * @param browser The "front channel" control
      * @param baseUrl The base of the URL that will need to be appended to any
      * URL construction.
      */
-    void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl);
+    void configure(JsonObject config, String baseUrl);
 
     /**
      * *
@@ -122,5 +121,13 @@ public interface TestModule {
 	 * @return the associated browser control module
 	 */
 	BrowserControl getBrowser();
+
+	/**
+	 * @param id
+	 * @param eventLog
+	 * @param browser
+	 * @param testInfo
+	 */
+	void wire(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo);
 
 }
