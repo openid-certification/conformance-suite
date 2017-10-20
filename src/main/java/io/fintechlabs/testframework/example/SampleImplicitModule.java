@@ -51,6 +51,7 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
@@ -65,7 +66,6 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 */
 	public SampleImplicitModule() {
 		super("sample-implicit-test");
-		this.status = Status.CREATED;
 	}
 
 	/* (non-Javadoc)
@@ -92,7 +92,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		exposeEnvString("client_id");
 
-		this.status = Status.CONFIGURED;
+		setStatus(Status.CONFIGURED);
+
 		fireSetupDone();
 	}
 
@@ -101,11 +102,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 */
 	public void start() {
 		
-		if (this.status != Status.CONFIGURED) {
-			throw new RuntimeException("Invalid State: " + this.status);
-		}
-		
-		this.status = Status.RUNNING;
+		setStatus(Status.RUNNING);
 		
 		require(CreateRandomStateValue.class);
 		exposeEnvString("state");
@@ -118,7 +115,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		browser.goToUrl(redirectTo);
 		
-		this.status = Status.WAITING;
+		setStatus(Status.WAITING);
 	}
 
 	/* (non-Javadoc)
@@ -129,7 +126,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		eventLog.log(getId(), getName(), "Finished");
 		
-		this.status = Status.FINISHED;
+		setStatus(Status.FINISHED);
 		
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
@@ -161,7 +158,12 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 	@UserFacing
 	private ModelAndView handleCallback(JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+
 		require(CreateRandomImplicitSubmitUrl.class);
+
+		setStatus(Status.WAITING);
+
 		return new ModelAndView("implicitCallback", 
 				ImmutableMap.of("test", this, 
 					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
@@ -180,7 +182,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
-		this.status = Status.RUNNING;
+		setStatus(Status.RUNNING);
 		
 		String hash = requestParts.get("body").getAsString();
 		
@@ -206,7 +208,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		require(EnsureMinimumTokenEntropy.class);
 		
-		this.status = Status.FINISHED;
+		setStatus(Status.FINISHED);
 		fireTestSuccess();
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 

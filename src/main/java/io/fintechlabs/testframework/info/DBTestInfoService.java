@@ -18,11 +18,15 @@ import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 
+import io.fintechlabs.testframework.logging.DBEventLog;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
@@ -47,13 +51,44 @@ public class DBTestInfoService implements TestInfoService {
 				.add("_id", id)
 				.add("testId", id)
 				.add("testName", testName)
-				.add("time", new Date().getTime())
+				.add("started", new Date().getTime())
 				.add("config", config)
-				.add("alias", alias)
-				.add("status", Status.CREATED)
-				.add("result", Result.UNKNOWN);
+				.add("alias", alias);
 		
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestInfoService#updateTestResult(java.lang.String, io.fintechlabs.testframework.testmodule.TestModule.Result)
+	 */
+	@Override
+	public void updateTestResult(String id, Result result) {
+		// find the existing entity
+		Query query = Query.query(
+				Criteria.where("_id").is(id));
+		
+		Update update = new Update();
+		update.set("result", result);
+
+		mongoTemplate.updateFirst(query, update, COLLECTION);
+
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestInfoService#updateTestStatus(java.lang.String, io.fintechlabs.testframework.testmodule.TestModule.Status)
+	 */
+	@Override
+	public void updateTestStatus(String id, Status status) {
+		// find the existing entity
+		Query query = Query.query(
+				Criteria.where("_id").is(id));
+		
+		Update update = new Update();
+		update.set("status", status);
+
+		mongoTemplate.updateFirst(query, update, COLLECTION);
+		
 	}
 
 }

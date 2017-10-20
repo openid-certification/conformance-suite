@@ -49,6 +49,7 @@ public interface TestModule {
     	PASSED,  // test has passed successfully
     	FAILED,  // test has failed
     	WARNING, // test has warnings
+    	REVIEW, // test requires manual review
     	UNKNOWN  // test results not yet known, probably still running (see status)
     }
 

@@ -37,6 +37,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by 
@@ -77,7 +78,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		
 		exposeEnvString("client_id");
 
-		this.status = Status.CONFIGURED;
+		setStatus(Status.CONFIGURED);
+
 		fireSetupDone();
 	}
 
@@ -86,11 +88,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	 */
 	@Override
 	public void start() {
-		if (this.status != Status.CONFIGURED) {
-			throw new RuntimeException("Invalid State: " + this.status);
-		}
-		
-		this.status = Status.RUNNING;
+		setStatus(Status.RUNNING);
 		
 		require(CreateRandomStateValue.class);
 		exposeEnvString("state");
@@ -106,10 +104,13 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		browser.goToUrl(redirectTo);
 
 		/**
-		 * We never expect the browser to come back from here
+		 * We never expect the browser to come back from here, our test is done
 		 */
 		
-		this.status = Status.WAITING;
+		// someone needs to review this by hand
+		setResult(Result.REVIEW);
+		
+		stop();
 	}
 
 	/* (non-Javadoc)
@@ -119,7 +120,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	public void stop() {
 		eventLog.log(getId(), getName(), "Finished");
 		
-		this.status = Status.FINISHED;
+		setStatus(Status.FINISHED);
 		
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();

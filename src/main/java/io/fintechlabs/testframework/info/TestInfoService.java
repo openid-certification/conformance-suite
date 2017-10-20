@@ -16,6 +16,9 @@ package io.fintechlabs.testframework.info;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.testmodule.TestModule.Result;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
+
 /**
  * @author jricher
  *
@@ -23,6 +26,7 @@ import com.google.gson.JsonObject;
 public interface TestInfoService {
 
 	/**
+	 * Create a new test in the database
 	 * @param id
 	 * @param testName
 	 * @param url
@@ -31,4 +35,19 @@ public interface TestInfoService {
 	 */
 	void createTest(String id, String testName, String url, JsonObject config, String alias);
 
+	/**
+	 * Update the result of a test in the database
+	 * @param id
+	 * @param result
+	 */
+	void updateTestResult(String id, Result result);
+
+	/**
+	 * Update the status of a test in the database
+	 * @param id
+	 * @param status
+	 */
+	void updateTestStatus(String id, Status status);
+
+	
 }

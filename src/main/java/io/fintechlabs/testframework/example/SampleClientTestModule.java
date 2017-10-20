@@ -70,7 +70,6 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 */
 	public SampleClientTestModule() {
 		super("sample-client-test");
-		this.status = Status.CREATED;
 	}
 
 	/* (non-Javadoc)
@@ -95,8 +94,10 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		
 		
-		this.status = Status.CONFIGURED;
+		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+		// this test can auto-start
+		start();
 	}
 
 	/* (non-Javadoc)
@@ -106,9 +107,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	public void start() {
 		// TODO Auto-generated method stub
 
-		
-		
-		this.status = Status.WAITING;
+		setStatus(Status.WAITING);
 	}
 
 	/* (non-Javadoc)
@@ -117,7 +116,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	@Override
 	public void stop() {
 		// TODO Auto-generated method stub
-
+		setStatus(Status.FINISHED);
 	}
 
 	/* (non-Javadoc)
@@ -166,6 +165,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 */
 	private Object userinfoEndpoint(JsonObject requestParts) {
 		
+		setStatus(Status.RUNNING);
+		
 		env.put("incoming_request", requestParts);
 
 		optional(ExtractBearerAccessTokenFromHeader.class);
@@ -178,6 +179,10 @@ public class SampleClientTestModule extends AbstractTestModule {
 		require(FilterUserInfoForScopes.class);
 		
 		JsonObject user = env.get("user_info_endpoint_response");
+		
+		// at this point we can assume the test is fully done
+		fireTestSuccess();
+		stop();
 		
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
@@ -208,7 +213,10 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 */
 	private Object jwksEndpoint() {
 
+		setStatus(Status.RUNNING);
 		JsonObject jwks = env.get("public_jwks");
+
+		setStatus(Status.WAITING);
 		
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
@@ -221,6 +229,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object tokenEndpoint(JsonObject requestParts) {
+
+		setStatus(Status.RUNNING);
 
 		env.put("token_endpoint_request", requestParts);
 		
@@ -241,6 +251,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 		require(SignIdToken.class);
 		
 		require(CreateTokenEndpointResponse.class);
+
+		setStatus(Status.WAITING);
 		
 		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
 
@@ -255,7 +267,9 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object authorizationEndpoint(JsonObject requestParts) {
-		
+	
+		setStatus(Status.RUNNING);
+
 		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
 		require(EnsureMatchingClientId.class);
@@ -272,6 +286,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 		
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 		
+		setStatus(Status.WAITING);
+
 		return new RedirectView(redirectTo, false, false, false);
 	
 	}
