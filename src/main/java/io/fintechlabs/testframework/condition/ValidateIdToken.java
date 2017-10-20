@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.time.Instant;
 import java.util.Date;
 
 import com.google.common.base.Strings;
@@ -29,6 +30,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 public class ValidateIdToken extends AbstractCondition {
+
+	// TODO: make this configurable
+	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	/**
 	 * @param testId
@@ -51,7 +55,7 @@ public class ValidateIdToken extends AbstractCondition {
 		
 		String clientId = env.getString("client_id"); // to check the audience
 		String issuer = env.getString("server", "issuer"); // to validate the issuer
-		Date now = new Date(); // to check timestamps
+		Instant now = Instant.now(); // to check timestamps
 		
 		// check all our testable values
 		if (Strings.isNullOrEmpty(clientId) 
@@ -90,7 +94,7 @@ public class ValidateIdToken extends AbstractCondition {
 		if (exp == null) {
 			return error("Missing expiration");
 		} else {
-			if (now.after(new Date(exp * 1000L))) {
+			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 				log("Token expired", ImmutableMap.of("expiration", new Date(exp * 1000L), "now", now));
 				return error("Token expired");
 			}
@@ -100,7 +104,7 @@ public class ValidateIdToken extends AbstractCondition {
 		if (iat == null) {
 			return error("Missing issuace time");
 		} else {
-			if (now.before(new Date(iat * 1000L))) {
+			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
 				log("Token issued in the future", ImmutableMap.of("issued-at", new Date(iat * 1000L), "now", now));
 				return error("Token issued in the future");
 			}
@@ -108,7 +112,7 @@ public class ValidateIdToken extends AbstractCondition {
 		
 		Long nbf = env.getLong("id_token", "claims.nbf");
 		if (nbf != null) {
-			if (now.before(new Date(nbf * 1000L))) {
+			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
 				// this is just something to log, it doesn't make the token invalid
 				log("Token has future not-before", ImmutableMap.of("not-before", new Date(nbf * 1000L), "now", now));
 			}
