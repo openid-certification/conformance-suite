@@ -58,6 +58,10 @@ public class CallTokenEndpoint extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
+		if (env.getString("server", "token_endpoint") == null) {
+			return error("Couldn't find token endpoint");
+		}
+
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {
 			return error("Couldn't find request form");
 		}
