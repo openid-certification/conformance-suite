@@ -72,6 +72,9 @@ span.hypen {
   width:10px;
   color:#c0c0c0;
 }
+span.hypen:after {
+  content:": ";
+}
 
 span.value {
   width:calc(100%-110px);

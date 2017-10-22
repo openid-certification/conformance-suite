@@ -33,11 +33,12 @@
 
         <header onClick="FAPI_UI.goHome()"></header>
 
-        <script type="text/html" id='logDetailTemplate'>
+        <script type="text/template" id='logDetailTemplate'>
             <div class="mainHolder">
 
                 <div id="logDetail">
-                    <h1>Log detail</h1>
+                    <h1><span class="key">Log</span><span class="hypen"></span><span class="value"><%- fileId %></span></h1>
+                    <hr />
                     <div class="content">
 
                         <%
@@ -49,25 +50,25 @@
                                 <div class="item">
 
                                     <% if (item.src) { %>
-                                        <span class="key">Source</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.src %></span><br/>
+                                        <span class="key">Source</span><span class="hypen"></span><span class="value"><%- item.src %></span><br/>
                                         <% item.src_displayed = true; // register item as displayed so it doesn't show up later as part of "extra items"
                                     } 
                                     %>
 
                                     <% if (item.msg) { %>
-                                        <span class="key">Message</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.msg %></span><br/>
+                                        <span class="key">Message</span><span class="hypen"></span><span class="value"><%- item.msg %></span><br/>
                                         <% item.msg_displayed = true;
                                     } 
                                     %>
 
                                     <% if (item.requirements) { %>
-                                        <span class="key">Requirements</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.requirements %></span><br/>
+                                        <span class="key">Requirements</span><span class="hypen"></span><span class="value"><%- item.requirements %></span><br/>
                                         <% item.requirements_displayed = true;
                                     } 
                                     %>
 
                                     <% if (item.upload) { %>
-                                        <span class="key">Upload</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.upload %></span><br/>
+                                        <span class="key">Upload</span><span class="hypen"></span><span class="value"><%- item.upload %></span><br/>
                                         <% item.upload_displayed = true;
                                     } 
                                     %>
@@ -91,13 +92,13 @@
                                             layoutClasses = "label label-primary";
                                         }
                                     %>
-                                        <span class="key">Result</span><span class="hypen">:</span><span class="<%- layoutClasses %>"><%- itemResult %></span><br/>
+                                        <span class="key">Result</span><span class="hypen"></span><span class="<%- layoutClasses %>"><%- itemResult %></span><br/>
                                         <% item.result_displayed = true;
                                     } 
                                     %>
 
                                     <% if (item.time) { %>
-                                        <span class="key">Time</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.time %></span><br/>
+                                        <span class="key">Time</span><span class="hypen"></span><span class="value"><%- item.time %></span><br/>
                                         <% item.time_displayed = true;
                                     } 
                                     %>
@@ -151,12 +152,12 @@
             /**
              * 
              */
-            function render(logs) {
+            function render(fileId, logs) {
                 var template = _.template(
                     $("#logDetailTemplate").html()
                 );
 
-                $('#logDetailTemplate_render').html(template({items:logs}));
+                $('#logDetailTemplate_render').html(template({fileId:fileId, items:logs}));
             }
 
             /**

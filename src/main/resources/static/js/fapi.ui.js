@@ -59,7 +59,7 @@ var FAPI_UI = {
 					
 	            });
 
-				render(logs);
+				render(fileId, logs);
 	        }
 	    });
 
