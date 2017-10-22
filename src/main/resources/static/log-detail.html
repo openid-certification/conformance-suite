@@ -43,37 +43,36 @@
                         <%
                             // repeat items 
                             _.each(items, function(item,arrIndex) {
-
                         %>
                             <div class="list">
 
                                 <div class="item">
 
                                     <% if (item.src) { %>
-                                        <span class="key">Source</span><span class="hypen">:</span><span class="value"> <%- item.src %></span><br/>
-                                        <% item.src_displayed = true; // register item as displayed
+                                        <span class="key">Source</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.src %></span><br/>
+                                        <% item.src_displayed = true; // register item as displayed so it doesn't show up later as part of "extra items"
                                     } 
-                                        %>
+                                    %>
 
                                     <% if (item.msg) { %>
-                                        <span class="key">Message</span><span class="hypen">:</span><span class="value"> <%- item.msg %></span><br/>
+                                        <span class="key">Message</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.msg %></span><br/>
                                         <% item.msg_displayed = true;
                                     } 
-                                        %>
+                                    %>
 
                                     <% if (item.requirements) { %>
-                                        <span class="key">Requirements</span><span class="hypen">:</span><span class="value"> <%- item.requirements %></span><br/>
+                                        <span class="key">Requirements</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.requirements %></span><br/>
                                         <% item.requirements_displayed = true;
                                     } 
-                                        %>
+                                    %>
 
                                     <% if (item.upload) { %>
-                                        <span class="key">Upload</span><span class="hypen">:</span><span class="value"> <%- item.upload %></span><br/>
+                                        <span class="key">Upload</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.upload %></span><br/>
                                         <% item.upload_displayed = true;
                                     } 
-                                        %>
+                                    %>
 
-                                    <% if (item.result) { 
+                                    <% if (item.result) { // printing result details if we have them
                                         var layoutClasses = "";
                                         var itemResult = item.result.toUpperCase();
 
@@ -92,13 +91,13 @@
                                         <span class="key">Result</span><span class="hypen">:</span><span class="<%- layoutClasses %>"><%- item.result %></span><br/>
                                         <% item.result_displayed = true;
                                     } 
-                                        %>
+                                    %>
 
                                     <% if (item.time) { %>
-                                        <span class="key">Time</span><span class="hypen">:</span><span class="value"> <%- item.time %></span><br/>
+                                        <span class="key">Time</span><span class="hypen">:</span><span class="value">&nbsp;<%- item.time %></span><br/>
                                         <% item.time_displayed = true;
                                     } 
-                                        %>
+                                    %>
 
                                     <% 
                                         // render any extra items which haven't been displayed yet
@@ -106,23 +105,21 @@
                                         var extraItemsListing = "";
                                         _.each(item.keys, function(key, index) {
 
-                                            if (index == item.keys.length-1 && extraItems > 0) {
-                                                
-                                                %>
-                                                    <button onClick="toggleMore(this)" id="btn_<%- arrIndex %>" class="btn btn-default btn-xs pull-right">
-                                                        <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
-                                                    </button>
-                                                    <div class="moreinfo collapse wordwrap"><%- extraItemsListing %></div>
-                                                    <div class="clearfix"></div>
-
-                                                <%
+                                            // this renders the toggle more button once we have counted how many extra items there are
+                                            if (index == item.keys.length-1 && extraItems > 0) {          
+                                    %>
+                                                <button onClick="toggleMore(this)" id="btn_<%- arrIndex %>" class="btn btn-default btn-xs pull-right">
+                                                    <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
+                                                </button>
+                                                <div class="moreinfo collapse wordwrap"><%- extraItemsListing %></div>
+                                                <div class="clearfix"></div>
+                                    <%
                                             }
                                             
                                             if (!item[key+"_displayed"]) { 
                                                 extraItems++;
                                                 extraItemsListing += "<p/>"+key+ " : " + item[key];
                                             }
-                                      
                                         });
                                     %>
                                     <hr/>
@@ -140,6 +137,9 @@
 
         <script type="text/javascript">
 
+            /**
+             * 
+             */
             $(document).ready(function(){
                 var urlParams = new URLSearchParams(window.location.search);
                 FAPI_UI.showLogDetail(urlParams.get('log'));
