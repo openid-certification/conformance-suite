@@ -89,14 +89,39 @@ span.value {
   line-height:20px;
 }
 
-/* This is what designers mostly look at <= 3000 */
+/* Test result labels */
+.label.label-success { /* maps to SUCCESS */
+  background-color: #00cc00;
+}
+
+.label.label-danger { /* maps to FAILURE */
+  background-color: #666;
+}
+
+.label.label-warning { /* maps to WARNING */
+  background-color: #ff6600;
+}
+
+.label.label-info { /* maps to REVIEW */
+  background-color: #00ccff;
+}
+
+.label.label-interrupted { /* maps to INTERRUPTED */
+  background-color: #ddbb88;
+}
+
+.label.label-primary { /* default */
+  background-color: #00cc00;
+}
+
+/* People on large monitors <= 3000 */
 @media all and (max-width : 3000px)  {
 
   
 }
 
 
-/* <= 1400 */
+/* Regular desktop/laptop type users & tablet landscape <= 1400 */
 @media all and (max-width : 1400px)  {
 
  

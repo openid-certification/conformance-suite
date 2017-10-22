@@ -84,11 +84,14 @@
                                             layoutClasses = "label label-warning";
                                         } else if (itemResult == "REVIEW") {
                                             layoutClasses = "label label-info";
-                                        } else {
+                                        } else if (itemResult == "INTERRUPTED") {
+                                            layoutClasses = "label label-interrupted";
+                                        }
+                                        else {
                                             layoutClasses = "label label-primary";
                                         }
                                     %>
-                                        <span class="key">Result</span><span class="hypen">:</span><span class="<%- layoutClasses %>"><%- item.result %></span><br/>
+                                        <span class="key">Result</span><span class="hypen">:</span><span class="<%- layoutClasses %>"><%- itemResult %></span><br/>
                                         <% item.result_displayed = true;
                                     } 
                                     %>
