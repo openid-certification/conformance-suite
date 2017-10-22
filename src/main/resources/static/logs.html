@@ -29,30 +29,50 @@
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
-
-    <script>
-
-
-        $(document).ready(function(){
-            FAPI_UI.loadAvailableLogs();
-        });
-
-
-    </script>
-
     <body>
 
         <header style="cursor:default;"></header>
 
-        <div class="mainHolder">
-
-            <div id="logs">
-                <h1>Logs</h1>
-                <div class="content"></div>
+        <script type="text/template" id="logsListingTemplate">
+            <div class="mainHolder">
+                <div id="logs">
+                    <h1>Logs</h1>
+                    <div class="content">
+                        <%
+                            // repeat items 
+                            _.each(items, function(item,arrIndex) {
+                                var link = "log-detail.html?log="+item;
+                        %>
+                                <div class="link"><a href="<%- link %>" class="item"><%- item %></a></div>
+                        <%
+                            });
+                        %>
+                    </div>
+                </div>
             </div>
+        </script>
 
-        </div>
+        <div id="logsListingTemplate_render"></div>
 
+        <script>
+
+            /**
+             * 
+             */
+            $(document).ready(function(){
+                FAPI_UI.loadAvailableLogs();
+            });
+
+            /**
+             * 
+             */
+            function render(logsList) {
+                var template = _.template($("#logsListingTemplate").html());
+                $('#logsListingTemplate_render').html(template({items:logsList}));
+            }
+
+
+        </script>
 
         <footer></footer>
         

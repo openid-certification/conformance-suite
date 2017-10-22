@@ -33,7 +33,7 @@
 
         <header onClick="FAPI_UI.goHome()"></header>
 
-        <script type="text/template" id='logDetailTemplate'>
+        <script type="text/template" id="logDetailTemplate">
             <div class="mainHolder">
 
                 <div id="logDetail">
@@ -153,10 +153,7 @@
              * 
              */
             function render(fileId, logs) {
-                var template = _.template(
-                    $("#logDetailTemplate").html()
-                );
-
+                var template = _.template($("#logDetailTemplate").html());
                 $('#logDetailTemplate_render').html(template({fileId:fileId, items:logs}));
             }
 

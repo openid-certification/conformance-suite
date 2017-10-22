@@ -1,5 +1,8 @@
 var FAPI_UI = {
-		
+	
+	/**
+	 * 
+	 */
 	goHome : function() {
 		window.location.replace("logs.html");
 	},
@@ -13,9 +16,7 @@ var FAPI_UI = {
 	        url: "log", 
 	        data: {}, 
 	        success: function (data) { 
-	        	$.each(data, function(i, item) {
-	        		$("#logs .content").append("<div class='link'><a href='log-detail.html?log="+item+"' class='item'>"+item+"</a></div>");
-	        	});
+	        	render(data);
 	        }
 	    });
 	},
@@ -24,7 +25,6 @@ var FAPI_UI = {
 	 * 
 	 */
 	showLogDetail : function(fileId) {
-
 		$.ajax({ 
 	        type: 'GET', 
 	        url: "log/" + encodeURIComponent(fileId), 
@@ -62,7 +62,6 @@ var FAPI_UI = {
 				render(fileId, logs);
 	        }
 	    });
-
 	}
 	
 }
