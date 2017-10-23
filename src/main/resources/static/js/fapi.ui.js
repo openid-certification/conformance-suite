@@ -35,7 +35,7 @@ var FAPI_UI = {
 
 	            $.each(data, function(i, item) {
 
-	            	var log = {keys:[]};
+	            	var log = {};
 	            	
 	            	$.each(item, function(key, val) {
 	 
@@ -44,7 +44,6 @@ var FAPI_UI = {
 	            				) {
 
 	            			log[key] = val;
-	            			log.keys.push(key);
 
 	            			if (key.toLowerCase() == "time") {
 	            				// format it as a timestamp value

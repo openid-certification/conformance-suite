@@ -107,10 +107,10 @@
                                         // render any extra items which haven't been displayed yet
                                         var extraItems = 0;
                                         var extraItemsListing = "";
-                                        _.each(item.keys, function(key, index) {
+                                        _.each(Object.keys(item), function(key, index) {
 
                                             // this renders the toggle more button once we have counted how many extra items there are
-                                            if (index == item.keys.length-1 && extraItems > 0) {          
+                                            if (index == Object.keys(item).length-1 && extraItems > 0) {          
                                     %>
                                                 <button onClick="toggleMore(this)" id="btn_<%- arrIndex %>" class="btn btn-default btn-xs pull-right">
                                                     <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
