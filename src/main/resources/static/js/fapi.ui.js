@@ -1,4 +1,6 @@
 var FAPI_UI = {
+
+	visibleFields : ["msg", "src", "time", "result", "requirements", "upload"],
 	
 	/**
 	 * 
@@ -15,9 +17,7 @@ var FAPI_UI = {
 	        type: 'GET', 
 	        url: "log", 
 	        data: {}, 
-	        success: function (data) { 
-	        	render(data);
-	        }
+	        success: render
 	    });
 	},
 

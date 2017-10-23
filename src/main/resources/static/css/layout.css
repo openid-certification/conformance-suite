@@ -44,6 +44,29 @@ a:hover {
   margin: 10px 0;
 }
 
+#logDetail span {
+  display: inline-block;
+}
+
+#logDetail span.key {
+  width:100px;
+  color:#87c19c;
+}
+
+#logDetail span.hypen {
+  width:10px;
+  color:#c0c0c0;
+}
+
+#logDetail span.hypen:after {
+  content:": ";
+}
+
+#logDetail span.value {
+  width:calc(100%-110px);
+  color:#000;
+}
+
 .wordwrap { 
    white-space: pre-wrap;
    white-space: -moz-pre-wrap;  
@@ -57,28 +80,6 @@ a:hover {
   border: thin #C0C0C0 solid;
   border-radius: 4px;
   padding: 6px;
-}
-
-span {
-  display: inline-block;
-}
-
-span.key {
-  width:100px;
-  color:#87c19c;
-}
-
-span.hypen {
-  width:10px;
-  color:#c0c0c0;
-}
-span.hypen:after {
-  content:": ";
-}
-
-span.value {
-  width:calc(100%-110px);
-  color:#000;
 }
 
 .hidden {
