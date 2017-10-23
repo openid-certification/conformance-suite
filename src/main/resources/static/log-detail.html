@@ -77,20 +77,11 @@
                                         var layoutClasses = "";
                                         var itemResult = item.result.toUpperCase();
 
-                                        if (itemResult == "SUCCESS") {
-                                            layoutClasses = "label label-success";
-                                        } else if (itemResult == "FAILURE") {
-                                            layoutClasses = "label label-danger";
-                                        } else if (itemResult == "WARNING") {
-                                            layoutClasses = "label label-warning";
-                                        } else if (itemResult == "REVIEW") {
-                                            layoutClasses = "label label-info";
-                                        } else if (itemResult == "INTERRUPTED") {
-                                            layoutClasses = "label label-interrupted";
-                                        }
-                                        else {
-                                            layoutClasses = "label label-primary";
-                                        }
+                                        if (itemResult) {
+                                            layoutClasses = "label result-"+itemResult.toLowerCase();
+                                        } else {
+                                            layoutClasses = "label result-default";
+                                        }  
                                     %>
                                         <span class="key">Result</span><span class="hypen"></span><span class="<%- layoutClasses %>"><%- itemResult %></span><br/>
                                     <%

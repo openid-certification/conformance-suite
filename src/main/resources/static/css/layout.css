@@ -94,27 +94,27 @@ a:hover {
 }
 
 /* Test result labels */
-.label.label-success { /* maps to SUCCESS */
+.label.result-success {
   background-color: #00cc00;
 }
 
-.label.label-danger { /* maps to FAILURE */
+.label.result-failure {
   background-color: #666;
 }
 
-.label.label-warning { /* maps to WARNING */
+.label.result-warning {
   background-color: #ff6600;
 }
 
-.label.label-info { /* maps to REVIEW */
+.label.result-review {
   background-color: #00ccff;
 }
 
-.label.label-interrupted { /* maps to INTERRUPTED */
+.label.result-interrupted {
   background-color: #ddbb88;
 }
 
-.label.label-primary { /* default */
+.label.result-default {
   background-color: #00cc00;
 }
 
