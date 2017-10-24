@@ -40,39 +40,38 @@ a:hover {
   text-decoration: underline; 
 }
 
-#logDetail .content .item {
-  margin: 10px 0;
+#logDetail .content .list .item .row div {
+  position:relative;
+  margin: 5px 0;
+  float:left;
 }
 
-#logDetail span {
-  display: inline-block;
-}
-
-#logDetail span.key {
+#logDetail div.key {
+  left:20px;
   width:100px;
   color:#87c19c;
 }
 
-#logDetail span.hypen {
+#logDetail div.hypen {
   width:10px;
   color:#c0c0c0;
 }
 
-#logDetail span.hypen:after {
+#logDetail div.hypen:after {
   content:": ";
 }
 
-#logDetail span.value {
-  width:calc(100%-110px);
+#logDetail div.value {
+  width:calc(100%-130px);
   color:#000;
 }
 
 .wordwrap { 
-   white-space: pre-wrap;
-   white-space: -moz-pre-wrap;  
-   white-space: -pre-wrap;      
-   white-space: -o-pre-wrap;    
-   word-wrap: break-word;      
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;  
+  white-space: -pre-wrap;      
+  white-space: -o-pre-wrap;    
+  word-wrap: break-word;      
 }
 
 .moreinfo {
