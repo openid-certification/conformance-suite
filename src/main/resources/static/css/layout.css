@@ -52,12 +52,12 @@ a:hover {
   color:#87c19c;
 }
 
-#logDetail div.hypen {
+#logDetail div.hyphen {
   width:10px;
   color:#c0c0c0;
 }
 
-#logDetail div.hypen:after {
+#logDetail div.hyphen:after {
   content:": ";
 }
 
