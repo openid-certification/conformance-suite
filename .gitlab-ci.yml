@@ -30,6 +30,8 @@ variables:
   # AUTO_DEVOPS_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
   # AUTO_DEVOPS_DOMAIN: domain.example.com
   BASE_HOST_NAME: fapi-conformance
+  PRODUCTION_HOST: fintechlabs-fapi-conformance-suite
+  STAGING_HOST: fintechlabs-fapi-conformance-suite-staging
 
 stages:
   - build
@@ -150,7 +152,7 @@ staging:
     - deploy
   environment:
     name: staging
-    url: http://$BASE_HOST_NAME-staging.$AUTO_DEVOPS_DOMAIN
+    url: http://$STAGING_HOST.$AUTO_DEVOPS_DOMAIN
   only:
     refs:
       - master
@@ -172,7 +174,7 @@ staging:
     - deploy canary
   environment:
     name: production
-    url: http://$BASE_HOST_NAME.$AUTO_DEVOPS_DOMAIN
+    url: http://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
   when: manual
   only:
     refs:
@@ -197,7 +199,7 @@ production:
     - delete canary
   environment:
     name: production
-    url: http://$BASE_HOST_NAME.$AUTO_DEVOPS_DOMAIN
+    url: http://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
   when: manual
   only:
     refs:
