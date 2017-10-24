@@ -56,9 +56,9 @@ public class CheckServerConfiguration extends AbstractCondition {
 	private void ensureString(Environment in, String path) {
 		String string = in.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
-			error("Couldn't find required component " + path);
+			error("Couldn't find required component", args("path", path));
 		} else {
-			log(ImmutableMap.of(path, string));
+			logSuccess(args(path, string));
 		}
 		
 	}

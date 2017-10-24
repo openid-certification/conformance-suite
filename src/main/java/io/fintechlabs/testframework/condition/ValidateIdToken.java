@@ -69,8 +69,7 @@ public class ValidateIdToken extends AbstractCondition {
 		}
 		
 		if (!issuer.equals(env.getString("id_token", "claims.iss"))) {
-			log("Issuer mismatch", ImmutableMap.of("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
-			return error("Issuer mismatch");
+			return error("Issuer mismatch", args("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
 		}
 		
 		JsonElement aud = env.findElement("id_token", "claims.aud");
@@ -80,13 +79,11 @@ public class ValidateIdToken extends AbstractCondition {
 		
 		if (aud.isJsonArray()) {
 			if (!aud.getAsJsonArray().contains(new JsonPrimitive(clientId))) {
-				log("Audience not found", ImmutableMap.of("expected", clientId, "actual", aud));
-				return error("Couldn't find audience value");
+				return error("Audience not found", args("expected", clientId, "actual", aud));
 			}
 		} else {
 			if (!clientId.equals(aud.getAsString())) {
-				log("Audience mismatch", ImmutableMap.of("expected", clientId, "actual", aud));
-				return error("Couldn't find audience value");
+				return error("Audience mismatch", args("expected", clientId, "actual", aud));
 			}
 		}
 		
@@ -95,8 +92,7 @@ public class ValidateIdToken extends AbstractCondition {
 			return error("Missing expiration");
 		} else {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
-				log("Token expired", ImmutableMap.of("expiration", new Date(exp * 1000L), "now", now));
-				return error("Token expired");
+				return error("Token expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
 		}
 		
@@ -105,8 +101,7 @@ public class ValidateIdToken extends AbstractCondition {
 			return error("Missing issuace time");
 		} else {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				log("Token issued in the future", ImmutableMap.of("issued-at", new Date(iat * 1000L), "now", now));
-				return error("Token issued in the future");
+				return error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 		
@@ -114,7 +109,7 @@ public class ValidateIdToken extends AbstractCondition {
 		if (nbf != null) {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
 				// this is just something to log, it doesn't make the token invalid
-				log("Token has future not-before", ImmutableMap.of("not-before", new Date(nbf * 1000L), "now", now));
+				log("Token has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
 		}
 		

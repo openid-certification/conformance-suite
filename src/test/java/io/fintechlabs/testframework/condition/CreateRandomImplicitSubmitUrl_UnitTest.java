@@ -49,7 +49,6 @@ public class CreateRandomImplicitSubmitUrl_UnitTest {
 		assertThat(env.get("implicit_submit")).isNotNull();
 		assertThat(env.getString("implicit_submit", "path")).isNotEmpty();
 		assertThat(env.getString("implicit_submit", "fullUrl")).isNotEmpty();
-		assertThat(env.getString("redirect_uri")).isNotEmpty();
 	}
 
 	/**

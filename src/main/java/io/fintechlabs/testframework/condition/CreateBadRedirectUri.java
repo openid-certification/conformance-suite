@@ -54,8 +54,8 @@ public class CreateBadRedirectUri extends AbstractCondition {
 		String redirectUri = baseUrl + "/" + RandomStringUtils.randomAlphanumeric(10);
 		in.putString("redirect_uri", redirectUri);
 		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
+		logSuccess("Created redirect URI", 
+				args("redirect_uri", redirectUri));
 		
 		return in;
 	}

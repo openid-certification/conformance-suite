@@ -54,7 +54,7 @@ public class ExtractImplicitHashToTokenEndpointResponse extends AbstractConditio
 			
 			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
 			
-			log("Extracted response from hash", ImmutableMap.of("parameters", parameters));
+			log("Extracted response from hash", args("parameters", parameters));
 			
 			JsonObject o = new JsonObject();
 			for (NameValuePair pair : parameters) {

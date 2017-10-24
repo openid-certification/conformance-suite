@@ -61,12 +61,8 @@ public class CreateRandomImplicitSubmitUrl extends AbstractCondition {
 		
 		env.put("implicit_submit", o);
 		
-		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
-		env.putString("redirect_uri", redirectUri);
-		
-		log(ImmutableMap.of("msg", "Created redirect URI", 
-				"redirect_uri", redirectUri));
+		logSuccess("Created random implicit submission URL", 
+				args("implicit_submit", o));
 		
 		return env;
 	}

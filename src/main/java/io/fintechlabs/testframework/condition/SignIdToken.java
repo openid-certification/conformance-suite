@@ -89,7 +89,7 @@ public class SignIdToken extends AbstractCondition {
 				}
 				
 				if (signer == null) {
-					return error("Couldn't create signer from key");
+					return error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
 				}
 				
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(jwk.getAlgorithm().getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
@@ -105,7 +105,7 @@ public class SignIdToken extends AbstractCondition {
 				return env;
 				
 			} else {
-				return error("Expected only one JWK in the set");
+				return error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
 			}
 			
 			

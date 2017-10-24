@@ -49,7 +49,7 @@ public class RequireOpenIDScope extends AbstractCondition {
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope));
 		
 		if (!scopes.contains("openid")) {
-			return error("Couldn't find openid scope");
+			return error("Couldn't find openid scope", args("scopes", scopes));
 		} else {
 			logSuccess("Found openid scope in scopes list", args("scopes", scopes));
 			return env;

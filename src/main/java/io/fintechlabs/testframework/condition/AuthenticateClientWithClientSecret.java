@@ -69,10 +69,7 @@ public class AuthenticateClientWithClientSecret extends AbstractCondition {
 				return env;
 				
 			} else {
-				
-				log("Mismatch client secrets", args("expected", expected, "actual", actual));
-				
-				return error("Unable to authenticate client from secret");
+				return error("Mismatch client secrets", args("expected", expected, "actual", actual));
 			}
 			
 		} else {

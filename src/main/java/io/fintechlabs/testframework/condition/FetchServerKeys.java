@@ -69,12 +69,12 @@ public class FetchServerKeys extends AbstractCondition {
 				// do the fetch
 				RestTemplate restTemplate = new RestTemplate();
 
-				log("Fetching server key", ImmutableMap.of("jwks_uri", jwksUri));
+				log("Fetching server key", args("jwks_uri", jwksUri));
 				
 				try {
 					String jwkString = restTemplate.getForObject(jwksUri, String.class);
 					
-					log("Found JWK set string", ImmutableMap.of("jwk_string", jwkString));
+					log("Found JWK set string", args("jwk_string", jwkString));
 					
 					// parse the key to make sure it's really a JWK
 					JWKSet.parse(jwkString);

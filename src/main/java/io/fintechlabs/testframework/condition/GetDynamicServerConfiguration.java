@@ -77,8 +77,8 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			}
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
-				log(ImmutableMap.of("msg", "Downloaded server configuration", 
-						"server_config_string", jsonString));
+				log("Downloaded server configuration", 
+						args("server_config_string", jsonString));
 
 				try {
 					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
@@ -98,9 +98,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			}
 			
 		} else {
-			// check for manual configuration here
-			// TODO!
-			return error("Static configuration not yet implemented");
+			return error("Couldn't find or construct a discovery URL");
 		}
 
 		

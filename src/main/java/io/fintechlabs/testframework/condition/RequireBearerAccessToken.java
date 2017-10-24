@@ -45,10 +45,10 @@ public class RequireBearerAccessToken extends AbstractCondition {
 		String expected = env.getString("access_token");
 		
 		if (!Strings.isNullOrEmpty(actual) && actual.equals(expected)) {
-			logSuccess("Found access token in request", args("expected", expected, "actual", actual));
+			logSuccess("Found access token in request", args("actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Invalid access token " + actual);
+			return error("Invalid access token ", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
 		
 	}

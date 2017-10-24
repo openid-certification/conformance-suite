@@ -110,8 +110,8 @@ public class CallTokenEndpoint extends AbstractCondition {
 		if (Strings.isNullOrEmpty(jsonString)) {
 			return error("Didn't get back a response from the token endpoint");
 		} else {
-			log(ImmutableMap.of("msg", "Token endpoint response",
-					"token_endpoint_response", jsonString));
+			log("Token endpoint response",
+					args("token_endpoint_response", jsonString));
 			
 			try {
 				JsonElement jsonRoot = new JsonParser().parse(jsonString);

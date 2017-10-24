@@ -68,7 +68,7 @@ public class LoadJWKs extends AbstractCondition {
 			return env;
 			
 		} catch (ParseException e) {
-			return error("Failure parsing JWK Set", e);
+			return error("Failure parsing JWK Set", e, args("jwk_string", configured));
 		}
 		
 

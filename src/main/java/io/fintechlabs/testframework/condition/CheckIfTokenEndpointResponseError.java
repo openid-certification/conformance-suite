@@ -44,8 +44,7 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 		}
 
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "error"))) {
-			log("Token endpoint error response", env.get("token_endpoint_response"));
-			return error("Token endpoint error response: " + env.getString("token_endpoint_response", "error"));
+			return error("Token endpoint error response", env.get("token_endpoint_response"));
 		} else {
 			logSuccess("No error from token endpoint");
 			return env;

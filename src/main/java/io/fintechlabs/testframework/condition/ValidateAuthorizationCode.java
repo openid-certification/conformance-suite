@@ -52,8 +52,7 @@ public class ValidateAuthorizationCode extends AbstractCondition {
 			logSuccess("Found authorization code", args("authorization_code", actual));
 			return env;
 		} else {
-			log("Didn't find matching authorization code", args("expected", expected, "actual", actual));
-			return error("Couldn't find authorization code");
+			return error("Didn't find matching authorization code", args("expected", expected, "actual", actual));
 		}
 	}
 
