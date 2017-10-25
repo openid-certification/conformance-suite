@@ -84,9 +84,9 @@ public abstract class AbstractCondition implements Condition {
 	}
 	
 	protected void log(String msg, JsonObject in) {
-		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		obj.addProperty("msg", msg);
-		log(obj);
+		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		copy.addProperty("msg", msg);
+		log(copy);
 	}
 
 	protected void log(String msg, Map<String, Object> map) {
@@ -96,9 +96,16 @@ public abstract class AbstractCondition implements Condition {
 	}
 	
 	protected void logSuccess(JsonObject in) {
-		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		obj.addProperty("result", "SUCCESS");
-		log(obj);
+		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		copy.addProperty("result", "SUCCESS");
+		if (!getRequirements().isEmpty()) {
+			JsonArray arr = new JsonArray();
+			for (String req : getRequirements()) {
+				arr.add(req);
+			}
+			copy.add("requirements", arr);
+		}
+		log(copy);
 	}
 	
 	protected void logSuccess(String msg) {
@@ -115,21 +122,21 @@ public abstract class AbstractCondition implements Condition {
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
-		log(map);
+		log(copy);
 	}
 	
 	protected void logSuccess(String msg, JsonObject in) {
-		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		obj.addProperty("msg", msg);
-		obj.addProperty("result", "SUCCESS");
+		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		copy.addProperty("msg", msg);
+		copy.addProperty("result", "SUCCESS");
 		if (!getRequirements().isEmpty()) {
 			JsonArray reqs = new JsonArray(getRequirements().size());
 			for (String req : getRequirements()) {
 				reqs.add(req);
 			}
-			obj.add("requirements", reqs);
+			copy.add("requirements", reqs);
 		}
-		log(obj);
+		log(copy);
 	}
 
 	protected void logSuccess(String msg, Map<String, Object> map) {
@@ -139,7 +146,7 @@ public abstract class AbstractCondition implements Condition {
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
-		log(map);
+		log(copy);
 	}
 	
 	/*
