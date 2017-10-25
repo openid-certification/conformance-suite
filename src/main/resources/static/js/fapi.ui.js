@@ -31,11 +31,13 @@ var FAPI_UI = {
 	        data: {}, 
 	        success: function (data) { 
 
-				var logs = [];
+			
+
+				render("LogStart", fileId);
 
 	            $.each(data, function(i, item) {
 
-	            	var log = {};
+	     
 	            	
 	            	$.each(item, function(key, val) {
 	 
@@ -43,22 +45,38 @@ var FAPI_UI = {
 	            				&& key.toLowerCase() != 'testid' // we also don't need to display the test ID
 	            				) {
 
-	            			log[key] = val;
+	            			if (key.toLowerCase()=="src") {
+	            				render("Source",val);
+	            			}
 
-	            			if (key.toLowerCase() == "time") {
-	            				// format it as a timestamp value
-	            				log[key] = new Date(val);
+	            			if (key.toLowerCase()=="msg") {
+	            				render("Message",val);
+	            			}
+
+	            			if (key.toLowerCase()=="requirements") {
+	            				render("Requirements",val);
+	            			}
+
+	            			if (key.toLowerCase()=="upload") {
+	            				render("Upload",val);
+	            			}
+
+	            			if (key.toLowerCase()=="result") {
+	            				render("Result",val);
+	            			}
+
+	          
+	            			if (key.toLowerCase()=="time") {
+	            				render("Time",new Date(val));
 	            			}
 	            		}
 	            	});
 
-					if (Object.keys(log).length) {
-						logs.push(log);
-					}	
+				
 					
 	            });
 
-				render(fileId, logs);
+				//render(fileId, logs);
 	        }
 	    });
 	}

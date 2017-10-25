@@ -40,7 +40,7 @@ a:hover {
   text-decoration: underline; 
 }
 
-#logDetail .content .list .item .row div {
+#logDetail .content .row div {
   position:relative;
   margin: 5px 0;
   float:left;

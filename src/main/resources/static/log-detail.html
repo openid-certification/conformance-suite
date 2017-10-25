@@ -33,133 +33,103 @@
 
         <header onClick="FAPI_UI.goHome()"></header>
 
-        <script type="text/template" id="logDetailTemplate">
-            <div class="mainHolder">
 
-                <div id="logDetail">
-                    <h1>
-                        <div class="row">
-                            <div class="col-md-2 key">Log</div>
-                            <div class="col-md-1 hyphen"></div>
-                            <div class="col-md-9 value"><%- fileId %></div>
-                        </div>
-                    </h1>
-              
-                    <hr />
-                    <div class="content">
 
-                        <%
-                            // repeat items 
-                            _.each(items, function(item,arrIndex) {
-                        %>
-                            <div class="list">
-
-                                <div class="item">
-
-                                    <% if (item.src) { %>
-                                        <div class="row">
-                                            <div class="key">Source</div>
-                                            <div class="hyphen"></div>
-                                            <div class="value"><%- item.src %></div>
-                                        </div>
-                                    <%
-                                    } 
-                                    %>
-
-                                    <% if (item.msg) { %>
-                                        <div class="row">
-                                            <div class="key">Message</div>
-                                            <div class="hyphen"></div>
-                                            <div class="value"><%- item.msg %></div>
-                                        </div>
-                                    <%
-                                    } 
-                                    %>
-
-                                    <% if (item.requirements) { %>
-                                        <div class="row">
-                                            <div class="key">Requirements</div>
-                                            <div class="hyphen"></div>
-                                            <div class="value"><%- item.requirements %></div>
-                                        </div>
-                                    <%
-                                    } 
-                                    %>
-
-                                    <% if (item.upload) { %>
-                                        <div class="row">
-                                            <div class="key">Upload</div>
-                                            <div class="hyphen"></div>
-                                            <div class="value"><%- item.upload %></div>
-                                        </div>
-                                    <%
-                                    } 
-                                    %>
-
-                                    <% if (item.result) { // printing result details if we have them
-                                        var layoutClasses = "";
-                                        var itemResult = item.result.toUpperCase();
-
-                                        if (itemResult) {
-                                            layoutClasses = "label result-"+itemResult.toLowerCase();
-                                        } else {
-                                            layoutClasses = "label result-default";
-                                        }  
-                                    %>
-                                        <div class="row">
-                                            <div class="key">Result</div>
-                                            <div class="hyphen"></div>
-                                            <div class="<%- layoutClasses %>"><%- itemResult %></div>
-                                        </div>
-                                    <%
-                                    } 
-                                    %>
-
-                                    <% if (item.time) { %>
-                                        <div class="row">
-                                            <div class="key">Time</div>
-                                            <div class="hyphen"></div>
-                                            <div class="value"><%- item.time %></div>
-                                        </div>
-                                    <%
-                                    } 
-                                    %>
-
-                                    <% 
-                                        // render any extra items which haven't been displayed yet
-                                        var extraItems = 0;
-                                        var extraItemsListing = "";
-                                        _.each(Object.keys(item), function(key, index) {
-
-                                            // this renders the toggle more button once we have counted how many extra items there are
-                                            if (index == Object.keys(item).length-1 && extraItems > 0) {          
-                                    %>
-                                                <button onClick="toggleMore(this)" id="btn_<%- arrIndex %>" class="btn btn-default btn-xs pull-right">
-                                                    <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
-                                                </button>
-                                                <div class="moreinfo collapse wordwrap"><%- extraItemsListing %></div>
-                                                <div class="clearfix"></div>
-                                    <%
-                                            }
-                                            
-                                            if (!_.contains(FAPI_UI.visibleFields, key)) {
-                                                extraItems++;
-                                                extraItemsListing += "<p/>"+key+ " : " + item[key];
-                                            }
-                                        });
-                                    %>
-                                    <hr/>
-                                </div>
-                            </div>
-                        <%
-                            });
-                        %>
-                    </div>
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_LogStart">
+            
+                <div class="row">
+                    <div class="col-md-2 key">Log</div>
+                    <div class="col-md-1 hyphen"></div>
+                    <div class="col-md-9 value"><%- val %></div>
                 </div>
+
+        </script>
+
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_Source">
+            <div class="row">
+                <div class="key">Source</div>
+                <div class="hyphen"></div>
+                <div class="value"><%- val %></div>
             </div>
         </script>
 
-        <div id="logDetailTemplate_render"></div>
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_Message">
+            <div class="row">
+                <div class="key">Message</div>
+                <div class="hyphen"></div>
+                <div class="value"><%- val %></div>
+            </div>
+        </script>
+
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_Requirements">
+            <div class="row">
+                <div class="key">Requirements</div>
+                <div class="hyphen"></div>
+                <div class="value"><%- val %></div>
+            </div>
+        </script>
+
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_Upload">
+            <div class="row">
+                <div class="key">Upload</div>
+                <div class="hyphen"></div>
+                <div class="value"><%- val %></div>
+            </div>
+        </script>
+
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_Result">
+            <%
+                var layoutClasses = "";
+                var itemResult = val.toUpperCase();
+
+                if (itemResult) {
+                    layoutClasses = "label result-"+itemResult.toLowerCase();
+                } else {
+                    layoutClasses = "label result-default";
+                }  
+            %>
+            <div class="row">
+                <div class="key">Result</div>
+                <div class="hyphen"></div>
+                <div class="<%- layoutClasses %>"><%- itemResult %></div>
+            </div>
+
+        </script>
+
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_Time">
+            <div class="row">
+                <div class="key">Time</div>
+                <div class="hyphen"></div>
+                <div class="value"><%- val %></div>
+            </div>
+            <hr />
+        </script>
+
+        <!-- -->
+        <script type="text/template" id="logDetailTemplate_LogEnd">
+
+        </script>
+
+        <div id="logDetailTemplate_render">
+            <div class="mainHolder">
+                <div id="logDetail">
+                    <h1></h1>
+                    <hr />
+                    <div class="content">
+                  
+
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <script type="text/javascript">
 
@@ -171,12 +141,17 @@
                 FAPI_UI.showLogDetail(urlParams.get('log'));
             });
 
-            /**
-             * 
-             */
-            function render(fileId, logs) {
-                var template = _.template($("#logDetailTemplate").html());
-                $('#logDetailTemplate_render').html(template({fileId:fileId, items:logs}));
+  
+            function render(templateType, val) {
+                var template = _.template($("#logDetailTemplate_"+templateType).html());
+
+                if (templateType=="LogStart") {
+                    $('#logDetail h1').append(template({val:val}));
+                } else {
+                    $('#logDetail .content').append(template({val:val}));
+                }
+
+                
             }
 
             /**
