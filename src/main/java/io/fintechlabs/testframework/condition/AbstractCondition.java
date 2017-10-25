@@ -92,7 +92,7 @@ public abstract class AbstractCondition implements Condition {
 	protected void log(String msg, Map<String, Object> map) {
 		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
 		copy.put("msg", msg);
-		log(map);
+		log(copy);
 	}
 	
 	protected void logSuccess(JsonObject in) {
