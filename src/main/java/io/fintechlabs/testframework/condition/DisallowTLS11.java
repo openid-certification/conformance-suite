@@ -34,13 +34,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureTls12 extends AbstractCondition {
+public class DisallowTLS11 extends AbstractCondition {
 	
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureTls12(String testId, EventLog log, boolean optional) {
+	public DisallowTLS11(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional, "FAPI-1-7.1-1");
 		// TODO Auto-generated constructor stub
 	}
@@ -88,29 +88,23 @@ public class EnsureTls12 extends AbstractCondition {
 
 		    SSLSocket socket = (SSLSocket) sc.getSocketFactory().createSocket(tlsTestHost, tlsTestPort);		    
 		    // set the connection to use only TLS 1.2
-		    socket.setEnabledProtocols(new String[] {"TLSv1.2"});
+		    socket.setEnabledProtocols(new String[] {"TLSv1.1"});
 
 		    // this makes the actual connection
 		    socket.startHandshake();
 		    
 		    String cipherSuite = socket.getSession().getCipherSuite();
 		    
-		    
-		    
 		    socket.close();
-		    
-		    logSuccess("TLS Connection information", args(
-		    		"cipher_suite", cipherSuite
-		    		// TODO: log the server certificates from: 
-		    		//   socket.getSession().getPeerCertificates(); 
-		    		));
-		    
-		    return env;
+
+		    return error("Successfully connected with disallowed TLS 1.1", args("cipher_suite", cipherSuite));
 		    
 		} catch (GeneralSecurityException e) {
-			return error("Couldn't connect to socket with TLS 1.2", e);
+		    logSuccess("Couldn't connect to socket with TLS 1.1");
+		    return env;
 		} catch (IOException e) {
-			return error("Couldn't connect to socket with TLS 1.2", e);
+		    logSuccess("Couldn't connect to socket with TLS 1.1");
+		    return env;
 		} finally {
 			
 		}
