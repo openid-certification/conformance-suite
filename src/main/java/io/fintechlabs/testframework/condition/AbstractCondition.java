@@ -166,21 +166,21 @@ public abstract class AbstractCondition implements Condition {
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
-		log(map);
+		log(copy);
 	}
 	
 	protected void logFailure(String msg, JsonObject in) {
-		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		obj.addProperty("msg", msg);
-		obj.addProperty("result", optional ? "WARNING" : "FAILURE");
+		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		copy.addProperty("msg", msg);
+		copy.addProperty("result", optional ? "WARNING" : "FAILURE");
 		if (!getRequirements().isEmpty()) {
 			JsonArray reqs = new JsonArray(getRequirements().size());
 			for (String req : getRequirements()) {
 				reqs.add(req);
 			}
-			obj.add("requirements", reqs);
+			copy.add("requirements", reqs);
 		}
-		log(obj);
+		log(copy);
 	}
 
 	protected void logFailure(String msg, Map<String, Object> map) {
@@ -190,7 +190,7 @@ public abstract class AbstractCondition implements Condition {
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
-		log(map);
+		log(copy);
 	}
 
 	/*
@@ -248,7 +248,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(String message, Throwable cause, JsonObject in) {
-		logFailure(message);
+		logFailure(message, in);
 		throw new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
@@ -256,7 +256,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(String message, JsonObject in) {
-		logFailure(message);
+		logFailure(message, in);
 		throw new ConditionError(testId, getMessage() + ": " + message);
 	}
 
@@ -264,7 +264,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause, JsonObject in) {
-		logFailure(cause != null ? cause.getMessage() : "Error");
+		logFailure(cause != null ? cause.getMessage() : "Error", in);
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	
