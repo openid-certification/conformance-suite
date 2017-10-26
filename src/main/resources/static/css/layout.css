@@ -49,7 +49,7 @@ a:hover {
 
 .row .key {
   left:20px;
-  width:100px;
+  width:140px;
   color:#87c19c;
 }
 
@@ -63,7 +63,7 @@ a:hover {
 }
 
 .row .value {
-  width:calc(100%-130px);
+  width:calc(100%-170px);
   color:#000;
 }
 
