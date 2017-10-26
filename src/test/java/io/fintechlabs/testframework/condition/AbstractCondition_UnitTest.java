@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 
 import java.util.Collection;
@@ -1311,8 +1312,105 @@ public class AbstractCondition_UnitTest {
 			}
 		}
 	}
-	
 
+	/*
+	 * Tests for the upload placeholder
+	 */
+	
+	@Test
+	public void testCreateUploadPlaceholder() {
+		cond.createUploadPlaceholder();
+		
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "upload" and "result"
+		assertThat(res.size()).isEqualTo(2);
+		
+		assertThat(res.containsKey("upload")).isEqualTo(true);
+		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("REVIEW");
+		
+	}
+	
+	@Test
+	public void testCreateUploadPlaceholder_withReqs() {
+		condReqs.createUploadPlaceholder();
+		
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "upload" and "result" and "requirements"
+		assertThat(res.size()).isEqualTo(3);
+		
+		assertThat(res.containsKey("upload")).isEqualTo(true);
+		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("REVIEW");
+		
+		@SuppressWarnings("unchecked")
+		Collection<String> reqs = (Collection<String>) res.get("requirements");
+		
+		assertThat(reqs.size()).isEqualTo(2);
+		assertThat(reqs.contains(req1));
+		assertThat(reqs.contains(req2));
+	}
+
+	@Test
+	public void testCreateUploadPlaceholder_string() {
+		cond.createUploadPlaceholder(msg);
+		
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "msg" and "upload" and "result"
+		assertThat(res.size()).isEqualTo(3);
+		
+		assertThat(res.containsKey("msg")).isEqualTo(true);
+		assertThat(res.get("msg")).isEqualTo(msg);
+		
+		assertThat(res.containsKey("upload")).isEqualTo(true);
+		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("REVIEW");
+		
+	}
+	
+	@Test
+	public void testCreateUploadPlaceholder_string_withReqs() {
+		condReqs.createUploadPlaceholder(msg);
+		
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "msg" and "upload" and "result" and "requirements"
+		assertThat(res.size()).isEqualTo(4);
+		
+		assertThat(res.containsKey("msg")).isEqualTo(true);
+		assertThat(res.get("msg")).isEqualTo(msg);
+		
+		assertThat(res.containsKey("upload")).isEqualTo(true);
+		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("REVIEW");
+		
+		@SuppressWarnings("unchecked")
+		Collection<String> reqs = (Collection<String>) res.get("requirements");
+		
+		assertThat(reqs.size()).isEqualTo(2);
+		assertThat(reqs.contains(req1));
+		assertThat(reqs.contains(req2));
+	}
+	
 
 	/**
 	 * This subclass exposes the utility methods used by Condition classes so that we can test them here. 
