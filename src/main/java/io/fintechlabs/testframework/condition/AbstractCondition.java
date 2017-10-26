@@ -154,9 +154,16 @@ public abstract class AbstractCondition implements Condition {
 	 */
 	
 	protected void logFailure(JsonObject in) {
-		JsonObject obj = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		obj.addProperty("result", optional ? "WARNING" : "FAILURE");
-		log(obj);
+		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		copy.addProperty("result", optional ? "WARNING" : "FAILURE");
+		if (!getRequirements().isEmpty()) {
+			JsonArray arr = new JsonArray();
+			for (String req : getRequirements()) {
+				arr.add(req);
+			}
+			copy.add("requirements", arr);
+		}
+		log(copy);
 	}
 	
 	protected void logFailure(String msg) {
