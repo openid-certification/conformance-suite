@@ -33,60 +33,56 @@
 
         <header onClick="FAPI_UI.goHome()"></header>
 
-
-
-        <!-- -->
-        <script type="text/template" id="logDetailTemplate_LogStart">
-            
-                <div class="row">
-                    <div class="col-md-2 key">Log</div>
-                    <div class="col-md-1 hyphen"></div>
-                    <div class="col-md-9 value"><%- val %></div>
-                </div>
-
+        <!-- LogStart -->
+        <script type="text/template" id="logDetailTemplate_LogStart">  
+            <div class="row">
+                <div class="key">Log</div>
+                <div class="hyphen"></div>
+                <div class="value"><%- fileId %></div>
+            </div>
         </script>
 
-        <!-- -->
+        <!-- Source -->
         <script type="text/template" id="logDetailTemplate_Source">
             <div class="row">
                 <div class="key">Source</div>
                 <div class="hyphen"></div>
-                <div class="value"><%- val %></div>
+                <div class="value"><%- item.src %></div>
             </div>
         </script>
 
-        <!-- -->
+        <!-- Message -->
         <script type="text/template" id="logDetailTemplate_Message">
             <div class="row">
                 <div class="key">Message</div>
                 <div class="hyphen"></div>
-                <div class="value"><%- val %></div>
+                <div class="value"><%- item.msg %></div>
             </div>
         </script>
 
-        <!-- -->
+        <!-- Requirements -->
         <script type="text/template" id="logDetailTemplate_Requirements">
             <div class="row">
                 <div class="key">Requirements</div>
                 <div class="hyphen"></div>
-                <div class="value"><%- val %></div>
+                <div class="value"><%- item.requirements %></div>
             </div>
         </script>
 
-        <!-- -->
+        <!-- Upload -->
         <script type="text/template" id="logDetailTemplate_Upload">
             <div class="row">
                 <div class="key">Upload</div>
                 <div class="hyphen"></div>
-                <div class="value"><%- val %></div>
+                <div class="value"><%- item.upload %></div>
             </div>
         </script>
 
-        <!-- -->
+        <!-- Result -->
         <script type="text/template" id="logDetailTemplate_Result">
             <%
                 var layoutClasses = "";
-                var itemResult = val.toUpperCase();
+                var itemResult = item.result.toUpperCase();
 
                 if (itemResult) {
                     layoutClasses = "label result-"+itemResult.toLowerCase();
@@ -99,38 +95,80 @@
                 <div class="hyphen"></div>
                 <div class="<%- layoutClasses %>"><%- itemResult %></div>
             </div>
-
         </script>
 
-        <!-- -->
+        <!-- Time  -->
         <script type="text/template" id="logDetailTemplate_Time">
             <div class="row">
                 <div class="key">Time</div>
                 <div class="hyphen"></div>
-                <div class="value"><%- val %></div>
-            </div>
+                <div class="value"><%- new Date(item.time) %></div>
+            </div>  
+        </script>
+
+        <!-- More -->
+        <script type="text/template" id="logDetailTemplate_More">
+            <%
+                var extraItems = 0;
+                var moreInfo = "";
+                
+                _.each(Object.keys(item), function(key, i) {
+                    // don't display items which already have their own templates, filter out anything injected by MongoDB, filter out any testid
+                    if (!_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_") && key.toLowerCase() != 'testid') {
+                        console.log("key required in more:"+key);
+                        extraItems ++;
+                        moreInfo += "<p>"+key+" : "+ item[key]+"</p>";
+                    }
+                }); 
+            %>
+            <%
+                if (extraItems > 0) {
+            %>
+                    <button onClick="toggleMore(this)" id="btn_<%- index %>" class="btn btn-default btn-xs pull-right">
+                        <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
+                    </button>
+                    <div id="moreInfo_<%- index %>" class="moreInfo collapse"></div>
+                    <div class="clearfix"></div>
+            <%
+                }
+            %>
+            
             <hr />
         </script>
 
-        <!-- -->
-        <script type="text/template" id="logDetailTemplate_LogEnd">
+        <!-- More Info  -->
+        <script type="text/template" id="moreInfoTemplate">
 
+             <%
+                _.each(Object.keys(item), function(key, i) {
+
+                    // don't display items which already have their own templates, filter out anything injected by MongoDB, filter out any testid
+                    if (!_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_") && key.toLowerCase() != 'testid') {
+            %>
+                        <div class="row">
+                            <div class="key"><%- key %></div>
+                            <div class="hyphen"></div>
+                            <div class="value wordwrap"><%- item[key] %></div>
+                        </div>
+            <%
+                    }
+                }); 
+            %>
+            
         </script>
 
-        <div id="logDetailTemplate_render">
-            <div class="mainHolder">
-                <div id="logDetail">
-                    <h1></h1>
-                    <hr />
-                    <div class="content">
-                  
 
-                        
-                    </div>
+        <!-- resident DOM -->
+        <div class="mainHolder">
+            <div id="logDetail">
+                <h1></h1>
+                <hr />
+                <div class="content">
+                    <!-- log items are rendered here -->
                 </div>
             </div>
         </div>
-
+        
         <script type="text/javascript">
 
             /**
@@ -141,17 +179,25 @@
                 FAPI_UI.showLogDetail(urlParams.get('log'));
             });
 
-  
-            function render(templateType, val) {
+
+            /**
+             *
+             */
+            function render(templateType, item, index, fileId) {
                 var template = _.template($("#logDetailTemplate_"+templateType).html());
 
-                if (templateType=="LogStart") {
-                    $('#logDetail h1').append(template({val:val}));
+                if (templateType==FAPI_UI.logTemplates.LOG_START) {
+                    $('#logDetail h1').append(template({fileId:fileId}));
                 } else {
-                    $('#logDetail .content').append(template({val:val}));
-                }
+                    $('#logDetail .content').append(template({item:item, index:index}));
 
-                
+                    // by this stage the first render pass has happened and the "moreInfo" divs exist,
+                    // lets now render the info into these divs
+                    if (templateType==FAPI_UI.logTemplates.MORE) {
+                        var moreInfoTemplate = _.template($("#moreInfoTemplate").html());
+                        $('#moreInfo_'+index).html(moreInfoTemplate({item:item, index:index}));
+                    }
+                }
             }
 
             /**
@@ -168,12 +214,6 @@
                     $(btnRef).removeClass('activated');
                 } else {
                     // need to show the collapsed entity
-
-                    // note Underscore has converted code for <p/>, need to convert back to what we expect for html
-                    var myHTML = $(btnRef).next().html();
-                    myHTML = myHTML.replace(/&lt;p\/&gt;/g, "<p/>");
-
-                    $($(btnRef).next()).html(myHTML);
                     $($(btnRef).next()).show(); // show the content
                     $('.glyphicon', btnRef).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
                     $(btnRef).addClass('activated');

@@ -1,5 +1,16 @@
 var FAPI_UI = {
 
+	logTemplates : {
+					LOG_START:"LogStart",
+					SOURCE:"Source", 
+					MESSAGE:"Message", 
+					REQUIREMENTS:"Requirements", 
+					UPLOAD:"Upload", 
+					RESULT:"Result", 
+					TIME:"Time",
+					MORE:"More"
+					},
+
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload"],
 	
 	/**
@@ -31,55 +42,39 @@ var FAPI_UI = {
 	        data: {}, 
 	        success: function (data) { 
 
-			
-
-				render("LogStart", fileId);
+				render(FAPI_UI.logTemplates.LOG_START, null, null, fileId);
 
 	            $.each(data, function(i, item) {
 
-	     
-	            	
-	            	$.each(item, function(key, val) {
-	 
-	            		if (!key.startsWith("_") // filter out anything starting with an underscore as it's injected by Mongo
-	            				&& key.toLowerCase() != 'testid' // we also don't need to display the test ID
-	            				) {
+	            	if (item.src) {
+	            		render(FAPI_UI.logTemplates.SOURCE,item);
+	            	}
 
-	            			if (key.toLowerCase()=="src") {
-	            				render("Source",val);
-	            			}
+	            	if (item.msg) {
+	            		render(FAPI_UI.logTemplates.MESSAGE,item);
+	            	}
 
-	            			if (key.toLowerCase()=="msg") {
-	            				render("Message",val);
-	            			}
+	            	if (item.requirements) {
+	            		render(FAPI_UI.logTemplates.REQUIREMENTS,item);
+	            	}
 
-	            			if (key.toLowerCase()=="requirements") {
-	            				render("Requirements",val);
-	            			}
+	            	if (item.upload) {
+	            		render(FAPI_UI.logTemplates.UPLOAD,item);
+	            	}
 
-	            			if (key.toLowerCase()=="upload") {
-	            				render("Upload",val);
-	            			}
+	            	if (item.result) {
+	            		render(FAPI_UI.logTemplates.RESULT,item);
+	            	}
 
-	            			if (key.toLowerCase()=="result") {
-	            				render("Result",val);
-	            			}
+	            	if (item.time) {
+	            		render(FAPI_UI.logTemplates.TIME,item);
+	            	}
 
-	          
-	            			if (key.toLowerCase()=="time") {
-	            				render("Time",new Date(val));
-	            			}
-	            		}
-	            	});
-
-				
+	            	render(FAPI_UI.logTemplates.MORE, item, i);
 					
 	            });
-
-				//render(fileId, logs);
 	        }
 	    });
 	}
-	
 }
 

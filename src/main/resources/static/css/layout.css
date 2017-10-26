@@ -40,28 +40,29 @@ a:hover {
   text-decoration: underline; 
 }
 
-#logDetail .content .row div {
+
+#logDetail h1 .row div , #logDetail .row div {
   position:relative;
   margin: 5px 0;
   float:left;
 }
 
-#logDetail div.key {
+.row .key {
   left:20px;
   width:100px;
   color:#87c19c;
 }
 
-#logDetail div.hyphen {
+.row .hyphen {
   width:10px;
   color:#c0c0c0;
 }
 
-#logDetail div.hyphen:after {
+.row .hyphen:after {
   content:": ";
 }
 
-#logDetail div.value {
+.row .value {
   width:calc(100%-130px);
   color:#000;
 }
@@ -71,14 +72,24 @@ a:hover {
   white-space: -moz-pre-wrap;  
   white-space: -pre-wrap;      
   white-space: -o-pre-wrap;    
-  word-wrap: break-word;      
+  word-wrap: break-word;  
+  word-break: break-all;     
 }
 
-.moreinfo {
-  background: #eeeeee;
+.moreInfo {
+  background: #eee;
   border: thin #C0C0C0 solid;
   border-radius: 4px;
   padding: 6px;
+}
+
+.moreInfo div {
+    margin:0;
+}
+
+.moreInfo .key {
+  left:0px;
+  width:auto;
 }
 
 /* Test result labels */
