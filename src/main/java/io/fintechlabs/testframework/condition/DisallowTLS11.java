@@ -100,10 +100,10 @@ public class DisallowTLS11 extends AbstractCondition {
 		    return error("Successfully connected with disallowed TLS 1.1", args("cipher_suite", cipherSuite));
 		    
 		} catch (GeneralSecurityException e) {
-		    logSuccess("Couldn't connect to socket with TLS 1.1");
+		    logSuccess("Couldn't connect to socket with disallowed TLS 1.1");
 		    return env;
 		} catch (IOException e) {
-		    logSuccess("Couldn't connect to socket with TLS 1.1");
+		    logSuccess("Couldn't connect to socket with disallowed TLS 1.1");
 		    return env;
 		} finally {
 			
