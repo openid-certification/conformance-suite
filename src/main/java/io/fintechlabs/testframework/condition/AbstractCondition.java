@@ -231,7 +231,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause) {
-		logFailure(cause != null ? cause.getMessage() : "Error");
+		logFailure(cause.getMessage());
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	
@@ -255,7 +255,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause, Map<String, Object> map) {
-		logFailure(map);
+		logFailure(cause.getMessage(), map);
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	/**
@@ -278,7 +278,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause, JsonObject in) {
-		logFailure(cause != null ? cause.getMessage() : "Error", in);
+		logFailure(cause.getMessage(), in);
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	

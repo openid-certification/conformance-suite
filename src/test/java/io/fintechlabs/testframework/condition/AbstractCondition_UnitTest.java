@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.Matchers.eq;
 
 import java.util.Collection;
@@ -87,6 +88,8 @@ public class AbstractCondition_UnitTest {
 	private String req1 = "requirement-1";
 	
 	private String req2 = "requirement-2";
+
+	private Throwable cause = new Throwable("thorwable message");
 	
 	@Before
 	public void setUp() throws Exception {
@@ -1023,7 +1026,294 @@ public class AbstractCondition_UnitTest {
 		}
 	}
 
+	/*
+	 * Tests for the error() methods. These all call logFailure and throw a ConditionError with certain parameters.
+	 * 
+	 * These test for the non-optional conditions with no requirements. Since all the error functions call
+	 * logFailure, the only differences in output in those conditions should be within logFailure, which is tested
+	 * separately above.
+	 */
+
+	@Test
+	public void testError_stringThrowable() {
+		try {
+			cond.error(msg, cause);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
+			assertThat(e.getCause()).isNotNull();
+			assertThat(e.getCause()).isEqualTo(cause);
+
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+			
+			Map<String, Object> res = mapCaptor.getValue();
+			
+			// one extra field for "msg" and "results"
+			assertThat(res.size()).isEqualTo(2);
+			
+			assertThat(res.containsKey("msg")).isEqualTo(true);
+			assertThat(res.get("msg")).isEqualTo(msg);
+
+			assertThat(res.containsKey("result")).isEqualTo(true);
+			assertThat(res.get("result")).isEqualTo("FAILURE");
+		}
+	}
 	
+	@Test
+	public void testError_string() {
+		try {
+			cond.error(msg);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
+			assertThat(e.getCause()).isNull();
+
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+			
+			Map<String, Object> res = mapCaptor.getValue();
+			
+			// one extra field for "msg" and "results"
+			assertThat(res.size()).isEqualTo(2);
+			
+			assertThat(res.containsKey("msg")).isEqualTo(true);
+			assertThat(res.get("msg")).isEqualTo(msg);
+
+			assertThat(res.containsKey("result")).isEqualTo(true);
+			assertThat(res.get("result")).isEqualTo("FAILURE");
+		}
+	}
+	
+	@Test
+	public void testError_throwable() {
+		try {
+			cond.error(cause);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME);
+			assertThat(e.getCause()).isNotNull();
+			assertThat(e.getCause()).isEqualTo(cause);
+			
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+			
+			Map<String, Object> res = mapCaptor.getValue();
+			
+			// one extra field for "msg" and "results"
+			assertThat(res.size()).isEqualTo(2);
+			
+			assertThat(res.containsKey("msg")).isEqualTo(true);
+			assertThat(res.get("msg")).isEqualTo(cause.getMessage());
+
+			assertThat(res.containsKey("result")).isEqualTo(true);
+			assertThat(res.get("result")).isEqualTo("FAILURE");
+		}
+	}
+	
+	@Test
+	public void testError_stringThrowableMap() {
+		try {
+			cond.error(msg, cause, map);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
+			assertThat(e.getCause()).isNotNull();
+			assertThat(e.getCause()).isEqualTo(cause);
+			
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+			
+			Map<String, Object> res = mapCaptor.getValue();
+			
+			// one extra field for "msg" and "result"
+			assertThat(res.size()).isEqualTo(map.size() + 2);
+			
+			assertThat(res.containsKey("msg")).isEqualTo(true);
+			assertThat(res.get("msg")).isEqualTo(msg);
+
+			assertThat(res.containsKey("result")).isEqualTo(true);
+			assertThat(res.get("result")).isEqualTo("FAILURE");
+
+			// make sure 'res' has everything 'map' does
+			for (String key : map.keySet()) {
+				assertThat(res.containsKey(key)).isEqualTo(true);
+				assertThat(res.get(key)).isEqualTo(map.get(key));
+			}
+		}
+	}
+	
+	@Test
+	public void testError_stringMap() {
+		try {
+			cond.error(msg, map);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
+			assertThat(e.getCause()).isNull();
+			
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+			
+			Map<String, Object> res = mapCaptor.getValue();
+			
+			// one extra field for "msg" and "result"
+			assertThat(res.size()).isEqualTo(map.size() + 2);
+			
+			assertThat(res.containsKey("msg")).isEqualTo(true);
+			assertThat(res.get("msg")).isEqualTo(msg);
+
+			assertThat(res.containsKey("result")).isEqualTo(true);
+			assertThat(res.get("result")).isEqualTo("FAILURE");
+
+			// make sure 'res' has everything 'map' does
+			for (String key : map.keySet()) {
+				assertThat(res.containsKey(key)).isEqualTo(true);
+				assertThat(res.get(key)).isEqualTo(map.get(key));
+			}
+
+		}
+	}
+	
+	@Test
+	public void testError_throwableMap() {
+		try {
+			cond.error(cause, map);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME);
+			assertThat(e.getCause()).isNotNull();
+			assertThat(e.getCause()).isEqualTo(cause);
+			
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+			
+			Map<String, Object> res = mapCaptor.getValue();
+			
+			// one extra field for "msg" and "result"
+			assertThat(res.size()).isEqualTo(map.size() + 2);
+			
+			assertThat(res.containsKey("msg")).isEqualTo(true);
+			assertThat(res.get("msg")).isEqualTo(cause.getMessage());
+
+			assertThat(res.containsKey("result")).isEqualTo(true);
+			assertThat(res.get("result")).isEqualTo("FAILURE");
+
+			// make sure 'res' has everything 'map' does
+			for (String key : map.keySet()) {
+				assertThat(res.containsKey(key)).isEqualTo(true);
+				assertThat(res.get(key)).isEqualTo(map.get(key));
+			}
+
+		}
+	}
+	
+	@Test
+	public void testError_stringThrowableJsonObject() {
+		try {
+			cond.error(msg, cause, obj);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
+			assertThat(e.getCause()).isNotNull();
+			assertThat(e.getCause()).isEqualTo(cause);
+
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+			
+			JsonObject res = objCaptor.getValue();
+			
+			// one extra field for "msg" and "result"
+			assertThat(res.size()).isEqualTo(obj.size() + 2);
+
+			assertThat(res.has("msg")).isEqualTo(true);
+			assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+			
+			assertThat(res.has("result")).isEqualTo(true);
+			assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+			
+			// make sure 'res' has everything 'obj' does
+			for (String key : obj.keySet()) {
+				assertThat(res.has(key)).isEqualTo(true);
+				assertThat(res.get(key)).isEqualTo(obj.get(key));
+			}
+		}
+	}
+	
+	@Test
+	public void testError_stringJsonObject() {
+		try {
+			cond.error(msg, obj);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
+			assertThat(e.getCause()).isNull();
+
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+			
+			JsonObject res = objCaptor.getValue();
+			
+			// one extra field for "msg" and "result"
+			assertThat(res.size()).isEqualTo(obj.size() + 2);
+
+			assertThat(res.has("msg")).isEqualTo(true);
+			assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+			
+			assertThat(res.has("result")).isEqualTo(true);
+			assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+			
+			// make sure 'res' has everything 'obj' does
+			for (String key : obj.keySet()) {
+				assertThat(res.has(key)).isEqualTo(true);
+				assertThat(res.get(key)).isEqualTo(obj.get(key));
+			}
+		}
+	}
+	
+	@Test
+	public void testError_throwableJsonObject() {
+		try {
+			cond.error(cause, obj);
+			
+			failBecauseExceptionWasNotThrown(ConditionError.class);
+			
+		} catch (ConditionError e) {
+			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME);
+			assertThat(e.getCause()).isNotNull();
+			assertThat(e.getCause()).isEqualTo(cause);
+
+			verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+			
+			JsonObject res = objCaptor.getValue();
+			
+			// one extra field for "msg" and "result"
+			assertThat(res.size()).isEqualTo(obj.size() + 2);
+
+			assertThat(res.has("msg")).isEqualTo(true);
+			assertThat(res.get("msg").getAsString()).isEqualTo(cause.getMessage());
+			
+			assertThat(res.has("result")).isEqualTo(true);
+			assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+			
+			// make sure 'res' has everything 'obj' does
+			for (String key : obj.keySet()) {
+				assertThat(res.has(key)).isEqualTo(true);
+				assertThat(res.get(key)).isEqualTo(obj.get(key));
+			}
+		}
+	}
+	
+
+
 	/**
 	 * This subclass exposes the utility methods used by Condition classes so that we can test them here. 
 	 * 
