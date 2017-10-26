@@ -55,9 +55,16 @@ public class AbstractCondition_UnitTest {
 	
 	private static final String TEST_CLASS_NAME = AbstractConditionTester.class.getSimpleName();
 
+	// plain condition
 	private AbstractConditionTester cond;
-	
+	// condition with requirements
 	private AbstractConditionTester condReqs;
+
+	// optional condition
+	private AbstractConditionTester opt;
+	// optional condition with requirements
+	private AbstractConditionTester optReqs;
+	
 	
 	@Spy
 	private Environment env = new Environment();
@@ -88,6 +95,10 @@ public class AbstractCondition_UnitTest {
 		
 		condReqs = new AbstractConditionTester(TEST_ID, eventLog, false, req1, req2);
 		
+		opt = new AbstractConditionTester(TEST_ID, eventLog, true);
+		
+		optReqs = new AbstractConditionTester(TEST_ID, eventLog, true, req1, req2);
+
 		obj = new JsonParser().parse("{\"foo\": \"bar\", \"baz\": 1234}").getAsJsonObject();
 		
 		map = ImmutableMap.of("foo", "bar", "baz", 1234);
@@ -746,6 +757,271 @@ public class AbstractCondition_UnitTest {
 		}
 	}
 	
+	/*
+	 * Test all the "failure" methods when "optional" is set to "true"
+	 */
+
+	@Test
+	public void testLogFailure_jsonObj_opt() {
+		opt.logFailure(obj);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+		
+		JsonObject res = objCaptor.getValue();
+		
+		// one extra field for "result"
+		assertThat(res.size()).isEqualTo(obj.size() + 1);
+
+		assertThat(res.has("result")).isEqualTo(true);
+		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		
+		// make sure 'res' has everything 'obj' does
+		for (String key : obj.keySet()) {
+			assertThat(res.has(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(obj.get(key));
+		}
+	}
+
+	@Test
+	public void testLogFailure_jsonObj_withReqs_opt() {
+		optReqs.logFailure(obj);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+		
+		JsonObject res = objCaptor.getValue();
+		
+		// one extra field for "result" and "requirements"
+		assertThat(res.size()).isEqualTo(obj.size() + 2);
+
+		assertThat(res.has("result")).isEqualTo(true);
+		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		
+		assertThat(res.has("requirements")).isEqualTo(true);
+		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
+		
+		JsonArray reqs = res.get("requirements").getAsJsonArray();
+		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
+		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
+		
+		// make sure 'res' has everything 'obj' does
+		for (String key : obj.keySet()) {
+			assertThat(res.has(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(obj.get(key));
+		}
+	}
+	
+	@Test
+	public void testLogFailure_string_opt() {
+		opt.logFailure(msg);
+		
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "msg" and "results"
+		assertThat(res.size()).isEqualTo(2);
+		
+		assertThat(res.containsKey("msg")).isEqualTo(true);
+		assertThat(res.get("msg")).isEqualTo(msg);
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("WARNING");
+
+	}
+
+	@Test
+	public void testLogFailure_string_withReqs_opt() {
+		optReqs.logFailure(msg);
+		
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "msg" and "results" and "requirements"
+		assertThat(res.size()).isEqualTo(3);
+		
+		assertThat(res.containsKey("msg")).isEqualTo(true);
+		assertThat(res.get("msg")).isEqualTo(msg);
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("WARNING");
+		
+		assertThat(res.containsKey("requirements"));
+		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
+		
+		@SuppressWarnings("unchecked")
+		Collection<String> reqs = (Collection<String>) res.get("requirements");
+		
+		assertThat(reqs.size()).isEqualTo(2);
+		assertThat(reqs.contains(req1));
+		assertThat(reqs.contains(req2));
+		
+	}
+	
+	@Test
+	public void testLogFailure_map_opt() {
+		opt.logFailure(map);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "result"
+		assertThat(res.size()).isEqualTo(map.size() + 1);
+		
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("WARNING");
+
+		// make sure 'res' has everything 'map' does
+		for (String key : map.keySet()) {
+			assertThat(res.containsKey(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(map.get(key));
+		}
+	}
+	
+	@Test
+	public void testLogFailure_map_withReqs_opt() {
+		optReqs.logFailure(map);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "result" and "requirements"
+		assertThat(res.size()).isEqualTo(map.size() + 2);
+		
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("WARNING");
+
+		assertThat(res.containsKey("requirements"));
+		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
+		
+		@SuppressWarnings("unchecked")
+		Collection<String> reqs = (Collection<String>) res.get("requirements");
+		
+		assertThat(reqs.size()).isEqualTo(2);
+		assertThat(reqs.contains(req1));
+		assertThat(reqs.contains(req2));
+
+		// make sure 'res' has everything 'map' does
+		for (String key : map.keySet()) {
+			assertThat(res.containsKey(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(map.get(key));
+		}
+	}
+
+	@Test
+	public void testLogFailure_stringMap_opt() {
+		opt.logFailure(msg, map);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+		
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "msg" and "result"
+		assertThat(res.size()).isEqualTo(map.size() + 2);
+		
+		assertThat(res.containsKey("msg")).isEqualTo(true);
+		assertThat(res.get("msg")).isEqualTo(msg);
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("WARNING");
+
+		// make sure 'res' has everything 'map' does
+		for (String key : map.keySet()) {
+			assertThat(res.containsKey(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(map.get(key));
+		}
+	}
+	
+	@Test
+	public void testLogFailure_stringMap_withReqs_opt() {
+		optReqs.logFailure(msg, map);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), mapCaptor.capture());
+
+		Map<String, Object> res = mapCaptor.getValue();
+		
+		// one extra field for "msg" and "result" and "requirements"
+		assertThat(res.size()).isEqualTo(map.size() + 3);
+		
+		assertThat(res.containsKey("msg")).isEqualTo(true);
+		assertThat(res.get("msg")).isEqualTo(msg);
+
+		assertThat(res.containsKey("result")).isEqualTo(true);
+		assertThat(res.get("result")).isEqualTo("WARNING");
+
+		assertThat(res.containsKey("requirements"));
+		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
+		
+		@SuppressWarnings("unchecked")
+		Collection<String> reqs = (Collection<String>) res.get("requirements");
+		
+		assertThat(reqs.size()).isEqualTo(2);
+		assertThat(reqs.contains(req1));
+		assertThat(reqs.contains(req2));
+
+		// make sure 'res' has everything 'map' does
+		for (String key : map.keySet()) {
+			assertThat(res.containsKey(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(map.get(key));
+		}
+	}
+
+	@Test
+	public void testLogFailure_stringJsonObj_opt() {
+		opt.logFailure(msg, obj);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+		
+		JsonObject res = objCaptor.getValue();
+		
+		// one extra field for "msg" and "result"
+		assertThat(res.size()).isEqualTo(obj.size() + 2);
+
+		assertThat(res.has("msg")).isEqualTo(true);
+		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		
+		assertThat(res.has("result")).isEqualTo(true);
+		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		
+		// make sure 'res' has everything 'obj' does
+		for (String key : obj.keySet()) {
+			assertThat(res.has(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(obj.get(key));
+		}
+	}
+
+	@Test
+	public void testLogFailure_stringJsonObj_withReqs_opt() {
+		optReqs.logFailure(msg, obj);
+
+		verify(eventLog).log(eq(TEST_ID), eq(TEST_CLASS_NAME), objCaptor.capture());
+		
+		JsonObject res = objCaptor.getValue();
+		
+		// one extra field for "msg" and "result" and "requirements"
+		assertThat(res.size()).isEqualTo(obj.size() + 3);
+
+		assertThat(res.has("msg")).isEqualTo(true);
+		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		
+		assertThat(res.has("result")).isEqualTo(true);
+		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		
+		assertThat(res.has("requirements")).isEqualTo(true);
+		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
+		
+		JsonArray reqs = res.get("requirements").getAsJsonArray();
+		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
+		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
+		
+		// make sure 'res' has everything 'obj' does
+		for (String key : obj.keySet()) {
+			assertThat(res.has(key)).isEqualTo(true);
+			assertThat(res.get(key)).isEqualTo(obj.get(key));
+		}
+	}
 
 	
 	/**
