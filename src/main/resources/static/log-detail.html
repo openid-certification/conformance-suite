@@ -110,14 +110,11 @@
         <script type="text/template" id="logDetailTemplate_More">
             <%
                 var extraItems = 0;
-                var moreInfo = "";
                 
                 _.each(Object.keys(item), function(key, i) {
                     // don't display items which already have their own templates, filter out anything injected by MongoDB, filter out any testid
                     if (!_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_") && key.toLowerCase() != 'testid') {
-                        console.log("key required in more:"+key);
                         extraItems ++;
-                        moreInfo += "<p>"+key+" : "+ item[key]+"</p>";
                     }
                 }); 
             %>
