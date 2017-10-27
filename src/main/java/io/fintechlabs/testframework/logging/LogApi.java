@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.logging;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+
+import io.fintechlabs.testframework.info.DBTestInfoService;
 
 /**
  * @author jricher
@@ -38,12 +42,27 @@ public class LogApi {
 	private MongoTemplate mongoTemplate;
 	
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<String>> getAllTests() {
+	public ResponseEntity<List<DBObject>> getAllTests() {
 		
 		@SuppressWarnings("unchecked")
 		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId", BasicDBObjectBuilder.start().get());
 		
-		return new ResponseEntity<>(testIds, HttpStatus.OK);
+		List<DBObject> results = new ArrayList<>(testIds.size());
+		
+		for (String testId : testIds) {
+			// fetch the test object from the info log if available
+			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(testId);
+			
+			if (testInfo == null) {
+				// make a fake document with just the ID
+				results.add(BasicDBObjectBuilder.start("_id", testId).get());
+			} else {
+				// otherwise, add everything
+				results.add(testInfo);
+			}
+		}
+		
+		return new ResponseEntity<>(results, HttpStatus.OK);
 		
 	}
 	

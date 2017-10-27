@@ -53,8 +53,6 @@ import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -64,24 +62,18 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  */
 public class SampleTestModule extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class); 
-	
+	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);
 	/**
 	 * 
 	 */
 	public SampleTestModule() {
 		super("sample-test");
-		this.status = Status.CREATED;
 	}
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
-	public void configure(JsonObject config, EventLog eventLog, String id, BrowserControl browser, String baseUrl) {
-		this.id = id;
-		this.eventLog = eventLog;
-		this.browser = browser;
-		
+	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
@@ -108,7 +100,7 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		exposeEnvString("client_id");
 
-		this.status = Status.CONFIGURED;
+		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
 
@@ -117,11 +109,7 @@ public class SampleTestModule extends AbstractTestModule {
 	 */
 	public void start() {
 		
-		if (this.status != Status.CONFIGURED) {
-			throw new RuntimeException("Invalid State: " + this.status);
-		}
-		
-		this.status = Status.RUNNING;
+		setStatus(Status.RUNNING);
 		
 		require(CreateRandomStateValue.class);
 		exposeEnvString("state");
@@ -134,7 +122,7 @@ public class SampleTestModule extends AbstractTestModule {
 
 		browser.goToUrl(redirectTo);
 		
-		this.status = Status.WAITING;
+		setStatus(Status.WAITING);
 	}
 
 	/* (non-Javadoc)
@@ -145,7 +133,7 @@ public class SampleTestModule extends AbstractTestModule {
 
 		eventLog.log(getId(), getName(), "Finished");
 		
-		this.status = Status.FINISHED;
+		setStatus(Status.FINISHED);
 		
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
@@ -184,7 +172,7 @@ public class SampleTestModule extends AbstractTestModule {
 	private ModelAndView handleCallback(JsonObject requestParts) {
 
 		// process the callback
-		this.status = Status.RUNNING;
+		setStatus(Status.RUNNING);
 		
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
 		require(CheckIfAuthorizationEndpointError.class);
@@ -215,7 +203,7 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		require(EnsureMinimumTokenEntropy.class);
 		
-		this.status = Status.FINISHED;
+		setStatus(Status.FINISHED);
 		fireTestSuccess();
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 			

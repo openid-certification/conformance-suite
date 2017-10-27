@@ -28,6 +28,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 
 /**
@@ -39,19 +40,22 @@ public abstract class AbstractTestModule implements TestModule {
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String name;
-	protected String id = null; // unique identifier for the test, set from the outside
-	protected Status status = Status.UNKNOWN; // current status of the test
-	protected Result result = Result.UNKNOWN; // results of running the test
+	private String id = null; // unique identifier for the test, set from the outside
+	private Status status = Status.UNKNOWN; // current status of the test
+	private Result result = Result.UNKNOWN; // results of running the test
 	protected EventLog eventLog;
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
+
+	protected TestInfoService testInfo;
 
 	/**
 	 * @param name
 	 */
 	public AbstractTestModule(String name) {
 		this.name = name;
+		setStatus(Status.CREATED);
 	}
 
 	/**
@@ -159,14 +163,97 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param result the result to set
 	 */
-	private void setResult(Result result) {
+	protected void setResult(Result result) {
 		this.result = result;
+		if (testInfo != null) {
+			testInfo.updateTestResult(getId(), getResult());
+		}
+	}
+	
+	/*
+	 * Test status state machine:
+	 * 
+	 *        /----------------->----------------\
+	 *       /                 /                  v
+	 *   CREATED -> CONFIGURED -> RUNNING --> FINISHED
+	 *                         \     ^--v      ^
+	 *                          \-> WAITING --/
+	 * 
+	 * Any state can go to "UNKNOWN"
+	 */
+	protected void setStatus(Status status) {
+		
+		switch (getStatus()) {
+			case CREATED:
+				switch (status) {
+					case CONFIGURED:
+					case FINISHED:
+					case UNKNOWN:
+						break;
+					default:
+						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				}
+				break;
+			case CONFIGURED:
+				switch (status) {
+					case RUNNING:
+					case FINISHED:
+					case WAITING:
+					case UNKNOWN:
+						break;
+					default:
+						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				}
+				break;
+			case RUNNING:
+				switch (status) {
+					case FINISHED:
+					case WAITING:
+					case UNKNOWN:
+						break;
+					default:
+						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				}
+				break;
+			case WAITING:
+				switch (status) {
+					case RUNNING:
+					case FINISHED:
+					case UNKNOWN:
+						break;
+					default:
+						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				}
+				break;
+			case FINISHED:
+				switch (status) {
+					default:
+						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				}
+			case UNKNOWN:
+			default:
+				break;
+		}
+		
+		this.status = status;
+		if (testInfo != null) {
+			testInfo.updateTestStatus(getId(), getStatus());
+		}
 	}
 
+	/**
+	 * Add a key/value pair to the exposed values
+	 * @param key
+	 * @param val
+	 */
 	private void expose(String key, String val) {
 		exposed.put(key, val);
 	}
 
+	/**
+	 * Expose a value from the environment
+	 * @param key
+	 */
 	protected void exposeEnvString(String key) {
 		String val = env.getString(key);
 		expose(key, val);
@@ -188,6 +275,21 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * Wire up this test module instance with some callbacks from the framework
+	 * @param id
+	 * @param eventLog
+	 * @param browser
+	 * @param testInfo
+	 */
+	@Override
+	public void wire(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		this.id = id;
+		this.eventLog = eventLog;
+		this.browser = browser;
+		this.testInfo = testInfo;
 	}
 
 }

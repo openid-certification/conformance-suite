@@ -41,9 +41,8 @@
                         <%
                             // repeat items 
                             _.each(items, function(item,arrIndex) {
-                                var link = "log-detail.html?log="+item;
                         %>
-                                <div class="link"><a href="<%- link %>" class="item"><%- item %></a></div>
+                                <div class="link"><a href="log-detail.html?log=<%- item._id %>" class="item"><%- item._id %></a></div>
                         <%
                             });
                         %>
