@@ -92,15 +92,13 @@ public class TestRunner {
     @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, 
     		@RequestParam("alias") String alias,
-    		@RequestBody String body, Model m) {
+    		@RequestBody JsonObject config, Model m) {
     	
         TestModule test = createTestModule(testName);
         
         logger.info("Created: " + testName);
 
         logger.info("Status of " + testName + ": " + test.getStatus());
-
-        JsonObject config = new JsonParser().parse(body).getAsJsonObject();
 
         String id = RandomStringUtils.randomAlphanumeric(10);
 

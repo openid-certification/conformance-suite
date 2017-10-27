@@ -34,13 +34,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureTls12 extends AbstractCondition {
+public class DisallowTLS10 extends AbstractCondition {
 	
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureTls12(String testId, EventLog log, boolean optional) {
+	public DisallowTLS10(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional, "FAPI-1-7.1-1");
 		// TODO Auto-generated constructor stub
 	}
@@ -62,7 +62,7 @@ public class EnsureTls12 extends AbstractCondition {
 			return error("Couldn't find port to connect for TLS");
 		}
 		
-		// even though we make a TLS1.2 connection we ignore the server cert validation here
+		// even though we make a TLS connection we ignore the server cert validation here
 		TrustManager[] trustAllCerts = new TrustManager[] {
 			new X509TrustManager() {
 				
@@ -87,30 +87,24 @@ public class EnsureTls12 extends AbstractCondition {
 		    sc.init(null, trustAllCerts, new java.security.SecureRandom());
 
 		    SSLSocket socket = (SSLSocket) sc.getSocketFactory().createSocket(tlsTestHost, tlsTestPort);		    
-		    // set the connection to use only TLS 1.2
-		    socket.setEnabledProtocols(new String[] {"TLSv1.2"});
+		    // set the connection to use only TLS 1.0
+		    socket.setEnabledProtocols(new String[] {"TLSv1"});
 
 		    // this makes the actual connection
 		    socket.startHandshake();
 		    
 		    String cipherSuite = socket.getSession().getCipherSuite();
 		    
-		    
-		    
 		    socket.close();
-		    
-		    logSuccess("TLS Connection information", args(
-		    		"cipher_suite", cipherSuite
-		    		// TODO: log the server certificates from: 
-		    		//   socket.getSession().getPeerCertificates(); 
-		    		));
-		    
-		    return env;
+
+		    return error("Successfully connected with disallowed TLS 1.0", args("cipher_suite", cipherSuite));
 		    
 		} catch (GeneralSecurityException e) {
-			return error("Couldn't connect to socket with TLS 1.2", e);
+		    logSuccess("Couldn't connect to socket with disallowed TLS 1.0");
+		    return env;
 		} catch (IOException e) {
-			return error("Couldn't connect to socket with TLS 1.2", e);
+		    logSuccess("Couldn't connect to socket with disallowed TLS 1.0");
+		    return env;
 		} finally {
 			
 		}
