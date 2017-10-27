@@ -40,47 +40,91 @@ a:hover {
   text-decoration: underline; 
 }
 
-#logDetail .content .item {
-  margin: 10px 0;
-  border-bottom:1px solid #c0c0c0;
+
+#logDetail h1 .row div , #logDetail .row div {
+  position:relative;
+  margin: 5px 0;
+  float:left;
+}
+
+.row .key {
+  left:20px;
+  width:140px;
+  color:#87c19c;
+}
+
+.row .hyphen {
+  width:10px;
+  color:#c0c0c0;
+}
+
+.row .hyphen:after {
+  content:": ";
+}
+
+.row .value {
+  width:calc(100%-170px);
+  color:#000;
 }
 
 .wordwrap { 
-   white-space: pre-wrap;
-   white-space: -moz-pre-wrap;  
-   white-space: -pre-wrap;      
-   white-space: -o-pre-wrap;    
-   word-wrap: break-word;      
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;  
+  white-space: -pre-wrap;      
+  white-space: -o-pre-wrap;    
+  word-wrap: break-word;  
+  word-break: break-all;     
 }
 
-.moreinfo {
-  background: #eeeeee;
+.moreInfo {
+  background: #eee;
   border: thin #C0C0C0 solid;
   border-radius: 4px;
   padding: 6px;
 }
 
-span.key {
-  color:#87c19c;
+.moreInfo div {
+    margin:0;
 }
 
-span.hypen {
-  color:#87c19c;
+.moreInfo .key {
+  left:0px;
+  width:auto;
 }
 
-.hidden {
-  display:none;
+/* Test result labels */
+.label.result-success {
+  background-color: #00cc00;
 }
 
+.label.result-failure {
+  background-color: #666;
+}
 
-/* This is what designers mostly look at <= 3000 */
+.label.result-warning {
+  background-color: #ff6600;
+}
+
+.label.result-review {
+  background-color: #00ccff;
+}
+
+.label.result-interrupted {
+  background-color: #ddbb88;
+}
+
+.label.result-default {
+  background-color: #00cc00;
+}
+
+/* People on large monitors <= 3000 */
 @media all and (max-width : 3000px)  {
 
   
 }
 
 
-/* <= 1400 */
+/* Regular desktop/laptop type users & tablet landscape <= 1400 */
 @media all and (max-width : 1400px)  {
 
  
