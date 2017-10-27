@@ -90,7 +90,7 @@ public class AbstractCondition_UnitTest {
 	
 	private String req2 = "requirement-2";
 
-	private Throwable cause = new Throwable("thorwable message");
+	private Throwable cause = new Throwable("throwable message");
 	
 	@Before
 	public void setUp() throws Exception {

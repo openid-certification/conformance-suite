@@ -62,7 +62,7 @@ public class DisallowTLS10 extends AbstractCondition {
 			return error("Couldn't find port to connect for TLS");
 		}
 		
-		// even though we make a TLS1.2 connection we ignore the server cert validation here
+		// even though we make a TLS connection we ignore the server cert validation here
 		TrustManager[] trustAllCerts = new TrustManager[] {
 			new X509TrustManager() {
 				
@@ -87,7 +87,7 @@ public class DisallowTLS10 extends AbstractCondition {
 		    sc.init(null, trustAllCerts, new java.security.SecureRandom());
 
 		    SSLSocket socket = (SSLSocket) sc.getSocketFactory().createSocket(tlsTestHost, tlsTestPort);		    
-		    // set the connection to use only TLS 1.2
+		    // set the connection to use only TLS 1.0
 		    socket.setEnabledProtocols(new String[] {"TLSv1"});
 
 		    // this makes the actual connection
