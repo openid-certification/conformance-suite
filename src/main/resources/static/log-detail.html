@@ -145,7 +145,7 @@
                         var val = item[key];
 
                         if (!_.isString(val)) {
-                            val = _.escape(JSON.stringify(val));
+                            val = JSON.stringify(val);
                         }
             %>
                         <div class="row">
