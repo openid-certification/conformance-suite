@@ -141,11 +141,17 @@
 
                     // don't display items which already have their own templates, filter out anything injected by MongoDB, filter out any testid
                     if (!_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_") && key.toLowerCase() != 'testid') {
+
+                        var val = item[key];
+
+                        if (!_.isString(val)) {
+                            val = JSON.stringify(val);
+                        }
             %>
                         <div class="row">
                             <div class="key"><%- key %></div>
                             <div class="hyphen"></div>
-                            <div class="value wordwrap"><%- item[key] %></div>
+                            <div class="value wordwrap"><%- val %></div>
                         </div>
             <%
                     }
