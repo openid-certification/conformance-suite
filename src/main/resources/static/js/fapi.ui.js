@@ -12,9 +12,11 @@ var FAPI_UI = {
 		this.logTemplates.RESULT = _.template($("#logDetailTemplate_Result").html());
 		this.logTemplates.TIME = _.template($("#logDetailTemplate_Time").html());
 		this.logTemplates.MORE = _.template($("#logDetailTemplate_More").html());
+		this.logTemplates.LOG_END = _.template($("#logDetailTemplate_LogEnd").html());
 	},
 
-	visibleFields : ["msg", "src", "time", "result", "requirements", "upload"],		
+	visibleFields : ["msg", "src", "time", "result", "requirements", "upload"],
+	testResults : {success:0, warning:0, failure:0, interrupted:0, review:0, default:0, total:0},
 	
 	/**
 	 * 

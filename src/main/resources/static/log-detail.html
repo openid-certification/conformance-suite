@@ -36,8 +36,16 @@
         <!-- LogStart -->
         <script type="text/template" id="logDetailTemplate_LogStart">  
             <div class="row">
-                <div class="key">Log</div>
-                <div class="value wordwrap"><%- testId %></div>
+                <h1>
+                    <div class="key">Log</div>
+                    <div class="value wordwrap"><%- testId %></div>
+                </h1>
+            </div>
+            <div class="row">
+                <h2>
+                    <div class="key">Time</div>
+                    <div class="value wordwrap"><%- new Date(time) %></div>
+                </h2>
             </div>
         </script>
 
@@ -45,35 +53,48 @@
         <script type="text/template" id="logDetailTemplate">
             <div id="log-<%- item._id %>">
               <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-1">
+                <% if (item.result) { 
+                    // count the number of test types to render later on
+                    FAPI_UI.testResults[item.result.toLowerCase()]++;
+                    FAPI_UI.testResults.total++;
+                %>
+                    <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
+                <% } %>
+                </div>
+
+                <div class="col-md-11">
                 <% if (item.src) { %>
                     <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
                 <% } %>
                 </div>
+              </div>
+
+              <div class="row">
                 <div class="col-md-1">
-                <% if (item.result) { %>
-                    <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
-                <% } %>
                 <% if (item.requirements) { %>
                     <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
                 <% } %>
                 </div>
-                <div class="col-md-5">
+
+                <div class="col-md-11">
+                <% if (item.msg) { %>
+                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                <% } %>
+                <% if (item.upload) { %>
+                    <p><%= FAPI_UI.logTemplates.UPLOAD({item: item}) %></p>
+                <% } %>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
                 <% if (item.time) { %>
                     <%= FAPI_UI.logTemplates.TIME({item: item}) %>
                 <% } %>
                 </div>
               </div>
-              <div class="row">
-                <div class="col-md-12">
-                <% if (item.msg) { %>
-                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-                <% } %>
-                <% if (item.upload) { %>
-                    <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
-                <% } %>
-                </div>
-              </div>
+
               <div class="more-info">
                 
               </div>
@@ -105,17 +126,17 @@
 
         <!-- Result -->
         <script type="text/template" id="logDetailTemplate_Result">
-            <span class="log-result label label-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
+            <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
         </script>
 
         <!-- Time  -->
         <script type="text/template" id="logDetailTemplate_Time">
-            <span class="log-time"><%- new Date(item.time) %></span>
+            <span class="log-time"><small class='muted'><%- new Date(item.time).toLocaleTimeString() %></small></span>
         </script>
 
         <!-- More -->
         <script type="text/template" id="logDetailTemplate_More">
-            <button id="morebtn-<%- item._id %>" class="btn btn-default btn-xs">
+            <button id="moreBtn-<%- item._id %>" class="btn btn-default btn-xs">
                 <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
             </button>
             <div id="moreInfo-<%- item._id %>" class="moreInfo collapse container-fluid">
@@ -123,9 +144,10 @@
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
             %>
-                        <div class="row-fluid">
+                        <div class="row">
                             <div class="key"><%- key %></div>
-                            <div class="hyphen"></div>
+                        </div>
+                        <div class="row">
                             <div class="value wordwrap">
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
@@ -135,7 +157,7 @@
                 <%- JSON.stringify(value) %>
             <% } %>
                             </div>
-                        </div>
+                        </div> 
             <%
                 });
             %>
@@ -143,10 +165,21 @@
             <div class="clearfix"></div>
         </script>
 
+        <!-- LogEnd -->
+        <script type="text/template" id="logDetailTemplate_LogEnd">  
+            <div class="row">
+                <h2>
+                    <div class="key">Summary</div>
+                    <div class="value wordwrap"><%- summary.success %> of <%- summary.total %> passed</div>
+                </h2>
+            </div>
+        </script>
+
+
         <!-- resident DOM -->
         <div class="mainHolder">
             <div id="logDetail">
-                <h1></h1>
+                <div class="header"></div>
                 <hr />
                 <div class="content">
                     <!-- log items are rendered here -->
@@ -161,6 +194,7 @@
             	
                 var urlParams = new URLSearchParams(window.location.search);
                 var testId = urlParams.get('log');
+    
                 $.ajax({ 
                     type: 'GET', 
                     url: "log/" + encodeURIComponent(testId), 
@@ -169,13 +203,13 @@
 
                     	// this is the page header, fill it in with log details
                     	// TODO: this should call the test info API
-                        $('#logDetail h1').append(FAPI_UI.logTemplates.LOG_START({testId:testId}));
+                        $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({testId:testId, time:data[0].time}));
 
                         $.each(data, function(i, item) {
 
                         	// render the base element
                             $('#logDetail .content').append(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
-                            
+
                         	// see if we've got any "extra" bits that we want to display in a block
                         	var more = _.pick(item, function(value, key, object) {
                         		return !_.contains(FAPI_UI.visibleFields, key) 
@@ -188,7 +222,7 @@
                                 $('#log-' + item._id + ' .more-info').append(FAPI_UI.logTemplates.MORE({more: more, item: item}));
                                 
                                 // wire up the button
-                                $('#morebtn-' + item._id).click(function (evt) {
+                                $('#moreBtn-' + item._id).click(function (evt) {
 	                                if ($(this).hasClass('activated')) {
 	                                    // it's already been activated, need to hide things
 	                                    $('#moreInfo-' + item._id).hide(); // hide the content
@@ -206,6 +240,8 @@
                             }
 
                         });
+
+                        $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
                         
                     }
                 });
