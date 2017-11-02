@@ -25,7 +25,7 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
@@ -37,129 +37,111 @@
         <script type="text/template" id="logDetailTemplate_LogStart">  
             <div class="row">
                 <div class="key">Log</div>
-                <div class="hyphen"></div>
-                <div class="value wordwrap"><%- fileId %></div>
+                <div class="value wordwrap"><%- testId %></div>
             </div>
+        </script>
+
+        <!-- Log detail element -->
+        <script type="text/template" id="logDetailTemplate">
+            <div id="log-<%- item._id %>">
+              <div class="row">
+                <div class="col-md-2">
+                <% if (item.src) { %>
+                    <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                <% } %>
+                </div>
+                <div class="col-md-1">
+                <% if (item.result) { %>
+                    <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
+                <% } %>
+                <% if (item.requirements) { %>
+                    <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
+                <% } %>
+                </div>
+                <div class="col-md-5">
+                <% if (item.time) { %>
+                    <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                <% } %>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                <% if (item.msg) { %>
+                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                <% } %>
+                <% if (item.upload) { %>
+                    <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+                <% } %>
+                </div>
+              </div>
+              <div class="more-info">
+                
+              </div>
+            </div>
+            <hr />
         </script>
 
         <!-- Source -->
         <script type="text/template" id="logDetailTemplate_Source">
-            <div class="row">
-                <div class="key">Source</div>
-                <div class="hyphen"></div>
-                <div class="value wordwrap"><%- item.src %></div>
-            </div>
+            <span class="log-source"><%- item.src %></span>
         </script>
 
         <!-- Message -->
         <script type="text/template" id="logDetailTemplate_Message">
-            <div class="row">
-                <div class="key">Message</div>
-                <div class="hyphen"></div>
-                <div class="value wordwrap"><%- item.msg %></div>
-            </div>
+            <p class="log-message"><%- item.msg %></p>
         </script>
 
         <!-- Requirements -->
         <script type="text/template" id="logDetailTemplate_Requirements">
-            <div class="row">
-                <div class="key">Requirements</div>
-                <div class="hyphen"></div>
-                <div class="value wordwrap"><%- item.requirements %></div>
-            </div>
+            <% _.each(item.requirements, function(requirement) { %>
+                <span class="log-requirement label label-default"><%- requirement %></span>
+            <% }); %>
         </script>
 
         <!-- Upload -->
         <script type="text/template" id="logDetailTemplate_Upload">
-            <div class="row">
-                <div class="key">Upload</div>
-                <div class="hyphen"></div>
-                <div class="value wordwrap"><%- item.upload %></div>
-            </div>
+            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info" href="/upload.html?log=<%- item.testId %>&placeholder=<%- item.upload %>">Attach image...</a>
         </script>
 
         <!-- Result -->
         <script type="text/template" id="logDetailTemplate_Result">
-            <%
-                var layoutClasses = "";
-                var itemResult = item.result.toUpperCase();
-
-                if (itemResult) {
-                    layoutClasses = "label result-"+itemResult.toLowerCase();
-                } else {
-                    layoutClasses = "label result-default";
-                }  
-            %>
-            <div class="row">
-                <div class="key">Result</div>
-                <div class="hyphen"></div>
-                <div class="<%- layoutClasses %>"><%- itemResult %></div>
-            </div>
+            <span class="log-result label label-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
         </script>
 
         <!-- Time  -->
         <script type="text/template" id="logDetailTemplate_Time">
-            <div class="row">
-                <div class="key">Time</div>
-                <div class="hyphen"></div>
-                <div class="value wordwrap"><%- new Date(item.time) %></div>
-            </div>  
+            <span class="log-time"><%- new Date(item.time) %></span>
         </script>
 
         <!-- More -->
         <script type="text/template" id="logDetailTemplate_More">
+            <button id="morebtn-<%- item._id %>" class="btn btn-default btn-xs">
+                <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
+            </button>
+            <div id="moreInfo-<%- item._id %>" class="moreInfo collapse container-fluid">
             <%
-                var extraItems = 0;
-                
-                _.each(Object.keys(item), function(key, i) {
-                    // don't display items which already have their own templates, filter out anything injected by MongoDB, filter out any testid
-                    if (!_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_") && key.toLowerCase() != 'testid') {
-                        extraItems ++;
-                    }
-                }); 
+                // display all the extra fields
+                _.each(more, function(value, key, o) {
             %>
-            <%
-                if (extraItems > 0) {
-            %>
-                    <button onClick="toggleMore(this)" id="btn_<%- index %>" class="btn btn-default btn-xs pull-right">
-                        <span class="badge"><%- extraItems %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
-                    </button>
-                    <div id="moreInfo_<%- index %>" class="moreInfo collapse"></div>
-                    <div class="clearfix"></div>
-            <%
-                }
-            %>
-            
-            <hr />
-        </script>
-
-        <!-- More Info  -->
-        <script type="text/template" id="moreInfoTemplate">
-
-             <%
-                _.each(Object.keys(item), function(key, i) {
-
-                    // don't display items which already have their own templates, filter out anything injected by MongoDB, filter out any testid
-                    if (!_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_") && key.toLowerCase() != 'testid') {
-
-                        var val = item[key];
-
-                        if (!_.isString(val)) {
-                            val = JSON.stringify(val);
-                        }
-            %>
-                        <div class="row">
+                        <div class="row-fluid">
                             <div class="key"><%- key %></div>
                             <div class="hyphen"></div>
-                            <div class="value wordwrap"><%- val %></div>
+                            <div class="value wordwrap">
+            <% if (key == 'img') { %>
+                <img src="<%- value %>">
+            <% } else if (_.isString(value)) { %>
+                <%- value %>
+            <% } else { // by default run it through the json viewer %>
+                <%- JSON.stringify(value) %>
+            <% } %>
+                            </div>
                         </div>
             <%
-                    }
-                }); 
+                });
             %>
-            
+            </div>
+            <div class="clearfix"></div>
         </script>
-
 
         <!-- resident DOM -->
         <div class="mainHolder">
@@ -174,54 +156,60 @@
         
         <script type="text/javascript">
 
-            /**
-             * 
-             */
             $(document).ready(function(){
+            	FAPI_UI.loadTemplates();
+            	
                 var urlParams = new URLSearchParams(window.location.search);
-                FAPI_UI.showLogDetail(urlParams.get('log'));
-            });
+                var testId = urlParams.get('log');
+                $.ajax({ 
+                    type: 'GET', 
+                    url: "log/" + encodeURIComponent(testId), 
+                    data: {}, 
+                    success: function (data) { 
 
+                    	// this is the page header, fill it in with log details
+                    	// TODO: this should call the test info API
+                        $('#logDetail h1').append(FAPI_UI.logTemplates.LOG_START({testId:testId}));
 
-            /**
-             *
-             */
-            function render(templateType, item, index, fileId) {
-                var template = _.template($("#logDetailTemplate_"+templateType).html());
+                        $.each(data, function(i, item) {
 
-                if (templateType==FAPI_UI.logTemplates.LOG_START) {
-                    $('#logDetail h1').append(template({fileId:fileId}));
-                } else {
-                    $('#logDetail .content').append(template({item:item, index:index}));
+                        	// render the base element
+                            $('#logDetail .content').append(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
+                            
+                        	// see if we've got any "extra" bits that we want to display in a block
+                        	var more = _.pick(item, function(value, key, object) {
+                        		return !_.contains(FAPI_UI.visibleFields, key) 
+                        		  && !key.startsWith("_") 
+                        		  && key.toLowerCase() != 'testid';
+                        	});
 
-                    // by this stage the first render pass has happened and the "moreInfo" divs exist,
-                    // lets now render the info into these divs
-                    if (templateType==FAPI_UI.logTemplates.MORE) {
-                        var moreInfoTemplate = _.template($("#moreInfoTemplate").html());
-                        $('#moreInfo_'+index).html(moreInfoTemplate({item:item, index:index}));
+                            if (!_.isEmpty(more)) {
+                                // we have extra fields so let's attach them
+                                $('#log-' + item._id + ' .more-info').append(FAPI_UI.logTemplates.MORE({more: more, item: item}));
+                                
+                                // wire up the button
+                                $('#morebtn-' + item._id).click(function (evt) {
+	                                if ($(this).hasClass('activated')) {
+	                                    // it's already been activated, need to hide things
+	                                    $('#moreInfo-' + item._id).hide(); // hide the content
+	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+	                                    $(this).removeClass('activated');
+	                                } else {
+	                                    // need to show the collapsed entity
+	                                    $('#moreInfo-' + item._id).show(); // show the content
+	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+	                                    $(this).addClass('activated');
+	                                }
+                                	
+                                });
+                                
+                            }
+
+                        });
+                        
                     }
-                }
-            }
-
-            /**
-             * 
-             */
-            function toggleMore(btn) {
-
-                var btnRef = "#"+btn.id;
-       
-                if ($(btnRef).hasClass('activated')) {
-                    // it's already been activated, need to hide things
-                    $($(btnRef).next()).hide(); // hide the content
-                    $('.glyphicon', btnRef).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
-                    $(btnRef).removeClass('activated');
-                } else {
-                    // need to show the collapsed entity
-                    $($(btnRef).next()).show(); // show the content
-                    $('.glyphicon', btnRef).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
-                    $(btnRef).addClass('activated');
-                }
-            }
+                });
+            });
 
         </script>
 
