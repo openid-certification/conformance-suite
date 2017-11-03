@@ -20,7 +20,12 @@ header {
 
 h1 {
   font-size: 24px;
-  margin-bottom:20px;
+  margin: 0 0 5px;
+}
+
+h2 {
+  font-size: 20px;
+  margin:0 0 5px;
 }
 
 .mainHolder {
@@ -47,10 +52,15 @@ a:hover {
   float:left;
 }
 
+#logDetail .header {
+  margin: 0 0 20px;
+}
+
 .row .key {
   left:20px;
-  width:140px;
+  min-width:140px;
   color:#87c19c;
+  text-transform: bold;
 }
 
 .row .hyphen {
@@ -62,16 +72,7 @@ a:hover {
   content:": ";
 }
 
-.row .value {
-  width:calc(100%-170px);
-  color:#000;
-}
-
 .wordwrap { 
-  white-space: pre-wrap;
-  white-space: -moz-pre-wrap;  
-  white-space: -pre-wrap;      
-  white-space: -o-pre-wrap;    
   word-wrap: break-word;  
   word-break: break-all;     
 }
@@ -84,12 +85,13 @@ a:hover {
 }
 
 .moreInfo div {
-    margin:0;
+  margin:0;
 }
 
-.moreInfo .key {
+.moreInfo .row .key {
   left:0px;
   width:auto;
+  margin-bottom:0;
 }
 
 /* Test result labels */
@@ -98,11 +100,11 @@ a:hover {
 }
 
 .label.result-failure {
-  background-color: #666;
+  background-color: #cc0000;
 }
 
 .label.result-warning {
-  background-color: #ff6600;
+  background-color: #c0c0c0;
 }
 
 .label.result-review {
