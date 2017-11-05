@@ -45,6 +45,12 @@ a:hover {
   text-decoration: underline; 
 }
 
+.listHeader {
+  padding:5px 0px 0px;
+  background-color:#fff;
+  border:1px solid #ddd;
+  border-radius: 3px;
+}
 
 #logDetail h1 .row div , #logDetail .row div {
   position:relative;

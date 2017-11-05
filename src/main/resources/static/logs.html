@@ -36,13 +36,29 @@
         <script type="text/template" id="logsListingTemplate">
             <div class="mainHolder">
                 <div id="logs">
-                    <h1>Logs</h1>
                     <div class="content">
+                        <div class="row listHeader">
+                            <div class="col-md-4"><a href="javaScript:sortList(0)"><h2>TEST ID</h2></a></div>
+                            <div class="col-md-4"><a href="javaScript:sortList(1)"><h2>NAME</h2></a></div>
+                            <div class="col-md-4"><a href="javaScript:sortList(2)"><h2>DATE</h2></a></div>
+                        </div>
                         <%
                             // repeat items 
                             _.each(items, function(item,arrIndex) {
                         %>
-                                <div class="link"><a href="log-detail.html?log=<%- item._id %>" class="item"><%- item._id %></a></div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="link"><a href="log-detail.html?log=<%- item._id %>&time=<%- item.started %>" class="item"><%- item._id %></a></div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <%- item.testName %>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <%- new Date(Number(item.started)) %>
+                                    </div>
+                                </div>
                         <%
                             });
                         %>
@@ -55,6 +71,8 @@
 
         <script>
 
+            var _logsList;
+
             /**
              * 
              */
@@ -66,8 +84,24 @@
              * 
              */
             function render(logsList) {
+                _logsList = logsList;
                 var template = _.template($("#logsListingTemplate").html());
                 $('#logsListingTemplate_render').html(template({items:logsList}));
+            }
+
+            /**
+             * 
+             */
+            function sortList(sortId) {
+                if (sortId == 0) {
+                    _logsList = _.sortBy(_logsList, '_id');
+                } else if (sortId == 1) {
+                    _logsList = _.sortBy(_logsList, 'testName');
+                } else if (sortId == 2) {
+                    _logsList = _.sortBy(_logsList, 'started');
+                }
+
+                render(_logsList);
             }
 
 
