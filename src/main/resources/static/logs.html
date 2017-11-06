@@ -38,9 +38,9 @@
                 <div id="logs">
                     <div class="content">
                         <div class="row listHeader">
-                            <div class="col-md-4"><a href="javaScript:sortList(0)"><h2>TEST ID</h2></a></div>
-                            <div class="col-md-4"><a href="javaScript:sortList(1)"><h2>NAME</h2></a></div>
-                            <div class="col-md-4"><a href="javaScript:sortList(2)"><h2>DATE</h2></a></div>
+                            <div class="col-md-4"><h2 class="anchor">TEST ID</h2></div>
+                            <div class="col-md-4"><h2 class="anchor">NAME</h2></div>
+                            <div class="col-md-4"><h2 class="anchor">DATE</h2></div>  
                         </div>
                         <%
                             // repeat items 
@@ -56,7 +56,7 @@
                                     </div>
 
                                     <div class="col-md-4">
-                                        <%- new Date(Number(item.started)) %>
+                                        <%- new Date(item.started) %>
                                     </div>
                                 </div>
                         <%
@@ -71,8 +71,6 @@
 
         <script>
 
-            var _logsList;
-
             /**
              * 
              */
@@ -84,26 +82,13 @@
              * 
              */
             function render(logsList) {
-                _logsList = logsList;
                 var template = _.template($("#logsListingTemplate").html());
                 $('#logsListingTemplate_render').html(template({items:logsList}));
+                // add sort by functions to the list header
+                $(".listHeader div:nth-child(1)").click(function (evt) { render(_.sortBy(logsList, '_id')) });
+                $(".listHeader div:nth-child(2)").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
+                $(".listHeader div:nth-child(3)").click(function (evt) { render(_.sortBy(logsList, 'started')) });                            
             }
-
-            /**
-             * 
-             */
-            function sortList(sortId) {
-                if (sortId == 0) {
-                    _logsList = _.sortBy(_logsList, '_id');
-                } else if (sortId == 1) {
-                    _logsList = _.sortBy(_logsList, 'testName');
-                } else if (sortId == 2) {
-                    _logsList = _.sortBy(_logsList, 'started');
-                }
-
-                render(_logsList);
-            }
-
 
         </script>
 
