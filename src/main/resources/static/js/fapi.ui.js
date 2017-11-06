@@ -1,6 +1,13 @@
 var FAPI_UI = {
 
 	logTemplates : {},
+
+	loadHomepageTemplates: function() {
+		this.logTemplates.INDEX_START = _.template($("#indexTemplate_Start").html());
+		this.logTemplates.INDEX_FORM = _.template($("#indexTemplate_Form").html());
+		this.logTemplates.INDEX_RUNNNING_TESTS = _.template($("#indexTemplate_RunningTests").html());
+		this.logTemplates.INDEX_END = _.template($("#indexTemplate_End").html());
+	},
 	
 	loadTemplates: function() {
 		this.logTemplates.LOG_START = _.template($("#logDetailTemplate_LogStart").html());
@@ -22,7 +29,7 @@ var FAPI_UI = {
 	 * 
 	 */
 	goHome : function() {
-		window.location.replace("logs.html");
+		window.location.replace("index.html");
 	},
 
 	/**
