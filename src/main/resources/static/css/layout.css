@@ -36,16 +36,6 @@ h2 {
   margin:5px 0;
 }
 
-.anchor {
-  text-decoration: none;
-  color: #1bc5f8;
-}
-
-.anchor:hover {
-  text-decoration: underline;
-  cursor:pointer;
-}
-
 a {
   text-decoration: none;
   color: #1bc5f8;

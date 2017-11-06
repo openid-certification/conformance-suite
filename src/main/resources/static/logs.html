@@ -38,9 +38,9 @@
                 <div id="logs">
                     <div class="content">
                         <div class="row listHeader">
-                            <div class="col-md-4"><h2 class="anchor">TEST ID</h2></div>
-                            <div class="col-md-4"><h2 class="anchor">NAME</h2></div>
-                            <div class="col-md-4"><h2 class="anchor">DATE</h2></div>  
+                            <div class="col-md-4"><a id="test-id-sort-action"><h2>TEST ID</h2></a></div>
+                            <div class="col-md-4"><a id="name-sort-action"><h2>NAME</h2></a></div>
+                            <div class="col-md-4"><a id="date-sort-action"><h2>DATE</h2></a></div>  
                         </div>
                         <%
                             // repeat items 
@@ -85,9 +85,9 @@
                 var template = _.template($("#logsListingTemplate").html());
                 $('#logsListingTemplate_render').html(template({items:logsList}));
                 // add sort by functions to the list header
-                $(".listHeader div:nth-child(1)").click(function (evt) { render(_.sortBy(logsList, '_id')) });
-                $(".listHeader div:nth-child(2)").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
-                $(".listHeader div:nth-child(3)").click(function (evt) { render(_.sortBy(logsList, 'started')) });                            
+                $("#test-id-sort-action").click(function (evt) { render(_.sortBy(logsList, '_id')) });
+                $("#name-sort-action").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
+                $("#date-sort-action").click(function (evt) { render(_.sortBy(logsList, 'started')) });                            
             }
 
         </script>
