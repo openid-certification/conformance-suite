@@ -200,9 +200,9 @@
                     url: "log/" + encodeURIComponent(testId), 
                     data: {}, 
                     success: function (data) { 
-
+                
                     	// this is the page header, fill it in with log details
-                    	// TODO: this should call the test info API
+                        // TODO: this should call the test info API
                         $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({testId:testId, time:data[0].time}));
 
                         $.each(data, function(i, item) {
