@@ -64,8 +64,8 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(60);
 		
-		claims.addProperty("iat", iat.toEpochMilli() / 1000L);
-		claims.addProperty("exp", exp.toEpochMilli() / 1000L);
+		claims.addProperty("iat", iat.getEpochSecond());
+		claims.addProperty("exp", exp.getEpochSecond());
 
 		logSuccess("Created client assertion claims", claims);
 		

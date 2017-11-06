@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -73,11 +74,11 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 			claims.addProperty("nonce", nonce);
 		}
 		
-		LocalDateTime iat = LocalDateTime.now();
-		LocalDateTime exp = iat.plusMinutes(5); // expires in 5 minutes
+		Instant iat = Instant.now();
+		Instant exp = iat.plusSeconds(5 * 60);
 		
-		claims.addProperty("iat", iat.atZone(ZoneId.systemDefault()).toEpochSecond());
-		claims.addProperty("exp", exp.atZone(ZoneId.systemDefault()).toEpochSecond());
+		claims.addProperty("iat", iat.getEpochSecond());
+		claims.addProperty("exp", exp.getEpochSecond());
 
 		env.put("id_token_claims", claims);
 
