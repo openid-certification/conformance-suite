@@ -227,6 +227,8 @@ public abstract class AbstractTestModule implements TestModule {
 				break;
 			case FINISHED:
 				switch (status) {
+					case FINISHED:
+						break;
 					default:
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
