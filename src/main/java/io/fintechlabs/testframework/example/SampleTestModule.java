@@ -18,17 +18,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
+import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
@@ -38,6 +35,7 @@ import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
@@ -47,10 +45,12 @@ import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureTls12;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
-import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.GenerateJWKsFromClientSecret;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
-import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.LoadJWKs;
 import io.fintechlabs.testframework.condition.ParseIdToken;
+import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
@@ -97,6 +97,10 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		// Set up the client configuration
 		require(GetStaticClientConfiguration.class);
+		
+		//require(ExtractJWKsFromClientConfiguration.class);
+		
+		require(GenerateJWKsFromClientSecret.class);
 		
 		exposeEnvString("client_id");
 
@@ -183,7 +187,12 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 		
-		require(AddFormBasedClientSecretAuthenticationParameters.class);
+		//require(AddFormBasedClientSecretAuthenticationParameters.class);
+		require(CreateClientAuthenticationAssertionClaims.class);
+		
+		require(SignClientAuthenticationAssertion.class);
+		
+		require(AddClientAssertionToTokenEndpointRequest.class);
 		
 		require(CallTokenEndpoint.class);
 
