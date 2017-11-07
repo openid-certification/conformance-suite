@@ -15,14 +15,18 @@
 package io.fintechlabs.testframework.testmodule;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -73,15 +77,36 @@ public abstract class AbstractTestModule implements TestModule {
 			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
 			env = condition.evaluate(env);
 			
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			logger.error("Couldn't create required condition object", e);
-			fireTestFailure();
-			throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
 		} catch (ConditionError error) {
 			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
 			throw new TestFailureException(error);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logger.error("Couldn't create required condition object", e);
+			logException(e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
+		} catch (Exception e) {
+			logger.error("Generic error from underlying test framework", e);
+			logException(e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), e.getMessage());
 		}
+	}
+
+	private void logException(Exception e) {
+		Map<String, Object> event = new HashMap<>();
+		event.put("msg", "Error from test framework");
+		event.put("error", e.getMessage());
+		event.put("error_class", e.getClass().getName());
+		
+		List<String> stack = Arrays.stream(e.getStackTrace())
+			.map(StackTraceElement::toString)
+			.collect(Collectors.toList());
+
+		event.put("stacktrace", stack);
+		
+		eventLog.log(getId(), getName(), event);
 	}
 
 	/**
@@ -99,10 +124,14 @@ public abstract class AbstractTestModule implements TestModule {
 			logger.info("}} Calling Condition " + conditionClass.getSimpleName());
 			env = condition.evaluate(env);
 			
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			logger.error("Couldn't create optional condition object", e);
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logger.error("Couldn't create optional condition object", e);
+			logException(e);
+		} catch (Exception e) {
+			logger.error("Generic error from underlying test framework", e);
+			logException(e);
 		}
 	}
 
