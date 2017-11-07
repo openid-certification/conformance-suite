@@ -2,13 +2,13 @@ var FAPI_UI = {
 
 	logTemplates : {},
 
-	loadHomepageTemplates: function() {
-		this.logTemplates.INDEX_START = _.template($("#indexTemplate_Start").html());
-		this.logTemplates.INDEX_FORM = _.template($("#indexTemplate_Form").html());
-		this.logTemplates.INDEX_RUNNNING_TESTS = _.template($("#indexTemplate_RunningTests").html());
-		this.logTemplates.INDEX_END = _.template($("#indexTemplate_End").html());
+	loadHomepageTemplates : function() {
+		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
+		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
+		this.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES = _.template($("#indexTemplate_RunningTestExposedKeyValues").html());
+		this.logTemplates.RUNNING_TEST_EXTERNAL_URL = _.template($("#indexTemplate_RunningTestExternalURL").html());
 	},
-	
+	// TO DO rename as loadLogDetailTemplates or some such...
 	loadTemplates: function() {
 		this.logTemplates.LOG_START = _.template($("#logDetailTemplate_LogStart").html());
 		this.logTemplates.LOG_DETAIL = _.template($("#logDetailTemplate").html());
