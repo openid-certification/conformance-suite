@@ -48,6 +48,7 @@ import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.example.SampleClientTestModule;
 import io.fintechlabs.testframework.example.SampleImplicitModule;
 import io.fintechlabs.testframework.example.SampleTestModule;
+import io.fintechlabs.testframework.fapi.CodeIdTokenWithPrivateKey;
 import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -85,10 +86,18 @@ public class TestRunner {
 	
 	@Autowired
 	private TestInfoService testInfo;
+	
+	// TODO: make this a configurable factory bean
+	private Map<String, Class<? extends TestModule>> testModules = ImmutableMap.of(
+			"sample-test-module", SampleTestModule.class, 
+			"sample-client-test-module", SampleClientTestModule.class, 
+			"sample-implicit-module", SampleImplicitModule.class, 
+			"ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class, 
+			"code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class);
 
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<String>> getAvailableTests(Model m) {
-    	List<String> testModuleNames = getTestModuleNames();
+    public ResponseEntity<Set<String>> getAvailableTests(Model m) {
+    	Set<String> testModuleNames = getTestModuleNames();
     	
     	return new ResponseEntity<>(testModuleNames, HttpStatus.OK);
     }
@@ -297,40 +306,23 @@ public class TestRunner {
     	}
     }
     
-    // TODO: make this a factory bean
     private TestModule createTestModule(String testName, String id, BrowserControl browser) {
-    	TestModule module = null;
     	
-    	switch (testName) {
-			case "sample-test":
-				module = new SampleTestModule();
-				break;
-			case "sample-implicit-test":
-				module = new SampleImplicitModule();
-				break;
-			case "ensure-redirect-uri-is-registered":
-				module = new EnsureRegisteredRedirectUri();
-				break;
-			case "sample-client-test":
-				module = new SampleClientTestModule();
-				break;
-			
-			default:
-				module = null;
-				break;
-    	}
+    	Class<? extends TestModule> testModuleClass = testModules.get(testName);
     	
-    	if (module != null) {
-    		module.wire(id, eventLog, browser, testInfo);
-    	}
-
-    	return module;
+    	TestModule module;
+		try {
+			module = testModuleClass.newInstance();
+			module.wire(id, eventLog, browser, testInfo);
+			return module;
+		} catch (InstantiationException | IllegalAccessException e) {
+			return null;
+		}
+    	
     }
     
-    // TODO: make this a factory bean
-    private List<String> getTestModuleNames() {
-    	return ImmutableList.of(
-    			"sample-test", "sample-implicit-test", "ensure-redirect-uri-is-registered", "sample-client-test");
+    private Set<String> getTestModuleNames() {
+    	return testModules.keySet();
     }
     
     
