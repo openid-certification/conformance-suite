@@ -36,13 +36,29 @@
         <script type="text/template" id="logsListingTemplate">
             <div class="mainHolder">
                 <div id="logs">
-                    <h1>Logs</h1>
                     <div class="content">
+                        <div class="row listHeader">
+                            <div class="col-md-4"><a id="test-id-sort-action"><h2>TEST ID</h2></a></div>
+                            <div class="col-md-4"><a id="name-sort-action"><h2>NAME</h2></a></div>
+                            <div class="col-md-4"><a id="date-sort-action"><h2>DATE</h2></a></div>  
+                        </div>
                         <%
                             // repeat items 
                             _.each(items, function(item,arrIndex) {
                         %>
-                                <div class="link"><a href="log-detail.html?log=<%- item._id %>" class="item"><%- item._id %></a></div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="link"><a href="log-detail.html?log=<%- item._id %>" class="item"><%- item._id %></a></div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <%- item.testName %>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <%- new Date(item.started) %>
+                                    </div>
+                                </div>
                         <%
                             });
                         %>
@@ -68,8 +84,11 @@
             function render(logsList) {
                 var template = _.template($("#logsListingTemplate").html());
                 $('#logsListingTemplate_render').html(template({items:logsList}));
+                // add sort by functions to the list header
+                $("#test-id-sort-action").click(function (evt) { render(_.sortBy(logsList, '_id')) });
+                $("#name-sort-action").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
+                $("#date-sort-action").click(function (evt) { render(_.sortBy(logsList, 'started')) });                            
             }
-
 
         </script>
 
