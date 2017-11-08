@@ -4,10 +4,16 @@ services:
     image: mongo
     volumes:
      - ./mongo/data:/data/db
+  httpd:
+    build:
+      context: ./httpd
+    ports:
+     - "8080:8080"
+    depends_on:
+     - server
   server:
     image: openjdk
     ports:
-     - "8080:8080"
      - "9999:9999"
     volumes:
      - ./target/:/server/
