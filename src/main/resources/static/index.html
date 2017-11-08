@@ -76,12 +76,12 @@
 
     <!-- Running Test: Exposed -->
     <script type="text/template" id="indexTemplate_RunningTestExposedKeyValues">
-    	<li><b><%- key %><b>: <i><%- val %></i></li>
+    	<li><b><%- key %></b>: <i><%- val %></i></li>
     </script>
 
     <!-- Running Test: ExternalURL -->
     <script type="text/template" id="indexTemplate_RunningTestExternalURL">
-    	<li>Go to URL: <a href="#"><span class="externalURLLink"><%- url %></span></a></li>
+    	<li>Go to URL: <a id="browserLink-<%- testId %>-<%- index %>" href="#"><span class="externalURLLink"><%- url %></span></a></li>
     </script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -105,7 +105,6 @@
 				console.log('available: ', JSON.stringify(data));
 				_.each(data, function(testName, index) {
 					$('#launch-buttons').append(FAPI_UI.logTemplates.TEST_LAUNCH_BUTTON({testName:testName, index:index}));
-					console.log("index="+index);
 
 					$('#createTestBtn-'+index).click(function (evt) {
 						console.log('Button clicked: ' + testName);
@@ -143,7 +142,6 @@
 				_.each(data, function(testId) {
 					$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
 						console.log('displaying test results: ' + status);
-
 						console.log("testResult:"+JSON.stringify(status));
 
 						$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
@@ -152,9 +150,9 @@
 			                $('#'+status.id+' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({key:key, val:val}));
 						});
 
-						// create start & stop button click handlers
+						// Create start & stop button click handlers
 						$('#'+status.id+' button.start').click(function (evt) {
-							console.log('Button clicked: ' + testId);
+							console.log('Start button clicked: ' + testId);
 							$.ajax({url: 'runner/' + encodeURIComponent(testId),
 						    	type: 'POST',
 						    	success: function(data, status) {
@@ -165,7 +163,7 @@
 						});
 
 						$('#'+status.id+' button.stop').click(function (evt) {
-							console.log('Button clicked: ' + testId);
+							console.log('Stop button clicked: ' + testId);
 							$.ajax({url: 'runner/' + encodeURIComponent(testId),
 		                        type: 'DELETE',
 		                        success: function(data, status) {
@@ -175,15 +173,13 @@
 		                    });
 						});
 
-						// External URL part - TO DO
+						// External URL link
 						$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
-							//var b = $('<ul class="browser"></ul>');
-							//$('#' + status.id).append(b);
-							_.each(browser.urls, function(url) {
-								$('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({url:url}));
-								//var link = $('<li><a href="#">Go to URL: ' + url + '</a></li>');
-								//$(b).append(link);
-								/*link.click(function(event) {
+							_.each(browser.urls, function(url, index) {
+								$('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
+								
+								// add the click handler
+								$('#browserLink-'+testId+"-"+index).click(function(event) {
 									event.preventDefault();
 									var win = window.open(url, '_blank');
 									
@@ -200,8 +196,7 @@
 										// couldn't open the link?
 										console.log("Couldn't launch window");
 									}
-									
-								});*/
+								});
 							});						
 						});
 					});
