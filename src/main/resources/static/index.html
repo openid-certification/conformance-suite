@@ -26,7 +26,12 @@
   <body>
   	
   	<!-- resident DOM -->
+
     <header onClick="FAPI_UI.goHome()"></header>
+
+    <div id="busy">
+    	<div class="activityIndicator">Please wait</div>
+    </div>
 
     <div class="mainHolder">
         <div id="homePage">
@@ -108,12 +113,14 @@
 
 					$('#createTestBtn-'+index).click(function (evt) {
 						console.log('Button clicked: ' + testName);
+						$("#busy").show();
 
 						$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
 								type: 'POST',
 								contentType: 'application/json',
 								data: $('#config').val(),
 								success: function(data, status) {
+									$("#busy").hide();
 									console.log('start results: ', data);
 									updateRunningTable();
 								},
@@ -141,8 +148,7 @@
 				
 				_.each(data, function(testId) {
 					$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
-						console.log('displaying test results: ' + status);
-						console.log("testResult:"+JSON.stringify(status));
+						console.log("displaying test results:"+JSON.stringify(status));
 
 						$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
 
