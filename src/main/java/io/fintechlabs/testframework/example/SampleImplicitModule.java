@@ -14,26 +14,20 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpointImplicit;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
@@ -51,14 +45,9 @@ import io.fintechlabs.testframework.condition.ExtractImplicitHashToTokenEndpoint
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
-import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToToken;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher

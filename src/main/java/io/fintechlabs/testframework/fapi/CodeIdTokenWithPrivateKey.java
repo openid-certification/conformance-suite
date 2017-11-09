@@ -29,7 +29,6 @@ import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointR
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpointHybridCodeIdtoken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
