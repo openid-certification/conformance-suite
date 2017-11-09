@@ -137,7 +137,7 @@ public abstract class AbstractTestModule implements TestModule {
 		logFinalEnv();
 	}
 
-	private void fireTestFailure() {
+	protected void fireTestFailure() {
 		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
 	
 		setResult(Result.FAILED);
@@ -246,7 +246,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 * @param key
 	 * @param val
 	 */
-	private void expose(String key, String val) {
+	protected void expose(String key, String val) {
 		exposed.put(key, val);
 	}
 
