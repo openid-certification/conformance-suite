@@ -7,11 +7,13 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>FAPI Test Suite</title>
 
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+	<link rel="stylesheet" type="text/css" href="css/layout.css">
 
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -22,41 +24,70 @@
     <![endif]-->
   </head>
   <body>
-  
+  	
+  	<!-- resident DOM -->
 
-	    <div class="container">
+    <header onClick="FAPI_UI.goHome()"></header>
 
-      <div class="starter-template">
-      
-        <h1>FAPI Test Framework</h1>
+    <div id="busy">
+    	<div class="activityIndicator">Please wait</div>
+    </div>
 
-        <div>
-			<textarea id="config">{}</textarea>
-			
-			<input type="text" id="alias" placeholder="alias"></input>
-			
-			<div id="launch-buttons"></div>
+    <div class="mainHolder">
+        <div id="homePage">
+ 			<h1>FAPI Test Framework</h1>
+	        <div>
+				<textarea id="config" placeholder="{JSON data}"></textarea>
+				<input type="text" id="alias" placeholder="alias"></input>
+				<!-- render available test launch options here -->
+				<div id="launch-buttons"></div>
+	        </div>
+
+	        <hr />
+
+	        <h3>Running tests</h3>
+	        <div>
+				<button class="btn" id="refresh">Refresh</button>
+				<!-- render tests to here -->
+				<div id="running-tests"></div>
+	        </div>
+
+	        <hr />
+
+	        <div>
+	            <a href="logs.html" class="btn btn-info">View all available logs.</a>
+	        </div>
         </div>
+    </div>
 
-		<h3>Running tests</h3>
+    <!-- Templates -->
+    <!-- Test Button -->
+    <script type="text/template" id="indexTemplate_TestButton">  
+        <button class="btn" id="createTestBtn-<%- index %>">Create <%- testName %></button>
+    </script>
 
-        <div>
-			<button class="btn" id="refresh">Refresh</button>
-	
-			<div id="running-tests"></div>
-        </div>
+    <!-- Running Test: Main -->
+    <script type="text/template" id="indexTemplate_RunningTest">  
+		<div id="<%- testStatus.id %>" class="testResult result-<%- testStatus.result.toLowerCase() %>">
+			<b><%- testStatus.name %></b> (<i><%- testStatus.id %></i>): <%- testStatus.status %> / <%- testStatus.result %>
+			<ul class="exposed"></ul>
+			<button class="btn start">START</button>
+    		<button class="btn stop">STOP</button>
+    		<a href="log-detail.html?log=<%- encodeURIComponent(testStatus.id) %>"><button class="btn view">View log</button></a>
+    		<hr />
+    		<ul class="browser"></ul>
+		</div>
+    </script>
 
-        <div>
-            <a href="logs.html" class="btn btn-info">View all available logs.</a>
-        </div>
+    <!-- Running Test: Exposed -->
+    <script type="text/template" id="indexTemplate_RunningTestExposedKeyValues">
+    	<li><b><%- key %></b>: <i><%- val %></i></li>
+    </script>
 
-      </div>
-
-    </div><!-- /.container -->
-	
-
-
-
+    <!-- Running Test: ExternalURL -->
+    <script type="text/template" id="indexTemplate_RunningTestExternalURL">
+    	<li>Go to URL: <a id="browserLink-<%- testId %>-<%- index %>" href="#"><span class="externalURLLink"><%- url %></span></a></li>
+    </script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -64,129 +95,126 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	<script type="text/javascript" src="js/fapi.ui.js"></script>
 
-
-<script type="text/javascript">
-
-$(function() {
-	
-	$.getJSON('runner/available', function(data) {
-		console.log('available: ', data);
+	<script type="text/javascript">
 		
-		_.each(data, function(testName) {
-			var btn = $('<button class="btn">Create: ' + testName + '</button>');
-			$('#launch-buttons').append(btn);
-			btn.click(function() {
-				console.log('Button clicked: ' + testName);
-				$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
-						type: 'POST',
-						contentType: 'application/json',
-						data: $('#config').val(),
-						success: function(data, status) {
-							console.log('start results: ', data);
-							updateRunningTable();
-						},
-						dataTyle: 'json'
-				});
-			});
-		});
-	});
-	
-	updateRunningTable();
-	
-	$('#refresh').click(function(event) {
-		updateRunningTable();
-	});
-	
-});
+	    /**
+	     * 
+	     */
+		$(function() {
 
-function updateRunningTable() {
-	$.getJSON('runner/running', function(data) {
-			console.log('running: ', data);
-			$('#running-tests').html('');
+			FAPI_UI.loadHomepageTemplates();
 			
-			_.each(data, function(testId) {
-				$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
-					console.log('displaying test: ' + status);
-					$('#running-tests').append('<div id="' + status.id + '"><b>' + status.name + '</b> (<i>' + status.id + '</i>): ' + status.status + ' / ' + status.result + '</div>');
-					
-					if (status.result == 'FAILED') {
-						$('#' + status.id).addClass('bg-danger');
-					} else if (status.result == 'PASSED') {
-						$('#' + status.id).addClass('bg-success');
-					} else if (status.status == 'WAITING') {
-						$('#' + status.id).addClass('bg-warning');
-					} else if (status.status == 'CONFIGURED') {
-						$('#' + status.id).addClass('bg-info');
-					}
-					
-					// list of exposed values
-					var exposed = $('<ul class="exposed"></ul>');
-					$('#' + status.id).append(exposed);
-					_.each(status.exposed, function(val, key) {
-		                  $(exposed).append('<li><b>' + key + '<b>: <i>' + val + '</i></li>');
-					});
-					
-					var start = $('<button class="btn btn-success">Start</button>');
-					$('#' + status.id).append(start);
-					start.click(function (event) {
-					    $.ajax({url: 'runner/' + encodeURIComponent(testId),
-					    	type: 'POST',
-					    	success: function(data, status) {
-                                console.log('Status: ', status);                                                    
-                                updateRunningTable();
-					    	}
-					    });
-					});
-					var stop = $('<button class="btn btn-danger">Stop</button>');
-                    $('#' + status.id).append(stop);
-                    stop.click(function (event) {
-                        $.ajax({url: 'runner/' + encodeURIComponent(testId),
-                            type: 'DELETE',
-                            success: function(data, status) {
-                                console.log('Status: ', status);                                                    
-                                updateRunningTable();
-                            }
-                        });
-                    });
-                    
-                    $('#' + status.id).append('<a href="log-detail.html?log=' + encodeURIComponent(testId) + '" class="btn btn-info">View log</a>');
-					
-					$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
-						var b = $('<ul class="browser"></ul>');
-						$('#' + status.id).append(b);
-						_.each(browser.urls, function(url) {
-							var link = $('<li><a href="#">Go to URL: ' + url + '</a></li>');
-							$(b).append(link);
-							link.click(function(event) {
-								event.preventDefault();
-								var win = window.open(url, '_blank');
-								
-								if (win) {
-									win.focus();
-									$.ajax({url: 'runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
-										type: 'POST',
-										success: function(data, status) {
-											console.log('Status: ', status);													
-											updateRunningTable();
-										}
-									});
-								} else {
-									// couldn't open the link?
-									console.log("Couldn't launch window");
-								}
-								
-							});
-						});						
+			$.getJSON('runner/available', function(data) {
+				console.log('available: ', JSON.stringify(data));
+				_.each(data, function(testName, index) {
+					$('#launch-buttons').append(FAPI_UI.logTemplates.TEST_LAUNCH_BUTTON({testName:testName, index:index}));
+
+					$('#createTestBtn-'+index).click(function (evt) {
+						console.log('Button clicked: ' + testName);
+						$("#busy").show();
+
+						$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
+								type: 'POST',
+								contentType: 'application/json',
+								data: $('#config').val(),
+								success: function(data, status) {
+									$("#busy").hide();
+									console.log('start results: ', data);
+									updateRunningTable();
+								},
+								error: function(jqxhr, status, error) {
+									$("#busy").hide();
+									alert("Error:"+status);
+								},
+								dataType: 'json'
+						});
 					});
 				});
 			});
-	});
-}
+			
+			updateRunningTable();
+			
+			$('#refresh').click(function(event) {
+				updateRunningTable();
+			});
+			
+		});
 
+		/**
+	     * 
+	     */
+		function updateRunningTable() {
+			$.getJSON('runner/running', function(data) {
+				console.log('running: ', JSON.stringify(data));
+				$('#running-tests').html('');
+				
+				_.each(data, function(testId) {
+					$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
+						console.log("displaying test results:"+JSON.stringify(status));
 
-</script>
+						$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
 
+						_.each(status.exposed, function(val, key) {
+			                $('#'+status.id+' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({key:key, val:val}));
+						});
+
+						// Create start & stop button click handlers
+						$('#'+status.id+' button.start').click(function (evt) {
+							console.log('Start button clicked: ' + testId);
+							$.ajax({url: 'runner/' + encodeURIComponent(testId),
+						    	type: 'POST',
+						    	success: function(data, status) {
+		                            console.log('Status: ', status);                                                    
+		                            updateRunningTable();
+						    	}
+						    });
+						});
+
+						$('#'+status.id+' button.stop').click(function (evt) {
+							console.log('Stop button clicked: ' + testId);
+							$.ajax({url: 'runner/' + encodeURIComponent(testId),
+		                        type: 'DELETE',
+		                        success: function(data, status) {
+		                            console.log('Status: ', status);                                                    
+		                            updateRunningTable();
+		                        }
+		                    });
+						});
+
+						// External URL link
+						$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
+							_.each(browser.urls, function(url, index) {
+								$('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
+								
+								// add the click handler
+								$('#browserLink-'+testId+"-"+index).click(function(event) {
+									event.preventDefault();
+									var win = window.open(url, '_blank');
+									
+									if (win) {
+										win.focus();
+										$.ajax({url: 'runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+											type: 'POST',
+											success: function(data, status) {
+												console.log('Status: ', status);													
+												updateRunningTable();
+											}
+										});
+									} else {
+										// couldn't open the link?
+										console.log("Couldn't launch window");
+									}
+								});
+							});						
+						});
+					});
+				});
+			});
+		}
+
+	</script>
 
   </body>
 </html>

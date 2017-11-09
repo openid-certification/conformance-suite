@@ -1,7 +1,14 @@
 var FAPI_UI = {
 
 	logTemplates : {},
-	
+
+	loadHomepageTemplates : function() {
+		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
+		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
+		this.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES = _.template($("#indexTemplate_RunningTestExposedKeyValues").html());
+		this.logTemplates.RUNNING_TEST_EXTERNAL_URL = _.template($("#indexTemplate_RunningTestExternalURL").html());
+	},
+	// TO DO rename as loadLogDetailTemplates or some such...
 	loadTemplates: function() {
 		this.logTemplates.LOG_START = _.template($("#logDetailTemplate_LogStart").html());
 		this.logTemplates.LOG_DETAIL = _.template($("#logDetailTemplate").html());
@@ -22,7 +29,7 @@ var FAPI_UI = {
 	 * 
 	 */
 	goHome : function() {
-		window.location.replace("logs.html");
+		window.location.replace("index.html");
 	},
 
 	/**

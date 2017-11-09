@@ -1,3 +1,4 @@
+/** Generic styles **/
 @font-face {
     font-family: 'MyriadWebPro';
     src: url(../fonts/Myriad/MyriadWebPro.ttf);
@@ -28,14 +29,6 @@ h2 {
   margin:0 0 5px;
 }
 
-.mainHolder {
-  margin:20px;
-}
-
-#logs .content .link {
-  margin:5px 0;
-}
-
 a {
   text-decoration: none;
   color: #1bc5f8;
@@ -45,6 +38,118 @@ a:hover {
   text-decoration: underline; 
 }
 
+.mainHolder {
+  margin:20px;
+}
+
+.wordwrap { 
+  word-wrap: break-word;  
+  word-break: break-all;     
+}
+
+/** index.html **/
+textarea {
+  width:100%;
+  height:200px;
+}
+
+input[type="text"] {
+  width:25%;
+  margin:5px 0 10px;
+}
+
+#launch-buttons button {
+  margin:5px 5px 5px 0;
+}
+
+.testResult {
+  margin:10px 0;
+  padding:5px;
+  border-radius:5px;
+}
+
+.testResult hr {
+  border-top: 1px solid #333;
+  width:90%;
+}
+
+.testResult.result-unknown {
+  background-color: #efefef;
+}
+
+.testResult.result-failed {
+  background-color: #bc827d;
+}
+
+.testResult.result-waiting {
+  background-color: #eab79c;
+}
+
+.testResult.result-passed {
+  background-color: #a8c69f;
+}
+
+.testResult.result-configured {
+  background-color: #d5aee5;
+}
+
+.testResult button {
+  color:#fff;
+  border:2px solid #fff;
+}
+
+.testResult button.start {
+  background-color: #00ee00;
+}
+
+.testResult button.stop {
+  background-color: #ee0000;
+}
+
+.testResult button.view {
+  background-color: #4cc6ea;
+}
+
+.browser li {
+  padding:5px;
+}
+
+.externalURLLink {
+  background-color: #111;
+  padding:5px;
+}
+
+#busy {
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:1000;
+  width:100vw;
+  height:100vh;
+  background-color: rgba(0,0,0,0.75);
+}
+
+#busy .activityIndicator {
+  position:relative;
+  width:140px;
+  height:140px;
+  margin:40vh auto 0;
+  text-align: center;
+  padding-top:5px;
+  color:#000;
+  background: #fff url("../images/spinner.gif") center center no-repeat;
+  background-size: 100px 100px;
+  border-radius: 10px;
+}
+
+/** index.html end **/
+
+/** logs listing **/
+#logs .content .link {
+  margin:5px 0;
+}
+
 .listHeader {
   padding:5px 0px 0px;
   background-color:#fff;
@@ -52,6 +157,8 @@ a:hover {
   border-radius: 3px;
 }
 
+
+/** log detail **/
 #logDetail h1 .row div , #logDetail .row div {
   position:relative;
   margin: 5px 0;
@@ -78,10 +185,6 @@ a:hover {
   content:": ";
 }
 
-.wordwrap { 
-  word-wrap: break-word;  
-  word-break: break-all;     
-}
 
 .moreInfo {
   background: #eee;
