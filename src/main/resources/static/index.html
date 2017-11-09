@@ -124,6 +124,10 @@
 									console.log('start results: ', data);
 									updateRunningTable();
 								},
+								error: function(jqxhr, status, error) {
+									$("#busy").hide();
+									alert("Error:"+status);
+								},
 								dataType: 'json'
 						});
 					});

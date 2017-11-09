@@ -136,6 +136,7 @@ input[type="text"] {
   height:140px;
   margin:40vh auto 0;
   text-align: center;
+  padding-top:5px;
   color:#000;
   background: #fff url("../images/spinner.gif") center center no-repeat;
   background-size: 100px 100px;
