@@ -9,6 +9,16 @@ metadata:
   annotations:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: "nginx"
+    httpd-server-snippet: |
+      <Location "/test-mtls/">
+        <If "%{HTTPS} == 'on'">
+          SSLVerifyClient optional_no_ca
+          RequestHeader set X-Ssl-Cipher "%{SSL_CIPHER}s"
+          RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
+          RequestHeader set X-Ssl-Protocol "%{SSL_PROTOCOL}s"
+          RequestHeader set X-Ssl-Verify "%{SSL_CLIENT_VERIFY}s"
+        </If>
+      </Location>
 spec:
   tls:
   - hosts:

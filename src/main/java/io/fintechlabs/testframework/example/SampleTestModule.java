@@ -54,6 +54,7 @@ import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
@@ -207,6 +208,21 @@ public class SampleTestModule extends AbstractTestModule {
 		fireTestSuccess();
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 			
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
+	 */
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		/*
+		eventLog.log(getId(), getName() + " MTLS Routing", requestParts.get("headers").getAsJsonObject());
+		
+		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		*/
+		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
+
 	}
 
 }

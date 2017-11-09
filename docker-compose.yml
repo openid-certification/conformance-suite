@@ -4,10 +4,15 @@ services:
     image: mongo
     volumes:
      - ./mongo/data:/data/db
-  server:
-    image: openjdk
+  httpd:
+    build:
+      context: ./httpd
     ports:
      - "8080:8080"
+    depends_on:
+     - server
+  server:
+    image: openjdk
     volumes:
      - ./target/:/server/
     command: java -jar /server/fapi-test-suite.jar
