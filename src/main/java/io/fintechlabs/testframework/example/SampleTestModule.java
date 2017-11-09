@@ -27,6 +27,8 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
+import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
@@ -36,6 +38,8 @@ import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
@@ -48,6 +52,8 @@ import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
+import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
@@ -114,8 +120,17 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		setStatus(Status.RUNNING);
 		
+		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
 		require(CreateRandomStateValue.class);
 		exposeEnvString("state");
+		require(AddStateToAuthorizationEndpointRequest.class);
+
+		require(CreateRandomNonceValue.class);
+		exposeEnvString("nonce");
+		require(AddNonceToAuthorizationEndpointRequest.class);
+		
+		require(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 		
 		require(BuildPlainRedirectToAuthorizationEndpoint.class);
 		

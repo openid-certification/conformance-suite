@@ -30,6 +30,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpointImplicit;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
@@ -38,7 +41,9 @@ import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
+import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
@@ -46,6 +51,8 @@ import io.fintechlabs.testframework.condition.ExtractImplicitHashToTokenEndpoint
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
+import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToToken;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
@@ -104,10 +111,19 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		setStatus(Status.RUNNING);
 		
+		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
 		require(CreateRandomStateValue.class);
 		exposeEnvString("state");
+		require(AddStateToAuthorizationEndpointRequest.class);
+
+		require(CreateRandomNonceValue.class);
+		exposeEnvString("nonce");
+		require(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(BuildPlainRedirectToAuthorizationEndpointImplicit.class);
+		require(SetAuthorizationEndpointRequestResponseTypeToToken.class);
+		
+		require(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
