@@ -59,7 +59,8 @@ public class TestDispatcher {
 
 	private static Logger logger = LoggerFactory.getLogger(TestDispatcher.class);
 	
-	public static final String TEST_PATH = "/test/";
+	public static final String TEST_PATH = "/test/"; // path for incoming test requests
+	public static final String TEST_MTLS_PATH = "/test-mtls/"; // path for incoming MTLS requests
 
 	@Autowired
 	private TestRunnerSupport support;
@@ -74,7 +75,7 @@ public class TestDispatcher {
      * @param m
      * @return
      */
-    @RequestMapping(TEST_PATH + "**")
+    @RequestMapping({TEST_PATH + "**", TEST_MTLS_PATH + "**"})
     public Object handle(
             HttpServletRequest req, HttpServletResponse res,
             HttpSession session,
@@ -138,7 +139,13 @@ public class TestDispatcher {
         
     	TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
-    		return test.handleHttp(restOfPath, req, res, session, requestParts);
+    		if (path.startsWith(TEST_PATH)) {
+    			return test.handleHttp(restOfPath, req, res, session, requestParts);
+    		} else if (path.startsWith(TEST_MTLS_PATH)) {
+    			return test.handleHttpMtls(restOfPath, req, res, session, requestParts);
+    		} else {
+    			throw new TestFailureException(test.getId(), "Failure to route to path " + path);
+    		}
     	} else {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}

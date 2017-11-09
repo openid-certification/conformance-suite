@@ -57,6 +57,7 @@ import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
@@ -290,6 +291,14 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		return new RedirectView(redirectTo, false, false, false);
 	
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
+	 */
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 
 }

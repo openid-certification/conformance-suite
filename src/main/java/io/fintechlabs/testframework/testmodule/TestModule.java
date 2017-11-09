@@ -131,4 +131,17 @@ public interface TestModule {
 	 */
 	void wire(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo);
 
+	/**
+	 * @param restOfPath
+	 * @param req
+	 * @param res
+	 * @param session
+	 * @param requestParts
+	 * @return
+	 */
+	Object handleHttpMtls(String path, 
+			HttpServletRequest req, HttpServletResponse res, 
+			HttpSession session, 
+			JsonObject requestParts);
+
 }
