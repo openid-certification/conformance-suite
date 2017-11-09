@@ -15,13 +15,14 @@
 package io.fintechlabs.testframework.condition;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
+
+import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.nimbusds.jwt.JWTClaimsSet;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -30,16 +31,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateIdTokenClaims extends AbstractCondition {
+public class CreateClientAuthenticationAssertionClaims extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateIdTokenClaims(String testId, EventLog log, boolean optional) {
+	public CreateClientAuthenticationAssertionClaims(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -48,41 +48,28 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String subject = env.getString("user_info", "sub");
-		String issuer = env.getString("issuer");
-		String clientId = env.getString("client", "client_id");
-		String nonce = env.getString("authorization_endpoint_request", "nonce");
+		String issuer = env.getString("client", "client_id");
+		String audience = env.getString("server", "token_endpoint");
 		
-		if (Strings.isNullOrEmpty(subject)) {
-			return error("Couldn't find subject");
+		if (Strings.isNullOrEmpty(issuer) || Strings.isNullOrEmpty(audience)) {
+			return error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));
 		}
-		
-		if (Strings.isNullOrEmpty(issuer)) {
-			return error("Couldn't find issuer");
-		}
-
-		if (Strings.isNullOrEmpty(clientId)) {
-			return error("Couldn't find client ID");
-		}
-		
+	
 		JsonObject claims = new JsonObject();
 		claims.addProperty("iss", issuer);
-		claims.addProperty("sub", subject);
-		claims.addProperty("aud", clientId);
-		
-		if (!Strings.isNullOrEmpty(nonce)) {
-			claims.addProperty("nonce", nonce);
-		}
+		claims.addProperty("sub", issuer);
+		claims.addProperty("aud", audience);
+		claims.addProperty("jti", RandomStringUtils.randomAlphanumeric(20));
 		
 		Instant iat = Instant.now();
-		Instant exp = iat.plusSeconds(5 * 60);
+		Instant exp = iat.plusSeconds(60);
 		
 		claims.addProperty("iat", iat.getEpochSecond());
 		claims.addProperty("exp", exp.getEpochSecond());
 
-		env.put("id_token_claims", claims);
-
-		logSuccess("Created ID Token Claims", claims);
+		logSuccess("Created client assertion claims", claims);
+		
+		env.put("client_assertion_claims", claims);
 		
 		return env;
 		

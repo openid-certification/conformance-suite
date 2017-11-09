@@ -14,14 +14,14 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -30,14 +30,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateIdTokenClaims extends AbstractCondition {
+public class GenerateJWKsFromClientSecret extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateIdTokenClaims(String testId, EventLog log, boolean optional) {
+	public GenerateJWKsFromClientSecret(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -47,42 +47,27 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-
-		String subject = env.getString("user_info", "sub");
-		String issuer = env.getString("issuer");
-		String clientId = env.getString("client", "client_id");
-		String nonce = env.getString("authorization_endpoint_request", "nonce");
+		String clientId = env.getString("client_id");
+		String clientSecret = env.getString("client", "client_secret");
 		
-		if (Strings.isNullOrEmpty(subject)) {
-			return error("Couldn't find subject");
+		if (Strings.isNullOrEmpty(clientSecret)) {
+			return error("Couldn't find client secret");
 		}
 		
-		if (Strings.isNullOrEmpty(issuer)) {
-			return error("Couldn't find issuer");
-		}
-
-		if (Strings.isNullOrEmpty(clientId)) {
-			return error("Couldn't find client ID");
-		}
+		// generate a JWK Set for the client's secret
+		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes())
+				.algorithm(JWSAlgorithm.HS256) // TODO make this configurable
+				.keyID(clientId) // TODO make this configurable
+				.keyUse(KeyUse.SIGNATURE)
+				.build();
 		
-		JsonObject claims = new JsonObject();
-		claims.addProperty("iss", issuer);
-		claims.addProperty("sub", subject);
-		claims.addProperty("aud", clientId);
+		JWKSet jwks = new JWKSet(jwk);
 		
-		if (!Strings.isNullOrEmpty(nonce)) {
-			claims.addProperty("nonce", nonce);
-		}
+		JsonObject reparsed = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 		
-		Instant iat = Instant.now();
-		Instant exp = iat.plusSeconds(5 * 60);
+		env.put("jwks", reparsed);
 		
-		claims.addProperty("iat", iat.getEpochSecond());
-		claims.addProperty("exp", exp.getEpochSecond());
-
-		env.put("id_token_claims", claims);
-
-		logSuccess("Created ID Token Claims", claims);
+		logSuccess("Generated JWK Set from symmetric key", args("jwks", reparsed));
 		
 		return env;
 		

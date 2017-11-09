@@ -14,13 +14,6 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
@@ -30,14 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateIdTokenClaims extends AbstractCondition {
+public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateIdTokenClaims(String testId, EventLog log, boolean optional) {
+	public ExtractJWKsFromClientConfiguration(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -48,41 +41,20 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String subject = env.getString("user_info", "sub");
-		String issuer = env.getString("issuer");
-		String clientId = env.getString("client", "client_id");
-		String nonce = env.getString("authorization_endpoint_request", "nonce");
-		
-		if (Strings.isNullOrEmpty(subject)) {
-			return error("Couldn't find subject");
+		if (!env.containsObj("client")) {
+			return error("Couldn't find client configuration");
 		}
 		
-		if (Strings.isNullOrEmpty(issuer)) {
-			return error("Couldn't find issuer");
-		}
-
-		if (Strings.isNullOrEmpty(clientId)) {
-			return error("Couldn't find client ID");
-		}
+		// bump the client's internal JWK up to the root
+		JsonObject jwks = env.findElement("client", "jwks").getAsJsonObject();
 		
-		JsonObject claims = new JsonObject();
-		claims.addProperty("iss", issuer);
-		claims.addProperty("sub", subject);
-		claims.addProperty("aud", clientId);
-		
-		if (!Strings.isNullOrEmpty(nonce)) {
-			claims.addProperty("nonce", nonce);
+		if (jwks == null) {
+			return error("Couldn't find JWKs in client configuration");
 		}
 		
-		Instant iat = Instant.now();
-		Instant exp = iat.plusSeconds(5 * 60);
+		logSuccess("Extracted client JWK", args("jwks", jwks));
 		
-		claims.addProperty("iat", iat.getEpochSecond());
-		claims.addProperty("exp", exp.getEpochSecond());
-
-		env.put("id_token_claims", claims);
-
-		logSuccess("Created ID Token Claims", claims);
+		env.put("jwks", jwks);
 		
 		return env;
 		

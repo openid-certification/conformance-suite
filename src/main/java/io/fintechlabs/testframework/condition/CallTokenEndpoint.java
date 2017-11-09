@@ -104,7 +104,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 			jsonString = restTemplate.postForObject(env.getString("server", "token_endpoint"), form, String.class);
 		} catch (RestClientResponseException e) {
 
-			return error("Error from the token endpoint", e);
+			return error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		}
 		
 		if (Strings.isNullOrEmpty(jsonString)) {
