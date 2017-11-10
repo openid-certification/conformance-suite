@@ -47,6 +47,7 @@ import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToToken;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
