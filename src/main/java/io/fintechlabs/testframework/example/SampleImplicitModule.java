@@ -111,7 +111,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
-		eventLog.log(getId(), getName(), "Redirecting to url" + redirectTo);
+		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
 		
