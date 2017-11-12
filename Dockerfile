@@ -1,6 +1,6 @@
 FROM openjdk
 COPY target/fapi-test-suite.jar /server/
-ENV BASE_URL http://localhost:8080
+ENV BASE_URL https://localhost:8080
 ENV MONGODB_HOST mongodb
 EXPOSE 8080
 ENTRYPOINT java \
