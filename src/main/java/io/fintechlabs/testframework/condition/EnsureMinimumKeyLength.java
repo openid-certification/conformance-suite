@@ -26,6 +26,10 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureMinimumKeyLength extends AbstractCondition {
 
+	private static final int MINIMUM_KEY_LENGTH_RSA = 2048;
+
+	private static final int MINIMUM_KEY_LENGTH_EC = 160;
+
 	public EnsureMinimumKeyLength(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
 	}
@@ -54,9 +58,9 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 			int minimumLength;
 
 			if (keyType.equals(KeyType.RSA)) {
-				minimumLength = 2048;
+				minimumLength = MINIMUM_KEY_LENGTH_RSA;
 			} else if (keyType.equals(KeyType.EC)) {
-				minimumLength = 160;
+				minimumLength = MINIMUM_KEY_LENGTH_EC;
 			} else {
 				// No requirement for other key types
 				continue;	
