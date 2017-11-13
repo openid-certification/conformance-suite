@@ -28,13 +28,6 @@ var FAPI_UI = {
 	/**
 	 * 
 	 */
-	goHome : function() {
-		window.location.replace("index.html");
-	},
-
-	/**
-	 * 
-	 */
 	loadAvailableLogs : function() {
 		$.ajax({ 
 	        type: 'GET', 
