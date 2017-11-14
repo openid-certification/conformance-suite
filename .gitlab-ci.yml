@@ -101,7 +101,7 @@ review:
     - deploy
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http://$BASE_HOST_NAME-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
+    url: https://$BASE_HOST_NAME-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
     on_stop: stop_review
   only:
     refs:
@@ -152,7 +152,7 @@ staging:
     - deploy
   environment:
     name: staging
-    url: http://$STAGING_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$STAGING_HOST.$AUTO_DEVOPS_DOMAIN
   only:
     refs:
       - master
@@ -174,7 +174,7 @@ staging:
     - deploy canary
   environment:
     name: production
-    url: http://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
   when: manual
   only:
     refs:
@@ -199,7 +199,7 @@ production:
     - delete canary
   environment:
     name: production
-    url: http://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
   when: manual
   only:
     refs:

@@ -36,6 +36,7 @@ import io.fintechlabs.testframework.condition.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.EnsureMatchingRedirectUri;
+import io.fintechlabs.testframework.condition.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.ExtractClientCredentialsFromFormPost;
@@ -88,6 +89,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 		require(CheckServerConfiguration.class);
 		
 		require(LoadJWKs.class);
+		
+		require(EnsureMinimumKeyLength.class);
 		
 		require(LoadUserInfo.class);
 		
