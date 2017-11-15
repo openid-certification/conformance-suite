@@ -14,13 +14,19 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import com.nimbusds.jose.util.Base64URL;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -110,6 +116,45 @@ public class ValidateIdToken extends AbstractCondition {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
 				// this is just something to log, it doesn't make the token invalid
 				log("Token has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
+			}
+		}
+		
+		String s_hash = env.getString("id_token", "claims.s_hash");
+		if (s_hash != null) {
+			// s_hash is only required for the write profile, so verify only if present
+
+			String alg = env.getString("id_token", "header.alg");
+			if (alg == null) {
+				return error("Couldn't find algorithm in ID token header");
+			}
+			
+			String state = env.getString("state");
+			if (state == null) {
+				return error("Couldn't find state");
+			}
+			
+			MessageDigest digester;
+			
+			try {
+				Matcher matcher = Pattern.compile("^(HS|RS|ES|PS)(256|384|512)$").matcher(alg);
+				if (!matcher.matches()) {
+					return error("Invalid algorithm", args("alg", alg));
+				}
+				
+				String digestAlgorithm = "SHA-" + matcher.group(2);
+				digester = MessageDigest.getInstance(digestAlgorithm);
+			} catch (NoSuchAlgorithmException e) {
+				return error("Unsupported digest for algorithm", e, args("alg", alg));
+			}
+			
+			byte[] stateDigest = digester.digest(state.getBytes(StandardCharsets.US_ASCII));
+			
+			byte[] halfDigest = new byte[stateDigest.length / 2];
+			System.arraycopy(stateDigest, 0, halfDigest, 0, halfDigest.length);
+			
+			String expectedHash = Base64URL.encode(halfDigest).toString();
+			if (!s_hash.equals(expectedHash)) {
+				return error("Invalid s_hash in token", args("expected", expectedHash, "actual", s_hash));
 			}
 		}
 		

@@ -68,9 +68,16 @@ public class ValidateIdToken_UnitTest {
 	}
 	
 	private void addIdToken(Environment env, JsonObject claims) {
+		addIdToken(env, claims, null);
+	}
+	
+	private void addIdToken(Environment env, JsonObject claims, JsonObject header) {
 		
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
+		if (header != null) {
+			idToken.add("header",  header);
+		}
 		env.put("id_token", idToken);
 		
 	}
@@ -97,6 +104,28 @@ public class ValidateIdToken_UnitTest {
 		
 	}
 	
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.ValidateIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test
+	public void testEvaluate_withHash() {
+		
+		claims.addProperty("s_hash", "WZRHGrsBESr8wYFZ9sx0tA");
+		
+		JsonObject header = new JsonParser().parse("{\"alg\":\"HS256\"}").getAsJsonObject();
+		
+		env.putString("client_id", clientId);
+		env.put("server", server);
+		env.putString("state", "12345");
+		addIdToken(env, claims, header);
+		
+		cond.evaluate(env);
+		
+		verify(env, atLeastOnce()).getString("id_token", "claims.s_hash");
+		verify(env, atLeastOnce()).getString("state");
+		verify(env, atLeastOnce()).getString("id_token", "header.alg");
+	}
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.ValidateIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
@@ -340,5 +369,23 @@ public class ValidateIdToken_UnitTest {
 
 		cond.evaluate(env);
 		
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.ValidateIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_badHash() {
+		
+		claims.addProperty("s_hash", "WZRHGrsBESr8wYFZ9sx0tA");
+		
+		JsonObject header = new JsonParser().parse("{\"alg\":\"HS256\"}").getAsJsonObject();
+		
+		env.putString("client_id", clientId);
+		env.put("server", server);
+		env.putString("state", "abcde");
+		addIdToken(env, claims, header);
+		
+		cond.evaluate(env);
 	}
 }
