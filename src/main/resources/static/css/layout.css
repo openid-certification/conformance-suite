@@ -58,6 +58,10 @@ input[type="text"] {
   margin:5px 0 10px;
 }
 
+button {
+  background-color: #ccc;
+}
+
 #launch-buttons button {
   margin:5px 5px 5px 0;
 }
@@ -141,6 +145,65 @@ input[type="text"] {
   background: #fff url("../images/spinner.gif") center center no-repeat;
   background-size: 100px 100px;
   border-radius: 10px;
+}
+
+/* JSON form tabs */
+.tabs {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-bottom:none;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tabs button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    border-radius:none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 20px;
+}
+
+.tabs button:hover {
+    background-color: #ddd;
+}
+
+.tabs button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabContent {
+  display:none;
+    padding:0px 12px;
+    border:1px solid #ccc;
+}
+
+.tabContent input {
+  width:100%;
+}
+
+.tabContent textarea {
+  width:100%;
+  height:240px;
+}
+
+.tabContent .row {
+  margin-bottom:10px;
+}
+
+.tabContent.active {
+  display:block;
+}
+
+textarea {
+  border:1px solid #ccc;
+}
+
+#config {
+  border:none;
 }
 
 /** index.html end **/

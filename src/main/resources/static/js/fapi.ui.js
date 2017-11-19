@@ -44,5 +44,27 @@ var FAPI_UI = {
 	    });
 	},
 
+	testJSON : {
+				server : {
+					discoveryUrl: ""
+				},
+				client : {
+					client_id: "",
+					client_secret:"",
+					redirect_uri:"",
+					scope: "",
+					jwks: {
+						keys:[]
+					}
+				},
+				jwks: {
+					keys:[]
+				},
+				tls : {
+					testHost: "",
+					testPort: ""
+				}
+			}
+
 }
 

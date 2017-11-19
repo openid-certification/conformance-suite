@@ -36,8 +36,63 @@
     <div class="mainHolder">
         <div id="homePage">
  			<h1>FAPI Test Framework</h1>
+	        <div class="tabs">
+			  <button class="active" onClick="openTab(this, 0)">Form</button>
+			  <button onClick="openTab(this, 1)">JSON</button>
+			</div>
+
+			<div id="tabContent-0" class="tabContent active">
+			  	<h3>Server</h3>
+				<div class="row">
+					<div class="col-md-2 key">discoveryUrl</div>
+					<div class="col-md-10"><input id="input-discoveryUrl" placeholder="Required" onKeyUp="populateJSON('server', 'discoveryUrl', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+
+				<h3>Client</h3>
+				<div class="row">
+					<div class="col-md-2 key">client_id</div>
+					<div class="col-md-10"><input id="input-client_id" placeholder="Required" onKeyUp="populateJSON('client', 'client_id', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+				<div class="row">
+					<div class="col-md-2 key">client_secret</div>
+					<div class="col-md-10"><input id="input-client_secret" placeholder="Optional" onKeyUp="populateJSON('client', 'client_secret', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+				<div class="row">
+					<div class="col-md-2 key">scope</div>
+					<div class="col-md-10"><input id="input-scope" placeholder="Optional" onKeyUp="populateJSON('client', 'scope', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+				<div class="row">
+					<div class="col-md-2 key">redirect_uri</div>
+					<div class="col-md-10"><input id="input-redirect_uri" placeholder="Optional" onKeyUp="populateJSON('client', 'redirect_uri', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+				<div class="row">
+					<div class="col-md-2 key">jwks.keys</div>
+					<div class="col-md-10"><textarea id="input-client-jwksKeys" placeholder="An array of objects (Optional)" onKeyUp="populateJWKSKeys(this.value, 'client')" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea></div>
+				</div>
+
+				<h3>JWKS</h3>
+				<div class="row">
+					<div class="col-md-2 key">keys</div>
+					<div class="col-md-10"><textarea id="input-jwksKeys" placeholder="An array of objects (Optional)" onKeyUp="populateJWKSKeys(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea></div>
+				</div>
+
+				<h3>TLS</h3>
+				<div class="row">
+					<div class="col-md-2 key">testHost</div>
+					<div class="col-md-10"><input id="input-testHost" placeholder="Optional" onKeyUp="populateJSON('tls', 'testHost', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-2 key">testPort</div>
+					<div class="col-md-10"><input id="input-testPort" placeholder="Optional" onKeyUp="populateJSON('tls', 'testPort', this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+				</div>
+			</div>
+
+			<div id="tabContent-1" class="tabContent">
+			  <textarea id="config" placeholder="{JSON data}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+			</div>
+
 	        <div>
-				<textarea id="config" placeholder="{JSON data}"></textarea>
 				<input type="text" id="alias" placeholder="alias"></input>
 				<!-- render available test launch options here -->
 				<div id="launch-buttons"></div>
@@ -105,6 +160,8 @@
 		$(function() {
 
 			FAPI_UI.loadHomepageTemplates();
+
+			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
 			$.getJSON('runner/available', function(data) {
 				console.log('available: ', JSON.stringify(data));
@@ -212,6 +269,99 @@
 					});
 				});
 			});
+		}
+
+		/**
+		 *
+		 */		
+		function openTab(btn, tabId) {
+			// unhighlight all tabs & highlight the active tab
+		    $(".tabs button").removeClass("active");
+		    $(btn).addClass("active");
+
+		    $(".tabContent").removeClass("active");
+		    $("#tabContent-"+tabId).addClass("active");
+
+		    if (tabId == 0) { // Populate the Form from the JSON
+		    	var parsedJSON;
+		    	try {
+			        parsedJSON = JSON.parse($("#config").val());
+			    } catch (e) {
+			        return false;
+			    }
+
+			    // check that any pasted JSON data still conforms to our JSON schema's compulsory objects
+			    if (parsedJSON.server && parsedJSON.client) {
+			    	if (parsedJSON.server.discoveryUrl && parsedJSON.client.client_id) {
+				    	FAPI_UI.testJSON = parsedJSON;
+
+				    	// update the input displays with any new data
+					    $("#input-discoveryUrl").val(FAPI_UI.testJSON.server.discoveryUrl);	  
+					    $("#input-client_id").val(FAPI_UI.testJSON.client.client_id);
+
+					    // the user could have pasted garbage in their JSON paste, lets filter & only get the required items
+					    if (FAPI_UI.testJSON.client.client_secret) {
+					    	$("#input-client_secret").val(FAPI_UI.testJSON.client.client_secret);
+					    }
+					    if (FAPI_UI.testJSON.client.scope) {
+					    	$("#input-scope").val(FAPI_UI.testJSON.client.scope);
+					    }
+					    if (FAPI_UI.testJSON.client.redirect_uri) {
+					    	$("#input-redirect_uri").val(FAPI_UI.testJSON.client.redirect_uri);
+					    }
+					    if (FAPI_UI.testJSON.client.jwks && FAPI_UI.testJSON.client.jwks.keys) {
+					    	$("#input-client-jwksKeys").val(JSON.stringify(FAPI_UI.testJSON.client.jwks.keys));
+					    }
+					    if (FAPI_UI.testJSON.jwks && FAPI_UI.testJSON.jwks.keys) {
+					    	$("#input-jwksKeys").val(JSON.stringify(FAPI_UI.testJSON.jwks.keys));
+					    }
+					    if (FAPI_UI.testJSON.tls && FAPI_UI.testJSON.tls.testHost) {
+					    	$("#input-testHost").val(FAPI_UI.testJSON.tls.testHost);
+					    }
+					    if (FAPI_UI.testJSON.tls && FAPI_UI.testJSON.tls.testPort) {
+					    	$("#input-testPort").val(FAPI_UI.testJSON.tls.testPort);
+					    } 
+				    }
+			    }
+		    } else if (tabId == 1) { // populate the JSON from the Form
+		    	$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+		    }
+		}
+
+		/**
+		 *
+		 */
+		function populateJSON(node, key, val) {
+			FAPI_UI.testJSON[node][key] = val;
+		}
+
+		/**
+		 *
+		 */
+		function populateJWKSKeys(val, target) {
+
+			var parsedJSON;
+
+			// check for valid JSON
+			try {
+		        parsedJSON = JSON.parse(val);
+		    } catch (e) {
+		        return false;
+		    }
+
+		    // check our keys are in an array
+		    if (!_.isArray(parsedJSON)) {
+		    	alert("Your keys are not in an array!");
+		    	return;
+		    }
+
+		    if (target == "client") {
+		    	FAPI_UI.testJSON.client.jwks.keys = parsedJSON;
+		    } else {
+		    	FAPI_UI.testJSON.jwks.keys = parsedJSON;
+		    }
+		    
+		    return true;
 		}
 
 	</script>
