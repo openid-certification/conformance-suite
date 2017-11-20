@@ -77,7 +77,8 @@ public class ValidateStateHash extends AbstractCondition {
 			return error("Invalid s_hash in token", args("expected", expectedHash, "actual", s_hash));
 		}
 
-		logSuccess("State hash validated successfully");
+		logSuccess("State hash validated successfully", args("s_hash", s_hash));
+
 		return env;
 	}
 
