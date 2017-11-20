@@ -16,10 +16,8 @@ package io.fintechlabs.testframework.condition;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -46,11 +44,15 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		String accessToken = env.getString("token_endpoint_response", "access_token");
+
+		if (Strings.isNullOrEmpty(accessToken)) {
+			return error("Can't find access token");
+		}
 		
 		double bitsPerCharacter = getShannonEntropy(accessToken);
 		
 		double entropy = bitsPerCharacter * (double) accessToken.length();
-		
+
 		
 		if (entropy > requiredEntropy) {
 			logSuccess("Calculated entropy", args("expected", requiredEntropy, "actual", entropy));
@@ -61,6 +63,7 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 		
 	}
 
+	// entropy calculation from https://rosettacode.org/wiki/Entropy#Java
 	private double getShannonEntropy(String s) {
 		int n = 0;
 		Map<Character, Integer> occ = new HashMap<>();

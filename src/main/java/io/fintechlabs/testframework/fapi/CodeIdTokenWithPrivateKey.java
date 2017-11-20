@@ -45,6 +45,7 @@ import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
@@ -235,7 +236,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		optional(CheckForRefreshTokenValue.class);
 		
-		require(EnsureMinimumTokenEntropy.class);
+		require(EnsureMinimumTokenLength.class);
+		
+		optional(EnsureMinimumTokenEntropy.class);
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
