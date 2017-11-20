@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.logging.EventLog;
@@ -42,6 +43,13 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 
 		if (!env.containsObj("config")) {
 			return error("Couldn't find a configuration");
+		}
+		
+		String discoveryUrl = env.getString("config", "server.discoveryUrl");
+		String iss = env.getString("config", "server.discoveryIssuer");
+		
+		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
+			return error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
 		}
 
 		// make sure we've got a server object

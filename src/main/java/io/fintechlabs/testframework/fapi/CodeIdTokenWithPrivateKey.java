@@ -52,6 +52,7 @@ import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
@@ -90,7 +91,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		optional(GetDynamicServerConfiguration.class);
+		optional(GetStaticServerConfiguration.class);
+		
 		
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
