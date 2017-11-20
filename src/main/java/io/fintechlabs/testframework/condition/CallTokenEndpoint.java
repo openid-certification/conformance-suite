@@ -14,11 +14,38 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.security.KeyFactory;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -28,7 +55,6 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -76,9 +102,74 @@ public class CallTokenEndpoint extends AbstractCondition {
 		// extract the headers for use (below)
 		final JsonObject headersJson = env.get("token_endpoint_request_headers");
 		
-		HttpClient httpClient = HttpClientBuilder.create()
-				.useSystemProperties()
-				.build();
+		
+		HttpClientBuilder builder = HttpClientBuilder.create()
+				.useSystemProperties();
+		
+		// initialize MTLS if it's available
+		if (env.containsObj("mutual_tls_authentication")) {
+			
+			try {
+				
+				TrustManager[] trustAllCerts = new TrustManager[] {
+					new X509TrustManager() {
+						
+						@Override
+						public X509Certificate[] getAcceptedIssuers() {
+							return new X509Certificate[0];
+						}
+						
+						@Override
+						public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+						}
+						
+						@Override
+						public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+						}
+					}
+				};
+				
+				// TODO: move this to an extractor?
+				String clientCert = env.getString("mutual_tls_authentication", "cert");
+				String clientKey = env.getString("mutual_tls_authentication", "key");
+				
+				byte[] certBytes = Base64.getDecoder().decode(clientCert);
+				byte[] keyBytes = Base64.getDecoder().decode(clientKey);
+				
+				X509Certificate cert = generateCertificateFromDER(certBytes);              
+			    RSAPrivateKey key  = generatePrivateKeyFromDER(keyBytes);
+				
+			    KeyStore keystore = KeyStore.getInstance("JKS");
+			    keystore.load(null);
+			    keystore.setCertificateEntry("cert-alias", cert);
+			    keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), new Certificate[] {cert});
+
+			    KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+			    kmf.init(keystore, "changeit".toCharArray());
+			    
+				SSLContext sc;
+				sc = SSLContext.getInstance("TLS");
+				sc.init(kmf.getKeyManagers(), trustAllCerts, new java.security.SecureRandom());
+				
+				//builder.setSslcontext(sc);
+		        SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sc, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+		        
+				builder.setSSLSocketFactory(sslConnectionFactory);
+				Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+		                .register("https", sslConnectionFactory)
+		                .register("http", new PlainConnectionSocketFactory())
+		                .build();
+		        HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+		        builder.setConnectionManager(ccm);
+		        
+			} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
+				return error("Error when building mutual TLS connection", e);
+			} 
+			
+		}
+		
+		
+		HttpClient httpClient = builder.build();
 
 		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 		
@@ -129,6 +220,20 @@ public class CallTokenEndpoint extends AbstractCondition {
 			}
 		}
 		
+	}
+	
+	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	    PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+
+	    KeyFactory factory = KeyFactory.getInstance("RSA");
+
+	    return (RSAPrivateKey)factory.generatePrivate(spec);        
+	}
+
+	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
+	    CertificateFactory factory = CertificateFactory.getInstance("X.509");
+
+	    return (X509Certificate)factory.generateCertificate(new ByteArrayInputStream(certBytes));      
 	}
 
 }
