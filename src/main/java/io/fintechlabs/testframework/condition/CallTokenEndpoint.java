@@ -46,6 +46,8 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -69,6 +71,10 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class CallTokenEndpoint extends AbstractCondition {
 
+	
+	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpoint.class);
+
+	
 	/**
 	 * @param testId
 	 * @param log
@@ -144,25 +150,49 @@ public class CallTokenEndpoint extends AbstractCondition {
 			    keystore.setCertificateEntry("cert-alias", cert);
 			    keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), new Certificate[] {cert});
 
-			    KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			    kmf.init(keystore, "changeit".toCharArray());
+			    /*
+				SSLContext sc = new SSLContextBuilder()
+						.loadKeyMaterial(keystore, "changeit".toCharArray(), new PrivateKeyStrategy() {
+							@Override
+							public String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket) {
+								return "key-alias";
+							}
+						})
+						.loadTrustMaterial(new TrustStrategy() {
+							@Override
+							public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+								// trust all server certs
+								return true;
+							}
+						})
+						.build();
+						*/
 			    
-				SSLContext sc;
-				sc = SSLContext.getInstance("TLS");
-				sc.init(kmf.getKeyManagers(), trustAllCerts, new java.security.SecureRandom());
+			    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			    keyManagerFactory.init(keystore, "changeit".toCharArray());
+			    
+			    SSLContext sc = SSLContext.getInstance("TLS"); 
+			    sc.init(keyManagerFactory.getKeyManagers(), trustAllCerts, new java.security.SecureRandom());
 				
-				//builder.setSslcontext(sc);
-		        SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sc, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-		        
-				builder.setSSLSocketFactory(sslConnectionFactory);
+				builder.setSslcontext(sc);
+				
+				SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
+			            new String[]{"TLSv1.2"},
+			            null,
+			            SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+				
+				builder.setSSLSocketFactory(sslConnectionSocketFactory);
+
 				Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-		                .register("https", sslConnectionFactory)
+		                .register("https", sslConnectionSocketFactory)
 		                .register("http", new PlainConnectionSocketFactory())
 		                .build();
+				
 		        HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
 		        builder.setConnectionManager(ccm);
-		        
+				
 			} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
+				logger.warn("TLS Error", e);
 				return error("Error when building mutual TLS connection", e);
 			} 
 			
