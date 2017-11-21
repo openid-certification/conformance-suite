@@ -14,10 +14,12 @@
 package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -40,14 +42,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.example.SampleClientTestModule;
 import io.fintechlabs.testframework.example.SampleImplicitModule;
 import io.fintechlabs.testframework.example.SampleTestModule;
+import io.fintechlabs.testframework.fapi.CodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.fapi.CodeIdTokenWithPrivateKey;
 import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -88,12 +89,14 @@ public class TestRunner {
 	private TestInfoService testInfo;
 	
 	// TODO: make this a configurable factory bean
-	private Map<String, Class<? extends TestModule>> testModules = ImmutableMap.of(
-			"sample-test-module", SampleTestModule.class, 
-			"sample-client-test-module", SampleClientTestModule.class, 
-			"sample-implicit-module", SampleImplicitModule.class, 
-			"ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class, 
-			"code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class);
+	private Map<String, Class<? extends TestModule>> testModules = Stream.of(
+			new SimpleEntry<>("sample-test-module", SampleTestModule.class), 
+			new SimpleEntry<>("sample-client-test-module", SampleClientTestModule.class), 
+			new SimpleEntry<>("sample-implicit-module", SampleImplicitModule.class), 
+			new SimpleEntry<>("ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class), 
+			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
+			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class))
+			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getAvailableTests(Model m) {

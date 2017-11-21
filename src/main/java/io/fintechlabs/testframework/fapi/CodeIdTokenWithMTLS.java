@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
@@ -49,6 +50,7 @@ import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromClientConfiguration;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
@@ -64,17 +66,17 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
-public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
+public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 	
-	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPrivateKey.class);
+	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithMTLS.class);
 
 	
 	/**
 	 * @param name
 	 */
-	public CodeIdTokenWithPrivateKey() {
-		super("code-id-token-with-private-key");
+	public CodeIdTokenWithMTLS() {
+		super("code-id-token-with-mtls");
 	}
 
 	/* (non-Javadoc)
@@ -105,7 +107,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		exposeEnvString("client_id");
 		
-		require(ExtractJWKsFromClientConfiguration.class);
+		//require(ExtractJWKsFromClientConfiguration.class);
+		require(ExtractMTLSCertificatesFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
@@ -221,11 +224,13 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		require(CreateClientAuthenticationAssertionClaims.class);
+		//require(CreateClientAuthenticationAssertionClaims.class);
 		
-		require(SignClientAuthenticationAssertion.class);
+		//require(SignClientAuthenticationAssertion.class);
 		
-		require(AddClientAssertionToTokenEndpointRequest.class);
+		//require(AddClientAssertionToTokenEndpointRequest.class);
+		
+		require(AddClientIdToTokenEndpointRequest.class);
 		
 		require(CallTokenEndpoint.class);
 
