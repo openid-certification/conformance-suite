@@ -115,7 +115,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.9</version>
                 <executions>
                     <execution>
                         <id>pre-unit-test</id>
@@ -177,6 +176,11 @@
     			<groupId>org.apache.httpcomponents</groupId>
     			<artifactId>httpclient</artifactId>
     			<version>4.3.6</version>
+    		</dependency>
+    		<dependency>
+    			<groupId>org.jacoco</groupId>
+    			<artifactId>jacoco-maven-plugin</artifactId>
+    			<version>0.7.9</version>
     		</dependency>
     		<dependency>
     			<groupId>com.nimbusds</groupId>
