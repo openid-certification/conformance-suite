@@ -14,8 +14,6 @@
 
 package io.fintechlabs.testframework.condition;
 
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
@@ -26,22 +24,27 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition {
+public class AddNonceToAuthorizationEndpointRequest extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public BuildPlainRedirectToAuthorizationEndpoint(String testId, EventLog log, boolean optional) {
+	public AddNonceToAuthorizationEndpointRequest(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
+		String nonce = env.getString("nonce");
+		if (Strings.isNullOrEmpty(nonce)) {
+			return error("Couldn't find nonce value");
+		}
 		
 		if (!env.containsObj("authorization_endpoint_request")) {
 			return error("Couldn't find authorization endpoint request");
@@ -49,28 +52,14 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
 		
-		String authorizationEndpoint = env.getString("server", "authorization_endpoint");
+		authorizationEndpointRequest.addProperty("nonce", nonce);
 		
-		if (Strings.isNullOrEmpty(authorizationEndpoint)) {
-			return error("Couldn't find authorization endpoint");
-		}
+		env.put("authorization_endpoint_request", authorizationEndpointRequest);
 		
-		
-		// send a front channel request to start things off
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(authorizationEndpoint);
-		
-		for (String key : authorizationEndpointRequest.keySet()) {
-			// assume everything is a string for now
-			builder.queryParam(key, authorizationEndpointRequest.get(key).getAsString());
-		}
-		
-		String redirectTo = builder.toUriString();
-
-		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo));
-		
-		env.putString("redirect_to_authorization_endpoint", redirectTo);
+		logSuccess("Added nonce parameter to request", authorizationEndpointRequest);
 		
 		return env;
+
 	}
 
 }

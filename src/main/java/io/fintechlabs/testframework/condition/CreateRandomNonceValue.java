@@ -14,8 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -24,13 +23,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GetStaticServerConfiguration extends AbstractCondition {
+public class CreateRandomNonceValue extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public GetStaticServerConfiguration(String testId, EventLog log, boolean optional) {
+	public CreateRandomNonceValue(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -41,28 +41,13 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("config")) {
-			return error("Couldn't find a configuration");
-		}
+		String nonce = RandomStringUtils.randomAlphanumeric(10);
+		env.putString("nonce", nonce);
 		
-		String discoveryUrl = env.getString("config", "server.discoveryUrl");
-		String iss = env.getString("config", "server.discoveryIssuer");
+		log("Created nonce value", args("nonce", nonce));
 		
-		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
-			return error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
-		}
-
-		// make sure we've got a server object
-		JsonElement server = env.findElement("config", "server");
-		if (server == null || !server.isJsonObject()) {
-			return error("Couldn't find server object in configuration");
-		} else {
-			// we've got a server object, put it in the environment
-			env.put("server", server.getAsJsonObject());
-			
-			logSuccess("Found a static server object", server.getAsJsonObject());
-			return env;
-		}
+		return env;
+		
 	}
 
 }

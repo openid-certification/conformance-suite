@@ -15,7 +15,6 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -24,14 +23,17 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GetStaticServerConfiguration extends AbstractCondition {
+public class EnsureMinimumTokenLength extends AbstractCondition {
 
+	private final double requiredLength = 128;
+	
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public GetStaticServerConfiguration(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public EnsureMinimumTokenLength(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-16");
 		// TODO Auto-generated constructor stub
 	}
 
@@ -41,28 +43,23 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("config")) {
-			return error("Couldn't find a configuration");
-		}
-		
-		String discoveryUrl = env.getString("config", "server.discoveryUrl");
-		String iss = env.getString("config", "server.discoveryIssuer");
-		
-		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
-			return error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
+		String accessToken = env.getString("token_endpoint_response", "access_token");
+
+		if (Strings.isNullOrEmpty(accessToken)) {
+			return error("Can't find access token");
 		}
 
-		// make sure we've got a server object
-		JsonElement server = env.findElement("config", "server");
-		if (server == null || !server.isJsonObject()) {
-			return error("Couldn't find server object in configuration");
-		} else {
-			// we've got a server object, put it in the environment
-			env.put("server", server.getAsJsonObject());
-			
-			logSuccess("Found a static server object", server.getAsJsonObject());
+		byte[] bytes = accessToken.getBytes();
+		
+		int bitLength = bytes.length * 8;
+		
+		if (bitLength >= requiredLength) {
+			logSuccess("Access token is of sufficient length", args("required", requiredLength, "actual", bitLength));
 			return env;
+		} else {
+			return error("Access token is not of sufficient length", args("required", requiredLength, "actual", bitLength));
 		}
+		
 	}
 
 }

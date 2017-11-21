@@ -14,8 +14,14 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.nio.charset.Charset;
+import java.util.List;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -24,15 +30,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GetStaticServerConfiguration extends AbstractCondition {
+public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public GetStaticServerConfiguration(String testId, EventLog log, boolean optional) {
+	public ExtractImplicitHashToCallbackResponse(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -40,29 +46,30 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-
-		if (!env.containsObj("config")) {
-			return error("Couldn't find a configuration");
-		}
-		
-		String discoveryUrl = env.getString("config", "server.discoveryUrl");
-		String iss = env.getString("config", "server.discoveryIssuer");
-		
-		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
-			return error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
-		}
-
-		// make sure we've got a server object
-		JsonElement server = env.findElement("config", "server");
-		if (server == null || !server.isJsonObject()) {
-			return error("Couldn't find server object in configuration");
-		} else {
-			// we've got a server object, put it in the environment
-			env.put("server", server.getAsJsonObject());
+		if (!Strings.isNullOrEmpty(env.getString("implicit_hash"))) {
 			
-			logSuccess("Found a static server object", server.getAsJsonObject());
+			String hash = env.getString("implicit_hash").substring(1); // strip off the leading # character
+			
+			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
+			
+			log("Extracted response from hash", args("parameters", parameters));
+			
+			JsonObject o = new JsonObject();
+			for (NameValuePair pair : parameters) {
+				o.addProperty(pair.getName(), pair.getValue());
+			}
+			
+			// these count as both the authorization and token responses
+			env.put("callback_params", o);
+			
+			logSuccess("Extracted the hash values", o);
+			
 			return env;
+			
+		} else {
+			return error("Couldn't find the response in hash for implicit flow");
 		}
+
 	}
 
 }

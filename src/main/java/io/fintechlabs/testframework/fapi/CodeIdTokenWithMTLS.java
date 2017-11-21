@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.example;
+package io.fintechlabs.testframework.fapi;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,9 +25,12 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
@@ -36,16 +39,25 @@ import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
-import io.fintechlabs.testframework.condition.ExtractImplicitHashToTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
+import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
+import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromClientConfiguration;
+import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
-import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToToken;
+import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -54,19 +66,21 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
-public class SampleImplicitModule extends AbstractTestModule {
+public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(SampleImplicitModule.class); 
+	
+	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithMTLS.class);
+
 	
 	/**
-	 * 
+	 * @param name
 	 */
-	public SampleImplicitModule() {
-		super("sample-implicit-test");
+	public CodeIdTokenWithMTLS() {
+		super("code-id-token-with-mtls");
 	}
 
 	/* (non-Javadoc)
-	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
 	 */
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
@@ -79,27 +93,39 @@ public class SampleImplicitModule extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		optional(GetDynamicServerConfiguration.class);
+		optional(GetStaticServerConfiguration.class);
+		
 		
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
+		
+		require(FetchServerKeys.class);
 		
 		// Set up the client configuration
 		require(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
+		
+		//require(ExtractJWKsFromClientConfiguration.class);
+		require(ExtractMTLSCertificatesFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+		
 	}
 
 	/* (non-Javadoc)
-	 * @see io.bspk.selenium.TestModule#start()
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
 	 */
+	@Override
 	public void start() {
-		
 		setStatus(Status.RUNNING);
+		
+		
+		
+		//require(BuildPlainRedirectToAuthorizationEndpointHybridCodeIdtoken.class);
 		
 		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
@@ -111,7 +137,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		exposeEnvString("nonce");
 		require(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(SetAuthorizationEndpointRequestResponseTypeToToken.class);
+		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 		
 		require(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
@@ -125,11 +151,10 @@ public class SampleImplicitModule extends AbstractTestModule {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#stop()
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#stop()
 	 */
 	@Override
 	public void stop() {
-
 		eventLog.log(getId(), getName(), "Finished");
 		
 		setStatus(Status.FINISHED);
@@ -137,14 +162,13 @@ public class SampleImplicitModule extends AbstractTestModule {
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
 		}
-
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		eventLog.log(getId(), getName(), "Path: " + path);
 		eventLog.log(getId(), getName(), "Params: " + requestParts);
 		
@@ -159,9 +183,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 		} else {
 			return new ModelAndView("testError");
 		}
-		
 	}
-
+	
 	@UserFacing
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
@@ -175,16 +198,6 @@ public class SampleImplicitModule extends AbstractTestModule {
 					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
 	
-	
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
@@ -196,11 +209,30 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		env.putString("implicit_hash", hash);
 		
-		require(ExtractImplicitHashToTokenEndpointResponse.class);
+		require(ExtractImplicitHashToCallbackResponse.class);
 	
 		require(CheckIfAuthorizationEndpointError.class);
 		
 		require(CheckMatchingStateParameter.class);
+		
+		// check the ID token from the hybrid response
+		
+		
+		// call the token endpoint and complete the flow
+		
+		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		
+		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+
+		//require(CreateClientAuthenticationAssertionClaims.class);
+		
+		//require(SignClientAuthenticationAssertion.class);
+		
+		//require(AddClientAssertionToTokenEndpointRequest.class);
+		
+		require(AddClientIdToTokenEndpointRequest.class);
+		
+		require(CallTokenEndpoint.class);
 
 		require(CheckIfTokenEndpointResponseError.class);
 
@@ -212,7 +244,9 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		optional(CheckForRefreshTokenValue.class);
 		
-		require(EnsureMinimumTokenEntropy.class);
+		require(EnsureMinimumTokenLength.class);
+		
+		optional(EnsureMinimumTokenEntropy.class);
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
@@ -225,7 +259,9 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 */
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
+		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
 	}
+
+
 
 }

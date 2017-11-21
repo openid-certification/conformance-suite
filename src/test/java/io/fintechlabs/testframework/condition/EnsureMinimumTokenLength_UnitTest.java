@@ -31,7 +31,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureMinimumTokenEntropy_UnitTest {
+public class EnsureMinimumTokenLength_UnitTest {
 
 
 	@Spy
@@ -40,12 +40,12 @@ public class EnsureMinimumTokenEntropy_UnitTest {
 	@Mock
 	private EventLog eventLog;
 
-	private EnsureMinimumTokenEntropy cond;
+	private EnsureMinimumTokenLength cond;
 	
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new EnsureMinimumTokenEntropy("UNIT-TEST", eventLog, false);
+		cond = new EnsureMinimumTokenLength("UNIT-TEST", eventLog, false);
 
 	}
 	
@@ -61,7 +61,7 @@ public class EnsureMinimumTokenEntropy_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_entropyBad() {
 		JsonObject o = new JsonObject();
-		o.addProperty("access_token", "1111111111111111111111111111111111111111");
+		o.addProperty("access_token", "aQm0ukLetSUOXr1");
 		env.put("token_endpoint_response", o);
 		
 		cond.evaluate(env);		

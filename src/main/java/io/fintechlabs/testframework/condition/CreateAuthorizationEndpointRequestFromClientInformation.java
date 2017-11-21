@@ -15,7 +15,7 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -24,13 +24,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GetStaticServerConfiguration extends AbstractCondition {
+public class CreateAuthorizationEndpointRequestFromClientInformation extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public GetStaticServerConfiguration(String testId, EventLog log, boolean optional) {
+	public CreateAuthorizationEndpointRequestFromClientInformation(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 		// TODO Auto-generated constructor stub
 	}
@@ -41,28 +42,40 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("config")) {
-			return error("Couldn't find a configuration");
+		if (!env.containsObj("client")) {
+			return error("Couldn't find client configuration");
 		}
 		
-		String discoveryUrl = env.getString("config", "server.discoveryUrl");
-		String iss = env.getString("config", "server.discoveryIssuer");
+		String clientId = env.getString("client_id");
 		
-		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
-			return error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
+		if (Strings.isNullOrEmpty(clientId)) {
+			return error("Couldn't find client ID");
 		}
-
-		// make sure we've got a server object
-		JsonElement server = env.findElement("config", "server");
-		if (server == null || !server.isJsonObject()) {
-			return error("Couldn't find server object in configuration");
+		
+		String redirectUri = env.getString("redirect_uri");
+		
+		if (Strings.isNullOrEmpty(redirectUri)) {
+			return error("Couldn't find redirect URI");
+		}
+		
+		JsonObject authorizationEndpointRequest = new JsonObject();
+		
+		authorizationEndpointRequest.addProperty("client_id", clientId);
+		authorizationEndpointRequest.addProperty("redirect_uri", redirectUri);
+		
+		String scope = env.getString("client", "scope");
+		if (!Strings.isNullOrEmpty(scope)) {
+			authorizationEndpointRequest.addProperty("scope", scope);
 		} else {
-			// we've got a server object, put it in the environment
-			env.put("server", server.getAsJsonObject());
-			
-			logSuccess("Found a static server object", server.getAsJsonObject());
-			return env;
+			log("Leaving off 'scope' parameter from authorization request");
 		}
+		
+		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		
+		logSuccess("Created authorization endpoint request", authorizationEndpointRequest);
+		
+		return env;
+
 	}
 
 }

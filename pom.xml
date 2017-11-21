@@ -108,6 +108,10 @@
             <artifactId>hoverfly-java</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+        	<groupId>org.bouncycastle</groupId>
+        	<artifactId>bcprov-jdk15on</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -191,6 +195,11 @@
     			<groupId>io.specto</groupId>
     			<artifactId>hoverfly-java</artifactId>
     			<version>0.9.0</version>
+    		</dependency>
+    		<dependency>
+    			<groupId>org.bouncycastle</groupId>
+    			<artifactId>bcprov-jdk15on</artifactId>
+    			<version>1.58</version>
     		</dependency>
     	</dependencies>
     </dependencyManagement>
