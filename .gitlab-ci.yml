@@ -70,6 +70,8 @@ test:
     - source /tmp/build/.profile.d/maven.sh
     - cd /tmp/build
     - mvn -B test
+    - >
+      perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
   cache:
     paths:
       - .m2/
@@ -223,8 +225,7 @@ production:
              --volume /var/run/docker.sock:/var/run/docker.sock \
              --volume /tmp/cc:/tmp/cc"
 
-    docker run ${cc_opts} codeclimate/codeclimate init
-    docker run ${cc_opts} codeclimate/codeclimate analyze -f json > codeclimate.json
+    docker run ${cc_opts} codeclimate/codeclimate analyze -f json src > codeclimate.json
   }
 
   function deploy() {
