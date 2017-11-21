@@ -70,6 +70,8 @@ test:
     - source /tmp/build/.profile.d/maven.sh
     - cd /tmp/build
     - mvn -B test
+    - >
+      perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
   cache:
     paths:
       - .m2/
