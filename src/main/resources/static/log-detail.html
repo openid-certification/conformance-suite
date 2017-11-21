@@ -38,13 +38,31 @@
             <div class="row">
                 <h1>
                     <div class="key">Log</div>
-                    <div class="value wordwrap"><%- testId %></div>
+                    <div class="value wordwrap"><%- test.testId %></div>
                 </h1>
             </div>
             <div class="row">
                 <h2>
                     <div class="key">Time</div>
-                    <div class="value wordwrap"><%- new Date(time) %></div>
+                    <div class="value wordwrap"><%- new Date(test.started) %></div>
+                </h2>
+            </div>
+            <div class="row">
+                <h2>
+                    <div class="key">Status</div>
+                    <div class="value wordwrap"><%- test.status %></div>
+                </h2>
+            </div>
+            <div class="row">
+                <h2>
+                    <div class="key">Result</div>
+                    <div class="value wordwrap"><%- test.result %></div>
+                </h2>
+            </div>
+            <div class="row">
+                <h2>
+                    <div class="key">Test Name</div>
+                    <div class="value wordwrap"><%- test.testName %></div>
                 </h2>
             </div>
         </script>
@@ -170,7 +188,7 @@
             <div class="row">
                 <h2>
                     <div class="key">Summary</div>
-                    <div class="value wordwrap"><%- summary.success %> of <%- summary.total %> passed</div>
+                    <div class="value wordwrap"><%- summary.success %> of <%- summary.total %> test conditions passed</div>
                 </h2>
             </div>
         </script>
@@ -202,8 +220,15 @@
                     success: function (data) { 
                 
                     	// this is the page header, fill it in with log details
-                        // TODO: this should call the test info API
-                        $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({testId:testId, time:data[0].time}));
+                        
+                    	$.ajax({
+                    		type: 'GET',
+                    		url: 'info/' + encodeURIComponent(testId),
+                    		data: {},
+                    		success: function(data) {
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
+                    		}
+                    	});
 
                         $.each(data, function(i, item) {
 
