@@ -123,10 +123,6 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		
-		
-		
-		//require(BuildPlainRedirectToAuthorizationEndpointHybridCodeIdtoken.class);
-		
 		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		require(CreateRandomStateValue.class);
@@ -224,12 +220,6 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		//require(CreateClientAuthenticationAssertionClaims.class);
-		
-		//require(SignClientAuthenticationAssertion.class);
-		
-		//require(AddClientAssertionToTokenEndpointRequest.class);
-		
 		require(AddClientIdToTokenEndpointRequest.class);
 		
 		require(CallTokenEndpoint.class);
