@@ -120,10 +120,6 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		
-		
-		
-		//require(BuildPlainRedirectToAuthorizationEndpointHybridCodeIdtoken.class);
-		
 		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		require(CreateRandomStateValue.class);
