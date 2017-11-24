@@ -37,7 +37,7 @@ var FAPI_UI = {
 	    });
 	},
 
-	testJSON : {
+	testJSON : {}/*
 				server : {
 					discoveryUrl: ""
 				},
@@ -57,7 +57,7 @@ var FAPI_UI = {
 					testHost: "",
 					testPort: ""
 				}
-			}
+			}*/
 
 }
 
