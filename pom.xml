@@ -141,8 +141,16 @@
             </plugin>
         </plugins>
         <finalName>fapi-test-suite</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.7.9</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
-
 
     <dependencyManagement>
     	<dependencies>
@@ -180,11 +188,6 @@
     			<groupId>org.apache.httpcomponents</groupId>
     			<artifactId>httpclient</artifactId>
     			<version>4.3.6</version>
-    		</dependency>
-    		<dependency>
-    			<groupId>org.jacoco</groupId>
-    			<artifactId>jacoco-maven-plugin</artifactId>
-    			<version>0.7.9</version>
     		</dependency>
     		<dependency>
     			<groupId>com.nimbusds</groupId>
