@@ -46,51 +46,51 @@
 				  	<h3>Server</h3>
 					<div class="row">
 						<div class="col-md-2 key">discoveryUrl</div>
-						<div class="col-md-10"><input id="input-discoveryUrl" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Required" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Required"></input></div>
 					</div>
 
 					<h3>Client</h3>
 					<div class="row">
 						<div class="col-md-2 key">client_id</div>
-						<div class="col-md-10"><input id="input-client_id" class="config-form-element" data-json-target="client.client_id" placeholder="Required" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_id" placeholder="Required"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">client_secret</div>
-						<div class="col-md-10"><input id="input-client_secret" class="config-form-element" data-json-target="client.client_secret" placeholder="Optional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_secret" placeholder="Optional"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">scope</div>
-						<div class="col-md-10"><input id="input-scope" class="config-form-element" data-json-target="client.scope" placeholder="Optional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.scope" placeholder="Optional"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">redirect_uri</div>
-						<div class="col-md-10"><input id="input-redirect_uri" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Optional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder="Optional"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">jwks.keys</div>
-						<div class="col-md-10"><textarea id="input-client-jwksKeys" class="config-form-element" data-json-target="client.jwks.keys" placeholder="An array of objects (Optional)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea></div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks.keys" placeholder="An array of objects (Optional)"></textarea></div>
 					</div>
 
 					<h3>JWKS</h3>
 					<div class="row">
 						<div class="col-md-2 key">keys</div>
-						<div class="col-md-10"><textarea id="input-jwksKeys" class="config-form-element" data-json-target="jwks.keys" placeholder="An array of objects" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea></div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="jwks.keys" placeholder="An array of objects"></textarea></div>
 					</div>
 
 					<h3>TLS</h3>
 					<div class="row">
 						<div class="col-md-2 key">testHost</div>
-						<div class="col-md-10"><input id="input-testHost" class="config-form-element" data-json-target="tls.testHost" placeholder="Optional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testHost" placeholder="Optional"></input></div>
 					</div>
 
 					<div class="row">
 						<div class="col-md-2 key">testPort</div>
-						<div class="col-md-10"><input id="input-testPort" class="config-form-element" data-json-target="tls.testPort" placeholder="Optional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testPort" placeholder="Optional"></input></div>
 					</div>
 				</div>
 
 				<div id="JSONInput" class="tab-pane fade">
-				  <textarea id="config" placeholder="{JSON data}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+				  	<textarea id="config" placeholder="{JSON data}"></textarea>
 				</div>
 			</div><!-- / .tab-content -->
 
@@ -200,67 +200,59 @@
 			});
 
 			// Config UI
+			$(".config-form-element").attr("autocomplete","off");
+			$(".config-form-element").attr("autocorrect","off");
+			$(".config-form-element").attr("autocapitalize","off");
+			$(".config-form-element").attr("spellcheck","false");
 
 			// form text updates
 			$(".config-form-element").on('change', function(event) {
 				populateJSON($(this).data("jsonTarget"), this.value);
 			});
 
-
 			// tab actions
 			$('#tab-a').click(function (e) { //Populate the Form from the JSON
-			  
-			    var parsedJSON;
+
 		    	try {
-			        parsedJSON = JSON.parse($("#config").val());
+			        FAPI_UI.testJSON = JSON.parse($("#config").val());
 			    } catch (e) {
-			        return false;
+			        return true; // ensures the tab visually switches as expected even if there is invalid JSON pasted
 			    }
 
-				FAPI_UI.testJSON = parsedJSON;
+			    /**
+			     * 
+			     */
+			    function walkJSON(element, root) {
 
-				// TO DO - loop through the JSON to match the data-json-target Ids
-		    	// check that any pasted JSON data contains objects that the form can pick up & update the input displays with any new data
-		    	if (FAPI_UI.testJSON.server) {
-		    		if (FAPI_UI.testJSON.server.discoveryUrl) {
-		    			$('[data-json-target="server.discoveryUrl"]').val(FAPI_UI.testJSON.server.discoveryUrl);	
-			    		//$("#input-discoveryUrl").val(FAPI_UI.testJSON.server.discoveryUrl);	
-			    	}
-		    	}
-		    	
-			    if (FAPI_UI.testJSON.client) {
-			    	if (FAPI_UI.testJSON.client.client_id) {
-				    	$("#input-client_id").val(FAPI_UI.testJSON.client.client_id);
-				    }
-				    if (FAPI_UI.testJSON.client.client_secret) {
-				    	$("#input-client_secret").val(FAPI_UI.testJSON.client.client_secret);
-				    }
-				    if (FAPI_UI.testJSON.client.scope) {
-				    	$("#input-scope").val(FAPI_UI.testJSON.client.scope);
-				    }
-				    if (FAPI_UI.testJSON.client.redirect_uri) {
-				    	$("#input-redirect_uri").val(FAPI_UI.testJSON.client.redirect_uri);
-				    }
-				    if (FAPI_UI.testJSON.client.jwks && FAPI_UI.testJSON.client.jwks.keys) {
-				    	$("#input-client-jwksKeys").val(JSON.stringify(FAPI_UI.testJSON.client.jwks.keys));
-				    }
-			    }
+			    	_.each(element, function(value, key, obj) { 
+			    			console.log("****** WALK NODE ******");
+			    			console.log("root="+root);
+				    		console.log("value="+JSON.stringify(value));
+				    		console.log("key="+key);
+				    		console.log("obj="+JSON.stringify(obj));
+				    		console.log("element="+JSON.stringify(element));
 
-			    
-			    if (FAPI_UI.testJSON.jwks && FAPI_UI.testJSON.jwks.keys) {
-			    	$("#input-jwksKeys").val(JSON.stringify(FAPI_UI.testJSON.jwks.keys));
+				    		var el = $(".config-form-element[data-json-target='"+root+"."+key+"']");
+				    		
+				    		if ($(document).find(el).length) {
+				    			if (_.isArray(value) || _.isObject(value)) {
+				    				el.val(JSON.stringify(value));
+				    			} else {
+				    				el.val(value);
+				    			}
+				    		} else {
+				    			if (_.isObject(value)) {
+				    				if (root != undefined) {
+				    					walkJSON(value, root+"."+key);
+				    				} else {
+				    					walkJSON(value, key);
+				    				}
+				    			}
+				    		}
+				    	}
+				    )
 			    }
-
-			    if (FAPI_UI.testJSON.tls && FAPI_UI.testJSON.tls.testHost) {
-			    	if (FAPI_UI.testJSON.tls.testHost) {
-			    		$("#input-testHost").val(FAPI_UI.testJSON.tls.testHost);
-			    	}
-			    	
-			    	if (FAPI_UI.testJSON.tls.testPort) {
-			    		$("#input-testPort").val(FAPI_UI.testJSON.tls.testPort);
-			    	}
-			    }
-				 
+			    walkJSON(FAPI_UI.testJSON);
 			})
 
 			$('#tab-b').click(function (e) { // populate the JSON from the Form
@@ -387,7 +379,6 @@
 		    }
 
 			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
-
 		}
 
 	</script>
