@@ -26,12 +26,15 @@ import java.util.Set;
 @EnableWebSecurity
 public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${fintechlabs.base_url}")
+    private String baseURL;
+
     // Client name to use when dynamically registering as a client
     @Value("${oidc.clientname}")
     private String clientName;
 
     // Redirect URI to use
-    @Value("${oidc.redirecturi:https://localhost:8080/openid_connect_login}")
+    @Value("${oidc.redirecturi}")
     private String redirectURI;
 
     private Set<String> scopes = ImmutableSet.of("openid","email","address","profile","phone");
@@ -104,13 +107,13 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public LoginUrlAuthenticationEntryPoint authenticationEntryPoint(){
-        return new LoginUrlAuthenticationEntryPoint("https://localhost:8080/openid_connect_login");
+        return new LoginUrlAuthenticationEntryPoint(baseURL +"/openid_connect_login");
     }
 
     @Bean
     public HybridIssuerService issuerService(){
         HybridIssuerService his = new HybridIssuerService();
-        his.setLoginPageUrl("https://localhost:8080/login");
+        his.setLoginPageUrl(baseURL + "/login");
         return his;
     }
 
@@ -157,12 +160,12 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
+        http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/login")
-                .permitAll()
+                    .antMatchers("/login")
+                    .permitAll()
                 .anyRequest()
-                .authenticated()
+                    .authenticated()
                 .and()
                 .addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
                 .exceptionHandling()
