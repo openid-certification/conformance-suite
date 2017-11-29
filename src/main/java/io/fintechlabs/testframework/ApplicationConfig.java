@@ -17,7 +17,8 @@ package io.fintechlabs.testframework;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +36,6 @@ import com.google.gson.JsonSerializer;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
-import io.fintechlabs.testframework.logging.BsonCollapsingConverter;
 import io.fintechlabs.testframework.logging.GsonToBsonConverter;
 import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
@@ -59,6 +59,7 @@ public class ApplicationConfig {
     }
     
     /**
+     * Special GSON converter that looks for and collapses __wrapped_key_element fields
 	 * @return
 	 */
 	private Gson getDbObjectCollapsingGson() {
@@ -76,11 +77,16 @@ public class ApplicationConfig {
 					}
 					
 					private Object convertStructureToField(Object source) {
-						if (source instanceof DBObject) {
+						if (source instanceof List) {
+							// if it's a list of some type, loop through it
+							List<Object> list = (List<Object>)source;
+							List<Object> converted = list.stream()
+									.map(this::convertStructureToField)
+									.collect(Collectors.toList());
+							return converted;
+						} else if (source instanceof DBObject) {
+							// if it's an object, need to look through all the fields and convert any weird ones
 							DBObject dbo = (DBObject) source;
-							
-							// need to look through all the fields and convert any weird ones
-
 							DBObject converted = new BasicDBObject();
 							for (String key : dbo.keySet()) {
 								if (key.startsWith("__wrapped_key_element_")) {
@@ -105,10 +111,8 @@ public class ApplicationConfig {
     }
     
 	@Bean
-	@SuppressWarnings("unchecked")
 	public CustomConversions mongoCustomConversions() {
 		return new CustomConversions(Lists.newArrayList(
-				new BsonCollapsingConverter(), 
 				new GsonToBsonConverter()));
 	}
 }
