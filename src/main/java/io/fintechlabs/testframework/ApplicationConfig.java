@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +27,13 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.logging.BsonCollapsingConverter;
 import io.fintechlabs.testframework.logging.GsonToBsonConverter;
@@ -44,12 +52,54 @@ public class ApplicationConfig {
         Collection<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
         GsonHttpMessageConverter gsonHttpMessageConverter = new GsonHttpMessageConverter();
+        gsonHttpMessageConverter.setGson(getDbObjectCollapsingGson());
         messageConverters.add(gsonHttpMessageConverter);
 
         return new HttpMessageConverters(true, messageConverters);
     }
     
-    @Bean
+    /**
+	 * @return
+	 */
+	private Gson getDbObjectCollapsingGson() {
+		return new GsonBuilder()
+				.registerTypeHierarchyAdapter(DBObject.class, new JsonSerializer<DBObject>() {
+
+					private Gson internalGson = new Gson();
+					
+					@Override
+					public JsonElement serialize(DBObject src, Type typeOfSrc, JsonSerializationContext context) {
+						// run the field conversion
+						DBObject converted = (DBObject) convertStructureToField(src);
+						// delegate to regular GSON for the real work
+						return internalGson.toJsonTree(converted);
+					}
+					
+					private Object convertStructureToField(Object source) {
+						if (source instanceof DBObject) {
+							DBObject dbo = (DBObject) source;
+							
+							// need to look through all the fields and convert any weird ones
+
+							DBObject converted = new BasicDBObject();
+							for (String key : dbo.keySet()) {
+								if (key.startsWith("__wrapped_key_element_")) {
+									DBObject wrapped = (DBObject) dbo.get(key);
+									converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
+								} else {
+									converted.put(key, convertStructureToField(dbo.get(key)));
+								}
+							}
+							return converted;
+						} else {
+							return source;
+						}
+					}
+				})
+				.create();
+	}
+	
+	@Bean
     public TestRunnerSupport testRunnerSupport() {
     	return new InMemoryTestRunnerSupport();
     }
