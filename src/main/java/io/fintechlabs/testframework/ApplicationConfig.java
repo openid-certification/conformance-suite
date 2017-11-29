@@ -27,7 +27,8 @@ import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 import com.google.common.collect.Lists;
 
-import io.fintechlabs.testframework.logging.GsonConverter;
+import io.fintechlabs.testframework.logging.BsonCollapsingConverter;
+import io.fintechlabs.testframework.logging.GsonToBsonConverter;
 import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 
@@ -53,8 +54,11 @@ public class ApplicationConfig {
     	return new InMemoryTestRunnerSupport();
     }
     
-    @Bean
+	@Bean
+	@SuppressWarnings("unchecked")
 	public CustomConversions mongoCustomConversions() {
-		return new CustomConversions(Lists.newArrayList(new GsonConverter()));
+		return new CustomConversions(Lists.newArrayList(
+				new BsonCollapsingConverter(), 
+				new GsonToBsonConverter()));
 	}
 }

@@ -14,14 +14,18 @@
 
 package io.fintechlabs.testframework.logging;
 
+import java.util.Map;
+
 import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.stereotype.Component;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 /**
@@ -29,15 +33,40 @@ import com.mongodb.util.JSON;
  *
  */
 @Component
-@WritingConverter
-public class GsonConverter implements Converter<JsonElement, Bson> {
+@ReadingConverter
+public class BsonCollapsingConverter implements Converter<DBObject, DBObject> {
 	
 	@Override
-	public Bson convert(JsonElement source) {
+	public DBObject convert(DBObject source) {
 		if (source == null) {
 			return null;
 		} else {
-			return (Bson) JSON.parse(source.toString());
+			return (DBObject) convertStructureToField(source);
+		}
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 */
+	private Object convertStructureToField(Object source) {
+		if (source instanceof DBObject) {
+			DBObject dbo = (DBObject) source;
+			
+			// need to look through all the fields and convert any weird ones
+
+			DBObject converted = new BasicDBObject();
+			for (String key : dbo.keySet()) {
+				if (key.startsWith("__wrapped_key_element_")) {
+					DBObject wrapped = (DBObject) dbo.get(key);
+					converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
+				} else {
+					converted.put(key, convertStructureToField(dbo.get(key)));
+				}
+			}
+			return converted;
+		} else {
+			return source;
 		}
 	}
 
