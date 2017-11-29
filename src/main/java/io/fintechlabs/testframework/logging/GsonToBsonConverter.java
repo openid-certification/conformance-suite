@@ -35,6 +35,8 @@ import com.mongodb.util.JSON;
 @WritingConverter
 public class GsonToBsonConverter implements Converter<JsonElement, Bson> {
 	
+	private static final Logger log = LoggerFactory.getLogger(GsonToBsonConverter.class);
+	
 	@Override
 	public Bson convert(JsonElement source) {
 		if (source == null) {
@@ -58,8 +60,9 @@ public class GsonToBsonConverter implements Converter<JsonElement, Bson> {
 					wrap.addProperty("key", key);
 					wrap.add("value", convertFieldsToStructure(source.getAsJsonObject().get(key)));
 					converted.add("__wrapped_key_element_" + RandomStringUtils.randomAlphabetic(6), wrap);
+					log.info("Wrapped " + key + " as " + wrap.toString());
 				} else {
-					converted.add(key, source.getAsJsonObject().get(key));
+					converted.add(key, convertFieldsToStructure(source.getAsJsonObject().get(key)));
 				}
 			}
 			return converted;
