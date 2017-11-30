@@ -50,7 +50,7 @@ public class GsonToBsonConverter implements Converter<JsonElement, Bson> {
 	 * @param source
 	 * @return
 	 */
-	private JsonElement convertFieldsToStructure(JsonElement source) {
+	public static JsonElement convertFieldsToStructure(JsonElement source) {
 		if (source.isJsonObject()) {
 			// need to look through all the fields and convert any weird ones
 			JsonObject converted = new JsonObject();

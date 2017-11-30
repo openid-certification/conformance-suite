@@ -67,7 +67,7 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, JsonObject obj) {
 		
-		DBObject dbObject = (DBObject) JSON.parse(convertFieldsToStructure(obj).toString()); // don't touch the incoming object
+		DBObject dbObject = (DBObject) JSON.parse(GsonToBsonConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
 		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
 		dbObject.put("testId", testId);
 		dbObject.put("src", source);
@@ -89,33 +89,5 @@ public class DBEventLog implements EventLog {
 		
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
-	
-	private JsonElement convertFieldsToStructure(JsonElement source) {
-		if (source.isJsonObject()) {
-			// need to look through all the fields and convert any weird ones
-			JsonObject converted = new JsonObject();
-			for (String key : source.getAsJsonObject().keySet()) {
-				if (key.contains(".") || key.contains("$") || key.startsWith("__wrapped_key_element_")) {
-					JsonObject wrap = new JsonObject();
-					wrap.addProperty("key", key);
-					wrap.add("value", convertFieldsToStructure(source.getAsJsonObject().get(key)));
-					converted.add("__wrapped_key_element_" + RandomStringUtils.randomAlphabetic(6), wrap);
-					log.info("Wrapped " + key + " as " + wrap.toString());
-				} else {
-					converted.add(key, convertFieldsToStructure(source.getAsJsonObject().get(key)));
-				}
-			}
-			return converted;
-		} else if (source.isJsonArray()) {
-			JsonArray converted = new JsonArray();
-			for (JsonElement element : source.getAsJsonArray()) {
-				converted.add(convertFieldsToStructure(element));
-			}
-			return converted;
-		} else {
-			return source;
-		}
-	}
-
 
 }
