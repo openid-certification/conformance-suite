@@ -51,6 +51,7 @@ import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.fapi.CodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.fapi.CodeIdTokenWithPrivateKey;
 import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
+import io.fintechlabs.testframework.fapi.EnsureRedirectUriInAuthorizationRequest;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -94,6 +95,7 @@ public class TestRunner {
 			new SimpleEntry<>("sample-client-test-module", SampleClientTestModule.class), 
 			new SimpleEntry<>("sample-implicit-module", SampleImplicitModule.class), 
 			new SimpleEntry<>("ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class), 
+			new SimpleEntry<>("ensure-redirect-uri-in-authorization-request", EnsureRedirectUriInAuthorizationRequest.class),
 			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
 			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class))
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
