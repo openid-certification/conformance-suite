@@ -28,7 +28,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
@@ -37,6 +37,7 @@ import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
@@ -56,6 +57,7 @@ import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.condition.SignRequestObject;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -132,7 +134,11 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 		
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		require(ConvertAuthorizationEndpointRequestToRequestObject.class);
+		
+		require(SignRequestObject.class);
+		
+		require(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
