@@ -1,47 +1,47 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+	  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
-    <meta charset="UTF-8">
-    <title>FAPI Test Suite - Login</title>
+	<meta charset="UTF-8">
+	<title>FAPI Test Suite - Login</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"/>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"/>
 
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous"/>
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous"/>
 
 </head>
-<body>
-    <header onClick="FAPI_UI.goHome()"></header>
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
-                <h1 class="text-center">Login to the FAPI Test Suite</h1>
-                <p th:if="${param.error}" class="bg-danger">
-                    Invalid username and password.
-                </p>
-                <p th:if="${param.logout}" class="bg-info">
-                    You have been logged out.
-                </p>
-                <p class="text-center"><a class="btn btn-danger btn-lg" th:href="@{/openid_connect_login(iss='https://accounts.google.com')}">Log in with Google</a></p>
-                <div>
-                    <h4 class="lead text-center">Or use another OIDC provider</h4>
-                    <form th:action="@{/openid_connect_login}" method="post" id="login_form">
-                        <div class="form-group">
-                            <label for="identifier">User Name :</label>
-                            <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com"/>
-                        </div>
-                        <input type="submit" class="btn btn-default" value="Sign In"/>
-                    </form>
+    <body>
+        <header onClick="FAPI_UI.goHome()"></header>
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
+                    <h1 class="text-center">Login to the FAPI Test Suite</h1>
+                    <p th:if="${param.error}" class="bg-danger">
+                        Invalid username and password.
+                    </p>
+                    <p th:if="${param.logout}" class="bg-info">
+                        You have been logged out.
+                    </p>
+                    <p class="text-center"><a class="btn btn-danger btn-lg" th:href="@{/openid_connect_login(iss='https://accounts.google.com')}">Log in with Google</a></p>
+                    <div>
+                        <h4 class="lead text-center">Or use another OIDC provider</h4>
+                        <form th:action="@{/openid_connect_login}" method="post" id="login_form">
+                            <div class="form-group">
+                                <label for="identifier">User Name :</label>
+                                <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com"/>
+                            </div>
+                            <input type="submit" class="btn btn-default" value="Sign In"/>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-</body>
+    </body>
 </html>

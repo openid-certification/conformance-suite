@@ -23,35 +23,35 @@ import java.util.Set;
  *
  */
 public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
-    private static Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
+	private static Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
 
-    private static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
-    private static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
+	private static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
+	private static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
-    @Value("${oidc.admin.domain:visexcell.com}")
-    private  String ADMIN_DOMAIN;
+	@Value("${oidc.admin.domain:visexcell.com}")
+	private  String ADMIN_DOMAIN;
 
-    @Value("${oidc.admin.issuer:https://accounts.google.com}")
-    private  String ADMIN_ISSUER;
+	@Value("${oidc.admin.issuer:https://accounts.google.com}")
+	private  String ADMIN_ISSUER;
 
-    @Override
-    public Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo) {
+	@Override
+	public Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo) {
 
-        Set<GrantedAuthority> out = new HashSet<>();
+		Set<GrantedAuthority> out = new HashSet<>();
 
-        try{
-            JWTClaimsSet claims = idToken.getJWTClaimsSet();
-            SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
-            out.add(authority);
-            if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
-                    && userInfo.getSource().has("hd")
-                    && userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(ADMIN_DOMAIN)){
-                out.add(ROLE_ADMIN);
-            }
-            out.add(ROLE_USER);
-        } catch (ParseException e) {
-            logger.error("Unable to parse ID Token inside of authorities mapper");
-        }
-        return out;
-    }
+		try{
+			JWTClaimsSet claims = idToken.getJWTClaimsSet();
+			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
+			out.add(authority);
+			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
+					&& userInfo.getSource().has("hd")
+					&& userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(ADMIN_DOMAIN)){
+				out.add(ROLE_ADMIN);
+			}
+			out.add(ROLE_USER);
+		} catch (ParseException e) {
+			logger.error("Unable to parse ID Token inside of authorities mapper");
+		}
+		return out;
+	}
 }
