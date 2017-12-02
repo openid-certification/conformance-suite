@@ -32,7 +32,6 @@
     <body>
 
         <a href="index.html"><header></header></a>
-
         <!-- LogStart -->
         <script type="text/template" id="logDetailTemplate_LogStart">  
             <div class="row">
@@ -196,6 +195,12 @@
 
         <!-- resident DOM -->
         <div class="mainHolder">
+            <div>
+                <form action="/logout" method="post" class="form-inline">
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </form>
+            </div>
+            <br/>
             <div id="logDetail">
                 <div class="header"></div>
                 <hr />
