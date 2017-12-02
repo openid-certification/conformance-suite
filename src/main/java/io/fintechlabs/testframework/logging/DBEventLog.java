@@ -18,10 +18,13 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -35,6 +38,8 @@ import com.mongodb.util.JSON;
  */
 @Component
 public class DBEventLog implements EventLog {
+	
+	private static final Logger log = LoggerFactory.getLogger(DBEventLog.class);
 
 	public static final String COLLECTION = "EVENT_LOG";
 	
@@ -62,7 +67,7 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, JsonObject obj) {
 		
-		DBObject dbObject = (DBObject) JSON.parse(obj.toString()); // don't touch the incoming object
+		DBObject dbObject = (DBObject) JSON.parse(GsonToBsonConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
 		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
 		dbObject.put("testId", testId);
 		dbObject.put("src", source);
