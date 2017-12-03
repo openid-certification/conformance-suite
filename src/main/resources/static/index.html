@@ -348,6 +348,7 @@
 
 			        obj = obj[p];
 			    }
+
 			    return val ? (obj[final] = val) : obj[final];
 			}
 			/*
@@ -375,7 +376,17 @@
 					Object.prop(FAPI_UI.testJSON, key, val);
 				}
 		    } catch (e) { // a string
-		        Object.prop(FAPI_UI.testJSON, key, val);
+		    	if (val=="") { // if we have an empty string then delete the value
+		    		console.log("omit:"+key);
+		    		var elements = key.split(".");
+		    		if (elements.length > 1) {
+		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]); 
+		    		} else {
+		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key); 
+		    		}
+		    	} else {
+		    		Object.prop(FAPI_UI.testJSON, key, val);
+		    	}
 		    }
 
 			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
