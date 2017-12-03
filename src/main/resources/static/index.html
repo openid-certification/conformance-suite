@@ -211,13 +211,15 @@
 			});
 
 			// tab actions
-			$('#tab-a').click(function (e) { //Populate the Form from the JSON
+			$('#tab-a').click(function (e) { // populate the Form from the JSON
 
 		    	try {
 			        FAPI_UI.testJSON = JSON.parse($("#config").val());
 			    } catch (e) {
 			        return true; // ensures the tab visually switches as expected even if there is invalid JSON pasted
 			    }
+
+			    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
 
 			    /**
 			     * 
