@@ -128,6 +128,7 @@ public abstract class AbstractTestModule implements TestModule {
 		} catch (ConditionError error) {
 			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
+			logException(error);
 			throw new TestFailureException(error);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -168,13 +169,49 @@ public abstract class AbstractTestModule implements TestModule {
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
 				.newInstance(id, eventLog, true);
+			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 	
 			// evaluate the condition and assign its results back to our environment
 			logger.info("}} Calling Condition " + conditionClass.getSimpleName());
+			
+			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
+			if (pre != null) {
+				for (String req : pre.required()) {
+					if (!env.containsObj(req)) {
+						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						return;
+					}
+				}
+				for (String s : pre.strings()) {
+					if (Strings.isNullOrEmpty(env.getString(s))) {
+						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						return;
+					}
+				}
+			}
+			
 			env = condition.evaluate(env);
+			
+			PreEnvironment post = eval.getAnnotation(PreEnvironment.class);
+			if (post != null) {
+				for (String req : post.required()) {
+					if (!env.containsObj(req)) {
+						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						return;
+					}
+				}
+				for (String s : post.strings()) {
+					if (Strings.isNullOrEmpty(env.getString(s))) {
+						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						return;
+					}
+				}
+			}
+			
 			
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
+			logException(error);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create optional condition object", e);
 			logException(e);
