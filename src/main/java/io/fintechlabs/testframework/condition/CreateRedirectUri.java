@@ -15,7 +15,6 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -42,6 +41,8 @@ public class CreateRedirectUri extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
 	 */
 	@Override
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(strings = "redirect_uri")
 	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
 		

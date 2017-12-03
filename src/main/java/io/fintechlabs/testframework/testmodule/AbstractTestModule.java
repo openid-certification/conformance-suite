@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.testmodule;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -23,14 +24,13 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.MultiValueMap;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -82,15 +82,54 @@ public abstract class AbstractTestModule implements TestModule {
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
 				.newInstance(id, eventLog, false);
+			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 	
 			// evaluate the condition and assign its results back to our environment
 			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
+			
+
+			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
+			if (pre != null) {
+				for (String req : pre.required()) {
+					if (!env.containsObj(req)) {
+						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
+					}
+				}
+				for (String s : pre.strings()) {
+					if (Strings.isNullOrEmpty(env.getString(s))) {
+						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
+					}
+				}
+			}
+			
 			env = condition.evaluate(env);
 			
+			PreEnvironment post = eval.getAnnotation(PreEnvironment.class);
+			if (post != null) {
+				for (String req : post.required()) {
+					if (!env.containsObj(req)) {
+						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
+					}
+				}
+				for (String s : post.strings()) {
+					if (Strings.isNullOrEmpty(env.getString(s))) {
+						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
+					}
+				}
+			}
 		} catch (ConditionError error) {
 			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
 			throw new TestFailureException(error);
+			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create required condition object", e);
 			logException(e);
