@@ -41,6 +41,8 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"authorization_endpoint_request", "server"})
+	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
 	public Environment evaluate(Environment env) {
 		
 		if (!env.containsObj("authorization_endpoint_request")) {

@@ -74,6 +74,8 @@ public class FilterUserInfoForScopes extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "scope", required = "user_info")
+	@PostEnvironment(required = "user_info_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		String scope = env.getString("scope");

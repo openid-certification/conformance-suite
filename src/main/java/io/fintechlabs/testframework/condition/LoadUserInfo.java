@@ -39,6 +39,7 @@ public class LoadUserInfo extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PostEnvironment(required = "user_info")
 	public Environment evaluate(Environment env) {
 		
 		JsonObject user = new JsonObject();

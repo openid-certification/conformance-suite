@@ -40,6 +40,8 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "client", strings = "redirect_uri")
+	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("client")) {

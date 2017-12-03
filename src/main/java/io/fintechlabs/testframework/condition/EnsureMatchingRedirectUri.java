@@ -39,6 +39,7 @@ public class EnsureMatchingRedirectUri extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"client", "authorization_endpoint_request"})
 	public Environment evaluate(Environment env) {
 		// get the client ID from the configuration
 		String expected = env.getString("client", "redirect_uri");

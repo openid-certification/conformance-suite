@@ -40,6 +40,8 @@ public class GenerateServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(required = "server", strings = {"issuer", "discoveryUrl"})
 	public Environment evaluate(Environment env) {
 
 		String baseUrl = env.getString("base_url");

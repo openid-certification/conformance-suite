@@ -46,6 +46,8 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"client", "server"})
+	@PostEnvironment(required = "client_assertion_claims")
 	public Environment evaluate(Environment env) {
 
 		String issuer = env.getString("client", "client_id");

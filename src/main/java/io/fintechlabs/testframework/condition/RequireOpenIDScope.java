@@ -43,6 +43,7 @@ public class RequireOpenIDScope extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "scope")
 	public Environment evaluate(Environment env) {
 		String scope = env.getString("scope");
 		

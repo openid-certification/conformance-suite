@@ -39,6 +39,8 @@ public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "authorization_endpoint_request", strings = "authorization_code")
+	@PostEnvironment(strings = "authorization_endpoint_response_redirect")
 	public Environment evaluate(Environment env) {
 
 		String redirectUri = env.getString("authorization_endpoint_request", "redirect_uri");

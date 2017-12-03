@@ -38,6 +38,7 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "jwks")
 	public Environment evaluate(Environment env) {
 
 		JsonObject jwks = env.get("jwks");

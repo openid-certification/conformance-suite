@@ -39,6 +39,7 @@ public class RequireBearerAccessToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = {"incoming_access_token", "access_token"})
 	public Environment evaluate(Environment env) {
 
 		String actual = env.getString("incoming_access_token");

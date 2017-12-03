@@ -32,6 +32,7 @@ public class ValidateStateHash extends AbstractCondition {
 	}
 
 	@Override
+	@PreEnvironment(required = "id_token", strings = "state")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {

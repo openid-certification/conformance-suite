@@ -40,6 +40,8 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "client")
+	@PostEnvironment(required = "jwks")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("client")) {

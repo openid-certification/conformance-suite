@@ -39,6 +39,7 @@ public class CreateAuthorizationCode extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PostEnvironment(strings = "authorization_code")
 	public Environment evaluate(Environment env) {
 
 		String code = RandomStringUtils.randomAlphanumeric(10);

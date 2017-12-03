@@ -38,6 +38,8 @@ public class AddFormBasedClientSecretAuthenticationParameters extends AbstractCo
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "token_endpoint_request_form_parameters")
+	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 		
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {

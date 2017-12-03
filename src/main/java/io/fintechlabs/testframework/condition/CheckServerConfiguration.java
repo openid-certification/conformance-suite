@@ -39,6 +39,7 @@ public class CheckServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment in) {
 
 		// first make sure we've got a "server" object at all

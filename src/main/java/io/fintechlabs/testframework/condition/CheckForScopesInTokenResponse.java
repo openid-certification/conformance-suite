@@ -42,6 +42,7 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
 			logSuccess("Found scopes returned with access token",

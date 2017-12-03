@@ -26,6 +26,9 @@ public interface Condition {
 	 * Tests if the condition holds true. Reads from the given environment and returns a potentially modified environment.
 	 * 
 	 * Throws ConditionError when condition isn't met.
+	 * 
+	 * Decorate with @PreEnvironment to ensure objects or strings are in the environment before evaluation.
+	 * Decorate with @PostEnvironment to ensure objects or strings are in the environment after evaluation. 
 	 */
 	Environment evaluate(Environment env);
 

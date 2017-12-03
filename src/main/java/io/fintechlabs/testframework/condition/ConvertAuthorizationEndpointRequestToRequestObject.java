@@ -37,6 +37,8 @@ public class ConvertAuthorizationEndpointRequestToRequestObject extends Abstract
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "authorization_endpoint_request")
+	@PostEnvironment(required = "request_object_claims")
 	public Environment evaluate(Environment env) {
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");

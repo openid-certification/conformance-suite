@@ -39,6 +39,7 @@ public class CreateRandomNonceValue extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PostEnvironment(strings = "nonce")
 	public Environment evaluate(Environment env) {
 
 		String nonce = RandomStringUtils.randomAlphanumeric(10);

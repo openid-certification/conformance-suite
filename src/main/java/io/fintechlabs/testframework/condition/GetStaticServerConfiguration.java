@@ -39,6 +39,8 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "config")
+	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("config")) {

@@ -45,6 +45,8 @@ public class LoadJWKs extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "config")
+	@PostEnvironment(required = {"public_jwks", "jwks"})
 	public Environment evaluate(Environment env) {
 
 		JsonElement configured = env.findElement("config", "jwks");

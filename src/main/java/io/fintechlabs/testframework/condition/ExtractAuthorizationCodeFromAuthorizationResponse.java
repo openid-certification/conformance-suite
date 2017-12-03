@@ -39,6 +39,7 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "callback_params")
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
 			return error("Couldn't find callback parameters");
