@@ -55,6 +55,7 @@ import io.fintechlabs.testframework.fapi.EnsureRedirectUriInAuthorizationRequest
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.openbanking.EnsureMTLSRequired;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
@@ -97,7 +98,10 @@ public class TestRunner {
 			new SimpleEntry<>("ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class), 
 			new SimpleEntry<>("ensure-redirect-uri-in-authorization-request", EnsureRedirectUriInAuthorizationRequest.class),
 			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
-			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class))
+			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class),
+			// OpenBanking-specific test modules:
+			new SimpleEntry<>("ensure-mtls-required", EnsureMTLSRequired.class)
+			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
