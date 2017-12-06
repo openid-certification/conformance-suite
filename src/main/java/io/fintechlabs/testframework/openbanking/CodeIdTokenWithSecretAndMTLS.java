@@ -34,6 +34,7 @@ import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
@@ -216,13 +217,15 @@ public class CodeIdTokenWithSecretAndMTLS extends AbstractTestModule {
 
 		require(CheckForAccessTokenValue.class);
 
-		optional(CheckForIdTokenValue.class);
+		require(CheckForIdTokenValue.class);
 
-		optional(ParseIdToken.class);
+		require(ParseIdToken.class);
 
 		require(ValidateIdToken.class);
 
 		require(ValidateIdTokenSignature.class);
+
+		require(CheckForSubscriberInIdToken.class);
 
 		optional(CheckForRefreshTokenValue.class);
 
