@@ -7,7 +7,7 @@ import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -25,14 +25,13 @@ import java.util.Set;
 public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 	private static Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
 
-	private static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
-	private static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
+	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
+	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
-	@Value("${oidc.admin.domain:visexcell.com}")
-	private  String ADMIN_DOMAIN;
 
-	@Value("${oidc.admin.issuer:https://accounts.google.com}")
-	private  String ADMIN_ISSUER;
+	private String ADMIN_DOMAIN;
+
+	private String ADMIN_ISSUER;
 
 	@Override
 	public Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo) {
@@ -53,5 +52,11 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 			logger.error("Unable to parse ID Token inside of authorities mapper");
 		}
 		return out;
+	}
+
+	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domain, String admin_iss){
+
+		this.ADMIN_DOMAIN = admin_domain;
+		this.ADMIN_ISSUER = admin_iss;
 	}
 }

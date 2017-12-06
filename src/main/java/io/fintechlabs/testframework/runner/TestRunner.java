@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,10 @@ public class TestRunner {
 	
 	@Autowired
 	private TestInfoService testInfo;
-	
+
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
 	// TODO: make this a configurable factory bean
 	private Map<String, Class<? extends TestModule>> testModules = Stream.of(
 			new SimpleEntry<>("sample-test-module", SampleTestModule.class), 
@@ -109,11 +113,11 @@ public class TestRunner {
     
     
     @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, 
+    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName,
     		@RequestParam("alias") String alias,
     		@RequestBody JsonObject config, Model m) {
-    	
-    	String id = RandomStringUtils.randomAlphanumeric(10);    	
+
+    	String id = RandomStringUtils.randomAlphanumeric(10);
     	
     	BrowserControl browser = new CollectingBrowserControl();
     	
@@ -149,7 +153,8 @@ public class TestRunner {
         		"baseUrl", url,
         		"config", config,
         		"alias", alias,
-        		"testName", testName);        
+        		"testName", testName,
+				"owner", test.getOwner());
         eventLog.log(id, "TEST-RUNNER", testCreated);
         
         // add this test to the stack
@@ -230,6 +235,7 @@ public class TestRunner {
             map.put("status", test.getStatus());
             map.put("result", test.getResult());
             map.put("exposed", test.getExposedValues());
+            map.put("owner", test.getOwner());
             
             return new ResponseEntity<>(map, HttpStatus.OK);
     		
@@ -261,7 +267,7 @@ public class TestRunner {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
     }
-    
+
     @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
     	Set<String> testIds = support.getAllRunningTestIds();
@@ -318,6 +324,7 @@ public class TestRunner {
     	TestModule module;
 		try {
 			module = testModuleClass.newInstance();
+			module.setOwner((ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal());
 			module.wire(id, eventLog, browser, testInfo);
 			return module;
 		} catch (InstantiationException | IllegalAccessException e) {

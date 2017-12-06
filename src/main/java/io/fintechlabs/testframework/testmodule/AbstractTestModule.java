@@ -47,6 +47,8 @@ public abstract class AbstractTestModule implements TestModule {
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
+
+	private ImmutableMap<String,String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
 	protected EventLog eventLog;
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
@@ -60,6 +62,14 @@ public abstract class AbstractTestModule implements TestModule {
 	public AbstractTestModule(String name) {
 		this.name = name;
 		setStatus(Status.CREATED);
+	}
+
+	public ImmutableMap<String, String> getOwner() {
+		return owner;
+	}
+
+	public void setOwner(ImmutableMap<String, String> owner) {
+		this.owner = owner;
 	}
 
 	/**

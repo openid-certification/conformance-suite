@@ -16,6 +16,9 @@ package io.fintechlabs.testframework.info;
 
 import java.util.Date;
 
+import com.google.common.collect.ImmutableMap;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
+import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -41,19 +44,28 @@ public class DBTestInfoService implements TestInfoService {
 	
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
 	
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
 	 */
 	@Override
 	public void createTest(String id, String testName, String url, JsonObject config, String alias) {
+		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
+		ImmutableMap<String, String> owner = null;
+		if (token != null){
+			owner = (ImmutableMap<String, String>)token.getPrincipal();
+		}
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 				.add("_id", id)
 				.add("testId", id)
 				.add("testName", testName)
 				.add("started", new Date().getTime())
 				.add("config", config)
-				.add("alias", alias);
+				.add("alias", alias)
+				.add("owner", owner);
 		
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
