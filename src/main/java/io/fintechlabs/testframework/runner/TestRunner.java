@@ -55,6 +55,7 @@ import io.fintechlabs.testframework.fapi.EnsureRedirectUriInAuthorizationRequest
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.openbanking.ClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.CodeIdTokenWithPrivateKeyAndMTLS;
 import io.fintechlabs.testframework.openbanking.CodeIdTokenWithSecretAndMTLS;
 import io.fintechlabs.testframework.openbanking.EnsureMTLSRequired;
@@ -104,7 +105,8 @@ public class TestRunner {
 			// OpenBanking-specific test modules:
 			new SimpleEntry<>("ensure-mtls-required", EnsureMTLSRequired.class),
 			new SimpleEntry<>("code-idtoken-with-private-key-and-mtls", CodeIdTokenWithPrivateKeyAndMTLS.class),
-			new SimpleEntry<>("code-idtoken-with-secret-and-mtls", CodeIdTokenWithSecretAndMTLS.class)
+			new SimpleEntry<>("code-idtoken-with-secret-and-mtls", CodeIdTokenWithSecretAndMTLS.class),
+			new SimpleEntry<>("client-test-mtls", ClientTestMTLS.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
