@@ -25,39 +25,58 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
+import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.EnsureServerConfigurationSupportsMTLS;
-import io.fintechlabs.testframework.condition.EnsureTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
+import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromClientConfiguration;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-public class EnsureMTLSRequired extends AbstractTestModule {
+/**
+ * @author jricher
+ *
+ */
+public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(EnsureMTLSRequired.class);
+	
+	private static final Logger logger = LoggerFactory.getLogger(OBCodeIdTokenWithMTLS.class);
 
-	public EnsureMTLSRequired() {
-		super("ensure-mtls-required");
+	
+	/**
+	 * @param name
+	 */
+	public OBCodeIdTokenWithMTLS() {
+		super("ob-code-id-token-with-mtls");
 	}
 
 	/* (non-Javadoc)
@@ -67,7 +86,7 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-
+		
 		require(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -76,24 +95,25 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 		// Make sure we're calling the right server configuration
 		optional(GetDynamicServerConfiguration.class);
 		optional(GetStaticServerConfiguration.class);
-
+		
+		
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
-
-		require(EnsureServerConfigurationSupportsMTLS.class);
-
+		
 		require(FetchServerKeys.class);
-
+		
 		// Set up the client configuration
 		require(GetStaticClientConfiguration.class);
-
+		
 		exposeEnvString("client_id");
-
-		// Do not extract any MTLS certificates
+		
+		//require(ExtractJWKsFromClientConfiguration.class);
+		require(ExtractMTLSCertificatesFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+		
 	}
 
 	/* (non-Javadoc)
@@ -102,7 +122,7 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-
+		
 		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		require(CreateRandomStateValue.class);
@@ -112,17 +132,17 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 		require(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		require(AddNonceToAuthorizationEndpointRequest.class);
-
+		
 		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-
+		
 		require(BuildPlainRedirectToAuthorizationEndpoint.class);
-
+		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
+		
 		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
-
+		
 		setStatus(Status.WAITING);
 	}
 
@@ -132,9 +152,9 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 	@Override
 	public void stop() {
 		eventLog.log(getId(), getName(), "Finished");
-
+		
 		setStatus(Status.FINISHED);
-
+		
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
 		}
@@ -147,11 +167,11 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		eventLog.log(getId(), getName(), "Path: " + path);
 		eventLog.log(getId(), getName(), "Params: " + requestParts);
-
+		
 		// dispatch based on the path
-
+		
 		// these are all user-facing and will require user-facing error pages, so we wrap them
-
+		
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
@@ -160,7 +180,7 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 			return new ModelAndView("testError");
 		}
 	}
-
+	
 	@UserFacing
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
@@ -169,42 +189,59 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ModelAndView("implicitCallback",
-				ImmutableMap.of("test", this,
+		return new ModelAndView("implicitCallback", 
+				ImmutableMap.of("test", this, 
 					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
-
+	
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
+
 		// process the callback
 		setStatus(Status.RUNNING);
-
+		
 		String hash = requestParts.get("body").getAsString();
-
+		
 		logger.info("Hash: " + hash);
-
+		
 		env.putString("implicit_hash", hash);
-
+		
 		require(ExtractImplicitHashToCallbackResponse.class);
-
+	
 		require(CheckIfAuthorizationEndpointError.class);
-
+		
 		require(CheckMatchingStateParameter.class);
-
-		// call the token endpoint and expect an error
-
+		
+		// check the ID token from the hybrid response
+		
+		
+		// call the token endpoint and complete the flow
+		
 		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-
+		
 		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		require(AddClientIdToTokenEndpointRequest.class);
-
+		
 		require(CallTokenEndpoint.class);
 
-		require(EnsureTokenEndpointResponseError.class);
+		require(CheckIfTokenEndpointResponseError.class);
 
+		require(CheckForAccessTokenValue.class);
+		
+		optional(CheckForIdTokenValue.class);
+		
+		optional(ParseIdToken.class);
+		
+		optional(CheckForRefreshTokenValue.class);
+		
+		require(EnsureMinimumTokenLength.class);
+		
+		optional(EnsureMinimumTokenEntropy.class);
+		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
+
 	}
 
 	/* (non-Javadoc)
@@ -214,5 +251,7 @@ public class EnsureMTLSRequired extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
 	}
+
+
 
 }

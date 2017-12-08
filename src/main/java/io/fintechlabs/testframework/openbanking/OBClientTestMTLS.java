@@ -58,13 +58,13 @@ import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 
-public class ClientTestMTLS extends AbstractTestModule {
+public class OBClientTestMTLS extends AbstractTestModule {
 
 	/**
 	 * @param name
 	 */
-	public ClientTestMTLS() {
-		super("client-test-mtls");
+	public OBClientTestMTLS() {
+		super("ob-client-test-mtls");
 	}
 
 	/* (non-Javadoc)

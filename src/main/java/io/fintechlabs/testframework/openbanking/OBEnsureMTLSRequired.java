@@ -26,17 +26,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
-import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
-import io.fintechlabs.testframework.condition.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
-import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -45,29 +39,25 @@ import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
-import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
+import io.fintechlabs.testframework.condition.EnsureServerConfigurationSupportsMTLS;
+import io.fintechlabs.testframework.condition.EnsureTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
-import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromClientConfiguration;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
-import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import io.fintechlabs.testframework.condition.ValidateIdToken;
-import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-public class CodeIdTokenWithSecretAndMTLS extends AbstractTestModule {
+public class OBEnsureMTLSRequired extends AbstractTestModule {
 
-	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithSecretAndMTLS.class);
+	public static Logger logger = LoggerFactory.getLogger(OBEnsureMTLSRequired.class);
 
-	public CodeIdTokenWithSecretAndMTLS() {
-		super("code-id-token-with-secret-and-mtls");
+	public OBEnsureMTLSRequired() {
+		super("ob-ensure-mtls-required");
 	}
 
 	/* (non-Javadoc)
@@ -90,6 +80,8 @@ public class CodeIdTokenWithSecretAndMTLS extends AbstractTestModule {
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
 
+		require(EnsureServerConfigurationSupportsMTLS.class);
+
 		require(FetchServerKeys.class);
 
 		// Set up the client configuration
@@ -97,7 +89,7 @@ public class CodeIdTokenWithSecretAndMTLS extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		require(ExtractMTLSCertificatesFromClientConfiguration.class);
+		// Do not extract any MTLS certificates
 
 		setStatus(Status.CONFIGURED);
 
@@ -177,16 +169,15 @@ public class CodeIdTokenWithSecretAndMTLS extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ModelAndView("implicitCallback", 
-				ImmutableMap.of("test", this, 
+		return new ModelAndView("implicitCallback",
+				ImmutableMap.of("test", this,
 					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
 
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
-
 		// process the callback
 		setStatus(Status.RUNNING);
-	
+
 		String hash = requestParts.get("body").getAsString();
 
 		logger.info("Hash: " + hash);
@@ -199,39 +190,17 @@ public class CodeIdTokenWithSecretAndMTLS extends AbstractTestModule {
 
 		require(CheckMatchingStateParameter.class);
 
-		// check the ID token from the hybrid response
-
-		// call the token endpoint and complete the flow
+		// call the token endpoint and expect an error
 
 		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
 		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		require(AddFormBasedClientSecretAuthenticationParameters.class);
-
 		require(AddClientIdToTokenEndpointRequest.class);
 
 		require(CallTokenEndpoint.class);
 
-		require(CheckIfTokenEndpointResponseError.class);
-
-		require(CheckForAccessTokenValue.class);
-
-		require(CheckForIdTokenValue.class);
-
-		require(ParseIdToken.class);
-
-		require(ValidateIdToken.class);
-
-		require(ValidateIdTokenSignature.class);
-
-		require(CheckForSubscriberInIdToken.class);
-
-		optional(CheckForRefreshTokenValue.class);
-
-		require(EnsureMinimumTokenLength.class);
-
-		optional(EnsureMinimumTokenEntropy.class);
+		require(EnsureTokenEndpointResponseError.class);
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
