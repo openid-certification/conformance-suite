@@ -14,10 +14,13 @@
 
 package io.fintechlabs.testframework.info;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author jricher
@@ -49,5 +52,10 @@ public interface TestInfoService {
 	 */
 	void updateTestStatus(String id, Status status);
 
-	
+	/**
+	 * Get the owner of a test ID.
+	 * @param id
+	 * @return
+	 */
+	ImmutableMap<String,String> getTestOwner(String id);
 }

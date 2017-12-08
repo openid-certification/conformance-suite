@@ -155,11 +155,13 @@ public class TestRunner {
         		"alias", alias,
         		"testName", testName,
 				"owner", test.getOwner());
-        eventLog.log(id, "TEST-RUNNER", testCreated);
+
         
         // add this test to the stack
         testInfo.createTest(id, testName, url, config, alias);
-        
+
+		eventLog.log(id, "TEST-RUNNER", testCreated);
+
         test.configure(config, url);
 
         logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());

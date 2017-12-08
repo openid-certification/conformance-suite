@@ -16,6 +16,11 @@ package io.fintechlabs.testframework.logging;
 
 import java.util.List;
 
+import com.google.common.collect.ImmutableMap;
+import com.mongodb.BasicDBObjectBuilder;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
+import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
@@ -31,7 +36,6 @@ import io.fintechlabs.testframework.info.DBTestInfoService;
 
 /**
  * @author jricher
- *
  */
 @Controller
 public class TestInfoApi {
@@ -39,27 +43,41 @@ public class TestInfoApi {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getAllTests() {
-		
-		List<DBObject> testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find().toArray();
-		
+		List<DBObject> testInfo = null;
+		if (authenticationFacade.isAdmin()) {
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find().toArray();
+		} else {
+			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
+			if (owner != null) {
+				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(BasicDBObjectBuilder.start().add("owner", owner).get()).toArray();
+			}
+		}
 		return new ResponseEntity<>(testInfo, HttpStatus.OK);
-		
+
 	}
 
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getTestInfo(@PathVariable("id") String id) {
-		
-		DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
-
+		DBObject testInfo = null;
+		if (authenticationFacade.isAdmin()) {
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
+		} else {
+			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
+			if (owner != null) {
+				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("owner", owner).get());
+			}
+		}
 		if (testInfo == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else {
 			return new ResponseEntity<>(testInfo, HttpStatus.OK);
 		}
-		
+
 	}
-	
+
 }

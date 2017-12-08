@@ -77,7 +77,9 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public TestModule getRunningTestById(String testId) {
-		if (authenticationFacade.isAdmin()) {
+		// Put in null check to handle non-userfacing interactions.
+		if (authenticationFacade.getAuthenticationToken() == null ||
+				authenticationFacade.isAdmin()) {
 			return runningTests.get(testId);
 		} else {
 			TestModule test = runningTests.get(testId);
@@ -94,7 +96,9 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public Set<String> getAllRunningTestIds() {
-		if (authenticationFacade.isAdmin()) {
+		// Put in null check to handle non-userfacing interactions.
+		if (authenticationFacade.getAuthenticationToken() == null ||
+				authenticationFacade.isAdmin()) {
 			return runningTests.keySet();
 		} else {
 			ImmutableMap<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();

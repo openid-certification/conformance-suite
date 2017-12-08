@@ -17,6 +17,9 @@ package io.fintechlabs.testframework.logging;
 import java.io.IOException;
 import java.util.Date;
 
+import com.google.common.collect.ImmutableMap;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -43,19 +46,31 @@ public class ImageAPI {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
+	@Autowired
+	TestInfoService testInfoService;
+
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
 	@PostMapping(path = "/log/{id}/imgfile")
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
 			@PathVariable(name="id") String testId) throws IOException {
-		
-		// create a new entry in the database
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
-				.add("testId", testId)
-				.add("src", "_image-api")
-				.add("time", new Date().getTime())
-				.add("img", encoded);
+		ImmutableMap<String,String> testOwner = testInfoService.getTestOwner(testId);
 
-		mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
+		// Should this be checked? I.E. does a non-user facing client ever call this?
+		if(authenticationFacade.isAdmin() ||
+				authenticationFacade.getPrincipal().equals(testOwner)) {
+			// create a new entry in the database
+			BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
+					.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
+					.add("testId", testId)
+					.add(DBEventLog.TEST_OWNER, testOwner)
+					.add("src", "_image-api")
+					.add("time", new Date().getTime())
+					.add("img", encoded);
+
+			mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
+		}
 		
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}

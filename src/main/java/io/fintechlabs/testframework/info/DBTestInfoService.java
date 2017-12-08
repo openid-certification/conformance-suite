@@ -15,10 +15,19 @@
 package io.fintechlabs.testframework.info;
 
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -29,7 +38,6 @@ import org.springframework.stereotype.Service;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 
-import io.fintechlabs.testframework.logging.DBEventLog;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
@@ -41,12 +49,36 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
 public class DBTestInfoService implements TestInfoService {
 
 	public static final String COLLECTION = "TEST_INFO";
+
+	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
 	
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	//Private cache for holding test owners without having to hit the db
+	LoadingCache<String,ImmutableMap<String,String>> testOwnerCache = CacheBuilder.newBuilder()
+			.maximumSize(1000)
+			.expireAfterAccess(30, TimeUnit.MINUTES)		// is 30 minutes a good time out? too much? too little?
+			.build(
+					new CacheLoader<String, ImmutableMap<String, String>>() {
+						@Override
+						public ImmutableMap<String, String> load(String key) {
+							Query query = Query.query(Criteria.where("_id").is(key));
+							BasicDBObject test = mongoTemplate.findOne(query, BasicDBObject.class, COLLECTION);
+							if (test != null &&
+									test.containsField("owner")) {
+								BasicDBObject owner = (BasicDBObject)test.get("owner");
+								String iss = owner.getString("iss");
+								String sub = owner.getString("sub");
+								return ImmutableMap.of("sub", sub, "iss", iss);
+							}
+							return null;
+						}
+					}
+			);
 	
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
@@ -75,9 +107,21 @@ public class DBTestInfoService implements TestInfoService {
 	 */
 	@Override
 	public void updateTestResult(String id, Result result) {
+
+		Criteria criteria = new Criteria();
+		criteria.and("_id").is(id);
 		// find the existing entity
-		Query query = Query.query(
-				Criteria.where("_id").is(id));
+		//Query query = Query.query(
+		//		Criteria.where("_id").is(id));
+
+		// if there is a user logged in who isn't an admin, limit the search
+		if(authenticationFacade.getAuthenticationToken() != null &&
+				!authenticationFacade.isAdmin()){
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
+		}
+
+		Query query = new Query(criteria);
 		
 		Update update = new Update();
 		update.set("result", result);
@@ -92,15 +136,52 @@ public class DBTestInfoService implements TestInfoService {
 	 */
 	@Override
 	public void updateTestStatus(String id, Status status) {
+
 		// find the existing entity
-		Query query = Query.query(
-				Criteria.where("_id").is(id));
-		
+		Criteria criteria = new Criteria();
+		criteria.and("_id").is(id);
+
+		//Query query = Query.query(
+		//		Criteria.where("_id").is(id));
+
+		// if there is a user logged in who isn't an admin, limit the search
+		if(authenticationFacade.getAuthenticationToken() != null &&
+				!authenticationFacade.isAdmin()){
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
+		}
+
+		Query query = new Query(criteria);
+
 		Update update = new Update();
 		update.set("status", status);
 
 		mongoTemplate.updateFirst(query, update, COLLECTION);
 		
+	}
+
+	@Override
+	public ImmutableMap<String,String> getTestOwner(String testId){
+		try {
+			return testOwnerCache.get(testId);
+		} catch (ExecutionException e) {
+			logger.error("ExecutionException while looking up owner for testId: " + testId, e);
+		}
+		return null;
+
+		/* Non caching code here
+		Query query = Query.query(Criteria.where("_id").is(id));
+		BasicDBObject test = mongoTemplate.findOne(query, BasicDBObject.class, COLLECTION);
+		if (test != null &&
+				test.containsField("owner")) {
+			BasicDBObject owner = (BasicDBObject)test.get("owner");
+			String iss = owner.getString("iss");
+			String sub = owner.getString("sub");
+			return ImmutableMap.of("sub", sub, "iss", iss);
+		} else {
+			return null;
+		}
+		*/
 	}
 
 }
