@@ -58,8 +58,8 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	private RegisteredClient googleClientConfig(){
 		RegisteredClient rc = new RegisteredClient();
-		rc.setClientId(googleClientId); // "302762676-pr992b2r4q8blju82mc59e1m09037bhr.apps.googleusercontent.com");
-		rc.setClientSecret(googleClientSecret); //"u6On20L8oPgMkTyTxrPNvPN7");
+		rc.setClientId(googleClientId);
+		rc.setClientSecret(googleClientSecret);
 		rc.setScope(ImmutableSet.of("openid","email","profile"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
 		return rc;
@@ -84,10 +84,6 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	// Service to store/retrieve persisted information for dynamically registered clients.
 	@Bean
 	public RegisteredClientService registeredClientService(){
-
-		//
-		// JsonFileRegisteredClientService jfrcs = new JsonFileRegisteredClientService("/tmp/clientService.json");
-		//return jfrcs;
 
 		MongoDBRegisteredClientService registeredClientService = new MongoDBRegisteredClientService();
 		return registeredClientService;
