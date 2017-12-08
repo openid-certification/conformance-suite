@@ -17,6 +17,9 @@ package io.fintechlabs.testframework.logging;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.ImmutableMap;
+import com.mongodb.BasicDBObject;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
@@ -40,12 +43,23 @@ public class LogApi {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
 	
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getAllTests() {
+
+		DBObject queryFilter;
+		if(authenticationFacade.isAdmin()){
+			queryFilter = BasicDBObjectBuilder.start().get();
+		} else {
+			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
+			queryFilter = BasicDBObjectBuilder.start().add(DBEventLog.TEST_OWNER,owner).get();
+		}
 		
 		@SuppressWarnings("unchecked")
-		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId", BasicDBObjectBuilder.start().get());
+		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId", queryFilter);
 		
 		List<DBObject> results = new ArrayList<>(testIds.size());
 		
@@ -68,10 +82,12 @@ public class LogApi {
 	
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id) {
+		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId",id);
+		if (!authenticationFacade.isAdmin()) {
+			queryBuilder = queryBuilder.add(DBEventLog.TEST_OWNER, authenticationFacade.getPrincipal());
+		}
 		
-		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(BasicDBObjectBuilder.start()
-				.add("testId", id)
-				.get())
+		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(queryBuilder.get())
 			.sort(BasicDBObjectBuilder.start()
 					.add("time", 1)
 					.get())

@@ -17,14 +17,21 @@ package io.fintechlabs.testframework.runner;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author jricher
  *
  */
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
+
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
 
 	// collection of all currently running tests
 	private Map<String, TestModule> runningTests = new HashMap<>();
@@ -70,7 +77,18 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public TestModule getRunningTestById(String testId) {
-		return runningTests.get(testId);
+		// Put in null check to handle non-userfacing interactions.
+		if (authenticationFacade.getAuthenticationToken() == null ||
+				authenticationFacade.isAdmin()) {
+			return runningTests.get(testId);
+		} else {
+			TestModule test = runningTests.get(testId);
+			if (test != null &&
+					test.getOwner().equals((ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal())) {
+				return test;
+			}
+			return null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -78,7 +96,16 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public Set<String> getAllRunningTestIds() {
-		return runningTests.keySet();
+		// Put in null check to handle non-userfacing interactions.
+		if (authenticationFacade.getAuthenticationToken() == null ||
+				authenticationFacade.isAdmin()) {
+			return runningTests.keySet();
+		} else {
+			ImmutableMap<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
+			return runningTests.entrySet().stream()
+					.filter(map -> map.getValue().getOwner().equals(owner))
+					.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue())).keySet();
+		}
 	}
 
 	/* (non-Javadoc)
