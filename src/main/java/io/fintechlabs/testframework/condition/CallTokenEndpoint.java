@@ -63,7 +63,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"server", "token_endpoint_request_form_parameters", "token_endpoint_request_headers"})
+	@PreEnvironment(required = {"server", "token_endpoint_request_form_parameters"})
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
