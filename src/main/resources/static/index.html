@@ -12,7 +12,7 @@
 
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
 
 
@@ -94,6 +94,12 @@
 				</div>
 			</div><!-- / .tab-content -->
 
+			<div>
+				<form action="/logout" method="post" class="form-inline">
+					<input type="submit" class="btn btn-sm btn-primary" value="Logout">
+				</form>
+			</div>
+
 	        <div>
 				<input type="text" id="alias" placeholder="alias"></input>
 				<!-- render available test launch options here -->
@@ -114,6 +120,7 @@
 	        <div>
 	            <a href="logs.html" class="btn btn-info">View all available logs.</a>
 	        </div>
+
         </div>
     </div>
 

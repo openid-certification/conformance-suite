@@ -1,11 +1,6 @@
 /** Generic styles **/
-@font-face {
-    font-family: 'MyriadWebPro';
-    src: url(../fonts/Myriad/MyriadWebPro.ttf);
-}
-
 body {
-  font-family: 'MyriadWebPro';
+  font-family: 'PT Sans', sans-serif;
   font-size: 16px;
 }
 

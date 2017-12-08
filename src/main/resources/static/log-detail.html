@@ -17,7 +17,7 @@
 
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -32,7 +32,6 @@
     <body>
 
         <a href="index.html"><header></header></a>
-
         <!-- LogStart -->
         <script type="text/template" id="logDetailTemplate_LogStart">  
             <div class="row">
@@ -196,6 +195,11 @@
 
         <!-- resident DOM -->
         <div class="container">
+            <div>
+                <form action="/logout" method="post" class="form-inline">
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </form>
+            </div>
             <div id="logDetail">
                 <div class="header"></div>
                 <hr />

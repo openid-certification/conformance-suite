@@ -57,7 +57,15 @@ public class Environment {
 	public JsonObject get(String key) {
 		return store.get(key);
 	}
-
+	
+	/**
+	 * Remove a JSON object from this environment
+	 * @param key
+	 */
+	public void remove(String key) {
+		store.remove(key);
+	}
+	
 	/**
 	 * Look up a single-string entry
 	 * @param key

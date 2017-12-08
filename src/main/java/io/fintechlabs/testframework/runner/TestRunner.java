@@ -14,11 +14,14 @@
 package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,18 +43,25 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.example.SampleClientTestModule;
 import io.fintechlabs.testframework.example.SampleImplicitModule;
 import io.fintechlabs.testframework.example.SampleTestModule;
+import io.fintechlabs.testframework.fapi.CodeIdTokenWithMTLS;
+import io.fintechlabs.testframework.fapi.CodeIdTokenWithPrivateKey;
 import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
+import io.fintechlabs.testframework.fapi.EnsureRedirectUriInAuthorizationRequest;
+import io.fintechlabs.testframework.fapi.EnsureRequestObjectSignatureAlgorithmIsNotNull;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
+import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMTLS;
+import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureMTLSRequired;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
@@ -86,20 +96,42 @@ public class TestRunner {
 	@Autowired
 	private TestInfoService testInfo;
 
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
+	// TODO: make this a configurable factory bean
+	private Map<String, Class<? extends TestModule>> testModules = Stream.of(
+			new SimpleEntry<>("sample-test-module", SampleTestModule.class), 
+			new SimpleEntry<>("sample-client-test-module", SampleClientTestModule.class), 
+			new SimpleEntry<>("sample-implicit-module", SampleImplicitModule.class), 
+			new SimpleEntry<>("ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class), 
+			new SimpleEntry<>("ensure-redirect-uri-in-authorization-request", EnsureRedirectUriInAuthorizationRequest.class),
+			new SimpleEntry<>("ensure-request-object-signature-algorithm-is-not-null", EnsureRequestObjectSignatureAlgorithmIsNotNull.class),
+			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
+			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class),
+			// OpenBanking-specific test modules:
+			new SimpleEntry<>("ob-ensure-mtls-required", OBEnsureMTLSRequired.class),
+			new SimpleEntry<>("ob-code-idtoken-with-mtls", OBCodeIdTokenWithMTLS.class),
+			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-mtls", OBCodeIdTokenWithPrivateKeyAndMTLS.class),
+			new SimpleEntry<>("ob-code-idtoken-with-secret-and-mtls", OBCodeIdTokenWithSecretAndMTLS.class),
+			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class)
+			)
+			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+
     @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<String>> getAvailableTests(Model m) {
-    	List<String> testModuleNames = getTestModuleNames();
+    public ResponseEntity<Set<String>> getAvailableTests(Model m) {
+    	Set<String> testModuleNames = getTestModuleNames();
     	
     	return new ResponseEntity<>(testModuleNames, HttpStatus.OK);
     }
     
     
     @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, 
+    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName,
     		@RequestParam("alias") String alias,
     		@RequestBody JsonObject config, Model m) {
-    	
-    	String id = RandomStringUtils.randomAlphanumeric(10);    	
+
+    	String id = RandomStringUtils.randomAlphanumeric(10);
     	
     	BrowserControl browser = new CollectingBrowserControl();
     	
@@ -135,12 +167,15 @@ public class TestRunner {
         		"baseUrl", url,
         		"config", config,
         		"alias", alias,
-        		"testName", testName);        
-        eventLog.log(id, "TEST-RUNNER", testCreated);
+        		"testName", testName,
+				"owner", test.getOwner());
+
         
         // add this test to the stack
         testInfo.createTest(id, testName, url, config, alias);
-        
+
+		eventLog.log(id, "TEST-RUNNER", testCreated);
+
         test.configure(config, url);
 
         logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
@@ -216,6 +251,7 @@ public class TestRunner {
             map.put("status", test.getStatus());
             map.put("result", test.getResult());
             map.put("exposed", test.getExposedValues());
+            map.put("owner", test.getOwner());
             
             return new ResponseEntity<>(map, HttpStatus.OK);
     		
@@ -247,7 +283,7 @@ public class TestRunner {
     		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     	}
     }
-    
+
     @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
     	Set<String> testIds = support.getAllRunningTestIds();
@@ -297,40 +333,24 @@ public class TestRunner {
     	}
     }
     
-    // TODO: make this a factory bean
     private TestModule createTestModule(String testName, String id, BrowserControl browser) {
-    	TestModule module = null;
     	
-    	switch (testName) {
-			case "sample-test":
-				module = new SampleTestModule();
-				break;
-			case "sample-implicit-test":
-				module = new SampleImplicitModule();
-				break;
-			case "ensure-redirect-uri-is-registered":
-				module = new EnsureRegisteredRedirectUri();
-				break;
-			case "sample-client-test":
-				module = new SampleClientTestModule();
-				break;
-			
-			default:
-				module = null;
-				break;
-    	}
+    	Class<? extends TestModule> testModuleClass = testModules.get(testName);
     	
-    	if (module != null) {
-    		module.wire(id, eventLog, browser, testInfo);
-    	}
-
-    	return module;
+    	TestModule module;
+		try {
+			module = testModuleClass.newInstance();
+			module.setOwner((ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal());
+			module.wire(id, eventLog, browser, testInfo);
+			return module;
+		} catch (InstantiationException | IllegalAccessException e) {
+			return null;
+		}
+    	
     }
     
-    // TODO: make this a factory bean
-    private List<String> getTestModuleNames() {
-    	return ImmutableList.of(
-    			"sample-test", "sample-implicit-test", "ensure-redirect-uri-is-registered", "sample-client-test");
+    private Set<String> getTestModuleNames() {
+    	return testModules.keySet();
     }
     
     

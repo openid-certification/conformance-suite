@@ -12,33 +12,30 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.logging;
+package io.fintechlabs.testframework.condition;
 
-import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.WritingConverter;
-import org.springframework.stereotype.Component;
+import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 
-import com.google.gson.JsonElement;
-import com.mongodb.util.JSON;
+public class ExpectRedirectUriMissingErrorPage extends AbstractCondition {
 
-/**
- * @author jricher
- *
- */
-@Component
-@WritingConverter
-public class GsonConverter implements Converter<JsonElement, Bson> {
-	
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public ExpectRedirectUriMissingErrorPage(String testId, EventLog log, boolean optional) {
+		super(testId, log, optional, "FAPI-1-5.2.2-9");
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
+	 */
 	@Override
-	public Bson convert(JsonElement source) {
-		if (source == null) {
-			return null;
-		} else {
-			return (Bson) JSON.parse(source.toString());
-		}
+	public Environment evaluate(Environment env) {
+
+		createUploadPlaceholder("Show redirect URI error page");
+
+		return env;
 	}
 
 }

@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.collect.ImmutableMap;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -143,5 +144,18 @@ public interface TestModule {
 			HttpServletRequest req, HttpServletResponse res, 
 			HttpSession session, 
 			JsonObject requestParts);
+
+	/**
+	 *
+	 * @return get the {'iss':,'sub'} owner of the test
+	 */
+	ImmutableMap<String,String> getOwner();
+
+	/**
+	 * Set the owner of the test
+	 * @param owner - Owner of the test {"sub":,"iss":}
+	 */
+	void setOwner(ImmutableMap<String,String> owner);
+
 
 }

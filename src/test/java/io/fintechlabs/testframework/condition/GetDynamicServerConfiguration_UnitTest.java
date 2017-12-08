@@ -87,7 +87,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 		
 		JsonObject config = new JsonParser().parse("{"
 				+ "\"server\":{"
-				+ "\"issuer\":\"https://good.example.com\""
+				+ "\"discoveryIssuer\":\"https://good.example.com\""
 				+ "}}").getAsJsonObject();
 		env.put("config", config);
 		
@@ -118,7 +118,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 		
 		JsonObject config = new JsonParser().parse("{"
 				+ "\"server\":{"
-				+ "\"issuer\":\"https://nonexisting.example.com\""
+				+ "\"discoveryIssuer\":\"https://nonexisting.example.com\""
 				+ "}}").getAsJsonObject();
 		env.put("config", config);
 		
@@ -133,7 +133,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 		
 		JsonObject config = new JsonParser().parse("{"
 				+ "\"server\":{"
-				+ "\"issuer\":\"https://bad.example.com\""
+				+ "\"discoveryIssuer\":\"https://bad.example.com\""
 				+ "}}").getAsJsonObject();
 		env.put("config", config);
 		
@@ -148,7 +148,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 		
 		JsonObject config = new JsonParser().parse("{"
 				+ "\"server\":{"
-				+ "\"issuer\":\"https://empty.example.com\""
+				+ "\"discoveryIssuer\":\"https://empty.example.com\""
 				+ "}}").getAsJsonObject();
 		env.put("config", config);
 		

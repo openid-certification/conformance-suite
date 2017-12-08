@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.EventLog;
@@ -46,15 +47,17 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 		}
 		
 		// bump the client's internal JWK up to the root
-		JsonObject jwks = env.findElement("client", "jwks").getAsJsonObject();
+		JsonElement jwks = env.findElement("client", "jwks");
 		
 		if (jwks == null) {
 			return error("Couldn't find JWKs in client configuration");
+		} else if (!(jwks instanceof JsonObject)) {
+			return error("Invalid JWKs in client configuration");
 		}
 		
 		logSuccess("Extracted client JWK", args("jwks", jwks));
 		
-		env.put("jwks", jwks);
+		env.put("jwks", jwks.getAsJsonObject());
 		
 		return env;
 		

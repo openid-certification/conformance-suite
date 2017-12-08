@@ -18,7 +18,6 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -51,15 +50,23 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			return error("Couldn't find a configuration");
 		}
 		
+		String staticIssuer = env.getString("config", "server.issuer");
+		
+		if (!Strings.isNullOrEmpty(staticIssuer)) {
+			return error("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
+		}
+		
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");
 		
 		if (Strings.isNullOrEmpty(discoveryUrl)) {
-			String iss = env.getString("config", "server.issuer");
+
+			String iss = env.getString("config", "server.discoveryIssuer");
+			discoveryUrl = iss + "/.well-known/openid-configuration";
+			
 			if (Strings.isNullOrEmpty(iss)) {
-				return error("Couldn't find discoveryUrl or issuer field for discovery purposes");
+				return error("Couldn't find discoveryUrl or discoveryIssuer field for discovery purposes");
 			}
 			
-			discoveryUrl = iss + "/.well-known/openid-configuration";
 		}
 		
 		// get out the server configuration component
