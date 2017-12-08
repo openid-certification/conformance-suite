@@ -24,6 +24,11 @@ h2 {
   margin:0 0 5px;
 }
 
+h3 {
+  margin:0;
+  padding:10px;
+}
+
 a {
   text-decoration: none;
   color: #1bc5f8;
@@ -33,7 +38,12 @@ a:hover {
   text-decoration: underline; 
 }
 
-.mainHolder {
+input, textarea {
+  text-indent:5px;
+  border:1px solid #ccc;
+}
+
+.container {
   margin:20px;
 }
 
@@ -51,6 +61,10 @@ textarea {
 input[type="text"] {
   width:25%;
   margin:5px 0 10px;
+}
+
+button {
+  background-color: #ccc;
 }
 
 #launch-buttons button {
@@ -138,6 +152,34 @@ input[type="text"] {
   border-radius: 10px;
 }
 
+/* JSON form tabs */
+.tab-content {
+  padding:0px 12px;
+  border:1px solid #ddd;
+  border-top:none;
+}
+
+.tab-pane {
+  padding:0px;
+}
+
+.tab-content input {
+  width:100%;
+}
+
+.tab-content textarea {
+  width:100%;
+  height:240px;
+}
+
+.tab-content .row {
+  margin-bottom:10px;
+}
+
+#config {
+  border:none;
+}
+
 /** index.html end **/
 
 /** logs listing **/
@@ -179,7 +221,6 @@ input[type="text"] {
 .row .hyphen:after {
   content:": ";
 }
-
 
 .moreInfo {
   background: #eee;

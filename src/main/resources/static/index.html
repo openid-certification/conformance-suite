@@ -32,17 +32,75 @@
     	<div class="activityIndicator">Please wait</div>
     </div>
 
-    <div class="mainHolder">
+    <div class="container">
         <div id="homePage">
  			<h1>FAPI Test Framework</h1>
+
+			<ul class="nav nav-tabs">
+			    <li class="active"><a data-toggle="tab" id="tab-a" href="#formInput">Form</a></li>
+			    <li><a data-toggle="tab" id="tab-b" href="#JSONInput">JSON</a></li>
+			</ul>
+
+			<div class="tab-content">
+				<div id="formInput" class="tab-pane fade in active">
+				  	<h3>Server</h3>
+					<div class="row">
+						<div class="col-md-2 key">discoveryUrl</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Required"></input></div>
+					</div>
+
+					<h3>Client</h3>
+					<div class="row">
+						<div class="col-md-2 key">client_id</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_id" placeholder="Required"></input></div>
+					</div>
+					<div class="row">
+						<div class="col-md-2 key">client_secret</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_secret" placeholder="Optional"></input></div>
+					</div>
+					<div class="row">
+						<div class="col-md-2 key">scope</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.scope" placeholder="Optional"></input></div>
+					</div>
+					<div class="row">
+						<div class="col-md-2 key">redirect_uri</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder="Optional"></input></div>
+					</div>
+					<div class="row">
+						<div class="col-md-2 key">jwks.keys</div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks.keys" placeholder="An array of objects (Optional)"></textarea></div>
+					</div>
+
+					<h3>JWKS</h3>
+					<div class="row">
+						<div class="col-md-2 key">keys</div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="jwks.keys" placeholder="An array of objects"></textarea></div>
+					</div>
+
+					<h3>TLS</h3>
+					<div class="row">
+						<div class="col-md-2 key">testHost</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testHost" placeholder="Optional"></input></div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-2 key">testPort</div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testPort" placeholder="Optional"></input></div>
+					</div>
+				</div>
+
+				<div id="JSONInput" class="tab-pane fade">
+				  	<textarea id="config" placeholder="{JSON data}"></textarea>
+				</div>
+			</div><!-- / .tab-content -->
+
 			<div>
 				<form action="/logout" method="post" class="form-inline">
 					<input type="submit" class="btn btn-sm btn-primary" value="Logout">
 				</form>
 			</div>
-			<br/>
+
 	        <div>
-				<textarea id="config" placeholder="{JSON data}"></textarea>
 				<input type="text" id="alias" placeholder="alias"></input>
 				<!-- render available test launch options here -->
 				<div id="launch-buttons"></div>
@@ -111,6 +169,8 @@
 		$(function() {
 
 			FAPI_UI.loadHomepageTemplates();
+
+			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
 			$.getJSON('runner/available', function(data) {
 				console.log('available: ', JSON.stringify(data));
@@ -145,7 +205,68 @@
 			$('#refresh').click(function(event) {
 				updateRunningTable();
 			});
-			
+
+			// Config UI
+			$(".config-form-element").attr("autocomplete","off");
+			$(".config-form-element").attr("autocorrect","off");
+			$(".config-form-element").attr("autocapitalize","off");
+			$(".config-form-element").attr("spellcheck","false");
+
+			// form text updates
+			$(".config-form-element").on('change', function(event) {
+				populateJSON($(this).data("jsonTarget"), this.value);
+			});
+
+			// tab actions
+			$('#tab-a').click(function (e) { // populate the Form from the JSON
+
+		    	try {
+			        FAPI_UI.testJSON = JSON.parse($("#config").val());
+			    } catch (e) {
+			        return true; // ensures the tab visually switches as expected even if there is invalid JSON pasted
+			    }
+
+			    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+
+			    /**
+			     * 
+			     */
+			    function walkJSON(element, root) {
+
+			    	_.each(element, function(value, key, obj) { 
+			    			console.log("****** WALK NODE ******");
+			    			console.log("root="+root);
+				    		console.log("value="+JSON.stringify(value));
+				    		console.log("key="+key);
+				    		console.log("obj="+JSON.stringify(obj));
+				    		console.log("element="+JSON.stringify(element));
+
+				    		var el = $(".config-form-element[data-json-target='"+root+"."+key+"']");
+				    		
+				    		if ($(document).find(el).length) {
+				    			if (_.isArray(value) || _.isObject(value)) {
+				    				el.val(JSON.stringify(value));
+				    			} else {
+				    				el.val(value);
+				    			}
+				    		} else {
+				    			if (_.isObject(value)) {
+				    				if (root != undefined) {
+				    					walkJSON(value, root+"."+key);
+				    				} else {
+				    					walkJSON(value, key);
+				    				}
+				    			}
+				    		}
+				    	}
+				    )
+			    }
+			    walkJSON(FAPI_UI.testJSON);
+			})
+
+			$('#tab-b').click(function (e) { // populate the JSON from the Form
+		    	$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+			})
 		});
 
 		/**
@@ -218,6 +339,66 @@
 					});
 				});
 			});
+		}
+
+		/**
+		 *
+		 */
+		function populateJSON(key, val) {
+
+			// responsible for converting any dot syntax in our key parameter into object refs
+			Object.prop = function(obj, prop, val){
+			    var props = prop.split('.')
+			      , final = props.pop(), p 
+			    while(p = props.shift()){
+			        if (typeof obj[p] === 'undefined') {
+			        	obj[p] = {}; // create the object
+			        }
+
+			        obj = obj[p];
+			    }
+
+			    return val ? (obj[final] = val) : obj[final];
+			}
+			/*
+			var obj = { "a": { "b": '1', "c": 0 } };
+			// get
+			console.log("obj.a.c="+Object.prop(obj, 'a.c')); // -> 0
+			// set
+			Object.prop(obj, 'a.c', 5);
+			console.log(obj); // -> { a: { b: '1', c: 5 } }
+			Object.prop(obj, 'create.me.now', "hello");
+			console.log(obj); // -> { a: { b: '1', c: 5 }, create:{me:{now:"hello"}} }
+			*/
+
+			console.log("key="+key);
+			console.log("val="+val);
+
+			// check to see if we have an "array string" or a "number string"
+			// i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
+			try {
+		        var stringToJSON = JSON.parse(val); // an array, object or number ?
+		        if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
+					Object.prop(FAPI_UI.testJSON, key, stringToJSON);
+				}
+				else if (_.isNumber(stringToJSON)) {
+					Object.prop(FAPI_UI.testJSON, key, val);
+				}
+		    } catch (e) { // a string
+		    	if (val=="") { // if we have an empty string then delete the value
+		    		console.log("omit:"+key);
+		    		var elements = key.split(".");
+		    		if (elements.length > 1) {
+		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]); 
+		    		} else {
+		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key); 
+		    		}
+		    	} else {
+		    		Object.prop(FAPI_UI.testJSON, key, val);
+		    	}
+		    }
+
+			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
 		}
 
 	</script>
