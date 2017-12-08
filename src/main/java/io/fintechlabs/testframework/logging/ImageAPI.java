@@ -79,12 +79,18 @@ public class ImageAPI {
 	public ResponseEntity<Object> uploadImageToExitingLogEntry(@RequestBody String encoded,
 			@PathVariable(name="id") String testId,
 			@PathVariable(name="placeholder") String placeholder) throws IOException {
-		
-		
+
+
 		// find the existing entity
-		Query query = Query.query(
-				Criteria.where("testId").is(testId).andOperator(
-						Criteria.where("upload").is(placeholder)));
+		Criteria criteria = Criteria.where("testId").is(testId).andOperator(
+				Criteria.where("upload").is(placeholder));
+
+		if (authenticationFacade.getAuthenticationToken() != null &&
+				!authenticationFacade.isAdmin()) {
+			criteria.andOperator(Criteria.where(DBEventLog.TEST_OWNER).is(authenticationFacade.getPrincipal()));
+		}
+
+		Query query = Query.query(criteria);
 		
 		Update update = new Update();
 		update.unset("upload");
