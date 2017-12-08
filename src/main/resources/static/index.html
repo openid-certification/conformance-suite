@@ -36,6 +36,12 @@
         <div id="homePage">
  			<h1>FAPI Conformance Suite</h1>
 
+			<div>
+				<form action="/logout" method="post" class="form-inline">
+					<input type="submit" class="btn btn-sm btn-primary" value="Logout">
+				</form>
+			</div><hr />
+
 			<ul class="nav nav-tabs">
 			    <li class="active"><a data-toggle="tab" id="tab-a" href="#formInput">Form</a></li>
 			    <li><a data-toggle="tab" id="tab-b" href="#JSONInput">JSON</a></li>
@@ -67,6 +73,15 @@
 						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder=""></input></div>
 					</div>
 					<div class="row">
+						<div class="col-md-2 key">mtls.cert</div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.cert" placeholder=""></textarea></div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-2 key">mtls.key</div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.key" placeholder=""></textarea></div>
+					</div>
+					<div class="row">
 						<div class="col-md-2 key">jwks.keys</div>
 						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks.keys" placeholder=""></textarea></div>
 					</div>
@@ -93,12 +108,6 @@
 				  	<textarea id="config" placeholder="{JSON data}"></textarea>
 				</div>
 			</div><!-- / .tab-content -->
-
-			<div>
-				<form action="/logout" method="post" class="form-inline">
-					<input type="submit" class="btn btn-sm btn-primary" value="Logout">
-				</form>
-			</div>
 
 	        <div>
 				<input type="text" id="alias" placeholder="alias"></input>
