@@ -31,16 +31,16 @@ spec:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
         livenessProbe:
-          httpGet:
-            path: /
+          tcpSocket:
             port: {{ .Values.service.internalPort }}
-          initialDelaySeconds: 15
+          initialDelaySeconds: 30
+          periodSeconds: 30
           timeoutSeconds: 15
         readinessProbe:
-          httpGet:
-            path: /
+          tcpSocket:
             port: {{ .Values.service.internalPort }}
-          initialDelaySeconds: 5
+          initialDelaySeconds: 30
+          periodSeconds: 10
           timeoutSeconds: 3
         resources:
 {{ toYaml .Values.resources | indent 12 }}
