@@ -14,15 +14,17 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -215,7 +217,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(String message, Throwable cause) {
-		logFailure(message);
+		logFailure(message, ex(cause));
 		throw new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
@@ -231,7 +233,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause) {
-		logFailure(cause.getMessage());
+		logFailure(cause.getMessage(), ex(cause));
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	
@@ -239,7 +241,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(String message, Throwable cause, Map<String, Object> map) {
-		logFailure(message, map);
+		logFailure(message, ex(cause, map));
 		throw new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
@@ -255,14 +257,14 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause, Map<String, Object> map) {
-		logFailure(cause.getMessage(), map);
+		logFailure(cause.getMessage(), ex(cause, map));
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	/**
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(String message, Throwable cause, JsonObject in) {
-		logFailure(message, in);
+		logFailure(message, ex(cause, in));
 		throw new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
@@ -278,7 +280,7 @@ public abstract class AbstractCondition implements Condition {
 	 * Log a failure then throw a ConditionError
 	 */
 	protected Environment error(Throwable cause, JsonObject in) {
-		logFailure(cause.getMessage(), in);
+		logFailure(cause.getMessage(), ex(cause, in));
 		throw new ConditionError(testId, getMessage(), cause);
 	}
 	
@@ -311,6 +313,7 @@ public abstract class AbstractCondition implements Condition {
 			throw new IllegalArgumentException("Need an even and nonzero number of arguments");
 		}
 		
+		// start with an empty map of the right size
 		HashMap<String, Object> m = new HashMap<>(a.length / 2);
 		
 		for (int i = 0; i < a.length; i += 2) {
@@ -321,4 +324,44 @@ public abstract class AbstractCondition implements Condition {
 		
 		return m;
 	}
+	
+		
+	protected Map<String, Object> ex(Throwable cause) {
+		return ex(cause, new HashMap<>());
+	}
+	
+	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
+		if (cause == null) {
+			return null;
+		}
+		
+		Map<String, Object> event = new HashMap<>(in);
+		event.put("error", cause.getMessage());
+		event.put("error_class", cause.getClass().getName());
+		
+		List<String> stack = Arrays.stream(cause.getStackTrace())
+			.map(StackTraceElement::toString)
+			.collect(Collectors.toList());
+
+		event.put("stacktrace", stack);
+
+		return event;
+	}
+	
+	protected JsonObject ex(Throwable cause, JsonObject in) {
+		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		copy.addProperty("error", cause.getMessage());
+		copy.addProperty("error_class", cause.getClass().getName());
+		
+		JsonArray stack = Arrays.stream(cause.getStackTrace())
+			.map(StackTraceElement::toString)
+			.collect(() -> new JsonArray(cause.getStackTrace().length),
+					(c, e) -> c.add(e),
+					(c1, c2) -> c1.addAll(c2));
+		
+		copy.add("stacktrace", stack);
+
+		return copy;
+	}
+	
 }
