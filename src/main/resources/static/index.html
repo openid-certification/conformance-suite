@@ -28,11 +28,30 @@
   	<!-- resident DOM -->
 	<a href="index.html"><header></header></a>
 
+    <!-- Busy dialog overlay -->
     <div id="busy">
     	<div class="activityIndicator">Please wait</div>
     </div>
 
-    <div class="container">
+    <!-- error modal -->
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="errorLabel">Error</h4>
+				</div>
+				<div class="modal-body">Error: <span id="errorMessage"></span></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="container">
         <div id="homePage">
  			<h1>FAPI Conformance Suite</h1>
 
@@ -161,7 +180,7 @@
     <script type="text/template" id="indexTemplate_RunningTestExternalURL">
     	<li>Go to URL: <a id="browserLink-<%- testId %>-<%- index %>" href="#"><span class="externalURLLink"><%- url %></span></a></li>
     </script>
-
+    
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 	<!-- Latest compiled and minified JavaScript -->
@@ -201,7 +220,8 @@
 								},
 								error: function(jqxhr, status, error) {
 									$("#busy").hide();
-									alert("Error:"+status);
+									FAPI_UI.showError(jqxhr.responseJSON);
+                                    updateRunningTable();
 								},
 								dataType: 'json'
 						});

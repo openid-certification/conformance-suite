@@ -36,6 +36,19 @@ var FAPI_UI = {
 	        success: render
 	    });
 	},
+	
+	/**
+	 * Takes in a JSON object representing the error from the server and shows an error display
+	 */
+	showError : function(error) {
+		if (error != null) {
+			$('#errorMessage').html(_.escape(error.error));
+		} else {
+			$('#errorMessage').html('Error from server.');
+		}
+		
+		$('#errorModal').modal();
+	},
 
 	testJSON : {}/*
 				server : {
