@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Strings;
@@ -51,8 +49,8 @@ import io.fintechlabs.testframework.example.SampleImplicitModule;
 import io.fintechlabs.testframework.example.SampleTestModule;
 import io.fintechlabs.testframework.fapi.CodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.fapi.CodeIdTokenWithPrivateKey;
-import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
 import io.fintechlabs.testframework.fapi.EnsureRedirectUriInAuthorizationRequest;
+import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
 import io.fintechlabs.testframework.fapi.EnsureRequestObjectSignatureAlgorithmIsNotNull;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -62,6 +60,7 @@ import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMTLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMTLSRequired;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
@@ -355,9 +354,8 @@ public class TestRunner {
     
     
     // handle errors thrown by running tests
-    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Condition failure")
     @ExceptionHandler(TestFailureException.class)
-    public void conditionFailure(TestFailureException error) {
+    public ResponseEntity<Object> conditionFailure(TestFailureException error) {
     	try {
 	    	TestModule test = support.getRunningTestById(error.getTestId());
 	    	if (test != null) {
@@ -366,9 +364,13 @@ public class TestRunner {
 	    	}
     	} catch (Exception e) {
     		logger.error("Something terrible happened when handling an error, I give up", e);
-    	} finally {
-
     	}
+
+    	JsonObject obj = new JsonObject();
+    	obj.addProperty("error", error.getMessage());
+    	obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
+    	obj.addProperty("testId", error.getTestId());
+    	return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }
