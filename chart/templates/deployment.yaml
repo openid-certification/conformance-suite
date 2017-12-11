@@ -27,6 +27,16 @@ spec:
           value: {{ .Values.service.url | quote }}
         - name: MONGODB_HOST
           value: {{ template "appname" . }}-mongodb
+        - name: OIDC_GOOGLE_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: oidc-google-credentials
+              key: clientid
+        - name: OIDC_GOOGLE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oidc-google-credentials
+              key: secret
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
