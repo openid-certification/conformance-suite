@@ -183,7 +183,11 @@ public class TestDispatcher {
 			}
 
 	    	// return a plain API view (no HTML)
-	    	return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+    		JsonObject obj = new JsonObject();
+    		obj.addProperty("error", error.getMessage());
+    		obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
+    		obj.addProperty("testId", error.getTestId());
+    		return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
 
     	} catch (Exception e) {
     		logger.error("Something terrible happened when handling an error, I give up", e);
