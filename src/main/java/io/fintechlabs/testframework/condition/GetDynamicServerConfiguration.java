@@ -14,6 +14,14 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -73,12 +81,14 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(discoveryUrl)) {
 			// do an auto-discovery here
 			
-			RestTemplate restTemplate = new RestTemplate();
 
 			// fetch the value
 			String jsonString;
 			try {
+				RestTemplate restTemplate = createRestTemplate(env);
 				jsonString = restTemplate.getForObject(discoveryUrl, String.class);
+			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+				return error("Error creating HTTP client", e);
 			} catch (RestClientResponseException e) {
 				return error("Unable to fetch server configuration from " + discoveryUrl, e);
 			}
