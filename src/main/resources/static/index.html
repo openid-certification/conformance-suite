@@ -71,55 +71,55 @@
 				  	<h3>Server</h3>
 					<div class="row">
 						<div class="col-md-2 key">discoveryUrl</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="server.discoveryUrl" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
 					</div>
 
 					<h3>Client</h3>
 					<div class="row">
 						<div class="col-md-2 key">client_id</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_id" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">client_secret</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_secret" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">scope</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.scope" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">redirect_uri</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">mtls.cert</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.cert" placeholder=""></textarea></div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.cert" placeholder="TLS client certificate in PEM format in JSON string, no headers"></textarea></div>
 					</div>
 
 					<div class="row">
 						<div class="col-md-2 key">mtls.key</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.key" placeholder=""></textarea></div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.key" placeholder="TLS client key in PEM format in JSON string, no headers, unencrypted"></textarea></div>
 					</div>
 					<div class="row">
-						<div class="col-md-2 key">jwks.keys</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks.keys" placeholder=""></textarea></div>
+						<div class="col-md-2 key">jwks</div>
+						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
 					</div>
 
 					<h3>JWKS</h3>
 					<div class="row">
-						<div class="col-md-2 key">keys</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="jwks.keys" placeholder=""></textarea></div>
+						<div class="col-md-2 key"></div>
+                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
 					</div>
 
 					<h3>TLS</h3>
 					<div class="row">
 						<div class="col-md-2 key">testHost</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testHost" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
 					</div>
 
 					<div class="row">
 						<div class="col-md-2 key">testPort</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testPort" placeholder=""></input></div>
+						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
 					</div>
 				</div>
 
@@ -129,7 +129,7 @@
 			</div><!-- / .tab-content -->
 
 	        <div>
-				<input type="text" id="alias" placeholder="alias"></input>
+				<input type="text" id="alias" placeholder="alias for test instance - redirect URI etc"></input>
 				<!-- render available test launch options here -->
 				<div id="launch-buttons"></div>
 	        </div>
