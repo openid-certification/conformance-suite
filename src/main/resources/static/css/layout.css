@@ -12,6 +12,7 @@ header {
   background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
   background-size: 20% auto;
   border-bottom:solid 2px #c0c0c0;
+  margin-bottom:20px;
 }
 
 h1 {
@@ -43,10 +44,6 @@ input, textarea {
   border:1px solid #ccc;
 }
 
-.container {
-  margin:20px;
-}
-
 .wordwrap { 
   word-wrap: break-word;  
   word-break: break-all;     
@@ -58,9 +55,9 @@ textarea {
   height:200px;
 }
 
-input[type="text"] {
-  width:25%;
-  margin:5px 0 10px;
+#alias {
+  width:100%;
+  margin:15px 0 0px;
 }
 
 button {
@@ -183,6 +180,10 @@ button {
 /** index.html end **/
 
 /** logs listing **/
+#logs {
+  margin:0 20px;
+}
+
 #logs .content .link {
   margin:5px 0;
 }
