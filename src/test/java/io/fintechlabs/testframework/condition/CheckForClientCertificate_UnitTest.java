@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureClientMTLS_UnitTest {
+public class CheckForClientCertificate_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -38,7 +38,7 @@ public class EnsureClientMTLS_UnitTest {
 
 	private JsonObject certificate;
 
-	private EnsureClientMTLS cond;
+	private CheckForClientCertificate cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -46,14 +46,14 @@ public class EnsureClientMTLS_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureClientMTLS("UNIT-TEST", eventLog, false);
+		cond = new CheckForClientCertificate("UNIT-TEST", eventLog, false);
 
 		certificate = new JsonParser().parse("{\"subject\":{\"dn\":\"CN=example.org\"}}").getAsJsonObject();
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.EnsureClientMTLS#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CheckForClientCertificate#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
@@ -65,7 +65,7 @@ public class EnsureClientMTLS_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.EnsureClientMTLS#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CheckForClientCertificate#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
