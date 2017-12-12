@@ -15,7 +15,7 @@ services:
     image: openjdk
     volumes:
      - ./target/:/server/
-    command: java -jar /server/fapi-test-suite.jar
+    command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true
     links:
      - mongodb:mongodb
     depends_on: 

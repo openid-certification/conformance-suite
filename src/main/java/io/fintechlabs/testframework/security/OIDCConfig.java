@@ -8,6 +8,8 @@ import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
 import org.mitre.openid.connect.client.OIDCAuthenticationProvider;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
 import org.mitre.openid.connect.client.service.impl.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +19,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
@@ -25,6 +29,11 @@ import java.util.Set;
 @Configuration
 @EnableWebSecurity
 public class OIDCConfig extends WebSecurityConfigurerAdapter {
+
+	private static Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
+
+	@Value("${fintechlabs.devmode:false}")
+	private boolean devmode;
 
 	@Value("${fintechlabs.base_url}")
 	private String baseURL;
@@ -137,6 +146,11 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
+	public DummyUserFilter dummyUserFilter() {
+		return new DummyUserFilter();
+	}
+
+	@Bean
 	public AuthenticationProvider configureOIDCAuthenticationProvider(){
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
@@ -156,7 +170,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	// This sets Spring Security up so that it can use the OIDC tokens etc.
 	@Autowired
-	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+	public void configureGlobal(AuthenticationManagerBuilder auth) {
 		auth.authenticationProvider(configureOIDCAuthenticationProvider());
 	}
 
@@ -169,6 +183,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.anyRequest()
 					.authenticated()
 				.and()
+				//.addFilterBefore(dummyUserFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.exceptionHandling()
 				.authenticationEntryPoint(authenticationEntryPoint())
@@ -176,6 +191,11 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.logout()
 				.logoutSuccessUrl("/login")
 				.permitAll();
+
+		if(devmode) {
+			logger.warn("Starting application in Dev Mode, injecting dummy user into requests.");
+			http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);
+		}
 	}
 
 }
