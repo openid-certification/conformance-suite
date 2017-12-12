@@ -183,7 +183,6 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.anyRequest()
 					.authenticated()
 				.and()
-				//.addFilterBefore(dummyUserFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.exceptionHandling()
 				.authenticationEntryPoint(authenticationEntryPoint())
@@ -193,7 +192,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.permitAll();
 
 		if(devmode) {
-			logger.warn("Starting application in Dev Mode, injecting dummy user into requests.");
+			logger.warn("\n***\n* Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
 			http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);
 		}
 	}

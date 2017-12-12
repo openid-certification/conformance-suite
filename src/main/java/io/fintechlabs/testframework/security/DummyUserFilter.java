@@ -20,6 +20,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * DummyUserFilter is used to inject an authenticated <code>OIDCAuthenticationToken</code>
+ * into the Security Context. This should <b>NEVER</b> be used in production
+ *
+ * The point of this is to fake out the OIDC authentication mechanism of Spring into thinkin a user has already logged
+ * in, so that a developer doesn't have to keep logging in every time they want to test a code change.
+ *
+ * To enable this, add the filter into the <code>HttpSecurity</code> object in your
+ * <code>WebSecurityConfigurerAdapter</code> with:
+ *
+ * <code>http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);</code>
+ */
 @Component
 public class DummyUserFilter extends GenericFilterBean {
 
