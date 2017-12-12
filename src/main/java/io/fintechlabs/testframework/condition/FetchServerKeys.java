@@ -14,13 +14,19 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -67,11 +73,12 @@ public class FetchServerKeys extends AbstractCondition {
 			
 			if (!Strings.isNullOrEmpty(jwksUri)) {
 				// do the fetch
-				RestTemplate restTemplate = new RestTemplate();
 
 				log("Fetching server key", args("jwks_uri", jwksUri));
 				
 				try {
+					RestTemplate restTemplate = createRestTemplate(env);
+
 					String jwkString = restTemplate.getForObject(jwksUri, String.class);
 					
 					log("Found JWK set string", args("jwk_string", jwkString));
@@ -86,6 +93,8 @@ public class FetchServerKeys extends AbstractCondition {
 					logSuccess("Parsed server JWK", args("jwk", jwkSet));
 					return env;
 					
+				} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+					return error("Error creating HTTP client", e);
 				} catch (RestClientException e) {
 					return error("Exception while fetching server key", e);
 				} catch (ParseException e) {
