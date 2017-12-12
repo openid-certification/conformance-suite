@@ -14,33 +14,19 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.io.IOException;
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -54,8 +40,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 public class FetchServerKeys extends AbstractCondition {
-
-	private static final Logger logger = LoggerFactory.getLogger(FetchServerKeys.class);
 
 	/**
 	 * @param testId
@@ -90,59 +74,11 @@ public class FetchServerKeys extends AbstractCondition {
 			if (!Strings.isNullOrEmpty(jwksUri)) {
 				// do the fetch
 
-				HttpClientBuilder builder = HttpClientBuilder.create()
-						.useSystemProperties();
-
-				try {
-					TrustManager[] trustAllCerts = new TrustManager[] {
-							new X509TrustManager() {
-
-								@Override
-								public X509Certificate[] getAcceptedIssuers() {
-									return new X509Certificate[0];
-								}
-
-								@Override
-								public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-								}
-
-								@Override
-								public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-								}
-							}
-					};
-
-					SSLContext sc = SSLContext.getInstance("TLS");
-					sc.init(null, trustAllCerts, null); // Use default key managers and secure random
-					builder.setSslcontext(sc);
-
-					SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
-							new String[]{"TLSv1.2"},
-							null,
-							SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-					builder.setSSLSocketFactory(sslConnectionSocketFactory);
-
-					Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-							.register("https", sslConnectionSocketFactory)
-							.register("http", new PlainConnectionSocketFactory())
-							.build();
-
-					HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-					builder.setConnectionManager(ccm);
-				} catch (NoSuchAlgorithmException | KeyManagementException e) {
-					logger.warn("TLS Error", e);
-					return error("Error when building TLS connection", e);
-				}
-
-				HttpClient httpClient = builder.build();
-
-				HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-
-				RestTemplate restTemplate = new RestTemplate(factory);
-
 				log("Fetching server key", args("jwks_uri", jwksUri));
 				
 				try {
+					RestTemplate restTemplate = createRestTemplate(env);
+
 					String jwkString = restTemplate.getForObject(jwksUri, String.class);
 					
 					log("Found JWK set string", args("jwk_string", jwkString));
@@ -157,6 +93,8 @@ public class FetchServerKeys extends AbstractCondition {
 					logSuccess("Parsed server JWK", args("jwk", jwkSet));
 					return env;
 					
+				} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+					return error("Error creating HTTP client", e);
 				} catch (RestClientException e) {
 					return error("Exception while fetching server key", e);
 				} catch (ParseException e) {
