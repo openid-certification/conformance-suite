@@ -80,7 +80,8 @@ public class OBEnsureMTLSRequired extends AbstractTestModule {
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
 
-		require(EnsureServerConfigurationSupportsMTLS.class);
+		// oauth-MTLS is not required for all OpenBanking client authentication methods
+		optional(EnsureServerConfigurationSupportsMTLS.class);
 
 		require(FetchServerKeys.class);
 
@@ -190,7 +191,8 @@ public class OBEnsureMTLSRequired extends AbstractTestModule {
 
 		require(CheckMatchingStateParameter.class);
 
-		// call the token endpoint and expect an error
+		// call the token endpoint and expect an error, since this request does not
+		// meet any of the OB requirements for client authentication
 
 		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 

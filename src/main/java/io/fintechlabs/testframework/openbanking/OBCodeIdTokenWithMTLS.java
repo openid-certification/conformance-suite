@@ -228,9 +228,9 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 
 		require(CheckForAccessTokenValue.class);
 		
-		optional(CheckForIdTokenValue.class);
+		require(CheckForIdTokenValue.class);
 		
-		optional(ParseIdToken.class);
+		require(ParseIdToken.class);
 		
 		optional(CheckForRefreshTokenValue.class);
 		

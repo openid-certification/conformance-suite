@@ -17,14 +17,14 @@ package io.fintechlabs.testframework.condition;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class EnsureClientMTLS extends AbstractCondition {
+public class CheckForClientCertificate extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public EnsureClientMTLS(String testId, EventLog log, boolean optional) {
+	public CheckForClientCertificate(String testId, EventLog log, boolean optional) {
 		super(testId, log, optional);
 	}
 

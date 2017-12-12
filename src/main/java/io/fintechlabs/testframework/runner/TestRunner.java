@@ -57,8 +57,8 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMTLS;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMTLS;
+import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMTLSRequired;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -111,8 +111,8 @@ public class TestRunner {
 			// OpenBanking-specific test modules:
 			new SimpleEntry<>("ob-ensure-mtls-required", OBEnsureMTLSRequired.class),
 			new SimpleEntry<>("ob-code-idtoken-with-mtls", OBCodeIdTokenWithMTLS.class),
-			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-mtls", OBCodeIdTokenWithPrivateKeyAndMTLS.class),
-			new SimpleEntry<>("ob-code-idtoken-with-secret-and-mtls", OBCodeIdTokenWithSecretAndMTLS.class),
+			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-matls", OBCodeIdTokenWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-code-idtoken-with-secret-and-matls", OBCodeIdTokenWithSecretAndMATLS.class),
 			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));

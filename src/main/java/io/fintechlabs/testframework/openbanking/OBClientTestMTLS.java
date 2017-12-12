@@ -28,11 +28,11 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AuthenticateClientWithClientSecret;
+import io.fintechlabs.testframework.condition.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.EnsureClientIsAuthenticated;
-import io.fintechlabs.testframework.condition.EnsureClientMTLS;
 import io.fintechlabs.testframework.condition.EnsureMatchingClientCertificate;
 import io.fintechlabs.testframework.condition.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.EnsureMatchingRedirectUri;
@@ -251,7 +251,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		optional(ExtractClientCertificateFromRequestHeaders.class);
 
-		require(EnsureClientMTLS.class);
+		require(CheckForClientCertificate.class);
 
 		optional(ExtractClientCredentialsFromFormPost.class);
 
@@ -293,7 +293,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		optional(ExtractClientCertificateFromRequestHeaders.class);
 
-		require(EnsureClientMTLS.class);
+		require(CheckForClientCertificate.class);
 
 		require(EnsureMatchingClientCertificate.class);
 
