@@ -14,6 +14,27 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,6 +51,8 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 public class GetDynamicServerConfiguration extends AbstractCondition {
+
+	private static final Logger logger = LoggerFactory.getLogger(GetDynamicServerConfiguration.class);
 
 	/**
 	 * @param testId
@@ -72,8 +95,56 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		// get out the server configuration component
 		if (!Strings.isNullOrEmpty(discoveryUrl)) {
 			// do an auto-discovery here
-			
-			RestTemplate restTemplate = new RestTemplate();
+
+			HttpClientBuilder builder = HttpClientBuilder.create()
+					.useSystemProperties();
+
+			try {
+				TrustManager[] trustAllCerts = new TrustManager[] {
+						new X509TrustManager() {
+
+							@Override
+							public X509Certificate[] getAcceptedIssuers() {
+								return new X509Certificate[0];
+							}
+
+							@Override
+							public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+							}
+
+							@Override
+							public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+							}
+						}
+				};
+
+				SSLContext sc = SSLContext.getInstance("TLS");
+				sc.init(null, trustAllCerts, null); // Use default key managers and secure random
+				builder.setSslcontext(sc);
+
+				SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
+						new String[]{"TLSv1.2"},
+						null,
+						SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+				builder.setSSLSocketFactory(sslConnectionSocketFactory);
+
+				Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+						.register("https", sslConnectionSocketFactory)
+						.register("http", new PlainConnectionSocketFactory())
+						.build();
+
+				HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+				builder.setConnectionManager(ccm);
+			} catch (NoSuchAlgorithmException | KeyManagementException e) {
+				logger.warn("TLS Error", e);
+				return error("Error when building TLS connection", e);
+			}
+
+			HttpClient httpClient = builder.build();
+
+			HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+
+			RestTemplate restTemplate = new RestTemplate(factory);
 
 			// fetch the value
 			String jsonString;
