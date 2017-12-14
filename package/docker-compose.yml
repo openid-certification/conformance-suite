@@ -1,0 +1,20 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    volumes:
+     - ./mongo/data:/data/db
+  server:
+    build:
+      context: ./server
+    links:
+     - mongodb:mongodb
+    depends_on: 
+     - mongodb
+  httpd:
+    build:
+      context: ./httpd
+    ports:
+     - "8443:8443"
+    depends_on:
+     - server
