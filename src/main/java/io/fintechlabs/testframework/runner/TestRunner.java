@@ -14,6 +14,7 @@
 package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Map;
@@ -338,11 +339,19 @@ public class TestRunner {
     	
     	TestModule module;
 		try {
-			module = testModuleClass.newInstance();
-			module.setOwner((ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal());
-			module.wire(id, eventLog, browser, testInfo);
+			
+			Map<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
+			
+			
+			
+			module = testModuleClass.getDeclaredConstructor(String.class, EventLog.class, BrowserControl.class, TestInfoService.class)
+					.newInstance(id, eventLog, browser, testInfo);
 			return module;
-		} catch (InstantiationException | IllegalAccessException e) {
+			
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			
+			logger.warn("Couldn't create test module", e);
+
 			return null;
 		}
     	

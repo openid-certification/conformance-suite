@@ -59,8 +59,13 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String name) {
+	public AbstractTestModule(String name, String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		this.name = name;
+		this.id = id;
+		this.eventLog = eventLog;
+		this.browser = browser;
+		this.testInfo = testInfo;
+
 		setStatus(Status.CREATED);
 	}
 
@@ -68,7 +73,7 @@ public abstract class AbstractTestModule implements TestModule {
 		return owner;
 	}
 
-	public void setOwner(ImmutableMap<String, String> owner) {
+	protected void setOwner(ImmutableMap<String, String> owner) {
 		this.owner = owner;
 	}
 
@@ -392,21 +397,6 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public String getName() {
 		return name;
-	}
-
-	/**
-	 * Wire up this test module instance with some callbacks from the framework
-	 * @param id
-	 * @param eventLog
-	 * @param browser
-	 * @param testInfo
-	 */
-	@Override
-	public void wire(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		this.id = id;
-		this.eventLog = eventLog;
-		this.browser = browser;
-		this.testInfo = testInfo;
 	}
 
 }

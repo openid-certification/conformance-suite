@@ -58,6 +58,9 @@ import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestRes
 import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -72,8 +75,8 @@ public class SampleTestModule extends AbstractTestModule {
 	/**
 	 * 
 	 */
-	public SampleTestModule() {
-		super("sample-test");
+	public SampleTestModule(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("sample-test", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

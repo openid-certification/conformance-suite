@@ -56,6 +56,7 @@ import io.fintechlabs.testframework.condition.SignIdToken;
 import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -70,8 +71,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public SampleClientTestModule() {
-		super("sample-client-test");
+	public SampleClientTestModule(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("sample-client-test", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

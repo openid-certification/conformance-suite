@@ -58,6 +58,9 @@ import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.SignRequestObject;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -75,8 +78,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public CodeIdTokenWithPrivateKey() {
-		super("code-id-token-with-private-key");
+	public CodeIdTokenWithPrivateKey(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("code-id-token-with-private-key", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

@@ -34,6 +34,7 @@ import io.fintechlabs.testframework.condition.ExpectRedirectUriErrorPage;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -49,8 +50,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**
 	 */
-	public EnsureRegisteredRedirectUri() {
-		super("ensure-redirect-uri-is-registered");
+	public EnsureRegisteredRedirectUri(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-redirect-uri-is-registered", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

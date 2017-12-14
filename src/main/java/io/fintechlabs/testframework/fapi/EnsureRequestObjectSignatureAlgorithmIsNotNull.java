@@ -39,13 +39,16 @@ import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.SerializeRequestObjectWithNullAlgorithm;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTestModule {
 
-	public EnsureRequestObjectSignatureAlgorithmIsNotNull() {
-		super("ensure-request-object-signature-algorithm-is-not-null");
+	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-request-object-signature-algorithm-is-not-null", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

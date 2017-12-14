@@ -58,6 +58,9 @@ import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -75,8 +78,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public OBCodeIdTokenWithMTLS() {
-		super("ob-code-id-token-with-mtls");
+	public OBCodeIdTokenWithMTLS(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-id-token-with-mtls", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

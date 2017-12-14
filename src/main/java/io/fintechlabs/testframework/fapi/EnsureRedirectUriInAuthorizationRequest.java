@@ -32,13 +32,16 @@ import io.fintechlabs.testframework.condition.ExpectRedirectUriMissingErrorPage;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule {
 
-	public EnsureRedirectUriInAuthorizationRequest() {
-		super("ensure-redirect-uri-in-authorization-request");
+	public EnsureRedirectUriInAuthorizationRequest(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-redirect-uri-in-authorization-request", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

@@ -46,6 +46,9 @@ import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToToken;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -61,8 +64,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 	/**
 	 * 
 	 */
-	public SampleImplicitModule() {
-		super("sample-implicit-test");
+	public SampleImplicitModule(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("sample-implicit-test", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

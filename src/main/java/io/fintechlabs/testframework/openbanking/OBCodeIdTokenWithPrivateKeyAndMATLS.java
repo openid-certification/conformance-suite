@@ -62,6 +62,9 @@ import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.SignRequestObject;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -70,8 +73,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(OBCodeIdTokenWithPrivateKeyAndMATLS.class);
 
-	public OBCodeIdTokenWithPrivateKeyAndMATLS() {
-		super("ob-code-id-token-with-private-key-and-matls");
+	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-id-token-with-private-key-and-matls", id, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
