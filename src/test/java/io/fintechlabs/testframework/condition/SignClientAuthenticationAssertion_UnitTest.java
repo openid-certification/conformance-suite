@@ -15,12 +15,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jwt.SignedJWT;
 
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-
 import static org.junit.Assert.fail;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -30,7 +28,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private SignClientAuthenticationAssertion cond;
 	
@@ -46,7 +44,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new SignClientAuthenticationAssertion("UNIT-TEST", eventLog, false);
+		cond = new SignClientAuthenticationAssertion("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		claims = new JsonParser().parse("{" + 
 				"	\"iss\": \"client\"," + 

@@ -1,8 +1,5 @@
 package io.fintechlabs.testframework.condition;
 
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-
 import java.util.Date;
 
 import org.junit.Before;
@@ -16,7 +13,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -26,7 +27,7 @@ public class ValidateIdToken_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private long nowSeconds;
 	
@@ -44,7 +45,7 @@ public class ValidateIdToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new ValidateIdToken("UNIT-TEST", eventLog, false);
+		cond = new ValidateIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		Date now = new Date();
 		nowSeconds = now.getTime() / 1000;

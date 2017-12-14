@@ -18,11 +18,10 @@ import java.time.Instant;
 import java.util.Date;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -38,8 +37,8 @@ public class ValidateIdToken extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public ValidateIdToken(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-24");
+	public ValidateIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

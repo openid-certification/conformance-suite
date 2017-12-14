@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
@@ -83,10 +84,10 @@ public class SampleTestModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		require(EnsureTls12.class);
-		optional(DisallowTLS10.class);
-		optional(DisallowTLS11.class);
-		optional(DisallowInsecureCipher.class);
+		require(EnsureTls12.class, "FAPI-1-7.1-1");
+		optional(DisallowTLS10.class, "FAPI-1-7.1-1");
+		optional(DisallowTLS11.class, "FAPI-1-7.1-1");
+		optional(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
 		
 		require(CreateRedirectUri.class);
 
@@ -138,7 +139,7 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
 		
@@ -151,7 +152,7 @@ public class SampleTestModule extends AbstractTestModule {
 	@Override
 	public void stop() {
 
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 		
 		setStatus(Status.FINISHED);
 		
@@ -167,8 +168,8 @@ public class SampleTestModule extends AbstractTestModule {
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		eventLog.log(getId(), getName(), "Path: " + path);
-		eventLog.log(getId(), getName(), "Params: " + requestParts);
+		eventLog.log(getName(), "Path: " + path);
+		eventLog.log(getName(), "Params: " + requestParts);
 		
 		// dispatch based on the path
 		if (path.equals("callback")) {
@@ -214,19 +215,21 @@ public class SampleTestModule extends AbstractTestModule {
 
 		require(CheckIfTokenEndpointResponseError.class);
 
-		require(CheckForAccessTokenValue.class);
+		require(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
 		require(CheckForIdTokenValue.class);
 		
-		require(ParseIdToken.class);
+		require(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 		
-		require(ValidateIdToken.class);
+		require(ParseIdToken.class, "FAPI-1-5.2.2-24");
 		
-		require(ValidateIdTokenSignature.class);
+		require(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+		
+		require(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 		
 		optional(CheckForRefreshTokenValue.class);
 		
-		require(EnsureMinimumTokenEntropy.class);
+		require(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

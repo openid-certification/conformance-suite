@@ -14,10 +14,9 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -31,8 +30,8 @@ public class SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken extends Ab
 	 * @param log
 	 * @param optional
 	 */
-	public SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -48,6 +48,7 @@ import com.google.gson.JsonPrimitive;
 
 import static org.mockito.Mockito.verify;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -103,13 +104,13 @@ public class AbstractCondition_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new AbstractConditionTester(TEST_ID, eventLog, false);
+		cond = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.FAILURE);
 		
-		condReqs = new AbstractConditionTester(TEST_ID, eventLog, false, req1, req2);
+		condReqs = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.FAILURE, req1, req2);
 		
-		opt = new AbstractConditionTester(TEST_ID, eventLog, true);
+		opt = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.INFO);
 		
-		optReqs = new AbstractConditionTester(TEST_ID, eventLog, true, req1, req2);
+		optReqs = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.WARNING, req1, req2);
 
 		obj = new JsonParser().parse("{\"foo\": \"bar\", \"baz\": 1234}").getAsJsonObject();
 		
@@ -305,7 +306,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("SUCCESS");
+		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
 	}
 
@@ -324,7 +325,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("SUCCESS");
+		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 		
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -350,7 +351,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(map.size() + 1);
 		
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("SUCCESS");
+		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
@@ -371,7 +372,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(map.size() + 2);
 		
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("SUCCESS");
+		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -405,7 +406,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("SUCCESS");
+		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
@@ -429,7 +430,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("SUCCESS");
+		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -571,7 +572,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("FAILURE");
+		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 	}
 
@@ -590,7 +591,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("FAILURE");
+		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -616,7 +617,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(map.size() + 1);
 		
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("FAILURE");
+		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
@@ -637,7 +638,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(map.size() + 2);
 		
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("FAILURE");
+		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -671,7 +672,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("FAILURE");
+		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
@@ -695,7 +696,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("FAILURE");
+		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -785,7 +786,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		assertThat(res.get("result").getAsString()).isEqualTo("INFO");
 		
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -837,7 +838,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("WARNING");
+		assertThat(res.get("result").toString()).isEqualTo("INFO");
 
 	}
 
@@ -856,7 +857,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("WARNING");
+		assertThat(res.get("result").toString()).isEqualTo("WARNING");
 		
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -882,7 +883,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(map.size() + 1);
 		
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("WARNING");
+		assertThat(res.get("result").toString()).isEqualTo("INFO");
 
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
@@ -903,7 +904,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(map.size() + 2);
 		
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("WARNING");
+		assertThat(res.get("result").toString()).isEqualTo("WARNING");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -937,7 +938,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("WARNING");
+		assertThat(res.get("result").toString()).isEqualTo("INFO");
 
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
@@ -961,7 +962,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("WARNING");
+		assertThat(res.get("result").toString()).isEqualTo("WARNING");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
@@ -995,7 +996,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
 		
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		assertThat(res.get("result").getAsString()).isEqualTo("INFO");
 		
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -1066,7 +1067,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("msg")).isEqualTo(msg);
 
 			assertThat(res.containsKey("result")).isEqualTo(true);
-			assertThat(res.get("result")).isEqualTo("FAILURE");
+			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		}
 	}
 	
@@ -1092,7 +1093,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("msg")).isEqualTo(msg);
 
 			assertThat(res.containsKey("result")).isEqualTo(true);
-			assertThat(res.get("result")).isEqualTo("FAILURE");
+			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		}
 	}
 	
@@ -1119,7 +1120,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("msg")).isEqualTo(cause.getMessage());
 
 			assertThat(res.containsKey("result")).isEqualTo(true);
-			assertThat(res.get("result")).isEqualTo("FAILURE");
+			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		}
 	}
 	
@@ -1146,7 +1147,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("msg")).isEqualTo(msg);
 
 			assertThat(res.containsKey("result")).isEqualTo(true);
-			assertThat(res.get("result")).isEqualTo("FAILURE");
+			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 			// make sure 'res' has everything 'map' does
 			for (String key : map.keySet()) {
@@ -1178,7 +1179,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("msg")).isEqualTo(msg);
 
 			assertThat(res.containsKey("result")).isEqualTo(true);
-			assertThat(res.get("result")).isEqualTo("FAILURE");
+			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 			// make sure 'res' has everything 'map' does
 			for (String key : map.keySet()) {
@@ -1212,7 +1213,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("msg")).isEqualTo(cause.getMessage());
 
 			assertThat(res.containsKey("result")).isEqualTo(true);
-			assertThat(res.get("result")).isEqualTo("FAILURE");
+			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 			// make sure 'res' has everything 'map' does
 			for (String key : map.keySet()) {
@@ -1340,7 +1341,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("REVIEW");
+		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
 		
 	}
 	
@@ -1359,7 +1360,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("REVIEW");
+		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
 		
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
@@ -1387,7 +1388,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("REVIEW");
+		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
 		
 	}
 	
@@ -1409,7 +1410,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
-		assertThat(res.get("result")).isEqualTo("REVIEW");
+		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
 		
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
@@ -1432,29 +1433,10 @@ public class AbstractCondition_UnitTest {
 		 * @param testId
 		 * @param log
 		 * @param optional
-		 */
-		public AbstractConditionTester(String testId, TestInstanceEventLog log, boolean optional) {
-			super(testId, log, optional);
-		}
-
-		/**
-		 * @param testId
-		 * @param log
-		 * @param optional
 		 * @param requirements
 		 */
-		public AbstractConditionTester(String testId, TestInstanceEventLog log, boolean optional, String... requirements) {
-			super(testId, log, optional, requirements);
-		}
-
-		/**
-		 * @param testId
-		 * @param log
-		 * @param optional
-		 * @param requirements
-		 */
-		public AbstractConditionTester(String testId, TestInstanceEventLog log, boolean optional, Set<String> requirements) {
-			super(testId, log, optional, requirements);
+		public AbstractConditionTester(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+			super(testId, log, conditionResultOnFailure, requirements);
 		}
 
 		/* (non-Javadoc)

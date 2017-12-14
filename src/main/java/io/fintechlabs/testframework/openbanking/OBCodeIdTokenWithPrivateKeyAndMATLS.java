@@ -62,6 +62,7 @@ import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.SignRequestObject;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.ValidateStateHash;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -139,7 +140,7 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
 
@@ -151,7 +152,7 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 
 		setStatus(Status.FINISHED);
 
@@ -165,8 +166,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		eventLog.log(getId(), getName(), "Path: " + path);
-		eventLog.log(getId(), getName(), "Params: " + requestParts);
+		eventLog.log(getName(), "Path: " + path);
+		eventLog.log(getName(), "Params: " + requestParts);
 
 		// dispatch based on the path
 
@@ -212,6 +213,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 		require(CheckMatchingStateParameter.class);
 
 		// check the ID token from the hybrid response
+		
+		//require(ValidateStateHash.class, "FAPI-2-5.2.2-4");
 
 		// call the token endpoint and complete the flow
 
@@ -229,23 +232,23 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		require(CheckIfTokenEndpointResponseError.class);
 
-		require(CheckForAccessTokenValue.class);
+		require(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
 		require(CheckForIdTokenValue.class);
 
-		require(ParseIdToken.class);
+		require(ParseIdToken.class, "FAPI-1-5.2.2-24");
 
-		require(ValidateIdToken.class);
+		require(ValidateIdToken.class, "FAPI-1-5.2.2-24");
 
-		require(ValidateIdTokenSignature.class);
+		require(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
-		require(CheckForSubscriberInIdToken.class);
+		require(CheckForSubscriberInIdToken.class, "OB-5.2.2-8");
 
 		optional(CheckForRefreshTokenValue.class);
 
-		require(EnsureMinimumTokenLength.class);
+		require(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
 
-		optional(EnsureMinimumTokenEntropy.class);
+		optional(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

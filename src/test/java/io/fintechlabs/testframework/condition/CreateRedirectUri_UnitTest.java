@@ -12,7 +12,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -22,7 +23,7 @@ public class CreateRedirectUri_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private CreateRedirectUri cond;
 	
@@ -32,7 +33,7 @@ public class CreateRedirectUri_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new CreateRedirectUri("UNIT-TEST", eventLog, false);
+		cond = new CreateRedirectUri("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 	}
 	

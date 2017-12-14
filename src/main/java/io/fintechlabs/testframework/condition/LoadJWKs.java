@@ -16,13 +16,12 @@ package io.fintechlabs.testframework.condition;
 
 import java.text.ParseException;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWKSet;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -36,8 +35,8 @@ public class LoadJWKs extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public LoadJWKs(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public LoadJWKs(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

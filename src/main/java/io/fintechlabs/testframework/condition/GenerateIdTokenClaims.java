@@ -15,15 +15,11 @@
 package io.fintechlabs.testframework.condition;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -37,8 +33,8 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateIdTokenClaims(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public GenerateIdTokenClaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

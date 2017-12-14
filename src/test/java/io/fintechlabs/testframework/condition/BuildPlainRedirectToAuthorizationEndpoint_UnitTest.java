@@ -1,8 +1,6 @@
 package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -20,9 +18,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -32,7 +33,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private JsonObject server;
 	
@@ -58,7 +59,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new BuildPlainRedirectToAuthorizationEndpoint("UNIT-TEST", eventLog, false);
+		cond = new BuildPlainRedirectToAuthorizationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		server = new JsonObject();
 		server.addProperty("authorization_endpoint", authorizationEndpoint);

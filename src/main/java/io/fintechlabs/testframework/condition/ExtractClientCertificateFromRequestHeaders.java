@@ -23,7 +23,7 @@ import javax.security.auth.x500.X500Principal;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ExtractClientCertificateFromRequestHeaders extends AbstractCondition {
@@ -33,8 +33,8 @@ public class ExtractClientCertificateFromRequestHeaders extends AbstractConditio
 	 * @param log
 	 * @param optional
 	 */
-	public ExtractClientCertificateFromRequestHeaders(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public ExtractClientCertificateFromRequestHeaders(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

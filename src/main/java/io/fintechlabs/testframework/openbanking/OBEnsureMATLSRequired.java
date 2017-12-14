@@ -131,7 +131,7 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 		}
 
 		for (JsonObject endpoint : tlsHosts) {
-			eventLog.log(getId(), getName(),
+			eventLog.log(getName(),
 					"Testing TLS support for " +
 					endpoint.get("testHost").getAsString() +
 					":" + endpoint.get("testPort").getAsInt());
@@ -139,10 +139,10 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 			env.get("config").remove("tls");
 			env.get("config").add("tls", endpoint);
 
-			require(EnsureTls12.class);
-			require(DisallowTLS10.class);
-			require(DisallowTLS11.class);
-			require(DisallowInsecureCipher.class);
+			require(EnsureTls12.class, "FAPI-1-7.1-1");
+			require(DisallowTLS10.class, "FAPI-1-7.1-1");
+			require(DisallowTLS11.class, "FAPI-1-7.1-1");
+			require(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
 		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
@@ -185,7 +185,7 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
 
@@ -197,7 +197,7 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 
 		setStatus(Status.FINISHED);
 
@@ -211,8 +211,8 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		eventLog.log(getId(), getName(), "Path: " + path);
-		eventLog.log(getId(), getName(), "Params: " + requestParts);
+		eventLog.log(getName(), "Path: " + path);
+		eventLog.log(getName(), "Params: " + requestParts);
 
 		// dispatch based on the path
 

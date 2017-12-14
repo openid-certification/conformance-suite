@@ -27,7 +27,8 @@ import com.google.gson.JsonParser;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -41,7 +42,7 @@ public class CheckForIdTokenValue_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private JsonObject goodResponse;
 	
@@ -55,7 +56,7 @@ public class CheckForIdTokenValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new CheckForIdTokenValue("UNIT-TEST", eventLog, false);
+		cond = new CheckForIdTokenValue("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		goodResponse = new JsonParser().parse("{"
 				+ "\"access_token\":"

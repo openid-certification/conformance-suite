@@ -28,7 +28,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -42,7 +43,7 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private CreateClientAuthenticationAssertionClaims cond;
 
@@ -66,7 +67,7 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 		server = new JsonObject();
 		server.addProperty("token_endpoint", tokenEndpoint);
 		
-		cond = new CreateClientAuthenticationAssertionClaims("UNIT-TEST", eventLog, false);
+		cond = new CreateClientAuthenticationAssertionClaims("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 	}
 	

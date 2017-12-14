@@ -1,8 +1,6 @@
 package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import java.security.Key;
 import java.text.ParseException;
@@ -30,7 +28,11 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,7 +42,7 @@ public class SignRequestObject_UnitTest {
 	private Environment env = new Environment();
 
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 
 	private JsonObject jwks;
 
@@ -54,7 +56,7 @@ public class SignRequestObject_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new SignRequestObject("UNIT-TEST", eventLog, false);
+		cond = new SignRequestObject("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 

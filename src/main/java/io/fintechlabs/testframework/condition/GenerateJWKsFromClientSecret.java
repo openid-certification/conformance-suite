@@ -23,7 +23,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -37,8 +37,8 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateJWKsFromClientSecret(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public GenerateJWKsFromClientSecret(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

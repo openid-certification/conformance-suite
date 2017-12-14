@@ -112,9 +112,9 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRequestObjectUnverifiableErrorPage.class);
+		require(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
 		browser.goToUrl(redirectTo);
 
@@ -133,7 +133,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 
 		setStatus(Status.FINISHED);
 
@@ -150,7 +150,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		// If we get any kind of callback to this, it's an error: the authorization server should not ever respond the authorization request
 
-		eventLog.log(getId(), getName(), ImmutableMap.of(
+		eventLog.log(getName(), ImmutableMap.of(
 			"msg", "Receved unexpected incoming request",
 			"path", path,
 			"method", req.getMethod(),

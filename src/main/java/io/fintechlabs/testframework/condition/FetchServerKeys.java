@@ -32,7 +32,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWKSet;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -45,8 +45,8 @@ public class FetchServerKeys extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public FetchServerKeys(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public FetchServerKeys(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

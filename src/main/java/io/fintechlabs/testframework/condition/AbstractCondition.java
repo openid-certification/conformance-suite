@@ -75,14 +75,10 @@ public abstract class AbstractCondition implements Condition {
 	private ConditionResult conditionResultOnFailure;
 	
 	protected AbstractCondition(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		this(testId, log, conditionResultOnFailure, Sets.newHashSet(requirements));
-	}
-	
-	protected AbstractCondition(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, Set<String> requirements) {
 		this.testId = testId;
 		this.log = log;
 		this.conditionResultOnFailure = conditionResultOnFailure;
-		this.requirements = requirements;
+		this.requirements = Sets.newHashSet(requirements);
 	}
 
 	/* (non-Javadoc)

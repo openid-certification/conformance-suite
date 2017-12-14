@@ -85,7 +85,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 		
 		require(LoadJWKs.class);
 		
-		require(EnsureMinimumKeyLength.class);
+		require(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
 		
 		require(LoadUserInfo.class);
 		

@@ -28,9 +28,9 @@ import com.google.gson.JsonParser;
 
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -45,7 +45,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private JsonObject client;
 	
@@ -59,7 +59,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new AddFormBasedClientSecretAuthenticationParameters("UNIT-TEST", eventLog, false);
+		cond = new AddFormBasedClientSecretAuthenticationParameters("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		client = new JsonParser().parse("{"
 				+ "\"client_id\":\"client\","

@@ -4,8 +4,6 @@ import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -18,7 +16,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
 
@@ -29,7 +31,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
@@ -54,7 +56,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 		
 		hoverfly.resetJournal();
 		
-		cond = new GetDynamicServerConfiguration("UNIT-TEST", eventLog, false);
+		cond = new GetDynamicServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 	
 	/**

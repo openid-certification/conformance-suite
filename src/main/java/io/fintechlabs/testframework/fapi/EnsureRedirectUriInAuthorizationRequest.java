@@ -101,9 +101,9 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRedirectUriMissingErrorPage.class);
+		require(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
 
 		browser.goToUrl(redirectTo);
 
@@ -122,7 +122,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 
 		setStatus(Status.FINISHED);
 

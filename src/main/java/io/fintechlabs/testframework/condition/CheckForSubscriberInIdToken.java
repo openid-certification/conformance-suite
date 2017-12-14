@@ -16,7 +16,7 @@ package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckForSubscriberInIdToken extends AbstractCondition {
@@ -25,8 +25,8 @@ public class CheckForSubscriberInIdToken extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CheckForSubscriberInIdToken(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "OB-5.2.2-8");
+	public CheckForSubscriberInIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

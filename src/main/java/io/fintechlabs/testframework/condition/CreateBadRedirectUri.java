@@ -14,14 +14,11 @@
 
 package io.fintechlabs.testframework.condition;
 
-import java.util.Set;
-
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -34,8 +31,8 @@ public class CreateBadRedirectUri extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CreateBadRedirectUri(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public CreateBadRedirectUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 	

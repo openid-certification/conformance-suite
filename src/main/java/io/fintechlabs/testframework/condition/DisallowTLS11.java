@@ -25,9 +25,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -40,8 +39,8 @@ public class DisallowTLS11 extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public DisallowTLS11(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-7.1-1");
+	public DisallowTLS11(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 		// TODO Auto-generated constructor stub
 	}
 

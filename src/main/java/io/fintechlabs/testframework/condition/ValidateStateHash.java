@@ -22,13 +22,13 @@ import java.util.regex.Pattern;
 
 import com.nimbusds.jose.util.Base64URL;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateStateHash extends AbstractCondition {
 
-	public ValidateStateHash(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-2-5.2.2-4");
+	public ValidateStateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	@Override
