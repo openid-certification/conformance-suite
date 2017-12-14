@@ -56,6 +56,7 @@ import io.fintechlabs.testframework.fapi.EnsureRequestObjectSignatureAlgorithmIs
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
@@ -174,7 +175,7 @@ public class TestRunner {
         // add this test to the stack
         testInfo.createTest(id, testName, url, config, alias);
 
-		eventLog.log(id, "TEST-RUNNER", testCreated);
+		eventLog.log(id, "TEST-RUNNER", test.getOwner(), testCreated);
 
         test.configure(config, url);
 
@@ -340,12 +341,14 @@ public class TestRunner {
     	TestModule module;
 		try {
 			
+			@SuppressWarnings("unchecked")
 			Map<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
 			
+			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 			
-			
-			module = testModuleClass.getDeclaredConstructor(String.class, EventLog.class, BrowserControl.class, TestInfoService.class)
-					.newInstance(id, eventLog, browser, testInfo);
+			// call the constructor
+			module = testModuleClass.getDeclaredConstructor(String.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
+				.newInstance(id, wrappedEventLog, browser, testInfo);
 			return module;
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {

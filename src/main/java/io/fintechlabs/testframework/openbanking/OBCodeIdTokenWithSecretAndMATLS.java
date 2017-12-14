@@ -60,7 +60,7 @@ import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -69,7 +69,7 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(OBCodeIdTokenWithSecretAndMATLS.class);
 
-	public OBCodeIdTokenWithSecretAndMATLS(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBCodeIdTokenWithSecretAndMATLS(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-code-id-token-with-secret-and-matls", id, eventLog, browser, testInfo);
 	}
 

@@ -58,7 +58,7 @@ import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 
 public class OBClientTestMTLS extends AbstractTestModule {
@@ -66,7 +66,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public OBClientTestMTLS(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBClientTestMTLS(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-client-test-mtls", id, eventLog, browser, testInfo);
 	}
 

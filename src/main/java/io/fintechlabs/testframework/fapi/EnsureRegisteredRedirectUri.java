@@ -18,10 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.servlet.ModelAndView;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonObject;
@@ -31,14 +27,13 @@ import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateBadRedirectUri;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.ExpectRedirectUriErrorPage;
-import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by 
@@ -50,7 +45,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**
 	 */
-	public EnsureRegisteredRedirectUri(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public EnsureRegisteredRedirectUri(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ensure-redirect-uri-is-registered", id, eventLog, browser, testInfo);
 	}
 

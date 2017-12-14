@@ -45,7 +45,6 @@ public class DBEventLog implements EventLog {
 	private static final Logger log = LoggerFactory.getLogger(DBEventLog.class);
 
 	public static final String COLLECTION = "EVENT_LOG";
-	public static final String TEST_OWNER = "testOwner";
 
 	@Autowired
 	TestInfoService testInfoService;
@@ -57,18 +56,13 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String)
 	 */
 	@Override
-	public void log(String testId, String source, String msg) {
-
-		ImmutableMap<String, String> owner = null;
-
-		owner = testInfoService.getTestOwner(testId);
-
+	public void log(String testId, String source, Map<String, String> owner, String msg) {
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 				.add("testId", testId)
 				.add("src", source)
-				.add(TEST_OWNER, owner)
+				.add("testOwner", owner)
 				.add("time", new Date().getTime())
 				.add("msg", msg);
 		
@@ -79,17 +73,13 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, com.google.gson.JsonObject)
 	 */
 	@Override
-	public void log(String testId, String source, JsonObject obj) {
-		ImmutableMap<String, String> owner = null;
-
-		owner = testInfoService.getTestOwner(testId);
-
+	public void log(String testId, String source, Map<String, String> owner, JsonObject obj) {
 		
 		DBObject dbObject = (DBObject) JSON.parse(GsonToBsonConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
 		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
 		dbObject.put("testId", testId);
 		dbObject.put("src", source);
-		dbObject.put(TEST_OWNER, owner);
+		dbObject.put("testOwner", owner);
 		dbObject.put("time", new Date().getTime());
 		
 		mongoTemplate.insert(dbObject, COLLECTION);
@@ -99,17 +89,13 @@ public class DBEventLog implements EventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.util.Map)
 	 */
 	@Override
-	public void log(String testId, String source, Map<String, Object> map) {
-		ImmutableMap<String, String> owner = null;
-
-
-		owner = testInfoService.getTestOwner(testId);
+	public void log(String testId, String source, Map<String, String> owner, Map<String, Object> map) {
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map) // this doesn't alter the incoming map
 				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 				.add("testId", testId)
 				.add("src", source)
-				.add(TEST_OWNER, owner)
+				.add("testOwner", owner)
 				.add("time", new Date().getTime());
 		
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);

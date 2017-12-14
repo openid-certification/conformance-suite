@@ -35,7 +35,7 @@ import io.fintechlabs.testframework.logging.EventLog;
  * 
  * TestModule instances are assumed to have a constructor with the signature:
  * 
- *   String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo
+ *   String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo
  * 
  * @author jricher
  *

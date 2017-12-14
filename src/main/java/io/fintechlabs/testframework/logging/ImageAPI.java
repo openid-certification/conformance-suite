@@ -64,7 +64,7 @@ public class ImageAPI {
 			BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 					.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 					.add("testId", testId)
-					.add(DBEventLog.TEST_OWNER, testOwner)
+					.add("testOwner", testOwner)
 					.add("src", "_image-api")
 					.add("time", new Date().getTime())
 					.add("img", encoded);
@@ -87,7 +87,7 @@ public class ImageAPI {
 
 		if (authenticationFacade.getAuthenticationToken() != null &&
 				!authenticationFacade.isAdmin()) {
-			criteria.andOperator(Criteria.where(DBEventLog.TEST_OWNER).is(authenticationFacade.getPrincipal()));
+			criteria.andOperator(Criteria.where("testOwner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Query query = Query.query(criteria);

@@ -55,7 +55,7 @@ public class LogApi {
 			queryFilter = BasicDBObjectBuilder.start().get();
 		} else {
 			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
-			queryFilter = BasicDBObjectBuilder.start().add(DBEventLog.TEST_OWNER,owner).get();
+			queryFilter = BasicDBObjectBuilder.start().add("testOwner", owner).get();
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -84,7 +84,7 @@ public class LogApi {
 	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id) {
 		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId",id);
 		if (!authenticationFacade.isAdmin()) {
-			queryBuilder = queryBuilder.add(DBEventLog.TEST_OWNER, authenticationFacade.getPrincipal());
+			queryBuilder = queryBuilder.add("testOwner", authenticationFacade.getPrincipal());
 		}
 		
 		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(queryBuilder.get())

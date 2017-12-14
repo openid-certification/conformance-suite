@@ -14,16 +14,12 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.util.Collections;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -46,7 +42,6 @@ import io.fintechlabs.testframework.condition.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.GenerateIdTokenClaims;
 import io.fintechlabs.testframework.condition.GenerateServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.LoadJWKs;
 import io.fintechlabs.testframework.condition.LoadUserInfo;
 import io.fintechlabs.testframework.condition.RedirectBackToClientWithAuthorizationCode;
@@ -57,10 +52,9 @@ import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
@@ -71,7 +65,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public SampleClientTestModule(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public SampleClientTestModule(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("sample-client-test", id, eventLog, browser, testInfo);
 	}
 

@@ -34,6 +34,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 /**
  * @author jricher
@@ -49,7 +50,7 @@ public abstract class AbstractTestModule implements TestModule {
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private ImmutableMap<String,String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
-	protected EventLog eventLog;
+	protected TestInstanceEventLog eventLog;
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
@@ -59,7 +60,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String name, String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public AbstractTestModule(String name, String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		this.name = name;
 		this.id = id;
 		this.eventLog = eventLog;
@@ -161,7 +162,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 		event.put("stacktrace", stack);
 		
-		eventLog.log(getId(), getName(), event);
+		eventLog.log(getName(), event);
 	}
 
 	/**
@@ -246,11 +247,11 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireSetupDone() {
-		eventLog.log(getId(), getName(), "Setup Done");
+		eventLog.log(getName(), "Setup Done");
 	}
 
 	protected void fireTestSuccess() {
-		eventLog.log(getId(), getName(), ImmutableMap.of("result", "SUCCESS"));
+		eventLog.log(getName(), ImmutableMap.of("result", "SUCCESS"));
 		
 		setResult(Result.PASSED);
 	
@@ -258,7 +259,7 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireTestFailure() {
-		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
+		eventLog.log(getName(), ImmutableMap.of("result", "FAILURE"));
 	
 		setResult(Result.FAILED);
 
@@ -266,7 +267,7 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireInterrupted() {
-		eventLog.log(getId(), getName(), ImmutableMap.of("result", "INTERRUPTED"));
+		eventLog.log(getName(), ImmutableMap.of("result", "INTERRUPTED"));
 	
 		setResult(Result.UNKNOWN);
 		
