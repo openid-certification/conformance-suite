@@ -143,7 +143,6 @@ public abstract class AbstractTestModule implements TestModule {
 		} catch (ConditionError error) {
 			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
-			logException(error);
 			throw new TestFailureException(error);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -235,7 +234,6 @@ public abstract class AbstractTestModule implements TestModule {
 			
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
-			logException(error);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create optional condition object", e);
 			logException(e);
