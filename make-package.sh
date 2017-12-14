@@ -10,6 +10,8 @@ mvn clean package
 
 TMPDIR=$(mktemp --directory)
 
+cp package/README.md $TMPDIR
+
 mkdir -p $TMPDIR/server
 cp target/fapi-test-suite.jar $TMPDIR/server
 cp package/Dockerfile.server $TMPDIR/server/Dockerfile
