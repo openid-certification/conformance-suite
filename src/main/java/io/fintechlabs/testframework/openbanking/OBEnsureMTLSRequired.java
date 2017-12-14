@@ -41,6 +41,7 @@ import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
+import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.EnsureTls12;
 import io.fintechlabs.testframework.condition.EnsureTokenEndpointResponseError;
@@ -86,6 +87,7 @@ public class OBEnsureMTLSRequired extends AbstractTestModule {
 		require(EnsureTls12.class);
 		require(DisallowTLS10.class);
 		require(DisallowTLS11.class);
+		require(DisallowInsecureCipher.class);
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
 		optional(EnsureServerConfigurationSupportsMTLS.class);
