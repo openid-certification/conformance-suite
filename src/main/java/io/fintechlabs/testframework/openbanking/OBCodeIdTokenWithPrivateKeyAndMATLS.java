@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.openbanking;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -62,7 +64,6 @@ import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.SignRequestObject;
 import io.fintechlabs.testframework.condition.ValidateIdToken;
 import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.ValidateStateHash;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -74,8 +75,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(OBCodeIdTokenWithPrivateKeyAndMATLS.class);
 
-	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-private-key-and-matls", id, eventLog, browser, testInfo);
+	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-id-token-with-private-key-and-matls", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

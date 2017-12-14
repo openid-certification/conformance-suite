@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.example;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -64,8 +66,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 	/**
 	 * 
 	 */
-	public SampleImplicitModule(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("sample-implicit-test", id, eventLog, browser, testInfo);
+	public SampleImplicitModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("sample-implicit-test", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

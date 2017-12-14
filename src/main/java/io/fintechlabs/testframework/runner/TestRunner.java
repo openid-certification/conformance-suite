@@ -138,6 +138,11 @@ public class TestRunner {
     	
         TestModule test = createTestModule(testName, id, browser);
         
+        if (test == null) {
+        	// return an error
+        	return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
         logger.info("Created: " + testName);
 
         logger.info("Status of " + testName + ": " + test.getStatus());
@@ -347,8 +352,8 @@ public class TestRunner {
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 			
 			// call the constructor
-			module = testModuleClass.getDeclaredConstructor(String.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
-				.newInstance(id, wrappedEventLog, browser, testInfo);
+			module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
+				.newInstance(id, owner, wrappedEventLog, browser, testInfo);
 			return module;
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {

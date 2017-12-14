@@ -82,8 +82,8 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 			"registration_endpoint"
 	);
 
-	public OBEnsureMATLSRequired(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-matls-required", id, eventLog, browser, testInfo);
+	public OBEnsureMATLSRequired(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-ensure-matls-required", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

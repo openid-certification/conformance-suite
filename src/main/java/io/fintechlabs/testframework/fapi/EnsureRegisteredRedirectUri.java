@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.fapi;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -45,8 +47,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**
 	 */
-	public EnsureRegisteredRedirectUri(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ensure-redirect-uri-is-registered", id, eventLog, browser, testInfo);
+	public EnsureRegisteredRedirectUri(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-redirect-uri-is-registered", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

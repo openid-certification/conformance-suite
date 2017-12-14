@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.fapi;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -40,8 +42,8 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule {
 
-	public EnsureRedirectUriInAuthorizationRequest(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ensure-redirect-uri-in-authorization-request", id, eventLog, browser, testInfo);
+	public EnsureRedirectUriInAuthorizationRequest(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-redirect-uri-in-authorization-request", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

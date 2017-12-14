@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.fapi;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -78,8 +80,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public CodeIdTokenWithPrivateKey(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("code-id-token-with-private-key", id, eventLog, browser, testInfo);
+	public CodeIdTokenWithPrivateKey(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("code-id-token-with-private-key", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

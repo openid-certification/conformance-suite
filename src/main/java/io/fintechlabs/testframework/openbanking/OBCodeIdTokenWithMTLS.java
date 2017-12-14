@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.openbanking;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -74,8 +76,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public OBCodeIdTokenWithMTLS(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-mtls", id, eventLog, browser, testInfo);
+	public OBCodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-id-token-with-mtls", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

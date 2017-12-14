@@ -35,7 +35,7 @@ import io.fintechlabs.testframework.logging.EventLog;
  * 
  * TestModule instances are assumed to have a constructor with the signature:
  * 
- *   String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo
+ *   String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo
  * 
  * @author jricher
  *
@@ -146,6 +146,6 @@ public interface TestModule {
 	 *
 	 * @return get the {'iss':,'sub'} owner of the test
 	 */
-	ImmutableMap<String,String> getOwner();
+	Map<String, String> getOwner();
 
 }

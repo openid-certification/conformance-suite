@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Enumeration;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,8 +67,8 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public OBClientTestMTLS(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-client-test-mtls", id, eventLog, browser, testInfo);
+	public OBClientTestMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-client-test-mtls", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

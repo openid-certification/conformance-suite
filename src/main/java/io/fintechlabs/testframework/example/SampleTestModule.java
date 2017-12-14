@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.example;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -73,8 +75,8 @@ public class SampleTestModule extends AbstractTestModule {
 	/**
 	 * 
 	 */
-	public SampleTestModule(String id, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("sample-test", id, eventLog, browser, testInfo);
+	public SampleTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("sample-test", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
