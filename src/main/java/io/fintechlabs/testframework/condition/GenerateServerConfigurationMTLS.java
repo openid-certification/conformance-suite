@@ -22,7 +22,7 @@ import io.fintechlabs.testframework.runner.TestDispatcher;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * @author jricher
+ * @author leo
  *
  */
 public class GenerateServerConfigurationMTLS extends AbstractCondition {
@@ -41,6 +41,8 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(required = "server", strings = {"issuer", "discoveryUrl"})
 	public Environment evaluate(Environment env) {
 
 		String baseUrl = env.getString("base_url");
@@ -54,6 +56,7 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 		
+		// FIXME: we should inject a base_url_mtls as well instead of having to do this hack
 		String baseUrlMtls = baseUrl.replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
 		
 		// create a base server configuration object based on the base URL

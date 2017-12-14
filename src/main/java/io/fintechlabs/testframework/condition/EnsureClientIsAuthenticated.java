@@ -39,6 +39,7 @@ public class EnsureClientIsAuthenticated extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	// this doesn't use the @PreEnvironment check so that we can have a more specific error message below
 	public Environment evaluate(Environment env) {
 
 		if (Strings.isNullOrEmpty(env.getString("client_authentication_success"))) {

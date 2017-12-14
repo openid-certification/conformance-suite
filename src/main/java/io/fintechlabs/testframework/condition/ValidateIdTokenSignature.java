@@ -54,6 +54,7 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"id_token", "server_jwks"})
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {
@@ -93,8 +94,7 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 			}
 			
 			// if we got here, it hasn't been verified on any key
-			error("Unable to verify ID token signature based on server keys");
-			return env;
+			return error("Unable to verify ID token signature based on server keys");
 			
  		} catch (JOSEException | ParseException e) {
 			return error("Error validating ID Token signature", e);

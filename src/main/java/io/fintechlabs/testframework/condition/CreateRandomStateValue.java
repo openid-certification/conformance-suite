@@ -40,6 +40,7 @@ public class CreateRandomStateValue extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PostEnvironment(strings = "state")
 	public Environment evaluate(Environment env) {
 		String state = RandomStringUtils.randomAlphanumeric(10);
 		env.putString("state", state);

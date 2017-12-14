@@ -39,6 +39,7 @@ public class ValidateAuthorizationCode extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "authorization_code", required = "token_endpoint_request")
 	public Environment evaluate(Environment env) {
 
 		String expected = env.getString("authorization_code");

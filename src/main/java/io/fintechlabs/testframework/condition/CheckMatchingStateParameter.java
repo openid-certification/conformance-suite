@@ -41,6 +41,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "callback_params", strings = "state")
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
 			return error("Couldn't find callback parameters");

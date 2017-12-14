@@ -41,6 +41,7 @@ public class EnsureMinimumTokenLength extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("token_endpoint_response", "access_token");

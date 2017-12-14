@@ -40,6 +40,8 @@ public class AddNonceToAuthorizationEndpointRequest extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "nonce", required = "authorization_endpoint_request")
+	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		String nonce = env.getString("nonce");
 		if (Strings.isNullOrEmpty(nonce)) {

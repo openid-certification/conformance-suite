@@ -45,6 +45,8 @@ public class CreateRandomImplicitSubmitUrl extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
 	 */
 	@Override
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(required = "implicit_submit")
 	public Environment evaluate(Environment env) {
 		String baseUrl = env.getString("base_url");
 		

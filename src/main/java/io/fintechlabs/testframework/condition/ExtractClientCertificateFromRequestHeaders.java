@@ -41,6 +41,8 @@ public class ExtractClientCertificateFromRequestHeaders extends AbstractConditio
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "client_request_headers")
+	@PostEnvironment(required = "client_certificate")
 	public Environment evaluate(Environment env) {
 
 		// Remove any certificate from a previous connection

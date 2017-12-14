@@ -46,6 +46,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"authorization_endpoint_request", "request_object_claims", "server"}, strings = "request_object")
+	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
 	public Environment evaluate(Environment env) {
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");

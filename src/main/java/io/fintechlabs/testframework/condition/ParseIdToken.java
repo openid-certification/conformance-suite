@@ -44,6 +44,8 @@ public class ParseIdToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "token_endpoint_response")
+	@PostEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("token_endpoint_response")) {

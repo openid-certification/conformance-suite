@@ -40,6 +40,8 @@ public class ExtractBearerAccessTokenFromHeader extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "incoming_request")
+	@PostEnvironment(strings = "incoming_access_token")
 	public Environment evaluate(Environment env) {
 
 		log("Incoming request headers", (JsonObject) env.findElement("incoming_request", "headers"));

@@ -56,6 +56,8 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"client_assertion_claims", "jwks"})
+	@PostEnvironment(strings = "client_assertion")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.get("client_assertion_claims");
 		JsonObject jwks = env.get("jwks");

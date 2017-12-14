@@ -39,6 +39,8 @@ public class SetAuthorizationEndpointRequestResponseTypeToToken extends Abstract
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "authorization_endpoint_request")
+	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		if (!env.containsObj("authorization_endpoint_request")) {
 			return error("Couldn't find authorization endpoint request");

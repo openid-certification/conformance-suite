@@ -47,6 +47,7 @@ public class ValidateIdToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"id_token", "server"}, strings = "client_id")
 	public Environment evaluate(Environment env) {
 		
 		if (!env.containsObj("id_token")) {

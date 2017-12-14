@@ -57,6 +57,8 @@ public class SignIdToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"id_token_claims", "jwks"})
+	@PostEnvironment(strings = "id_token")
 	public Environment evaluate(Environment env) {
 
 		JsonObject claims = env.get("id_token_claims");

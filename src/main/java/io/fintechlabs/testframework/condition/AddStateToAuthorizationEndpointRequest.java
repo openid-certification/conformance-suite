@@ -40,6 +40,8 @@ public class AddStateToAuthorizationEndpointRequest extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = "state", required = "authorization_endpoint_request")
+	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		String state = env.getString("state");
 		if (Strings.isNullOrEmpty(state)) {

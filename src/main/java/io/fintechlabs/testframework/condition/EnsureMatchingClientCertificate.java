@@ -34,6 +34,7 @@ public class EnsureMatchingClientCertificate extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"client", "client_certificate"})
 	public Environment evaluate(Environment env) {
 
 		// get the client ID from the configuration

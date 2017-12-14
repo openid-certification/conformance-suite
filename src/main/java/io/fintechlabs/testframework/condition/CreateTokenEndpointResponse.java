@@ -40,6 +40,8 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(strings = {"access_token", "token_type"}) // note the others are optional
+	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 		
 		String accessToken = env.getString("access_token");

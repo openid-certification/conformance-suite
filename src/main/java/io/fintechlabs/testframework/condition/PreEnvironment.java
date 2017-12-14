@@ -14,24 +14,23 @@
 
 package io.fintechlabs.testframework.condition;
 
-import io.fintechlabs.testframework.testmodule.Environment;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * Require a set of objects and/or strings to be in the environment 
+ * before a condition is evaluated.
+ * 
  * @author jricher
  *
  */
-public interface Condition {
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PreEnvironment {
 
-	/**
-	 * Tests if the condition holds true. Reads from the given environment and returns a potentially modified environment.
-	 * 
-	 * Throws ConditionError when condition isn't met.
-	 * 
-	 * Decorate with @PreEnvironment to ensure objects or strings are in the environment before evaluation.
-	 * Decorate with @PostEnvironment to ensure objects or strings are in the environment after evaluation. 
-	 */
-	Environment evaluate(Environment env);
-
-	
+	String[] required() default {};
+	String[] strings() default {};
 	
 }

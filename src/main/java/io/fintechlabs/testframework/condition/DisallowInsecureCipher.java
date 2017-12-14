@@ -62,6 +62,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
 		String tlsTestHost = env.getString("config", "tls.testHost");

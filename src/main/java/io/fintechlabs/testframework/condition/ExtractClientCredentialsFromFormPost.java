@@ -40,6 +40,8 @@ public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "token_endpoint_request")
+	@PostEnvironment(required = "client_authentication")
 	public Environment evaluate(Environment env) {
 
 		if (env.containsObj("client_authentication")) {

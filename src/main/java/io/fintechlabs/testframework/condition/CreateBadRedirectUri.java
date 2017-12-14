@@ -43,6 +43,8 @@ public class CreateBadRedirectUri extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
 	 */
 	@Override
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(strings = "redirect_uri")
 	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
 		

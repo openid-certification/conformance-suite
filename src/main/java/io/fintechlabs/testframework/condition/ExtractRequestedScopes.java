@@ -39,6 +39,7 @@ public class ExtractRequestedScopes extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
 		String scope = env.getString("authorization_endpoint_request", "scope");

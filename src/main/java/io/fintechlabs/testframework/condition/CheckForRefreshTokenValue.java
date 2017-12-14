@@ -39,6 +39,7 @@ public class CheckForRefreshTokenValue extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "refresh_token"))) {
 			logSuccess("Found a refresh token",

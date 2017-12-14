@@ -39,6 +39,7 @@ public class ValidateRedirectUri extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = {"client", "token_endpoint_request"})
 	public Environment evaluate(Environment env) {
 
 		String expected = env.getString("client", "redirect_uri");

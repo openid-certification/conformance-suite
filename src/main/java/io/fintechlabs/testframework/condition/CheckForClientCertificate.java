@@ -32,6 +32,7 @@ public class CheckForClientCertificate extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	// note, we don't use the @PreEnvironment check here so we can do a more direct check below
 	public Environment evaluate(Environment env) {
 
 		if (env.containsObj("client_certificate")) {

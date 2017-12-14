@@ -37,6 +37,8 @@ public class GetStaticClientConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "config")
+	@PostEnvironment(required = "client", strings = "client_id")
 	public Environment evaluate(Environment in) {
 
 		if (!in.containsObj("config")) {

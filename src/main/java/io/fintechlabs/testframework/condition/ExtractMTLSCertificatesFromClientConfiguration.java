@@ -42,6 +42,8 @@ public class ExtractMTLSCertificatesFromClientConfiguration extends AbstractCond
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "client")
+	@PostEnvironment(required = "mutual_tls_authentication")
 	public Environment evaluate(Environment env) {
 		// mutual_tls_authentication
 		
