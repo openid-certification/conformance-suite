@@ -15,14 +15,17 @@
 package io.fintechlabs.testframework.runner;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.google.common.collect.ImmutableMap;
+
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author jricher
@@ -34,7 +37,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	private AuthenticationFacade authenticationFacade;
 
 	// collection of all currently running tests
-	private Map<String, TestModule> runningTests = new HashMap<>();
+	private Map<String, TestModule> runningTests = new LinkedHashMap<>();
 	
 	// collection of aliases assigned to tests
 	private Map<String, String> aliases = new HashMap<>();
