@@ -41,7 +41,7 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	//@PreEnvironment(required = "server")
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
 		JsonElement supportedAuthMethods = env.findElement("server", "token_endpoint_auth_methods_supported");

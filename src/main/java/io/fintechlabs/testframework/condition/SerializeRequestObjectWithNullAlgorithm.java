@@ -39,6 +39,8 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "request_object_claims")
+	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
 
 		JsonObject requestObjectClaims = env.get("request_object_claims");
@@ -47,6 +49,7 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 			return error("Couldn't find request object claims");
 		}
 
+		// FIXME: this processing should be handled in a separate condition
 		if (!requestObjectClaims.has("iss")) {
 			String clientId = env.getString("client_id");
 			if (clientId != null) {
@@ -57,6 +60,7 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 			}
 		}
 
+		// FIXME: this processing should be handled in a separate condition
 		if (!requestObjectClaims.has("aud")) {
 			String serverIssuerUrl = env.getString("server", "issuer");
 			if (serverIssuerUrl != null) {

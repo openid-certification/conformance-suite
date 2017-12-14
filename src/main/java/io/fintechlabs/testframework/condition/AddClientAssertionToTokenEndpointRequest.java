@@ -39,7 +39,7 @@ public class AddClientAssertionToTokenEndpointRequest extends AbstractCondition 
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "token_endpoint_request_form_parameters")
+	@PreEnvironment(required = "token_endpoint_request_form_parameters", strings = "client_assertion")
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 		

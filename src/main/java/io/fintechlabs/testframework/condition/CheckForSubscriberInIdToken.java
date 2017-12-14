@@ -33,6 +33,7 @@ public class CheckForSubscriberInIdToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
+	@PreEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
 
 		String sub = env.getString("id_token", "claims.sub");
