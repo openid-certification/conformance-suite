@@ -31,7 +31,6 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 	 */
 	public CheckForScopesInTokenResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)

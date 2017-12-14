@@ -34,7 +34,6 @@ public class EnsureMinimumTokenLength extends AbstractCondition {
 	 */
 	public EnsureMinimumTokenLength(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)

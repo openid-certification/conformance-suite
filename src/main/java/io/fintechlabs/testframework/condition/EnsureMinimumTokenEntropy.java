@@ -35,7 +35,6 @@ public class EnsureMinimumTokenEntropy extends AbstractCondition {
 	 */
 	public EnsureMinimumTokenEntropy(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)

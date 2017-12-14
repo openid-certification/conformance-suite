@@ -31,7 +31,6 @@ public class CreateRandomStateValue extends AbstractCondition {
 	 */
 	public CreateRandomStateValue(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)

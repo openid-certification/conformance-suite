@@ -41,7 +41,6 @@ public class DisallowTLS10 extends AbstractCondition {
 	 */
 	public DisallowTLS10(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)

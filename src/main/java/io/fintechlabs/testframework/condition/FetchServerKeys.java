@@ -47,7 +47,6 @@ public class FetchServerKeys extends AbstractCondition {
 	 */
 	public FetchServerKeys(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
