@@ -88,28 +88,28 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		optional(GetDynamicServerConfiguration.class);
-		optional(GetStaticServerConfiguration.class);
+		call(GetDynamicServerConfiguration.class);
+		call(GetStaticServerConfiguration.class);
 		
 		
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 		
-		require(FetchServerKeys.class);
+		callAndStopOnFailure(FetchServerKeys.class);
 		
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 		
 		//require(ExtractJWKsFromClientConfiguration.class);
-		require(ExtractMTLSCertificatesFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractMTLSCertificatesFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
@@ -124,19 +124,19 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 		
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
@@ -186,7 +186,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		require(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);
 
@@ -206,38 +206,38 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		env.putString("implicit_hash", hash);
 		
-		require(ExtractImplicitHashToCallbackResponse.class);
+		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 	
-		require(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		
-		require(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 		
 		// check the ID token from the hybrid response
 		
 		
 		// call the token endpoint and complete the flow
 		
-		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		
-		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		require(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 		
-		require(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-		require(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		require(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
-		optional(CheckForIdTokenValue.class);
+		call(CheckForIdTokenValue.class);
 		
-		optional(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		call(ParseIdToken.class, "FAPI-1-5.2.2-24");
 		
-		optional(CheckForRefreshTokenValue.class);
+		call(CheckForRefreshTokenValue.class);
 		
-		require(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
+		callAndStopOnFailure(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
 		
-		optional(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

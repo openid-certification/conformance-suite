@@ -78,19 +78,19 @@ public class SampleImplicitModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 		
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -106,19 +106,19 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		setStatus(Status.RUNNING);
 		
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(SetAuthorizationEndpointRequestResponseTypeToToken.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToToken.class);
 		
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
@@ -171,7 +171,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		require(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);
 
@@ -201,23 +201,23 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		env.putString("implicit_hash", hash);
 		
-		require(ExtractImplicitHashToTokenEndpointResponse.class);
+		callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
 	
-		require(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		
-		require(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		require(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		require(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
-		optional(CheckForIdTokenValue.class);
+		call(CheckForIdTokenValue.class);
 		
-		optional(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		call(ParseIdToken.class, "FAPI-1-5.2.2-24");
 		
-		optional(CheckForRefreshTokenValue.class);
+		call(CheckForRefreshTokenValue.class);
 		
-		require(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

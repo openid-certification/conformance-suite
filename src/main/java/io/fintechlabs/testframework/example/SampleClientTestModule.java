@@ -79,19 +79,19 @@ public class SampleClientTestModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		require(GenerateServerConfiguration.class);
+		callAndStopOnFailure(GenerateServerConfiguration.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 		
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 		
-		require(LoadJWKs.class);
+		callAndStopOnFailure(LoadJWKs.class);
 		
-		require(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
+		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
 		
-		require(LoadUserInfo.class);
+		callAndStopOnFailure(LoadUserInfo.class);
 		
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		
 		
@@ -170,14 +170,14 @@ public class SampleClientTestModule extends AbstractTestModule {
 		
 		env.put("incoming_request", requestParts);
 
-		optional(ExtractBearerAccessTokenFromHeader.class);
-		optional(ExtractBearerAccessTokenFromParams.class);
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
 
-		require(RequireBearerAccessToken.class);
+		callAndStopOnFailure(RequireBearerAccessToken.class);
 		
-		require(RequireOpenIDScope.class);
+		callAndStopOnFailure(RequireOpenIDScope.class);
 		
-		require(FilterUserInfoForScopes.class);
+		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		
 		JsonObject user = env.get("user_info_endpoint_response");
 		
@@ -235,23 +235,23 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.put("token_endpoint_request", requestParts);
 		
-		optional(ExtractClientCredentialsFromFormPost.class);
+		call(ExtractClientCredentialsFromFormPost.class);
 		
-		optional(AuthenticateClientWithClientSecret.class);
+		call(AuthenticateClientWithClientSecret.class);
 		
-		require(EnsureClientIsAuthenticated.class);
+		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
 		
-		require(ValidateAuthorizationCode.class);
+		callAndStopOnFailure(ValidateAuthorizationCode.class);
 		
-		require(ValidateRedirectUri.class);
+		callAndStopOnFailure(ValidateRedirectUri.class);
 				
-		require(GenerateBearerAccessToken.class);
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
 		
-		require(GenerateIdTokenClaims.class);
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		
-		require(SignIdToken.class);
+		callAndStopOnFailure(SignIdToken.class);
 		
-		require(CreateTokenEndpointResponse.class);
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		setStatus(Status.WAITING);
 		
@@ -273,15 +273,15 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
-		require(EnsureMatchingClientId.class);
+		callAndStopOnFailure(EnsureMatchingClientId.class);
 		
-		require(EnsureMatchingRedirectUri.class);
+		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 		
-		require(ExtractRequestedScopes.class);
+		callAndStopOnFailure(ExtractRequestedScopes.class);
 		
-		require(CreateAuthorizationCode.class);
+		callAndStopOnFailure(CreateAuthorizationCode.class);
 		
-		require(RedirectBackToClientWithAuthorizationCode.class);
+		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class);
 		
 		exposeEnvString("authorization_endpoint_response_redirect");
 		

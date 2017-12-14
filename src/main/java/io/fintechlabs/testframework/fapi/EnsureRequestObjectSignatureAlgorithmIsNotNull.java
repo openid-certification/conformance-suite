@@ -61,26 +61,26 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		optional(GetDynamicServerConfiguration.class);
-		optional(GetStaticServerConfiguration.class);
+		call(GetDynamicServerConfiguration.class);
+		call(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		require(FetchServerKeys.class);
+		callAndStopOnFailure(FetchServerKeys.class);
 
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
 
-		require(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
@@ -94,29 +94,29 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		require(ConvertAuthorizationEndpointRequestToRequestObject.class);
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		require(SerializeRequestObjectWithNullAlgorithm.class);
+		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 
-		require(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
 		browser.goToUrl(redirectTo);
 

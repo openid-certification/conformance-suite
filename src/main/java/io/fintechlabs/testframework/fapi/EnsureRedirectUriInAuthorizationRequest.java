@@ -55,24 +55,24 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 		env.put("config", config);
 
 		// Create a redirect URI (this will be removed from the actual request)
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// Make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
 
 		// Create a valid authorization request
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		// Remove the redirect URL
 		env.get("authorization_endpoint_request").remove("redirect_uri");
@@ -89,23 +89,23 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
 
 		browser.goToUrl(redirectTo);
 

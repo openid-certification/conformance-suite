@@ -60,19 +60,19 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		env.put("config", config);
 		
 		// create a random redirect URI 
-		require(CreateBadRedirectUri.class);
+		callAndStopOnFailure(CreateBadRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 		
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -88,16 +88,16 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
 		
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
 		
 		browser.goToUrl(redirectTo);
 

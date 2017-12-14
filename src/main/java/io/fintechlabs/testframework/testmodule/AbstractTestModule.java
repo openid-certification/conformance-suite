@@ -82,15 +82,15 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
-	protected void require(Class<? extends Condition> conditionClass) {
-		require(conditionClass, ConditionResult.FAILURE);
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass) {
+		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE);
 	}
 	
-	protected void require(Class<? extends Condition> conditionClass, String... requirements) {
-		require(conditionClass, ConditionResult.FAILURE, requirements);
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
+		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE, requirements);
 	}
 	
-	protected void require(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
 			
 			// create a new condition object from the class above
@@ -178,15 +178,15 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 */
 	
-	protected void optional(Class<? extends Condition> conditionClass) {
-		optional(conditionClass, ConditionResult.INFO);
+	protected void call(Class<? extends Condition> conditionClass) {
+		call(conditionClass, ConditionResult.INFO);
 	}
 	
-	protected void optional(Class<? extends Condition> conditionClass, String... requirements) {
-		optional(conditionClass, ConditionResult.WARNING, requirements);
+	protected void call(Class<? extends Condition> conditionClass, String... requirements) {
+		call(conditionClass, ConditionResult.WARNING, requirements);
 	}
 	
-	protected void optional(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
+	protected void call(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
 			
 			// create a new condition object from the class above

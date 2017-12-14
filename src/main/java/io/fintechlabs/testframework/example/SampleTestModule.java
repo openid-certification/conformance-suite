@@ -86,27 +86,27 @@ public class SampleTestModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		require(EnsureTls12.class, "FAPI-1-7.1-1");
-		optional(DisallowTLS10.class, "FAPI-1-7.1-1");
-		optional(DisallowTLS11.class, "FAPI-1-7.1-1");
-		optional(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
+		callAndStopOnFailure(EnsureTls12.class, "FAPI-1-7.1-1");
+		call(DisallowTLS10.class, "FAPI-1-7.1-1");
+		call(DisallowTLS11.class, "FAPI-1-7.1-1");
+		call(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
 		
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Get the server's configuration
-		optional(GetDynamicServerConfiguration.class);
+		call(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		// fetch or load the server's keys as needed
-		require(FetchServerKeys.class);
+		callAndStopOnFailure(FetchServerKeys.class);
 		
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		
 		//require(ExtractJWKsFromClientConfiguration.class);
 		
@@ -125,19 +125,19 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		setStatus(Status.RUNNING);
 		
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 		
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
@@ -198,40 +198,40 @@ public class SampleTestModule extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 		
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		require(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		
-		require(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		
-		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 		
-		require(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 		//require(CreateClientAuthenticationAssertionClaims.class);
 		
 		//require(SignClientAuthenticationAssertion.class);
 		
 		//require(AddClientAssertionToTokenEndpointRequest.class);
 		
-		require(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-		require(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		require(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
-		require(CheckForIdTokenValue.class);
+		callAndStopOnFailure(CheckForIdTokenValue.class);
 		
-		require(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 		
-		require(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
 		
-		require(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
 		
-		require(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 		
-		optional(CheckForRefreshTokenValue.class);
+		call(CheckForRefreshTokenValue.class);
 		
-		require(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

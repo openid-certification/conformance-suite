@@ -94,17 +94,17 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		optional(GetDynamicServerConfiguration.class);
-		optional(GetStaticServerConfiguration.class);
+		call(GetDynamicServerConfiguration.class);
+		call(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		// check that all known endpoints support TLS correctly
 
@@ -139,19 +139,19 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 			env.get("config").remove("tls");
 			env.get("config").add("tls", endpoint);
 
-			require(EnsureTls12.class, "FAPI-1-7.1-1");
-			require(DisallowTLS10.class, "FAPI-1-7.1-1");
-			require(DisallowTLS11.class, "FAPI-1-7.1-1");
-			require(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
+			callAndStopOnFailure(EnsureTls12.class, "FAPI-1-7.1-1");
+			callAndStopOnFailure(DisallowTLS10.class, "FAPI-1-7.1-1");
+			callAndStopOnFailure(DisallowTLS11.class, "FAPI-1-7.1-1");
+			callAndStopOnFailure(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
 		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
-		optional(EnsureServerConfigurationSupportsMTLS.class);
+		call(EnsureServerConfigurationSupportsMTLS.class);
 
-		require(FetchServerKeys.class);
+		callAndStopOnFailure(FetchServerKeys.class);
 
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
 
@@ -169,19 +169,19 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
@@ -231,7 +231,7 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		require(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);
 
@@ -250,24 +250,24 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 
 		env.putString("implicit_hash", hash);
 
-		require(ExtractImplicitHashToCallbackResponse.class);
+		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-		require(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		require(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
 		// call the token endpoint and expect an error, since this request does not
 		// meet any of the OB requirements for client authentication
 
-		require(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		require(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		require(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
-		require(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-		require(EnsureTokenEndpointResponseError.class);
+		callAndStopOnFailure(EnsureTokenEndpointResponseError.class);
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
