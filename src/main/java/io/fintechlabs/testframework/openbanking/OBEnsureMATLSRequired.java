@@ -56,12 +56,12 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-public class OBEnsureMTLSRequired extends AbstractTestModule {
+public class OBEnsureMATLSRequired extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(OBEnsureMTLSRequired.class);
+	public static Logger logger = LoggerFactory.getLogger(OBEnsureMATLSRequired.class);
 
-	public OBEnsureMTLSRequired() {
-		super("ob-ensure-mtls-required");
+	public OBEnsureMATLSRequired() {
+		super("ob-ensure-matls-required");
 	}
 
 	/* (non-Javadoc)
@@ -99,7 +99,7 @@ public class OBEnsureMTLSRequired extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		// Do not extract any MTLS certificates
+		// Do not extract any client certificates; we want to make sure the request fails
 
 		setStatus(Status.CONFIGURED);
 
