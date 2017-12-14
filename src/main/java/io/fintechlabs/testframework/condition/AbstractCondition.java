@@ -61,7 +61,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -71,7 +71,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public abstract class AbstractCondition implements Condition {
 	
 	private String testId;
-	private EventLog log;
+	private TestInstanceEventLog log;
 	private Set<String> requirements;
 	private boolean optional;
 	
@@ -79,15 +79,15 @@ public abstract class AbstractCondition implements Condition {
 	 * @param testId
 	 * @param log
 	 */
-	protected AbstractCondition(String testId, EventLog log, boolean optional) {
+	protected AbstractCondition(String testId, TestInstanceEventLog log, boolean optional) {
 		this(testId, log, optional, Collections.emptySet());
 	}
 	
-	protected AbstractCondition(String testId, EventLog log, boolean optional, String... requirements) {
+	protected AbstractCondition(String testId, TestInstanceEventLog log, boolean optional, String... requirements) {
 		this(testId, log, optional, Sets.newHashSet(requirements));
 	}
 	
-	protected AbstractCondition(String testId, EventLog log, boolean optional, Set<String> requirements) {
+	protected AbstractCondition(String testId, TestInstanceEventLog log, boolean optional, Set<String> requirements) {
 		this.testId = testId;
 		this.log = log;
 		this.optional = optional;
@@ -106,15 +106,15 @@ public abstract class AbstractCondition implements Condition {
 	 */
 	
 	protected void log(JsonObject obj) {
-		log.log(testId, getMessage(), obj);
+		log.log(getMessage(), obj);
 	}
 	
 	protected void log(String msg) {
-		log.log(testId, getMessage(), msg);
+		log.log(getMessage(), msg);
 	}
 	
 	protected void log(Map<String, Object> map) {
-		log.log(testId, getMessage(), map);
+		log.log(getMessage(), map);
 	}
 	
 	protected void log(String msg, JsonObject in) {
