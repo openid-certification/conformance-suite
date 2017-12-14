@@ -29,11 +29,11 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 /**
@@ -82,12 +82,20 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
 	protected void require(Class<? extends Condition> conditionClass) {
+		require(conditionClass, ConditionResult.FAILURE);
+	}
+	
+	protected void require(Class<? extends Condition> conditionClass, String... requirements) {
+		require(conditionClass, ConditionResult.FAILURE, requirements);
+	}
+	
+	protected void require(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
 			
 			// create a new condition object from the class above
 			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
-				.newInstance(id, eventLog, false);
+				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
+				.newInstance(id, eventLog, onFail, requirements);
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 	
 			// evaluate the condition and assign its results back to our environment
@@ -168,13 +176,22 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 */
+	
 	protected void optional(Class<? extends Condition> conditionClass) {
+		optional(conditionClass, ConditionResult.INFO);
+	}
+	
+	protected void optional(Class<? extends Condition> conditionClass, String... requirements) {
+		optional(conditionClass, ConditionResult.WARNING, requirements);
+	}
+	
+	protected void optional(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
 			
 			// create a new condition object from the class above
 			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
-				.newInstance(id, eventLog, true);
+				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
+				.newInstance(id, eventLog, onFail, requirements);
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 	
 			// evaluate the condition and assign its results back to our environment
