@@ -31,7 +31,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,24 +72,16 @@ public abstract class AbstractCondition implements Condition {
 	private String testId;
 	private TestInstanceEventLog log;
 	private Set<String> requirements;
-	private boolean optional;
+	private ConditionResult conditionResultOnFailure;
 	
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	protected AbstractCondition(String testId, TestInstanceEventLog log, boolean optional) {
-		this(testId, log, optional, Collections.emptySet());
+	protected AbstractCondition(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		this(testId, log, conditionResultOnFailure, Sets.newHashSet(requirements));
 	}
 	
-	protected AbstractCondition(String testId, TestInstanceEventLog log, boolean optional, String... requirements) {
-		this(testId, log, optional, Sets.newHashSet(requirements));
-	}
-	
-	protected AbstractCondition(String testId, TestInstanceEventLog log, boolean optional, Set<String> requirements) {
+	protected AbstractCondition(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, Set<String> requirements) {
 		this.testId = testId;
 		this.log = log;
-		this.optional = optional;
+		this.conditionResultOnFailure = conditionResultOnFailure;
 		this.requirements = requirements;
 	}
 
@@ -131,7 +122,7 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void logSuccess(JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		copy.addProperty("result", "SUCCESS");
+		copy.addProperty("result", ConditionResult.SUCCESS.toString());
 		if (!getRequirements().isEmpty()) {
 			JsonArray arr = new JsonArray();
 			for (String req : getRequirements()) {
@@ -144,15 +135,15 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void logSuccess(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(args("msg", msg, "result", "SUCCESS"));
+			log(args("msg", msg, "result", ConditionResult.SUCCESS));
 		} else {
-			log(args("msg", msg, "result", "SUCCESS", "requirements", getRequirements()));
+			log(args("msg", msg, "result", ConditionResult.SUCCESS, "requirements", getRequirements()));
 		}
 	}
 	
 	protected void logSuccess(Map<String, Object> map) {
 		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
-		copy.put("result", "SUCCESS");
+		copy.put("result", ConditionResult.SUCCESS);
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
@@ -162,7 +153,7 @@ public abstract class AbstractCondition implements Condition {
 	protected void logSuccess(String msg, JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("msg", msg);
-		copy.addProperty("result", "SUCCESS");
+		copy.addProperty("result", ConditionResult.SUCCESS.toString());
 		if (!getRequirements().isEmpty()) {
 			JsonArray reqs = new JsonArray(getRequirements().size());
 			for (String req : getRequirements()) {
@@ -176,7 +167,7 @@ public abstract class AbstractCondition implements Condition {
 	protected void logSuccess(String msg, Map<String, Object> map) {
 		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
 		copy.put("msg", msg);
-		copy.put("result", "SUCCESS");
+		copy.put("result", ConditionResult.SUCCESS);
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
@@ -189,7 +180,7 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void logFailure(JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		copy.addProperty("result", optional ? "WARNING" : "FAILURE");
+		copy.addProperty("result", conditionResultOnFailure.toString());
 		if (!getRequirements().isEmpty()) {
 			JsonArray arr = new JsonArray();
 			for (String req : getRequirements()) {
@@ -202,15 +193,15 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void logFailure(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(args("msg", msg, "result", optional ? "WARNING" : "FAILURE"));
+			log(args("msg", msg, "result", conditionResultOnFailure));
 		} else {
-			log(args("msg", msg, "result", optional ? "WARNING" : "FAILURE", "requirements", getRequirements()));
+			log(args("msg", msg, "result", conditionResultOnFailure, "requirements", getRequirements()));
 		}
 	}
 	
 	protected void logFailure(Map<String, Object> map) {
 		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
-		copy.put("result", optional ? "WARNING" : "FAILURE");
+		copy.put("result", conditionResultOnFailure);
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
@@ -220,7 +211,7 @@ public abstract class AbstractCondition implements Condition {
 	protected void logFailure(String msg, JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("msg", msg);
-		copy.addProperty("result", optional ? "WARNING" : "FAILURE");
+		copy.addProperty("result", conditionResultOnFailure.toString());
 		if (!getRequirements().isEmpty()) {
 			JsonArray reqs = new JsonArray(getRequirements().size());
 			for (String req : getRequirements()) {
@@ -234,7 +225,7 @@ public abstract class AbstractCondition implements Condition {
 	protected void logFailure(String msg, Map<String, Object> map) {
 		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
 		copy.put("msg", msg);
-		copy.put("result", optional ? "WARNING" : "FAILURE");
+		copy.put("result", conditionResultOnFailure);
 		if (!getRequirements().isEmpty()) {
 			copy.put("requirements", getRequirements());
 		}
@@ -326,17 +317,17 @@ public abstract class AbstractCondition implements Condition {
 	
 	protected void createUploadPlaceholder(String msg) {
 		if (getRequirements().isEmpty()) {
-			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
+			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW));
 		} else {
-			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
+			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW, "requirements", getRequirements()));
 		}
 	}
 	
 	protected void createUploadPlaceholder() {
 		if (getRequirements().isEmpty()) {
-			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW"));
+			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW));
 		} else {
-			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", "REVIEW", "requirements", getRequirements()));
+			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW, "requirements", getRequirements()));
 		}
 	}
 	
