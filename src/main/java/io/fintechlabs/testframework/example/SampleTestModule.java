@@ -83,7 +83,7 @@ public class SampleTestModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		optional(EnsureTls12.class);
+		require(EnsureTls12.class);
 		optional(DisallowTLS10.class);
 		optional(DisallowTLS11.class);
 		optional(DisallowInsecureCipher.class);

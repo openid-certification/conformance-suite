@@ -15,32 +15,39 @@
 package io.fintechlabs.testframework.condition;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import org.bouncycastle.crypto.tls.AlertDescription;
+import org.bouncycastle.crypto.tls.Certificate;
+import org.bouncycastle.crypto.tls.CertificateRequest;
+import org.bouncycastle.crypto.tls.CipherSuite;
+import org.bouncycastle.crypto.tls.DefaultTlsClient;
+import org.bouncycastle.crypto.tls.ProtocolVersion;
+import org.bouncycastle.crypto.tls.TlsAuthentication;
+import org.bouncycastle.crypto.tls.TlsClient;
+import org.bouncycastle.crypto.tls.TlsClientProtocol;
+import org.bouncycastle.crypto.tls.TlsCredentials;
+import org.bouncycastle.crypto.tls.TlsFatalAlert;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class DisallowInsecureCipher extends AbstractCondition {
 
-	private static final Collection<String> SECURE_CIPHERS = ImmutableList.of(
-		"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-		"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
-		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+	private static final List<Integer> SECURE_CIPHERS = ImmutableList.of(
+		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	);
 
 	/**
@@ -68,61 +75,77 @@ public class DisallowInsecureCipher extends AbstractCondition {
 			return error("Couldn't find port to connect for TLS");
 		}
 
-		// even though we make a TLS1.2 connection we ignore the server cert validation here
-		TrustManager[] trustAllCerts = new TrustManager[] {
-			new X509TrustManager() {
+		try {
+			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
 
-				@Override
-				public X509Certificate[] getAcceptedIssuers() {
-					return new X509Certificate[0];
-				}
+			try {
 
-				@Override
-				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				}
+				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream(), new SecureRandom());
 
-				@Override
-				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				TlsClient client = new DefaultTlsClient() {
+
+					@Override
+					public TlsAuthentication getAuthentication() {
+						return new TlsAuthentication() {
+
+							@Override
+							public TlsCredentials getClientCredentials(CertificateRequest certificateRequest) throws IOException {
+								return null;
+							}
+
+							@Override
+							public void notifyServerCertificate(Certificate serverCertificate) throws IOException {
+								// Don't care
+							}
+						};
+					}
+
+					@Override
+					public int[] getCipherSuites() {
+
+						// filter the list of supported ciphers to contain only insecure ciphers
+						ArrayList<Integer> ciphers = Lists.newArrayList(Ints.asList(super.getCipherSuites()));
+						ciphers.removeAll(SECURE_CIPHERS);
+						return Ints.toArray(ciphers);
+					}
+
+					@Override
+					public ProtocolVersion getMinimumVersion() {
+						return ProtocolVersion.TLSv12;
+					}
+
+					@Override
+					public void notifySelectedCipherSuite(int selectedCipherSuite) {
+						error("Server accepted an insecure cipher", args("cipher_suite", selectedCipherSuite));
+					}
+				};
+
+				log("Trying to connect with an insecure cipher (this is not exhaustive: check the server configuration manually to verify conformance)");
+
+				protocol.connect(client);
+
+				// By the time handshake completes an error should have been thrown, but just in case:
+				return error("Connection completed unexpectedly");
+
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					// Don't care
 				}
 			}
-		};
-
-		try {
-
-			SSLContext sc = SSLContext.getInstance("TLS");
-			sc.init(null, trustAllCerts, new java.security.SecureRandom());
-
-			SSLSocket socket = (SSLSocket) sc.getSocketFactory().createSocket(tlsTestHost, tlsTestPort);
-			// set the connection to use only TLS 1.2
-			socket.setEnabledProtocols(new String[] {"TLSv1.2"});
-
-			// filter the list of supported ciphers to contain only insecure ciphers
-
-			ArrayList<String> ciphers = Lists.newArrayList(socket.getEnabledCipherSuites());
-			ciphers.removeAll(SECURE_CIPHERS);
-
-			String[] insecureCiphers = Iterables.toArray(ciphers, String.class);
-			socket.setEnabledCipherSuites(insecureCiphers);
-
-			log("Trying to connect with an insecure cipher (this is not exhaustive: check the " +
-				"server configuration manually to verify conformance)",
-				args("insecure_ciphers", insecureCiphers));
-
-			// this makes the actual connection
-			socket.startHandshake();
-
-			// if we get here, the connection was established with an insecure cipher
-
-			String cipherSuite = socket.getSession().getCipherSuite();
-
-			socket.close();
-
-			return error("Connected with insecure cipher", args("cipher_suite", cipherSuite));
-		} catch (GeneralSecurityException e) {
-			return error("Failed to configure TLS 1.2 socket", e);
+		} catch (TlsFatalAlert e) {
+			if (e.getCause() instanceof ConditionError) {
+				// It's our own error; pass it on
+				throw (ConditionError) e.getCause();
+			} else if (e.getAlertDescription() == AlertDescription.handshake_failure) {
+				logSuccess("Handshake was refused");
+				return env;
+			} else {
+				return error("Failed to make TLS connection", e);
+			}
 		} catch (IOException e) {
-			logSuccess("Connection with insecure cipher was refused (or failed)");
-			return env;
+			return error("Failed to make TLS connection", e);
 		}
 	}
 
