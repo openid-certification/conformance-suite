@@ -14,6 +14,11 @@
 
 package io.fintechlabs.testframework.openbanking;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -21,8 +26,12 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
@@ -56,12 +65,22 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-public class OBEnsureMTLSRequired extends AbstractTestModule {
+public class OBEnsureMATLSRequired extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(OBEnsureMTLSRequired.class);
+	public static Logger logger = LoggerFactory.getLogger(OBEnsureMATLSRequired.class);
 
-	public OBEnsureMTLSRequired() {
-		super("ob-ensure-mtls-required");
+	private static final int HTTPS_DEFAULT_PORT = 443;
+
+	private static final List<String> AUTH_TLS_ENDPOINT_KEYS = ImmutableList.of(
+			"issuer",
+			"authorization_endpoint",
+			"token_endpoint",
+			"userinfo_endpoint",
+			"registration_endpoint"
+	);
+
+	public OBEnsureMATLSRequired() {
+		super("ob-ensure-matls-required");
 	}
 
 	/* (non-Javadoc)
@@ -84,10 +103,44 @@ public class OBEnsureMTLSRequired extends AbstractTestModule {
 		// make sure the server configuration passes some basic sanity checks
 		require(CheckServerConfiguration.class);
 
-		require(EnsureTls12.class);
-		require(DisallowTLS10.class);
-		require(DisallowTLS11.class);
-		require(DisallowInsecureCipher.class);
+		// check that all known endpoints support TLS correctly
+
+		Set<JsonObject> tlsHosts = new HashSet<JsonObject>();
+
+		JsonObject serverConfig = env.get("server"); // verified present by CheckServerConfiguration
+		for (Map.Entry<String,JsonElement> entry : serverConfig.entrySet()) {
+			if (AUTH_TLS_ENDPOINT_KEYS.contains(entry.getKey())) {
+				String endpointUrl = entry.getValue().getAsString();
+				UriComponents components = UriComponentsBuilder.fromUriString(endpointUrl).build();
+
+				String host = components.getHost();
+				int port = components.getPort();
+
+				if (port < 0) {
+					port = HTTPS_DEFAULT_PORT;
+				}
+
+				JsonObject endpoint = new JsonObject();
+				endpoint.addProperty("testHost", host);
+				endpoint.addProperty("testPort", port);
+				tlsHosts.add(endpoint);
+			}
+		}
+
+		for (JsonObject endpoint : tlsHosts) {
+			eventLog.log(getId(), getName(),
+					"Testing TLS support for " +
+					endpoint.get("testHost").getAsString() +
+					":" + endpoint.get("testPort").getAsInt());
+
+			env.get("config").remove("tls");
+			env.get("config").add("tls", endpoint);
+
+			require(EnsureTls12.class);
+			require(DisallowTLS10.class);
+			require(DisallowTLS11.class);
+			require(DisallowInsecureCipher.class);
+		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
 		optional(EnsureServerConfigurationSupportsMTLS.class);
@@ -99,7 +152,7 @@ public class OBEnsureMTLSRequired extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		// Do not extract any MTLS certificates
+		// Do not extract any client certificates; we want to make sure the request fails
 
 		setStatus(Status.CONFIGURED);
 
