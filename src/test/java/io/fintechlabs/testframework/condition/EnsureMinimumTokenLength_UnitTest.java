@@ -23,7 +23,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -38,14 +39,14 @@ public class EnsureMinimumTokenLength_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 
 	private EnsureMinimumTokenLength cond;
 	
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new EnsureMinimumTokenLength("UNIT-TEST", eventLog, false);
+		cond = new EnsureMinimumTokenLength("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 	

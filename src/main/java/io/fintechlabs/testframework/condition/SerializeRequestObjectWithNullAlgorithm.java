@@ -21,7 +21,7 @@ import com.nimbusds.jose.PlainHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
@@ -31,8 +31,8 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public SerializeRequestObjectWithNullAlgorithm(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public SerializeRequestObjectWithNullAlgorithm(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

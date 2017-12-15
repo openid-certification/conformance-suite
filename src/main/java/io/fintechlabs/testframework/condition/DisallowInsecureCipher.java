@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class DisallowInsecureCipher extends AbstractCondition {
@@ -54,8 +54,8 @@ public class DisallowInsecureCipher extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public DisallowInsecureCipher(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-2-8.5-1");
+	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.fapi;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -39,13 +41,16 @@ import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.SerializeRequestObjectWithNullAlgorithm;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTestModule {
 
-	public EnsureRequestObjectSignatureAlgorithmIsNotNull() {
-		super("ensure-request-object-signature-algorithm-is-not-null");
+	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-request-object-signature-algorithm-is-not-null", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -56,26 +61,26 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		optional(GetDynamicServerConfiguration.class);
-		optional(GetStaticServerConfiguration.class);
+		call(GetDynamicServerConfiguration.class);
+		call(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		require(FetchServerKeys.class);
+		callAndStopOnFailure(FetchServerKeys.class);
 
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
 
-		require(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
@@ -89,29 +94,29 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		require(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		require(ConvertAuthorizationEndpointRequestToRequestObject.class);
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		require(SerializeRequestObjectWithNullAlgorithm.class);
+		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 
-		require(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRequestObjectUnverifiableErrorPage.class);
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
 		browser.goToUrl(redirectTo);
 
@@ -130,7 +135,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 
 		setStatus(Status.FINISHED);
 
@@ -147,7 +152,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		// If we get any kind of callback to this, it's an error: the authorization server should not ever respond the authorization request
 
-		eventLog.log(getId(), getName(), ImmutableMap.of(
+		eventLog.log(getName(), ImmutableMap.of(
 			"msg", "Receved unexpected incoming request",
 			"path", path,
 			"method", req.getMethod(),

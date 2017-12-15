@@ -25,7 +25,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -35,7 +36,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	private Environment env = new Environment();
 
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 
 	private JsonObject sampleHeaders;
 
@@ -47,7 +48,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractClientCertificateFromRequestHeaders("UNIT-TEST", eventLog, false);
+		cond = new ExtractClientCertificateFromRequestHeaders("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC 7468
 		String certificate = "-----BEGIN CERTIFICATE----- " + 

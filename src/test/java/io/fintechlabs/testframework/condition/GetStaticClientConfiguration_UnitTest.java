@@ -12,7 +12,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -22,7 +23,7 @@ public class GetStaticClientConfiguration_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private JsonObject client;
 	
@@ -40,7 +41,7 @@ public class GetStaticClientConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new GetStaticClientConfiguration("UNIT-TEST", eventLog, false);
+		cond = new GetStaticClientConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		client = new JsonParser().parse("{"
 				+ "\"client_id\":\"client\","

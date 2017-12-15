@@ -14,6 +14,7 @@
 package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,7 @@ import io.fintechlabs.testframework.fapi.EnsureRequestObjectSignatureAlgorithmIs
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
@@ -136,6 +138,11 @@ public class TestRunner {
     	
         TestModule test = createTestModule(testName, id, browser);
         
+        if (test == null) {
+        	// return an error
+        	return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
         logger.info("Created: " + testName);
 
         logger.info("Status of " + testName + ": " + test.getStatus());
@@ -173,7 +180,7 @@ public class TestRunner {
         // add this test to the stack
         testInfo.createTest(id, testName, url, config, alias);
 
-		eventLog.log(id, "TEST-RUNNER", testCreated);
+		eventLog.log(id, "TEST-RUNNER", test.getOwner(), testCreated);
 
         test.configure(config, url);
 
@@ -338,11 +345,21 @@ public class TestRunner {
     	
     	TestModule module;
 		try {
-			module = testModuleClass.newInstance();
-			module.setOwner((ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal());
-			module.wire(id, eventLog, browser, testInfo);
+			
+			@SuppressWarnings("unchecked")
+			Map<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
+			
+			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
+			
+			// call the constructor
+			module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
+				.newInstance(id, owner, wrappedEventLog, browser, testInfo);
 			return module;
-		} catch (InstantiationException | IllegalAccessException e) {
+			
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			
+			logger.warn("Couldn't create test module", e);
+
 			return null;
 		}
     	

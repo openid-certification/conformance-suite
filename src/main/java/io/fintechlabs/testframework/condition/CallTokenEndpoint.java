@@ -37,7 +37,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -54,9 +54,8 @@ public class CallTokenEndpoint extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CallTokenEndpoint(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
+	public CallTokenEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

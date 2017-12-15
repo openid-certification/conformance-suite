@@ -15,9 +15,8 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -30,9 +29,8 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CheckForAccessTokenValue(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-14");
-		// TODO Auto-generated constructor stub
+	public CheckForAccessTokenValue(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

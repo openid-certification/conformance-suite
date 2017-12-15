@@ -5,8 +5,6 @@ import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -19,7 +17,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
 
@@ -30,7 +32,7 @@ public class CallTokenEndpoint_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private static JsonObject requestParameters = new JsonParser().parse("{"
 			+ "\"grant_type\":\"client_credentials\""
@@ -77,7 +79,7 @@ public class CallTokenEndpoint_UnitTest {
 		
 		hoverfly.resetJournal();
 		
-		cond = new CallTokenEndpoint("UNIT-TEST", eventLog, false);
+		cond = new CallTokenEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 	
 	/**

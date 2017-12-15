@@ -15,16 +15,13 @@
 package io.fintechlabs.testframework.condition;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import com.nimbusds.jwt.JWTClaimsSet;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -38,8 +35,8 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 	 * @param log
 	 * @param optional
 	 */
-	public CreateClientAuthenticationAssertionClaims(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public CreateClientAuthenticationAssertionClaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

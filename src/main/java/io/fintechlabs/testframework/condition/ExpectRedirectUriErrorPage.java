@@ -14,7 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -27,8 +27,8 @@ public class ExpectRedirectUriErrorPage extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public ExpectRedirectUriErrorPage(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-8");
+	public ExpectRedirectUriErrorPage(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

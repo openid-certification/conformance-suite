@@ -33,7 +33,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class SignRequestObject extends AbstractCondition {
@@ -43,8 +43,8 @@ public class SignRequestObject extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public SignRequestObject(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public SignRequestObject(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

@@ -21,7 +21,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureMinimumKeyLength extends AbstractCondition {
@@ -30,8 +30,8 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 
 	private static final int MINIMUM_KEY_LENGTH_EC = 160;
 
-	public EnsureMinimumKeyLength(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
+	public EnsureMinimumKeyLength(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

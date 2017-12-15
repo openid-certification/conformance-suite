@@ -16,7 +16,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
 
@@ -27,7 +28,7 @@ public class FetchServerKeys_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private static String jwksStr = "{"
 			+ "\"keys\":["
@@ -63,7 +64,7 @@ public class FetchServerKeys_UnitTest {
 		
 		hoverfly.resetJournal();
 		
-		cond = new FetchServerKeys("UNIT-TEST", eventLog, false);
+		cond = new FetchServerKeys("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 	
 	/**

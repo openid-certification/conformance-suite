@@ -17,7 +17,7 @@ package io.fintechlabs.testframework.condition;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -31,9 +31,8 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public CreateTokenEndpointResponse(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
+	public CreateTokenEndpointResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

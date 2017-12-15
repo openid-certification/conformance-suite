@@ -16,7 +16,7 @@ package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -32,9 +32,8 @@ public class EnsureMinimumTokenLength extends AbstractCondition {
 	 * @param log
 	 * @param optional
 	 */
-	public EnsureMinimumTokenLength(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-1-5.2.2-16");
-		// TODO Auto-generated constructor stub
+	public EnsureMinimumTokenLength(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

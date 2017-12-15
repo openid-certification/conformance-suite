@@ -13,7 +13,8 @@ import com.google.gson.JsonParser;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -23,7 +24,7 @@ public class CheckServerConfiguration_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private JsonObject goodConfig;
 	
@@ -41,7 +42,7 @@ public class CheckServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new CheckServerConfiguration("UNIT-TEST", eventLog, false);
+		cond = new CheckServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		goodConfig = new JsonParser().parse("{"
 				+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","

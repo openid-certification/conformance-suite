@@ -29,11 +29,12 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 /**
  * @author jricher
@@ -48,8 +49,8 @@ public abstract class AbstractTestModule implements TestModule {
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
-	private ImmutableMap<String,String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
-	protected EventLog eventLog;
+	private Map<String,String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
+	protected TestInstanceEventLog eventLog;
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
@@ -59,29 +60,43 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String name) {
+	public AbstractTestModule(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		this.name = name;
+		this.id = id;
+		this.owner = owner;
+		this.eventLog = eventLog;
+		this.browser = browser;
+		this.testInfo = testInfo;
+
 		setStatus(Status.CREATED);
 	}
 
-	public ImmutableMap<String, String> getOwner() {
+	public Map<String, String> getOwner() {
 		return owner;
 	}
 
-	public void setOwner(ImmutableMap<String, String> owner) {
+	protected void setOwner(ImmutableMap<String, String> owner) {
 		this.owner = owner;
 	}
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
-	protected void require(Class<? extends Condition> conditionClass) {
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass) {
+		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE);
+	}
+	
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
+		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE, requirements);
+	}
+	
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
 			
 			// create a new condition object from the class above
 			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
-				.newInstance(id, eventLog, false);
+				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
+				.newInstance(id, eventLog, onFail, requirements);
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 	
 			// evaluate the condition and assign its results back to our environment
@@ -128,7 +143,6 @@ public abstract class AbstractTestModule implements TestModule {
 		} catch (ConditionError error) {
 			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
-			logException(error);
 			throw new TestFailureException(error);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -156,19 +170,28 @@ public abstract class AbstractTestModule implements TestModule {
 
 		event.put("stacktrace", stack);
 		
-		eventLog.log(getId(), getName(), event);
+		eventLog.log(getName(), event);
 	}
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 */
-	protected void optional(Class<? extends Condition> conditionClass) {
+	
+	protected void call(Class<? extends Condition> conditionClass) {
+		call(conditionClass, ConditionResult.INFO);
+	}
+	
+	protected void call(Class<? extends Condition> conditionClass, String... requirements) {
+		call(conditionClass, ConditionResult.WARNING, requirements);
+	}
+	
+	protected void call(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
 			
 			// create a new condition object from the class above
 			Condition condition = conditionClass
-				.getDeclaredConstructor(String.class, EventLog.class, boolean.class)
-				.newInstance(id, eventLog, true);
+				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
+				.newInstance(id, eventLog, onFail, requirements);
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 	
 			// evaluate the condition and assign its results back to our environment
@@ -211,7 +234,6 @@ public abstract class AbstractTestModule implements TestModule {
 			
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
-			logException(error);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create optional condition object", e);
 			logException(e);
@@ -241,11 +263,11 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireSetupDone() {
-		eventLog.log(getId(), getName(), "Setup Done");
+		eventLog.log(getName(), "Setup Done");
 	}
 
 	protected void fireTestSuccess() {
-		eventLog.log(getId(), getName(), ImmutableMap.of("result", "SUCCESS"));
+		eventLog.log(getName(), ImmutableMap.of("result", "SUCCESS"));
 		
 		setResult(Result.PASSED);
 	
@@ -253,7 +275,7 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireTestFailure() {
-		eventLog.log(getId(), getName(), ImmutableMap.of("result", "FAILURE"));
+		eventLog.log(getName(), ImmutableMap.of("result", "FAILURE"));
 	
 		setResult(Result.FAILED);
 
@@ -261,7 +283,7 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void fireInterrupted() {
-		eventLog.log(getId(), getName(), ImmutableMap.of("result", "INTERRUPTED"));
+		eventLog.log(getName(), ImmutableMap.of("result", "INTERRUPTED"));
 	
 		setResult(Result.UNKNOWN);
 		
@@ -392,21 +414,6 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public String getName() {
 		return name;
-	}
-
-	/**
-	 * Wire up this test module instance with some callbacks from the framework
-	 * @param id
-	 * @param eventLog
-	 * @param browser
-	 * @param testInfo
-	 */
-	@Override
-	public void wire(String id, EventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		this.id = id;
-		this.eventLog = eventLog;
-		this.browser = browser;
-		this.testInfo = testInfo;
 	}
 
 }

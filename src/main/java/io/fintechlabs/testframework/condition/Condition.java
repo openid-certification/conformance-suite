@@ -32,6 +32,13 @@ public interface Condition {
 	 */
 	Environment evaluate(Environment env);
 
-	
+
+	public static enum ConditionResult {
+		FAILURE,
+		WARNING,
+		INFO,
+		SUCCESS, 
+		REVIEW
+	};
 	
 }

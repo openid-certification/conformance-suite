@@ -16,7 +16,7 @@ package io.fintechlabs.testframework.condition;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -30,9 +30,8 @@ public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition
 	 * @param log
 	 * @param optional
 	 */
-	public RedirectBackToClientWithAuthorizationCode(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
+	public RedirectBackToClientWithAuthorizationCode(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

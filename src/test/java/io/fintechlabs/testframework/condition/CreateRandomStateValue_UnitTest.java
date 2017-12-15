@@ -9,7 +9,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -19,7 +20,7 @@ public class CreateRandomStateValue_UnitTest {
 	private Environment env = new Environment();
 	
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 	
 	private CreateRandomStateValue cond;
 	
@@ -29,7 +30,7 @@ public class CreateRandomStateValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new CreateRandomStateValue("UNIT-TEST", eventLog, false);
+		cond = new CreateRandomStateValue("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

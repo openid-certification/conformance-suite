@@ -15,7 +15,8 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
-import io.fintechlabs.testframework.logging.EventLog;
+
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -28,9 +29,8 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public CheckIfTokenEndpointResponseError(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
-		// TODO Auto-generated constructor stub
+	public CheckIfTokenEndpointResponseError(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

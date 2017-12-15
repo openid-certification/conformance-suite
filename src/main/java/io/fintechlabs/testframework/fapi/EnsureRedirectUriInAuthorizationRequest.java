@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.fapi;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -32,13 +34,16 @@ import io.fintechlabs.testframework.condition.ExpectRedirectUriMissingErrorPage;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule {
 
-	public EnsureRedirectUriInAuthorizationRequest() {
-		super("ensure-redirect-uri-in-authorization-request");
+	public EnsureRedirectUriInAuthorizationRequest(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-redirect-uri-in-authorization-request", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -50,24 +55,24 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 		env.put("config", config);
 
 		// Create a redirect URI (this will be removed from the actual request)
-		require(CreateRedirectUri.class);
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// Make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
 
 		// Create a valid authorization request
-		require(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		// Remove the redirect URL
 		env.get("authorization_endpoint_request").remove("redirect_uri");
@@ -84,23 +89,23 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
-		require(AddStateToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		require(CreateRandomNonceValue.class);
+		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
-		require(AddNonceToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 		
-		require(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRedirectUriMissingErrorPage.class);
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
 
 		browser.goToUrl(redirectTo);
 
@@ -119,7 +124,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 
 		setStatus(Status.FINISHED);
 

@@ -14,7 +14,7 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.util.Collections;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,8 +22,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -46,7 +44,6 @@ import io.fintechlabs.testframework.condition.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.GenerateIdTokenClaims;
 import io.fintechlabs.testframework.condition.GenerateServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.LoadJWKs;
 import io.fintechlabs.testframework.condition.LoadUserInfo;
 import io.fintechlabs.testframework.condition.RedirectBackToClientWithAuthorizationCode;
@@ -56,10 +53,10 @@ import io.fintechlabs.testframework.condition.SignIdToken;
 import io.fintechlabs.testframework.condition.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.ValidateRedirectUri;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
@@ -70,8 +67,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public SampleClientTestModule() {
-		super("sample-client-test");
+	public SampleClientTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("sample-client-test", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -82,19 +79,19 @@ public class SampleClientTestModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		require(GenerateServerConfiguration.class);
+		callAndStopOnFailure(GenerateServerConfiguration.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 		
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 		
-		require(LoadJWKs.class);
+		callAndStopOnFailure(LoadJWKs.class);
 		
-		require(EnsureMinimumKeyLength.class);
+		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
 		
-		require(LoadUserInfo.class);
+		callAndStopOnFailure(LoadUserInfo.class);
 		
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		
 		
@@ -173,14 +170,14 @@ public class SampleClientTestModule extends AbstractTestModule {
 		
 		env.put("incoming_request", requestParts);
 
-		optional(ExtractBearerAccessTokenFromHeader.class);
-		optional(ExtractBearerAccessTokenFromParams.class);
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
 
-		require(RequireBearerAccessToken.class);
+		callAndStopOnFailure(RequireBearerAccessToken.class);
 		
-		require(RequireOpenIDScope.class);
+		callAndStopOnFailure(RequireOpenIDScope.class);
 		
-		require(FilterUserInfoForScopes.class);
+		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		
 		JsonObject user = env.get("user_info_endpoint_response");
 		
@@ -238,23 +235,23 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.put("token_endpoint_request", requestParts);
 		
-		optional(ExtractClientCredentialsFromFormPost.class);
+		call(ExtractClientCredentialsFromFormPost.class);
 		
-		optional(AuthenticateClientWithClientSecret.class);
+		call(AuthenticateClientWithClientSecret.class);
 		
-		require(EnsureClientIsAuthenticated.class);
+		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
 		
-		require(ValidateAuthorizationCode.class);
+		callAndStopOnFailure(ValidateAuthorizationCode.class);
 		
-		require(ValidateRedirectUri.class);
+		callAndStopOnFailure(ValidateRedirectUri.class);
 				
-		require(GenerateBearerAccessToken.class);
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
 		
-		require(GenerateIdTokenClaims.class);
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		
-		require(SignIdToken.class);
+		callAndStopOnFailure(SignIdToken.class);
 		
-		require(CreateTokenEndpointResponse.class);
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		setStatus(Status.WAITING);
 		
@@ -276,15 +273,15 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
-		require(EnsureMatchingClientId.class);
+		callAndStopOnFailure(EnsureMatchingClientId.class);
 		
-		require(EnsureMatchingRedirectUri.class);
+		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 		
-		require(ExtractRequestedScopes.class);
+		callAndStopOnFailure(ExtractRequestedScopes.class);
 		
-		require(CreateAuthorizationCode.class);
+		callAndStopOnFailure(CreateAuthorizationCode.class);
 		
-		require(RedirectBackToClientWithAuthorizationCode.class);
+		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class);
 		
 		exposeEnvString("authorization_endpoint_response_redirect");
 		

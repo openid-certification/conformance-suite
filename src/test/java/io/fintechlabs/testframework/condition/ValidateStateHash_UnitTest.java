@@ -14,9 +14,6 @@
 
 package io.fintechlabs.testframework.condition;
 
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +23,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -36,7 +37,7 @@ public class ValidateStateHash_UnitTest {
 	private Environment env = new Environment();
 
 	@Mock
-	private EventLog eventLog;
+	private TestInstanceEventLog eventLog;
 
 	private ValidateStateHash cond;
 
@@ -46,7 +47,7 @@ public class ValidateStateHash_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateStateHash("UNIT-TEST", eventLog, false);
+		cond = new ValidateStateHash("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 

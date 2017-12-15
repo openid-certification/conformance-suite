@@ -14,13 +14,11 @@
 
 package io.fintechlabs.testframework.fapi;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -31,13 +29,13 @@ import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateBadRedirectUri;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.ExpectRedirectUriErrorPage;
-import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by 
@@ -49,8 +47,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**
 	 */
-	public EnsureRegisteredRedirectUri() {
-		super("ensure-redirect-uri-is-registered");
+	public EnsureRegisteredRedirectUri(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ensure-redirect-uri-is-registered", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -62,19 +60,19 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		env.put("config", config);
 		
 		// create a random redirect URI 
-		require(CreateBadRedirectUri.class);
+		callAndStopOnFailure(CreateBadRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		require(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		
 		// make sure the server configuration passes some basic sanity checks
-		require(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckServerConfiguration.class);
 		
 		// Set up the client configuration
-		require(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		
 		exposeEnvString("client_id");
 
@@ -90,16 +88,16 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		
-		require(CreateRandomStateValue.class);
+		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
 		
-		require(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 		
-		eventLog.log(getId(), getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		require(ExpectRedirectUriErrorPage.class);
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
 		
 		browser.goToUrl(redirectTo);
 
@@ -118,7 +116,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	 */
 	@Override
 	public void stop() {
-		eventLog.log(getId(), getName(), "Finished");
+		eventLog.log(getName(), "Finished");
 		
 		setStatus(Status.FINISHED);
 		
@@ -136,7 +134,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		// If we get any kind of callback to this, it's an error: the authorization server should not ever respond the authorization request
 		
-		eventLog.log(getId(), getName(), ImmutableMap.of(
+		eventLog.log(getName(), ImmutableMap.of(
 			"msg", "Receved unexpected incoming request",
 			"path", path,
 			"method", req.getMethod(),

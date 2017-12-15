@@ -14,7 +14,7 @@
 
 package io.fintechlabs.testframework.condition;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ExpectRequestObjectUnverifiableErrorPage extends AbstractCondition {
@@ -23,8 +23,8 @@ public class ExpectRequestObjectUnverifiableErrorPage extends AbstractCondition 
 	 * @param testId
 	 * @param log
 	 */
-	public ExpectRequestObjectUnverifiableErrorPage(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional, "FAPI-2-7.3-1");
+	public ExpectRequestObjectUnverifiableErrorPage(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)

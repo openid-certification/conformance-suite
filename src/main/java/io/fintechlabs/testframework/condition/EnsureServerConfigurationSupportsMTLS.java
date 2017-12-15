@@ -19,7 +19,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 
-import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
@@ -33,8 +33,8 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureServerConfigurationSupportsMTLS(String testId, EventLog log, boolean optional) {
-		super(testId, log, optional);
+	public EnsureServerConfigurationSupportsMTLS(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)
