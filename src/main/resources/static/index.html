@@ -252,7 +252,14 @@
 		    	try {
 			        FAPI_UI.testJSON = JSON.parse($("#config").val());
 			    } catch (e) {
-			        return true; // ensures the tab visually switches as expected even if there is invalid JSON pasted
+			    	FAPI_UI.showError({error:e});
+			        return false;
+			    }
+
+			    // valid JSON, but we also want to verify that it is an object at the root node
+			    if (typeof FAPI_UI.testJSON != 'object') {
+			    	FAPI_UI.showError({error:"Please ensure that your root node JSON is an object"});
+			        return false;
 			    }
 
 			    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
