@@ -35,7 +35,7 @@ import org.bouncycastle.crypto.tls.TlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsClient;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsCredentials;
-import org.bouncycastle.crypto.tls.TlsFatalAlert;
+import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -168,18 +168,17 @@ public class DisallowInsecureCipher extends AbstractCondition {
 					// Don't care
 				}
 			}
-		} catch (TlsFatalAlert e) {
+		} catch (IOException e) {
 			if (e.getCause() instanceof ConditionError) {
 				// It's our own error; pass it on
 				throw (ConditionError) e.getCause();
-			} else if (e.getAlertDescription() == AlertDescription.handshake_failure) {
+			} else if ((e instanceof TlsFatalAlertReceived)
+					&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
 				logSuccess("Handshake was refused", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
 				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
-		} catch (IOException e) {
-			return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 		}
 	}
 
