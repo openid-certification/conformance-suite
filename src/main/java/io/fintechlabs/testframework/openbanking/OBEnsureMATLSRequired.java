@@ -42,6 +42,7 @@ import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
@@ -140,9 +141,10 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 			env.get("config").add("tls", endpoint);
 
 			callAndStopOnFailure(EnsureTls12.class, "FAPI-1-7.1-1");
-			callAndStopOnFailure(DisallowTLS10.class, "FAPI-1-7.1-1");
-			callAndStopOnFailure(DisallowTLS11.class, "FAPI-1-7.1-1");
-			callAndStopOnFailure(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
+			// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
