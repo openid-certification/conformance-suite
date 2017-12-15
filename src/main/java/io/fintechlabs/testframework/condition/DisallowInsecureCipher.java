@@ -15,11 +15,15 @@
 package io.fintechlabs.testframework.condition;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.Certificate;
@@ -43,12 +47,38 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class DisallowInsecureCipher extends AbstractCondition {
 
-	private static final List<Integer> SECURE_CIPHERS = ImmutableList.of(
+	private static final List<Integer> ALLOWED_CIPHERS = ImmutableList.of(
 		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
 		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
 		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	);
+
+	private static final Map<Integer, String> CIPHER_NAMES = new HashMap<Integer, String>();
+
+	static {
+		// Reflect on BouncyCastle to get a list of supported ciphers and names
+		for (Field field : CipherSuite.class.getDeclaredFields()) {
+			String name = field.getName();
+			int modifiers = field.getModifiers();
+			Class<?> type = field.getType();
+			final int PUBLIC_STATIC_FINAL = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
+
+			if (type.isPrimitive()
+					&& type.getName().equals("int")
+					&& ((modifiers & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL)) {
+				try {
+					int cipherId = field.getInt(null);
+					if (!CipherSuite.isSCSV(cipherId)) {
+						CIPHER_NAMES.put(cipherId, name);
+					}
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					// This is not expected to happen; but we'll log it just in case
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 	/**
 	 * @param testId
@@ -103,9 +133,9 @@ public class DisallowInsecureCipher extends AbstractCondition {
 					@Override
 					public int[] getCipherSuites() {
 
-						// filter the list of supported ciphers to contain only insecure ciphers
-						ArrayList<Integer> ciphers = Lists.newArrayList(Ints.asList(super.getCipherSuites()));
-						ciphers.removeAll(SECURE_CIPHERS);
+						// filter the list of supported ciphers to contain only disallowed ciphers
+						ArrayList<Integer> ciphers = Lists.newArrayList(CIPHER_NAMES.keySet());
+						ciphers.removeAll(ALLOWED_CIPHERS);
 						return Ints.toArray(ciphers);
 					}
 
@@ -116,11 +146,15 @@ public class DisallowInsecureCipher extends AbstractCondition {
 
 					@Override
 					public void notifySelectedCipherSuite(int selectedCipherSuite) {
-						error("Server accepted an insecure cipher", args("cipher_suite", selectedCipherSuite));
+						error("Server accepted a disallowed cipher",
+								args("host", tlsTestHost,
+										"port", tlsTestPort,
+										"cipher_suite", CIPHER_NAMES.get(selectedCipherSuite)));
 					}
 				};
 
-				log("Trying to connect with an insecure cipher (this is not exhaustive: check the server configuration manually to verify conformance)");
+				log("Trying to connect with a disallowed cipher (this is not exhaustive: check the server configuration manually to verify conformance)",
+						args("host", tlsTestHost, "port", tlsTestPort));
 
 				protocol.connect(client);
 
@@ -139,13 +173,13 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				// It's our own error; pass it on
 				throw (ConditionError) e.getCause();
 			} else if (e.getAlertDescription() == AlertDescription.handshake_failure) {
-				logSuccess("Handshake was refused");
+				logSuccess("Handshake was refused", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
-				return error("Failed to make TLS connection", e);
+				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
 		} catch (IOException e) {
-			return error("Failed to make TLS connection", e);
+			return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 		}
 	}
 
