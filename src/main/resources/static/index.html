@@ -242,7 +242,7 @@
 			$(".config-form-element").attr("spellcheck","false");
 
 			// form text updates
-			$(".config-form-element").on('change', function(event) {
+			$(".config-form-element").on('keyup', function(event) {
 				populateJSON($(this).data("jsonTarget"), this.value);
 			});
 
