@@ -74,6 +74,11 @@
 						<div class="col-md-10"><input class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
 					</div>
 
+                    <div class="row">
+                        <div class="col-md-2 key"></div>
+                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
+                    </div>
+
 					<h3>Client</h3>
 					<div class="row">
 						<div class="col-md-2 key">client_id</div>
@@ -103,12 +108,6 @@
 					<div class="row">
 						<div class="col-md-2 key">jwks</div>
 						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
-					</div>
-
-					<h3>JWKS</h3>
-					<div class="row">
-						<div class="col-md-2 key"></div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
 					</div>
 
 					<h3>TLS</h3>
