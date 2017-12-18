@@ -97,15 +97,6 @@
 						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
 					</div>
 					<div class="row">
-						<div class="col-md-2 key">mtls.cert</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.cert" placeholder="TLS client certificate in PEM format in JSON string, no headers"></textarea></div>
-					</div>
-
-					<div class="row">
-						<div class="col-md-2 key">mtls.key</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.mtls.key" placeholder="TLS client key in PEM format in JSON string, no headers, unencrypted"></textarea></div>
-					</div>
-					<div class="row">
 						<div class="col-md-2 key">jwks</div>
 						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
 					</div>
@@ -120,6 +111,16 @@
 						<div class="col-md-2 key">testPort</div>
 						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
 					</div>
+
+                    <div class="row">
+                        <div class="col-md-2 key">mtls.cert</div>
+                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in PEM format in JSON string, no headers"></textarea></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 key">mtls.key</div>
+                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.key" placeholder="TLS client key in PEM format in JSON string, no headers, unencrypted"></textarea></div>
+                    </div>
 				</div>
 
 				<div id="JSONInput" class="tab-pane fade">

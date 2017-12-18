@@ -49,7 +49,7 @@ import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
-import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromClientConfiguration;
+import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
@@ -109,7 +109,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("client_id");
 		
 		//require(ExtractJWKsFromClientConfiguration.class);
-		callAndStopOnFailure(ExtractMTLSCertificatesFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 

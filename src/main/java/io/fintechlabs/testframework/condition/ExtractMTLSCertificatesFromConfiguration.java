@@ -26,14 +26,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ExtractMTLSCertificatesFromClientConfiguration extends AbstractCondition {
+public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public ExtractMTLSCertificatesFromClientConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractMTLSCertificatesFromConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -41,13 +41,13 @@ public class ExtractMTLSCertificatesFromClientConfiguration extends AbstractCond
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "client")
+	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "mutual_tls_authentication")
 	public Environment evaluate(Environment env) {
 		// mutual_tls_authentication
 		
-		String certString = env.getString("client", "mtls.cert");
-		String keyString = env.getString("client", "mtls.key");
+		String certString = env.getString("config", "mtls.cert");
+		String keyString = env.getString("config", "mtls.key");
 		
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
 			return error("Couldn't find client certificate or key for MTLS");

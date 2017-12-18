@@ -42,7 +42,7 @@ import io.fintechlabs.testframework.condition.ExtractBearerAccessTokenFromHeader
 import io.fintechlabs.testframework.condition.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.ExtractClientCertificateFromRequestHeaders;
 import io.fintechlabs.testframework.condition.ExtractClientCredentialsFromFormPost;
-import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromClientConfiguration;
+import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.GenerateBearerAccessToken;
@@ -93,7 +93,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(ExtractMTLSCertificatesFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
