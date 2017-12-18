@@ -46,6 +46,7 @@ import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
@@ -240,6 +241,8 @@ public class SampleTestModule extends AbstractTestModule {
 		// verify the access token against a protected resource
 		
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		
+		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

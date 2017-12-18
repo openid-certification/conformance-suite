@@ -49,6 +49,7 @@ import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -255,6 +256,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 		// verify the access token against a protected resource
 
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+
+		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
