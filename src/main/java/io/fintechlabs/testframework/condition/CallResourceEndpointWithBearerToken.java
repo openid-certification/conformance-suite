@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -45,7 +47,7 @@ public class CallResourceEndpointWithBearerToken extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(required = {"access_token", "config"})
-	@PostEnvironment(strings = "resource_endpoint_response")
+	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -76,10 +78,16 @@ public class CallResourceEndpointWithBearerToken extends AbstractCondition {
 			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.GET, request, String.class);
 
 			String responseBody = response.getBody();
+			JsonObject responseHeaders = new JsonObject();
+
+			for (Map.Entry<String, String> entry : response.getHeaders().toSingleValueMap().entrySet()) {
+				responseHeaders.addProperty(entry.getKey(), entry.getValue());
+			}
 
 			env.putString("resource_endpoint_response", responseBody);
+			env.put("resource_endpoint_response_headers", responseHeaders);
 
-			logSuccess("Got a response from the resource endpoint", args("body", responseBody));
+			logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders));
 
 			return env;
 		} catch (RestClientResponseException e) {

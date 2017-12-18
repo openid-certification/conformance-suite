@@ -35,6 +35,7 @@ import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationE
 import io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.CheckForSubscriberInIdToken;
@@ -245,6 +246,8 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractTestModule {
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+
+		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
