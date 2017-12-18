@@ -50,7 +50,7 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 		String keyString = env.getString("config", "mtls.key");
 		
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
-			return error("Couldn't find client certificate or key for MTLS");
+			return error("Couldn't find TLS client certificate or key for MTLS");
 		}
 		
 		try {
