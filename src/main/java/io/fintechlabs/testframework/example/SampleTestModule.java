@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthentica
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
@@ -50,6 +51,7 @@ import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureTls12;
+import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
@@ -219,6 +221,8 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		
 		callAndStopOnFailure(CheckForIdTokenValue.class);
 		
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
@@ -232,6 +236,10 @@ public class SampleTestModule extends AbstractTestModule {
 		call(CheckForRefreshTokenValue.class);
 		
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		
+		// verify the access token against a protected resource
+		
+		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
