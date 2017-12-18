@@ -207,6 +207,7 @@
 
 					$('#createTestBtn-'+index).click(function (evt) {
 						console.log('Button clicked: ' + testName);
+						updateConfig();
 						$("#busy").show();
 
 						$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
@@ -240,11 +241,6 @@
 			$(".config-form-element").attr("autocorrect","off");
 			$(".config-form-element").attr("autocapitalize","off");
 			$(".config-form-element").attr("spellcheck","false");
-
-			// form text updates
-			$(".config-form-element").on('keyup', function(event) {
-				populateJSON($(this).data("jsonTarget"), this.value);
-			});
 
 			// tab actions
 			$('#tab-a').click(function (e) { // populate the Form from the JSON
@@ -301,7 +297,7 @@
 			})
 
 			$('#tab-b').click(function (e) { // populate the JSON from the Form
-		    	$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+				updateConfig();
 			})
 		});
 
@@ -380,6 +376,19 @@
 		/**
 		 *
 		 */
+		function updateConfig() {
+			var children = $("#formInput").find(".config-form-element");
+
+			_.each(children, function(child) {
+				populateJSON($(child).data("jsonTarget"), $(child).val());
+			});
+
+			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+		}
+
+		/**
+		 *
+		 */
 		function populateJSON(key, val) {
 
 			// responsible for converting any dot syntax in our key parameter into object refs
@@ -423,9 +432,12 @@
 		    } catch (e) { // a string
 		    	if (val=="") { // if we have an empty string then delete the value
 		    		console.log("omit:"+key);
+		    		
 		    		var elements = key.split(".");
 		    		if (elements.length > 1) {
-		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]); 
+		    			if (FAPI_UI.testJSON[elements[0]] != undefined) {
+		    				FAPI_UI.testJSON[elements[0]] = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]);
+		    			}
 		    		} else {
 		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key); 
 		    		}
