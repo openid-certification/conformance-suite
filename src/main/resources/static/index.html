@@ -62,8 +62,8 @@
 			</div><hr />
 
 			<ul class="nav nav-tabs">
-			    <li class="active"><a data-toggle="tab" id="tab-a" href="#formInput">Form</a></li>
-			    <li><a data-toggle="tab" id="tab-b" href="#JSONInput">JSON</a></li>
+			    <li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
+			    <li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
 			</ul>
 
 			<div class="tab-content">
@@ -207,7 +207,14 @@
 
 					$('#createTestBtn-'+index).click(function (evt) {
 						console.log('Button clicked: ' + testName);
-						updateConfig();
+						
+						/* Figures out which tab is visible then populates the form appropriately
+						this is to ensure that the $('#config') value has properly updated in the event of a 
+						quick paste into a form field  with no tab switch and then a button press */
+						if ($("#formInput").hasClass("active")) {
+							updateJSONFromFormElements();
+						}
+						
 						$("#busy").show();
 
 						$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
@@ -243,61 +250,12 @@
 			$(".config-form-element").attr("spellcheck","false");
 
 			// tab actions
-			$('#tab-a').click(function (e) { // populate the Form from the JSON
-
-		    	try {
-			        FAPI_UI.testJSON = JSON.parse($("#config").val());
-			    } catch (e) {
-			    	FAPI_UI.showError({error:e});
-			        return false;
-			    }
-
-			    // valid JSON, but we also want to verify that it is an object at the root node
-			    if (typeof FAPI_UI.testJSON != 'object') {
-			    	FAPI_UI.showError({error:"Please ensure that your root node JSON is an object"});
-			        return false;
-			    }
-
-			    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
-
-			    /**
-			     * 
-			     */
-			    function walkJSON(element, root) {
-
-			    	_.each(element, function(value, key, obj) { 
-			    			console.log("****** WALK NODE ******");
-			    			console.log("root="+root);
-				    		console.log("value="+JSON.stringify(value));
-				    		console.log("key="+key);
-				    		console.log("obj="+JSON.stringify(obj));
-				    		console.log("element="+JSON.stringify(element));
-
-				    		var el = $(".config-form-element[data-json-target='"+root+"."+key+"']");
-				    		
-				    		if ($(document).find(el).length) {
-				    			if (_.isArray(value) || _.isObject(value)) {
-				    				el.val(JSON.stringify(value));
-				    			} else {
-				    				el.val(value);
-				    			}
-				    		} else {
-				    			if (_.isObject(value)) {
-				    				if (root != undefined) {
-				    					walkJSON(value, root+"."+key);
-				    				} else {
-				    					walkJSON(value, key);
-				    				}
-				    			}
-				    		}
-				    	}
-				    )
-			    }
-			    walkJSON(FAPI_UI.testJSON);
+			$('#tab-form-elements').click(function (e) {
+				updateFormElementsFromJSON();
 			})
 
-			$('#tab-b').click(function (e) { // populate the JSON from the Form
-				updateConfig();
+			$('#tab-json-elements').click(function (e) { 
+				updateJSONFromFormElements();
 			})
 		});
 
@@ -376,7 +334,7 @@
 		/**
 		 *
 		 */
-		function updateConfig() {
+		function updateJSONFromFormElements() {
 			var children = $("#formInput").find(".config-form-element");
 
 			_.each(children, function(child) {
@@ -384,6 +342,61 @@
 			});
 
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+		}
+
+		/**
+		 *
+		 */
+		function updateFormElementsFromJSON() {
+			try {
+		        FAPI_UI.testJSON = JSON.parse($("#config").val());
+		    } catch (e) {
+		    	FAPI_UI.showError({error:e});
+		        return false;
+		    }
+
+		    // valid JSON, but we also want to verify that it is an object at the root node
+		    if (typeof FAPI_UI.testJSON != 'object') {
+		    	FAPI_UI.showError({error:"Please ensure that your root node JSON is an object"});
+		        return false;
+		    }
+
+		    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+
+		    /**
+		     * 
+		     */
+		    function walkJSON(element, root) {
+
+		    	_.each(element, function(value, key, obj) { 
+		    			console.log("****** WALK NODE ******");
+		    			console.log("root="+root);
+			    		console.log("value="+JSON.stringify(value));
+			    		console.log("key="+key);
+			    		console.log("obj="+JSON.stringify(obj));
+			    		console.log("element="+JSON.stringify(element));
+
+			    		var el = $(".config-form-element[data-json-target='"+root+"."+key+"']");
+			    		
+			    		if ($(document).find(el).length) {
+			    			if (_.isArray(value) || _.isObject(value)) {
+			    				el.val(JSON.stringify(value));
+			    			} else {
+			    				el.val(value);
+			    			}
+			    		} else {
+			    			if (_.isObject(value)) {
+			    				if (root != undefined) {
+			    					walkJSON(value, root+"."+key);
+			    				} else {
+			    					walkJSON(value, key);
+			    				}
+			    			}
+			    		}
+			    	}
+			    )
+		    }
+		    walkJSON(FAPI_UI.testJSON);   
 		}
 
 		/**
