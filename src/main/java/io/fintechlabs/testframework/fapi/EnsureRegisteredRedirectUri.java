@@ -24,13 +24,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateBadRedirectUri;
+import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.ExpectRedirectUriErrorPage;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -88,8 +93,17 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+		callAndStopOnFailure(CreateRandomNonceValue.class);
+		exposeEnvString("nonce");
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+		
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 		
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
