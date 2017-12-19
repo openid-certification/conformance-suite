@@ -51,6 +51,7 @@ import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAutho
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
+import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
@@ -252,6 +253,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
 		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+
+		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

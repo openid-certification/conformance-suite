@@ -53,6 +53,7 @@ import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
 import io.fintechlabs.testframework.condition.EnsureTls12;
 import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -249,6 +250,8 @@ public class SampleTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 		
 		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		
+		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
