@@ -51,6 +51,7 @@ import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
+import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
@@ -256,6 +257,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		// verify the access token against a protected resource
+		
+		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 		

@@ -50,6 +50,7 @@ import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
+import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
@@ -242,6 +243,8 @@ public class SampleTestModule extends AbstractTestModule {
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		// verify the access token against a protected resource
+		
+		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 		
