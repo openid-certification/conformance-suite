@@ -47,7 +47,7 @@ public class LoadJWKs extends AbstractCondition {
 	@PostEnvironment(required = {"public_jwks", "jwks"})
 	public Environment evaluate(Environment env) {
 
-		JsonElement configured = env.findElement("config", "jwks");
+		JsonElement configured = env.findElement("config", "server.jwks");
 		
 		if (configured == null) {
 			return error("Couldn't find a JWK set in configuration");
