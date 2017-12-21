@@ -310,11 +310,13 @@ public abstract class AbstractTestModule implements TestModule {
 	/*
 	 * Test status state machine:
 	 * 
-	 *        /----------------->----------------\
-	 *       /                 /                  v
-	 *   CREATED -> CONFIGURED -> RUNNING --> FINISHED
-	 *                         \     ^--v      ^
-	 *                          \-> WAITING --/
+	 *          /----------->--------------------------------\
+	 *         /           /                                  \
+	 *        /----------------->----------------\             \
+	 *       /           /     /                  v             v
+	 *   CREATED -> CONFIGURED -> RUNNING --> FINISHED      INTERRUPTED
+	 *                         \     ^--v      ^              ^
+	 *                          \-> WAITING --/--------------/
 	 * 
 	 * Any state can go to "UNKNOWN"
 	 */
@@ -324,6 +326,7 @@ public abstract class AbstractTestModule implements TestModule {
 			case CREATED:
 				switch (status) {
 					case CONFIGURED:
+					case INTERRUPTED:
 					case FINISHED:
 					case UNKNOWN:
 						break;
@@ -334,6 +337,7 @@ public abstract class AbstractTestModule implements TestModule {
 			case CONFIGURED:
 				switch (status) {
 					case RUNNING:
+					case INTERRUPTED:
 					case FINISHED:
 					case WAITING:
 					case UNKNOWN:
@@ -344,6 +348,7 @@ public abstract class AbstractTestModule implements TestModule {
 				break;
 			case RUNNING:
 				switch (status) {
+					case INTERRUPTED:
 					case FINISHED:
 					case WAITING:
 					case UNKNOWN:
@@ -355,8 +360,17 @@ public abstract class AbstractTestModule implements TestModule {
 			case WAITING:
 				switch (status) {
 					case RUNNING:
+					case INTERRUPTED:
 					case FINISHED:
 					case UNKNOWN:
+						break;
+					default:
+						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				}
+				break;
+			case INTERRUPTED:
+				switch (status) {
+					case INTERRUPTED:
 						break;
 					default:
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
@@ -414,6 +428,22 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#stop()
+	 */
+	@Override
+	public void stop() {
+		if (!getStatus().equals(Status.FINISHED)) {
+			setStatus(Status.INTERRUPTED);
+		} else {
+			eventLog.log(getName(), "Finished");			
+		}
+
+		if (getResult().equals(Result.UNKNOWN)) {
+			fireInterrupted();
+		}
 	}
 
 }

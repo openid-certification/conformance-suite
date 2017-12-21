@@ -155,20 +155,6 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#stop()
-	 */
-	@Override
-	public void stop() {
-		eventLog.log(getName(), "Finished");
-		
-		setStatus(Status.FINISHED);
-		
-		if (getResult().equals(Result.UNKNOWN)) {
-			fireInterrupted();
-		}
-	}
-
-	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
 	 */
 	@Override

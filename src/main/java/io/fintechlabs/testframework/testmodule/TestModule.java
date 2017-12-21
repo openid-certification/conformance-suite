@@ -47,7 +47,8 @@ public interface TestModule {
         CONFIGURED, // configuration files have been sent and set up
         RUNNING, // test is executing
         WAITING, // test is waiting for external input
-        FINISHED, // test is no longer running
+        INTERRUPTED, // test has been stopped before completion
+        FINISHED, // test has completed
         UNKNOWN // test status is unknown, probably an error
     }
     
