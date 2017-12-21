@@ -78,7 +78,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 
 		cond = new DisallowAccessTokenInQuery("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("config", new JsonObject());
+		env.put("resource", new JsonObject());
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	public void testEvaluate_noError() {
 
 		env.put("access_token", bearerToken);
-		env.get("config").addProperty("resourceUrl", "http://good.example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://good.example.com/resource");
 
 		cond.evaluate(env);
 
@@ -97,7 +97,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 				.queryParam("access_token", "mF_9.B5f-4.1JqM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
-		verify(env, atLeastOnce()).getString("config", "resourceUrl");
+		verify(env, atLeastOnce()).getString("resource", "resourceUrl");
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	public void testEvaluate_disallowedQueryAccepted() {
 
 		env.put("access_token", bearerToken);
-		env.get("config").addProperty("resourceUrl", "http://bad.example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://bad.example.com/resource");
 
 		cond.evaluate(env);
 
@@ -120,7 +120,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	public void testEvaluate_badServer() {
 
 		env.put("access_token", bearerToken);
-		env.get("config").addProperty("resourceUrl", "http://invalid.org/resource");
+		env.get("resource").addProperty("resourceUrl", "http://invalid.org/resource");
 
 		cond.evaluate(env);
 
@@ -132,7 +132,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("config").addProperty("resourceUrl", "http://good.example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://good.example.com/resource");
 
 		cond.evaluate(env);
 

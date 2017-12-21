@@ -60,6 +60,7 @@ import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenRespons
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
@@ -120,7 +121,10 @@ public class SampleTestModule extends AbstractTestModule {
 		//require(GenerateJWKsFromClientSecret.class);
 		
 		exposeEnvString("client_id");
-
+		
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}

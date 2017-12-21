@@ -58,6 +58,7 @@ import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackRespo
 import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
@@ -116,6 +117,9 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		//require(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
+
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 

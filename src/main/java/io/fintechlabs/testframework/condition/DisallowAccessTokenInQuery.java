@@ -44,7 +44,7 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "config"})
+	@PreEnvironment(required = {"access_token", "resource"})
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -52,7 +52,7 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 			return error("Access token not found");
 		}
 
-		String resourceEndpoint = env.getString("config", "resourceUrl");
+		String resourceEndpoint = env.getString("resource", "resourceUrl");
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
 			return error("Resource endpoint not found");
 		}

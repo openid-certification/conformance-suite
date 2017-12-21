@@ -78,7 +78,7 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 
 		cond = new CallResourceEndpointWithBearerToken("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("config", new JsonObject());
+		env.put("resource", new JsonObject());
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_noError() {
 
 		env.put("access_token", bearerToken);
-		env.get("config").addProperty("resourceUrl", "http://example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
 
 		cond.evaluate(env);
 
@@ -98,7 +98,7 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
 		verify(env, atLeastOnce()).getString("access_token", "type");
-		verify(env, atLeastOnce()).getString("config", "resourceUrl");
+		verify(env, atLeastOnce()).getString("resource", "resourceUrl");
 
 		assertThat(env.getString("resource_endpoint_response")).isEqualTo("OK");
 	}
@@ -110,7 +110,7 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_badToken() {
 
 		env.put("access_token", exampleToken);
-		env.get("config").addProperty("resourceUrl", "http://example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
 
 		cond.evaluate(env);
 
@@ -123,7 +123,7 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_badServer() {
 
 		env.put("access_token", bearerToken);
-		env.get("config").addProperty("resourceUrl", "http://invalid.org/resource");
+		env.get("resource").addProperty("resourceUrl", "http://invalid.org/resource");
 
 		cond.evaluate(env);
 
@@ -135,7 +135,7 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("config").addProperty("resourceUrl", "http://example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
 
 		cond.evaluate(env);
 

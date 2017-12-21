@@ -14,18 +14,14 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowInsecureCipher {
+public class GetResourceEndpointConfiguration extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipherForResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public GetResourceEndpointConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -33,15 +29,19 @@ public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowI
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "resource")
+	@PreEnvironment(required = "config")
+	@PostEnvironment(required = "resource")
 	public Environment evaluate(Environment env) {
 
-		String resourceEndpoint = env.getString("resource", "resourceUrl");
-		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
-		}
+		JsonElement resource = env.findElement("config", "resource");
+		if (resource == null || !resource.isJsonObject()) {
+			return error("Couldn't find resource endpoint object in configuration");
+		} else {
+			env.put("resource", resource.getAsJsonObject());
 
-		return checkDisallowedCiphersForUrl(env, resourceEndpoint);
+			logSuccess("Found a resource endpoint object", resource.getAsJsonObject());
+			return env;
+		}
 	}
 
 }

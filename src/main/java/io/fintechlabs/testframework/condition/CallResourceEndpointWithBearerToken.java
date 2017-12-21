@@ -46,7 +46,7 @@ public class CallResourceEndpointWithBearerToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "config"})
+	@PreEnvironment(required = {"access_token", "resource"})
 	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
@@ -62,7 +62,7 @@ public class CallResourceEndpointWithBearerToken extends AbstractCondition {
 			return error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
-		String resourceEndpoint = env.getString("config", "resourceUrl");
+		String resourceEndpoint = env.getString("resource", "resourceUrl");
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
 			return error("Resource endpoint not found");
 		}
