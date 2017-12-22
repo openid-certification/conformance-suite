@@ -12,7 +12,6 @@ public class JavascriptController extends WebMvcConfigurerAdapter{
 	@Override
 	public void addViewControllers(ViewControllerRegistry registry) {
 		registry.addViewController("/js/fapi.ui.js").setViewName("js/fapi.ui.js");
-		registry.addViewController("/testing.html").setViewName("testing");
 	}
 }
 

@@ -195,7 +195,7 @@
 
         <!-- resident DOM -->
         <div class="container-fluid">
-            <div>
+            <div id="userInfoDiv">
                 <form action="/logout" method="post" class="form-inline">
                     <input type="submit" class="btn btn-sm btn-primary" value="Logout">
                 </form>
@@ -212,6 +212,7 @@
         <script type="text/javascript">
 
             $(document).ready(function(){
+                FAPI_UI.getUserInfoDiv("#userInfoDiv");
             	FAPI_UI.loadTemplates();
             	
                 var urlParams = new URLSearchParams(window.location.search);

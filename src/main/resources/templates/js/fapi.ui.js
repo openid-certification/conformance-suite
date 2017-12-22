@@ -1,22 +1,21 @@
-var isAdmin = [[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]];
-var userObj = [[${#authentication}]];
-
 var FAPI_UI = {
 
 	logTemplates : {},
 
-    isAdmin : true,
+    isAdmin : [[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]],
 
-	getUserDisplayName: function(divName) {
-		//userObj = [[${#authentication}]];
+	getUserInfoDiv: function(divName) {
+		userObj = [[${#authentication}]];
 		displayName = JSON.stringify(userObj.principal);
-		if (userObj.userInfo.email) {
-            displayName = userObj.userInfo.email;
-		} else if (userObj.userInfo.preferredUsername) {
-            displayName = userObj.userInfo.preferredUsername;
-		} else if (userObj.userInfo.name) {
-            displayName = userObj.userInfo.name;
-		}
+		if(userObj.userInfo) {
+            if (userObj.userInfo.email) {
+                displayName = userObj.userInfo.email;
+            } else if (userObj.userInfo.preferredUsername) {
+                displayName = userObj.userInfo.preferredUsername;
+            } else if (userObj.userInfo.name) {
+                displayName = userObj.userInfo.name;
+            }
+        }
 
 		userInfoHTML = '<p>Logged in as ' + displayName;
 		if (this.isAdmin) {
