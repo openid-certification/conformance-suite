@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+</head>
+<body>
+<h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]!</h1>
+<span sec:authorize="isAuthenticated()">
+    <p>Logged user: <span sec:authentication="sub"></span> <span sec:authentication="issuer"></span> </p>
+    <p>Roles: <span sec:authentication="authorities"></span> </p>
+
+    <span th:text="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">PreferredUsername here (Should be empty?).</span>
+</span>
+</body>
+</html>

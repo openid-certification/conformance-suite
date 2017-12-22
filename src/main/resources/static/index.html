@@ -55,7 +55,7 @@
         <div id="homePage">
  			<h1>FAPI Conformance Suite</h1>
 
-			<div>
+			<div id="userInfoDiv">
 				<form action="/logout" method="post" class="form-inline">
 					<input type="submit" class="btn btn-sm btn-primary" value="Logout">
 				</form>
@@ -466,6 +466,9 @@
 
 			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
 		}
+
+		// Display the currently logged in user and the logout button.
+		FAPI_UI.getUserDisplayName("#userInfoDiv");
 
 	</script>
 

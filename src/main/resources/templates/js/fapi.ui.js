@@ -1,6 +1,34 @@
+var isAdmin = [[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]];
+var userObj = [[${#authentication}]];
+
 var FAPI_UI = {
 
 	logTemplates : {},
+
+    isAdmin : true,
+
+	getUserDisplayName: function(divName) {
+		//userObj = [[${#authentication}]];
+		displayName = JSON.stringify(userObj.principal);
+		if (userObj.userInfo.email) {
+            displayName = userObj.userInfo.email;
+		} else if (userObj.userInfo.preferredUsername) {
+            displayName = userObj.userInfo.preferredUsername;
+		} else if (userObj.userInfo.name) {
+            displayName = userObj.userInfo.name;
+		}
+
+		userInfoHTML = '<p>Logged in as ' + displayName;
+		if (this.isAdmin) {
+			userInfoHTML += ' <span class="bg-danger">ADMIN</span>';
+		}
+
+		userInfoHTML +=	'</p><form action="/logout" method="post" class="form-inline">' +
+			'<input type="submit" class="btn btn-sm btn-primary" value="Logout">' +
+			'</form>';
+
+		$(divName).html(userInfoHTML);
+	},
 
 	loadHomepageTemplates : function() {
 		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
@@ -72,5 +100,6 @@ var FAPI_UI = {
 				}
 			}*/
 
-}
+};
+
 
