@@ -17,6 +17,7 @@ package io.fintechlabs.testframework.condition;
 import java.text.ParseException;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -107,8 +108,13 @@ public class SignRequestObject extends AbstractCondition {
 				if (signer == null) {
 					return error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
 				}
+				
+				Algorithm alg = jwk.getAlgorithm();
+				if (alg == null) {
+					return error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
+				}
 
-				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(jwk.getAlgorithm().getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
+				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
 
 				SignedJWT requestObject = new SignedJWT(header, claimSet);
 
