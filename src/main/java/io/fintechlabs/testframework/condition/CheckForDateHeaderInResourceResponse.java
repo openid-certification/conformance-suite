@@ -14,40 +14,36 @@
 
 package io.fintechlabs.testframework.condition;
 
+import org.apache.http.client.utils.DateUtils;
+
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
+public class CheckForDateHeaderInResourceResponse extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CheckForDateHeaderInResourceResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "resource_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
 
-		String tlsTestHost = env.getString("config", "tls.testHost");
-		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
+		String date = env.getString("resource_endpoint_response_headers", "Date");
 
-		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+		if (Strings.isNullOrEmpty(date)) {
+			return error("Date header not found in resource endpoint response");
 		}
 
-		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
+		if (DateUtils.parseDate(date) == null) {
+			return error("Invalid Date header", args("date", date));
 		}
 
-		return checkDisallowedCiphers(env, tlsTestHost, tlsTestPort);
+		logSuccess("Date header found", args("date", date));
+
+		return env;
 	}
 
 }

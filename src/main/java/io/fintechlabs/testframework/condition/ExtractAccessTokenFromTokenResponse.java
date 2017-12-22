@@ -15,17 +15,14 @@
 package io.fintechlabs.testframework.condition;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
+public class ExtractAccessTokenFromTokenResponse extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractAccessTokenFromTokenResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -33,21 +30,29 @@ public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "token_endpoint_response")
+	@PostEnvironment(required = "access_token")
 	public Environment evaluate(Environment env) {
 
-		String tlsTestHost = env.getString("config", "tls.testHost");
-		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
-
-		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+		String accessTokenString = env.getString("token_endpoint_response", "access_token");
+		if (Strings.isNullOrEmpty(accessTokenString)) {
+			return error("Couldn't find access token");
 		}
 
-		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
+		String tokenType = env.getString("token_endpoint_response", "token_type");
+		if (Strings.isNullOrEmpty(tokenType)) {
+			return error("Couldn't find token type");
 		}
 
-		return checkDisallowedCiphers(env, tlsTestHost, tlsTestPort);
+		JsonObject o = new JsonObject();
+		o.addProperty("value", accessTokenString);
+		o.addProperty("type", tokenType);
+
+		env.put("access_token", o);
+
+		logSuccess("Extracted the access token", o);
+
+		return env;
 	}
 
 }

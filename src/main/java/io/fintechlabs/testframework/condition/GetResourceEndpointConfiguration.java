@@ -14,18 +14,14 @@
 
 package io.fintechlabs.testframework.condition;
 
-import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
+public class GetResourceEndpointConfiguration extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public GetResourceEndpointConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -34,20 +30,18 @@ public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
 	 */
 	@Override
 	@PreEnvironment(required = "config")
+	@PostEnvironment(required = "resource")
 	public Environment evaluate(Environment env) {
 
-		String tlsTestHost = env.getString("config", "tls.testHost");
-		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
+		JsonElement resource = env.findElement("config", "resource");
+		if (resource == null || !resource.isJsonObject()) {
+			return error("Couldn't find resource endpoint object in configuration");
+		} else {
+			env.put("resource", resource.getAsJsonObject());
 
-		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+			logSuccess("Found a resource endpoint object", resource.getAsJsonObject());
+			return env;
 		}
-
-		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
-		}
-
-		return checkDisallowedCiphers(env, tlsTestHost, tlsTestPort);
 	}
 
 }

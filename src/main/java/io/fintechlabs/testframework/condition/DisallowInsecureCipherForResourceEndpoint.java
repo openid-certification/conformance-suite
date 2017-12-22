@@ -19,13 +19,13 @@ import com.google.common.base.Strings;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
+public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowInsecureCipher {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public DisallowInsecureCipherForResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -33,21 +33,15 @@ public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "resource")
 	public Environment evaluate(Environment env) {
 
-		String tlsTestHost = env.getString("config", "tls.testHost");
-		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
-
-		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+		String resourceEndpoint = env.getString("resource", "resourceUrl");
+		if (Strings.isNullOrEmpty(resourceEndpoint)) {
+			return error("Resource endpoint not found");
 		}
 
-		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
-		}
-
-		return checkDisallowedCiphers(env, tlsTestHost, tlsTestPort);
+		return checkDisallowedCiphersForUrl(env, resourceEndpoint);
 	}
 
 }

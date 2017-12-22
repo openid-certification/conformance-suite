@@ -31,8 +31,11 @@ import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthentica
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse;
+import io.fintechlabs.testframework.condition.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.CheckForScopesInTokenResponse;
@@ -45,14 +48,19 @@ import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
+import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
 import io.fintechlabs.testframework.condition.EnsureTls12;
+import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCode;
@@ -113,7 +121,10 @@ public class SampleTestModule extends AbstractTestModule {
 		//require(GenerateJWKsFromClientSecret.class);
 		
 		exposeEnvString("client_id");
-
+		
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
@@ -219,6 +230,8 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		
 		callAndStopOnFailure(CheckForIdTokenValue.class);
 		
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
@@ -232,6 +245,20 @@ public class SampleTestModule extends AbstractTestModule {
 		call(CheckForRefreshTokenValue.class);
 		
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		
+		// verify the access token against a protected resource
+		
+		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		
+		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		
+		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		
+		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+		
+		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		
+		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

@@ -14,40 +14,39 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.util.UUID;
+
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipher extends AbstractDisallowInsecureCipher {
+public class CheckForFAPIInteractionIdInResourceResponse extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CheckForFAPIInteractionIdInResourceResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "resource_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
 
-		String tlsTestHost = env.getString("config", "tls.testHost");
-		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
+		String interactionIdStr = env.getString("resource_endpoint_response_headers", "x-fapi-interaction-id");
 
-		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+		if (Strings.isNullOrEmpty(interactionIdStr)) {
+			return error("Interaction ID not found in resource endpoint response headers");
 		}
 
-		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
+		try {
+			@SuppressWarnings("unused")
+			UUID interactionId = UUID.fromString(interactionIdStr);
+		} catch (IllegalArgumentException e) {
+			return error("Invalid interaction ID", args("interaction_id", interactionIdStr));
 		}
 
-		return checkDisallowedCiphers(env, tlsTestHost, tlsTestPort);
+		logSuccess("Found interaction ID", args("interaction_id", interactionIdStr));
+
+		return env;
 	}
 
 }
