@@ -6,7 +6,8 @@ var FAPI_UI = {
 
 	getUserInfoDiv: function(divName) {
 		userObj = [[${#authentication}]];
-		displayName = JSON.stringify(userObj.principal);
+		principal = JSON.stringify(userObj.principal);
+		displayName = principal;
 		if(userObj.userInfo) {
             if (userObj.userInfo.email) {
                 displayName = userObj.userInfo.email;
@@ -17,16 +18,19 @@ var FAPI_UI = {
             }
         }
 
-		userInfoHTML = '<p>Logged in as ' + displayName;
+		userInfoHTML = '<div>Logged in as ' + displayName;
 		if (this.isAdmin) {
 			userInfoHTML += ' <span class="bg-danger">ADMIN</span>';
 		}
 
-		userInfoHTML +=	'</p><form action="/logout" method="post" class="form-inline">' +
+		userInfoHTML +=	'</div><form action="/logout" method="post" class="form-inline">' +
 			'<input type="submit" class="btn btn-sm btn-primary" value="Logout">' +
 			'</form>';
-
+		//console.log(userInfoHTML);
 		$(divName).html(userInfoHTML);
+		$(divName).attr("data-toggle","tooltip");
+        $(divName).attr("title",principal.replace(",",", "));
+		$('[data-toggle="tooltip"]').tooltip();
 	},
 
 	loadHomepageTemplates : function() {
