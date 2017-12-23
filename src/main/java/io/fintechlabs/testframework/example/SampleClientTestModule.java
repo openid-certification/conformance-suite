@@ -112,15 +112,6 @@ public class SampleClientTestModule extends AbstractTestModule {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#stop()
-	 */
-	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
-		setStatus(Status.FINISHED);
-	}
-
-	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
