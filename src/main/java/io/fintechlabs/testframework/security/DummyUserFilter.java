@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.security;
 
 import com.google.common.collect.ImmutableSet;
+import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
+import org.mitre.openid.connect.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,15 +42,18 @@ public class DummyUserFilter extends GenericFilterBean {
 
 	private static Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 	private static Set<GrantedAuthority> authorities = ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
-	private static OIDCAuthenticationToken token = new OIDCAuthenticationToken("developer","developer.com",
-			null, authorities,null, null, null);
-
+	private static String sub = "developer";
+	private static String issuer = "developer.com";
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		logger.debug("In Dummy Filter doFilter()");
 		if (devmode) {
-			SecurityContextHolder.getContext().setAuthentication(token);
+			UserInfo info = new DefaultUserInfo();
+			info.setEmail("developer@developer.com");
+			info.setSub(sub);
+
+			SecurityContextHolder.getContext().setAuthentication(new OIDCAuthenticationToken(sub, issuer, info, authorities, null, null, null));
 		}
 		chain.doFilter(request,response);
 	}

@@ -31,6 +31,7 @@
 
     <script>
         $(document).ready(function(){
+            FAPI_UI.getUserInfoDiv("#userInfoDiv");
 
         	$('#file').change(function(evt) {
         		var reader = new FileReader();
@@ -83,7 +84,7 @@
         <a href="index.html"><header></header></a>
 
         <div class="container-fluid">
-            <div>
+            <div id="userInfoDiv">
                 <form action="/logout" method="post" class="form-inline">
                     <input type="submit" class="btn btn-sm btn-primary" value="Logout">
                 </form>

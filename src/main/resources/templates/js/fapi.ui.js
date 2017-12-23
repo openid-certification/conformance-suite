@@ -2,6 +2,37 @@ var FAPI_UI = {
 
 	logTemplates : {},
 
+    isAdmin : [[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]],
+
+	getUserInfoDiv: function(divName) {
+		userObj = [[${#authentication}]];
+		principal = JSON.stringify(userObj.principal);
+		displayName = principal;
+		if(userObj.userInfo) {
+            if (userObj.userInfo.email) {
+                displayName = userObj.userInfo.email;
+            } else if (userObj.userInfo.preferredUsername) {
+                displayName = userObj.userInfo.preferredUsername;
+            } else if (userObj.userInfo.name) {
+                displayName = userObj.userInfo.name;
+            }
+        }
+
+		userInfoHTML = '<div>Logged in as ' + displayName;
+		if (this.isAdmin) {
+			userInfoHTML += ' <span class="bg-danger">ADMIN</span>';
+		}
+
+		userInfoHTML +=	'</div><form action="/logout" method="post" class="form-inline">' +
+			'<input type="submit" class="btn btn-sm btn-primary" value="Logout">' +
+			'</form>';
+		//console.log(userInfoHTML);
+		$(divName).html(userInfoHTML);
+		$(divName).attr("data-toggle","tooltip");
+        $(divName).attr("title",principal.replace(",",", "));
+		$('[data-toggle="tooltip"]').tooltip();
+	},
+
 	loadHomepageTemplates : function() {
 		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
@@ -72,5 +103,6 @@ var FAPI_UI = {
 				}
 			}*/
 
-}
+};
+
 

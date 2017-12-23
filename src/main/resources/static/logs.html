@@ -35,12 +35,7 @@
 
 
         <script type="text/template" id="logsListingTemplate">
-            <div class="container-fluid">
-                <div>
-                    <form action="/logout" method="post" class="form-inline">
-                        <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                    </form>
-                </div>
+
                 <div id="logs">
                     <div class="content">
                         <div class="row listHeader">
@@ -70,17 +65,24 @@
                         %>
                     </div>
                 </div>
-            </div>
+
         </script>
 
-        <div id="logsListingTemplate_render"></div>
-
+        <div class="container-fluid">
+            <div id="userInfoDiv">
+                <form action="/logout" method="post" class="form-inline">
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </form>
+            </div>
+            <div id="logsListingTemplate_render"></div>
+        </div>
         <script>
 
             /**
              * 
              */
             $(document).ready(function(){
+                FAPI_UI.getUserInfoDiv("#userInfoDiv");
                 FAPI_UI.loadAvailableLogs();
             });
 
