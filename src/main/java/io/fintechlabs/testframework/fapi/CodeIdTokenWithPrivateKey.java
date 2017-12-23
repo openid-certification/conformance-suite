@@ -42,6 +42,7 @@ import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
@@ -248,7 +249,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		// verify the access token against a protected resource
 		
-		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 		
