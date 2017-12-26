@@ -5,20 +5,9 @@ var FAPI_UI = {
     isAdmin : [[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]],
 
 	getUserInfoDiv: function(divName) {
-		userObj = [[${#authentication}]];
-		principal = JSON.stringify(userObj.principal);
-		displayName = principal;
-		if(userObj.userInfo) {
-            if (userObj.userInfo.email) {
-                displayName = userObj.userInfo.email;
-            } else if (userObj.userInfo.preferredUsername) {
-                displayName = userObj.userInfo.preferredUsername;
-            } else if (userObj.userInfo.name) {
-                displayName = userObj.userInfo.name;
-            }
-        }
 
-		userInfoHTML = '<div>Logged in as ' + displayName;
+
+		userInfoHTML = '<div>Logged in as [[${displayName}]]';
 		if (this.isAdmin) {
 			userInfoHTML += ' <span class="bg-danger">ADMIN</span>';
 		}
@@ -29,7 +18,7 @@ var FAPI_UI = {
 		//console.log(userInfoHTML);
 		$(divName).html(userInfoHTML);
 		$(divName).attr("data-toggle","tooltip");
-        $(divName).attr("title",principal.replace(",",", "));
+        $(divName).attr("title",[[${principal}]]);
 		$('[data-toggle="tooltip"]').tooltip();
 	},
 
