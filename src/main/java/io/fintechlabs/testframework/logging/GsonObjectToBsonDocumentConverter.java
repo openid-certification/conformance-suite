@@ -22,27 +22,42 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.stereotype.Component;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mongodb.util.JSON;
 
 /**
+ * Convert JsonObjects from GSON into a BSON Document, wrapping problematic keys with a conversion as follows:
+ * 
+ *    "a.b": "foo"
+ *   
+ *  becomes:
+ *  
+ *    "__wrapped_key_element": {
+ *      "key": "a.b",
+ *      "value": "foo"
+ *    }
+ * 
  * @author jricher
  *
  */
 @Component
 @WritingConverter
-public class GsonToBsonConverter implements Converter<JsonElement, Bson> {
+public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, Bson> {
 	
-	private static final Logger log = LoggerFactory.getLogger(GsonToBsonConverter.class);
+	private static final Logger log = LoggerFactory.getLogger(GsonObjectToBsonDocumentConverter.class);
+	
+	private Gson gson = new GsonBuilder().create();
 	
 	@Override
-	public Bson convert(JsonElement source) {
+	public Bson convert(JsonObject source) {
 		if (source == null) {
 			return null;
 		} else {
-			return (Bson) JSON.parse(convertFieldsToStructure(source).toString());
+			return (Bson) JSON.parse(gson.toJson(convertFieldsToStructure(source)));
 		}
 	}
 
