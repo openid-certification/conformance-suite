@@ -48,21 +48,33 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 		
 		String certString = env.getString("config", "mtls.cert");
 		String keyString = env.getString("config", "mtls.key");
+		String caString = env.getString("config", "mtls.ca");
 		
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
 			return error("Couldn't find TLS client certificate or key for MTLS");
 		}
 		
+		if (Strings.isNullOrEmpty(caString)) {
+			// Not an error; we just won't send a CA chain
+			log("No certificate authority found for MTLS");
+		}
+
 		try {
 			Base64.getDecoder().decode(certString);
 			Base64.getDecoder().decode(keyString);
+			if (caString != null) {
+				Base64.getDecoder().decode(caString);
+			}
 		} catch (IllegalArgumentException e) {
-			return error("Couldn't decode certificate or key from Base64", e, args("cert", certString, "key", keyString));
+			return error("Couldn't decode certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		}
 
 		JsonObject mtls = new JsonObject();
 		mtls.addProperty("cert", certString);
 		mtls.addProperty("key", keyString);
+		if (caString != null) {
+			mtls.addProperty("ca", caString);
+		}
 		
 		env.put("mutual_tls_authentication", mtls);
 		

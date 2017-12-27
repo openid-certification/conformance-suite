@@ -29,6 +29,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -55,6 +56,7 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -415,6 +417,7 @@ public abstract class AbstractCondition implements Condition {
 			// TODO: move this to an extractor?
 			String clientCert = env.getString("mutual_tls_authentication", "cert");
 			String clientKey = env.getString("mutual_tls_authentication", "key");
+			String clientCa = env.getString("mutual_tls_authentication", "ca");
 	
 			byte[] certBytes = Base64.getDecoder().decode(clientCert);
 			byte[] keyBytes = Base64.getDecoder().decode(clientKey);
@@ -422,10 +425,16 @@ public abstract class AbstractCondition implements Condition {
 			X509Certificate cert = generateCertificateFromDER(certBytes);              
 			RSAPrivateKey key  = generatePrivateKeyFromDER(keyBytes);
 	
+			ArrayList<X509Certificate> chain = Lists.newArrayList(cert);
+			if (clientCa != null) {
+				byte[] caBytes = Base64.getDecoder().decode(clientCa);
+				chain.addAll(generateCertificateChainFromDER(caBytes));
+			}
+
 			KeyStore keystore = KeyStore.getInstance("JKS");
 			keystore.load(null);
 			keystore.setCertificateEntry("cert-alias", cert);
-			keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), new Certificate[] {cert});
+			keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
 	
 			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 			keyManagerFactory.init(keystore, "changeit".toCharArray());
@@ -475,6 +484,18 @@ public abstract class AbstractCondition implements Condition {
 		CertificateFactory factory = CertificateFactory.getInstance("X.509");
 	
 		return (X509Certificate)factory.generateCertificate(new ByteArrayInputStream(certBytes));      
+	}
+
+	protected static List<X509Certificate> generateCertificateChainFromDER(byte[] chainBytes) throws CertificateException {
+		CertificateFactory factory = CertificateFactory.getInstance("X.509");
+
+		ArrayList<X509Certificate> chain = new ArrayList<X509Certificate>();
+		ByteArrayInputStream in = new ByteArrayInputStream(chainBytes);
+		while (in.available() > 0) {
+			chain.add((X509Certificate) factory.generateCertificate(in));
+		}
+
+		return chain;
 	}
 
 	
