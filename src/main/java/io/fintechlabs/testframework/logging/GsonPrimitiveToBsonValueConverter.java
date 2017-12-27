@@ -46,7 +46,7 @@ public class GsonPrimitiveToBsonValueConverter implements Converter<JsonPrimitiv
 		} else if (source.isString()) {
 			return new BsonString(source.getAsString());
 		} else {
-			return null;
+			throw new IllegalArgumentException("Source JsonPrimitive not a known category: " + source);
 		}
 		
 	}
