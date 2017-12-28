@@ -59,10 +59,12 @@ import io.fintechlabs.testframework.condition.EnsureTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.FetchServerKeys;
 import io.fintechlabs.testframework.condition.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.SignRequestObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -160,9 +162,10 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
+		// We'll use MATLS for authorization and remove the keys to test the token endpoint
+		// FIXME: we'll allow running the test against servers which don't support MTLS
+		call(ExtractMTLSCertificatesFromConfiguration.class);
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-
-		// Do not extract any client certificates; we want to make sure the request fails
 
 		setStatus(Status.CONFIGURED);
 
@@ -261,6 +264,8 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+
+		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
