@@ -246,13 +246,15 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 
-		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		// FIXME: for now, finish the test even if the server is non-conforming
 
-		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 
-		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		call(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
-		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+
+		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
