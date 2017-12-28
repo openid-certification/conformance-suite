@@ -57,11 +57,11 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
 		service("good.example.com")
-			.get("/resource")
+			.get("/accounts")
 			.queryParam("access_token", any())
 			.willReturn(badRequest().body("Bad Request")),
 		service("bad.example.com")
-			.get("/resource")
+			.get("/accounts")
 			.queryParam("access_token", "mF_9.B5f-4.1JqM")
 			.willReturn(success("OK", "text/plain"))
 	));
@@ -82,18 +82,18 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://good.example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://good.example.com/");
 
 		cond.evaluate(env);
 
 		hoverfly.verify(service("good.example.com")
-				.get("/resource")
+				.get("/accounts")
 				.queryParam("access_token", "mF_9.B5f-4.1JqM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
@@ -107,7 +107,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	public void testEvaluate_disallowedQueryAccepted() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://bad.example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://bad.example.com/");
 
 		cond.evaluate(env);
 
@@ -120,7 +120,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	public void testEvaluate_badServer() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://invalid.org/resource");
+		env.get("resource").addProperty("resourceUrl", "http://invalid.org/");
 
 		cond.evaluate(env);
 
@@ -132,7 +132,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("resource").addProperty("resourceUrl", "http://good.example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://good.example.com/");
 
 		cond.evaluate(env);
 

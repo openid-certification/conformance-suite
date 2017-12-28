@@ -34,28 +34,34 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
 import io.fintechlabs.testframework.condition.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.EnsureTls12;
 import io.fintechlabs.testframework.condition.EnsureTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
@@ -66,6 +72,7 @@ import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.SignRequestObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -178,6 +185,28 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
+
+		// First request a client credentials grant
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		// TODO: call accounts API to get an intent ID
+
+		// Now we can make the authorization request
 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
