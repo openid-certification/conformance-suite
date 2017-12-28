@@ -27,11 +27,13 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
@@ -40,22 +42,26 @@ import io.fintechlabs.testframework.condition.CheckForFAPIInteractionIdInResourc
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
 import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
@@ -128,7 +134,37 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 
+		// First request a client credentials grant
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		// Create an account request
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
+
+		// Now we can make the authorization request
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
@@ -189,7 +225,7 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractTestModule {
 
 		// process the callback
 		setStatus(Status.RUNNING);
-	
+
 		String hash = requestParts.get("body").getAsString();
 
 		logger.info("Hash: " + hash);
