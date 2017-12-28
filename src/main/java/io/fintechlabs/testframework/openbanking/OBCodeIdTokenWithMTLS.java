@@ -53,6 +53,7 @@ import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceE
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
+import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
@@ -226,6 +227,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 		
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
 		callAndStopOnFailure(CheckForIdTokenValue.class);
 		
 		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");

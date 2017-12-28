@@ -271,6 +271,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
 		callAndStopOnFailure(CheckForIdTokenValue.class);
 
 		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
