@@ -143,8 +143,8 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 			env.get("config").remove("tls");
 			env.get("config").add("tls", endpoint);
 
-			callAndStopOnFailure(EnsureTls12.class, "FAPI-1-7.1-1");
 			// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
+			call(EnsureTls12.class, "FAPI-1-7.1-1");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");

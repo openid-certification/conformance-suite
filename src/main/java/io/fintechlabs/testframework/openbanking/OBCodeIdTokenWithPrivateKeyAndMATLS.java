@@ -113,7 +113,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
+		// FIXME: we'll allow running the test against servers which don't support MTLS
+		call(ExtractMTLSCertificatesFromConfiguration.class);
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		// Set up the resource endpoint configuration
@@ -249,7 +250,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		// verify the access token against a protected resource
 
-		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
+		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 
 		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 
