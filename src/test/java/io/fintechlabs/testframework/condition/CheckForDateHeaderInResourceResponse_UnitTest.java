@@ -17,6 +17,9 @@ package io.fintechlabs.testframework.condition;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
+import java.util.Date;
+
+import org.apache.http.client.utils.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +54,23 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noError() {
+
+		JsonObject headers = new JsonObject();
+		headers.addProperty("Date", DateUtils.formatDate(new Date()));
+		env.put("resource_endpoint_response_headers", headers);
+
+		cond.evaluate(env);
+
+		verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "Date");
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_oldDate() {
+
+		// Obviously, don't run this test on 6 Nov 1994 ;)
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Date", "Sun, 06 Nov 1994 08:49:37 GMT"); // Example from RFC 7231

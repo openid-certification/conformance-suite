@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.condition;
 
+import java.util.Date;
+
 import org.apache.http.client.utils.DateUtils;
 
 import com.google.common.base.Strings;
@@ -23,6 +25,8 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckForDateHeaderInResourceResponse extends AbstractCondition {
 
+	private static final long DATE_TOLERANCE_MS = 5 * 60 * 1000; // 5 minutes
+
 	public CheckForDateHeaderInResourceResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -31,17 +35,28 @@ public class CheckForDateHeaderInResourceResponse extends AbstractCondition {
 	@PreEnvironment(required = "resource_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
 
-		String date = env.getString("resource_endpoint_response_headers", "Date");
+		String dateStr = env.getString("resource_endpoint_response_headers", "Date");
 
-		if (Strings.isNullOrEmpty(date)) {
+		if (Strings.isNullOrEmpty(dateStr)) {
 			return error("Date header not found in resource endpoint response");
 		}
 
-		if (DateUtils.parseDate(date) == null) {
-			return error("Invalid Date header", args("date", date));
+		Date messageDate = DateUtils.parseDate(dateStr);
+
+		if (messageDate == null) {
+			// null means that the date could not be parsed
+			return error("Invalid date format", args("date", dateStr));
 		}
 
-		logSuccess("Date header found", args("date", date));
+		long now = System.currentTimeMillis();
+
+		long skew = messageDate.getTime() - now;
+
+		if (Math.abs(skew) > DATE_TOLERANCE_MS) {
+			return error("Excessive difference from current time", args("date", dateStr, "skew_ms", skew));
+		}
+
+		logSuccess("Date header present and validated", args("date", dateStr, "skew_ms", skew));
 
 		return env;
 	}
