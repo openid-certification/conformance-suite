@@ -21,11 +21,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -59,7 +62,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 	 */
 	@Override
 	@PreEnvironment(required = {"access_token", "resource", "account_requests_endpoint_request"})
-	@PostEnvironment(required = "account_requests_endpoint_response")
+	@PostEnvironment(required = {"resource_endpoint_response_headers", "account_requests_endpoint_response"})
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -97,7 +100,9 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
-			String jsonString = restTemplate.postForObject(accountRequestsUrl, request, String.class);
+			ResponseEntity<String> response = restTemplate.exchange(accountRequestsUrl, HttpMethod.POST, request, String.class);
+
+			String jsonString = response.getBody();
 
 			if (Strings.isNullOrEmpty(jsonString)) {
 				return error("Didn't get back a response from the account requests endpoint");
@@ -110,9 +115,15 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 						return error("Account requests endpoint did not return a JSON object");
 					}
 
-					logSuccess("Parsed account requests endpoint response", jsonRoot.getAsJsonObject());
+					JsonObject responseHeaders = new JsonObject();
+					for (Map.Entry<String, String> entry : response.getHeaders().toSingleValueMap().entrySet()) {
+						responseHeaders.addProperty(entry.getKey(), entry.getValue());
+					}
 
 					env.put("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
+					env.put("resource_endpoint_response_headers", responseHeaders);
+
+					logSuccess("Parsed account requests endpoint response", args("body", jsonString, "headers", responseHeaders));
 
 					return env;
 				} catch (JsonParseException e) {

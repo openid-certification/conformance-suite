@@ -44,6 +44,7 @@ import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
@@ -53,6 +54,7 @@ import io.fintechlabs.testframework.condition.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.DisallowTLS10;
 import io.fintechlabs.testframework.condition.DisallowTLS11;
+import io.fintechlabs.testframework.condition.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
 import io.fintechlabs.testframework.condition.EnsureTls12;
@@ -232,6 +234,8 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		// verify the access token against a protected resource
 		
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		
 		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
@@ -241,6 +245,8 @@ public class SampleTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 		
 		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		
+		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 		
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		

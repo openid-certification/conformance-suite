@@ -46,6 +46,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
@@ -53,6 +54,7 @@ import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
+import io.fintechlabs.testframework.condition.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
@@ -249,6 +251,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		// verify the access token against a protected resource
 		
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
@@ -258,6 +262,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 		
 		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		
+		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 		
 		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		
