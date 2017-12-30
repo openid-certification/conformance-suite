@@ -38,7 +38,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CallResourceEndpointWithBearerToken_UnitTest {
+public class CallAccountsEndpointWithBearerToken_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -61,12 +61,12 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
 		service("example.com")
-			.get("/resource")
+			.get("/accounts")
 			.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
 			.willReturn(success("OK", "text/plain"))
 	));
 
-	private CallResourceEndpointWithBearerToken cond;
+	private CallAccountsEndpointWithBearerToken cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -76,24 +76,24 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new CallResourceEndpointWithBearerToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CallAccountsEndpointWithBearerToken("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		env.put("resource", new JsonObject());
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 
 		hoverfly.verify(service("example.com")
-				.get("/resource")
+				.get("/accounts")
 				.header("Authorization", "Bearer mF_9.B5f-4.1JqM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
@@ -104,45 +104,45 @@ public class CallResourceEndpointWithBearerToken_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
 		env.put("access_token", exampleToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badServer() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://invalid.org/resource");
+		env.get("resource").addProperty("resourceUrl", "http://invalid.org/");
 
 		cond.evaluate(env);
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.get("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingUrl() {

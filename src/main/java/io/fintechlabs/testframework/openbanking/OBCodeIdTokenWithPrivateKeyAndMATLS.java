@@ -27,11 +27,13 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse;
@@ -39,6 +41,7 @@ import io.fintechlabs.testframework.condition.CheckForFAPIInteractionIdInResourc
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
@@ -46,16 +49,20 @@ import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
+import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractJWKsFromClientConfiguration;
@@ -113,7 +120,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
+		// FIXME: we'll allow running the test against servers which don't support MTLS
+		call(ExtractMTLSCertificatesFromConfiguration.class);
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		// Set up the resource endpoint configuration
@@ -131,7 +139,39 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 
+		// First request a client credentials grant
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		// Create an account request
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
+
+		// Now we can make the authorization request
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
@@ -231,6 +271,8 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
 		callAndStopOnFailure(CheckForIdTokenValue.class);
 
 		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
@@ -249,17 +291,20 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractTestModule {
 
 		// verify the access token against a protected resource
 
-		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
+		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 
-		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 
-		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		// FIXME: for now, finish the test even if the server is non-conforming
 
-		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 
-		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		call(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
-		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+
+		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();

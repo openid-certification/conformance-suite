@@ -31,7 +31,7 @@ import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse;
@@ -239,7 +239,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 		
-		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 		
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 		

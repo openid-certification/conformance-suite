@@ -27,32 +27,40 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.CallResourceEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
+import io.fintechlabs.testframework.condition.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.ExtractMTLSCertificatesFromConfiguration;
@@ -63,6 +71,8 @@ import io.fintechlabs.testframework.condition.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.ParseIdToken;
 import io.fintechlabs.testframework.condition.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.ValidateIdToken;
+import io.fintechlabs.testframework.condition.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -94,7 +104,7 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-		
+
 		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -103,20 +113,20 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		// Make sure we're calling the right server configuration
 		call(GetDynamicServerConfiguration.class);
 		call(GetStaticServerConfiguration.class);
-		
-		
+
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		
+
 		callAndStopOnFailure(FetchServerKeys.class);
-		
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		
+
 		exposeEnvString("client_id");
-		
+
+		// FIXME: we'll allow running the test against servers which don't support MTLS
+		call(ExtractMTLSCertificatesFromConfiguration.class);
 		//require(ExtractJWKsFromClientConfiguration.class);
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -124,7 +134,6 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
-		
 	}
 
 	/* (non-Javadoc)
@@ -133,8 +142,36 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		
+
+		// First request a client credentials grant
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		// Create an account request
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
+
+		// Now we can make the authorization request
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
@@ -143,17 +180,17 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-		
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 		
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 		
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-		
+
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
-		
+
 		setStatus(Status.WAITING);
 	}
 
@@ -164,11 +201,11 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		eventLog.log(getName(), "Path: " + path);
 		eventLog.log(getName(), "Params: " + requestParts);
-		
+
 		// dispatch based on the path
-		
+
 		// these are all user-facing and will require user-facing error pages, so we wrap them
-		
+
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
@@ -177,7 +214,7 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 			return new ModelAndView("testError");
 		}
 	}
-	
+
 	@UserFacing
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
@@ -190,31 +227,31 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 				ImmutableMap.of("test", this, 
 					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
-	
+
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
-		
+
 		String hash = requestParts.get("body").getAsString();
-		
+
 		logger.info("Hash: " + hash);
-		
+
 		env.putString("implicit_hash", hash);
-		
+
 		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-	
+
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		
+
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
-		
+
 		// check the ID token from the hybrid response
 		
 		
 		// call the token endpoint and complete the flow
-		
+
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-		
+
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
@@ -224,35 +261,45 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-		
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
 		callAndStopOnFailure(CheckForIdTokenValue.class);
-		
+
 		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
-		
+
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "OB-5.2.2-8");
+
 		call(CheckForRefreshTokenValue.class);
-		
+
 		callAndStopOnFailure(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
-		
+
 		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 
 		// verify the access token against a protected resource
 
-		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
+		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 
-		callAndStopOnFailure(CallResourceEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 
-		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		// FIXME: for now, finish the test even if the server is non-conforming
 
-		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 
-		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		call(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
-		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+
+		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
-
 	}
 
 	/* (non-Javadoc)
@@ -262,7 +309,5 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
 	}
-
-
 
 }

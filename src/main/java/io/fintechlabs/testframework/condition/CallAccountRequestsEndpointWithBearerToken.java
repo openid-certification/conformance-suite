@@ -21,24 +21,36 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class CallResourceEndpointWithBearerToken extends AbstractCondition {
+public class CallAccountRequestsEndpointWithBearerToken extends AbstractCondition {
 
-	public CallResourceEndpointWithBearerToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	private static final String ACCOUNT_REQUESTS_RESOURCE = "account-requests";
+
+	private static final Logger logger = LoggerFactory.getLogger(CallAccountRequestsEndpointWithBearerToken.class);
+
+
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public CallAccountRequestsEndpointWithBearerToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -46,8 +58,8 @@ public class CallResourceEndpointWithBearerToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "resource"})
-	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
+	@PreEnvironment(required = {"access_token", "resource", "account_requests_endpoint_request"})
+	@PostEnvironment(required = "account_requests_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -67,34 +79,53 @@ public class CallResourceEndpointWithBearerToken extends AbstractCondition {
 			return error("Resource endpoint not found");
 		}
 
+		JsonObject requestObject = env.get("account_requests_endpoint_request");
+		if (requestObject == null) {
+			return error("Couldn't find request objcet");
+		}
+
+		// Build the endpoint URL
+		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
+				.path(ACCOUNT_REQUESTS_RESOURCE)
+				.toUriString();
+
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", String.join(" ", tokenType, accessToken));
 
-			HttpEntity<String> request = new HttpEntity<String>("parameters", headers);
+			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
-			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.GET, request, String.class);
+			String jsonString = restTemplate.postForObject(accountRequestsUrl, request, String.class);
 
-			String responseBody = response.getBody();
-			JsonObject responseHeaders = new JsonObject();
+			if (Strings.isNullOrEmpty(jsonString)) {
+				return error("Didn't get back a response from the account requests endpoint");
+			} else {
+				log("Account requests endpoint response", args("account_requests_endpoint_response", jsonString));
 
-			for (Map.Entry<String, String> entry : response.getHeaders().toSingleValueMap().entrySet()) {
-				responseHeaders.addProperty(entry.getKey(), entry.getValue());
+				try {
+					JsonElement jsonRoot = new JsonParser().parse(jsonString);
+					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+						return error("Account requests endpoint did not return a JSON object");
+					}
+
+					logSuccess("Parsed account requests endpoint response", jsonRoot.getAsJsonObject());
+
+					env.put("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
+
+					return env;
+				} catch (JsonParseException e) {
+					return error(e);
+				}
 			}
-
-			env.putString("resource_endpoint_response", responseBody);
-			env.put("resource_endpoint_response_headers", responseHeaders);
-
-			logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders));
-
-			return env;
 		} catch (RestClientResponseException e) {
-			return error("Error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
-		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			return error("Error creating HTTP client", e);
+			return error("Error from the account requests endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
+			logger.warn("Error creating HTTP Client", e);
+			return error("Error creating HTTP Client", e);
 		}
+
 	}
 
 }
