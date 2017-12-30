@@ -75,7 +75,7 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, JsonObject obj) {
 		
-		DBObject dbObject = (DBObject) JSON.parse(GsonToBsonConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
+		DBObject dbObject = (DBObject) JSON.parse(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
 		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
 		dbObject.put("testId", testId);
 		dbObject.put("src", source);

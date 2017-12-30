@@ -36,7 +36,8 @@ import com.google.gson.JsonSerializer;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
-import io.fintechlabs.testframework.logging.GsonToBsonConverter;
+import io.fintechlabs.testframework.logging.GsonObjectToBsonDocumentConverter;
+import io.fintechlabs.testframework.logging.GsonPrimitiveToBsonValueConverter;
 import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 
@@ -51,6 +52,7 @@ public class ApplicationConfig {
 
         Collection<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
+        // wire in the special GSON converter to the HTTP message outputs, will automatically handle all __wrapped_key_element structures added by GsonObjectToBsonDocumentConverter
         GsonHttpMessageConverter gsonHttpMessageConverter = new GsonHttpMessageConverter();
         gsonHttpMessageConverter.setGson(getDbObjectCollapsingGson());
         messageConverters.add(gsonHttpMessageConverter);
@@ -79,6 +81,7 @@ public class ApplicationConfig {
 					private Object convertStructureToField(Object source) {
 						if (source instanceof List) {
 							// if it's a list of some type, loop through it
+							@SuppressWarnings("unchecked")
 							List<Object> list = (List<Object>)source;
 							List<Object> converted = list.stream()
 									.map(this::convertStructureToField)
@@ -111,8 +114,10 @@ public class ApplicationConfig {
     }
     
 	@Bean
+	@SuppressWarnings("unchecked")
 	public CustomConversions mongoCustomConversions() {
 		return new CustomConversions(Lists.newArrayList(
-				new GsonToBsonConverter()));
+				new GsonPrimitiveToBsonValueConverter(),
+				new GsonObjectToBsonDocumentConverter()));
 	}
 }
