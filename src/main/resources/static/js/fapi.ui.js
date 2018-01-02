@@ -16,6 +16,7 @@ var FAPI_UI = {
 		this.logTemplates.MESSAGE = _.template($("#logDetailTemplate_Message").html());
 		this.logTemplates.REQUIREMENTS = _.template($("#logDetailTemplate_Requirements").html());
 		this.logTemplates.UPLOAD = _.template($("#logDetailTemplate_Upload").html());
+		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
 		this.logTemplates.RESULT = _.template($("#logDetailTemplate_Result").html());
 		this.logTemplates.TIME = _.template($("#logDetailTemplate_Time").html());
 		this.logTemplates.MORE = _.template($("#logDetailTemplate_More").html());
