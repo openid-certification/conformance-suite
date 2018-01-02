@@ -291,11 +291,16 @@
 						$('#'+status.id+' button.start').click(function (evt) {
 							console.log('Start button clicked: ' + testId);
 							$.ajax({url: 'runner/' + encodeURIComponent(testId),
-						    	type: 'POST',
-						    	success: function(data, status) {
-		                            console.log('Status: ', status);                                                    
-		                            updateRunningTable();
-						    	}
+							    	type: 'POST',
+							    	success: function(data, status) {
+			                            console.log('Status: ', status);                                                    
+			                            updateRunningTable();
+							    	},
+	                             error: function(jqxhr, status, error) {
+	                                 $("#busy").hide();
+	                                 FAPI_UI.showError(jqxhr.responseJSON);
+	                                 updateRunningTable();
+	                             }
 						    });
 						});
 
@@ -306,7 +311,12 @@
 		                        success: function(data, status) {
 		                            console.log('Status: ', status);                                                    
 		                            updateRunningTable();
-		                        }
+		                        },
+                                error: function(jqxhr, status, error) {
+                                    $("#busy").hide();
+                                    FAPI_UI.showError(jqxhr.responseJSON);
+                                    updateRunningTable();
+                                }
 		                    });
 						});
 
