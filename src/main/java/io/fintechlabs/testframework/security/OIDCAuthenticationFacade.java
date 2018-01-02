@@ -1,10 +1,14 @@
 package io.fintechlabs.testframework.security;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
+import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade{
@@ -41,5 +45,29 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade{
 			return (ImmutableMap<String,String>)token.getPrincipal();
 		}
 		return null;
+	}
+
+	@Override
+	public String getDisplayName(){
+		OIDCAuthenticationToken token = getAuthenticationToken();
+		if (token != null) {
+			Map<String, String> principal = getPrincipal();
+			if (principal != null) {
+				String displayName = principal.toString();
+				UserInfo userInfo = token.getUserInfo();
+				if (userInfo != null) {
+					if (!Strings.isNullOrEmpty(userInfo.getEmail())) {
+						displayName = userInfo.getEmail();
+					} else if (!Strings.isNullOrEmpty(userInfo.getPreferredUsername())) {
+						displayName = userInfo.getPreferredUsername();
+					} else if (!Strings.isNullOrEmpty(userInfo.getName())) {
+						displayName = userInfo.getName();
+					}
+					return displayName;
+				}
+				return displayName;
+			}
+		}
+		return "";
 	}
 }

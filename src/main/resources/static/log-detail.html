@@ -64,6 +64,15 @@
                     <div class="value wordwrap"><%- test.testName %></div>
                 </h2>
             </div>
+            <% if (FAPI_UI.currentUser.isAdmin) { %>
+            <div class="row">
+                <h2>
+                    <div class="key">Test Owner</div>
+                    <div class="value wordwrap"><span class="label label-default">sub:</span> <span class="text-primary"><%- test.owner.sub %></span>
+                        <span class="label label-default">iss:</span> <span class="text-primary"><%- test.owner.iss %></span></div>
+                </h2>
+            </div>
+            <% } %>
         </script>
 
         <!-- Log detail element -->
@@ -196,9 +205,7 @@
         <!-- resident DOM -->
         <div class="container-fluid">
             <div id="userInfoDiv">
-                <form action="/logout" method="post" class="form-inline">
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
+                Loading . . .
             </div>
             <div id="logDetail">
                 <div class="header"></div>
@@ -208,6 +215,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- UserInfo Template-->
+        <script type="text/template" id="userInfoTemplate">
+            <div id="userInfoData" data-toggle="tooltip" title="<%- userInfo.principal %>">
+                <form action="/logout" method="post" class="form-inline">
+                    <p class="form-control-static">Logged in as
+                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+                        <span class="text-primary"><%- userInfo.displayName %></span></p>
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </form>
+            </div>
+        </script>
         
         <script type="text/javascript">
 

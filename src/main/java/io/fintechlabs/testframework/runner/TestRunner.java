@@ -173,8 +173,7 @@ public class TestRunner {
         		"baseUrl", url,
         		"config", config,
         		"alias", alias,
-        		"testName", testName,
-				"owner", test.getOwner());
+        		"testName", testName);
 
         
         // add this test to the stack

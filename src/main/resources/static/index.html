@@ -56,9 +56,7 @@
  			<h1>FAPI Conformance Suite</h1>
 
 			<div id="userInfoDiv">
-				<form action="/logout" method="post" class="form-inline">
-					<input type="submit" class="btn btn-sm btn-primary" value="Logout">
-				</form>
+				Loading . . .
 			</div><hr />
 
 			<ul class="nav nav-tabs">
@@ -71,7 +69,7 @@
 				  	<h3>Server</h3>
 					<div class="row">
 						<div class="col-md-2 key">discoveryUrl</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
 					</div>
 
                     <div class="row">
@@ -82,19 +80,19 @@
 					<h3>Client</h3>
 					<div class="row">
 						<div class="col-md-2 key">client_id</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">client_secret</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">scope</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">redirect_uri</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
 					</div>
 					<div class="row">
 						<div class="col-md-2 key">jwks</div>
@@ -104,12 +102,12 @@
 					<h3>TLS</h3>
 					<div class="row">
 						<div class="col-md-2 key">testHost</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
 					</div>
 
 					<div class="row">
 						<div class="col-md-2 key">testPort</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
 					</div>
 
                     <div class="row">
@@ -130,7 +128,7 @@
 					<h3>Resource</h3>
 					<div class="row">
 						<div class="col-md-2 key">resourceUrl</div>
-						<div class="col-md-10"><input class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
+						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
 					</div>
 				</div>
 				<div id="JSONInput" class="tab-pane fade">
@@ -163,6 +161,18 @@
     </div>
 
     <!-- Templates -->
+	<!-- UserInfo Template-->
+	<script type="text/template" id="userInfoTemplate">
+		<div id="userInfoData" data-toggle="tooltip" title="<%- userInfo.principal %>">
+			<form action="/logout" method="post" class="form-inline">
+				<p class="form-control-static">Logged in as
+					<% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+					<span class="text-primary"><%- userInfo.displayName %></span></p>
+				<input type="submit" class="btn btn-sm btn-primary" value="Logout">
+			</form>
+		</div>
+	</script>
+
     <!-- Test Button -->
     <script type="text/template" id="indexTemplate_TestButton">  
         <button class="btn" id="createTestBtn-<%- index %>">Create <%- testName %></button>
@@ -207,6 +217,7 @@
 		$(function() {
 
 			FAPI_UI.loadHomepageTemplates();
+            FAPI_UI.getUserInfoDiv("#userInfoDiv");
 
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
@@ -471,9 +482,6 @@
 
 			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
 		}
-
-		// Display the currently logged in user and the logout button.
-		FAPI_UI.getUserInfoDiv("#userInfoDiv");
 
 	</script>
 

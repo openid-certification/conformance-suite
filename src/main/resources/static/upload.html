@@ -80,14 +80,23 @@
     </script>
 
     <body>
+        <!-- UserInfo Template-->
+        <script type="text/template" id="userInfoTemplate">
+            <div id="userInfoData" data-toggle="tooltip" title="<%- userInfo.principal %>">
+                <form action="/logout" method="post" class="form-inline">
+                    <p class="form-control-static">Logged in as
+                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+                        <span class="text-primary"><%- userInfo.displayName %></span></p>
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </form>
+            </div>
+        </script>
 
         <a href="index.html"><header></header></a>
 
         <div class="container-fluid">
             <div id="userInfoDiv">
-                <form action="/logout" method="post" class="form-inline">
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
+                Loading . . .
             </div>
             <div>
                 <h1>Upload image to the log</h1>

@@ -2,26 +2,6 @@ var FAPI_UI = {
 
 	logTemplates : {},
 
-    isAdmin : [[${#authorization.expression('hasRole(''ROLE_ADMIN'')')}]],
-
-	getUserInfoDiv: function(divName) {
-
-
-		userInfoHTML = '<div>Logged in as [[${displayName}]]';
-		if (this.isAdmin) {
-			userInfoHTML += ' <span class="bg-danger">ADMIN</span>';
-		}
-
-		userInfoHTML +=	'</div><form action="/logout" method="post" class="form-inline">' +
-			'<input type="submit" class="btn btn-sm btn-primary" value="Logout">' +
-			'</form>';
-		//console.log(userInfoHTML);
-		$(divName).html(userInfoHTML);
-		$(divName).attr("data-toggle","tooltip");
-        $(divName).attr("title",[[${principal}]]);
-		$('[data-toggle="tooltip"]').tooltip();
-	},
-
 	loadHomepageTemplates : function() {
 		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
@@ -42,8 +22,24 @@ var FAPI_UI = {
 		this.logTemplates.LOG_END = _.template($("#logDetailTemplate_LogEnd").html());
 	},
 
-	visibleFields : ["msg", "src", "time", "result", "requirements", "upload"],
+	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
 	testResults : {success:0, warning:0, failure:0, interrupted:0, review:0, default:0, total:0},
+
+    getUserInfoDiv : function( divToReplace ) {
+		if (!('USER_INFO' in this.logTemplates)) {
+			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());
+		}
+		// get the current user info
+		$.getJSON({
+			url: '/currentuser',
+			context: this,
+			success: function(userInfo) {
+				this.currentUser = userInfo;
+				$(divToReplace).html(this.logTemplates.USER_INFO({userInfo: userInfo}));
+				$('[data-toggle="tooltip"]').tooltip();
+			}
+		})
+	},
 	
 	/**
 	 * 
