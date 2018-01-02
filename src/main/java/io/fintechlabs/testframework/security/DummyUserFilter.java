@@ -43,14 +43,15 @@ public class DummyUserFilter extends GenericFilterBean {
 	private static Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 	private static Set<GrantedAuthority> authorities = ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
 	private static String sub = "developer";
-	private static String issuer = "developer.com";
+	private static String issuer = "https://developer.com";
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		logger.debug("In Dummy Filter doFilter()");
 		if (devmode) {
 			UserInfo info = new DefaultUserInfo();
-			info.setEmail("developer@developer.com");
+			info.setEmail("DEVMODE@developer.com");
+			info.setName("DEV MODE");
 			info.setSub(sub);
 
 			SecurityContextHolder.getContext().setAuthentication(new OIDCAuthenticationToken(sub, issuer, info, authorities, null, null, null));
