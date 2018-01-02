@@ -43,23 +43,23 @@ import io.fintechlabs.testframework.logging.EventLog;
  */
 public interface TestModule {
 
-    public static enum Status {
-        CREATED, // test has been instantiated 
-        CONFIGURED, // configuration files have been sent and set up
-        RUNNING, // test is executing
-        WAITING, // test is waiting for external input
-        INTERRUPTED, // test has been stopped before completion
-        FINISHED, // test has completed
-        UNKNOWN // test status is unknown, probably an error
-    }
-    
-    public static enum Result {
-	    	PASSED,  // test has passed successfully
-	    	FAILED,  // test has failed
-	    	WARNING, // test has warnings
-	    	REVIEW, // test requires manual review
-	    	UNKNOWN  // test results not yet known, probably still running (see status)
-    }
+	public static enum Status {
+		CREATED, // test has been instantiated 
+		CONFIGURED, // configuration files have been sent and set up
+		RUNNING, // test is executing
+		WAITING, // test is waiting for external input
+		INTERRUPTED, // test has been stopped before completion
+		FINISHED, // test has completed
+		UNKNOWN // test status is unknown, probably an error
+	}
+
+	public static enum Result {
+		PASSED,  // test has passed successfully
+		FAILED,  // test has failed
+		WARNING, // test has warnings
+		REVIEW, // test requires manual review
+		UNKNOWN  // test results not yet known, probably still running (see status)
+	}
 
     /**
      * *
