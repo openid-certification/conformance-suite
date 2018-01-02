@@ -107,6 +107,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 			ImmutableMap<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
 			return runningTests.entrySet().stream()
 					.filter(map -> map.getValue().getOwner().equals(owner))
+					.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
 					.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue())).keySet();
 		}
 	}

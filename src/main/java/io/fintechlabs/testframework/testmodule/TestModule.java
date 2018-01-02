@@ -13,6 +13,7 @@
  ****************************************************************************** */
 package io.fintechlabs.testframework.testmodule;
 
+import java.time.Instant;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,11 +54,11 @@ public interface TestModule {
     }
     
     public static enum Result {
-    	PASSED,  // test has passed successfully
-    	FAILED,  // test has failed
-    	WARNING, // test has warnings
-    	REVIEW, // test requires manual review
-    	UNKNOWN  // test results not yet known, probably still running (see status)
+	    	PASSED,  // test has passed successfully
+	    	FAILED,  // test has failed
+	    	WARNING, // test has warnings
+	    	REVIEW, // test requires manual review
+	    	UNKNOWN  // test results not yet known, probably still running (see status)
     }
 
     /**
@@ -149,4 +150,10 @@ public interface TestModule {
 	 */
 	Map<String, String> getOwner();
 
+	
+	/**
+	 * @return get the Date marking when the test was created
+	 */
+	Instant getCreated();
+	
 }

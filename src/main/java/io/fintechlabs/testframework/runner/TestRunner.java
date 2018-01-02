@@ -15,6 +15,7 @@ package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Map;
@@ -178,7 +179,7 @@ public class TestRunner {
 
         
         // add this test to the stack
-        testInfo.createTest(id, testName, url, config, alias);
+        testInfo.createTest(id, testName, url, config, alias, Instant.now());
 
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(), testCreated);
 

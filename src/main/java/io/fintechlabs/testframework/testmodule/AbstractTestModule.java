@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.testmodule;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,8 +55,10 @@ public abstract class AbstractTestModule implements TestModule {
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
+	private Instant created; // time stamp of when this test created
 
 	protected TestInfoService testInfo;
+	
 
 	/**
 	 * @param name
@@ -68,6 +71,8 @@ public abstract class AbstractTestModule implements TestModule {
 		this.browser = browser;
 		this.testInfo = testInfo;
 
+		this.created = Instant.now();
+		
 		setStatus(Status.CREATED);
 	}
 
@@ -444,6 +449,14 @@ public abstract class AbstractTestModule implements TestModule {
 		if (getResult().equals(Result.UNKNOWN)) {
 			fireInterrupted();
 		}
+	}
+
+	/**
+	 * @return the created
+	 */
+	@Override
+	public Instant getCreated() {
+		return created;
 	}
 
 }
