@@ -48,6 +48,7 @@ import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
@@ -56,6 +57,7 @@ import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAutho
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
+import io.fintechlabs.testframework.condition.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
@@ -164,6 +166,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
 
 		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 
@@ -282,6 +286,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 
 		// verify the access token against a protected resource
 
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
 		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
 		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 
@@ -294,6 +300,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		call(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
 		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+
+		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 

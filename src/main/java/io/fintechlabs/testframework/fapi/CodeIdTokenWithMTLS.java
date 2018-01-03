@@ -43,6 +43,7 @@ import io.fintechlabs.testframework.condition.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.CreateRandomStateValue;
@@ -50,6 +51,7 @@ import io.fintechlabs.testframework.condition.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.DisallowInsecureCipherForResourceEndpoint;
+import io.fintechlabs.testframework.condition.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.EnsureResourceResponseEncodingIsUTF8;
@@ -237,6 +239,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		// verify the access token against a protected resource
 		
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		
 		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
@@ -246,6 +250,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 		
 		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		
+		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 		
 		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		
