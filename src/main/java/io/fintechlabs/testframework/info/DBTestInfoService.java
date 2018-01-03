@@ -14,17 +14,10 @@
 
 package io.fintechlabs.testframework.info;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +28,15 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
@@ -84,7 +83,7 @@ public class DBTestInfoService implements TestInfoService {
 	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
 	 */
 	@Override
-	public void createTest(String id, String testName, String url, JsonObject config, String alias) {
+	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started) {
 		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
 		ImmutableMap<String, String> owner = null;
 		if (token != null){
@@ -94,7 +93,7 @@ public class DBTestInfoService implements TestInfoService {
 				.add("_id", id)
 				.add("testId", id)
 				.add("testName", testName)
-				.add("started", new Date().getTime())
+				.add("started", started.toString())
 				.add("config", config)
 				.add("alias", alias)
 				.add("owner", owner);

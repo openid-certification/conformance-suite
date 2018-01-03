@@ -14,13 +14,13 @@
 
 package io.fintechlabs.testframework.info;
 
+import java.time.Instant;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
-
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author jricher
@@ -36,7 +36,7 @@ public interface TestInfoService {
 	 * @param config
 	 * @param alias
 	 */
-	void createTest(String id, String testName, String url, JsonObject config, String alias);
+	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started);
 
 	/**
 	 * Update the result of a test in the database
