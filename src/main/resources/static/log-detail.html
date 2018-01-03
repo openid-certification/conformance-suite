@@ -168,6 +168,12 @@
                             <div class="value wordwrap">
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
+            <% } else if (key == 'stacktrace') { %>
+                <ul>
+                    <% _.each(value, function(v) { %>
+                        <li><%- v %></li>
+                    <% }); %>
+                </ul>
             <% } else if (_.isString(value)) { %>
                 <%- value %>
             <% } else { // by default run it through the json viewer %>
