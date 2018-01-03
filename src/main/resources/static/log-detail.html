@@ -64,6 +64,15 @@
                     <div class="value wordwrap"><%- test.testName %></div>
                 </h2>
             </div>
+            <% if (FAPI_UI.currentUser.isAdmin) { %>
+            <div class="row">
+                <h2>
+                    <div class="key">Test Owner</div>
+                    <div class="value wordwrap"><span class="label label-default">sub:</span> <span class="text-primary"><%- test.owner.sub %></span>
+                        <span class="label label-default">iss:</span> <span class="text-primary"><%- test.owner.iss %></span></div>
+                </h2>
+            </div>
+            <% } %>
         </script>
 
         <!-- Log detail element -->
@@ -80,9 +89,15 @@
                 <% } %>
                 </div>
 
-                <div class="col-md-11">
+                <div class="col-md-10">
                 <% if (item.src) { %>
                     <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                <% } %>
+                </div>
+            
+                <div class="col-md-1">
+                <% if (item.testOwner && (item.testOwner.iss != FAPI_UI.currentUser.iss || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
+                    <%= FAPI_UI.logTemplates.OWNER({item: item}) %>
                 <% } %>
                 </div>
               </div>
@@ -150,6 +165,11 @@
         <script type="text/template" id="logDetailTemplate_Time">
             <span class="log-time"><small class='muted'><%- new Date(item.time).toLocaleTimeString() %></small></span>
         </script>
+        
+        <!-- Owner -->
+        <script type="text/template" id="logDetailTemplate_Owner">
+            <span class="log-owner"><span class="label label-primary"><%- item.testOwner.sub %> <span class="badge"><%- item.testOwner.iss %></span></span></span>
+        </script>
 
         <!-- More -->
         <script type="text/template" id="logDetailTemplate_More">
@@ -202,9 +222,7 @@
         <!-- resident DOM -->
         <div class="container-fluid">
             <div id="userInfoDiv">
-                <form action="/logout" method="post" class="form-inline">
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
+                Loading . . .
             </div>
             <div id="logDetail">
                 <div class="header"></div>
@@ -214,6 +232,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- UserInfo Template-->
+        <script type="text/template" id="userInfoTemplate">
+            <div id="userInfoData">
+                <form action="/logout" method="post" class="form-inline">
+                    <p class="form-control-static">Logged in as
+                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+                        <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </form>
+            </div>
+        </script>
         
         <script type="text/javascript">
 

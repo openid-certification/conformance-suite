@@ -39,12 +39,12 @@ a:hover {
   text-decoration: underline; 
 }
 
-input, textarea {
+input[type=text], textarea {
   text-indent:5px;
   border:1px solid #ccc;
 }
 
-.wordwrap { 
+.wordwrap {
   word-wrap: break-word;  
   word-break: break-all;     
 }

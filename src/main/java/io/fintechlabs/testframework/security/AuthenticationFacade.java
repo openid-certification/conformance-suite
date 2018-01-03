@@ -7,4 +7,5 @@ public interface AuthenticationFacade {
 	OIDCAuthenticationToken getAuthenticationToken();
 	boolean isAdmin();
 	ImmutableMap<String,String> getPrincipal();
+	String getDisplayName();
 }
