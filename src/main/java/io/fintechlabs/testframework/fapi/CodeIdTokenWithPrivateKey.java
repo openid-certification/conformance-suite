@@ -256,7 +256,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 		
-		callAndStopOnFailure(ValidateStateHash.class, "FAPI-2-5.2.2-4");
+		call(ValidateStateHash.class, "FAPI-2-5.2.2-4");
 		
 		call(CheckForRefreshTokenValue.class);
 		
