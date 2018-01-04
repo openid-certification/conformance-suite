@@ -74,6 +74,9 @@ import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
+import io.fintechlabs.testframework.condition.common.DisallowTLS10;
+import io.fintechlabs.testframework.condition.common.DisallowTLS11;
+import io.fintechlabs.testframework.condition.common.EnsureTls12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -265,6 +268,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
+		call(EnsureTls12.class, "FAPI-2-8.5-2");
+		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
