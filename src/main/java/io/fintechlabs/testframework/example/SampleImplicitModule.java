@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthori
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
@@ -197,6 +198,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		call(CheckForIdTokenValue.class);
 		
+		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+
 		call(ParseIdToken.class, "FAPI-1-5.2.2-24");
 		
 		call(CheckForRefreshTokenValue.class);

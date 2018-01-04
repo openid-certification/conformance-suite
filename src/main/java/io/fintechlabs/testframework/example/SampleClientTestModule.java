@@ -166,7 +166,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 		
-		callAndStopOnFailure(RequireOpenIDScope.class);
+		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-1-5.2.3-7");
 		
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		

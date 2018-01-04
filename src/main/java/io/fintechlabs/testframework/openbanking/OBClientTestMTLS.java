@@ -185,7 +185,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
-		callAndStopOnFailure(RequireOpenIDScope.class);
+		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-1-5.2.3-7");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
@@ -247,7 +247,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		call(ExtractClientCertificateFromRequestHeaders.class);
 
-		callAndStopOnFailure(CheckForClientCertificate.class);
+		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
 
 		call(ExtractClientCredentialsFromFormPost.class);
 
@@ -289,7 +289,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		call(ExtractClientCertificateFromRequestHeaders.class);
 
-		callAndStopOnFailure(CheckForClientCertificate.class);
+		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
 
 		callAndStopOnFailure(EnsureMatchingClientCertificate.class);
 

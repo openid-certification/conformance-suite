@@ -39,6 +39,7 @@ import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourc
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
@@ -67,9 +68,15 @@ import io.fintechlabs.testframework.condition.client.ParseIdToken;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
+import io.fintechlabs.testframework.condition.common.DisallowTLS10;
+import io.fintechlabs.testframework.condition.common.DisallowTLS11;
+import io.fintechlabs.testframework.condition.common.EnsureTls12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -241,7 +248,15 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		call(CheckForIdTokenValue.class);
 		
+		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+		
 		call(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+		
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+		
+		call(ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 		
 		call(CheckForRefreshTokenValue.class);
 		
@@ -253,6 +268,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
+		call(EnsureTls12.class, "FAPI-2-8.5-2");
+		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
