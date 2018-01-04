@@ -67,6 +67,9 @@ import io.fintechlabs.testframework.condition.client.ParseIdToken;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
@@ -242,6 +245,12 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(CheckForIdTokenValue.class);
 		
 		call(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+		
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+		
+		callAndStopOnFailure(ValidateStateHash.class, "FAPI-2-5.2.2-4");
 		
 		call(CheckForRefreshTokenValue.class);
 		
