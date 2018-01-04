@@ -298,7 +298,7 @@ public class OBEnsureMATLSRequired extends AbstractTestModule {
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
-		callAndStopOnFailure(EnsureTokenEndpointResponseError.class);
+		callAndStopOnFailure(EnsureTokenEndpointResponseError.class, "OB-5.2.2");
 
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
