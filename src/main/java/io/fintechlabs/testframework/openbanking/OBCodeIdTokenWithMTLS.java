@@ -40,6 +40,7 @@ import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourc
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
@@ -270,6 +271,8 @@ public class OBCodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		callAndStopOnFailure(CheckForIdTokenValue.class);
+
+		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 
 		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
 
