@@ -55,6 +55,7 @@ import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFro
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
@@ -111,6 +112,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+
+		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);

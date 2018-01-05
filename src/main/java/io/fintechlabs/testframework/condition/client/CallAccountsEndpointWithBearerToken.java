@@ -32,13 +32,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -75,6 +74,8 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 			return error("Resource endpoint not found");
 		}
 
+		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
 				.path(ACCOUNTS_RESOURCE)
@@ -85,6 +86,11 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", String.join(" ", tokenType, accessToken));
+			if (requestHeaders != null) {
+				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
+					headers.add(header.getKey(), header.getValue().getAsString());
+				}
+			}
 
 			HttpEntity<String> request = new HttpEntity<String>("parameters", headers);
 

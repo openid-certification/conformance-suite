@@ -41,10 +41,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -88,6 +86,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			return error("Resource endpoint not found");
 		}
 
+		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+
 		JsonObject requestObject = env.get("account_requests_endpoint_request");
 		if (requestObject == null) {
 			return error("Couldn't find request objcet");
@@ -104,6 +104,11 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 			headers.add("Authorization", String.join(" ", tokenType, accessToken));
+			if (requestHeaders != null) {
+				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
+					headers.add(header.getKey(), header.getValue().getAsString());
+				}
+			}
 
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
