@@ -20,11 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -37,10 +32,8 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
-import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
@@ -59,7 +52,6 @@ import io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncod
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
@@ -67,12 +59,8 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
-import io.fintechlabs.testframework.condition.client.ParseIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -82,11 +70,8 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 public abstract class AbstractOBServerTestModule extends AbstractTestModule {
-
-	private static final Logger logger = LoggerFactory.getLogger(AbstractOBServerTestModule.class);
 
 	public AbstractOBServerTestModule(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(name, id, owner, eventLog, browser, testInfo);
@@ -215,62 +200,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	protected abstract void createAuthorizationRedirect();
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		eventLog.log(getName(), "Path: " + path);
-		eventLog.log(getName(), "Params: " + requestParts);
-
-		// dispatch based on the path
-
-		// these are all user-facing and will require user-facing error pages, so we wrap them
-
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			return new ModelAndView("testError");
-		}
-	}
-
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-
-		setStatus(Status.RUNNING);
-
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
-
-		setStatus(Status.WAITING);
-
-		return new ModelAndView("implicitCallback",
-				ImmutableMap.of("test", this,
-					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
-	}
-
-	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
-
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		String hash = requestParts.get("body").getAsString();
-
-		logger.info("Hash: " + hash);
-
-		env.putString("implicit_hash", hash);
-
-		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-
-		onAuthorizationCallbackResponse();
-
-		setStatus(Status.FINISHED);
-		fireTestSuccess();
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
-	}
-
 	protected void onAuthorizationCallbackResponse() {
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
@@ -305,17 +234,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndStopOnFailure(CheckForIdTokenValue.class);
-
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
-
-		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "OB-5.2.2-8");
 
 		call(ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
@@ -351,6 +270,15 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
+	 */
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
 	}
 
 	/* (non-Javadoc)

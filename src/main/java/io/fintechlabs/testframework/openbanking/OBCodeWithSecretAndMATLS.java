@@ -25,10 +25,10 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleHybridFlow {
+public class OBCodeWithSecretAndMATLS extends AbstractOBServerTestModuleCodeFlow {
 
-	public OBCodeIdTokenWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+	public OBCodeWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

@@ -62,6 +62,9 @@ import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBCodeWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBCodeWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBCodeWithSecretAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretAndMATLS;
@@ -114,6 +117,9 @@ public class TestRunner {
 			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
 			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class),
 			// OpenBanking-specific test modules:
+			new SimpleEntry<>("ob-code-with-mtls", OBCodeWithMTLS.class),
+			new SimpleEntry<>("ob-code-with-private-key-and-matls", OBCodeWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-code-with-secret-and-matls", OBCodeWithSecretAndMATLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-mtls", OBCodeIdTokenWithMTLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-matls", OBCodeIdTokenWithPrivateKeyAndMATLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-secret-and-matls", OBCodeIdTokenWithSecretAndMATLS.class),

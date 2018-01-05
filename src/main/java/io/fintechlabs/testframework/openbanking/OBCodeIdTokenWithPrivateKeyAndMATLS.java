@@ -16,25 +16,19 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModule {
-
-	private static final Logger logger = LoggerFactory.getLogger(OBCodeIdTokenWithPrivateKeyAndMATLS.class);
+public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleHybridFlow {
 
 	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-code-id-token-with-private-key-and-matls", id, owner, eventLog, browser, testInfo);
@@ -50,14 +44,6 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestMod
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
-	@Override
-	protected void createAuthorizationRequest() {
-
-		super.createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
 	@Override

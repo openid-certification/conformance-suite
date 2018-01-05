@@ -16,31 +16,16 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-/**
- * @author jricher
- *
- */
-public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModule {
+public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModuleHybridFlow {
 
-	
-	private static final Logger logger = LoggerFactory.getLogger(OBCodeIdTokenWithMTLS.class);
-
-	
-	/**
-	 * @param name
-	 */
 	public OBCodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-code-id-token-with-mtls", id, owner, eventLog, browser, testInfo);
 	}
@@ -51,14 +36,6 @@ public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModule {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-	}
-
-	@Override
-	protected void createAuthorizationRequest() {
-
-		super.createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
 	@Override

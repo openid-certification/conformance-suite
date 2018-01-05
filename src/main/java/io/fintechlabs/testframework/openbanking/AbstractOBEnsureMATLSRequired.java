@@ -33,7 +33,6 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.EnsureTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -42,7 +41,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTestModule {
+public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTestModuleHybridFlow {
 
 	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequired.class);
 
@@ -111,14 +110,6 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 		call(EnsureServerConfigurationSupportsMTLS.class);
 
 		performAuthorizationFlow();
-	}
-
-	@Override
-	protected void createAuthorizationRequest() {
-
-		super.createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
 	@Override
