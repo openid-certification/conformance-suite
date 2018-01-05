@@ -68,6 +68,9 @@ import io.fintechlabs.testframework.openbanking.OBCodeWithSecretAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -126,7 +129,10 @@ public class TestRunner {
 			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class),
 			new SimpleEntry<>("ob-ensure-matls-required-with-mtls", OBEnsureMATLSRequiredWithMTLS.class),
 			new SimpleEntry<>("ob-ensure-matls-required-with-private-key-and-matls", OBEnsureMATLSRequiredWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-matls-required-with-secret-and-matls", OBEnsureMATLSRequiredWithSecretAndMATLS.class)
+			new SimpleEntry<>("ob-ensure-matls-required-with-secret-and-matls", OBEnsureMATLSRequiredWithSecretAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-mtls", OBEnsureRedirectUriInAuthorizationRequestWithMTLS.class),
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
