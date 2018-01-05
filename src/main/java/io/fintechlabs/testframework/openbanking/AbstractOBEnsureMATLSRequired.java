@@ -29,20 +29,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.EnsureTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -51,9 +42,9 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBEnsureMATLSRequired extends AbstractOBServerTestModule {
+public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(OBEnsureMATLSRequired.class);
+	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequired.class);
 
 	private static final int HTTPS_DEFAULT_PORT = 443;
 
@@ -65,8 +56,8 @@ public class OBEnsureMATLSRequired extends AbstractOBServerTestModule {
 			"registration_endpoint"
 	);
 
-	public OBEnsureMATLSRequired(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-matls-required", id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureMATLSRequired(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(name, id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -123,41 +114,11 @@ public class OBEnsureMATLSRequired extends AbstractOBServerTestModule {
 	}
 
 	@Override
-	protected void createClientCredentialsRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
-	@Override
 	protected void createAuthorizationRequest() {
 
 		super.createAuthorizationRequest();
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-	}
-
-	@Override
-	protected void createAuthorizationRedirect() {
-
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
-	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
 	@Override

@@ -62,7 +62,9 @@ import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequired;
+import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretAndMATLS;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -112,11 +114,13 @@ public class TestRunner {
 			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
 			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class),
 			// OpenBanking-specific test modules:
-			new SimpleEntry<>("ob-ensure-matls-required", OBEnsureMATLSRequired.class),
 			new SimpleEntry<>("ob-code-idtoken-with-mtls", OBCodeIdTokenWithMTLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-matls", OBCodeIdTokenWithPrivateKeyAndMATLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-secret-and-matls", OBCodeIdTokenWithSecretAndMATLS.class),
-			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class)
+			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class),
+			new SimpleEntry<>("ob-ensure-matls-required-with-mtls", OBEnsureMATLSRequiredWithMTLS.class),
+			new SimpleEntry<>("ob-ensure-matls-required-with-private-key-and-matls", OBEnsureMATLSRequiredWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-matls-required-with-secret-and-matls", OBEnsureMATLSRequiredWithSecretAndMATLS.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
