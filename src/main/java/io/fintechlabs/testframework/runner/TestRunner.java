@@ -62,7 +62,19 @@ import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequired;
+import io.fintechlabs.testframework.openbanking.OBCodeWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBCodeWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBCodeWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRequestObjectSignatureAlgorithmIsNotNull;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -112,11 +124,23 @@ public class TestRunner {
 			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
 			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class),
 			// OpenBanking-specific test modules:
-			new SimpleEntry<>("ob-ensure-matls-required", OBEnsureMATLSRequired.class),
+			new SimpleEntry<>("ob-code-with-mtls", OBCodeWithMTLS.class),
+			new SimpleEntry<>("ob-code-with-private-key-and-matls", OBCodeWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-code-with-secret-and-matls", OBCodeWithSecretAndMATLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-mtls", OBCodeIdTokenWithMTLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-matls", OBCodeIdTokenWithPrivateKeyAndMATLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-secret-and-matls", OBCodeIdTokenWithSecretAndMATLS.class),
-			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class)
+			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class),
+			new SimpleEntry<>("ob-ensure-matls-required-with-mtls", OBEnsureMATLSRequiredWithMTLS.class),
+			new SimpleEntry<>("ob-ensure-matls-required-with-private-key-and-matls", OBEnsureMATLSRequiredWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-matls-required-with-secret-and-matls", OBEnsureMATLSRequiredWithSecretAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-mtls", OBEnsureRedirectUriInAuthorizationRequestWithMTLS.class),
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-mtls", OBEnsureRegisteredRedirectUriWithMTLS.class),
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-private-key-and-matls", OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-secret-and-matls", OBEnsureRegisteredRedirectUriWithSecretAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-request-object-signature-algorithm-is-not-null", OBEnsureRequestObjectSignatureAlgorithmIsNotNull.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 

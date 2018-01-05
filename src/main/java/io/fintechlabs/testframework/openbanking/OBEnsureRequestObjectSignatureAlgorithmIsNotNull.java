@@ -1,37 +1,56 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
+import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleHybridFlow {
+public class OBEnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractOBServerTestModule {
 
-	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-private-key-and-matls", id, owner, eventLog, browser, testInfo);
+	public OBEnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-ensure-request-object-signature-algorithm-is-not-null", id, owner, eventLog, browser, testInfo);
+	}
+
+	protected void performAuthorizationFlow() {
+
+		requestClientCredentialsGrant();
+
+		createAccountRequest();
+
+		createAuthorizationRequest();
+
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+
+		createAuthorizationRedirect();
+
+		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+
+		eventLog.log(getName(), "Redirecting to url " + redirectTo);
+
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
+
+		browser.goToUrl(redirectTo);
+
+		/**
+		 * We never expect the browser to come back from here, our test is done
+		 */
+
+		// someone needs to review this by hand
+		setResult(Result.REVIEW);
+
+		stop();
 	}
 
 	@Override
@@ -51,7 +70,7 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestMod
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		callAndStopOnFailure(SignRequestObject.class);
+		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 
 		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
@@ -61,11 +80,7 @@ public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestMod
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
 }

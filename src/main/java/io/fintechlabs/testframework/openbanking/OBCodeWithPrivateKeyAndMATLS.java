@@ -16,19 +16,22 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleHybridFlow {
+public class OBCodeWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleCodeFlow {
 
-	public OBCodeIdTokenWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+	public OBCodeWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-with-private-key-and-matls", id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override
@@ -36,15 +39,21 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleH
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 	@Override
 	protected void createAuthorizationRedirect() {
 
-		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(SignRequestObject.class);
+
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override
@@ -52,9 +61,11 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleH
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 }
