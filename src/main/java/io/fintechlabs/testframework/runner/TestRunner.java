@@ -74,6 +74,7 @@ import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizati
 import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRequestObjectSignatureAlgorithmIsNotNull;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -138,7 +139,8 @@ public class TestRunner {
 			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS.class),
 			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-mtls", OBEnsureRegisteredRedirectUriWithMTLS.class),
 			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-private-key-and-matls", OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-secret-and-matls", OBEnsureRegisteredRedirectUriWithSecretAndMATLS.class)
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-secret-and-matls", OBEnsureRegisteredRedirectUriWithSecretAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-request-object-signature-algorithm-is-not-null", OBEnsureRequestObjectSignatureAlgorithmIsNotNull.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
