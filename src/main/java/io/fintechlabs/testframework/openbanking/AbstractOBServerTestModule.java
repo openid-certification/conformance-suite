@@ -26,6 +26,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
@@ -38,6 +39,7 @@ import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpo
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
+import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
@@ -60,6 +62,7 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
@@ -201,7 +204,14 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 	}
 
-	protected abstract void createAuthorizationRedirect();
+	protected void createAuthorizationRedirect() {
+
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(SignRequestObject.class);
+
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	}
 
 	protected void onAuthorizationCallbackResponse() {
 

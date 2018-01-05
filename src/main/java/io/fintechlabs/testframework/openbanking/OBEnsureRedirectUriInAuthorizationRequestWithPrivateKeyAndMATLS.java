@@ -4,13 +4,10 @@ import java.util.Map;
 
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -31,16 +28,6 @@ public class OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS ext
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
-	@Override
-	protected void createAuthorizationRedirect() {
-
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override

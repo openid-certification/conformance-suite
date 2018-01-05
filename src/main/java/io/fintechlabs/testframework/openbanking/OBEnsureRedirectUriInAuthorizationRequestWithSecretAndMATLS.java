@@ -4,7 +4,6 @@ import java.util.Map;
 
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -25,12 +24,6 @@ public class OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS extends
 		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-	}
-
-	@Override
-	protected void createAuthorizationRedirect() {
-
-		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override
