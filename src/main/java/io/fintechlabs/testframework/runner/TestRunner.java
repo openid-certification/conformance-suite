@@ -71,6 +71,9 @@ import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretA
 import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS;
 import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithMTLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithSecretAndMATLS;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -132,7 +135,10 @@ public class TestRunner {
 			new SimpleEntry<>("ob-ensure-matls-required-with-secret-and-matls", OBEnsureMATLSRequiredWithSecretAndMATLS.class),
 			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-mtls", OBEnsureRedirectUriInAuthorizationRequestWithMTLS.class),
 			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS.class)
+			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-mtls", OBEnsureRegisteredRedirectUriWithMTLS.class),
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-private-key-and-matls", OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS.class),
+			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-secret-and-matls", OBEnsureRegisteredRedirectUriWithSecretAndMATLS.class)
 			)
 			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
