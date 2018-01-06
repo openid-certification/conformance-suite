@@ -89,13 +89,13 @@
                 <% } %>
                 </div>
 
-                <div class="col-md-10">
+                <div class="col-md-9">
                 <% if (item.src) { %>
                     <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
                 <% } %>
                 </div>
             
-                <div class="col-md-1">
+                <div class="col-md-2">
                 <% if (item.testOwner && (item.testOwner.iss != FAPI_UI.currentUser.iss || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
                     <%= FAPI_UI.logTemplates.OWNER({item: item}) %>
                 <% } %>
@@ -213,7 +213,72 @@
             <div class="row">
                 <h2>
                     <div class="key">Summary</div>
-                    <div class="value wordwrap"><%- summary.success %> of <%- summary.total %> test conditions passed</div>
+                        <div class="value wordwrap">
+                    <% 
+                        if (summary.finished) {
+                  
+                    %>
+                             <span class="label result-success">PASSED</span>&nbsp;<span class="badge"><%- summary.success %></span>
+                             <span> of <span class="badge"><%- summary.total %></span></span>
+                    <%
+
+                    } else {
+
+                    %>
+                             <span class="label result-success">PASSED</span>&nbsp;<span class="badge"><%- summary.success %></span>
+                             
+                    <%
+                    }
+
+                            if (summary.success != summary.total) {
+
+                    %>
+                    (
+                    <%
+                                if (summary.warning > 0) {
+                                    %>
+                                    <span class="label result-warning">WARNING</span>&nbsp;<span class="badge"><%- summary.warning %></span>
+                                    <%
+                                }
+
+                                if (summary.failure > 0) {
+                                    %>
+                                    <span class="label result-failure">FAILURE</span>&nbsp;<span class="badge"><%- summary.failure %></span>
+                                    <%
+                                }
+
+                                if (summary.interrupted > 0) {
+                                    %>
+                                    <span class="label result-interrupted">INTERRUPTED</span>&nbsp;<span class="badge"><%- summary.interrupted %></span>
+                                    <%
+                                }
+
+                                if (summary.review > 0) {
+                                    %>
+                                    <span class="label result-review">REVIEW</span>&nbsp;<span class="badge"><%- summary.review %></span> 
+                                    <%
+                                }
+
+                                if (summary.default > 0) {
+                                    %>
+                                    <span class="label result-default">DEFAULT</span>&nbsp;<span class="badge"><%- summary.default %></span> 
+                                    <%
+                                }
+                    %>
+                    )
+                    <%
+                            }
+
+                        if (!summary.finished) {
+
+                    %>
+                        <span> - tests have not completed</span>
+                    <%
+                        }
+                    %>     
+
+                    </div>
+                 
                 </h2>
             </div>
         </script>
@@ -260,17 +325,6 @@
                     data: {}, 
                     success: function (data) { 
                 
-                    	// this is the page header, fill it in with log details
-                        
-                    	$.ajax({
-                    		type: 'GET',
-                    		url: 'info/' + encodeURIComponent(testId),
-                    		data: {},
-                    		success: function(data) {
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
-                    		}
-                    	});
-
                         $.each(data, function(i, item) {
 
                         	// render the base element
@@ -307,8 +361,25 @@
 
                         });
 
-                        $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
-                        
+                        // this is the page header, fill it in with log details
+                        $.ajax({
+                            type: 'GET',
+                            url: 'info/' + encodeURIComponent(testId),
+                            data: {},
+                            success: function(data) {
+                                if (data.status.toLowerCase() == "finished") {
+                                    FAPI_UI.testResults.finished = true;
+                                }
+
+                                if (data.result.toLowerCase() == "passed") {
+                                    FAPI_UI.testResults.passed = true;
+                                }
+
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
+                                
+                            }
+                        }); 
                     }
                 });
             });
