@@ -214,63 +214,35 @@
                 <h2>
                     <div class="key">Summary</div>
                         <div class="value wordwrap">
+                    
+                            <span class="label result-success">PASSED</span>&nbsp;<span class="badge"><%- summary.success %></span>
                     <% 
                         if (summary.finished) {
-                  
                     %>
-                             <span class="label result-success">PASSED</span>&nbsp;<span class="badge"><%- summary.success %></span>
-                             <span> of <span class="badge"><%- summary.total %></span></span>
-                    <%
-
-                    } else {
-
-                    %>
-                             <span class="label result-success">PASSED</span>&nbsp;<span class="badge"><%- summary.success %></span>
-                             
+                            <span> of <span class="badge"><%- summary.total %></span></span>   
                     <%
                     }
-
-                            if (summary.success != summary.total) {
+                        // print test result summary numbers for any unsuccessful items
+                        if (summary.success != summary.total) {
 
                     %>
                     (
                     <%
-                                if (summary.warning > 0) {
-                                    %>
-                                    <span class="label result-warning">WARNING</span>&nbsp;<span class="badge"><%- summary.warning %></span>
-                                    <%
-                                }
+                            var hiddenKeys = ["passed", "finished", "success", "total"];
+                            _.each(summary, function(value, key, o) {
 
-                                if (summary.failure > 0) {
+                                if (!_.contains(hiddenKeys, key) && value > 0) {
                                     %>
-                                    <span class="label result-failure">FAILURE</span>&nbsp;<span class="badge"><%- summary.failure %></span>
+                                    <span class="label result-<%- key %>"><%- key.toUpperCase() %></span>&nbsp;<span class="badge"><%- value %></span>
                                     <%
                                 }
-
-                                if (summary.interrupted > 0) {
-                                    %>
-                                    <span class="label result-interrupted">INTERRUPTED</span>&nbsp;<span class="badge"><%- summary.interrupted %></span>
-                                    <%
-                                }
-
-                                if (summary.review > 0) {
-                                    %>
-                                    <span class="label result-review">REVIEW</span>&nbsp;<span class="badge"><%- summary.review %></span> 
-                                    <%
-                                }
-
-                                if (summary.default > 0) {
-                                    %>
-                                    <span class="label result-default">DEFAULT</span>&nbsp;<span class="badge"><%- summary.default %></span> 
-                                    <%
-                                }
+                            });
                     %>
                     )
                     <%
-                            }
+                        }
 
                         if (!summary.finished) {
-
                     %>
                         <span> - tests have not completed</span>
                     <%
