@@ -14,6 +14,7 @@ public class OBEnsureRegisteredRedirectUriWithSecretAndMATLS extends AbstractOBE
 
 	public OBEnsureRegisteredRedirectUriWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-ensure-registered-redirect-uri-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+		logClientSecretWarning();
 	}
 
 	@Override

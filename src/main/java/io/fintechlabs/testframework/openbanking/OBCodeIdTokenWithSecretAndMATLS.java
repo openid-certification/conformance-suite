@@ -28,6 +28,7 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleH
 
 	public OBCodeIdTokenWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-code-id-token-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+		logClientSecretWarning();
 	}
 
 	@Override

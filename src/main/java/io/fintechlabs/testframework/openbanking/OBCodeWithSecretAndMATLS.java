@@ -28,6 +28,7 @@ public class OBCodeWithSecretAndMATLS extends AbstractOBServerTestModuleCodeFlow
 
 	public OBCodeWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-code-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+		logClientSecretWarning();
 	}
 
 	@Override

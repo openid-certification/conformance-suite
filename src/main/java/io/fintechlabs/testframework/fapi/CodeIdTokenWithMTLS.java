@@ -251,16 +251,16 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		callAndStopOnFailure(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
 		
-		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 		
 		// verify the access token against a protected resource
 		
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
-		call(EnsureTls12.class, "FAPI-2-8.5-2");
+		call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		callAndStopOnFailure(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 		
@@ -270,7 +270,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
 		
-		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
+		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 		
 		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		
