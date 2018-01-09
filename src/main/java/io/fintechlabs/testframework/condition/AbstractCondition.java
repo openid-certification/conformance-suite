@@ -62,6 +62,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.logging.LoggingRequestInterceptor;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -469,7 +470,11 @@ public abstract class AbstractCondition implements Condition {
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		HttpClient httpClient = createHttpClient(env);
 	
-		return new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log));
+
+		return restTemplate;
 	}
 
 	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
