@@ -14,6 +14,7 @@ public class OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS extends
 
 	public OBEnsureRedirectUriInAuthorizationRequestWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-ensure-redirect-uri-in-authorization-request-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+		logClientSecretWarning();
 	}
 
 	@Override

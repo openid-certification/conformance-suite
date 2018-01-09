@@ -28,6 +28,7 @@ public class OBEnsureMATLSRequiredWithSecretAndMATLS extends AbstractOBEnsureMAT
 
 	public OBEnsureMATLSRequiredWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super("ob-ensure-matls-required-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+		logClientSecretWarning();
 	}
 
 	@Override

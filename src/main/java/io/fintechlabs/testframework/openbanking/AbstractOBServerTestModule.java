@@ -14,12 +14,14 @@
 
 package io.fintechlabs.testframework.openbanking;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -301,6 +303,14 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
+	}
+
+	protected void logClientSecretWarning() {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("msg", "client_secret_basic and client_secret_post are not recommended client authentication methods");
+		map.put("result", ConditionResult.WARNING);
+		map.put("requirements", Sets.newHashSet("OB-5.2.2-7.2"));
+		eventLog.log(getName(), map);
 	}
 
 }
