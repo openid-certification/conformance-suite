@@ -110,10 +110,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		call(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
-		// FIXME: we'll allow running the test against servers which don't support MTLS
-		call(ExtractMTLSCertificatesFromConfiguration.class);
+		// Test won't pass without MATLS, but we'll try anyway (for now)
+		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -257,7 +257,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
 
-		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 	}
 
 	protected void requestProtectedResource() {
@@ -267,24 +267,22 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
-		call(EnsureTls12.class, "FAPI-2-8.5-2");
+		call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
+		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
 
-		// FIXME: for now, finish the test even if the server is non-conforming
+		call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
 
-		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		call(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-11");
 
-		call(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+		call(CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
-		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
-		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
-
-		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		call(EnsureResourceResponseEncodingIsUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9");
 	}
 
 	/* (non-Javadoc)
