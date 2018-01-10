@@ -56,8 +56,10 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
+import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
+import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -129,10 +131,33 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 			return userinfoEndpoint(requestParts);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
+		} else if (path.equals("/open-banking/v1.1/account-requests")) {
+			return accountRequests(requestParts);
 		} else {
 			return new ModelAndView("testError");
 		}
 
+	}
+
+	/**
+	 * OpenBanking account request API
+	 * @param requestParts
+	 * @return
+	 */
+	private Object accountRequests(JsonObject requestParts) {
+		
+		env.put("incoming_request", requestParts);
+
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
+
+		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+
+		callAndStopOnFailure(GenerateOpenBankingAccountRequestResponse.class);
+
+		JsonObject accountRequestResponse = env.get("account_request_response");
+		
+		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
 	}
 
 	/* (non-Javadoc)
