@@ -228,6 +228,8 @@
 			
 			$.getJSON('runner/available', function(data) {
 				console.log('available: ', JSON.stringify(data));
+				data = data.sort();
+
 				_.each(data, function(testName, index) {
 					$('#launch-buttons').append(FAPI_UI.logTemplates.TEST_LAUNCH_BUTTON({testName:testName, index:index}));
 

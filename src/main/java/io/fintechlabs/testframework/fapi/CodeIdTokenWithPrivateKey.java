@@ -268,7 +268,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
-		call(EnsureTls12.class, "FAPI-2-8.5-2");
+		call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
@@ -281,7 +281,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
 		
-		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
+		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 		
 		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		

@@ -31,15 +31,14 @@ var FAPI_UI = {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());
 		}
 		// get the current user info
-		$.getJSON({
+		return $.getJSON({
 			url: '/currentuser',
-			context: this,
-			success: function(userInfo) {
-				this.currentUser = userInfo;
-				$(divToReplace).html(this.logTemplates.USER_INFO({userInfo: userInfo}));
-				$('[data-toggle="tooltip"]').tooltip();
-			}
-		})
+			context: this
+		}).done(function(userInfo) {
+            this.currentUser = userInfo;
+            $(divToReplace).html(this.logTemplates.USER_INFO({userInfo: userInfo}));
+            $('[data-toggle="tooltip"]').tooltip();
+        });
 	},
 	
 	/**
