@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
+import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
