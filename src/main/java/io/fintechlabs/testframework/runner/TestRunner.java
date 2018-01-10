@@ -58,6 +58,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.openbanking.OBClientTestClientSecret;
 import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
@@ -131,6 +132,7 @@ public class TestRunner {
 			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-matls", OBCodeIdTokenWithPrivateKeyAndMATLS.class),
 			new SimpleEntry<>("ob-code-idtoken-with-secret-and-matls", OBCodeIdTokenWithSecretAndMATLS.class),
 			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class),
+			new SimpleEntry<>("ob-client-test-client-secret", OBClientTestClientSecret.class),
 			new SimpleEntry<>("ob-ensure-matls-required-with-mtls", OBEnsureMATLSRequiredWithMTLS.class),
 			new SimpleEntry<>("ob-ensure-matls-required-with-private-key-and-matls", OBEnsureMATLSRequiredWithPrivateKeyAndMATLS.class),
 			new SimpleEntry<>("ob-ensure-matls-required-with-secret-and-matls", OBEnsureMATLSRequiredWithSecretAndMATLS.class),
