@@ -246,71 +246,73 @@
         </script>
         
         <script type="text/javascript">
-
-            $(document).ready(function(){
-                FAPI_UI.getUserInfoDiv("#userInfoDiv");
-            	FAPI_UI.loadTemplates();
-            	
+            function getLogs(){
                 var urlParams = new URLSearchParams(window.location.search);
                 var testId = urlParams.get('log');
-    
-                $.ajax({ 
-                    type: 'GET', 
-                    url: "log/" + encodeURIComponent(testId), 
-                    data: {}, 
-                    success: function (data) { 
-                
-                    	// this is the page header, fill it in with log details
-                        
-                    	$.ajax({
-                    		type: 'GET',
-                    		url: 'info/' + encodeURIComponent(testId),
-                    		data: {},
-                    		success: function(data) {
+
+                $.ajax({
+                    type: 'GET',
+                    url: "log/" + encodeURIComponent(testId),
+                    data: {},
+                    success: function (data) {
+
+                        // this is the page header, fill it in with log details
+
+                        $.ajax({
+                            type: 'GET',
+                            url: 'info/' + encodeURIComponent(testId),
+                            data: {},
+                            success: function(data) {
                                 $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
-                    		}
-                    	});
+                            }
+                        });
 
                         $.each(data, function(i, item) {
 
-                        	// render the base element
+                            // render the base element
                             $('#logDetail .content').append(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
 
-                        	// see if we've got any "extra" bits that we want to display in a block
-                        	var more = _.pick(item, function(value, key, object) {
-                        		return !_.contains(FAPI_UI.visibleFields, key) 
-                        		  && !key.startsWith("_") 
-                        		  && key.toLowerCase() != 'testid';
-                        	});
+                            // see if we've got any "extra" bits that we want to display in a block
+                            var more = _.pick(item, function(value, key, object) {
+                                return !_.contains(FAPI_UI.visibleFields, key)
+                                    && !key.startsWith("_")
+                                    && key.toLowerCase() != 'testid';
+                            });
 
                             if (!_.isEmpty(more)) {
                                 // we have extra fields so let's attach them
                                 $('#log-' + item._id + ' .more-info').append(FAPI_UI.logTemplates.MORE({more: more, item: item}));
-                                
+
                                 // wire up the button
                                 $('#moreBtn-' + item._id).click(function (evt) {
-	                                if ($(this).hasClass('activated')) {
-	                                    // it's already been activated, need to hide things
-	                                    $('#moreInfo-' + item._id).hide(); // hide the content
-	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
-	                                    $(this).removeClass('activated');
-	                                } else {
-	                                    // need to show the collapsed entity
-	                                    $('#moreInfo-' + item._id).show(); // show the content
-	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
-	                                    $(this).addClass('activated');
-	                                }
-                                	
+                                    if ($(this).hasClass('activated')) {
+                                        // it's already been activated, need to hide things
+                                        $('#moreInfo-' + item._id).hide(); // hide the content
+                                        $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+                                        $(this).removeClass('activated');
+                                    } else {
+                                        // need to show the collapsed entity
+                                        $('#moreInfo-' + item._id).show(); // show the content
+                                        $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+                                        $(this).addClass('activated');
+                                    }
+
                                 });
-                                
+
                             }
 
                         });
 
                         $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
-                        
+
                     }
                 });
+            }
+
+            $(document).ready(function(){
+                FAPI_UI.loadTemplates();                // Load the templates
+                FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
+                    .done(getLogs());                   // Only once the user is loaded, then render the logs
             });
 
         </script>
