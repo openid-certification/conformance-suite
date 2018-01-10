@@ -213,44 +213,22 @@
             <div class="row">
                 <h2>
                     <div class="key">Summary</div>
-                        <div class="value wordwrap">
-                    
-                            <span class="label result-success">PASSED</span>&nbsp;<span class="badge"><%- summary.success %></span>
-                    <% 
-                        if (summary.finished) {
-                    %>
-                            <span> of <span class="badge"><%- summary.total %></span></span>   
                     <%
-                    }
-                        // print test result summary numbers for any unsuccessful items
-                        if (summary.success != summary.total) {
-
+                        var hiddenKeys = ["passed", "finished", "total"];
+                        _.each(summary, function(value, key, o) {
+                            if (!_.contains(hiddenKeys, key) && value > 0) {
                     %>
-                    (
+                                <span class="label result-<%- key %>"><%- key.toUpperCase() %></span>&nbsp;<span class="badge"><%- value %></span>
                     <%
-                            var hiddenKeys = ["passed", "finished", "success", "total"];
-                            _.each(summary, function(value, key, o) {
-
-                                if (!_.contains(hiddenKeys, key) && value > 0) {
-                                    %>
-                                    <span class="label result-<%- key %>"><%- key.toUpperCase() %></span>&nbsp;<span class="badge"><%- value %></span>
-                                    <%
-                                }
-                            });
-                    %>
-                    )
-                    <%
-                        }
+                            }
+                        });
 
                         if (!summary.finished) {
                     %>
                         <span> - tests have not completed</span>
                     <%
                         }
-                    %>     
-
-                    </div>
-                 
+                    %>
                 </h2>
             </div>
         </script>
