@@ -70,7 +70,7 @@ import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTls12;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -267,7 +267,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
-		call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");

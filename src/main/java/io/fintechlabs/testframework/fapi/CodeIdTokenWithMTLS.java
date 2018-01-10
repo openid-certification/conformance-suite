@@ -72,7 +72,7 @@ import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitU
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTls12;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -257,7 +257,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
-		call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
