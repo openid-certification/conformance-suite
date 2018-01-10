@@ -261,6 +261,10 @@
         </script>
         
         <script type="text/javascript">
+
+            /**
+             *
+             */
             function getLogs(){
                 var urlParams = new URLSearchParams(window.location.search);
                 var testId = urlParams.get('log');
@@ -270,26 +274,6 @@
                     url: "log/" + encodeURIComponent(testId),
                     data: {},
                     success: function (data) {
-
-                        // this is the page header, fill it in with log details
-
-                        $.ajax({
-                            type: 'GET',
-                            url: 'info/' + encodeURIComponent(testId),
-                            data: {},
-                            success: function(data) {
-                                if (data.status.toLowerCase() == "finished") {
-                                    FAPI_UI.testResults.finished = true;
-                                }
-
-                                if (data.result.toLowerCase() == "passed") {
-                                    FAPI_UI.testResults.passed = true;
-                                }
-
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
-                            }
-                        });
 
                         $.each(data, function(i, item) {
 
@@ -323,10 +307,32 @@
                                 });
                             }
                         });
+
+                        // this is the page header, fill it in with log details
+                        $.ajax({
+                            type: 'GET',
+                            url: 'info/' + encodeURIComponent(testId),
+                            data: {},
+                            success: function(data) {
+                                if (data.status.toLowerCase() == "finished") {
+                                    FAPI_UI.testResults.finished = true;
+                                }
+
+                                if (data.result.toLowerCase() == "passed") {
+                                    FAPI_UI.testResults.passed = true;
+                                }
+
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
+                            }
+                        });
                     }
                 });
             }
 
+            /**
+             *
+             */
             $(document).ready(function(){
                 FAPI_UI.loadTemplates();                // Load the templates
                 FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
