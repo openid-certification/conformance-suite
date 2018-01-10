@@ -19,6 +19,7 @@ import java.text.ParseException;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -119,7 +120,7 @@ public class SignRequestObject extends AbstractCondition {
 					return error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
 				}
 
-				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
+				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
 
 				SignedJWT requestObject = new SignedJWT(header, claimSet);
 
