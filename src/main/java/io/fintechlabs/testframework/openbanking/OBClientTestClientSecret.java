@@ -56,7 +56,8 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
-import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountRequestResponse;
+import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
+import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
@@ -74,7 +75,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 * @param name
 	 */
 	public OBClientTestClientSecret(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-client-test-mtls", id, owner, eventLog, browser, testInfo);
+		super("ob-client-test-client-secret", id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -111,6 +112,8 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 */
 	@Override
 	public void start() {
+		setStatus(Status.RUNNING);
+		// nothing to do here
 		setStatus(Status.WAITING);
 	}
 
@@ -131,32 +134,13 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("open-banking/v1.1/account-requests")) {
-			return accountRequests(requestParts);
+			return accountRequestsEndpoint(requestParts);
+		} else if (path.equals("open-banking/v1.1/accounts")) {
+			return accountsEndpoint(requestParts);
 		} else {
 			return new ModelAndView("testError");
 		}
 
-	}
-
-	/**
-	 * OpenBanking account request API
-	 * @param requestParts
-	 * @return
-	 */
-	private Object accountRequests(JsonObject requestParts) {
-		
-		env.put("incoming_request", requestParts);
-
-		call(ExtractBearerAccessTokenFromHeader.class);
-		call(ExtractBearerAccessTokenFromParams.class);
-
-		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
-
-		callAndStopOnFailure(GenerateOpenBankingAccountRequestResponse.class);
-
-		JsonObject accountRequestResponse = env.get("account_request_response");
-		
-		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
 	}
 
 	/* (non-Javadoc)
@@ -186,8 +170,10 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 * @return
 	 */
 	private Object discoveryEndpoint() {
+		setStatus(Status.RUNNING);
 		JsonObject serverConfiguration = env.get("server");
 
+		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
@@ -215,10 +201,8 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		JsonObject user = env.get("user_info_endpoint_response");
 
-		// at this point we can assume the test is fully done
-		fireTestSuccess();
-		stop();
-
+		setStatus(Status.WAITING);
+		
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
@@ -344,6 +328,52 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		return new RedirectView(redirectTo, false, false, false);
 
+	}
+	
+	/**
+	 * OpenBanking account request API
+	 * @param requestParts
+	 * @return
+	 */
+	private Object accountRequestsEndpoint(JsonObject requestParts) {
+		
+		env.put("incoming_request", requestParts);
+		
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
+		
+		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+		
+		callAndStopOnFailure(GenerateAccountRequestId.class);
+		exposeEnvString("account_request_id");
+		
+		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
+		
+		JsonObject accountRequestResponse = env.get("account_request_response");
+		
+		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
+	}
+	
+	private Object accountsEndpoint(JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+
+		env.put("incoming_request", requestParts);
+
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
+
+		callAndStopOnFailure(RequireBearerAccessToken.class);
+
+		callAndStopOnFailure(GenerateOpenBankingAccountId.class);
+		exposeEnvString("account_id");
+		
+		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
+		
+		// at this point we can assume the test is fully done
+		fireTestSuccess();
+		stop();
+
+		return new ResponseEntity<>(env.get("accounts_endpoint_response"), HttpStatus.OK);
 	}
 
 }

@@ -17,15 +17,13 @@ package io.fintechlabs.testframework.condition.rs;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
  *
  */
-public class GenerateOpenBankingAccountRequestResponse extends AbstractCondition {
+public abstract class AbstractOpenBankingApiResponse extends AbstractCondition {
 
 	/**
 	 * @param testId
@@ -33,31 +31,21 @@ public class GenerateOpenBankingAccountRequestResponse extends AbstractCondition
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public GenerateOpenBankingAccountRequestResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AbstractOpenBankingApiResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String[] requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
-	@Override
-	@PostEnvironment(required = "account_request_response")
-	public Environment evaluate(Environment env) {
 
+	protected JsonObject createResponse(JsonObject data) {
 		JsonObject response = new JsonObject();
-		
-		JsonObject data = new JsonObject();
-		data.addProperty("Status", "AwaitingAuthorisation");
-		data.addProperty("AccountRequestId", "account-id-12345");
 		
 		response.add("Data", data);
 
-		logSuccess("Created account request response object", response);
+		JsonObject meta = new JsonObject();
+		meta.addProperty("TotalPages", 1);
+		response.add("Meta", meta);
 		
-		env.put("account_request_response", response);
-		
-		return env;
-	
+		return response;
 	}
-
+	
 }
