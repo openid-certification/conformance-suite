@@ -1,4 +1,4 @@
-FROM openjdk
+FROM openjdk:9
 COPY target/fapi-test-suite.jar /server/
 ENV BASE_URL https://localhost:8443
 ENV MONGODB_HOST mongodb

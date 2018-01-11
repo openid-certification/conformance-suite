@@ -12,7 +12,7 @@ services:
     depends_on:
      - server
   server:
-    image: openjdk
+    image: openjdk:9
     ports:
      - "9999:9999"
     volumes:

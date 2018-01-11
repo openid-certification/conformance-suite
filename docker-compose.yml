@@ -12,7 +12,7 @@ services:
     depends_on:
      - server
   server:
-    image: openjdk
+    image: openjdk:9
     volumes:
      - ./target/:/server/
     command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true
