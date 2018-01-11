@@ -66,6 +66,7 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 public class OBClientTestClientSecret extends AbstractTestModule {
 
@@ -125,8 +126,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 			return tokenEndpoint(requestParts);
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
-		} else if (path.equals("register")) {
-			return registrationEndpoint(requestParts);
 		} else if (path.equals("userinfo")) {
 			return userinfoEndpoint(requestParts);
 		} else if (path.equals(".well-known/openid-configuration")) {
@@ -231,22 +230,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private Object registrationEndpoint(JsonObject requestParts) {
-
-		//env.put("client_registration_request", requestParts.get("body_json"));
-
-		// TODO Auto-generated method stub
-		return null;
-
-	}
-
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object jwksEndpoint() {
 
 		setStatus(Status.RUNNING);
@@ -336,6 +319,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
+	@UserFacing
 	private Object authorizationEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
