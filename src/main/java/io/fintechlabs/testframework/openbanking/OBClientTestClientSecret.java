@@ -131,7 +131,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 			return userinfoEndpoint(requestParts);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("/open-banking/v1.1/account-requests")) {
+		} else if (path.equals("open-banking/v1.1/account-requests")) {
 			return accountRequests(requestParts);
 		} else {
 			return new ModelAndView("testError");
