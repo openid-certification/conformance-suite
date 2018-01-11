@@ -314,11 +314,11 @@
                             url: 'info/' + encodeURIComponent(testId),
                             data: {},
                             success: function(data) {
-                                if (data.status.toLowerCase() == "finished") {
+                                if (data.status && data.status.toLowerCase() == "finished") {
                                     FAPI_UI.testResults.finished = true;
                                 }
 
-                                if (data.result.toLowerCase() == "passed") {
+                                if (data.result && data.result.toLowerCase() == "passed") {
                                     FAPI_UI.testResults.passed = true;
                                 }
 
