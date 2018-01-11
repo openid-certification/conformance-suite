@@ -89,13 +89,13 @@
                 <% } %>
                 </div>
 
-                <div class="col-md-10">
+                <div class="col-md-9">
                 <% if (item.src) { %>
                     <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
                 <% } %>
                 </div>
             
-                <div class="col-md-1">
+                <div class="col-md-2">
                 <% if (item.testOwner && (item.testOwner.iss != FAPI_UI.currentUser.iss || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
                     <%= FAPI_UI.logTemplates.OWNER({item: item}) %>
                 <% } %>
@@ -213,7 +213,22 @@
             <div class="row">
                 <h2>
                     <div class="key">Summary</div>
-                    <div class="value wordwrap"><%- summary.success %> of <%- summary.total %> test conditions passed</div>
+                    <%
+                        var hiddenKeys = ["passed", "finished", "total"];
+                        _.each(summary, function(value, key, o) {
+                            if (!_.contains(hiddenKeys, key) && value > 0) {
+                    %>
+                                <span class="label result-<%- key %>"><%- key.toUpperCase() %></span>&nbsp;<span class="badge"><%- value %></span>
+                    <%
+                            }
+                        });
+
+                        if (!summary.finished) {
+                    %>
+                        <span> - tests have not completed</span>
+                    <%
+                        }
+                    %>
                 </h2>
             </div>
         </script>
@@ -246,6 +261,10 @@
         </script>
         
         <script type="text/javascript">
+
+            /**
+             *
+             */
             function getLogs(){
                 var urlParams = new URLSearchParams(window.location.search);
                 var testId = urlParams.get('log');
@@ -255,17 +274,6 @@
                     url: "log/" + encodeURIComponent(testId),
                     data: {},
                     success: function (data) {
-
-                        // this is the page header, fill it in with log details
-
-                        $.ajax({
-                            type: 'GET',
-                            url: 'info/' + encodeURIComponent(testId),
-                            data: {},
-                            success: function(data) {
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
-                            }
-                        });
 
                         $.each(data, function(i, item) {
 
@@ -296,19 +304,35 @@
                                         $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
                                         $(this).addClass('activated');
                                     }
-
                                 });
-
                             }
-
                         });
 
-                        $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
+                        // this is the page header, fill it in with log details
+                        $.ajax({
+                            type: 'GET',
+                            url: 'info/' + encodeURIComponent(testId),
+                            data: {},
+                            success: function(data) {
+                                if (data.status && data.status.toLowerCase() == "finished") {
+                                    FAPI_UI.testResults.finished = true;
+                                }
 
+                                if (data.result && data.result.toLowerCase() == "passed") {
+                                    FAPI_UI.testResults.passed = true;
+                                }
+
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
+                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
+                            }
+                        });
                     }
                 });
             }
 
+            /**
+             *
+             */
             $(document).ready(function(){
                 FAPI_UI.loadTemplates();                // Load the templates
                 FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
