@@ -31,7 +31,10 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 public class EnsureMinimumTokenEntropy extends AbstractCondition {
-	private final double requiredEntropy = 128;
+	/** The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of
+	 * slop is allowed for.
+	 */
+	private final double requiredEntropy = 96;
 
 	/**
 	 * @param testId
