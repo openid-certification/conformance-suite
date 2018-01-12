@@ -68,6 +68,7 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 		// check that all known endpoints support TLS correctly
 
 		Set<JsonObject> tlsHosts = new HashSet<JsonObject>();
+		JsonObject authEndpoint = null;
 
 		JsonObject serverConfig = env.get("server"); // verified present by CheckServerConfiguration
 		for (Map.Entry<String,JsonElement> entry : serverConfig.entrySet()) {
@@ -85,6 +86,9 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 				JsonObject endpoint = new JsonObject();
 				endpoint.addProperty("testHost", host);
 				endpoint.addProperty("testPort", port);
+				// FIXME: this will be tidied up in the forthcoming TLS-test refactor
+				if (entry.getKey().equals("authorization_endpoint"))
+					authEndpoint = endpoint;
 				tlsHosts.add(endpoint);
 			}
 		}
@@ -102,7 +106,11 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 			call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+
+			// FIXME: this will be tidied up in the forthcoming TLS-test refactor
+			if (!endpoint.equals(authEndpoint)) {
+				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+			}
 		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
