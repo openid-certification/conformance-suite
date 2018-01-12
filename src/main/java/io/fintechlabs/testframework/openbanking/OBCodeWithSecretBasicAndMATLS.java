@@ -16,18 +16,18 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
+import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBCodeWithSecretAndMATLS extends AbstractOBServerTestModuleCodeFlow {
+public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCodeFlow {
 
-	public OBCodeWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+	public OBCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-with-secret-basic-and-matls", id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}
 
@@ -36,7 +36,7 @@ public class OBCodeWithSecretAndMATLS extends AbstractOBServerTestModuleCodeFlow
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
@@ -46,7 +46,7 @@ public class OBCodeWithSecretAndMATLS extends AbstractOBServerTestModuleCodeFlow
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}

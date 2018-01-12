@@ -16,18 +16,18 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
+import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleHybridFlow {
+public class OBEnsureMATLSRequiredWithSecretBasicAndMATLS extends AbstractOBEnsureMATLSRequired {
 
-	public OBCodeIdTokenWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+	public OBEnsureMATLSRequiredWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-ensure-matls-required-with-secret-basic-and-matls", id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}
 
@@ -36,7 +36,7 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleH
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
@@ -46,7 +46,7 @@ public class OBCodeIdTokenWithSecretAndMATLS extends AbstractOBServerTestModuleH
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
