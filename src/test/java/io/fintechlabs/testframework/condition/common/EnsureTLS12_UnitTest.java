@@ -15,12 +15,12 @@ import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.common.EnsureTls12;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureTls12_UnitTest {
+public class EnsureTLS12_UnitTest {
 	
 	@Spy
 	private Environment env = new Environment();
@@ -28,7 +28,7 @@ public class EnsureTls12_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 	
-	private EnsureTls12 cond;
+	private EnsureTLS12 cond;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -36,11 +36,11 @@ public class EnsureTls12_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new EnsureTls12("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureTLS12("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 	
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTls12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTLS12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -68,7 +68,7 @@ public class EnsureTls12_UnitTest {
 	}
 	
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTls12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTLS12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notTls() {
@@ -87,7 +87,7 @@ public class EnsureTls12_UnitTest {
 	}
 	
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTls12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTLS12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingHost() {
@@ -105,7 +105,7 @@ public class EnsureTls12_UnitTest {
 	}
 	
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTls12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTLS12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingPort() {
@@ -123,7 +123,7 @@ public class EnsureTls12_UnitTest {
 	}
 	
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTls12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.common.EnsureTLS12#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingConfig() {

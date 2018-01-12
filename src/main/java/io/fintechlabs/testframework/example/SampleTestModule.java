@@ -69,7 +69,7 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipherForResourceEndpoint;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTls12;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -98,7 +98,7 @@ public class SampleTestModule extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		
-		callAndStopOnFailure(EnsureTls12.class, "FAPI-1-7.1-1");
+		callAndStopOnFailure(EnsureTLS12.class, "FAPI-1-7.1-1");
 		call(DisallowTLS10.class, "FAPI-1-7.1-1");
 		call(DisallowTLS11.class, "FAPI-1-7.1-1");
 		call(DisallowInsecureCipher.class, "FAPI-2-8.5-1");

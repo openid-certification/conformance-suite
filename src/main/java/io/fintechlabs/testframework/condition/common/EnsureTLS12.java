@@ -41,7 +41,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureTls12 extends AbstractCondition {
+public class EnsureTLS12 extends AbstractCondition {
 
 	// Signals that the connection was aborted after discovering the server version
 	@SuppressWarnings("serial")
@@ -63,7 +63,7 @@ public class EnsureTls12 extends AbstractCondition {
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureTls12(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureTLS12(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

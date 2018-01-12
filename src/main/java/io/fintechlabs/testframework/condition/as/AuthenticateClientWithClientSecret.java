@@ -44,7 +44,7 @@ public class AuthenticateClientWithClientSecret extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"client_authentication_success", "client_authentication"})
+	@PreEnvironment(required = "client_authentication")
 	@PostEnvironment(required = "client_authentication_success")
 	public Environment evaluate(Environment env) {
 		if (env.containsObj("client_authentication_success")) {

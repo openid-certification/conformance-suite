@@ -35,7 +35,7 @@ import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTls12;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -103,7 +103,7 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 			env.get("config").add("tls", endpoint);
 
 			// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
-			call(EnsureTls12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 
