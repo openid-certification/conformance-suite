@@ -173,6 +173,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 		JsonObject user = env.get("user_info_endpoint_response");
 		
 		// at this point we can assume the test is fully done
+		setStatus(Status.FINISHED);
 		fireTestSuccess();
 		stop();
 		

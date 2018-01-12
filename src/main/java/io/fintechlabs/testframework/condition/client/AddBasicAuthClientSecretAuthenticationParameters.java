@@ -14,22 +14,23 @@
 
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.common.base.Strings;
+import java.util.Base64;
+
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class EnsureTokenEndpointResponseError extends AbstractCondition {
+public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureTokenEndpointResponseError(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AddBasicAuthClientSecretAuthenticationParameters(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -37,20 +38,36 @@ public class EnsureTokenEndpointResponseError extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "token_endpoint_response")
+	@PreEnvironment(required = "client")
+	@PostEnvironment(required = "token_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("token_endpoint_response")) {
-			return error("Couldn't find token endpoint response");
+		String id = env.getString("client", "client_id");
+
+		if (id == null) {
+			return error("Client ID not found in configuration");
 		}
 
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "error"))) {
-			logSuccess("Found error in token endpoint error response", env.get("token_endpoint_response"));
-			return env;
-		} else {
-			return error("No error from token endpoint");
+		String secret = env.getString("client", "client_secret");
+
+		if (secret == null) {
+			return error("Client secret not found in configuration");
 		}
 
+		JsonObject headers = env.get("token_endpoint_request_headers");
+
+		if (headers == null) {
+			headers = new JsonObject();
+			env.put("token_endpoint_request_headers", headers);
+		}
+
+		String pw = Base64.getEncoder().encodeToString((id + ":" + secret).getBytes());
+
+		headers.addProperty("Authorization", "Basic " + pw);
+
+		logSuccess("Added basic authorization header", headers);
+
+		return env;
 	}
 
 }

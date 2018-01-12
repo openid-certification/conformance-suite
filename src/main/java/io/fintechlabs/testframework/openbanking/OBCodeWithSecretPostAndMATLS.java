@@ -24,10 +24,10 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-public class OBEnsureMATLSRequiredWithSecretAndMATLS extends AbstractOBEnsureMATLSRequired {
+public class OBCodeWithSecretPostAndMATLS extends AbstractOBServerTestModuleCodeFlow {
 
-	public OBEnsureMATLSRequiredWithSecretAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-matls-required-with-secret-and-matls", id, owner, eventLog, browser, testInfo);
+	public OBCodeWithSecretPostAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super("ob-code-with-secret-post-and-matls", id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}
 

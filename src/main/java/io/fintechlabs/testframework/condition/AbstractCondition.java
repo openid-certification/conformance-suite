@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -394,26 +395,10 @@ public abstract class AbstractCondition implements Condition {
 		HttpClientBuilder builder = HttpClientBuilder.create()
 				.useSystemProperties();
 	
+		KeyManager[] km = null;
+
 		// initialize MTLS if it's available
 		if (env.containsObj("mutual_tls_authentication")) {
-	
-			TrustManager[] trustAllCerts = new TrustManager[] {
-					new X509TrustManager() {
-	
-						@Override
-						public X509Certificate[] getAcceptedIssuers() {
-							return new X509Certificate[0];
-						}
-	
-						@Override
-						public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-						}
-	
-						@Override
-						public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-						}
-					}
-			};
 	
 			// TODO: move this to an extractor?
 			String clientCert = env.getString("mutual_tls_authentication", "cert");
@@ -440,28 +425,47 @@ public abstract class AbstractCondition implements Condition {
 			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 			keyManagerFactory.init(keystore, "changeit".toCharArray());
 	
-			SSLContext sc = SSLContext.getInstance("TLS"); 
-			sc.init(keyManagerFactory.getKeyManagers(), trustAllCerts, new java.security.SecureRandom());
-	
-			builder.setSslcontext(sc);
-	
-			SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
-					new String[]{"TLSv1.2"},
-					null,
-					SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-	
-			builder.setSSLSocketFactory(sslConnectionSocketFactory);
-	
-			Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-					.register("https", sslConnectionSocketFactory)
-					.register("http", new PlainConnectionSocketFactory())
-					.build();
-	
-			HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-			builder.setConnectionManager(ccm);
+			km = keyManagerFactory.getKeyManagers();
 	
 		}
 	
+		TrustManager[] trustAllCerts = new TrustManager[] {
+				new X509TrustManager() {
+
+					@Override
+					public X509Certificate[] getAcceptedIssuers() {
+						return new X509Certificate[0];
+					}
+
+					@Override
+					public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+					}
+
+					@Override
+					public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+					}
+				}
+		};
+
+		SSLContext sc = SSLContext.getInstance("TLS");
+		sc.init(km, trustAllCerts, new java.security.SecureRandom());
+
+		builder.setSslcontext(sc);
+
+		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
+				new String[]{"TLSv1.2"},
+				null,
+				SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+
+		builder.setSSLSocketFactory(sslConnectionSocketFactory);
+
+		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+				.register("https", sslConnectionSocketFactory)
+				.register("http", new PlainConnectionSocketFactory())
+				.build();
+
+		HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+		builder.setConnectionManager(ccm);
 	
 		HttpClient httpClient = builder.build();
 		return httpClient;

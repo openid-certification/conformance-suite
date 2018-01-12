@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
@@ -76,6 +77,8 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
@@ -186,7 +189,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
 
-		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		call(CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
@@ -249,7 +252,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+		call(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-15");
 
 		call(ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
@@ -266,10 +269,39 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
+		// FIXME refactor into conditon
+		JsonObject headers = env.get("resource_endpoint_request_headers");
+		String interactionId = env.getString("fapi_interaction_id");
+		headers.addProperty("x-fapi-interaction-id", interactionId);
+		env.put("resource_endpoint_request_headers", headers);
+
 		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
+
+		// FIXME: refactor this into a condition
+		final int HTTPS_DEFAULT_PORT = 443;
+		String resourceEndpoint = env.getString("resource", "resourceUrl");
+//		if (Strings.isNullOrEmpty(resourceEndpoint)) {
+//			error("Resource endpoint not found");
+//		}
+		UriComponents components = UriComponentsBuilder.fromUriString(resourceEndpoint).build();
+		String host = components.getHost();
+		int port = components.getPort();
+		if (port < 0) {
+			port = HTTPS_DEFAULT_PORT;
+		}
+
+		eventLog.log(getName(),
+					 "Testing TLS support for " + host +	":" + port);
+
+		JsonObject endpoint = new JsonObject();
+		endpoint.addProperty("testHost", host);
+		endpoint.addProperty("testPort", port);
+		env.get("config").remove("tls");
+		env.get("config").add("tls", endpoint);
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+
 		call(DisallowInsecureCipherForResourceEndpoint.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");

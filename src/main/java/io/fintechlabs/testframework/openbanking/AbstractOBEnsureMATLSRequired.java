@@ -29,9 +29,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
-import io.fintechlabs.testframework.condition.client.EnsureTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
@@ -69,6 +68,7 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 		// check that all known endpoints support TLS correctly
 
 		Set<JsonObject> tlsHosts = new HashSet<JsonObject>();
+		JsonObject authEndpoint = null;
 
 		JsonObject serverConfig = env.get("server"); // verified present by CheckServerConfiguration
 		for (Map.Entry<String,JsonElement> entry : serverConfig.entrySet()) {
@@ -86,6 +86,9 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 				JsonObject endpoint = new JsonObject();
 				endpoint.addProperty("testHost", host);
 				endpoint.addProperty("testPort", port);
+				// FIXME: this will be tidied up in the forthcoming TLS-test refactor
+				if (entry.getKey().equals("authorization_endpoint"))
+					authEndpoint = endpoint;
 				tlsHosts.add(endpoint);
 			}
 		}
@@ -103,11 +106,15 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+
+			// FIXME: this will be tidied up in the forthcoming TLS-test refactor
+			if (!endpoint.equals(authEndpoint)) {
+				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+			}
 		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
-		call(EnsureServerConfigurationSupportsMTLS.class);
+		call(EnsureServerConfigurationSupportsMTLS.class, "FAPI-2-5.2.2-6");
 
 		performAuthorizationFlow();
 	}
@@ -122,9 +129,7 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(EnsureTokenEndpointResponseError.class, "OB-5.2.2");
+		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
 	}
 
 }
