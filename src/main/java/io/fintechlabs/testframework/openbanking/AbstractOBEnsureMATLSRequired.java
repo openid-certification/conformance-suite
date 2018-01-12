@@ -29,9 +29,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
-import io.fintechlabs.testframework.condition.client.EnsureTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
@@ -122,9 +121,7 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(EnsureTokenEndpointResponseError.class, "OB-5.2.2");
+		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
 	}
 
 }
