@@ -51,6 +51,8 @@ public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBSe
 		 * We never expect the browser to come back from here, our test is done
 		 */
 
+		setStatus(Status.FINISHED);
+
 		// someone needs to review this by hand
 		setResult(Result.REVIEW);
 
