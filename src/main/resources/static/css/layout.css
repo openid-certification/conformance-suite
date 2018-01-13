@@ -49,18 +49,6 @@ input[type=text], textarea {
   word-break: break-all;     
 }
 
-button.help-tooltip {
-  width:20px;
-  height:20px;
-  line-height: 15px;
-  background:#fff;
-  color:#000;
-  border: 1px solid #000;
-  margin:0 5px;
-  padding:0;
-  border-radius:10px;
-}
-
 /** index.html **/
 textarea {
   width:100%;
