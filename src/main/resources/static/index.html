@@ -308,17 +308,19 @@
 						// Create start & stop button click handlers
 						$('#'+status.id+' button.start').click(function (evt) {
 							console.log('Start button clicked: ' + testId);
+							$("#busy").show();
 							$.ajax({url: 'runner/' + encodeURIComponent(testId),
 							    	type: 'POST',
 							    	success: function(data, status) {
-			                            console.log('Status: ', status);                                                    
+			                            console.log('Status: ', status);
+			                            $("#busy").hide();                                                
 			                            updateRunningTable();
 							    	},
-	                             error: function(jqxhr, status, error) {
-	                                 $("#busy").hide();
-	                                 FAPI_UI.showError(jqxhr.responseJSON);
-	                                 updateRunningTable();
-	                             }
+		                            error: function(jqxhr, status, error) {
+		                                $("#busy").hide();
+		                                FAPI_UI.showError(jqxhr.responseJSON);
+		                                updateRunningTable();
+		                            }
 						    });
 						});
 
@@ -327,7 +329,8 @@
 							$.ajax({url: 'runner/' + encodeURIComponent(testId),
 		                        type: 'DELETE',
 		                        success: function(data, status) {
-		                            console.log('Status: ', status);                                                    
+		                            console.log('Status: ', status);
+		                            $("#busy").hide();                                                  
 		                            updateRunningTable();
 		                        },
                                 error: function(jqxhr, status, error) {
