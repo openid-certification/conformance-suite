@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.runner;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -108,7 +109,8 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 			return runningTests.entrySet().stream()
 					.filter(map -> map.getValue().getOwner().equals(owner))
 					.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
-					.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue())).keySet();
+					.map(e -> e.getValue().getId())
+					.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
 		}
 	}
 
