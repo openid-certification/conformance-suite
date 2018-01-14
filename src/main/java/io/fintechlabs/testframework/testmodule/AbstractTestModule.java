@@ -82,10 +82,6 @@ public abstract class AbstractTestModule implements TestModule {
 		return owner;
 	}
 
-	protected void setOwner(ImmutableMap<String, String> owner) {
-		this.owner = owner;
-	}
-
 	/**
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
