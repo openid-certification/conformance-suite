@@ -51,6 +51,8 @@
                     <div class="key">Status</div>
                     <div class="value wordwrap"><%- test.status %></div>
                 </h2>
+
+                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getTooltipHelp(test.status) %>" data-placement="right"></span>
             </div>
             <div class="row">
                 <h2>
@@ -218,7 +220,7 @@
                         _.each(summary, function(value, key, o) {
                             if (!_.contains(hiddenKeys, key) && value > 0) {
                     %>
-                                <span class="label result-<%- key %>"><%- key.toUpperCase() %></span>&nbsp;<span class="badge"><%- value %></span>
+                                <span class="label result-<%- key %>"><%- key.toUpperCase() %> <span class="badge"><%- value %></span></span>
                     <%
                             }
                         });
@@ -324,6 +326,8 @@
 
                                 $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
                                 $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
+
+                                $('[data-toggle="tooltip"]').tooltip({container: 'body'});
                             }
                         });
                     }
