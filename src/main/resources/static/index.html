@@ -144,7 +144,12 @@
 	        <div>
 				<input type="text" id="alias" placeholder="alias for test instance - redirect URI etc"></input>
 				<!-- render available test launch options here -->
-				<div id="launch-buttons"></div>
+				<div id="launch-buttons">
+				    <select class="form-control">
+				    
+				    </select>
+				    <button class="btn btn-primary" id="createTestBtn" disabled="">Loading test definitions...</button>
+				</div>
 	        </div>
 
 	        <hr />
@@ -179,8 +184,8 @@
     </script>
 
     <!-- Test Button -->
-    <script type="text/template" id="indexTemplate_TestButton">  
-        <button class="btn" id="createTestBtn-<%- index %>">Create <%- testName %></button>
+    <script type="text/template" id="indexTemplate_TestOption">
+        <option value="<%- testName %>"><%- displayName %></option>
     </script>
 
     <!-- Running Test: Main -->
@@ -228,41 +233,48 @@
 			
 			$.getJSON('/runner/available', function(data) {
 				console.log('available: ', JSON.stringify(data));
-				data = data.sort();
+				data = _.sortBy(data, 'displayName');
 
-				_.each(data, function(testName, index) {
-					$('#launch-buttons').append(FAPI_UI.logTemplates.TEST_LAUNCH_BUTTON({testName:testName, index:index}));
-
-					$('#createTestBtn-'+index).click(function (evt) {
-						console.log('Button clicked: ' + testName);
-						
-						/* Figures out which tab is visible then populates the form appropriately
-						this is to ensure that the $('#config') value has properly updated in the event of a 
-						quick paste into a form field  with no tab switch and then a button press */
-						if ($("#formInput").hasClass("active")) {
-							updateJSONFromFormElements();
-						}
-						
-						$("#busy").show();
-
-						$.ajax({url: '/runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
-								type: 'POST',
-								contentType: 'application/json',
-								data: $('#config').val(),
-								success: function(data, status) {
-									$("#busy").hide();
-									console.log('start results: ', data);
-									updateRunningTable();
-								},
-								error: function(jqxhr, status, error) {
-									$("#busy").hide();
-									FAPI_UI.showError(jqxhr.responseJSON);
-                                    updateRunningTable();
-								},
-								dataType: 'json'
-						});
-					});
+				_.each(data, function(item, index) {
+					$('#launch-buttons select').append(FAPI_UI.logTemplates.TEST_OPTION(item));
 				});
+
+                $('#createTestBtn').click(function (evt) {
+                	   var testName = $('#launch-buttons select').val();
+                	
+                    console.log('Button clicked: ' + testName);
+                    
+                    /* Figures out which tab is visible then populates the form appropriately
+                    this is to ensure that the $('#config') value has properly updated in the event of a 
+                    quick paste into a form field  with no tab switch and then a button press */
+                    if ($("#formInput").hasClass("active")) {
+                        updateJSONFromFormElements();
+                    }
+                    
+                    $("#busy").show();
+
+                    $.ajax({url: '/runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: $('#config').val(),
+                            success: function(data, status) {
+                                $("#busy").hide();
+                                console.log('start results: ', data);
+                                updateRunningTable();
+                            },
+                            error: function(jqxhr, status, error) {
+                                $("#busy").hide();
+                                FAPI_UI.showError(jqxhr.responseJSON);
+                                updateRunningTable();
+                            },
+                            dataType: 'json'
+                    });
+                });
+                
+                $('#createTestBtn').prop('disabled', false);
+                $('#createTestBtn').html('<span class="glyphicon glyphicon-flag"></span> Launch Test');
+			
+			
 			});
 			
 			updateRunningTable();

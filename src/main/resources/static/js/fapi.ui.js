@@ -3,7 +3,7 @@ var FAPI_UI = {
 	logTemplates : {},
 
 	loadHomepageTemplates : function() {
-		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
+		this.logTemplates.TEST_OPTION = _.template($("#indexTemplate_TestOption").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
 		this.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES = _.template($("#indexTemplate_RunningTestExposedKeyValues").html());
 		this.logTemplates.RUNNING_TEST_EXTERNAL_URL = _.template($("#indexTemplate_RunningTestExternalURL").html());
