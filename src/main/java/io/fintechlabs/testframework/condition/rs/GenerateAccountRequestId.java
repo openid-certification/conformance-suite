@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.condition.rs;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
