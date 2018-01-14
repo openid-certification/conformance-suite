@@ -172,12 +172,9 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		eventLog.log(getName(), "Path: " + path);
-		eventLog.log(getName(), "Params: " + requestParts);
+		logIncomingHttpRequest(path, requestParts);
 		
 		// dispatch based on the path
-		
-		// these are all user-facing and will require user-facing error pages, so we wrap them
 		
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);

@@ -169,8 +169,7 @@ public class SampleTestModule extends AbstractTestModule {
 	@Override
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		eventLog.log(getName(), "Path: " + path);
-		eventLog.log(getName(), "Params: " + requestParts);
+		logIncomingHttpRequest(path, requestParts);
 		
 		// dispatch based on the path
 		if (path.equals("callback")) {

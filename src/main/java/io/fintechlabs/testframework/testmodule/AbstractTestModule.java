@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -457,6 +458,14 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public Instant getCreated() {
 		return created;
+	}
+
+	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
+		eventLog.log(getName(), ImmutableMap.of(
+				"msg", "Incoming HTTP request to test instance " + getId(),
+				"path", path,
+				"request", requestParts
+				));
 	}
 
 }
