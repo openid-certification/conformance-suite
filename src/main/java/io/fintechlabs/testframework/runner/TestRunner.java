@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
@@ -89,6 +91,8 @@ public class TestRunner {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+	
+	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
@@ -343,6 +347,10 @@ public class TestRunner {
     }
     
     private Map<String, TestModuleHolder> getTestModules() {
+    		return testModuleSupplier.get();
+    }
+    
+    private Map<String, TestModuleHolder> findTestModules() {
     	
     		Map<String, TestModuleHolder> testModules = new HashMap<>();
     	

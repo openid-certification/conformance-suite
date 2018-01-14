@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
@@ -59,6 +61,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	protected TestInfoService testInfo;
 	
+	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
 	/**
 	 * @param name
@@ -444,7 +447,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	@Override
 	public String getName() {
-		return getClass().getDeclaredAnnotation(PublishTestModule.class).testName();
+		return testNameSupplier.get();
 	}
 
 	/* (non-Javadoc)
