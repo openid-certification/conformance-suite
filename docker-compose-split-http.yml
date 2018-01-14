@@ -1,0 +1,28 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    volumes:
+     - ./mongo/data:/data/db
+  httpd:
+    image: httpd
+    ports:
+     - "8443:8443"
+    volumes:
+     - ./src/main/resources/:/usr/local/apache2/htdocs/
+     - ./httpd/server-static.conf:/usr/local/apache2/conf/httpd.conf
+     - ./httpd/ssl-cert-snakeoil.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem
+     - ./httpd/ssl-cert-snakeoil.key:/etc/ssl/private/ssl-cert-snakeoil.key
+    depends_on:
+     - server
+  server:
+    image: openjdk:9-jre-slim
+    volumes:
+     - ./target/:/server/
+    command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true
+    links:
+     - mongodb:mongodb
+    depends_on: 
+     - mongodb
+    
+

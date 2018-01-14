@@ -68,7 +68,7 @@ var FAPI_UI = {
 	loadAvailableLogs : function() {
 		$.ajax({ 
 	        type: 'GET', 
-	        url: "log", 
+	        url: "/log", 
 	        data: {}, 
 	        success: render
 	    });

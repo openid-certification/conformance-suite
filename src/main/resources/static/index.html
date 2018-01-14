@@ -226,7 +226,7 @@
 
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
-			$.getJSON('runner/available', function(data) {
+			$.getJSON('/runner/available', function(data) {
 				console.log('available: ', JSON.stringify(data));
 				data = data.sort();
 
@@ -245,7 +245,7 @@
 						
 						$("#busy").show();
 
-						$.ajax({url: 'runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
+						$.ajax({url: '/runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
 								type: 'POST',
 								contentType: 'application/json',
 								data: $('#config').val(),
@@ -291,12 +291,12 @@
 	     * 
 	     */
 		function updateRunningTable() {
-			$.getJSON('runner/running', function(data) {
+			$.getJSON('/runner/running', function(data) {
 				console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
 				
 				_.each(data, function(testId) {
-					$.getJSON('runner/' + encodeURIComponent(testId), function(status) {
+					$.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
 						console.log("displaying test results:"+JSON.stringify(status));
 
 						$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
@@ -309,7 +309,7 @@
 						$('#'+status.id+' button.start').click(function (evt) {
 							console.log('Start button clicked: ' + testId);
 							$("#busy").show();
-							$.ajax({url: 'runner/' + encodeURIComponent(testId),
+							$.ajax({url: '/runner/' + encodeURIComponent(testId),
 							    	type: 'POST',
 							    	success: function(data, status) {
 			                            console.log('Status: ', status);
@@ -326,7 +326,7 @@
 
 						$('#'+status.id+' button.stop').click(function (evt) {
 							console.log('Stop button clicked: ' + testId);
-							$.ajax({url: 'runner/' + encodeURIComponent(testId),
+							$.ajax({url: '/runner/' + encodeURIComponent(testId),
 		                        type: 'DELETE',
 		                        success: function(data, status) {
 		                            console.log('Status: ', status);
@@ -342,7 +342,7 @@
 						});
 
 						// External URL link
-						$.getJSON('runner/browser/' + encodeURIComponent(testId), function(browser) {
+						$.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
 							_.each(browser.urls, function(url, index) {
 								$('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
 								
@@ -353,7 +353,7 @@
 									
 									if (win) {
 										win.focus();
-										$.ajax({url: 'runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+										$.ajax({url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
 											type: 'POST',
 											success: function(data, status) {
 												console.log('Status: ', status);													

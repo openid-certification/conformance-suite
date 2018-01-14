@@ -273,7 +273,7 @@
 
                 $.ajax({
                     type: 'GET',
-                    url: "log/" + encodeURIComponent(testId),
+                    url: "/log/" + encodeURIComponent(testId),
                     data: {},
                     success: function (data) {
 
@@ -313,7 +313,7 @@
                         // this is the page header, fill it in with log details
                         $.ajax({
                             type: 'GET',
-                            url: 'info/' + encodeURIComponent(testId),
+                            url: '/info/' + encodeURIComponent(testId),
                             data: {},
                             success: function(data) {
                                 if (data.status && data.status.toLowerCase() == "finished") {
