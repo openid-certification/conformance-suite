@@ -16,11 +16,13 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(testName = "ob-ensure-request-object-signature-algorithm-is-not-null", displayName = "OB: Ensure Request Object Signature Algorithm Is Not Null", profile = "OB")
 public class OBEnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractOBServerTestModule {
 
 	public OBEnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-request-object-signature-algorithm-is-not-null", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	protected void performAuthorizationFlow() {

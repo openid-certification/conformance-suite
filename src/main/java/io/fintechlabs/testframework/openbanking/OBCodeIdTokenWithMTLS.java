@@ -22,11 +22,13 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(testName = "ob-code-id-token-with-mtls", displayName = "OB: Code Id Token (With MTLS)", profile = "OB")
 public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModuleHybridFlow {
 
 	public OBCodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-id-token-with-mtls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

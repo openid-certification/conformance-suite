@@ -24,11 +24,13 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(testName = "ob-code-with-private-key-and-matls", displayName = "OB: Code (With Private Key And MATLS)", profile = "OB")
 public class OBCodeWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleCodeFlow {
 
 	public OBCodeWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-code-with-private-key-and-matls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

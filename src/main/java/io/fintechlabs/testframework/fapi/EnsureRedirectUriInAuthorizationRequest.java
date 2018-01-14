@@ -38,12 +38,14 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
+@PublishTestModule(testName = "ensure-redirect-uri-in-authorization-request", displayName = "Ensure Redirect Uri In Authorization Request", profile = "FAPI")
 public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule {
 
 	public EnsureRedirectUriInAuthorizationRequest(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ensure-redirect-uri-in-authorization-request", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

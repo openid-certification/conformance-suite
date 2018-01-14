@@ -13,8 +13,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBServerTestModule {
 
-	public AbstractOBEnsureRegisteredRedirectUri(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(name, id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureRegisteredRedirectUri(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

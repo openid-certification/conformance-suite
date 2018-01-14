@@ -77,6 +77,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -84,6 +85,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
+@PublishTestModule(testName = "code-id-token-with-mtls", displayName = "Code Id Token (With MTLS)", profile = "FAPI")
 public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 	
@@ -94,7 +96,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	 * @param name
 	 */
 	public CodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("code-id-token-with-mtls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

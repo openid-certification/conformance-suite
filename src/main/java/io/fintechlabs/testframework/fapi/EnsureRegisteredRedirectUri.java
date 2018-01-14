@@ -40,6 +40,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
@@ -48,12 +49,13 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
  * @author jricher
  *
  */
+@PublishTestModule(testName = "ensure-redirect-uri-is-registered", displayName = "Ensure Registered Redirect Uri Is Registered", profile = "FAPI")
 public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**
 	 */
 	public EnsureRegisteredRedirectUri(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ensure-redirect-uri-is-registered", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

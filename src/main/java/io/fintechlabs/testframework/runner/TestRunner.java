@@ -16,18 +16,19 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -46,42 +47,12 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.example.SampleClientTestModule;
-import io.fintechlabs.testframework.example.SampleImplicitModule;
-import io.fintechlabs.testframework.example.SampleTestModule;
-import io.fintechlabs.testframework.fapi.CodeIdTokenWithMTLS;
-import io.fintechlabs.testframework.fapi.CodeIdTokenWithPrivateKey;
-import io.fintechlabs.testframework.fapi.EnsureRedirectUriInAuthorizationRequest;
-import io.fintechlabs.testframework.fapi.EnsureRegisteredRedirectUri;
-import io.fintechlabs.testframework.fapi.EnsureRequestObjectSignatureAlgorithmIsNotNull;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.openbanking.OBClientTestClientSecret;
-import io.fintechlabs.testframework.openbanking.OBClientTestMTLS;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithPrivateKeyAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretBasicAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithSecretPostAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBCodeWithMTLS;
-import io.fintechlabs.testframework.openbanking.OBCodeWithPrivateKeyAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBCodeWithSecretBasicAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBCodeWithSecretPostAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithMTLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithPrivateKeyAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretBasicAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureMATLSRequiredWithSecretPostAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithMTLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithSecretBasicAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRedirectUriInAuthorizationRequestWithSecretPostAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithMTLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithSecretBasicAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRegisteredRedirectUriWithSecretPostAndMATLS;
-import io.fintechlabs.testframework.openbanking.OBEnsureRequestObjectSignatureAlgorithmIsNotNull;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
@@ -119,49 +90,19 @@ public class TestRunner {
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
-	// TODO: make this a configurable factory bean
-	private Map<String, Class<? extends TestModule>> testModules = Stream.of(
-			new SimpleEntry<>("sample-test-module", SampleTestModule.class), 
-			new SimpleEntry<>("sample-client-test-module", SampleClientTestModule.class), 
-			new SimpleEntry<>("sample-implicit-module", SampleImplicitModule.class), 
-			new SimpleEntry<>("ensure-registered-redirect-uri", EnsureRegisteredRedirectUri.class), 
-			new SimpleEntry<>("ensure-redirect-uri-in-authorization-request", EnsureRedirectUriInAuthorizationRequest.class),
-			new SimpleEntry<>("ensure-request-object-signature-algorithm-is-not-null", EnsureRequestObjectSignatureAlgorithmIsNotNull.class),
-			new SimpleEntry<>("code-idtoken-with-private-key", CodeIdTokenWithPrivateKey.class),
-			new SimpleEntry<>("code-idtoken-with-mtls", CodeIdTokenWithMTLS.class),
-			// OpenBanking-specific test modules:
-			new SimpleEntry<>("ob-code-with-mtls", OBCodeWithMTLS.class),
-			new SimpleEntry<>("ob-code-with-private-key-and-matls", OBCodeWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-code-with-secret-basic-and-matls", OBCodeWithSecretBasicAndMATLS.class),
-			new SimpleEntry<>("ob-code-with-secret-post-and-matls", OBCodeWithSecretPostAndMATLS.class),
-			new SimpleEntry<>("ob-code-idtoken-with-mtls", OBCodeIdTokenWithMTLS.class),
-			new SimpleEntry<>("ob-code-idtoken-with-private-key-and-matls", OBCodeIdTokenWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-code-idtoken-with-secret-basic-and-matls", OBCodeIdTokenWithSecretBasicAndMATLS.class),
-			new SimpleEntry<>("ob-code-idtoken-with-secret-post-and-matls", OBCodeIdTokenWithSecretPostAndMATLS.class),
-			new SimpleEntry<>("ob-client-test-mtls", OBClientTestMTLS.class),
-			new SimpleEntry<>("ob-client-test-client-secret", OBClientTestClientSecret.class),
-			new SimpleEntry<>("ob-ensure-matls-required-with-mtls", OBEnsureMATLSRequiredWithMTLS.class),
-			new SimpleEntry<>("ob-ensure-matls-required-with-private-key-and-matls", OBEnsureMATLSRequiredWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-matls-required-with-secret-basic-and-matls", OBEnsureMATLSRequiredWithSecretBasicAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-matls-required-with-secret-post-and-matls", OBEnsureMATLSRequiredWithSecretPostAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-mtls", OBEnsureRedirectUriInAuthorizationRequestWithMTLS.class),
-			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-basic-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretBasicAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-redirect-uri-in-authorization-request-with-secret-post-and-matls", OBEnsureRedirectUriInAuthorizationRequestWithSecretPostAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-mtls", OBEnsureRegisteredRedirectUriWithMTLS.class),
-			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-private-key-and-matls", OBEnsureRegisteredRedirectUriWithPrivateKeyAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-secret-basic-and-matls", OBEnsureRegisteredRedirectUriWithSecretBasicAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-registered-redirect-uri-with-secret-post-and-matls", OBEnsureRegisteredRedirectUriWithSecretPostAndMATLS.class),
-			new SimpleEntry<>("ob-ensure-request-object-signature-algorithm-is-not-null", OBEnsureRequestObjectSignatureAlgorithmIsNotNull.class)
-			)
-			.collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> getAvailableTests(Model m) {
+		
+		Set<Map<String, String>> available = getTestModules().values().stream()
+				.map(e -> ImmutableMap.of(
+						"testName", e.a.testName(),
+						"displayName", e.a.displayName(),
+						"profile", e.a.profile()
+						))
+				.collect(Collectors.toSet());
 
-    @RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Set<String>> getAvailableTests(Model m) {
-    	Set<String> testModuleNames = getTestModuleNames();
-    	
-    	return new ResponseEntity<>(testModuleNames, HttpStatus.OK);
-    }
+		return new ResponseEntity<>(available, HttpStatus.OK);
+	}
     
     
     @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -377,7 +318,7 @@ public class TestRunner {
     
     private TestModule createTestModule(String testName, String id, BrowserControl browser) {
     	
-    	Class<? extends TestModule> testModuleClass = testModules.get(testName);
+    	Class<? extends TestModule> testModuleClass = getTestModules().get(testName).c;
     	
     	TestModule module;
 		try {
@@ -401,10 +342,39 @@ public class TestRunner {
     	
     }
     
-    private Set<String> getTestModuleNames() {
-    	return testModules.keySet();
+    private Map<String, TestModuleHolder> getTestModules() {
+    	
+    		Map<String, TestModuleHolder> testModules = new HashMap<>();
+    	
+    		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+    		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestModule.class));
+    		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
+    			try {
+					Class<? extends TestModule> c = (Class<? extends TestModule>) Class.forName(bd.getBeanClassName());
+					PublishTestModule a = c.getDeclaredAnnotation(PublishTestModule.class);
+					
+					testModules.put(a.testName(), new TestModuleHolder(c, a));
+					
+			} catch (ClassNotFoundException e) {
+				logger.error("Couldn't load test module definition: " + bd.getBeanClassName());
+			}
+    		}
+    		
+    		return testModules;
     }
     
+    private class TestModuleHolder {
+    		public Class<? extends TestModule> c;
+    		public PublishTestModule a;
+			/**
+			 * @param c
+			 * @param a
+			 */
+			public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
+				this.c = c;
+				this.a = a;
+			}
+    }
     
     // handle errors thrown by running tests
     @ExceptionHandler(TestFailureException.class)

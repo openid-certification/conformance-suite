@@ -45,12 +45,14 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
+@PublishTestModule(testName = "ensure-request-object-signature-algorithm-is-not-null", displayName = "Ensure Request Object Signature Algorithm Is Not Null", profile = "FAPI")
 public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTestModule {
 
 	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ensure-request-object-signature-algorithm-is-not-null", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

@@ -11,11 +11,13 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(testName = "ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-matls", displayName = "OB: Ensure Redirect Uri In Authorization Request (With Private Key And MATLS)", profile = "OB")
 public class OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS extends AbstractOBEnsureRedirectUriInAuthorizationRequest {
 
 	public OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-matls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

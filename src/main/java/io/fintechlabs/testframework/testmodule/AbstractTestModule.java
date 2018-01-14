@@ -46,7 +46,6 @@ public abstract class AbstractTestModule implements TestModule {
 	
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
-	private String name;
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
@@ -64,8 +63,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		this.name = name;
+	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
@@ -446,7 +444,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	@Override
 	public String getName() {
-		return name;
+		return getClass().getDeclaredAnnotation(PublishTestModule.class).testName();
 	}
 
 	/* (non-Javadoc)

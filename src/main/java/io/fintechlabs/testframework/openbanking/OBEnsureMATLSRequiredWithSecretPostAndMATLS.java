@@ -23,11 +23,13 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(testName = "ob-ensure-matls-required-with-secret-post-and-matls", displayName = "OB: Ensure MATLS Required (With Secret Post And MATLS)", profile = "OB")
 public class OBEnsureMATLSRequiredWithSecretPostAndMATLS extends AbstractOBEnsureMATLSRequired {
 
 	public OBEnsureMATLSRequiredWithSecretPostAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-matls-required-with-secret-post-and-matls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}
 
