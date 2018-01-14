@@ -51,7 +51,8 @@
                     <div class="key">Status</div>
                     <div class="value wordwrap"><%- test.status %></div>
                 </h2>
-                <button class="btn btn-outline-info" data-toggle="tooltip" title="<%- FAPI_UI.getTooltipHelp(test.status) %>" data-placement="right">?</button>
+
+                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getTooltipHelp(test.status) %>" data-placement="right"></span>
             </div>
             <div class="row">
                 <h2>
@@ -219,7 +220,7 @@
                         _.each(summary, function(value, key, o) {
                             if (!_.contains(hiddenKeys, key) && value > 0) {
                     %>
-                                <span class="label result-<%- key %>"><%- key.toUpperCase() %></span>&nbsp;<span class="badge"><%- value %></span>
+                                <span class="label result-<%- key %>"><%- key.toUpperCase() %> <span class="badge"><%- value %></span></span>
                     <%
                             }
                         });
