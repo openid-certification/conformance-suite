@@ -103,7 +103,10 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		// Put in null check to handle non-userfacing interactions.
 		if (authenticationFacade.getAuthenticationToken() == null ||
 				authenticationFacade.isAdmin()) {
-			return runningTests.keySet();
+			return runningTests.entrySet().stream()
+					.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
+					.map(e -> e.getValue().getId())
+					.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
 		} else {
 			ImmutableMap<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
 			return runningTests.entrySet().stream()
