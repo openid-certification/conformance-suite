@@ -129,7 +129,7 @@ public class SampleTestModule extends AbstractTestModule {
 		exposeEnvString("client_id");
 		
 		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		//callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -238,7 +238,8 @@ public class SampleTestModule extends AbstractTestModule {
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		// verify the access token against a protected resource
-		
+
+		/*
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
 		call(DisallowInsecureCipherForResourceEndpoint.class, "FAPI-2-8.5-1");
@@ -254,6 +255,7 @@ public class SampleTestModule extends AbstractTestModule {
 		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 		
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		*/
 		
 		fireTestFinished();
 		stop();
