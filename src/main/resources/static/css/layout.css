@@ -261,6 +261,10 @@ button {
   background-color: #ddbb88;
 }
 
+.label.result-info {
+  background-color: #e2bfce;
+}
+
 .label.result-default {
   background-color: #00cc00;
 }
