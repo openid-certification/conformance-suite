@@ -250,11 +250,11 @@
 				data = _.sortBy(data, 'displayName');
 
 				_.each(data, function(item, index) {
-					$('#launch-buttons select').append(FAPI_UI.logTemplates.TEST_OPTION(item));
+					$('#testSelect').append(FAPI_UI.logTemplates.TEST_OPTION(item));
 				});
 
                 $('#createTestBtn').click(function (evt) {
-                	   var testName = $('#launch-buttons select').val();
+                	   var testName = $('#testSelect').val();
                 	
                     console.log('Button clicked: ' + testName);
                     
