@@ -288,214 +288,232 @@
 
 				});
 			    
-                $('#createTestBtn').click(function (evt) {
-                	   var testName = $('#testSelect').val();
-                	   
-                	   // if the user hasn't picked anything, just bail here
-                	   if (!testName || testName == 'select') {
-                		   console.log("No test selected");
-                		   FAPI_UI.showError({error:"Please select a sets from the dropdown list"});
-                		   return;
-                	   }
-                	
-                    console.log('Button clicked: ' + testName);
-                    
-                    /* Figures out which tab is visible then populates the form appropriately
-                    this is to ensure that the $('#config') value has properly updated in the event of a 
-                    quick paste into a form field  with no tab switch and then a button press */
-                    if ($("#formInput").hasClass("active")) {
-                        updateJSONFromFormElements();
-                    }
-                    
-                    $("#busy").show();
-
-                    $.ajax({url: '/runner/?test=' + encodeURIComponent(testName),
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: $('#config').val(),
-                            success: function(data, status) {
-                                $("#busy").hide();
-                                console.log('start results: ', data);
-                                updateRunningTable();
-                            },
-                            error: function(jqxhr, status, error) {
-                                $("#busy").hide();
-                                FAPI_UI.showError(jqxhr.responseJSON);
-                                updateRunningTable();
-                            },
-                            dataType: 'json'
-                    });
-                });
-                
                 // enable the launch button now that everything's loaded
                 $('#createTestBtn').html('<span class="glyphicon glyphicon-flag"></span> Launch Test');
                 
 			});
 			
-            $('#testSelect').on('change', updateConfigFieldVisibility);
-            // update the config visibility right now
-            updateConfigFieldVisibility();            
-			
+
+			$('#createTestBtn').click(function(evt) {
+				var testName = $('#testSelect').val();
+
+				// if the user hasn't picked anything, just bail here
+				if (!testName || testName == 'select') {
+					console.log("No test selected");
+					FAPI_UI.showError({
+						error: "Please select a sets from the dropdown list"
+					});
+					return;
+				}
+
+				console.log('Button clicked: ' + testName);
+
+				/* Figures out which tab is visible then populates the form appropriately
+				this is to ensure that the $('#config') value has properly updated in the event of a 
+				quick paste into a form field  with no tab switch and then a button press */
+				if ($("#formInput").hasClass("active")) {
+					updateJSONFromFormElements();
+				}
+
+				$("#busy").show();
+
+				$.ajax({
+					url: '/runner/?test=' + encodeURIComponent(testName),
+					type: 'POST',
+					contentType: 'application/json',
+					data: $('#config').val(),
+					success: function(data, status) {
+						$("#busy").hide();
+						console.log('start results: ', data);
+						updateRunningTable();
+					},
+					error: function(jqxhr, status, error) {
+						$("#busy").hide();
+						FAPI_UI.showError(jqxhr.responseJSON);
+						updateRunningTable();
+					},
+					dataType: 'json'
+				});
+			});
+
+			$('#testSelect').on('change', updateConfigFieldVisibility);
+			// update the config visibility right now
+			updateConfigFieldVisibility();
+
 			$('#refresh').click(function(event) {
 				updateRunningTable();
 			});
-            // refresh the running table right now        
+			// refresh the running table right now        
 			updateRunningTable();
 
 			// Config UI
-			$(".config-form-element").attr("autocomplete","off");
-			$(".config-form-element").attr("autocorrect","off");
-			$(".config-form-element").attr("autocapitalize","off");
-			$(".config-form-element").attr("spellcheck","false");
+			$(".config-form-element").attr("autocomplete", "off");
+			$(".config-form-element").attr("autocorrect", "off");
+			$(".config-form-element").attr("autocapitalize", "off");
+			$(".config-form-element").attr("spellcheck", "false");
 
 			// tab actions
-			$('#tab-form-elements').click(function (e) {
+			$('#tab-form-elements').click(function(e) {
 				updateFormElementsFromJSON();
 			})
 
-			$('#tab-json-elements').click(function (e) { 
+			$('#tab-json-elements').click(function(e) {
 				updateJSONFromFormElements();
 			})
+
+			// sync the JSON at least once
+			walkJSON(FAPI_UI.testJSON);
+
 		});
 
-	    
-	    function updateConfigFieldVisibility() {
-	       var testName = $('#testSelect').val();
-	       
-	       // if the user hasn't picked anything, disable the create button
-	       if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
-   	    	       console.log("No test selected");
-	           var fieldsToShow = [];
-	           $('#createTestBtn').prop('disabled', true);
-	       } else {
-              var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
-	              // enable the create button
-	          $('#createTestBtn').prop('disabled', false);
-	       }
-	           
-           
-           if (!fieldsToShow) {
-               // the test hasn't defined anything, set a default
-               fieldsToShow = [];
-           }
-           
-           fieldsToShow.push('alias'); // always show the alias field
-	              
-          // show/hide all the appropriate fields on the page
-          $('.config-form-element-container').each(function () {
-                  if (_.contains(fieldsToShow, $('.config-form-element', this).data("jsonTarget"))) {
-                          $(this).show();
-                  } else {
-                          $(this).hide();
-                  }
-          });
-          
-          // collapse empty sections
-          $('.config-form-container').each(function() {
-                  if ($(this).children(':visible').not('.config-form-container-header').length === 0) {
-                         // there are no visible elements anymore, hide the header
-                         $('.config-form-container-header', this).hide();
-                  } else {
-                         // otherwise, hide the header
-                  $('.config-form-container-header', this).show();
-                  }
-          });
-	    }
-	    
+		function updateConfigFieldVisibility() {
+			var testName = $('#testSelect').val();
+
+			// if the user hasn't picked anything, disable the create button
+			if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
+				console.log("No test selected");
+				var fieldsToShow = [];
+				$('#createTestBtn').prop('disabled', true);
+			} else {
+				var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
+				// enable the create button
+				$('#createTestBtn').prop('disabled', false);
+			}
+
+			if (!fieldsToShow) {
+				// the test hasn't defined anything, set a default
+				fieldsToShow = [];
+			}
+
+			fieldsToShow.push('alias'); // always show the alias field
+
+			// show/hide all the appropriate fields on the page
+			$('.config-form-element-container').each(function() {
+				if (_.contains(fieldsToShow, $('.config-form-element', this).data("jsonTarget"))) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			});
+
+			// collapse empty sections
+			$('.config-form-container').each(function() {
+				if ($(this).children(':visible').not('.config-form-container-header').length === 0) {
+					// there are no visible elements anymore, hide the header
+					$('.config-form-container-header', this).hide();
+				} else {
+					// otherwise, hide the header
+					$('.config-form-container-header', this).show();
+				}
+			});
+		}
+
 		/**
-	     * 
-	     */
+		 * 
+		 */
 		function updateRunningTable() {
 			$.getJSON('/runner/running', function(data) {
 				console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
 
 				var deferred = $.when(1);
-				
+
 				_.each(data, function(testId) {
 					console.log('getting: ' + testId);
-                    deferred = deferred.then(function() {
-                    	   return getRunningTest(testId);
-                    });
+					deferred = deferred.then(function() {
+						return getRunningTest(testId);
+					});
 				});
-            });
+			});
 
 		}
-		
+
 		function getRunningTest(testId) {
 			return $.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
-                //console.log("displaying test results:"+JSON.stringify(status));
-                console.log('rendering: ' + status.id);
+				//console.log("displaying test results:"+JSON.stringify(status));
+				console.log('rendering: ' + status.id);
 
-                $('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
-                
-                _.each(status.exposed, function(val, key) {
-                    $('#'+status.id+' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({key:key, val:val}));
-                });
+				$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({
+					testStatus: status
+				}));
 
-                // Create start & stop button click handlers
-                $('#'+status.id+' button.start').click(function (evt) {
-                    console.log('Start button clicked: ' + testId);
-                    $("#busy").show();
-                    $.ajax({url: '/runner/' + encodeURIComponent(testId),
-                            type: 'POST',
-                            success: function(data, status) {
-                                console.log('Status: ', status);
-                                $("#busy").hide();                                                
-                                updateRunningTable();
-                            },
-                            error: function(jqxhr, status, error) {
-                                $("#busy").hide();
-                                FAPI_UI.showError(jqxhr.responseJSON);
-                                updateRunningTable();
-                            }
-                    });
-                });
+				_.each(status.exposed, function(val, key) {
+					$('#' + status.id + ' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({
+						key: key,
+						val: val
+					}));
+				});
 
-                $('#'+status.id+' button.stop').click(function (evt) {
-                    console.log('Stop button clicked: ' + testId);
-                    $.ajax({url: '/runner/' + encodeURIComponent(testId),
-                        type: 'DELETE',
-                        success: function(data, status) {
-                            console.log('Status: ', status);
-                            $("#busy").hide();                                                  
-                            updateRunningTable();
-                        },
-                        error: function(jqxhr, status, error) {
-                            $("#busy").hide();
-                            FAPI_UI.showError(jqxhr.responseJSON);
-                            updateRunningTable();
-                        }
-                    });
-                });
+				// Create start & stop button click handlers
+				$('#' + status.id + ' button.start').click(function(evt) {
+					console.log('Start button clicked: ' + testId);
+					$("#busy").show();
+					$.ajax({
+						url: '/runner/' + encodeURIComponent(testId),
+						type: 'POST',
+						success: function(data, status) {
+							console.log('Status: ', status);
+							$("#busy").hide();
+							updateRunningTable();
+						},
+						error: function(jqxhr, status, error) {
+							$("#busy").hide();
+							FAPI_UI.showError(jqxhr.responseJSON);
+							updateRunningTable();
+						}
+					});
+				});
 
-                // External URL link
-                $.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
-                    _.each(browser.urls, function(url, index) {
-                        $('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
-                        
-                        // add the click handler
-                        $('#browserLink-'+testId+"-"+index).click(function(event) {
-                            event.preventDefault();
-                            var win = window.open(url, '_blank');
-                            
-                            if (win) {
-                                win.focus();
-                                $.ajax({url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
-                                    type: 'POST',
-                                    success: function(data, status) {
-                                        console.log('Status: ', status);                                                    
-                                        updateRunningTable();
-                                    }
-                                });
-                            } else {
-                                // couldn't open the link?
-                                console.log("Couldn't launch window");
-                            }
-                        });
-                    });                     
-                });
-            });
+				$('#' + status.id + ' button.stop').click(function(evt) {
+					console.log('Stop button clicked: ' + testId);
+					$.ajax({
+						url: '/runner/' + encodeURIComponent(testId),
+						type: 'DELETE',
+						success: function(data, status) {
+							console.log('Status: ', status);
+							$("#busy").hide();
+							updateRunningTable();
+						},
+						error: function(jqxhr, status, error) {
+							$("#busy").hide();
+							FAPI_UI.showError(jqxhr.responseJSON);
+							updateRunningTable();
+						}
+					});
+				});
+
+				// External URL link
+				$.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
+					_.each(browser.urls, function(url, index) {
+						$('#' + status.id + ' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({
+							testId: testId,
+							url: url,
+							index: index
+						}));
+
+						// add the click handler
+						$('#browserLink-' + testId + "-" + index).click(function(event) {
+							event.preventDefault();
+							var win = window.open(url, '_blank');
+
+							if (win) {
+								win.focus();
+								$.ajax({
+									url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+									type: 'POST',
+									success: function(data, status) {
+										console.log('Status: ', status);
+										updateRunningTable();
+									}
+								});
+							} else {
+								// couldn't open the link?
+								console.log("Couldn't launch window");
+							}
+						});
+					});
+				});
+			});
 		}
 
 		/**
@@ -516,75 +534,69 @@
 		 */
 		function updateFormElementsFromJSON() {
 			try {
-		        FAPI_UI.testJSON = JSON.parse($("#config").val());
-		    } catch (e) {
-		    	FAPI_UI.showError({error:e});
-		        return false;
-		    }
+				FAPI_UI.testJSON = JSON.parse($("#config").val());
+			} catch (e) {
+				FAPI_UI.showError({
+					error: e
+				});
+				return false;
+			}
 
-		    // valid JSON, but we also want to verify that it is an object at the root node
-		    if (typeof FAPI_UI.testJSON != 'object') {
-		    	FAPI_UI.showError({error:"Please ensure that your root node JSON is an object"});
-		        return false;
-		    }
+			// valid JSON, but we also want to verify that it is an object at the root node
+			if (typeof FAPI_UI.testJSON != 'object') {
+				FAPI_UI.showError({
+					error: "Please ensure that your root node JSON is an object"
+				});
+				return false;
+			}
 
-		    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+			$(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+			
+			walkJSON(FAPI_UI.testJSON);
+		}
 
-		    /**
-		     * 
-		     */
-		    function walkJSON(element, root) {
+		/**
+		 * 
+		 */
 
-		    	_.each(element, function(value, key, obj) { 
-		    			console.log("****** WALK NODE ******");
-		    			console.log("root="+root);
-			    		console.log("value="+JSON.stringify(value));
-			    		console.log("key="+key);
-			    		console.log("obj="+JSON.stringify(obj));
-			    		console.log("element="+JSON.stringify(element));
+		function walkJSON(element, root) {
 
-			    		var el = $(".config-form-element[data-json-target='"+root+"."+key+"']");
-			    		
-			    		if ($(document).find(el).length) {
-			    			if (_.isArray(value) || _.isObject(value)) {
-			    				el.val(JSON.stringify(value));
-			    			} else {
-			    				el.val(value);
-			    			}
-			    		} else {
-			    			if (_.isObject(value)) {
-			    				if (root != undefined) {
-			    					walkJSON(value, root+"."+key);
-			    				} else {
-			    					walkJSON(value, key);
-			    				}
-			    			}
-			    		}
-			    	}
-			    )
-		    }
-		    walkJSON(FAPI_UI.testJSON);   
+			_.each(element, function(value, key, obj) {
+				/*
+				console.log("****** WALK NODE ******");
+				console.log("root=" + root);
+				console.log("value=" + JSON.stringify(value));
+				console.log("key=" + key);
+				console.log("obj=" + JSON.stringify(obj));
+				console.log("element=" + JSON.stringify(element));
+				 */
+
+				var el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+
+				if ($(document).find(el).length) {
+					if (_.isArray(value) || _.isObject(value)) {
+						el.val(JSON.stringify(value));
+					} else {
+						el.val(value);
+					}
+				} else {
+					if (_.isObject(value)) {
+						if (root != undefined) {
+							walkJSON(value, root + "." + key);
+						} else {
+							walkJSON(value, key);
+						}
+					}
+				}
+			});
 		}
 
 		/**
 		 *
 		 */
+
 		function populateJSON(key, val) {
 
-			// responsible for converting any dot syntax in our key parameter into object refs
-			Object.prop = function(obj, prop, val){
-			    var props = prop.split('.')
-			      , final = props.pop(), p 
-			    while(p = props.shift()){
-			        if (typeof obj[p] === 'undefined') {
-			        	obj[p] = {}; // create the object
-			        }
-
-			        obj = obj[p];
-			    }
-
-			    return val ? (obj[final] = val) : obj[final];
-			}
 			/*
 			var obj = { "a": { "b": '1', "c": 0 } };
 			// get
@@ -594,41 +606,40 @@
 			console.log(obj); // -> { a: { b: '1', c: 5 } }
 			Object.prop(obj, 'create.me.now', "hello");
 			console.log(obj); // -> { a: { b: '1', c: 5 }, create:{me:{now:"hello"}} }
-			*/
+			 */
 
-			console.log("key="+key);
-			console.log("val="+val);
-
+			/*
+			console.log("key=" + key);
+			console.log("val=" + val);
+			 */
 			// check to see if we have an "array string" or a "number string"
 			// i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
 			try {
-		        var stringToJSON = JSON.parse(val); // an array, object or number ?
-		        if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
-					Object.prop(FAPI_UI.testJSON, key, stringToJSON);
+				var stringToJSON = JSON.parse(val); // an array, object or number ?
+				if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
+					FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
+				} else if (_.isNumber(stringToJSON)) {
+					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
 				}
-				else if (_.isNumber(stringToJSON)) {
-					Object.prop(FAPI_UI.testJSON, key, val);
-				}
-		    } catch (e) { // a string
-		    	if (val=="") { // if we have an empty string then delete the value
-		    		console.log("omit:"+key);
-		    		
-		    		var elements = key.split(".");
-		    		if (elements.length > 1) {
-		    			if (FAPI_UI.testJSON[elements[0]] != undefined) {
-		    				FAPI_UI.testJSON[elements[0]] = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]);
-		    			}
-		    		} else {
-		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key); 
-		    		}
-		    	} else {
-		    		Object.prop(FAPI_UI.testJSON, key, val);
-		    	}
-		    }
+			} catch (e) { // a string
+				if (val == "") { // if we have an empty string then delete the value
+					//console.log("omit:" + key);
 
-			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
+					var elements = key.split(".");
+					if (elements.length > 1) {
+						if (FAPI_UI.testJSON[elements[0]] != undefined) {
+							FAPI_UI.testJSON[elements[0]] = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]);
+						}
+					} else {
+						FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key);
+					}
+				} else {
+					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
+				}
+			}
+
+			console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
-
 	</script>
 
   </body>
