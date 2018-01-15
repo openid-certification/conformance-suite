@@ -128,7 +128,10 @@ public class SignRequestObject extends AbstractCondition {
 
 				env.putString("request_object", requestObject.serialize());
 
-				logSuccess("Signed the request object", args("request_object", requestObject.serialize()));
+				logSuccess("Signed the request object", args("request_object", requestObject.serialize(),
+						"header", header.toString(),
+						"claims", claimSet.toString(),
+						"key", jwk.toJSONString()));
 
 				return env;
 			} else {
