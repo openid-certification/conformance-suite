@@ -409,82 +409,93 @@
 			$.getJSON('/runner/running', function(data) {
 				console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
+
+				var deferred = $.when(1);
 				
 				_.each(data, function(testId) {
-					$.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
-						console.log("displaying test results:"+JSON.stringify(status));
-
-						$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
-
-						_.each(status.exposed, function(val, key) {
-			                $('#'+status.id+' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({key:key, val:val}));
-						});
-
-						// Create start & stop button click handlers
-						$('#'+status.id+' button.start').click(function (evt) {
-							console.log('Start button clicked: ' + testId);
-							$("#busy").show();
-							$.ajax({url: '/runner/' + encodeURIComponent(testId),
-							    	type: 'POST',
-							    	success: function(data, status) {
-			                            console.log('Status: ', status);
-			                            $("#busy").hide();                                                
-			                            updateRunningTable();
-							    	},
-		                            error: function(jqxhr, status, error) {
-		                                $("#busy").hide();
-		                                FAPI_UI.showError(jqxhr.responseJSON);
-		                                updateRunningTable();
-		                            }
-						    });
-						});
-
-						$('#'+status.id+' button.stop').click(function (evt) {
-							console.log('Stop button clicked: ' + testId);
-							$.ajax({url: '/runner/' + encodeURIComponent(testId),
-		                        type: 'DELETE',
-		                        success: function(data, status) {
-		                            console.log('Status: ', status);
-		                            $("#busy").hide();                                                  
-		                            updateRunningTable();
-		                        },
-                                error: function(jqxhr, status, error) {
-                                    $("#busy").hide();
-                                    FAPI_UI.showError(jqxhr.responseJSON);
-                                    updateRunningTable();
-                                }
-		                    });
-						});
-
-						// External URL link
-						$.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
-							_.each(browser.urls, function(url, index) {
-								$('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
-								
-								// add the click handler
-								$('#browserLink-'+testId+"-"+index).click(function(event) {
-									event.preventDefault();
-									var win = window.open(url, '_blank');
-									
-									if (win) {
-										win.focus();
-										$.ajax({url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
-											type: 'POST',
-											success: function(data, status) {
-												console.log('Status: ', status);													
-												updateRunningTable();
-											}
-										});
-									} else {
-										// couldn't open the link?
-										console.log("Couldn't launch window");
-									}
-								});
-							});						
-						});
-					});
+					console.log('getting: ' + testId);
+                    deferred = deferred.then(function() {
+                    	   return getRunningTest(testId);
+                    });
 				});
-			});
+            });
+
+		}
+		
+		function getRunningTest(testId) {
+			return $.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
+                //console.log("displaying test results:"+JSON.stringify(status));
+                console.log('rendering: ' + status.id);
+
+                $('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
+                
+                _.each(status.exposed, function(val, key) {
+                    $('#'+status.id+' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({key:key, val:val}));
+                });
+
+                // Create start & stop button click handlers
+                $('#'+status.id+' button.start').click(function (evt) {
+                    console.log('Start button clicked: ' + testId);
+                    $("#busy").show();
+                    $.ajax({url: '/runner/' + encodeURIComponent(testId),
+                            type: 'POST',
+                            success: function(data, status) {
+                                console.log('Status: ', status);
+                                $("#busy").hide();                                                
+                                updateRunningTable();
+                            },
+                            error: function(jqxhr, status, error) {
+                                $("#busy").hide();
+                                FAPI_UI.showError(jqxhr.responseJSON);
+                                updateRunningTable();
+                            }
+                    });
+                });
+
+                $('#'+status.id+' button.stop').click(function (evt) {
+                    console.log('Stop button clicked: ' + testId);
+                    $.ajax({url: '/runner/' + encodeURIComponent(testId),
+                        type: 'DELETE',
+                        success: function(data, status) {
+                            console.log('Status: ', status);
+                            $("#busy").hide();                                                  
+                            updateRunningTable();
+                        },
+                        error: function(jqxhr, status, error) {
+                            $("#busy").hide();
+                            FAPI_UI.showError(jqxhr.responseJSON);
+                            updateRunningTable();
+                        }
+                    });
+                });
+
+                // External URL link
+                $.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
+                    _.each(browser.urls, function(url, index) {
+                        $('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
+                        
+                        // add the click handler
+                        $('#browserLink-'+testId+"-"+index).click(function(event) {
+                            event.preventDefault();
+                            var win = window.open(url, '_blank');
+                            
+                            if (win) {
+                                win.focus();
+                                $.ajax({url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+                                    type: 'POST',
+                                    success: function(data, status) {
+                                        console.log('Status: ', status);                                                    
+                                        updateRunningTable();
+                                    }
+                                });
+                            } else {
+                                // couldn't open the link?
+                                console.log("Couldn't launch window");
+                            }
+                        });
+                    });                     
+                });
+            });
 		}
 
 		/**
