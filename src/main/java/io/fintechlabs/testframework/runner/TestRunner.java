@@ -111,7 +111,6 @@ public class TestRunner {
     
     @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName,
-    		@RequestParam("alias") String alias,
     		@RequestBody JsonObject config, Model m) {
 
     	String id = RandomStringUtils.randomAlphanumeric(10);
@@ -130,15 +129,20 @@ public class TestRunner {
         logger.info("Status of " + testName + ": " + test.getStatus());
 
         support.addRunningTest(id, test);
-
+        
         String url;
-        if (!Strings.isNullOrEmpty(alias)) {
-        	try {
-	        	// create an alias for the test
-	        	if (!createTestAlias(alias, id)) {
-	        		// there was a failure in creating the test alias, return an error
-	        		return new ResponseEntity<>(HttpStatus.CONFLICT);
-	        	}
+        String alias = "";
+
+        // see if an alias was passed in as part of the configuration and use it if available
+        if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
+	        	try {
+	        		alias = config.get("alias").getAsString();
+	        		
+		        	// create an alias for the test
+		        	if (!createTestAlias(alias, id)) {
+		        		// there was a failure in creating the test alias, return an error
+		        		return new ResponseEntity<>(HttpStatus.CONFLICT);
+		        	}
 				url = baseUrl + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				// this should never happen, why is Java dumb

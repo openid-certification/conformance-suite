@@ -59,10 +59,22 @@
 				Loading . . .
 			</div><hr />
 
+
+            <!-- render available test launch options here -->
+            <div>
+                <label for="testSelect"><h3>Select Test</h3></label>
+                <select id="testSelect" class="form-control">
+                    
+                </select>
+            </div>
+
+            <h3>Configure Test</h3>
+
 			<ul class="nav nav-tabs">
 			    <li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
 			    <li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
 			</ul>
+
 
 			<div class="tab-content">
 				<div id="formInput" class="tab-pane fade in active">
@@ -141,18 +153,14 @@
 				</div>
 			</div><!-- / .tab-content -->
 
-	        <div>
-				<input type="text" id="alias" placeholder="alias for test instance - redirect URI etc"></input>
-				<!-- render available test launch options here -->
-				<div id="launch-buttons">
-				    <select class="form-control">
-				    
-				    </select>
-				    <button class="btn btn-primary" id="createTestBtn" disabled="">Loading test definitions...</button>
-				</div>
-	        </div>
 
-	        <hr />
+            <div>
+                <button class="btn btn-primary" id="createTestBtn" disabled="">Loading test definitions...</button>
+                </div>
+            </div>
+
+            <hr />
+
 
 	        <h3>Running tests</h3>
 	        <div>
@@ -253,7 +261,7 @@
                     
                     $("#busy").show();
 
-                    $.ajax({url: '/runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
+                    $.ajax({url: '/runner/?test=' + encodeURIComponent(testName),
                             type: 'POST',
                             contentType: 'application/json',
                             data: $('#config').val(),
