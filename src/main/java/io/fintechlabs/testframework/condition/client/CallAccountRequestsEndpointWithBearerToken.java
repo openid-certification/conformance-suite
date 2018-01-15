@@ -91,7 +91,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 		JsonObject requestObject = env.get("account_requests_endpoint_request");
 		if (requestObject == null) {
-			return error("Couldn't find request objcet");
+			return error("Couldn't find request object");
 		}
 
 		// Build the endpoint URL
