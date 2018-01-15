@@ -62,9 +62,9 @@
 
             <!-- render available test launch options here -->
             <div>
-                <label for="testSelect"><h3>Select Test</h3></label>
+                <h3>Select Test</h3>
                 <select id="testSelect" class="form-control">
-                    
+                    <option value="select">--- Select A Test ----</option>
                 </select>
             </div>
 
@@ -162,7 +162,6 @@
 
             <div>
                 <button class="btn btn-primary" id="createTestBtn" disabled="">Loading test definitions...</button>
-                </div>
             </div>
 
             <hr />
@@ -197,9 +196,14 @@
         </div>
     </script>
 
-    <!-- Test Button -->
+    <!-- Test Launch Selectors -->
     <script type="text/template" id="indexTemplate_TestOption">
         <option value="<%- testName %>"><%- displayName %></option>
+    </script>
+
+    <script type="text/template" id="indexTemplate_TestOptGroup">
+        <optgroup label="<%- label %>">
+        </optgroup>
     </script>
 
     <!-- Running Test: Main -->
@@ -247,14 +251,32 @@
 			
 			$.getJSON('/runner/available', function(data) {
 				console.log('available: ', JSON.stringify(data));
-				data = _.sortBy(data, 'displayName');
+				var groupedTests = _.groupBy(data, 'profile');
 
-				_.each(data, function(item, index) {
-					$('#testSelect').append(FAPI_UI.logTemplates.TEST_OPTION(item));
+				var profiles = _.keys(groupedTests).sort();
+				
+				_.each(profiles, function(profile) {
+
+					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({label : profile}));
+					
+					$('#testSelect').append(optGroup);
+					
+					_.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
+						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION(item));
+					});
+
 				});
+				
 
                 $('#createTestBtn').click(function (evt) {
                 	   var testName = $('#testSelect').val();
+                	   
+                	   // if the user hasn't picked anything, just bail here
+                	   if (!testName || testName == 'select') {
+                		   console.log("No test selected");
+                		   FAPI_UI.showError({error:"Please select a sets from the dropdown list"});
+                		   return;
+                	   }
                 	
                     console.log('Button clicked: ' + testName);
                     

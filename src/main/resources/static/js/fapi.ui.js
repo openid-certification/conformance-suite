@@ -4,6 +4,7 @@ var FAPI_UI = {
 
 	loadHomepageTemplates : function() {
 		this.logTemplates.TEST_OPTION = _.template($("#indexTemplate_TestOption").html());
+		this.logTemplates.TEST_OPTGROUP = _.template($("#indexTemplate_TestOptGroup").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
 		this.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES = _.template($("#indexTemplate_RunningTestExposedKeyValues").html());
 		this.logTemplates.RUNNING_TEST_EXTERNAL_URL = _.template($("#indexTemplate_RunningTestExternalURL").html());
