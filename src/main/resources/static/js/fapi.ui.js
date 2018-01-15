@@ -50,6 +50,10 @@ var FAPI_UI = {
 					info = "The test is waiting for an external callback, for example, for the authorisation server to redirect back to it. In some cases this means the authorisation server did not redirect back to the conformance suite, indicating that the test failed.";
 				break;
 
+				case "CONFIGURED":
+					info = "The test has successfully setup the initial environment. Please return to the home page and press the 'START' button for your test.";
+				break;
+
 				case "INTERRUPTED":
 					info = "The test failed to run to completion as a critical element failed. Please see the log, fix the error and run the test again to get a complete set of results.";
 				break;
