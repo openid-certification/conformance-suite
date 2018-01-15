@@ -240,12 +240,15 @@ public abstract class AbstractTestModule implements TestModule {
 			
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
+			updateResultFromConditionFailure(onFail);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create optional condition object", e);
 			logException(e);
+			updateResultFromConditionFailure(onFail);
 		} catch (Exception e) {
 			logger.error("Generic error from underlying test framework", e);
 			logException(e);
+			updateResultFromConditionFailure(onFail);
 		}
 	}
 
@@ -272,28 +275,22 @@ public abstract class AbstractTestModule implements TestModule {
 		eventLog.log(getName(), "Setup Done");
 	}
 
+	protected void fireTestFinished() {
+		setStatus(Status.FINISHED);
+
+		if (getResult() == Result.UNKNOWN) {
+			fireTestSuccess();
+		}
+
+		eventLog.log(getName(), "Finished");
+	}
+
 	protected void fireTestSuccess() {
-		eventLog.log(getName(), ImmutableMap.of("result", "SUCCESS"));
-		
 		setResult(Result.PASSED);
-	
-		logFinalEnv();
 	}
 
 	protected void fireTestFailure() {
-		eventLog.log(getName(), ImmutableMap.of("result", "FAILURE"));
-	
 		setResult(Result.FAILED);
-
-		logFinalEnv();
-	}
-
-	protected void fireInterrupted() {
-		eventLog.log(getName(), ImmutableMap.of("result", "INTERRUPTED"));
-	
-		setResult(Result.UNKNOWN);
-		
-		logFinalEnv();
 	}
 
 	/**
@@ -310,6 +307,22 @@ public abstract class AbstractTestModule implements TestModule {
 		this.result = result;
 		if (testInfo != null) {
 			testInfo.updateTestResult(getId(), getResult());
+		}
+	}
+
+	protected void updateResultFromConditionFailure(ConditionResult onFail) {
+		switch (onFail) {
+			case FAILURE:
+				setResult(Result.FAILED);
+				break;
+			case WARNING:
+				if (getResult() != Result.FAILED) {
+					setResult(Result.WARNING);
+				}
+				break;
+			default:
+				// No action
+				break;
 		}
 	}
 	
@@ -441,15 +454,19 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	@Override
 	public void stop() {
+
+		String logResult;
+
 		if (!getStatus().equals(Status.FINISHED)) {
 			setStatus(Status.INTERRUPTED);
+			logResult = "INTERRUPTED";
 		} else {
-			eventLog.log(getName(), "Finished");			
+			logResult = getResult().toString();
 		}
 
-		if (getResult().equals(Result.UNKNOWN)) {
-			fireInterrupted();
-		}
+		eventLog.log(getName(), ImmutableMap.of("result", logResult));
+
+		logFinalEnv();
 	}
 
 	/**

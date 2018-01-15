@@ -271,8 +271,9 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		
-		setStatus(Status.FINISHED);
-		fireTestSuccess();
+		fireTestFinished();
+		stop();
+
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 
 	}

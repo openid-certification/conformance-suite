@@ -370,7 +370,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
 		
 		// at this point we can assume the test is fully done
-		fireTestSuccess();
+		fireTestFinished();
 		stop();
 
 		return new ResponseEntity<>(env.get("accounts_endpoint_response"), HttpStatus.OK);

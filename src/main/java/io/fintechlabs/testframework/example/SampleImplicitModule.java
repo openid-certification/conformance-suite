@@ -203,8 +203,9 @@ public class SampleImplicitModule extends AbstractTestModule {
 		
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
-		setStatus(Status.FINISHED);
-		fireTestSuccess();
+		fireTestFinished();
+		stop();
+
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 
 	}
