@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Collections;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -102,7 +103,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			RestTemplate restTemplate = createRestTemplate(env);
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.add("Authorization", String.join(" ", tokenType, accessToken));
 			if (requestHeaders != null) {
 				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {

@@ -21,12 +21,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -86,6 +84,7 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", String.join(" ", tokenType, accessToken));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			if (requestHeaders != null) {
 				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
 					headers.add(header.getKey(), header.getValue().getAsString());
