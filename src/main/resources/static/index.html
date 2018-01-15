@@ -78,81 +78,97 @@
 
 			<div class="tab-content">
 				<div id="formInput" class="tab-pane fade in active">
-				    <h3>Alias</h3>
-                    <div class="row">
-                        <div class="col-md-2 key">alias</div>
-                        <div class="col-md-10"><input type="text" class="config-form-element" data-json-target="alias" placeholder="alias for test instance, used to create consistent URIs across test instances"></input></div>
-                    </div>
+                    <div class="config-form-container">
+					    <h3 class="config-form-container-header">Alias</h3>
+	                    <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">alias</div>
+	                        <div class="col-md-10"><input type="text" class="config-form-element" data-json-target="alias" placeholder="alias for test instance, used to create consistent URIs across test instances"></input></div>
+	                    </div>
+				    </div>
+
 				    
-				  	<h3>Server</h3>
-					<div class="row">
-						<div class="col-md-2 key">discoveryUrl</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
-					</div>
+                    <div class="config-form-container">
+					  	<h3 class="config-form-container-header">Server</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">discoveryUrl</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key"></div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
+	                    </div>
+				  	</div>
 
-                    <div class="row">
-                        <div class="col-md-2 key"></div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
-                    </div>
 
-					<h3>Client</h3>
-					<div class="row">
-						<div class="col-md-2 key">client_id</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">client_secret</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">scope</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">redirect_uri</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">jwks</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
-					</div>
+                    <div class="config-form-container">
+						<h3 class="config-form-container-header">Client</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">client_id</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">client_secret</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">scope</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">redirect_uri</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">jwks</div>
+							<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
+						</div>
+				    </div>
 
-					<h3>TLS</h3>
-					<div class="row">
-						<div class="col-md-2 key">testHost</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
+
+                    <div class="config-form-container">
+						<h3 class="config-form-container-header">TLS</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">testHost</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">testPort</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">mtls.cert</div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER format in JSON string, no headers"></textarea></div>
+	                    </div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">mtls.key</div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.key" placeholder="TLS client key in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
+	                    </div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">mtls.ca</div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
+	                    </div>
+	                 </div>
+
+					
+					<div class="config-form-container">
+						<h3 class="config-form-container-header">Resource</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">resourceUrl</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">institution_id</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Institution ID assigned by OpenBanking"></input></div>
+						</div>
 					</div>
-
-					<div class="row">
-						<div class="col-md-2 key">testPort</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
-					</div>
-
-                    <div class="row">
-                        <div class="col-md-2 key">mtls.cert</div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER format in JSON string, no headers"></textarea></div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-2 key">mtls.key</div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.key" placeholder="TLS client key in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-2 key">mtls.ca</div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
-                    </div>
-
-					<h3>Resource</h3>
-					<div class="row">
-						<div class="col-md-2 key">resourceUrl</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
-					</div>
-
-					<div class="row">
-						<div class="col-md-2 key">institution_id</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Institution ID assigned by OpenBanking"></input></div>
-					</div>
+					
+					
 				</div>
 				<div id="JSONInput" class="tab-pane fade">
 				  	<textarea id="config" placeholder="{JSON data}"></textarea>
@@ -250,24 +266,28 @@
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
 			$.getJSON('/runner/available', function(data) {
-				console.log('available: ', JSON.stringify(data));
-				var groupedTests = _.groupBy(data, 'profile');
+				// save the list of available tests and associated info for later
+				FAPI_UI.availableTests = _.indexBy(data, 'testName');
+				console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
 
+				// sort the tests into groups by profile
+				var groupedTests = _.groupBy(data, 'profile');
+			    // consistent ordering for groups
 				var profiles = _.keys(groupedTests).sort();
-				
+
+			    // render all of the tests into the dropdown
 				_.each(profiles, function(profile) {
 
 					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({label : profile}));
-					
 					$('#testSelect').append(optGroup);
 					
+					// note that we're sorting the tests within each group as well
 					_.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
 						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION(item));
 					});
 
 				});
-				
-
+			    
                 $('#createTestBtn').click(function (evt) {
                 	   var testName = $('#testSelect').val();
                 	   
@@ -307,17 +327,20 @@
                     });
                 });
                 
-                $('#createTestBtn').prop('disabled', false);
+                // enable the launch button now that everything's loaded
                 $('#createTestBtn').html('<span class="glyphicon glyphicon-flag"></span> Launch Test');
-			
-			
+                
 			});
 			
-			updateRunningTable();
+            $('#testSelect').on('change', updateConfigFieldVisibility);
+            // update the config visibility right now
+            updateConfigFieldVisibility();            
 			
 			$('#refresh').click(function(event) {
 				updateRunningTable();
 			});
+            // refresh the running table right now        
+			updateRunningTable();
 
 			// Config UI
 			$(".config-form-element").attr("autocomplete","off");
@@ -335,6 +358,50 @@
 			})
 		});
 
+	    
+	    function updateConfigFieldVisibility() {
+	       var testName = $('#testSelect').val();
+	       
+	       // if the user hasn't picked anything, disable the create button
+	       if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
+   	    	       console.log("No test selected");
+	           var fieldsToShow = [];
+	           $('#createTestBtn').prop('disabled', true);
+	       } else {
+              var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
+	              // enable the create button
+	          $('#createTestBtn').prop('disabled', false);
+	       }
+	           
+           
+           if (!fieldsToShow) {
+               // the test hasn't defined anything, set a default
+               fieldsToShow = [];
+           }
+           
+           fieldsToShow.push('alias'); // always show the alias field
+	              
+          // show/hide all the appropriate fields on the page
+          $('.config-form-element-container').each(function () {
+                  if (_.contains(fieldsToShow, $('.config-form-element', this).data("jsonTarget"))) {
+                          $(this).show();
+                  } else {
+                          $(this).hide();
+                  }
+          });
+          
+          // collapse empty sections
+          $('.config-form-container').each(function() {
+                  if ($(this).children(':visible').not('.config-form-container-header').length === 0) {
+                         // there are no visible elements anymore, hide the header
+                         $('.config-form-container-header', this).hide();
+                  } else {
+                         // otherwise, hide the header
+                  $('.config-form-container-header', this).show();
+                  }
+          });
+	    }
+	    
 		/**
 	     * 
 	     */

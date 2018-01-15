@@ -82,7 +82,22 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "sample-test", displayName = "Sample AS Test")
+@PublishTestModule(
+	testName = "sample-test", 
+	displayName = "Sample AS Test",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"tls.testHost",
+		"tls.testPort",
+		"mtls.cert",
+		"mtls.key",
+		"mtls.ca",
+		
+	}
+)
 public class SampleTestModule extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);

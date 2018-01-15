@@ -27,6 +27,8 @@ var FAPI_UI = {
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
 	testResults : {passed:false, finished:false, success:0, warning:0, failure:0, interrupted:0, review:0, default:0, total:0},
 
+	availableTests : {},
+	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());

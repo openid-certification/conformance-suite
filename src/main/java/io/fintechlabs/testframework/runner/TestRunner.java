@@ -97,11 +97,12 @@ public class TestRunner {
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
 		
-		Set<Map<String, String>> available = getTestModules().values().stream()
+		Set<Map<String, ?>> available = getTestModules().values().stream()
 				.map(e -> ImmutableMap.of(
 						"testName", e.a.testName(),
 						"displayName", e.a.displayName(),
-						"profile", e.a.profile()
+						"profile", e.a.profile(),
+						"configurationFields", e.a.configurationFields()
 						))
 				.collect(Collectors.toSet());
 

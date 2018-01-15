@@ -29,6 +29,7 @@ public @interface PublishTestModule {
 
 	String testName();
 	String displayName();
-	String profile() default "NONE";
+	String profile() default "SAMPLE";
+	String[] configurationFields() default {};
 	
 }
