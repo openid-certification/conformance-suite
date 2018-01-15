@@ -36,7 +36,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 	private static final List<String> REQUIRED_PARAMETERS = Arrays.asList(new String[] {
 		"response_type",
 		"client_id",
-		"scope"
+		"scope",
+		"redirect_uri"
 	});
 
 	/**

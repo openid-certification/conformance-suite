@@ -152,7 +152,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		assertThat(redirectUriParams.get("response_type")).containsExactly(UriUtils.encodeQueryParam("code id_token", Charset.defaultCharset().name()));
 		assertThat(redirectUriParams.get("client_id")).containsExactly(UriUtils.encodeQueryParam("s6BhdRkqt3", Charset.defaultCharset().name()));
 		assertThat(redirectUriParams.get("scope")).containsExactly(UriUtils.encodeQueryParam("openid", Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("redirect_uri")).isNull();
+		assertThat(redirectUriParams.get("redirect_uri")).containsExactly(UriUtils.encodeQueryParam("https://client.example.org/cb", Charset.defaultCharset().name()));
 		assertThat(redirectUriParams.get("state")).isNull();
 		assertThat(redirectUriParams.get("nonce")).isNull();
 
