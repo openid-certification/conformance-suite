@@ -106,8 +106,9 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		onAuthorizationCallbackResponse();
 
-		setStatus(Status.FINISHED);
-		fireTestSuccess();
+		fireTestFinished();
+		stop();
+
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 	}
 
