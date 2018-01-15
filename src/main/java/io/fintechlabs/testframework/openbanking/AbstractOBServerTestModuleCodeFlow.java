@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,8 +10,10 @@ import javax.servlet.http.HttpSession;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -21,6 +24,7 @@ public abstract class AbstractOBServerTestModuleCodeFlow extends AbstractOBServe
 
 	public AbstractOBServerTestModuleCodeFlow(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(name, id, owner, eventLog, browser, testInfo);
+		logCodeFlowWarning();
 	}
 
 	@Override
@@ -59,6 +63,14 @@ public abstract class AbstractOBServerTestModuleCodeFlow extends AbstractOBServe
 		setStatus(Status.FINISHED);
 		fireTestSuccess();
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
+	}
+
+	protected void logCodeFlowWarning() {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("msg", "Risks have been identified with \"code\" flow that can be mitigated with hybrid (code id_token) flow");
+		map.put("result", ConditionResult.WARNING);
+		map.put("requirements", Sets.newHashSet("OB-3.4"));
+		eventLog.log(getName(), map);
 	}
 
 }
