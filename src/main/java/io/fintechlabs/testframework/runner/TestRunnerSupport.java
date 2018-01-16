@@ -71,4 +71,9 @@ public interface TestRunnerSupport {
 	 */
 	boolean hasTestId(String testId);
 
+	/**
+	 * @param testId
+	 */
+	void removeRunningTest(String testId);
+
 }

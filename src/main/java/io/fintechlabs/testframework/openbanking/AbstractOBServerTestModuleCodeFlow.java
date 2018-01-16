@@ -22,8 +22,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 
 public abstract class AbstractOBServerTestModuleCodeFlow extends AbstractOBServerTestModule {
 
-	public AbstractOBServerTestModuleCodeFlow(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(name, id, owner, eventLog, browser, testInfo);
+	public AbstractOBServerTestModuleCodeFlow(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(id, owner, eventLog, browser, testInfo);
 		logCodeFlowWarning();
 	}
 

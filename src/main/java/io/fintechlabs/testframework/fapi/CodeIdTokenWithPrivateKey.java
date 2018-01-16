@@ -84,6 +84,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -91,6 +92,17 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
+@PublishTestModule(testName = "code-id-token-with-private-key",
+	displayName = "code id_token (private key authentication)",
+	profile = "FAPI",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"resource.resourceUrl"
+	}
+)
 public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 	
@@ -101,7 +113,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	 * @param name
 	 */
 	public CodeIdTokenWithPrivateKey(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("code-id-token-with-private-key", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

@@ -30,8 +30,8 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOBServerTestModuleHybridFlow.class);
 
-	public AbstractOBServerTestModuleHybridFlow(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(name, id, owner, eventLog, browser, testInfo);
+	public AbstractOBServerTestModuleHybridFlow(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

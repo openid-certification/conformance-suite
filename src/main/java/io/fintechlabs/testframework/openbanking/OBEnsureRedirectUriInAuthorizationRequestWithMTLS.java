@@ -8,11 +8,28 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(
+	testName = "ob-ensure-redirect-uri-in-authorization-request-with-mtls",
+	displayName = "OB: ensure redirect URI in authorization request (MTLS authentication)",
+	profile = "OB",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class OBEnsureRedirectUriInAuthorizationRequestWithMTLS extends AbstractOBEnsureRedirectUriInAuthorizationRequest {
 
 	public OBEnsureRedirectUriInAuthorizationRequestWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-redirect-uri-in-authorization-request-with-mtls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	@Override

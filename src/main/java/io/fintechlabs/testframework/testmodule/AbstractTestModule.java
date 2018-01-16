@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
@@ -47,7 +49,6 @@ public abstract class AbstractTestModule implements TestModule {
 	
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
-	private String name;
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
@@ -58,15 +59,16 @@ public abstract class AbstractTestModule implements TestModule {
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
+	private Instant statusUpdated; // time stamp of when the status was last updated
 
 	protected TestInfoService testInfo;
 	
+	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		this.name = name;
+	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
@@ -74,16 +76,13 @@ public abstract class AbstractTestModule implements TestModule {
 		this.testInfo = testInfo;
 
 		this.created = Instant.now();
+		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
 		
 		setStatus(Status.CREATED);
 	}
 
 	public Map<String, String> getOwner() {
 		return owner;
-	}
-
-	protected void setOwner(ImmutableMap<String, String> owner) {
-		this.owner = owner;
 	}
 
 	/**
@@ -412,6 +411,7 @@ public abstract class AbstractTestModule implements TestModule {
 		if (testInfo != null) {
 			testInfo.updateTestStatus(getId(), getStatus());
 		}
+		this.statusUpdated = Instant.now();
 	}
 
 	/**
@@ -447,7 +447,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	@Override
 	public String getName() {
-		return name;
+		return testNameSupplier.get();
 	}
 
 	/* (non-Javadoc)
@@ -478,6 +478,11 @@ public abstract class AbstractTestModule implements TestModule {
 		return created;
 	}
 
+	@Override
+	public Instant getStatusUpdated() {
+		return statusUpdated;
+	}
+	
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
 		eventLog.log(getName(), ImmutableMap.of(
 				"msg", "Incoming HTTP request to test instance " + getId(),

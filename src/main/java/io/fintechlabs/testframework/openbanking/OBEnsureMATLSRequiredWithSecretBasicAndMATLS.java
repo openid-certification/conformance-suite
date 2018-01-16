@@ -23,11 +23,29 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(
+	testName = "ob-ensure-matls-required-with-secret-basic-and-matls",
+	displayName = "OB: ensure MATLS required (client_secret_basic authentication with MATLS)",
+	profile = "OB",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"client.client_secret",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class OBEnsureMATLSRequiredWithSecretBasicAndMATLS extends AbstractOBEnsureMATLSRequired {
 
 	public OBEnsureMATLSRequiredWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-ensure-matls-required-with-secret-basic-and-matls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}
 

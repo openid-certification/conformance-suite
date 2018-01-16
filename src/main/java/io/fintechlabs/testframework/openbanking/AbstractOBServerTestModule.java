@@ -82,8 +82,8 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
-	public AbstractOBServerTestModule(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(name, id, owner, eventLog, browser, testInfo);
+	public AbstractOBServerTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

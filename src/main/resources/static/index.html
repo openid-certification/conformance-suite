@@ -59,95 +59,140 @@
 				Loading . . .
 			</div><hr />
 
+
+
+            <!-- render available test launch options here -->
+            <div class="row">
+                <div class="col-md-12">
+                <h3>Select Test</h3>
+                <select id="testSelect" class="form-control">
+                    <option value="select">--- Select A Test ----</option>
+                </select>
+                </div>
+            </div>
+
+        <div class="row">
+            <div class="col-md-12">
+
+            <h3>Configure Test</h3>
+
 			<ul class="nav nav-tabs">
 			    <li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
 			    <li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
 			</ul>
 
+
 			<div class="tab-content">
 				<div id="formInput" class="tab-pane fade in active">
-				  	<h3>Server</h3>
-					<div class="row">
-						<div class="col-md-2 key">discoveryUrl</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
-					</div>
+                    <div class="config-form-container">
+					    <h3 class="config-form-container-header">Alias</h3>
+	                    <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">alias</div>
+	                        <div class="col-md-10"><input type="text" class="config-form-element" data-json-target="alias" placeholder="alias for test instance, used to create consistent URIs across test instances"></input></div>
+	                    </div>
+				    </div>
 
-                    <div class="row">
-                        <div class="col-md-2 key"></div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
-                    </div>
+				    
+                    <div class="config-form-container">
+					  	<h3 class="config-form-container-header">Server</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">discoveryUrl</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key"></div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
+	                    </div>
+				  	</div>
 
-					<h3>Client</h3>
-					<div class="row">
-						<div class="col-md-2 key">client_id</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">client_secret</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">scope</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">redirect_uri</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
-					</div>
-					<div class="row">
-						<div class="col-md-2 key">jwks</div>
-						<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
-					</div>
 
-					<h3>TLS</h3>
-					<div class="row">
-						<div class="col-md-2 key">testHost</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
+                    <div class="config-form-container">
+						<h3 class="config-form-container-header">Client</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">client_id</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">client_secret</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">scope</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">redirect_uri</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
+						</div>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">jwks</div>
+							<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
+						</div>
+				    </div>
+
+
+                    <div class="config-form-container">
+						<h3 class="config-form-container-header">TLS</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">testHost</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">testPort</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">mtls.cert</div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER format in JSON string, no headers"></textarea></div>
+	                    </div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">mtls.key</div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.key" placeholder="TLS client key in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
+	                    </div>
+	
+                        <div class="row config-form-element-container">
+	                        <div class="col-md-2 key">mtls.ca</div>
+	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
+	                    </div>
+	                 </div>
+
+					
+					<div class="config-form-container">
+						<h3 class="config-form-container-header">Resource</h3>
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">resourceUrl</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
+						</div>
+	
+                        <div class="row config-form-element-container">
+							<div class="col-md-2 key">institution_id</div>
+							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Institution ID assigned by OpenBanking"></input></div>
+						</div>
 					</div>
-
-					<div class="row">
-						<div class="col-md-2 key">testPort</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
-					</div>
-
-                    <div class="row">
-                        <div class="col-md-2 key">mtls.cert</div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER format in JSON string, no headers"></textarea></div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-2 key">mtls.key</div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.key" placeholder="TLS client key in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-2 key">mtls.ca</div>
-                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER format in JSON string, no headers, unencrypted"></textarea></div>
-                    </div>
-
-					<h3>Resource</h3>
-					<div class="row">
-						<div class="col-md-2 key">resourceUrl</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
-					</div>
-
-					<div class="row">
-						<div class="col-md-2 key">institution_id</div>
-						<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Institution ID assigned by OpenBanking"></input></div>
-					</div>
+					
+					
 				</div>
 				<div id="JSONInput" class="tab-pane fade">
 				  	<textarea id="config" placeholder="{JSON data}"></textarea>
 				</div>
 			</div><!-- / .tab-content -->
+			</div>
+        </div>
+        
+        <div class="row">
+            <div class="well col-md-6 col-md-offset-3">
+                <button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled=""><span class="glyphicon glyphicon-flag"></span> Launch Test</button>
+            </div>
+        </div>
 
-	        <div>
-				<input type="text" id="alias" placeholder="alias for test instance - redirect URI etc"></input>
-				<!-- render available test launch options here -->
-				<div id="launch-buttons"></div>
-	        </div>
+            <hr />
 
-	        <hr />
+        <div class="row">
+            <div class="col-md-12">
 
 	        <h3>Running tests</h3>
 	        <div>
@@ -161,7 +206,9 @@
 	        <div>
 	            <a href="logs.html" class="btn btn-info">View all available logs.</a>
 	        </div>
-
+	        </div>
+        </div>
+        
         </div>
     </div>
 
@@ -178,9 +225,14 @@
         </div>
     </script>
 
-    <!-- Test Button -->
-    <script type="text/template" id="indexTemplate_TestButton">  
-        <button class="btn" id="createTestBtn-<%- index %>">Create <%- testName %></button>
+    <!-- Test Launch Selectors -->
+    <script type="text/template" id="indexTemplate_TestOption">
+        <option value="<%- testName %>"><%- displayName %></option>
+    </script>
+
+    <script type="text/template" id="indexTemplate_TestOptGroup">
+        <optgroup label="<%- label %>">
+        </optgroup>
     </script>
 
     <!-- Running Test: Main -->
@@ -227,145 +279,247 @@
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
 			$.getJSON('/runner/available', function(data) {
-				console.log('available: ', JSON.stringify(data));
-				data = data.sort();
+				// save the list of available tests and associated info for later
+				FAPI_UI.availableTests = _.indexBy(data, 'testName');
+				console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
 
-				_.each(data, function(testName, index) {
-					$('#launch-buttons').append(FAPI_UI.logTemplates.TEST_LAUNCH_BUTTON({testName:testName, index:index}));
+				// sort the tests into groups by profile
+				var groupedTests = _.groupBy(data, 'profile');
+			    // consistent ordering for groups
+				var profiles = _.keys(groupedTests).sort();
 
-					$('#createTestBtn-'+index).click(function (evt) {
-						console.log('Button clicked: ' + testName);
-						
-						/* Figures out which tab is visible then populates the form appropriately
-						this is to ensure that the $('#config') value has properly updated in the event of a 
-						quick paste into a form field  with no tab switch and then a button press */
-						if ($("#formInput").hasClass("active")) {
-							updateJSONFromFormElements();
-						}
-						
-						$("#busy").show();
+			    // render all of the tests into the dropdown
+				_.each(profiles, function(profile) {
 
-						$.ajax({url: '/runner/?test=' + encodeURIComponent(testName) + '&alias=' + encodeURIComponent($('#alias').val()),
-								type: 'POST',
-								contentType: 'application/json',
-								data: $('#config').val(),
-								success: function(data, status) {
-									$("#busy").hide();
-									console.log('start results: ', data);
-									updateRunningTable();
-								},
-								error: function(jqxhr, status, error) {
-									$("#busy").hide();
-									FAPI_UI.showError(jqxhr.responseJSON);
-                                    updateRunningTable();
-								},
-								dataType: 'json'
-						});
+					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({label : profile}));
+					$('#testSelect').append(optGroup);
+					
+					// note that we're sorting the tests within each group as well
+					_.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
+						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION(item));
 					});
+
 				});
+			    
 			});
 			
-			updateRunningTable();
-			
+
+			$('#createTestBtn').click(function(evt) {
+				var testName = $('#testSelect').val();
+
+				// if the user hasn't picked anything, just bail here
+				if (!testName || testName == 'select') {
+					console.log("No test selected");
+					FAPI_UI.showError({
+						error: "Please select a sets from the dropdown list"
+					});
+					return;
+				}
+
+				console.log('Button clicked: ' + testName);
+
+				/* Figures out which tab is visible then populates the form appropriately
+				this is to ensure that the $('#config') value has properly updated in the event of a 
+				quick paste into a form field  with no tab switch and then a button press */
+				if ($("#formInput").hasClass("active")) {
+					updateJSONFromFormElements();
+				}
+
+				$("#busy").show();
+
+				$.ajax({
+					url: '/runner/?test=' + encodeURIComponent(testName),
+					type: 'POST',
+					contentType: 'application/json',
+					data: $('#config').val(),
+					success: function(data, status) {
+						$("#busy").hide();
+						console.log('start results: ', data);
+						updateRunningTable();
+					},
+					error: function(jqxhr, status, error) {
+						$("#busy").hide();
+						FAPI_UI.showError(jqxhr.responseJSON);
+						updateRunningTable();
+					},
+					dataType: 'json'
+				});
+			});
+
+			$('#testSelect').on('change', updateConfigFieldVisibility);
+			// update the config visibility right now
+			updateConfigFieldVisibility();
+
 			$('#refresh').click(function(event) {
 				updateRunningTable();
 			});
+			// refresh the running table right now        
+			updateRunningTable();
 
 			// Config UI
-			$(".config-form-element").attr("autocomplete","off");
-			$(".config-form-element").attr("autocorrect","off");
-			$(".config-form-element").attr("autocapitalize","off");
-			$(".config-form-element").attr("spellcheck","false");
+			$(".config-form-element").attr("autocomplete", "off");
+			$(".config-form-element").attr("autocorrect", "off");
+			$(".config-form-element").attr("autocapitalize", "off");
+			$(".config-form-element").attr("spellcheck", "false");
 
 			// tab actions
-			$('#tab-form-elements').click(function (e) {
+			$('#tab-form-elements').click(function(e) {
 				updateFormElementsFromJSON();
 			})
 
-			$('#tab-json-elements').click(function (e) { 
+			$('#tab-json-elements').click(function(e) {
 				updateJSONFromFormElements();
 			})
+
+			// sync the JSON at least once
+			walkJSON(FAPI_UI.testJSON);
+
 		});
 
+		function updateConfigFieldVisibility() {
+			var testName = $('#testSelect').val();
+
+			// if the user hasn't picked anything, disable the create button
+			if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
+				console.log("No test selected");
+				var fieldsToShow = [];
+				$('#createTestBtn').prop('disabled', true);
+			} else {
+				var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
+				// enable the create button
+				$('#createTestBtn').prop('disabled', false);
+			}
+
+			if (!fieldsToShow) {
+				// the test hasn't defined anything, set a default
+				fieldsToShow = [];
+			}
+
+			fieldsToShow.push('alias'); // always show the alias field
+
+			// show/hide all the appropriate fields on the page
+			$('.config-form-element-container').each(function() {
+				if (_.contains(fieldsToShow, $('.config-form-element', this).data("jsonTarget"))) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			});
+
+			// collapse empty sections
+			$('.config-form-container').each(function() {
+				if ($(this).children(':visible').not('.config-form-container-header').length === 0) {
+					// there are no visible elements anymore, hide the header
+					$('.config-form-container-header', this).hide();
+				} else {
+					// otherwise, hide the header
+					$('.config-form-container-header', this).show();
+				}
+			});
+		}
+
 		/**
-	     * 
-	     */
+		 * 
+		 */
 		function updateRunningTable() {
 			$.getJSON('/runner/running', function(data) {
 				console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
-				
+
+				var deferred = $.when(1);
+
 				_.each(data, function(testId) {
-					$.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
-						console.log("displaying test results:"+JSON.stringify(status));
+					//console.log('getting: ' + testId);
+					deferred = deferred.then(function() {
+						return getRunningTest(testId);
+					});
+				});
+			});
 
-						$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({testStatus:status}));
+		}
 
-						_.each(status.exposed, function(val, key) {
-			                $('#'+status.id+' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({key:key, val:val}));
-						});
+		function getRunningTest(testId) {
+			return $.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
+				//console.log("displaying test results:"+JSON.stringify(status));
+				//console.log('rendering: ' + status.id);
 
-						// Create start & stop button click handlers
-						$('#'+status.id+' button.start').click(function (evt) {
-							console.log('Start button clicked: ' + testId);
-							$("#busy").show();
-							$.ajax({url: '/runner/' + encodeURIComponent(testId),
-							    	type: 'POST',
-							    	success: function(data, status) {
-			                            console.log('Status: ', status);
-			                            $("#busy").hide();                                                
-			                            updateRunningTable();
-							    	},
-		                            error: function(jqxhr, status, error) {
-		                                $("#busy").hide();
-		                                FAPI_UI.showError(jqxhr.responseJSON);
-		                                updateRunningTable();
-		                            }
-						    });
-						});
+				$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({
+					testStatus: status
+				}));
 
-						$('#'+status.id+' button.stop').click(function (evt) {
-							console.log('Stop button clicked: ' + testId);
-							$.ajax({url: '/runner/' + encodeURIComponent(testId),
-		                        type: 'DELETE',
-		                        success: function(data, status) {
-		                            console.log('Status: ', status);
-		                            $("#busy").hide();                                                  
-		                            updateRunningTable();
-		                        },
-                                error: function(jqxhr, status, error) {
-                                    $("#busy").hide();
-                                    FAPI_UI.showError(jqxhr.responseJSON);
-                                    updateRunningTable();
-                                }
-		                    });
-						});
+				_.each(status.exposed, function(val, key) {
+					$('#' + status.id + ' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({
+						key: key,
+						val: val
+					}));
+				});
 
-						// External URL link
-						$.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
-							_.each(browser.urls, function(url, index) {
-								$('#'+status.id+' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({testId:testId, url:url, index:index}));
-								
-								// add the click handler
-								$('#browserLink-'+testId+"-"+index).click(function(event) {
-									event.preventDefault();
-									var win = window.open(url, '_blank');
-									
-									if (win) {
-										win.focus();
-										$.ajax({url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
-											type: 'POST',
-											success: function(data, status) {
-												console.log('Status: ', status);													
-												updateRunningTable();
-											}
-										});
-									} else {
-										// couldn't open the link?
-										console.log("Couldn't launch window");
+				// Create start & stop button click handlers
+				$('#' + status.id + ' button.start').click(function(evt) {
+					console.log('Start button clicked: ' + testId);
+					$("#busy").show();
+					$.ajax({
+						url: '/runner/' + encodeURIComponent(testId),
+						type: 'POST',
+						success: function(data, status) {
+							console.log('Status: ', status);
+							$("#busy").hide();
+							updateRunningTable();
+						},
+						error: function(jqxhr, status, error) {
+							$("#busy").hide();
+							FAPI_UI.showError(jqxhr.responseJSON);
+							updateRunningTable();
+						}
+					});
+				});
+
+				$('#' + status.id + ' button.stop').click(function(evt) {
+					console.log('Stop button clicked: ' + testId);
+					$.ajax({
+						url: '/runner/' + encodeURIComponent(testId),
+						type: 'DELETE',
+						success: function(data, status) {
+							console.log('Status: ', status);
+							$("#busy").hide();
+							updateRunningTable();
+						},
+						error: function(jqxhr, status, error) {
+							$("#busy").hide();
+							FAPI_UI.showError(jqxhr.responseJSON);
+							updateRunningTable();
+						}
+					});
+				});
+
+				// External URL link
+				$.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
+					_.each(browser.urls, function(url, index) {
+						$('#' + status.id + ' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({
+							testId: testId,
+							url: url,
+							index: index
+						}));
+
+						// add the click handler
+						$('#browserLink-' + testId + "-" + index).click(function(event) {
+							event.preventDefault();
+							var win = window.open(url, '_blank');
+
+							if (win) {
+								win.focus();
+								$.ajax({
+									url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+									type: 'POST',
+									success: function(data, status) {
+										console.log('Status: ', status);
+										updateRunningTable();
 									}
 								});
-							});						
+							} else {
+								// couldn't open the link?
+								console.log("Couldn't launch window");
+							}
 						});
 					});
 				});
@@ -390,75 +544,69 @@
 		 */
 		function updateFormElementsFromJSON() {
 			try {
-		        FAPI_UI.testJSON = JSON.parse($("#config").val());
-		    } catch (e) {
-		    	FAPI_UI.showError({error:e});
-		        return false;
-		    }
+				FAPI_UI.testJSON = JSON.parse($("#config").val());
+			} catch (e) {
+				FAPI_UI.showError({
+					error: e
+				});
+				return false;
+			}
 
-		    // valid JSON, but we also want to verify that it is an object at the root node
-		    if (typeof FAPI_UI.testJSON != 'object') {
-		    	FAPI_UI.showError({error:"Please ensure that your root node JSON is an object"});
-		        return false;
-		    }
+			// valid JSON, but we also want to verify that it is an object at the root node
+			if (typeof FAPI_UI.testJSON != 'object') {
+				FAPI_UI.showError({
+					error: "Please ensure that your root node JSON is an object"
+				});
+				return false;
+			}
 
-		    $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+			$(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+			
+			walkJSON(FAPI_UI.testJSON);
+		}
 
-		    /**
-		     * 
-		     */
-		    function walkJSON(element, root) {
+		/**
+		 * 
+		 */
 
-		    	_.each(element, function(value, key, obj) { 
-		    			console.log("****** WALK NODE ******");
-		    			console.log("root="+root);
-			    		console.log("value="+JSON.stringify(value));
-			    		console.log("key="+key);
-			    		console.log("obj="+JSON.stringify(obj));
-			    		console.log("element="+JSON.stringify(element));
+		function walkJSON(element, root) {
 
-			    		var el = $(".config-form-element[data-json-target='"+root+"."+key+"']");
-			    		
-			    		if ($(document).find(el).length) {
-			    			if (_.isArray(value) || _.isObject(value)) {
-			    				el.val(JSON.stringify(value));
-			    			} else {
-			    				el.val(value);
-			    			}
-			    		} else {
-			    			if (_.isObject(value)) {
-			    				if (root != undefined) {
-			    					walkJSON(value, root+"."+key);
-			    				} else {
-			    					walkJSON(value, key);
-			    				}
-			    			}
-			    		}
-			    	}
-			    )
-		    }
-		    walkJSON(FAPI_UI.testJSON);   
+			_.each(element, function(value, key, obj) {
+				/*
+				console.log("****** WALK NODE ******");
+				console.log("root=" + root);
+				console.log("value=" + JSON.stringify(value));
+				console.log("key=" + key);
+				console.log("obj=" + JSON.stringify(obj));
+				console.log("element=" + JSON.stringify(element));
+				 */
+
+				var el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+
+				if ($(document).find(el).length) {
+					if (_.isArray(value) || _.isObject(value)) {
+						el.val(JSON.stringify(value));
+					} else {
+						el.val(value);
+					}
+				} else {
+					if (_.isObject(value)) {
+						if (root != undefined) {
+							walkJSON(value, root + "." + key);
+						} else {
+							walkJSON(value, key);
+						}
+					}
+				}
+			});
 		}
 
 		/**
 		 *
 		 */
+
 		function populateJSON(key, val) {
 
-			// responsible for converting any dot syntax in our key parameter into object refs
-			Object.prop = function(obj, prop, val){
-			    var props = prop.split('.')
-			      , final = props.pop(), p 
-			    while(p = props.shift()){
-			        if (typeof obj[p] === 'undefined') {
-			        	obj[p] = {}; // create the object
-			        }
-
-			        obj = obj[p];
-			    }
-
-			    return val ? (obj[final] = val) : obj[final];
-			}
 			/*
 			var obj = { "a": { "b": '1', "c": 0 } };
 			// get
@@ -468,41 +616,40 @@
 			console.log(obj); // -> { a: { b: '1', c: 5 } }
 			Object.prop(obj, 'create.me.now', "hello");
 			console.log(obj); // -> { a: { b: '1', c: 5 }, create:{me:{now:"hello"}} }
-			*/
+			 */
 
-			console.log("key="+key);
-			console.log("val="+val);
-
+			/*
+			console.log("key=" + key);
+			console.log("val=" + val);
+			 */
 			// check to see if we have an "array string" or a "number string"
 			// i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
 			try {
-		        var stringToJSON = JSON.parse(val); // an array, object or number ?
-		        if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
-					Object.prop(FAPI_UI.testJSON, key, stringToJSON);
+				var stringToJSON = JSON.parse(val); // an array, object or number ?
+				if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
+					FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
+				} else if (_.isNumber(stringToJSON)) {
+					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
 				}
-				else if (_.isNumber(stringToJSON)) {
-					Object.prop(FAPI_UI.testJSON, key, val);
-				}
-		    } catch (e) { // a string
-		    	if (val=="") { // if we have an empty string then delete the value
-		    		console.log("omit:"+key);
-		    		
-		    		var elements = key.split(".");
-		    		if (elements.length > 1) {
-		    			if (FAPI_UI.testJSON[elements[0]] != undefined) {
-		    				FAPI_UI.testJSON[elements[0]] = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]);
-		    			}
-		    		} else {
-		    			FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key); 
-		    		}
-		    	} else {
-		    		Object.prop(FAPI_UI.testJSON, key, val);
-		    	}
-		    }
+			} catch (e) { // a string
+				if (val == "") { // if we have an empty string then delete the value
+					//console.log("omit:" + key);
 
-			console.log("FAPI_UI.testJSON="+JSON.stringify(FAPI_UI.testJSON));
+					var elements = key.split(".");
+					if (elements.length > 1) {
+						if (FAPI_UI.testJSON[elements[0]] != undefined) {
+							FAPI_UI.testJSON[elements[0]] = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]);
+						}
+					} else {
+						FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key);
+					}
+				} else {
+					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
+				}
+			}
+
+			console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
-
 	</script>
 
   </body>

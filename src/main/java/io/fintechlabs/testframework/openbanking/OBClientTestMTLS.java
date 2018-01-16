@@ -61,14 +61,27 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
+@PublishTestModule(
+	testName = "ob-client-test-mtls",
+	displayName = "OB: client test (MTLS authentication)",
+	profile = "OB",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"client.redirect_uri"
+	}
+)
 public class OBClientTestMTLS extends AbstractTestModule {
 
 	/**
 	 * @param name
 	 */
 	public OBClientTestMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-client-test-mtls", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

@@ -75,6 +75,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -82,6 +83,22 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
+@PublishTestModule(
+	testName = "sample-test", 
+	displayName = "Sample AS Test",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"tls.testHost",
+		"tls.testPort",
+		"mtls.cert",
+		"mtls.key",
+		"mtls.ca",
+		
+	}
+)
 public class SampleTestModule extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);
@@ -89,7 +106,7 @@ public class SampleTestModule extends AbstractTestModule {
 	 * 
 	 */
 	public SampleTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("sample-test", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
@@ -129,7 +146,7 @@ public class SampleTestModule extends AbstractTestModule {
 		exposeEnvString("client_id");
 		
 		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		//callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -238,7 +255,8 @@ public class SampleTestModule extends AbstractTestModule {
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 		
 		// verify the access token against a protected resource
-		
+
+		/*
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		
 		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
@@ -256,6 +274,7 @@ public class SampleTestModule extends AbstractTestModule {
 		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 		
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		*/
 		
 		fireTestFinished();
 		stop();

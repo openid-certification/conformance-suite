@@ -3,7 +3,8 @@ var FAPI_UI = {
 	logTemplates : {},
 
 	loadHomepageTemplates : function() {
-		this.logTemplates.TEST_LAUNCH_BUTTON = _.template($("#indexTemplate_TestButton").html());
+		this.logTemplates.TEST_OPTION = _.template($("#indexTemplate_TestOption").html());
+		this.logTemplates.TEST_OPTGROUP = _.template($("#indexTemplate_TestOptGroup").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
 		this.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES = _.template($("#indexTemplate_RunningTestExposedKeyValues").html());
 		this.logTemplates.RUNNING_TEST_EXTERNAL_URL = _.template($("#indexTemplate_RunningTestExternalURL").html());
@@ -26,6 +27,8 @@ var FAPI_UI = {
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
 	testResults : {passed:false, finished:false, success:0, warning:0, failure:0, interrupted:0, review:0, info:0, default:0, total:0},
 
+	availableTests : {},
+	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());
@@ -89,6 +92,21 @@ var FAPI_UI = {
 		}
 		
 		$('#errorModal').modal();
+	},
+
+	// responsible for converting any dot syntax in our key parameter into object refs
+	prop : function(obj, prop, val){
+	    var props = prop.split('.')
+	      , final = props.pop(), p 
+	    while(p = props.shift()){
+	        if (typeof obj[p] === 'undefined') {
+	        	obj[p] = {}; // create the object
+	        }
+
+	        obj = obj[p];
+	    }
+
+	    return val ? (obj[final] = val) : obj[final];
 	},
 
 	testJSON : {}/*

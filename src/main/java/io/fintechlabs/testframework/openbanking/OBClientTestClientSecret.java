@@ -56,6 +56,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
+import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;
 import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
@@ -66,16 +67,29 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
+@PublishTestModule(
+	testName = "ob-client-test-client-secret",
+	displayName = "OB: client test (client_secret authentication)",
+	profile = "OB",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"client.redirect_uri"
+	}
+)
 public class OBClientTestClientSecret extends AbstractTestModule {
 
 	/**
 	 * @param name
 	 */
 	public OBClientTestClientSecret(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super("ob-client-test-client-secret", id, owner, eventLog, browser, testInfo);
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)

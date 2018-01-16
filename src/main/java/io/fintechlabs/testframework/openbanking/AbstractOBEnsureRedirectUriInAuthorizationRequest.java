@@ -10,8 +10,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends AbstractOBServerTestModule {
 
-	public AbstractOBEnsureRedirectUriInAuthorizationRequest(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(name, id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureRedirectUriInAuthorizationRequest(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	protected void performAuthorizationFlow() {

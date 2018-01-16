@@ -41,8 +41,8 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 
 	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequired.class);
 
-	public AbstractOBEnsureMATLSRequired(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(name, id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureMATLSRequired(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+		super(id, owner, eventLog, browser, testInfo);
 	}
 
 	/* (non-Javadoc)
