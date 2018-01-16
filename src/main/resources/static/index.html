@@ -60,13 +60,19 @@
 			</div><hr />
 
 
+
             <!-- render available test launch options here -->
-            <div>
+            <div class="row">
+                <div class="col-md-12">
                 <h3>Select Test</h3>
                 <select id="testSelect" class="form-control">
                     <option value="select">--- Select A Test ----</option>
                 </select>
+                </div>
             </div>
+
+        <div class="row">
+            <div class="col-md-12">
 
             <h3>Configure Test</h3>
 
@@ -174,14 +180,19 @@
 				  	<textarea id="config" placeholder="{JSON data}"></textarea>
 				</div>
 			</div><!-- / .tab-content -->
-
-
-            <div>
-                <button class="btn btn-primary" id="createTestBtn" disabled="">Loading test definitions...</button>
+			</div>
+        </div>
+        
+        <div class="row">
+            <div class="well col-md-6 col-md-offset-3">
+                <button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled=""><span class="glyphicon glyphicon-flag"></span> Launch Test</button>
             </div>
+        </div>
 
             <hr />
 
+        <div class="row">
+            <div class="col-md-12">
 
 	        <h3>Running tests</h3>
 	        <div>
@@ -195,7 +206,9 @@
 	        <div>
 	            <a href="logs.html" class="btn btn-info">View all available logs.</a>
 	        </div>
-
+	        </div>
+        </div>
+        
         </div>
     </div>
 
@@ -288,9 +301,6 @@
 
 				});
 			    
-                // enable the launch button now that everything's loaded
-                $('#createTestBtn').html('<span class="glyphicon glyphicon-flag"></span> Launch Test');
-                
 			});
 			
 
@@ -419,7 +429,7 @@
 				var deferred = $.when(1);
 
 				_.each(data, function(testId) {
-					console.log('getting: ' + testId);
+					//console.log('getting: ' + testId);
 					deferred = deferred.then(function() {
 						return getRunningTest(testId);
 					});
@@ -431,7 +441,7 @@
 		function getRunningTest(testId) {
 			return $.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
 				//console.log("displaying test results:"+JSON.stringify(status));
-				console.log('rendering: ' + status.id);
+				//console.log('rendering: ' + status.id);
 
 				$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({
 					testStatus: status
