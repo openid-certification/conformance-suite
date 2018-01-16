@@ -14,24 +14,22 @@
 
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToIssuer;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToRegistrationEndpoint;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToUserInfoEndpoint;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -43,16 +41,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTestModuleHybridFlow {
 
 	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequired.class);
-
-	private static final int HTTPS_DEFAULT_PORT = 443;
-
-	private static final List<String> AUTH_TLS_ENDPOINT_KEYS = ImmutableList.of(
-			"issuer",
-			"authorization_endpoint",
-			"token_endpoint",
-			"userinfo_endpoint",
-			"registration_endpoint"
-	);
 
 	public AbstractOBEnsureMATLSRequired(String name, String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(name, id, owner, eventLog, browser, testInfo);
@@ -67,49 +55,61 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 
 		// check that all known endpoints support TLS correctly
 
-		Set<JsonObject> tlsHosts = new HashSet<JsonObject>();
-		JsonObject authEndpoint = null;
-
 		JsonObject serverConfig = env.get("server"); // verified present by CheckServerConfiguration
-		for (Map.Entry<String,JsonElement> entry : serverConfig.entrySet()) {
-			if (AUTH_TLS_ENDPOINT_KEYS.contains(entry.getKey())) {
-				String endpointUrl = entry.getValue().getAsString();
-				UriComponents components = UriComponentsBuilder.fromUriString(endpointUrl).build();
 
-				String host = components.getHost();
-				int port = components.getPort();
+		if (serverConfig.has("issuer")) {
 
-				if (port < 0) {
-					port = HTTPS_DEFAULT_PORT;
-				}
-
-				JsonObject endpoint = new JsonObject();
-				endpoint.addProperty("testHost", host);
-				endpoint.addProperty("testPort", port);
-				// FIXME: this will be tidied up in the forthcoming TLS-test refactor
-				if (entry.getKey().equals("authorization_endpoint"))
-					authEndpoint = endpoint;
-				tlsHosts.add(endpoint);
-			}
-		}
-
-		for (JsonObject endpoint : tlsHosts) {
-			eventLog.log(getName(),
-					"Testing TLS support for " +
-					endpoint.get("testHost").getAsString() +
-					":" + endpoint.get("testPort").getAsInt());
-
-			env.remove("tls");
-			env.put("tls", endpoint);
+			callAndStopOnFailure(SetTLSTestHostToIssuer.class);
 
 			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 
-			// FIXME: this will be tidied up in the forthcoming TLS-test refactor
-			if (!endpoint.equals(authEndpoint)) {
-				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-			}
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+		}
+
+		if (serverConfig.has("authorization_endpoint")) {
+
+			callAndStopOnFailure(SetTLSTestHostToAuthorizationEndpoint.class);
+
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+
+			// Additional ciphers are allowed for the authorization endpoint
+		}
+
+		if (serverConfig.has("token_endpoint")) {
+
+			callAndStopOnFailure(SetTLSTestHostToTokenEndpoint.class);
+
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+		}
+
+		if (serverConfig.has("userinfo_endpoint")) {
+
+			callAndStopOnFailure(SetTLSTestHostToUserInfoEndpoint.class);
+
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+		}
+
+		if (serverConfig.has("userinfo_endpoint")) {
+
+			callAndStopOnFailure(SetTLSTestHostToRegistrationEndpoint.class);
+
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
+
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		}
 
 		// oauth-MTLS is not required for all OpenBanking client authentication methods
