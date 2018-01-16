@@ -72,6 +72,7 @@ import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
@@ -132,6 +133,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		exposeEnvString("client_id");
 		
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);

@@ -68,6 +68,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguratio
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
@@ -113,6 +114,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		exposeEnvString("client_id");
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
