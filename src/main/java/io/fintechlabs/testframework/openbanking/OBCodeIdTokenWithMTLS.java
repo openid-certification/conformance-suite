@@ -24,7 +24,22 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-@PublishTestModule(testName = "ob-code-id-token-with-mtls", displayName = "OB: Code Id Token (With MTLS)", profile = "OB")
+@PublishTestModule(
+	testName = "ob-code-id-token-with-mtls",
+	displayName = "OB: code id_token (MTLS authentication)",
+	profile = "OB",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModuleHybridFlow {
 
 	public OBCodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {

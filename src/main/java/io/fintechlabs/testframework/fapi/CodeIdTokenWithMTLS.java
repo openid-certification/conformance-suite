@@ -85,7 +85,21 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "code-id-token-with-mtls", displayName = "Code Id Token (With MTLS)", profile = "FAPI")
+@PublishTestModule(
+	testName = "code-id-token-with-mtls",
+	displayName = "code id_token (MTLS authentication)",
+	profile = "FAPI",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl"
+	}
+)
 public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 	

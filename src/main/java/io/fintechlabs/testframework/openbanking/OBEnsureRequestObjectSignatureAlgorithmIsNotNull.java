@@ -18,7 +18,22 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-@PublishTestModule(testName = "ob-ensure-request-object-signature-algorithm-is-not-null", displayName = "OB: Ensure Request Object Signature Algorithm Is Not Null", profile = "OB")
+@PublishTestModule(
+	testName = "ob-ensure-request-object-signature-algorithm-is-not-null",
+	displayName = "OB: ensure request object signature algorithm is not null",
+	profile = "OB",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class OBEnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractOBServerTestModule {
 
 	public OBEnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {

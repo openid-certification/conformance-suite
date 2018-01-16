@@ -71,7 +71,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-@PublishTestModule(testName = "ob-client-test-client-secret", displayName = "OB: Client Test (With Client Secret)", profile = "OB")
+@PublishTestModule(
+	testName = "ob-client-test-client-secret",
+	displayName = "OB: client test (client_secret authentication)",
+	profile = "OB",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"client.redirect_uri"
+	}
+)
 public class OBClientTestClientSecret extends AbstractTestModule {
 
 	/**

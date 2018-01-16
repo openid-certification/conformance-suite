@@ -48,7 +48,17 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
-@PublishTestModule(testName = "ensure-request-object-signature-algorithm-is-not-null", displayName = "Ensure Request Object Signature Algorithm Is Not Null", profile = "FAPI")
+@PublishTestModule(
+	testName = "ensure-request-object-signature-algorithm-is-not-null",
+	displayName = "Ensure request object signature algorithm is not null",
+	profile = "FAPI",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks"
+	}
+)
 public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTestModule {
 
 	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {

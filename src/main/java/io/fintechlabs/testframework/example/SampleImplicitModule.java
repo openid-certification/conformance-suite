@@ -61,7 +61,16 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "sample-implicit-test", displayName = "Sample Implicit Client Test")
+@PublishTestModule(
+	testName = "sample-implicit-test",
+	displayName = "Sample Implicit Client Test",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope"
+	}
+)
 public class SampleImplicitModule extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(SampleImplicitModule.class); 

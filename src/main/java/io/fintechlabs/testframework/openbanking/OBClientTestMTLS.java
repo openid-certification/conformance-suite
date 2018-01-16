@@ -63,7 +63,18 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-@PublishTestModule(testName = "ob-client-test-mtls", displayName = "OB: Client Test (With MTLS)", profile = "OB")
+@PublishTestModule(
+	testName = "ob-client-test-mtls",
+	displayName = "OB: client test (MTLS authentication)",
+	profile = "OB",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"client.redirect_uri"
+	}
+)
 public class OBClientTestMTLS extends AbstractTestModule {
 
 	/**

@@ -49,7 +49,16 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "ensure-redirect-uri-is-registered", displayName = "Ensure Registered Redirect Uri Is Registered", profile = "FAPI")
+@PublishTestModule(
+	testName = "ensure-redirect-uri-is-registered",
+	displayName = "Ensure redirect URI is registered",
+	profile = "FAPI",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope"
+	}
+)
 public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 	/**

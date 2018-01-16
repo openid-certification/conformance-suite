@@ -89,7 +89,17 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "code-id-token-with-private-key", displayName = "Code Id Token (With Private Key)", profile = "FAPI")
+@PublishTestModule(testName = "code-id-token-with-private-key",
+	displayName = "code id_token (private key authentication)",
+	profile = "FAPI",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"resource.resourceUrl"
+	}
+)
 public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 	

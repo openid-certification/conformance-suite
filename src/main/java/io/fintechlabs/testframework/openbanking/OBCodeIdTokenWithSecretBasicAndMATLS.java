@@ -25,7 +25,23 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-@PublishTestModule(testName = "ob-code-id-token-with-secret-basic-and-matls", displayName = "OB: Code Id Token (With Secret Basic And MATLS)", profile = "OB")
+@PublishTestModule(
+	testName = "ob-code-id-token-with-secret-basic-and-matls",
+	displayName = "OB: code id_token (client_secret_basic authentication with MATLS)",
+	profile = "OB",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"client.client_secret",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class OBCodeIdTokenWithSecretBasicAndMATLS extends AbstractOBServerTestModuleHybridFlow {
 
 	public OBCodeIdTokenWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {

@@ -26,7 +26,22 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-@PublishTestModule(testName = "ob-code-id-token-with-private-key-and-matls", displayName = "OB: Code Id Token (With Private Key And MATLS)", profile = "OB")
+@PublishTestModule(
+	testName = "ob-code-id-token-with-private-key-and-matls",
+	displayName = "OB: code id_token (private key authentication with MATLS)",
+	profile = "OB",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleHybridFlow {
 
 	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
