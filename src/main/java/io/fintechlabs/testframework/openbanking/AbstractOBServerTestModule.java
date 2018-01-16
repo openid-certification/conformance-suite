@@ -21,12 +21,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
@@ -269,11 +269,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
-		// FIXME refactor into conditon
-		JsonObject headers = env.get("resource_endpoint_request_headers");
-		String interactionId = env.getString("fapi_interaction_id");
-		headers.addProperty("x-fapi-interaction-id", interactionId);
-		env.put("resource_endpoint_request_headers", headers);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
 		// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
 
