@@ -26,7 +26,6 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingE
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToIssuer;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToRegistrationEndpoint;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToUserInfoEndpoint;
@@ -56,17 +55,6 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 		// check that all known endpoints support TLS correctly
 
 		JsonObject serverConfig = env.get("server"); // verified present by CheckServerConfiguration
-
-		if (serverConfig.has("issuer")) {
-
-			callAndStopOnFailure(SetTLSTestHostToIssuer.class);
-
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-		}
 
 		if (serverConfig.has("authorization_endpoint")) {
 
