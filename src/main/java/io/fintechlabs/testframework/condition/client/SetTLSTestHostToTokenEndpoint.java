@@ -12,24 +12,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition.common;
+package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.condition.AbstractDisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.AbstractSetTLSTestHost;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowInsecureCipher {
+public class SetTLSTestHostToTokenEndpoint extends AbstractSetTLSTestHost {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public DisallowInsecureCipherForResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public SetTLSTestHostToTokenEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -37,15 +36,17 @@ public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowI
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "resource")
+	@PreEnvironment(required = "server")
+	@PostEnvironment(required = "tls")
 	public Environment evaluate(Environment env) {
 
-		String resourceEndpoint = env.getString("resource", "resourceUrl");
-		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+		String endpointUrl = env.getString("server", "token_endpoint");
+
+		if (Strings.isNullOrEmpty(endpointUrl)) {
+			return error("Token endpoint not found in server configuration");
 		}
 
-		return checkDisallowedCiphersForUrl(env, resourceEndpoint);
+		return setTLSTestHost(env, endpointUrl);
 	}
 
 }

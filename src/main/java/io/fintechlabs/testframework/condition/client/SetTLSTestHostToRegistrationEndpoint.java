@@ -12,24 +12,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition.common;
-
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
+package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.AbstractSetTLSTestHost;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class SetTlsHostToResourceEndpoint extends AbstractCondition {
+public class SetTLSTestHostToRegistrationEndpoint extends AbstractSetTLSTestHost {
 
-	private static final int HTTPS_DEFAULT_PORT = 443;
-
-	public SetTlsHostToResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public SetTLSTestHostToRegistrationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -37,31 +36,17 @@ public class SetTlsHostToResourceEndpoint extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"resource", "config"})
+	@PreEnvironment(required = "server")
+	@PostEnvironment(required = "tls")
 	public Environment evaluate(Environment env) {
 
-		String resourceEndpoint = env.getString("resource", "resourceUrl");
-		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+		String endpointUrl = env.getString("server", "registration_endpoint");
+
+		if (Strings.isNullOrEmpty(endpointUrl)) {
+			return error("Registration endpoint not found in server configuration");
 		}
 
-		UriComponents components = UriComponentsBuilder.fromUriString(resourceEndpoint).build();
-
-		String host = components.getHost();
-		int port = components.getPort();
-
-		if (port < 0) {
-			port = HTTPS_DEFAULT_PORT;
-		}
-
-		JsonObject endpoint = new JsonObject();
-		endpoint.addProperty("testHost", host);
-		endpoint.addProperty("testPort", port);
-
-		env.get("config").remove("tls");
-		env.get("config").add("tls", endpoint);
-
-		return env;
+		return setTLSTestHost(env, endpointUrl);
 	}
 
 }
