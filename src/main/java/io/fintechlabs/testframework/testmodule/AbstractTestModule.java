@@ -33,6 +33,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -129,7 +130,7 @@ public abstract class AbstractTestModule implements TestModule {
 			
 			env = condition.evaluate(env);
 			
-			PreEnvironment post = eval.getAnnotation(PreEnvironment.class);
+			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);
 			if (post != null) {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
