@@ -63,7 +63,17 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "sample-client-test", displayName = "Sample Client Test")
+@PublishTestModule(
+	testName = "sample-client-test", 
+	displayName = "Sample Client Test",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"client.redirect_uri"
+	}
+)
 public class SampleClientTestModule extends AbstractTestModule {
 
 	/**
