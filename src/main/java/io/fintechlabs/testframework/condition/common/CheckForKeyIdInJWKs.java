@@ -14,22 +14,16 @@
 
 package io.fintechlabs.testframework.condition.common;
 
-import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 
-import io.fintechlabs.testframework.condition.AbstractDisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowInsecureCipher {
+public class CheckForKeyIdInJWKs extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipherForResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CheckForKeyIdInJWKs(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -37,15 +31,27 @@ public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowI
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "resource")
+	@PreEnvironment(required = "jwks")
 	public Environment evaluate(Environment env) {
 
-		String resourceEndpoint = env.getString("resource", "resourceUrl");
-		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+		JsonElement keys = env.findElement("jwks", "keys");
+		if (keys == null || !keys.isJsonArray()) {
+			return error("keys array not found in JWKs");
 		}
 
-		return checkDisallowedCiphersForUrl(env, resourceEndpoint);
+		for (JsonElement key : keys.getAsJsonArray()) {
+			if (!key.isJsonObject()) {
+				return error("invalid key in JWKs", args("key", key));
+			}
+
+			if (!key.getAsJsonObject().has("kid")) {
+				return error("kid not found in key", args("key", key));
+			}
+		}
+
+		logSuccess("All keys contain kids");
+
+		return env;
 	}
 
 }
