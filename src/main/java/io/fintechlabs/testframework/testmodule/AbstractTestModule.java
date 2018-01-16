@@ -58,6 +58,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
+	private Instant statusUpdated; // time stamp of when the status was last updated
 
 	protected TestInfoService testInfo;
 	
@@ -74,6 +75,7 @@ public abstract class AbstractTestModule implements TestModule {
 		this.testInfo = testInfo;
 
 		this.created = Instant.now();
+		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
 		
 		setStatus(Status.CREATED);
 	}
@@ -408,6 +410,7 @@ public abstract class AbstractTestModule implements TestModule {
 		if (testInfo != null) {
 			testInfo.updateTestStatus(getId(), getStatus());
 		}
+		this.statusUpdated = Instant.now();
 	}
 
 	/**
@@ -474,6 +477,11 @@ public abstract class AbstractTestModule implements TestModule {
 		return created;
 	}
 
+	@Override
+	public Instant getStatusUpdated() {
+		return statusUpdated;
+	}
+	
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
 		eventLog.log(getName(), ImmutableMap.of(
 				"msg", "Incoming HTTP request to test instance " + getId(),

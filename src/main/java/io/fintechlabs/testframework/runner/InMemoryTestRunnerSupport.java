@@ -14,7 +14,10 @@
 
 package io.fintechlabs.testframework.runner;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -27,12 +30,15 @@ import com.google.common.collect.ImmutableMap;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
  *
  */
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
+	
+	private Duration closedTestTimeout = Duration.ofMinutes(15);
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -43,7 +49,6 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	// collection of aliases assigned to tests
 	private Map<String, String> aliases = new HashMap<>();
 	
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#addRunningTest(java.lang.String, io.fintechlabs.testframework.testmodule.TestModule)
 	 */
@@ -65,6 +70,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public TestModule getRunningTestByAlias(String alias) {
+		expireOldTests();
 		return getRunningTestById(getTestIdForAlias(alias));
 	}
 
@@ -81,6 +87,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public TestModule getRunningTestById(String testId) {
+		expireOldTests();
 		// Put in null check to handle non-userfacing interactions.
 		if (authenticationFacade.getAuthenticationToken() == null ||
 				authenticationFacade.isAdmin()) {
@@ -100,6 +107,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public Set<String> getAllRunningTestIds() {
+		expireOldTests();
 		// Put in null check to handle non-userfacing interactions.
 		if (authenticationFacade.getAuthenticationToken() == null ||
 				authenticationFacade.isAdmin()) {
@@ -130,7 +138,43 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 */
 	@Override
 	public boolean hasTestId(String testId) {
+		expireOldTests();
 		return runningTests.containsKey(testId);
+	}
+	
+	/**
+	 * @param testId
+	 */
+	@Override
+	public void removeRunningTest(String testId) {
+		runningTests.remove(testId);
+	}
+	
+	private void expireOldTests() {
+		for (Map.Entry<String, TestModule> entry : new HashSet<>(runningTests.entrySet())) {
+			// if the test has been finished or interrupted, we check to see if it's timed out yet
+			if ((entry.getValue().getStatus().equals(Status.FINISHED)
+				|| entry.getValue().getStatus().equals(Status.INTERRUPTED)) 
+					&& entry.getValue().getStatusUpdated().plus(getClosedTestTimeout()).isBefore(Instant.now())) {
+				
+				removeRunningTest(entry.getKey());
+				
+			}
+		}
+	}
+
+	/**
+	 * @return the closedTestTimeout
+	 */
+	public Duration getClosedTestTimeout() {
+		return closedTestTimeout;
+	}
+
+	/**
+	 * @param closedTestTimeout the closedTestTimeout to set
+	 */
+	public void setClosedTestTimeout(Duration closedTestTimeout) {
+		this.closedTestTimeout = closedTestTimeout;
 	}
 
 }

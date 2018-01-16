@@ -156,4 +156,9 @@ public interface TestModule {
 	 */
 	Instant getCreated();
 	
+	/**
+	 * @return get the Instant marking when the test's status was last updated
+	 */
+	Instant getStatusUpdated();
+	
 }
