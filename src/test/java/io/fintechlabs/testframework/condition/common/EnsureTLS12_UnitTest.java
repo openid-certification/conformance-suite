@@ -56,15 +56,12 @@ public class EnsureTLS12_UnitTest {
 				+ "\"testPort\":443"
 				+ "}").getAsJsonObject();
 		
-		JsonObject config = new JsonObject();
-		config.add("tls", tls);
-		
-		env.put("config", config);
+		env.put("tls", tls);
 		
 		cond.evaluate(env);
 		
-		verify(env, atLeastOnce()).getString("config", "tls.testHost");
-		verify(env, atLeastOnce()).getInteger("config", "tls.testPort");
+		verify(env, atLeastOnce()).getString("tls", "testHost");
+		verify(env, atLeastOnce()).getInteger("tls", "testPort");
 	}
 	
 	/**
@@ -78,10 +75,7 @@ public class EnsureTLS12_UnitTest {
 				+ "\"testPort\":80"
 				+ "}").getAsJsonObject();
 		
-		JsonObject config = new JsonObject();
-		config.add("tls", tls);
-		
-		env.put("config", config);
+		env.put("tls", tls);
 		
 		cond.evaluate(env);
 	}
@@ -96,10 +90,7 @@ public class EnsureTLS12_UnitTest {
 				+ "\"testPort\":443"
 				+ "}").getAsJsonObject();
 		
-		JsonObject config = new JsonObject();
-		config.add("tls", tls);
-		
-		env.put("config", config);
+		env.put("tls", tls);
 		
 		cond.evaluate(env);
 	}
@@ -114,10 +105,7 @@ public class EnsureTLS12_UnitTest {
 				+ "\"testHost\":\"example.com\""
 				+ "}").getAsJsonObject();
 		
-		JsonObject config = new JsonObject();
-		config.add("tls", tls);
-		
-		env.put("config", config);
+		env.put("tls", tls);
 		
 		cond.evaluate(env);
 	}

@@ -99,10 +99,9 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 					endpoint.get("testHost").getAsString() +
 					":" + endpoint.get("testPort").getAsInt());
 
-			env.get("config").remove("tls");
-			env.get("config").add("tls", endpoint);
+			env.remove("tls");
+			env.put("tls", endpoint);
 
-			// FIXME: for now, run tests even if TLS1.0/1.1 or insecure ciphers are present on the server
 			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");

@@ -76,8 +76,8 @@ public class DisallowTLS11 extends AbstractCondition {
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
-		String tlsTestHost = env.getString("config", "tls.testHost");
-		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
+		String tlsTestHost = env.getString("tls", "testHost");
+		Integer tlsTestPort = env.getInteger("tls", "testPort");
 
 		if (Strings.isNullOrEmpty(tlsTestHost)) {
 			return error("Couldn't find host to connect for TLS");

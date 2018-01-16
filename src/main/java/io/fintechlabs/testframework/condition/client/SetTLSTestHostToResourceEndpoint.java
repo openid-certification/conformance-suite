@@ -12,24 +12,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition.common;
+package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
 
-import io.fintechlabs.testframework.condition.AbstractDisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.AbstractSetTLSTestHost;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowInsecureCipher {
+public class SetTLSTestHostToResourceEndpoint extends AbstractSetTLSTestHost {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public DisallowInsecureCipherForResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public SetTLSTestHostToResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -38,6 +37,7 @@ public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowI
 	 */
 	@Override
 	@PreEnvironment(required = "resource")
+	@PostEnvironment(required = "tls")
 	public Environment evaluate(Environment env) {
 
 		String resourceEndpoint = env.getString("resource", "resourceUrl");
@@ -45,7 +45,7 @@ public class DisallowInsecureCipherForResourceEndpoint extends AbstractDisallowI
 			return error("Resource endpoint not found");
 		}
 
-		return checkDisallowedCiphersForUrl(env, resourceEndpoint);
+		return setTLSTestHost(env, resourceEndpoint);
 	}
 
 }

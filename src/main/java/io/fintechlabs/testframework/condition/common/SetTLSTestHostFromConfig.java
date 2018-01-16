@@ -14,22 +14,21 @@
 
 package io.fintechlabs.testframework.condition.common;
 
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.AbstractSetTLSTestHost;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class SetTlsHostToResourceEndpoint extends AbstractCondition {
+public class SetTLSTestHostFromConfig extends AbstractSetTLSTestHost {
 
-	private static final int HTTPS_DEFAULT_PORT = 443;
-
-	public SetTlsHostToResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	/**
+	 * @param testId
+	 * @param log
+	 */
+	public SetTLSTestHostFromConfig(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -37,31 +36,22 @@ public class SetTlsHostToResourceEndpoint extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"resource", "config"})
+	@PreEnvironment(required = "config")
+	@PostEnvironment(required = "tls")
 	public Environment evaluate(Environment env) {
 
-		String resourceEndpoint = env.getString("resource", "resourceUrl");
-		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+		String tlsTestHost = env.getString("config", "tls.testHost");
+		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
+
+		if (Strings.isNullOrEmpty(tlsTestHost)) {
+			return error("Couldn't find host to connect for TLS in config");
 		}
 
-		UriComponents components = UriComponentsBuilder.fromUriString(resourceEndpoint).build();
-
-		String host = components.getHost();
-		int port = components.getPort();
-
-		if (port < 0) {
-			port = HTTPS_DEFAULT_PORT;
+		if (tlsTestPort == null) {
+			return error("Couldn't find port to connect for TLS in config");
 		}
 
-		JsonObject endpoint = new JsonObject();
-		endpoint.addProperty("testHost", host);
-		endpoint.addProperty("testPort", port);
-
-		env.get("config").remove("tls");
-		env.get("config").add("tls", endpoint);
-
-		return env;
+		return setTLSTestHost(env, tlsTestHost, (int) tlsTestPort);
 	}
 
 }
