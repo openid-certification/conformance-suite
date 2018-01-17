@@ -40,7 +40,7 @@
         <!-- LogStart -->
         <script type="text/template" id="logDetailTemplate_LogStart">
 
-            <div class="well container-fluid">
+            <div class="well well-sm container-fluid">
               <div class="row-fluid" id="logHeader"> <!-- main header -->
         
                 <div class="col-md-2" id="testStatusAndResult"><!-- status and results block -->
@@ -77,20 +77,20 @@
 
                 <div class="col-md-9"> <!-- main info -->
                     <div class="row">
-                        <div class="col-md-1">Test Name</div>
+                        <div class="col-md-1">Test Name:</div>
                         <div class="col-md-11"><%- test.testName %></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">Log</div>
+                        <div class="col-md-1">Test ID:</div>
                         <div class="col-md-11"><%- test.testId %></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">Created</div>
+                        <div class="col-md-1">Created:</div>
                         <div class="col-md-11"><%- new Date(test.started) %></div>
                     </div>
                     <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <div class="row">
-                        <div class="col-md-1">Test Owner</div>
+                        <div class="col-md-1">Test Owner:</div>
                         <div class="col-md-11">
                             <span class="label label-primary"><%- test.owner.sub %> <span class="badge"><%- test.owner.iss %></span></span>
                         </div>
@@ -274,11 +274,9 @@
             /**
              *
              */
-            function getLogs(){
-                var urlParams = new URLSearchParams(window.location.search);
-                var testId = urlParams.get('log');
-
-                $.ajax({
+            function getLogs(testId){
+ 
+                return $.ajax({
                     type: 'GET',
                     url: "/log/" + encodeURIComponent(testId),
                     data: {},
@@ -317,36 +315,39 @@
                             }
                         });
 
-                        // this is the page header, fill it in with log details
-                        $.ajax({
-                            type: 'GET',
-                            url: '/info/' + encodeURIComponent(testId),
-                            data: {},
-                            success: function(data) {
-                                if (data.status && data.status.toLowerCase() == "finished") {
-                                    FAPI_UI.testResults.finished = true;
-                                }
-
-                                if (data.result && data.result.toLowerCase() == "passed") {
-                                    FAPI_UI.testResults.passed = true;
-                                }
-
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data, summary: FAPI_UI.testResults}));
-
-                                $('[data-toggle="tooltip"]').tooltip({container: 'body'});
-                            }
-                        });
                     }
                 });
             }
 
+            function getHeader(testId) {
+                // this is the page header, fill it in with log details
+                return $.ajax({
+                    type: 'GET',
+                    url: '/info/' + encodeURIComponent(testId),
+                    data: {},
+                    success: function(data) {
+                        $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({test: data, summary: FAPI_UI.testResults}));
+
+                        $('#logDetail .header [data-toggle="tooltip"]').tooltip({container: 'body'});
+                    }
+                });
+            }
+            
             /**
              *
              */
             $(document).ready(function(){
+                var urlParams = new URLSearchParams(window.location.search);
+                var testId = urlParams.get('log');
+
                 FAPI_UI.loadTemplates();                // Load the templates
                 FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
-                    .done(getLogs());                   // Only once the user is loaded, then render the logs
+                    .then(function () {
+                    	   return getLogs(testId);         // Only once the user is loaded, then render the logs
+                    })
+                    .then(function() {
+                    	   return getHeader(testId);       // once the logs are loaded, render the header
+                    });
             });
 
         </script>
