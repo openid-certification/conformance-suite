@@ -21,7 +21,6 @@ var FAPI_UI = {
 		this.logTemplates.RESULT = _.template($("#logDetailTemplate_Result").html());
 		this.logTemplates.TIME = _.template($("#logDetailTemplate_Time").html());
 		this.logTemplates.MORE = _.template($("#logDetailTemplate_More").html());
-		this.logTemplates.LOG_END = _.template($("#logDetailTemplate_LogEnd").html());
 	},
 
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
@@ -44,29 +43,35 @@ var FAPI_UI = {
         });
 	},
 
-	getTooltipHelp : function(value) {
-		var info = "";
-		if (value) {
-			switch (value.toUpperCase()) {
-
-				case "WAITING":
-					info = "The test is waiting for an external callback, for example, for the authorisation server to redirect back to it. In some cases this means the authorisation server did not redirect back to the conformance suite, indicating that the test failed.";
-				break;
-
-				case "CONFIGURED":
-					info = "The test has successfully setup the initial environment. Please return to the home page and press the 'START' button for your test.";
-				break;
-
-				case "INTERRUPTED":
-					info = "The test failed to run to completion as a critical element failed. Please see the log, fix the error and run the test again to get a complete set of results.";
-				break;
-
-				default:
-					info="";
-				break;
-			}
+	getStatusHelp : function(value) {
+		switch (value ? value.toLowerCase() : undefined) {
+			case "waiting":
+				return "The test is waiting for an external callback, for example, for the authorisation server to redirect back to it. In some cases this means the authorisation server did not redirect back to the conformance suite, indicating that the test failed.";
+			case "configured":
+				return "The test has successfully setup the initial environment. Press the 'START' button to begin the test.";
+			case "interrupted":
+				return "The test failed to run to completion as a critical element failed. Please see the log, fix the error and run the test again to get a complete set of results.";
+			case "finished":
+				return "The test has completed running";
+			case "running":
+				return "The test is actively executing";
+			default:
+				return "";
 		}
-		return info;
+	},
+	
+	getResultHelp : function(value) {
+		switch (value ? value.toLowerCase() : undefined) {
+			case "passed":
+				return "The test has passed all conditions";
+			case "warning":
+				return "The test has generated some warnings during its execution, see the log for details";
+			case "review":
+				return "The test requires manual review";
+			default:
+				return "";
+				
+		}
 	},
 	
 	/**

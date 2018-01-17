@@ -195,8 +195,8 @@ button {
   border-radius: 3px;
 }
 
-
 /** log detail **/
+/*
 #logDetail h1 .row div , #logDetail .row div {
   position:relative;
   margin: 5px 0;
@@ -222,6 +222,75 @@ button {
 .row .hyphen:after {
   content:": ";
 }
+*/
+
+.testStatusResultBlock {
+	padding: 5px 10px;
+	border-radius: 3px;
+	margin: 1px;
+	text-align: center;
+	font-size: 110%;
+}
+
+.testStatus-created {
+    background-color: #fcd9f6;
+    color: black;
+}
+
+.testStatus-configured {
+	background-color: #d3fffe;
+	color: black;
+}
+
+.testStatus-running {
+    background-color: #6d09e8;
+    color: white;
+}
+
+.testStatus-waiting {
+    background-color: #6ac4c2;
+    color: black;
+}
+
+.testStatus-interrupted {
+    background-color: #b70018;
+    color: white;
+}
+
+.testStatus-finished {
+    background-color: #383647;
+    color: black;
+}
+
+.testStatus-unknown {
+    background-color: #fcd9f6;
+    color: black;
+}
+
+.testResult-passed {
+    background-color: #40e809;
+    color: black;
+}
+
+.testResult-warning {
+    background-color: #d88602;
+    color: white;
+}
+
+.testResult-failed {
+    background-color: #b70018;
+    color: white;
+}
+
+.testResult-review {
+    background-color: #6ac4c2;
+    color: black;
+}
+
+.testResult-unknown {
+    background-color: #fcd9f6;
+    color: black;
+}
 
 .moreInfo {
   background: #eee;
@@ -230,6 +299,7 @@ button {
   padding: 6px;
 }
 
+/*
 .moreInfo div {
   margin:0;
 }
@@ -239,6 +309,7 @@ button {
   width:auto;
   margin-bottom:0;
 }
+*/
 
 /* Test result labels */
 .label.result-success {
