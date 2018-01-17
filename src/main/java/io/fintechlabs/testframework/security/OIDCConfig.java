@@ -23,6 +23,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.Set;
 
@@ -185,7 +186,12 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.and()
 				.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.exceptionHandling()
-				.authenticationEntryPoint(authenticationEntryPoint())
+				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/currentuser"))
+				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/runner/**"))
+				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/log/**"))
+				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/info/**"))
+				.defaultAuthenticationEntryPointFor(authenticationEntryPoint(),new AntPathRequestMatcher("/**")) // Default to this if not the others.
+				//.authenticationEntryPoint(authenticationEntryPoint())
 				.and()
 				.logout()
 				.logoutSuccessUrl("/login")
