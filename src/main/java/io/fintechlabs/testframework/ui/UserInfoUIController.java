@@ -26,21 +26,9 @@ public class UserInfoUIController {
 	private AuthenticationFacade authenticationFacade;
 
 	/**
-	 * Inject the user's display name and principal as a string into the
-	 * /js/fapi.ui.js javascript file, which will then insert it into the diplayed HTML
-	 * @param m
+	 * Provide a JSON result that represents the currently logged in user.
 	 * @return
 	 */
-//	@RequestMapping(value = "/js/fapi.ui.js", method = RequestMethod.GET)
-//	public String getAvailableTests(Model m) {
-//		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
-//		String principal =  authenticationFacade.getPrincipal().toString();
-//		String displayName = authenticationFacade.getDisplayName();
-//		m.addAttribute("principal",principal);
-//		m.addAttribute("displayName",displayName);
-//		return "js/fapi.ui.js";
-//	}
-
 	@RequestMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getCurrentUserInfo(){
 		Map<String, Object> map = new HashMap<>();
