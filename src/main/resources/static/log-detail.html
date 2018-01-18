@@ -356,6 +356,9 @@
                     data: {},
                     success: function (data) {
 
+                    	   // clear any existing log items
+                    	   $('#logDetail .content').html();
+                    	
                         $.each(data, function(i, item) {
 
                             // render the base element
@@ -425,6 +428,11 @@
                 });
             }
             
+            function startTest(testId) {
+                console.log('starting test!');
+	            	return ;
+            }
+            
             function getActive(testId) {
             	   // try to load up the active test information if it's available, otherwise cut out some controls
             	   return $.ajax({
@@ -454,11 +462,62 @@
                                $('#runningTestInactive').hide();
                                $('#runningTestArchived').hide();
                                
+                               $('#stopBtn').click(function (evt) {
+                            	       evt.preventDefault();
+                            	       FAPI_UI.showBusy('Stopping test...');
+                            	       
+                                    $.ajax({
+                                           url: '/runner/' + encodeURIComponent(testId),
+                                           type: 'DELETE',
+                                           error: function(jqxhr, status, error) {
+                                                  FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                           }
+                                    })
+                                           .then(function () {
+                                           return getLogs(testId);
+                                    })
+                                    .then(function() {
+                                           return getHeader(testId);
+                                    })
+                                    .then(function() {
+                                           return getActive(testId);
+                                    })
+                                    .always(function() {
+                                           FAPI_UI.hideBusy();
+                                    });
+                               });
+                               
                                // if the test is currently in a "created" or "configured" state it can also be started
                                if (data.status.toLowerCase() == 'created'
                             		   || data.status.toLowerCase() == 'configured') {
 
                             	        $('#startBtn').show();
+                            	        
+                            	        $('#startBtn').click(function(evt) {
+                            	        	  evt.preventDefault();
+                            	        	  FAPI_UI.showBusy('Starting test...');
+                            	        	  
+                            	        	  $.ajax({
+                                                  url: '/runner/' + encodeURIComponent(testId),
+                                                  type: 'POST',
+                                                  error: function(jqxhr, status, error) {
+                                                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                                  }
+                                           })
+                                	        	  .then(function () {
+                                                  return getLogs(testId);
+                                           })
+                                           .then(function() {
+                                                  return getHeader(testId);
+                                           })
+                                           .then(function() {
+                                                  return getActive(testId);
+                                           })
+                                           .always(function() {
+                                                  FAPI_UI.hideBusy();
+                                           });
+                            	        })
+                            	        
                                } else {
                             	       // otherwise, the test can't be started
                                    $('#startBtn').hide();
@@ -468,8 +527,6 @@
 
             			   // display the exported data
             			   $('#runningTestExport').html(FAPI_UI.logTemplates.EXPORTED({exported: data.exposed}));
-            			   
-            			   console.log(data);
             			   
             			   // display the browser control data
             			   if (data.browser) {
