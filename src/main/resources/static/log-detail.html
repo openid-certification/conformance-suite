@@ -374,6 +374,12 @@
                         $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({test: data, summary: FAPI_UI.testResults}));
 
                         $('#logDetail .header [data-toggle="tooltip"]').tooltip({container: 'body'});
+                        
+                        $('#downloadBtn').click(function(evt) {
+                           evt.preventDefault();
+                           window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
+                        });
+                        
                     },
                     error: function(jqxhr, status, error) {
                         FAPI_UI.showError(jqxhr.responseJSON);
