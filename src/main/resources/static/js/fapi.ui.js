@@ -21,6 +21,7 @@ var FAPI_UI = {
 		this.logTemplates.RESULT = _.template($("#logDetailTemplate_Result").html());
 		this.logTemplates.TIME = _.template($("#logDetailTemplate_Time").html());
 		this.logTemplates.MORE = _.template($("#logDetailTemplate_More").html());
+		this.logTemplates.MORE_BUTTON = _.template($("#logDetailTemplate_MoreButton").html());
 		this.logTemplates.EXPORTED = _.template($("#logDetailTemplate_Exported").html());
 		this.logTemplates.BROWSER = _.template($("#logDetailTemplate_Browser").html());
 	},

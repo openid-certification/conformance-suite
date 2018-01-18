@@ -60,10 +60,6 @@ textarea {
   margin:15px 0 0px;
 }
 
-button {
-  background-color: #ccc;
-}
-
 #launch-buttons button {
   margin:5px 5px 5px 0;
 }
@@ -193,6 +189,16 @@ button {
   background-color:#fff;
   border:1px solid #ddd;
   border-radius: 3px;
+}
+
+.logItem {
+	border-bottom: 1px #eee solid;
+	padding-top: 7px;
+	padding-bottom: 3px;
+}
+
+.logItem:hover {
+	background-color: #efefef;
 }
 
 /** log detail **/

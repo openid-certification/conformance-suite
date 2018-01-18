@@ -131,9 +131,9 @@
                 </div>
 
                 <div class="col-md-1"> <!-- controls -->
-                    <button class="btn btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Reload</button>
-                    <button class="btn btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
-                    <button class="btn btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                    <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Reload</button>
+                    <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
+                    <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                 </div>
 
               </div>
@@ -150,8 +150,8 @@
 
                 </div>
                 <div class="col-md-1">
-                    <button class="btn btn-block collapse" id="startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
-                    <button class="btn btn-block collapse" id="stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+                    <button class="btn btn-default btn-block collapse" id="startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
+                    <button class="btn btn-default btn-block collapse" id="stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
                 </div>
               </div>
             </div>
@@ -163,61 +163,79 @@
 
         <!-- Log detail element -->
         <script type="text/template" id="logDetailTemplate">
-            <div data-item-log-id="<%- item._id %>">
-              <div class="row">
-                <div class="col-md-1">
-                <% if (item.result) { 
-                    // count the number of test types to render later on
-                    FAPI_UI.testResults[item.result.toLowerCase()]++;
-                    FAPI_UI.testResults.total++;
-                %>
-                    <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
-                <% } %>
+          <div class="row">
+            <div data-item-log-id="<%- item._id %>" class="col-md-12 logItem">
+
+                <div class="row"><!-- time / result / source / owner -->
+
+                    <div class="col-md-1">
+                    <% if (item.time) { %>
+                        <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                    <% } %>
+
+                    </div>
+
+                    <div class="col-md-1">
+                      <% if (item.result) { 
+                          // count the number of test types to render later on
+                          FAPI_UI.testResults[item.result.toLowerCase()]++;
+                          FAPI_UI.testResults.total++;
+                      %> 
+                      <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
+                      <% } %>
+                    </div>
+
+                    <div class="col-md-8">
+                        <% if (item.src) { %>
+                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                        <% } %>
+                    </div>
+
+                    <div class="col-md-2">
+                        <% if (item.testOwner 
+                                && (item.testOwner.iss != FAPI_UI.currentUser.iss 
+                                    || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
+                            <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
+                        <% } %>
+                    </div>
+
                 </div>
 
-                <div class="col-md-9">
-                <% if (item.src) { %>
-                    <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
-                <% } %>
-                </div>
-            
-                <div class="col-md-2">
-                <% if (item.testOwner && (item.testOwner.iss != FAPI_UI.currentUser.iss || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
-                    <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
-                <% } %>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-1">
-                <% if (item.requirements) { %>
-                    <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
-                <% } %>
-                </div>
-
-                <div class="col-md-11">
-                <% if (item.msg) { %>
-                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-                <% } %>
                 <% if (item.upload) { %>
-                    <p><%= FAPI_UI.logTemplates.UPLOAD({item: item}) %></p>
-                <% } %>
+                <div class="row"><!-- image upload (if necessary) -->
+                    <div class="col-md-10 col-md-offset-2">
+                            <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+                    </div>
                 </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-12">
-                <% if (item.time) { %>
-                    <%= FAPI_UI.logTemplates.TIME({item: item}) %>
                 <% } %>
-                </div>
-              </div>
 
-              <div class="moreInfoContainer">
-                
-              </div>
+                <div class="row"><!-- more button / requirements / message -->
+                    <div class="col-md-1 moreButtonContainer">
+
+                    </div>
+
+                    <div class="col-md-1">
+                        <% if (item.requirements) { %>
+                            <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
+                        <% } %>
+                    </div>
+
+                    <div class="col-md-10">
+                        <% if (item.msg) { %>
+                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                        <% } %>
+                    </div>
+
+                </div>
+
+                <div class="row"><!-- more info panel -->
+                    <div class="moreInfoContainer">
+
+                    </div>
+                </div>
+
             </div>
-            <hr />
+          </div>
         </script>
 
         <!-- Source -->
@@ -232,9 +250,11 @@
 
         <!-- Requirements -->
         <script type="text/template" id="logDetailTemplate_Requirements">
+            <div class="labelCollection">
             <% _.each(item.requirements, function(requirement) { %>
                 <span class="log-requirement label label-default"><%- requirement %></span>
             <% }); %>
+            </div>
         </script>
 
         <!-- Upload -->
@@ -257,11 +277,14 @@
             <span class="log-owner"><span class="label label-primary"><%- owner.sub %> <span class="badge"><%- owner.iss %></span></span></span>
         </script>
 
-        <!-- More -->
-        <script type="text/template" id="logDetailTemplate_More">
+        <!-- More Button -->
+        <script type="text/template" id="logDetailTemplate_MoreButton">
             <button class="btn btn-default btn-xs moreBtn" data-activated="false">
                 <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
             </button>
+        </script>
+        <!-- More -->
+        <script type="text/template" id="logDetailTemplate_More">
             <div class="moreInfo collapse container-fluid">
             <%
                 // display all the extra fields
@@ -341,7 +364,7 @@
             <div id="logDetail">
                 <div class="header"></div>
                 <hr />
-                <div class="content">
+                <div class="content container-fluid">
                     <!-- log items are rendered here -->
                 </div>
             </div>
@@ -378,7 +401,10 @@
 
                             if (!_.isEmpty(more)) {
                                 // we have extra fields so let's attach them
+                                var moreButton = $(FAPI_UI.logTemplates.MORE_BUTTON({more: more, item: item}));
                                 var moreInfo = $(FAPI_UI.logTemplates.MORE({more: more, item: item}));
+
+                                $('.moreButtonContainer', el).append(moreButton);
                                 $('.moreInfoContainer', el).append(moreInfo);
 
                                 // wire up the button
@@ -460,7 +486,6 @@
             	   return $.ajax({
             		   type: 'GET',
             		   url: '/runner/' + encodeURIComponent(testId),
-          	       //dataType: "json",
             		   success: function(data) {
                        // show the overall container
                        $('#runningTestInformation').show();
@@ -630,7 +655,7 @@
         </script>
 
 
-        <footer></footer>
+        <footer><small class="muted">FintechLabs.io conformance suite</small></footer>
         
     </body>
 
