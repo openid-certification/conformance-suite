@@ -127,7 +127,7 @@ public class TestRunner {
         
         logger.info("Created: " + testName);
 
-        logger.info("Status of " + testName + ": " + test.getStatus());
+        //logger.info("Status of " + testName + ": " + test.getStatus());
 
         support.addRunningTest(id, test);
         
@@ -170,7 +170,7 @@ public class TestRunner {
 
         test.configure(config, url);
 
-        logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
+        //logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
         Map<String, String> map = new HashMap<>();
         map.put("name", testName);
@@ -215,12 +215,12 @@ public class TestRunner {
             map.put("result", test.getResult());
             map.put("exposed", test.getExposedValues());
 
-            logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+            //logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
             // TODO: fire this off in a background task thread?
             test.start();
 
-            logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+            //logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
             return new ResponseEntity<>(map, HttpStatus.OK);
     		
@@ -233,7 +233,7 @@ public class TestRunner {
     
     @GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
-    	logger.info("Getting status of " + testId);
+    	//logger.info("Getting status of " + testId);
     	
 		TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
@@ -264,7 +264,7 @@ public class TestRunner {
     
     @DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> cancelTest(@PathVariable("id") String testId) {
-    	logger.info("Canceling " + testId);
+    	//logger.info("Canceling " + testId);
     	
 		TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
@@ -295,7 +295,7 @@ public class TestRunner {
     
     @RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getBrowserStatus(@PathVariable("id") String testId, Model m) {
-    	logger.info("Getting status of " + testId);
+    	//logger.info("Getting status of " + testId);
     	
 		TestModule test = support.getRunningTestById(testId);
     	if (test != null) {
