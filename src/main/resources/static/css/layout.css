@@ -278,7 +278,7 @@ button {
 }
 
 .testResult-failed {
-    background-color: #b70018;
+    background-color: black;
     color: white;
 }
 

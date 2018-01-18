@@ -21,6 +21,8 @@ var FAPI_UI = {
 		this.logTemplates.RESULT = _.template($("#logDetailTemplate_Result").html());
 		this.logTemplates.TIME = _.template($("#logDetailTemplate_Time").html());
 		this.logTemplates.MORE = _.template($("#logDetailTemplate_More").html());
+		this.logTemplates.EXPORTED = _.template($("#logDetailTemplate_Exported").html());
+		this.logTemplates.BROWSER = _.template($("#logDetailTemplate_Browser").html());
 	},
 
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
@@ -64,6 +66,8 @@ var FAPI_UI = {
 		switch (value ? value.toLowerCase() : undefined) {
 			case "passed":
 				return "The test has passed all conditions";
+			case "failed":
+				return "The test has failed at least one critical condition";
 			case "warning":
 				return "The test has generated some warnings during its execution, see the log for details";
 			case "review":

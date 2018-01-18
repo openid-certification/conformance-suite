@@ -36,6 +36,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
-import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -231,7 +231,7 @@ public class TestRunner {
 
     }
     
-    @RequestMapping(value = "/runner/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
     	logger.info("Getting status of " + testId);
     	
@@ -244,6 +244,16 @@ public class TestRunner {
             map.put("result", test.getResult());
             map.put("exposed", test.getExposedValues());
             map.put("owner", test.getOwner());
+            BrowserControl browser = test.getBrowser();
+            if (browser != null) {
+	            	if (browser instanceof CollectingBrowserControl) {
+	            		Map<String, Object> bmap = new HashMap<>();
+	            		bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+	            		bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+	            		map.put("browser", bmap);
+	            	}
+            }
+
             
             return new ResponseEntity<>(map, HttpStatus.OK);
     		
