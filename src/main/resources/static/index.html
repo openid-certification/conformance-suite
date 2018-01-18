@@ -25,41 +25,50 @@
   </head>
   <body>
   	
-  	<!-- resident DOM -->
-	<a href="index.html"><header></header></a>
-
-    <!-- Busy dialog overlay -->
-    <div id="busy">
-    	<div class="activityIndicator">Please wait</div>
+    <div class="pageHeader container-fluid">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <a href="index.html"><img src="/images/FinTechLabs.io.png" style="max-height: 80px;"></a>
+            </div>
+            <div id="userInfoDiv" class="col-md-4 text-right">
+            </div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    
+    <!-- error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                </div>
+                <div class="modal-body">Error: <span id="errorMessage"></span></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- error modal -->
-	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Error</h4>
-				</div>
-				<div class="modal-body">Error: <span id="errorMessage"></span></div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- loading modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body"><img src="/images/spinner.gif"> <span id="loadingMessage"></span></div>
+            </div>
+        </div>
+    </div>
+    
 	
 	<div class="container-fluid">
         <div id="homePage">
- 			<h1>FAPI Conformance Suite</h1>
-
-			<div id="userInfoDiv">
-				Loading . . .
-			</div><hr />
-
-
 
             <!-- render available test launch options here -->
             <div class="row">
@@ -189,27 +198,22 @@
             </div>
         </div>
 
-            <hr />
-
         <div class="row">
             <div class="col-md-12">
+                <h3>Running tests</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <button class="btn btn-default btn-block" id="refresh">Refresh</button>
+                <a href="logs.html" class="btn btn-info btn-block">View all available logs.</a>
+            </div>
 
-	        <h3>Running tests</h3>
-	        <div>
-				<button class="btn" id="refresh">Refresh</button>
-				<!-- render tests to here -->
-				<div id="running-tests"></div>
-	        </div>
-
-	        <hr />
-
-	        <div>
-	            <a href="logs.html" class="btn btn-info">View all available logs.</a>
-	        </div>
-	        </div>
+            <div class="col-md-11" id="running-tests">
+                <!-- running tests get attached here -->
+            </div>        
         </div>
         
-        </div>
     </div>
 
     <!-- Templates -->
@@ -234,32 +238,61 @@
         <optgroup label="<%- label %>">
         </optgroup>
     </script>
+        
+    <!-- Owner -->
+    <script type="text/template" id="logDetailTemplate_Owner">
+        <span class="log-owner"><span class="label label-primary"><%- owner.sub %> <span class="badge"><%- owner.iss %></span></span></span>
+    </script>
 
     <!-- Running Test: Main -->
-    <script type="text/template" id="indexTemplate_RunningTest">  
-		<div id="<%- testStatus.id %>" class="testResult result-<%- testStatus.result.toLowerCase() %>">
-			<b><%- testStatus.name %></b> (<i><%- testStatus.id %></i>): <%- testStatus.status %> / <%- testStatus.result %>
-			<ul class="exposed"></ul>
-			<button class="btn start">START</button>
-    		<button class="btn stop">STOP</button>
-    		<a href="log-detail.html?log=<%- encodeURIComponent(testStatus.id) %>"><button class="btn view">View log</button></a>
-    		<hr />
-    		<ul class="browser"></ul>
-		</div>
+    <script type="text/template" id="indexTemplate_RunningTest">
+        <div class="runningTest row">
+            <div class="col-md-2"> <!-- result/status -->
+                <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>">
+                    <%- test.status %>
+                    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
+                </div>
+                <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>">
+                    <%- test.result %>
+                    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
+                </div>
+            </div>
+            <div class="col-md-9"> <!-- test name / date -->
+                <div class="row">
+                    <div class="col-md-1">Test Name:</div>
+                    <div class="col-md-11"><%- test.name %></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">Test ID:</div>
+                    <div class="col-md-11"><%- test.id %></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">Created:</div>
+                    <div class="col-md-11"><%- new Date(test.created) %></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">Updated:</div>
+                    <div class="col-md-11"><%- new Date(test.update) %></div>
+                </div>
+                <% if (FAPI_UI.currentUser.isAdmin) { %>
+                <div class="row">
+                    <div class="col-md-1">Test Owner:</div>
+                    <div class="col-md-11">
+                        <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+            <div class="col-md-1"> <!-- controls -->
+
+            </div>
+            
+        </div>
+
     </script>
 
-    <!-- Running Test: Exposed -->
-    <script type="text/template" id="indexTemplate_RunningTestExposedKeyValues">
-    	<li><b><%- key %></b>: <i><%- val %></i></li>
-    </script>
-
-    <!-- Running Test: ExternalURL -->
-    <script type="text/template" id="indexTemplate_RunningTestExternalURL">
-    	<li>Go to URL: <a id="browserLink-<%- testId %>-<%- index %>" href="#"><span class="externalURLLink"><%- url %></span></a></li>
-    </script>
-    
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
@@ -325,7 +358,7 @@
 					updateJSONFromFormElements();
 				}
 
-				$("#busy").show();
+				FAPI_UI.showBusy('Creating test...');
 
 				$.ajax({
 					url: '/runner/?test=' + encodeURIComponent(testName),
@@ -333,16 +366,14 @@
 					contentType: 'application/json',
 					data: $('#config').val(),
 					success: function(data, status) {
-						$("#busy").hide();
-						console.log('start results: ', data);
+						FAPI_UI.hideBusy();
 						updateRunningTable();
 					},
 					error: function(jqxhr, status, error) {
-						$("#busy").hide();
-						FAPI_UI.showError(jqxhr.responseJSON);
+						FAPI_UI.hideBusy();
+						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
 						updateRunningTable();
-					},
-					dataType: 'json'
+					}
 				});
 			});
 
@@ -372,8 +403,8 @@
 			})
 
 			// sync the JSON at least once
-			walkJSON(FAPI_UI.testJSON);
-
+		    updateFormElementsFromJSON();
+			
 		});
 
 		function updateConfigFieldVisibility() {
@@ -434,6 +465,10 @@
 						return getRunningTest(testId);
 					});
 				});
+				
+				deferred.then(function() {
+				    $('[data-toggle="tooltip"]').tooltip({container: 'body'});
+				});
 			});
 
 		}
@@ -443,86 +478,8 @@
 				//console.log("displaying test results:"+JSON.stringify(status));
 				//console.log('rendering: ' + status.id);
 
-				$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({
-					testStatus: status
-				}));
+				$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({test: status}));
 
-				_.each(status.exposed, function(val, key) {
-					$('#' + status.id + ' .exposed').append(FAPI_UI.logTemplates.RUNNING_TEST_EXPOSED_KEY_VALUES({
-						key: key,
-						val: val
-					}));
-				});
-
-				// Create start & stop button click handlers
-				$('#' + status.id + ' button.start').click(function(evt) {
-					console.log('Start button clicked: ' + testId);
-					$("#busy").show();
-					$.ajax({
-						url: '/runner/' + encodeURIComponent(testId),
-						type: 'POST',
-						success: function(data, status) {
-							console.log('Status: ', status);
-							$("#busy").hide();
-							updateRunningTable();
-						},
-						error: function(jqxhr, status, error) {
-							$("#busy").hide();
-							FAPI_UI.showError(jqxhr.responseJSON);
-							updateRunningTable();
-						}
-					});
-				});
-
-				$('#' + status.id + ' button.stop').click(function(evt) {
-					console.log('Stop button clicked: ' + testId);
-					$.ajax({
-						url: '/runner/' + encodeURIComponent(testId),
-						type: 'DELETE',
-						success: function(data, status) {
-							console.log('Status: ', status);
-							$("#busy").hide();
-							updateRunningTable();
-						},
-						error: function(jqxhr, status, error) {
-							$("#busy").hide();
-							FAPI_UI.showError(jqxhr.responseJSON);
-							updateRunningTable();
-						}
-					});
-				});
-
-				// External URL link
-				$.getJSON('/runner/browser/' + encodeURIComponent(testId), function(browser) {
-					_.each(browser.urls, function(url, index) {
-						$('#' + status.id + ' .browser').append(FAPI_UI.logTemplates.RUNNING_TEST_EXTERNAL_URL({
-							testId: testId,
-							url: url,
-							index: index
-						}));
-
-						// add the click handler
-						$('#browserLink-' + testId + "-" + index).click(function(event) {
-							event.preventDefault();
-							var win = window.open(url, '_blank');
-
-							if (win) {
-								win.focus();
-								$.ajax({
-									url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
-									type: 'POST',
-									success: function(data, status) {
-										console.log('Status: ', status);
-										updateRunningTable();
-									}
-								});
-							} else {
-								// couldn't open the link?
-								console.log("Couldn't launch window");
-							}
-						});
-					});
-				});
 			});
 		}
 
@@ -651,6 +608,9 @@
 			console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
 	</script>
+
+    <footer class="pageFooter"><span class="muted">FintechLabs.io conformance suite</span></footer>
+        
 
   </body>
 </html>

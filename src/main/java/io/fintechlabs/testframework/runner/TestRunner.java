@@ -208,6 +208,19 @@ public class TestRunner {
 			map.put("status", test.getStatus());
 			map.put("result", test.getResult());
 			map.put("exposed", test.getExposedValues());
+			map.put("owner", test.getOwner());
+			map.put("created", test.getCreated().toString());
+			map.put("update", test.getStatusUpdated().toString());
+			
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				if (browser instanceof CollectingBrowserControl) {
+					Map<String, Object> bmap = new HashMap<>();
+					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+					map.put("browser", bmap);
+				}
+			}
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
@@ -238,6 +251,9 @@ public class TestRunner {
 			map.put("result", test.getResult());
 			map.put("exposed", test.getExposedValues());
 			map.put("owner", test.getOwner());
+			map.put("created", test.getCreated().toString());
+			map.put("update", test.getStatusUpdated().toString());
+			
 			BrowserControl browser = test.getBrowser();
 			if (browser != null) {
 				if (browser instanceof CollectingBrowserControl) {
@@ -273,7 +289,20 @@ public class TestRunner {
 			map.put("status", test.getStatus());
 			map.put("result", test.getResult());
 			map.put("exposed", test.getExposedValues());
-
+			map.put("owner", test.getOwner());
+			map.put("created", test.getCreated().toString());
+			map.put("update", test.getStatusUpdated().toString());
+			
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				if (browser instanceof CollectingBrowserControl) {
+					Map<String, Object> bmap = new HashMap<>();
+					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+					map.put("browser", bmap);
+				}
+			}
+			
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);

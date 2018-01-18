@@ -4,7 +4,7 @@ body {
   font-size: 16px;
 }
 
-.header {
+.pageHeader {
   max-height:80px;
   margin-top: 5px;
   margin-bottom:20px;
@@ -60,17 +60,25 @@ textarea {
   margin:5px 5px 5px 0;
 }
 
+.runningTest {
+	border-bottom: 1px #eee solid;
+	padding: 5px;
+}
+
+.runningTest:hover {
+    background-color: #f6fefe;
+}
+
+#running-tests {
+	border-left: 1px #eee solid;
+	border-top: 1px #eee solid;
+}
+
 .testResult {
   margin:10px 0;
   padding:5px;
   border-radius:5px;
 }
-
-.testResult hr {
-  border-top: 1px solid #333;
-  width:90%;
-}
-
 .testResult.result-unknown {
   background-color: #efefef;
 }
@@ -187,8 +195,11 @@ textarea {
   border-radius: 3px;
 }
 
+.logContent {
+	border-top: 1px #eee solid;
+}
+
 .logItem {
-    border-top: 1px #eee solid;
 	border-bottom: 1px #eee solid;
 	padding-top: 7px;
 	padding-bottom: 3px;

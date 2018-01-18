@@ -31,7 +31,7 @@
 
     <body>
 
-        <div class="header container-fluid">
+        <div class="pageHeader container-fluid">
 	        <div class="row-fluid">
 		        <div class="col-md-8">
 		            <a href="index.html"><img src="/images/FinTechLabs.io.png" style="max-height: 80px;"></a>
@@ -367,8 +367,7 @@
         <div class="container-fluid">
             <div id="logDetail">
                 <div class="header"></div>
-                <hr />
-                <div class="content container-fluid">
+                <div class="logContent container-fluid">
                     <!-- log items are rendered here -->
                 </div>
             </div>
@@ -388,13 +387,13 @@
                     success: function (data) {
 
                     	   // clear any existing log items
-                    	   $('#logDetail .content').html('');
+                    	   $('#logDetail .logContent').html('');
                     	
                         $.each(data, function(i, item) {
 
                             // render the base element
                             var el = $(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
-                            $('#logDetail .content').append(el);
+                            $('#logDetail .logContent').append(el);
 
                             // see if we've got any "extra" bits that we want to display in a block
                             var more = _.pick(item, function(value, key, object) {
