@@ -15,7 +15,9 @@
 package io.fintechlabs.testframework.logging;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -80,15 +82,19 @@ public class ImageAPI {
 			@PathVariable(name="id") String testId,
 			@PathVariable(name="placeholder") String placeholder) throws IOException {
 
+		List<Criteria> criterias = new ArrayList<Criteria>();
 
-		// find the existing entity
-		Criteria criteria = Criteria.where("testId").is(testId).andOperator(
-				Criteria.where("upload").is(placeholder));
+		// add the placeholder condition
+		criterias.add(Criteria.where("upload").is(placeholder));
 
+		// if we're not admin, make sure we also own the log
 		if (authenticationFacade.getAuthenticationToken() != null &&
 				!authenticationFacade.isAdmin()) {
-			criteria.andOperator(Criteria.where("testOwner").is(authenticationFacade.getPrincipal()));
+			criterias.add(Criteria.where("testOwner").is(authenticationFacade.getPrincipal()));
 		}
+
+		Criteria criteria = Criteria.where("testId").is(testId).andOperator(
+				criterias.toArray(new Criteria[criterias.size()]));
 
 		Query query = Query.query(criteria);
 		
