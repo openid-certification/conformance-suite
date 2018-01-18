@@ -370,6 +370,7 @@
 					data: $('#config').val(),
 					success: function(data, status) {
 						FAPI_UI.hideBusy();
+	                    window.open('/log-detail.html?log=' + encodeURIComponent(data.id));
 						updateRunningTable();
 					},
 					error: function(jqxhr, status, error) {
