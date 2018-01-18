@@ -163,7 +163,7 @@
 
         <!-- Log detail element -->
         <script type="text/template" id="logDetailTemplate">
-            <div id="log-<%- item._id %>">
+            <div data-item-log-id="<%- item._id %>">
               <div class="row">
                 <div class="col-md-1">
                 <% if (item.result) { 
@@ -213,7 +213,7 @@
                 </div>
               </div>
 
-              <div class="more-info">
+              <div class="moreInfoContainer">
                 
               </div>
             </div>
@@ -259,10 +259,10 @@
 
         <!-- More -->
         <script type="text/template" id="logDetailTemplate_More">
-            <button id="moreBtn-<%- item._id %>" class="btn btn-default btn-xs">
+            <button class="btn btn-default btn-xs moreBtn" data-activated="false">
                 <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
             </button>
-            <div id="moreInfo-<%- item._id %>" class="moreInfo collapse container-fluid">
+            <div class="moreInfo collapse container-fluid">
             <%
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
@@ -361,12 +361,13 @@
                     success: function (data) {
 
                     	   // clear any existing log items
-                    	   $('#logDetail .content').html();
+                    	   $('#logDetail .content').html('');
                     	
                         $.each(data, function(i, item) {
 
                             // render the base element
-                            $('#logDetail .content').append(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
+                            var el = $(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
+                            $('#logDetail .content').append(el);
 
                             // see if we've got any "extra" bits that we want to display in a block
                             var more = _.pick(item, function(value, key, object) {
@@ -377,20 +378,21 @@
 
                             if (!_.isEmpty(more)) {
                                 // we have extra fields so let's attach them
-                                $('#log-' + item._id + ' .more-info').append(FAPI_UI.logTemplates.MORE({more: more, item: item}));
+                                var moreInfo = $(FAPI_UI.logTemplates.MORE({more: more, item: item}));
+                                $('.moreInfoContainer', el).append(moreInfo);
 
                                 // wire up the button
-                                $('#moreBtn-' + item._id).click(function (evt) {
-                                    if ($(this).hasClass('activated')) {
+                                $('.moreBtn', el).click(function (evt) {
+                                    if ($(this).data('activated')) {
                                         // it's already been activated, need to hide things
-                                        $('#moreInfo-' + item._id).hide(); // hide the content
+                                        $('.moreInfo', el).hide(); // hide the content
                                         $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
-                                        $(this).removeClass('activated');
+                                        $(this).data('activated', false);
                                     } else {
                                         // need to show the collapsed entity
-                                        $('#moreInfo-' + item._id).show(); // show the content
+                                        $('.moreInfo', el).show(); // show the content
                                         $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
-                                        $(this).addClass('activated');
+                                        $(this).data('activated', true);
                                     }
                                 });
                             }
@@ -434,16 +436,13 @@
                                    type: 'POST',
                                    contentType: 'application/json',
                                    data: JSON.stringify(data.config),
-                                   dataType: 'json',
                                    success: function(data, status) {
                                 	      // we need to switch to the new window now
                                 	      var newUrl = window.location.href.replace(testId, data.id);
                                 	      window.location.assign(newUrl);
                                    },
                                    error: function(jqxhr, status, error) {
-                                       $("#busy").hide();
-                                       FAPI_UI.showError(jqxhr.responseJSON);
-                                       updateRunningTable();
+                                       FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
                                    }
                                });
                         	   
@@ -454,11 +453,6 @@
                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
                     }
                 });
-            }
-            
-            function startTest(testId) {
-                console.log('starting test!');
-	            	return ;
             }
             
             function getActive(testId) {
