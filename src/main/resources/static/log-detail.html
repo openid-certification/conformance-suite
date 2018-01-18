@@ -380,6 +380,12 @@
                            window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
                         });
                         
+                        $('#uploadBtn').click(function(evt) {
+                        	   evt.preventDefault();
+                        	   window.open('/upload.html?log=' + encodeURIComponent(testId));
+                        });
+                        
+                        
                     },
                     error: function(jqxhr, status, error) {
                         FAPI_UI.showError(jqxhr.responseJSON);
