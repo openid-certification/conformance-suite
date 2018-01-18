@@ -204,12 +204,12 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <button class="btn btn-default btn-block" id="refresh">Refresh</button>
                 <a href="logs.html" class="btn btn-info btn-block">View all available logs.</a>
             </div>
 
-            <div class="col-md-11" id="running-tests">
+            <div class="col-md-10" id="running-tests">
                 <!-- running tests get attached here -->
             </div>        
         </div>
@@ -257,7 +257,7 @@
                     <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
                 </div>
             </div>
-            <div class="col-md-9"> <!-- test name / date -->
+            <div class="col-md-8"> <!-- test name / date -->
                 <div class="row">
                     <div class="col-md-1">Test Name:</div>
                     <div class="col-md-11"><%- test.name %></div>
@@ -283,7 +283,7 @@
                 </div>
                 <% } %>
             </div>
-            <div class="col-md-1"> <!-- controls -->
+            <div class="col-md-2"> <!-- controls -->
                 <button class="btn btn-default btn-block startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
                 <button class="btn btn-default btn-block stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
                 <button class="btn btn-default btn-block downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
