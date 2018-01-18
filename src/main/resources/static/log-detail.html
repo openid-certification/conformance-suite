@@ -112,7 +112,7 @@
 
                 </div>
 
-                <div class="col-md-9"> <!-- main info -->
+                <div class="col-md-8"> <!-- main info -->
                     <div class="row">
                         <div class="col-md-1">Test Name:</div>
                         <div class="col-md-11"><%- test.testName %></div>
@@ -135,7 +135,7 @@
                     <% } %>
                 </div>
 
-                <div class="col-md-1"> <!-- controls -->
+                <div class="col-md-2"> <!-- controls -->
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Reload</button>
                     <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
@@ -299,7 +299,7 @@
                 _.each(more, function(value, key, o) {
             %>
                     <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom"><%- key %></dt>
-                    <dd>
+                    <dd class="wrapLongStrings">
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
             <% } else if (key == 'stacktrace') { %>
