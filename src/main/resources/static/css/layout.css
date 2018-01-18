@@ -332,6 +332,26 @@ textarea {
   background-color: #00cc00;
 }
 
+.ownerSub {
+	background: #d9c9fe;
+	padding: 2px 10px;
+	border-top-left-radius: 6px;
+	border-bottom-left-radius: 6px;
+	border-top: 1px darkgrey solid;
+	border-left: 1px darkgrey solid;
+	border-bottom: 1px darkgrey solid;
+}
+
+.ownerIss {
+    background: #d3dcf5;
+    padding: 2px 10px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top: 1px darkgrey solid;
+    border-right: 1px darkgrey solid;
+    border-bottom: 1px darkgrey solid;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px)  {
 
