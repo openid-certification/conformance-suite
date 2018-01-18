@@ -284,7 +284,10 @@
                 <% } %>
             </div>
             <div class="col-md-1"> <!-- controls -->
-
+                <button class="btn btn-default btn-block startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
+                <button class="btn btn-default btn-block stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+                <button class="btn btn-default btn-block downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                <button class="btn btn-default btn-block viewBtn"><span class="glyphicon glyphicon-list-alt"></span> View Logs</button>
             </div>
             
         </div>
@@ -457,6 +460,7 @@
 				console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
 
+				// run this as a string of deferreds to guarantee order
 				var deferred = $.when(1);
 
 				_.each(data, function(testId) {
@@ -474,12 +478,79 @@
 		}
 
 		function getRunningTest(testId) {
-			return $.getJSON('/runner/' + encodeURIComponent(testId), function(status) {
-				//console.log("displaying test results:"+JSON.stringify(status));
-				//console.log('rendering: ' + status.id);
+			return $.getJSON('/runner/' + encodeURIComponent(testId), function(data) {
 
-				$('#running-tests').append(FAPI_UI.logTemplates.RUNNING_TEST({test: status}));
+				var runningTest = $(FAPI_UI.logTemplates.RUNNING_TEST({test: data}));
+				
+				$('#running-tests').append(runningTest);
+				
+                $('.downloadBtn', runningTest).click(function(evt) {
+                    evt.preventDefault();
+                    window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
+                });
 
+                $('.viewBtn', runningTest).click(function(evt) {
+					evt.preventDefault();
+					window.open('/log-detail.html?log=' + encodeURIComponent(testId));
+				});
+                
+                if (data.status) {
+                    if (data.status.toLowerCase() == 'failed'
+                            || data.status.toLowerCase() == 'interrupted') {
+                        // can't start or stop a stopped test
+                        $('.startBtn', runningTest).prop('disabled', true);
+                        $('.stopBtn', runningTest).prop('disabled', true);
+                    } else {
+                        // this test is currently running and can potentially be stopped
+                        $('.stopBtn', runningTest).prop('disabled', false);
+                    
+                        $('.stopBtn', runningTest).click(function (evt) {
+                            evt.preventDefault();
+                            FAPI_UI.showBusy('Stopping test...');
+                            
+	                         $.ajax({
+	                                url: '/runner/' + encodeURIComponent(testId),
+	                                type: 'DELETE',
+	                                error: function(jqxhr, status, error) {
+	                                       FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+	                                }
+	                         })
+	                         .always(function() {
+	                                FAPI_UI.hideBusy();
+	                                updateRunningTable();
+	                         });
+	                    });
+	                    
+	                    // if the test is currently in a "created" or "configured" state it can also be started
+	                    if (data.status.toLowerCase() == 'created'
+	                            || data.status.toLowerCase() == 'configured') {
+	
+	                             $('.startBtn', runningTest).prop('disabled', false);
+	                             
+	                             $('.startBtn', runningTest).click(function(evt) {
+	                                   evt.preventDefault();
+	                                   FAPI_UI.showBusy('Starting test...');
+	                                   
+	                                   $.ajax({
+	                                       url: '/runner/' + encodeURIComponent(testId),
+	                                       type: 'POST',
+	                                       error: function(jqxhr, status, error) {
+	                                              FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+	                                       }
+		                                })
+		                                .always(function() {
+		                                       FAPI_UI.hideBusy();
+		                                       updateRunningTable();
+		                                });
+		                             });
+	                             
+	                    } else {
+	                            // otherwise, the test can't be started
+	                        $('.startBtn', runningTest).prop('disabled', true);
+	                    }
+	                }
+                }
+                    
 			});
 		}
 
