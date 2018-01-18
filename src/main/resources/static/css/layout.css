@@ -5,10 +5,13 @@ body {
 }
 
 .pageHeader {
-  max-height:80px;
   margin-top: 5px;
   margin-bottom:20px;
   padding-bottom: 10px;
+}
+
+.pageHeader img {
+    max-height:40px;
 }
 
 h1 {
@@ -368,25 +371,15 @@ textarea {
 
 /* < Tablet landscape */
 @media all and (max-width : 1023px)  {
-    header {
-      background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
-      background-size: 40% auto;
-    }
 }
 
 /* <= Phones */
 @media all and (max-width : 640px)  {
 
-    header {
-      background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
-      background-size: 60% auto;
-    }
-
 }
 
 /* <= Phones portrait */
 @media all and (max-width : 320px)  {
-
 
 }
 
