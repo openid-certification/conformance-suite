@@ -398,7 +398,7 @@
 
                     },
                     error: function(jqxhr, status, error) {
-                        FAPI_UI.showError(jqxhr.responseJSON);
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
                     }
                 });
             }
@@ -424,10 +424,34 @@
                         	   window.open('/upload.html?log=' + encodeURIComponent(testId));
                         });
                         
+                        $('#reloadBtn').click(function(evt) {
+                        	   evt.preventDefault();
+                        	   
+                        	   FAPI_UI.showBusy('Creating a clone of this test...');
+                        	   
+                        	   $.ajax({
+                                   url: '/runner/?test=' + encodeURIComponent(data.testName),
+                                   type: 'POST',
+                                   contentType: 'application/json',
+                                   data: JSON.stringify(data.config),
+                                   dataType: 'json',
+                                   success: function(data, status) {
+                                	      // we need to switch to the new window now
+                                	      var newUrl = window.location.href.replace(testId, data.id);
+                                	      window.location.assign(newUrl);
+                                   },
+                                   error: function(jqxhr, status, error) {
+                                       $("#busy").hide();
+                                       FAPI_UI.showError(jqxhr.responseJSON);
+                                       updateRunningTable();
+                                   }
+                               });
+                        	   
+                        });
                         
                     },
                     error: function(jqxhr, status, error) {
-                        FAPI_UI.showError(jqxhr.responseJSON);
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
                     }
                 });
             }
