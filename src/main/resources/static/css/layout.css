@@ -292,6 +292,11 @@ button {
     color: black;
 }
 
+/* to make labels wrap better */
+.labelCollection {
+	line-height: 2.1em;
+}
+
 .moreInfo {
   background: #eee;
   border: thin #C0C0C0 solid;
