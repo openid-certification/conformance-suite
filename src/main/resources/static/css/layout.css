@@ -250,7 +250,7 @@ textarea {
 
 .testStatus-finished {
     background-color: #383647;
-    color: black;
+    color: white;
 }
 
 .testStatus-unknown {
