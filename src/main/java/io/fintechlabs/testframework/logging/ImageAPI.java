@@ -96,15 +96,6 @@ public class ImageAPI {
 		Criteria criteria = Criteria.where("testId").is(testId).andOperator(
 				criterias.toArray(new Criteria[criterias.size()]));
 
-		// find the existing entity
-		//Criteria criteria = Criteria.where("testId").is(testId).andOperator(
-		//		Criteria.where("upload").is(placeholder));
-
-		//if (authenticationFacade.getAuthenticationToken() != null &&
-		//		!authenticationFacade.isAdmin()) {
-		//	criteria.andOperator(Criteria.where("testOwner").is(authenticationFacade.getPrincipal()));
-		//}
-
 		Query query = Query.query(criteria);
 		
 		Update update = new Update();
