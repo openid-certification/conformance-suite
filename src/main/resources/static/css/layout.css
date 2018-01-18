@@ -192,43 +192,21 @@ textarea {
 }
 
 .logItem {
+    border-top: 1px #eee solid;
 	border-bottom: 1px #eee solid;
 	padding-top: 7px;
 	padding-bottom: 3px;
 }
 
 .logItem:hover {
-	background-color: #efefef;
+	background-color: #f6fefe;
 }
 
-/** log detail **/
-/*
-#logDetail h1 .row div , #logDetail .row div {
-  position:relative;
-  margin: 5px 0;
-  float:left;
+.log-source {
+	font-family: monospace;
+	font-size: 85%;
+	color: #666666;
 }
-
-#logDetail .header {
-  margin: 0 0 20px;
-}
-
-.row .key {
-  left:20px;
-  min-width:140px;
-  color:#87c19c;
-  text-transform: bold;
-}
-
-.row .hyphen {
-  width:10px;
-  color:#c0c0c0;
-}
-
-.row .hyphen:after {
-  content:": ";
-}
-*/
 
 .testStatusResultBlock {
 	padding: 5px 10px;
@@ -310,17 +288,13 @@ textarea {
   padding: 6px;
 }
 
-/*
-.moreInfo div {
-  margin:0;
+.pageFooter {
+    padding: 4rem 0;
+    margin-top: 4rem;
+    font-size: 85%;
+    text-align: center;
+    background-color: #f7f7f7;
 }
-
-.moreInfo .row .key {
-  left:0px;
-  width:auto;
-  margin-bottom:0;
-}
-*/
 
 /* Test result labels */
 .label.result-success {

@@ -240,12 +240,12 @@
 
         <!-- Source -->
         <script type="text/template" id="logDetailTemplate_Source">
-            <span class="log-source wordwrap"><%- item.src %></span>
+            <span class="log-source"><%- item.src %></span>
         </script>
 
         <!-- Message -->
         <script type="text/template" id="logDetailTemplate_Message">
-            <p class="log-message wordwrap"><%- item.msg %></p>
+            <p class="log-message"><%- item.msg %></p>
         </script>
 
         <!-- Requirements -->
@@ -259,12 +259,14 @@
 
         <!-- Upload -->
         <script type="text/template" id="logDetailTemplate_Upload">
-            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info" href="/upload.html?log=<%- item.testId %>&placeholder=<%- item.upload %>">Attach image...</a>
+            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>&placeholder=<%- encodeURIComponent(item.upload) %>">Attach image...</a>
         </script>
 
         <!-- Result -->
         <script type="text/template" id="logDetailTemplate_Result">
-            <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
+            <div class="labelCollection">
+                <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
+            </div>
         </script>
 
         <!-- Time  -->
@@ -285,16 +287,14 @@
         </script>
         <!-- More -->
         <script type="text/template" id="logDetailTemplate_More">
-            <div class="moreInfo collapse container-fluid">
+            <div class="moreInfo collapse">
+                <dl class="dl-horizontal">
             <%
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
             %>
-                        <div class="row">
-                            <div class="key"><%- key %></div>
-                        </div>
-                        <div class="row">
-                            <div class="value wordwrap">
+                    <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom"><%- key %></dt>
+                    <dd>
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
             <% } else if (key == 'stacktrace') { %>
@@ -308,13 +308,12 @@
             <% } else { // by default run it through the json viewer %>
                 <%- JSON.stringify(value) %>
             <% } %>
-                            </div>
-                        </div> 
+                    </dd>
             <%
                 });
             %>
+                </dl>
             </div>
-            <div class="clearfix"></div>
         </script>
 
         <!-- Exported -->
@@ -655,7 +654,7 @@
         </script>
 
 
-        <footer><small class="muted">FintechLabs.io conformance suite</small></footer>
+        <footer class="pageFooter"><span class="muted">FintechLabs.io conformance suite</span></footer>
         
     </body>
 
