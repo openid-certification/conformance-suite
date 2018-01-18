@@ -45,7 +45,7 @@ public class CheckForFAPIInteractionIdInResourceResponse extends AbstractConditi
 			@SuppressWarnings("unused")
 			UUID interactionId = UUID.fromString(interactionIdStr);
 		} catch (IllegalArgumentException e) {
-			return error("Invalid interaction ID", args("interaction_id", interactionIdStr));
+			return error("Invalid interaction ID - not a UUID", args("interaction_id", interactionIdStr));
 		}
 
 		logSuccess("Found interaction ID", args("interaction_id", interactionIdStr));

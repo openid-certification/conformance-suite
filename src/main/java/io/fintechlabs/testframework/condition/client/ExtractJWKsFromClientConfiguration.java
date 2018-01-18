@@ -58,7 +58,7 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 		if (jwks == null) {
 			return error("Couldn't find JWKs in client configuration");
 		} else if (!(jwks instanceof JsonObject)) {
-			return error("Invalid JWKs in client configuration");
+			return error("Invalid JWKs in client configuration - JSON decode failed");
 		}
 		
 		logSuccess("Extracted client JWK", args("jwks", jwks));
