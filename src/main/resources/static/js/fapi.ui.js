@@ -100,7 +100,28 @@ var FAPI_UI = {
 			$('#errorMessage').html('Error from server.');
 		}
 		
-		$('#errorModal').modal();
+		FAPI_UI.hideBusy(); // only one modal at a time
+		$('#errorModal').modal('show');
+	},
+	
+	hideError : function() {
+		$('#errorModal').modal('hide');
+	},
+	
+	showBusy : function(label, message) {
+		if (!label) {
+			label = "Loading...";
+		}
+		
+		$('#loadingLabel').html(_.escape(label));
+		$('#loadingMessage').html(_.escape(message));
+		
+		FAPI_UI.hideError(); // only one modal at a time
+		$('#loadingModal').modal('show');
+	},
+	
+	hideBusy : function() {
+		$('#loadingModal').modal('hide');
 	},
 
 	// responsible for converting any dot syntax in our key parameter into object refs
