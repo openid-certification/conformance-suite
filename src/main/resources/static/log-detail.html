@@ -313,7 +313,11 @@
                 <legend>Interaction Required:</legend>
                 <dl class="dl-horizontal">
                     <% _.each(browser.urls, function(val) { %>
-                        <dt><button class="btn btn-primary" data-url="<%- val %>">Visit <span class="glyphicon glyphicon-share-alt"></span></button></dt>
+                        <dt><button class="btn btn-primary visitBtn" data-url="<%- val %>">Visit <span class="glyphicon glyphicon-share-alt"></span></button></dt>
+                        <dd><i><%- val %></i></dd>
+                    <% }); %>
+                    <% _.each(browser.visited, function(val) { %>
+                        <dt><button class="btn" disabled >Visited <span class="glyphicon glyphicon-share-alt"></span></button></dt>
                         <dd><i><%- val %></i></dd>
                     <% }); %>
                 </dl>
@@ -531,6 +535,41 @@
             			   // display the browser control data
             			   if (data.browser) {
             				   $('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({browser: data.browser}));
+            				   $('#runningTestBrowser .visitBtn').click(function(evt) {
+            					   evt.preventDefault();
+            					   var url = $(this).data('url');
+            					   
+            					   FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
+            					   
+                                var win = window.open(url, '_blank');
+
+                                if (win) {
+                                    win.focus();
+                                    $.ajax({
+                                        url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+                                        type: 'POST',
+                                        error: function(jqxhr, status, error) {
+                                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                        }
+                                    })
+                                    .then(function () {
+	                                        return getLogs(testId);
+	                                 })
+	                                 .then(function() {
+	                                        return getHeader(testId);
+	                                 })
+	                                 .then(function() {
+	                                        return getActive(testId);
+	                                 })
+	                                 .always(function() {
+	                                        FAPI_UI.hideBusy();
+	                                 });
+                                } else {
+                                    FAPI_UI.showError({error: "Couldn't open the url: " + url});
+                                }
+            					   
+            					   
+            				   });
             			   }
             			   
             		   },
