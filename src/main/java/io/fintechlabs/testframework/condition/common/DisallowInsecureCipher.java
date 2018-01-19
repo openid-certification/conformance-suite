@@ -178,7 +178,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				throw (ConditionError) e.getCause();
 			} else if ((e instanceof TlsFatalAlertReceived)
 					&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
-				logSuccess("Handshake was refused", args("host", tlsTestHost, "port", tlsTestPort));
+				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
 				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
