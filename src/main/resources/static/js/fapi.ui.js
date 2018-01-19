@@ -8,8 +8,8 @@ var FAPI_UI = {
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
 		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
 	},
-	// TO DO rename as loadLogDetailTemplates or some such...
-	loadTemplates: function() {
+
+	loadLogDetailTemplates: function() {
 		this.logTemplates.LOG_START = _.template($("#logDetailTemplate_LogStart").html());
 		this.logTemplates.LOG_DETAIL = _.template($("#logDetailTemplate").html());
 		this.logTemplates.SOURCE = _.template($("#logDetailTemplate_Source").html());

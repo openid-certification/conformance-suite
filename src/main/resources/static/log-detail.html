@@ -639,8 +639,10 @@
 
                 FAPI_UI.showBusy();
                 
-                FAPI_UI.loadTemplates();                // Load the templates
-                FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
+                $.when(FAPI_UI.loadLogDetailTemplates())                // Load the templates
+                    .then(function () {
+                        return FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
+                    })
                     .then(function () {
                     	   return getLogs(testId);         // Only once the user is loaded, then render the logs
                     })

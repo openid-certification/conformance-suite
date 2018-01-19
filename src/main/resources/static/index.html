@@ -309,9 +309,14 @@
 	     */
 		$(function() {
 
-			FAPI_UI.loadHomepageTemplates();
-            FAPI_UI.getUserInfoDiv("#userInfoDiv");
-
+			$.when(FAPI_UI.loadHomepageTemplates())
+			     .then(function() {
+			            return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+			     })
+			     .then(loadIndexPage());
+		});
+			     
+        function loadIndexPage() {
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 			
 			$.getJSON('/runner/available', function(data) {
@@ -409,7 +414,7 @@
 			// sync the JSON at least once
 		    updateFormElementsFromJSON();
 			
-		});
+		}
 
 		function updateConfigFieldVisibility() {
 			var testName = $('#testSelect').val();
