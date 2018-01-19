@@ -146,7 +146,7 @@ public class DisallowTLS11 extends AbstractCondition {
 		} catch (ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
 			if (serverVersion == ProtocolVersion.TLSv11) {
-				return error("Server agreed to disallowed TLS 1.1", args("host", tlsTestHost, "port", tlsTestPort));
+				return error("The server accepted a TLS 1.1 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));
 			} else {
 				return error("Server used incorrect TLS version",
 						args("server_version", serverVersion.toString(),
