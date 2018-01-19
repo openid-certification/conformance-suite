@@ -379,7 +379,7 @@ public class TestRunner {
 		map.put("exposed", test.getExposedValues());
 		map.put("owner", test.getOwner());
 		map.put("created", test.getCreated().toString());
-		map.put("update", test.getStatusUpdated().toString());
+		map.put("updated", test.getStatusUpdated().toString());
 		
 		BrowserControl browser = test.getBrowser();
 		if (browser != null) {
