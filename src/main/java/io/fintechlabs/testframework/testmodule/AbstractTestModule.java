@@ -322,7 +322,9 @@ public abstract class AbstractTestModule implements TestModule {
 			fireTestSuccess();
 		}
 
-		eventLog.log(getName(), "Finished");
+		eventLog.log(getName(), args(
+				"msg", "Finished",
+				"result", getResult()));
 	}
 
 	protected void fireTestSuccess() {
@@ -501,13 +503,15 @@ public abstract class AbstractTestModule implements TestModule {
 		if (!getStatus().equals(Status.FINISHED)) {
 			setStatus(Status.INTERRUPTED);
 			logResult = "INTERRUPTED";
+			eventLog.log(getName(), args(
+					"msg", "Test was interrupted before it could complete",
+					"result", logResult));
 		} else {
 			logResult = getResult().toString();
+			eventLog.log(getName(), args(
+					"msg", "Test was stopped",
+					"result", logResult));
 		}
-
-		eventLog.log(getName(), args(
-				"msg", "Test was has stopped",
-				"result", logResult));
 
 		logFinalEnv();
 	}
