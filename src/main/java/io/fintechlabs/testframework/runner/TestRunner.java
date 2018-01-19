@@ -204,25 +204,7 @@ public class TestRunner {
     public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
-			Map<String, Object> map = new HashMap<>();
-			map.put("name", test.getName());
-			map.put("id", test.getId());
-			map.put("status", test.getStatus());
-			map.put("result", test.getResult());
-			map.put("exposed", test.getExposedValues());
-			map.put("owner", test.getOwner());
-			map.put("created", test.getCreated().toString());
-			map.put("update", test.getStatusUpdated().toString());
-			
-			BrowserControl browser = test.getBrowser();
-			if (browser != null) {
-				if (browser instanceof CollectingBrowserControl) {
-					Map<String, Object> bmap = new HashMap<>();
-					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
-					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
-					map.put("browser", bmap);
-				}
-			}
+			Map<String, Object> map = createTestStatusMap(test);
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
@@ -246,26 +228,7 @@ public class TestRunner {
 
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
-			Map<String, Object> map = new HashMap<>();
-			map.put("name", test.getName());
-			map.put("id", test.getId());
-			map.put("status", test.getStatus());
-			map.put("result", test.getResult());
-			map.put("exposed", test.getExposedValues());
-			map.put("owner", test.getOwner());
-			map.put("created", test.getCreated().toString());
-			map.put("update", test.getStatusUpdated().toString());
-			
-			BrowserControl browser = test.getBrowser();
-			if (browser != null) {
-				if (browser instanceof CollectingBrowserControl) {
-					Map<String, Object> bmap = new HashMap<>();
-					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
-					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
-					map.put("browser", bmap);
-				}
-			}
-
+			Map<String, Object> map = createTestStatusMap(test);
 
 			return ResponseEntity.ok().body(map);
 
@@ -282,28 +245,11 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
+			eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), TestInstanceEventLog.args("msg", "Stopping test from external request"));
 			test.stop();
 
 			// return its status
-			Map<String, Object> map = new HashMap<>();
-			map.put("name", test.getName());
-			map.put("id", test.getId());
-			map.put("status", test.getStatus());
-			map.put("result", test.getResult());
-			map.put("exposed", test.getExposedValues());
-			map.put("owner", test.getOwner());
-			map.put("created", test.getCreated().toString());
-			map.put("update", test.getStatusUpdated().toString());
-			
-			BrowserControl browser = test.getBrowser();
-			if (browser != null) {
-				if (browser instanceof CollectingBrowserControl) {
-					Map<String, Object> bmap = new HashMap<>();
-					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
-					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
-					map.put("browser", bmap);
-				}
-			}
+			Map<String, Object> map = createTestStatusMap(test);
 			
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
@@ -424,6 +370,29 @@ public class TestRunner {
 			}
     }
     
+	private Map<String, Object> createTestStatusMap(TestModule test) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("name", test.getName());
+		map.put("id", test.getId());
+		map.put("status", test.getStatus());
+		map.put("result", test.getResult());
+		map.put("exposed", test.getExposedValues());
+		map.put("owner", test.getOwner());
+		map.put("created", test.getCreated().toString());
+		map.put("update", test.getStatusUpdated().toString());
+		
+		BrowserControl browser = test.getBrowser();
+		if (browser != null) {
+			if (browser instanceof CollectingBrowserControl) {
+				Map<String, Object> bmap = new HashMap<>();
+				bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+				bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+				map.put("browser", bmap);
+			}
+		}
+		return map;
+	}
+
     // handle errors thrown by running tests
     @ExceptionHandler(TestFailureException.class)
 	public ResponseEntity<Object> conditionFailure(TestFailureException error) {
