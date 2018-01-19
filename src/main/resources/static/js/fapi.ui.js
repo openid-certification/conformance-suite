@@ -24,6 +24,10 @@ var FAPI_UI = {
 		this.logTemplates.EXPORTED = _.template($("#logDetailTemplate_Exported").html());
 		this.logTemplates.BROWSER = _.template($("#logDetailTemplate_Browser").html());
 	},
+	
+	loadLogListTemplates: function() {
+		this.logTemplates.LOG_LISTING = _.template($("#logsListingTemplate").html());
+	},
 
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
 	testResults : {passed:false, finished:false, success:0, warning:0, failure:0, interrupted:0, review:0, info:0, default:0, total:0},
@@ -76,18 +80,6 @@ var FAPI_UI = {
 				return "";
 				
 		}
-	},
-	
-	/**
-	 * 
-	 */
-	loadAvailableLogs : function() {
-		$.ajax({ 
-	        type: 'GET', 
-	        url: "/log", 
-	        data: {}, 
-	        success: render
-	    });
 	},
 	
 	/**
