@@ -22,17 +22,20 @@ import com.mongodb.BasicDBObject;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.info.DBTestInfoService;
+import io.fintechlabs.testframework.info.TestInfoService;
 
 /**
  * @author jricher
@@ -81,7 +84,7 @@ public class LogApi {
 	}
 	
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id) {
+	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id, @RequestParam(name = "dl", defaultValue = "false") boolean dl) {
 		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId",id);
 		if (!authenticationFacade.isAdmin()) {
 			queryBuilder = queryBuilder.add("testOwner", authenticationFacade.getPrincipal());
@@ -93,7 +96,14 @@ public class LogApi {
 					.get())
 			.toArray();
 		
-		return new ResponseEntity<>(results, HttpStatus.OK);
+		HttpHeaders headers = new HttpHeaders();
+		
+		if (dl) {
+			// TODO: come up with a better filename
+			headers.add("Content-Disposition", "download; filename=\"test-log-" + id + ".json\"");
+		}
+		
+		return ResponseEntity.ok().headers(headers).body(results);
 		
 	}
 	

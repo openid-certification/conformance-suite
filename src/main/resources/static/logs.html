@@ -4,6 +4,7 @@
 
 -->
 <html>
+<head>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
@@ -21,17 +22,34 @@
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
+</head>
 
     <body>
 
-        <a href="index.html"><header></header></a>
+	    <div class="pageHeader container-fluid">
+	        <div class="row-fluid">
+	            <div class="col-md-8">
+	                <a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+	            </div>
+	            <div id="userInfoDiv" class="col-md-4 text-right">
+	            </div>
+	        </div>
+	    </div>
+	    <div class="clearfix"></div>
+
+        <!-- resident DOM -->
+        <div class="container-fluid">
+            <div id="logsListingTemplate_render">
+            
+            </div>
+        </div>
 
 
         <script type="text/template" id="logsListingTemplate">
@@ -79,38 +97,84 @@
                 </form>
             </div>
         </script>
+        
+	    <!-- error modal -->
+	    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+	        <div class="modal-dialog" role="document">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	                        <span aria-hidden="true">&times;</span>
+	                    </button>
+	                    <h4 class="modal-title" id="errorLabel">Error</h4>
+	                </div>
+	                <div class="modal-body">Error: <span id="errorMessage"></span></div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	    
+	    <!-- loading modal -->
+	    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+	        <div class="modal-dialog" role="document">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+	                </div>
+	                <div class="modal-body"><img src="/images/spinner.gif"> <span id="loadingMessage"></span></div>
+	            </div>
+	        </div>
+	    </div>
 
-        <div class="container-fluid">
-            <div id="userInfoDiv">
-                Loading . . .
-            </div>
-            <div id="logsListingTemplate_render"></div>
-        </div>
         <script>
 
             /**
              * 
              */
             $(document).ready(function(){
-                FAPI_UI.getUserInfoDiv("#userInfoDiv");
-                FAPI_UI.loadAvailableLogs();
+            	   FAPI_UI.showBusy();
+            	   $.when(FAPI_UI.loadLogListTemplates())
+            	       .then(function() {
+		                return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+            	       })
+            	       .then(function() {
+		                return loadAvailableLogs();
+            	       })
+            	       .always(function() {
+            	    	        FAPI_UI.hideBusy();
+            	       });
             });
 
             /**
              * 
              */
-            function render(logsList) {
-                var template = _.template($("#logsListingTemplate").html());
-                $('#logsListingTemplate_render').html(template({items:logsList}));
-                // add sort by functions to the list header
-                $("#test-id-sort-action").click(function (evt) { render(_.sortBy(logsList, '_id')) });
-                $("#name-sort-action").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
-                $("#date-sort-action").click(function (evt) { render(_.sortBy(logsList, 'started')) });                            
-            }
-
+             
+             /**
+              * 
+              */
+             function loadAvailableLogs() {
+                 return $.ajax({ 
+                     type: 'GET', 
+                     url: "/log", 
+                     data: {}, 
+                     success: function(logsList) {
+                         $('#logsListingTemplate_render').html(FAPI_UI.logTemplates.LOG_LISTING({items:logsList}));
+                         // add sort by functions to the list header
+                         $("#test-id-sort-action").click(function (evt) { render(_.sortBy(logsList, '_id')) });
+                         $("#name-sort-action").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
+                         $("#date-sort-action").click(function (evt) { render(_.sortBy(logsList, 'started')) });
+                         
+                     },
+                     error: function(jqhxr, status, error) {
+                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                     }
+                 });
+             }
         </script>
 
-        <footer></footer>
+    <footer class="pageFooter"><span class="muted">FintechLabs.io conformance suite</span></footer>
         
     </body>
 

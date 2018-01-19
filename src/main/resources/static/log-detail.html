@@ -21,7 +21,7 @@
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
@@ -31,136 +31,247 @@
 
     <body>
 
-        <a href="index.html"><header></header></a>
-        <!-- LogStart -->
-        <script type="text/template" id="logDetailTemplate_LogStart">  
-            <div class="row">
-                <h1>
-                    <div class="key">Log</div>
-                    <div class="value wordwrap"><%- test.testId %></div>
-                </h1>
-            </div>
-            <div class="row">
-                <h2>
-                    <div class="key">Time</div>
-                    <div class="value wordwrap"><%- new Date(test.started) %></div>
-                </h2>
-            </div>
-            <div class="row">
-                <h2>
-                    <div class="key">Status</div>
-                    <div class="value wordwrap"><%- test.status %></div>
-                </h2>
+        <div class="pageHeader container-fluid">
+	        <div class="row-fluid">
+		        <div class="col-md-8">
+		            <a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+		        </div>
+		        <div id="userInfoDiv" class="col-md-4 text-right">
+		        </div>
+	        </div>
+        </div>
+        <div class="clearfix"></div>
+        
+	    <!-- error modal -->
+	    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+	        <div class="modal-dialog" role="document">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	                        <span aria-hidden="true">&times;</span>
+	                    </button>
+	                    <h4 class="modal-title" id="errorLabel">Error</h4>
+	                </div>
+	                <div class="modal-body">Error: <span id="errorMessage"></span></div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
 
-                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getTooltipHelp(test.status) %>" data-placement="right"></span>
+	    <!-- loading modal -->
+	    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+	        <div class="modal-dialog" role="document">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+	                </div>
+	                <div class="modal-body"><img src="/images/spinner.gif"> <span id="loadingMessage"></span></div>
+	            </div>
+	        </div>
+	    </div>
+	    
+
+	    
+        <!-- LogStart -->
+        <script type="text/template" id="logDetailTemplate_LogStart">
+
+            <div class="well well-sm container-fluid">
+              <div class="row-fluid" id="logHeader"> <!-- main header -->
+        
+                <div class="col-md-2" id="testStatusAndResult"><!-- status and results block -->
+
+                    <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>">
+                        <%- test.status %>
+                        <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
+                    </div>
+                    <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>">
+                        <%- test.result %>
+                        <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
+                    </div>
+
+                    <!-- calculated test results -->
+                    <div>
+                        <div>
+                            <small>Test condition summary:</small>
+                        </div>
+                        <div class="labelCollection">
+                    <%
+                        var hiddenKeys = ["passed", "finished", "total"];
+                        _.each(summary, function(value, key, o) {
+                            if (value && !_.contains(hiddenKeys, key)) {
+                    %>
+                                <span class="label result-<%- key %>"><%- key.toUpperCase() %> <span class="badge"><%- value %></span></span>
+                    <%
+                            }
+                        });
+                    %>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-md-8"> <!-- main info -->
+                    <div class="row">
+                        <div class="col-md-1">Test Name:</div>
+                        <div class="col-md-11"><%- test.testName %></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">Test ID:</div>
+                        <div class="col-md-11"><%- test.testId %></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">Created:</div>
+                        <div class="col-md-11"><%- new Date(test.started) %></div>
+                    </div>
+                    <% if (FAPI_UI.currentUser.isAdmin) { %>
+                    <div class="row">
+                        <div class="col-md-1">Test Owner:</div>
+                        <div class="col-md-11">
+                            <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+
+                <div class="col-md-2"> <!-- controls -->
+                    <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Reload</button>
+                    <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
+                    <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                </div>
+
+              </div>
             </div>
-            <div class="row">
-                <h2>
-                    <div class="key">Result</div>
-                    <div class="value wordwrap"><%- test.result %></div>
-                </h2>
+            <div class="container-fluid well well-sm collapse" id="runningTestInformation">
+              <div class="alert alert-info" id="runningTestActive"><b>This test is currently running.</b> Values exported from the test are available below along with any URLs that need to be visited interactively.</div>
+              <div class="alert alert-warning" id="runningTestInactive"><b>This test is no longer running.</b> Values exported from the test are available for review below. This test will be automatically removed from the test runner, but the logs will remain at this URL.</div>
+              <div class="row-fluid">
+                <!-- attach controls and information for an actively running test here -->
+                <div class="col-md-5" id="runningTestExport">
+
+                </div>
+                <div class="col-md-6" id="runningTestBrowser">
+
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-default btn-block collapse" id="startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
+                    <button class="btn btn-default btn-block collapse" id="stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+                </div>
+              </div>
             </div>
-            <div class="row">
-                <h2>
-                    <div class="key">Test Name</div>
-                    <div class="value wordwrap"><%- test.testName %></div>
-                </h2>
+            <div class="container alert alert-info alert-dismissible collapse" id="runningTestArchived">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <b>This test is no longer running.</b> This log has been archived and can be viewed or downloaded.
             </div>
-            <% if (FAPI_UI.currentUser.isAdmin) { %>
-            <div class="row">
-                <h2>
-                    <div class="key">Test Owner</div>
-                    <div class="value wordwrap"><span class="label label-default">sub:</span> <span class="text-primary"><%- test.owner.sub %></span>
-                        <span class="label label-default">iss:</span> <span class="text-primary"><%- test.owner.iss %></span></div>
-                </h2>
-            </div>
-            <% } %>
         </script>
 
         <!-- Log detail element -->
         <script type="text/template" id="logDetailTemplate">
-            <div id="log-<%- item._id %>">
-              <div class="row">
-                <div class="col-md-1">
-                <% if (item.result) { 
-                    // count the number of test types to render later on
-                    FAPI_UI.testResults[item.result.toLowerCase()]++;
-                    FAPI_UI.testResults.total++;
-                %>
-                    <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
-                <% } %>
+          <div class="row">
+            <div data-item-log-id="<%- item._id %>" class="col-md-12 logItem">
+
+                <div class="row"><!-- time / result / source / owner -->
+
+                    <div class="col-md-1">
+                    <% if (item.time) { %>
+                        <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                    <% } %>
+
+                    </div>
+
+                    <div class="col-md-1">
+                      <% if (item.result) { 
+                          // count the number of test types to render later on
+                          FAPI_UI.testResults[item.result.toLowerCase()]++;
+                          FAPI_UI.testResults.total++;
+                      %> 
+                      <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
+                      <% } %>
+                    </div>
+
+                    <div class="col-md-8">
+                        <% if (item.src) { %>
+                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                        <% } %>
+                    </div>
+
+                    <div class="col-md-2">
+                        <% if (item.testOwner 
+                                && (item.testOwner.iss != FAPI_UI.currentUser.iss 
+                                    || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
+                            <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
+                        <% } %>
+                    </div>
+
                 </div>
 
-                <div class="col-md-9">
-                <% if (item.src) { %>
-                    <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
-                <% } %>
-                </div>
-            
-                <div class="col-md-2">
-                <% if (item.testOwner && (item.testOwner.iss != FAPI_UI.currentUser.iss || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
-                    <%= FAPI_UI.logTemplates.OWNER({item: item}) %>
-                <% } %>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-1">
-                <% if (item.requirements) { %>
-                    <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
-                <% } %>
-                </div>
-
-                <div class="col-md-11">
-                <% if (item.msg) { %>
-                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-                <% } %>
                 <% if (item.upload) { %>
-                    <p><%= FAPI_UI.logTemplates.UPLOAD({item: item}) %></p>
-                <% } %>
+                <div class="row"><!-- image upload (if necessary) -->
+                    <div class="col-md-10 col-md-offset-2">
+                            <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+                    </div>
                 </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-12">
-                <% if (item.time) { %>
-                    <%= FAPI_UI.logTemplates.TIME({item: item}) %>
                 <% } %>
-                </div>
-              </div>
 
-              <div class="more-info">
-                
-              </div>
+                <div class="row"><!-- more button / requirements / message -->
+                    <div class="col-md-1 moreButtonContainer">
+
+                    </div>
+
+                    <div class="col-md-1">
+                        <% if (item.requirements) { %>
+                            <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
+                        <% } %>
+                    </div>
+
+                    <div class="col-md-10">
+                        <% if (item.msg) { %>
+                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                        <% } %>
+                    </div>
+
+                </div>
+
+                <div class="row"><!-- more info panel -->
+                    <div class="moreInfoContainer">
+
+                    </div>
+                </div>
+
             </div>
-            <hr />
+          </div>
         </script>
 
         <!-- Source -->
         <script type="text/template" id="logDetailTemplate_Source">
-            <span class="log-source wordwrap"><%- item.src %></span>
+            <span class="log-source"><%- item.src %></span>
         </script>
 
         <!-- Message -->
         <script type="text/template" id="logDetailTemplate_Message">
-            <p class="log-message wordwrap"><%- item.msg %></p>
+            <p class="log-message"><%- item.msg %></p>
         </script>
 
         <!-- Requirements -->
         <script type="text/template" id="logDetailTemplate_Requirements">
+            <div class="labelCollection">
             <% _.each(item.requirements, function(requirement) { %>
                 <span class="log-requirement label label-default"><%- requirement %></span>
             <% }); %>
+            </div>
         </script>
 
         <!-- Upload -->
         <script type="text/template" id="logDetailTemplate_Upload">
-            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info" href="/upload.html?log=<%- item.testId %>&placeholder=<%- item.upload %>">Attach image...</a>
+            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>&placeholder=<%- encodeURIComponent(item.upload) %>">Attach image...</a>
         </script>
 
         <!-- Result -->
         <script type="text/template" id="logDetailTemplate_Result">
-            <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
+            <div class="labelCollection">
+                <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
+            </div>
         </script>
 
         <!-- Time  -->
@@ -170,24 +281,25 @@
         
         <!-- Owner -->
         <script type="text/template" id="logDetailTemplate_Owner">
-            <span class="log-owner"><span class="label label-primary"><%- item.testOwner.sub %> <span class="badge"><%- item.testOwner.iss %></span></span></span>
+            <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
         </script>
 
-        <!-- More -->
-        <script type="text/template" id="logDetailTemplate_More">
-            <button id="moreBtn-<%- item._id %>" class="btn btn-default btn-xs">
+        <!-- More Button -->
+        <script type="text/template" id="logDetailTemplate_MoreButton">
+            <button class="btn btn-default btn-xs moreBtn" data-activated="false">
                 <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
             </button>
-            <div id="moreInfo-<%- item._id %>" class="moreInfo collapse container-fluid">
+        </script>
+        <!-- More -->
+        <script type="text/template" id="logDetailTemplate_More">
+            <div class="moreInfo collapse">
+                <dl class="dl-horizontal">
             <%
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
             %>
-                        <div class="row">
-                            <div class="key"><%- key %></div>
-                        </div>
-                        <div class="row">
-                            <div class="value wordwrap">
+                    <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom"><%- key %></dt>
+                    <dd class="wrapLongStrings">
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
             <% } else if (key == 'stacktrace') { %>
@@ -201,54 +313,43 @@
             <% } else { // by default run it through the json viewer %>
                 <%- JSON.stringify(value) %>
             <% } %>
-                            </div>
-                        </div> 
+                    </dd>
             <%
                 });
             %>
-            </div>
-            <div class="clearfix"></div>
-        </script>
-
-        <!-- LogEnd -->
-        <script type="text/template" id="logDetailTemplate_LogEnd">  
-            <div class="row">
-                <h2>
-                    <div class="key">Summary</div>
-                    <%
-                        var hiddenKeys = ["passed", "finished", "total"];
-                        _.each(summary, function(value, key, o) {
-                            if (!_.contains(hiddenKeys, key) && value > 0) {
-                    %>
-                                <span class="label result-<%- key %>"><%- key.toUpperCase() %> <span class="badge"><%- value %></span></span>
-                    <%
-                            }
-                        });
-
-                        if (!summary.finished) {
-                    %>
-                        <span> - tests have not completed</span>
-                    <%
-                        }
-                    %>
-                </h2>
+                </dl>
             </div>
         </script>
 
-
-        <!-- resident DOM -->
-        <div class="container-fluid">
-            <div id="userInfoDiv">
-                Loading . . .
-            </div>
-            <div id="logDetail">
-                <div class="header"></div>
-                <hr />
-                <div class="content">
-                    <!-- log items are rendered here -->
-                </div>
-            </div>
-        </div>
+        <!-- Exported -->
+        <script type="text/template" id="logDetailTemplate_Exported">
+            <fieldset>
+                <legend>Exported values</legend>
+                <dl class="dl-horizontal">
+                    <% _.each(exported, function(val, key) { %>
+                        <dt><%- key %></dt>
+                        <dd><%- val %></dt>
+                    <% }); %>
+                </dl>
+            </fieldset>
+        </script>
+        
+        <!-- BrowserControl -->
+        <script type="text/template" id="logDetailTemplate_Browser">
+            <fieldset>
+                <legend>Interaction Required:</legend>
+                <dl class="dl-horizontal">
+                    <% _.each(browser.urls, function(val) { %>
+                        <dt><button class="btn btn-primary visitBtn" data-url="<%- val %>">Visit <span class="glyphicon glyphicon-share-alt"></span></button></dt>
+                        <dd><i><%- val %></i></dd>
+                    <% }); %>
+                    <% _.each(browser.visited, function(val) { %>
+                        <dt><button class="btn" disabled >Visited <span class="glyphicon glyphicon-share-alt"></span></button></dt>
+                        <dd><i><%- val %></i></dd>
+                    <% }); %>
+                </dl>
+            </fieldset>
+        </script>
 
         <!-- UserInfo Template-->
         <script type="text/template" id="userInfoTemplate">
@@ -262,25 +363,37 @@
             </div>
         </script>
         
+        <!-- resident DOM -->
+        <div class="container-fluid">
+            <div id="logDetail">
+                <div class="header"></div>
+                <div class="logContent container-fluid">
+                    <!-- log items are rendered here -->
+                </div>
+            </div>
+        </div>
+
         <script type="text/javascript">
 
             /**
              *
              */
-            function getLogs(){
-                var urlParams = new URLSearchParams(window.location.search);
-                var testId = urlParams.get('log');
-
-                $.ajax({
+            function getLogs(testId){
+ 
+                return $.ajax({
                     type: 'GET',
                     url: "/log/" + encodeURIComponent(testId),
                     data: {},
                     success: function (data) {
 
+                    	   // clear any existing log items
+                    	   $('#logDetail .logContent').html('');
+                    	
                         $.each(data, function(i, item) {
 
                             // render the base element
-                            $('#logDetail .content').append(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
+                            var el = $(FAPI_UI.logTemplates.LOG_DETAIL({item:item}));
+                            $('#logDetail .logContent').append(el);
 
                             // see if we've got any "extra" bits that we want to display in a block
                             var more = _.pick(item, function(value, key, object) {
@@ -291,62 +404,263 @@
 
                             if (!_.isEmpty(more)) {
                                 // we have extra fields so let's attach them
-                                $('#log-' + item._id + ' .more-info').append(FAPI_UI.logTemplates.MORE({more: more, item: item}));
+                                var moreButton = $(FAPI_UI.logTemplates.MORE_BUTTON({more: more, item: item}));
+                                var moreInfo = $(FAPI_UI.logTemplates.MORE({more: more, item: item}));
+
+                                $('.moreButtonContainer', el).append(moreButton);
+                                $('.moreInfoContainer', el).append(moreInfo);
 
                                 // wire up the button
-                                $('#moreBtn-' + item._id).click(function (evt) {
-                                    if ($(this).hasClass('activated')) {
+                                $('.moreBtn', el).click(function (evt) {
+                                    if ($(this).data('activated')) {
                                         // it's already been activated, need to hide things
-                                        $('#moreInfo-' + item._id).hide(); // hide the content
+                                        $('.moreInfo', el).hide(); // hide the content
                                         $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
-                                        $(this).removeClass('activated');
+                                        $(this).data('activated', false);
                                     } else {
                                         // need to show the collapsed entity
-                                        $('#moreInfo-' + item._id).show(); // show the content
+                                        $('.moreInfo', el).show(); // show the content
                                         $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
-                                        $(this).addClass('activated');
+                                        $(this).data('activated', true);
                                     }
                                 });
                             }
                         });
 
-                        // this is the page header, fill it in with log details
-                        $.ajax({
-                            type: 'GET',
-                            url: '/info/' + encodeURIComponent(testId),
-                            data: {},
-                            success: function(data) {
-                                if (data.status && data.status.toLowerCase() == "finished") {
-                                    FAPI_UI.testResults.finished = true;
-                                }
-
-                                if (data.result && data.result.toLowerCase() == "passed") {
-                                    FAPI_UI.testResults.passed = true;
-                                }
-
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_END({summary:FAPI_UI.testResults}));
-                                $('#logDetail .header').append(FAPI_UI.logTemplates.LOG_START({test: data}));
-
-                                $('[data-toggle="tooltip"]').tooltip({container: 'body'});
-                            }
-                        });
+                    },
+                    error: function(jqxhr, status, error) {
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
                     }
                 });
             }
 
+            function getHeader(testId) {
+                // this is the page header, fill it in with log details
+                return $.ajax({
+                    type: 'GET',
+                    url: '/info/' + encodeURIComponent(testId),
+                    data: {},
+                    success: function(data) {
+                        $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({test: data, summary: FAPI_UI.testResults}));
+
+                        $('#logDetail .header [data-toggle="tooltip"]').tooltip({container: 'body'});
+                        
+                        $('#downloadBtn').click(function(evt) {
+                           evt.preventDefault();
+                           window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
+                        });
+                        
+                        $('#uploadBtn').click(function(evt) {
+                        	   evt.preventDefault();
+                        	   window.open('/upload.html?log=' + encodeURIComponent(testId));
+                        });
+                        
+                        $('#reloadBtn').click(function(evt) {
+                        	   evt.preventDefault();
+                        	   
+                        	   FAPI_UI.showBusy('Creating a clone of this test...');
+                        	   
+                        	   $.ajax({
+                                   url: '/runner/?test=' + encodeURIComponent(data.testName),
+                                   type: 'POST',
+                                   contentType: 'application/json',
+                                   data: JSON.stringify(data.config),
+                                   success: function(data, status) {
+                                	      // we need to switch to the new window now
+                                	      var newUrl = window.location.href.replace(testId, data.id);
+                                	      window.location.assign(newUrl);
+                                   },
+                                   error: function(jqxhr, status, error) {
+                                       FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                   }
+                               });
+                        	   
+                        });
+                        
+                    },
+                    error: function(jqxhr, status, error) {
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                    }
+                });
+            }
+            
+            function getActive(testId) {
+            	   // try to load up the active test information if it's available, otherwise cut out some controls
+            	   return $.ajax({
+            		   type: 'GET',
+            		   url: '/runner/' + encodeURIComponent(testId),
+            		   success: function(data) {
+                       // show the overall container
+                       $('#runningTestInformation').show();
+
+            			   
+            			   // found an active test, light up the buttons appropriately
+            			   if (data.status) {
+            				   if (data.status.toLowerCase() == 'failed'
+            						   || data.status.toLowerCase() == 'interrupted') {
+            					   // can't start or stop a stopped test
+            					   $('#startBtn').hide();
+                                $('#stopBtn').hide();
+                                // show the "stopped" alert and hide the other
+                                $('#runningTestActive').hide();
+                                $('#runningTestInactive').show();
+                                $('#runningTestArchived').hide();
+            				   } else {
+            					   // this test is currently running and can potentially be stopped
+                               $('#stopBtn').show();
+                               $('#runningTestActive').show();
+                               $('#runningTestInactive').hide();
+                               $('#runningTestArchived').hide();
+                               
+                               $('#stopBtn').click(function (evt) {
+                            	       evt.preventDefault();
+                            	       FAPI_UI.showBusy('Stopping test...');
+                            	       
+                                    $.ajax({
+                                           url: '/runner/' + encodeURIComponent(testId),
+                                           type: 'DELETE',
+                                           error: function(jqxhr, status, error) {
+                                                  FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                           }
+                                    })
+                                           .then(function () {
+                                           return getLogs(testId);
+                                    })
+                                    .then(function() {
+                                           return getHeader(testId);
+                                    })
+                                    .then(function() {
+                                           return getActive(testId);
+                                    })
+                                    .always(function() {
+                                           FAPI_UI.hideBusy();
+                                    });
+                               });
+                               
+                               // if the test is currently in a "created" or "configured" state it can also be started
+                               if (data.status.toLowerCase() == 'created'
+                            		   || data.status.toLowerCase() == 'configured') {
+
+                            	        $('#startBtn').show();
+                            	        
+                            	        $('#startBtn').click(function(evt) {
+                            	        	  evt.preventDefault();
+                            	        	  FAPI_UI.showBusy('Starting test...');
+                            	        	  
+                            	        	  $.ajax({
+                                                  url: '/runner/' + encodeURIComponent(testId),
+                                                  type: 'POST',
+                                                  error: function(jqxhr, status, error) {
+                                                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                                  }
+                                           })
+                                	        	  .then(function () {
+                                                  return getLogs(testId);
+                                           })
+                                           .then(function() {
+                                                  return getHeader(testId);
+                                           })
+                                           .then(function() {
+                                                  return getActive(testId);
+                                           })
+                                           .always(function() {
+                                                  FAPI_UI.hideBusy();
+                                           });
+                            	        });
+                            	        
+                               } else {
+                            	       // otherwise, the test can't be started
+                                   $('#startBtn').hide();
+                               }
+            				   }
+            			   }
+
+            			   // display the exported data
+            			   $('#runningTestExport').html(FAPI_UI.logTemplates.EXPORTED({exported: data.exposed}));
+            			   
+            			   // display the browser control data
+            			   if (data.browser) {
+            				   $('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({browser: data.browser}));
+            				   $('#runningTestBrowser .visitBtn').click(function(evt) {
+            					   evt.preventDefault();
+            					   var url = $(this).data('url');
+            					   
+            					   FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
+            					   
+                                var win = window.open(url, '_blank');
+
+                                if (win) {
+                                    win.focus();
+                                    $.ajax({
+                                        url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+                                        type: 'POST',
+                                        error: function(jqxhr, status, error) {
+                                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+                                        }
+                                    })
+                                    .then(function () {
+	                                        return getLogs(testId);
+	                                 })
+	                                 .then(function() {
+	                                        return getHeader(testId);
+	                                 })
+	                                 .then(function() {
+	                                        return getActive(testId);
+	                                 })
+	                                 .always(function() {
+	                                        FAPI_UI.hideBusy();
+	                                 });
+                                } else {
+                                    FAPI_UI.showError({error: "Couldn't open the url: " + url});
+                                }
+            					   
+            					   
+            				   });
+            			   }
+            			   
+            		   },
+            		   error: function(jqxhr, status, error) {
+            			   // test isn't currently in the runner, can't start or stop it
+            			   $('#startBtn').hide();
+            			   $('#stopBtn').hide();
+                       $('#runningTestActive').hide();
+                       $('#runningTestInactive').hide();
+                       $('#runningTestArchived').show();
+            		   }
+            	   });
+            }
+            
             /**
              *
              */
             $(document).ready(function(){
-                FAPI_UI.loadTemplates();                // Load the templates
-                FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
-                    .done(getLogs());                   // Only once the user is loaded, then render the logs
+                var urlParams = new URLSearchParams(window.location.search);
+                var testId = urlParams.get('log');
+
+                FAPI_UI.showBusy();
+                
+                $.when(FAPI_UI.loadLogDetailTemplates())                // Load the templates
+                    .then(function () {
+                        return FAPI_UI.getUserInfoDiv("#userInfoDiv")  // Then get the current user info
+                    })
+                    .then(function () {
+                    	   return getLogs(testId);         // Only once the user is loaded, then render the logs
+                    })
+                    .then(function() {
+                    	   return getHeader(testId);       // once the logs are loaded, render the header
+                    })
+                    .then(function() {                  // once we have the test info, check to see if the test is currently active
+                    	   return getActive(testId);
+                    })
+                    .always(function() {
+                    	   FAPI_UI.hideBusy();
+                    });
             });
 
         </script>
 
 
-        <footer></footer>
+        <footer class="pageFooter"><span class="muted">FintechLabs.io conformance suite</span></footer>
         
     </body>
 

@@ -36,6 +36,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
-import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -110,40 +110,39 @@ public class TestRunner {
 	}
     
     
-    @RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName,
-    		@RequestBody JsonObject config, Model m) {
+	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestBody JsonObject config, Model m) {
 
-    	String id = RandomStringUtils.randomAlphanumeric(10);
-    	
-    	BrowserControl browser = new CollectingBrowserControl();
-    	
-        TestModule test = createTestModule(testName, id, browser);
-        
-        if (test == null) {
-        	// return an error
-        	return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        
-        logger.info("Created: " + testName);
+		String id = RandomStringUtils.randomAlphanumeric(10);
 
-        logger.info("Status of " + testName + ": " + test.getStatus());
+		BrowserControl browser = new CollectingBrowserControl();
 
-        support.addRunningTest(id, test);
-        
-        String url;
-        String alias = "";
+		TestModule test = createTestModule(testName, id, browser);
 
-        // see if an alias was passed in as part of the configuration and use it if available
-        if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
-	        	try {
-	        		alias = config.get("alias").getAsString();
-	        		
-		        	// create an alias for the test
-		        	if (!createTestAlias(alias, id)) {
-		        		// there was a failure in creating the test alias, return an error
-		        		return new ResponseEntity<>(HttpStatus.CONFLICT);
-		        	}
+		if (test == null) {
+			// return an error
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		logger.info("Created: " + testName);
+
+		// logger.info("Status of " + testName + ": " + test.getStatus());
+
+		support.addRunningTest(id, test);
+
+		String url;
+		String alias = "";
+
+		// see if an alias was passed in as part of the configuration and use it if available
+		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
+			try {
+				alias = config.get("alias").getAsString();
+
+				// create an alias for the test
+				if (!createTestAlias(alias, id)) {
+					// there was a failure in creating the test alias, return an error
+					return new ResponseEntity<>(HttpStatus.CONFLICT);
+				}
 				url = baseUrl + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				// this should never happen, why is Java dumb
@@ -151,35 +150,30 @@ public class TestRunner {
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
-        } else {
-            url = baseUrl + TestDispatcher.TEST_PATH + id;
-        }
-        
-        // log the test creation event in the event log
-        Map<String, Object> testCreated = ImmutableMap.of(
-        		"baseUrl", url,
-        		"config", config,
-        		"alias", alias,
-        		"testName", testName);
+		} else {
+			url = baseUrl + TestDispatcher.TEST_PATH + id;
+		}
 
-        
-        // add this test to the stack
-        testInfo.createTest(id, testName, url, config, alias, Instant.now());
+		// log the test creation event in the event log
+		Map<String, Object> testCreated = ImmutableMap.of("baseUrl", url, "config", config, "alias", alias, "testName", testName);
+
+		// add this test to the stack
+		testInfo.createTest(id, testName, url, config, alias, Instant.now());
 
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(), testCreated);
 
-        test.configure(config, url);
+		test.configure(config, url);
 
-        logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
+		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("name", testName);
-        map.put("id", test.getId());
-        map.put("url", url);
-        
-        return new ResponseEntity<>(map, HttpStatus.CREATED);
+		Map<String, String> map = new HashMap<>();
+		map.put("name", testName);
+		map.put("id", test.getId());
+		map.put("url", url);
 
-    }
+		return new ResponseEntity<>(map, HttpStatus.CREATED);
+
+	}
 
     /**
 	 * @param alias
@@ -207,74 +201,113 @@ public class TestRunner {
 	@RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
 		TestModule test = support.getRunningTestById(testId);
-    	if (test != null) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("name", test.getName());
-            map.put("id", test.getId());
-            map.put("status", test.getStatus());
-            map.put("result", test.getResult());
-            map.put("exposed", test.getExposedValues());
+		if (test != null) {
+			Map<String, Object> map = new HashMap<>();
+			map.put("name", test.getName());
+			map.put("id", test.getId());
+			map.put("status", test.getStatus());
+			map.put("result", test.getResult());
+			map.put("exposed", test.getExposedValues());
+			map.put("owner", test.getOwner());
+			map.put("created", test.getCreated().toString());
+			map.put("update", test.getStatusUpdated().toString());
+			
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				if (browser instanceof CollectingBrowserControl) {
+					Map<String, Object> bmap = new HashMap<>();
+					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+					map.put("browser", bmap);
+				}
+			}
 
-            logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
-            // TODO: fire this off in a background task thread?
-            test.start();
+			// TODO: fire this off in a background task thread?
+			test.start();
 
-            logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
+			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
-            return new ResponseEntity<>(map, HttpStatus.OK);
-    		
-    	} else {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    	}
+			return ResponseEntity.ok().body(map);
+
+		} else {
+			return ResponseEntity.notFound().build();
+		}
 
 
     }
     
-    @RequestMapping(value = "/runner/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
-    	logger.info("Getting status of " + testId);
-    	
+	@GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
+		//logger.info("Getting status of " + testId);
+
 		TestModule test = support.getRunningTestById(testId);
-    	if (test != null) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("name", test.getName());
-            map.put("id", test.getId());
-            map.put("status", test.getStatus());
-            map.put("result", test.getResult());
-            map.put("exposed", test.getExposedValues());
-            map.put("owner", test.getOwner());
-            
-            return new ResponseEntity<>(map, HttpStatus.OK);
-    		
-    	} else {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    	}
-    }
+		if (test != null) {
+			Map<String, Object> map = new HashMap<>();
+			map.put("name", test.getName());
+			map.put("id", test.getId());
+			map.put("status", test.getStatus());
+			map.put("result", test.getResult());
+			map.put("exposed", test.getExposedValues());
+			map.put("owner", test.getOwner());
+			map.put("created", test.getCreated().toString());
+			map.put("update", test.getStatusUpdated().toString());
+			
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				if (browser instanceof CollectingBrowserControl) {
+					Map<String, Object> bmap = new HashMap<>();
+					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+					map.put("browser", bmap);
+				}
+			}
+
+
+			return ResponseEntity.ok().body(map);
+
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
     
     @DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> cancelTest(@PathVariable("id") String testId) {
-    	logger.info("Canceling " + testId);
-    	
-		TestModule test = support.getRunningTestById(testId);
-    	if (test != null) {
+	public ResponseEntity<Object> cancelTest(@PathVariable("id") String testId) {
+		// logger.info("Canceling " + testId);
 
-            // stop the test
-    		test.stop();
-    		
-    		// return its status
-            Map<String, Object> map = new HashMap<>();
-            map.put("name", test.getName());
-            map.put("id", test.getId());
-            map.put("status", test.getStatus());
-            map.put("result", test.getResult());
-            map.put("exposed", test.getExposedValues());
-          
-            return new ResponseEntity<>(map, HttpStatus.OK);
-    	} else {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    	}
-    }
+		TestModule test = support.getRunningTestById(testId);
+		if (test != null) {
+
+			// stop the test
+			test.stop();
+
+			// return its status
+			Map<String, Object> map = new HashMap<>();
+			map.put("name", test.getName());
+			map.put("id", test.getId());
+			map.put("status", test.getStatus());
+			map.put("result", test.getResult());
+			map.put("exposed", test.getExposedValues());
+			map.put("owner", test.getOwner());
+			map.put("created", test.getCreated().toString());
+			map.put("update", test.getStatusUpdated().toString());
+			
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				if (browser instanceof CollectingBrowserControl) {
+					Map<String, Object> bmap = new HashMap<>();
+					bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
+					bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
+					map.put("browser", bmap);
+				}
+			}
+			
+			return new ResponseEntity<>(map, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
 
     @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
@@ -284,46 +317,46 @@ public class TestRunner {
     }
     
     @RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> getBrowserStatus(@PathVariable("id") String testId, Model m) {
-    	logger.info("Getting status of " + testId);
-    	
+	public ResponseEntity<Map<String, Object>> getBrowserStatus(@PathVariable("id") String testId, Model m) {
+		// logger.info("Getting status of " + testId);
+
 		TestModule test = support.getRunningTestById(testId);
-    	if (test != null) {
-    		BrowserControl browser = test.getBrowser();
-    		if (browser != null) {
-	    		Map<String, Object> map = new HashMap<>();
-	            map.put("id", testId);
-	            if (browser instanceof CollectingBrowserControl) {
-	            	map.put("urls", ((CollectingBrowserControl) browser).getUrls());
-	            	map.put("visited", ((CollectingBrowserControl) browser).getVisited());
-	            }
-	            
-	            return new ResponseEntity<>(map, HttpStatus.OK);
-    		} else {
-        		return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
-    		}
-    	} else {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    	}
-    }
+		if (test != null) {
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				Map<String, Object> map = new HashMap<>();
+				map.put("id", testId);
+				if (browser instanceof CollectingBrowserControl) {
+					map.put("urls", ((CollectingBrowserControl) browser).getUrls());
+					map.put("visited", ((CollectingBrowserControl) browser).getVisited());
+				}
+
+				return new ResponseEntity<>(map, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+			}
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
 
     @RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
-    public ResponseEntity<String> visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
+	public ResponseEntity<String> visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
 		TestModule test = support.getRunningTestById(testId);
-    	if (test != null) {
-    		BrowserControl browser = test.getBrowser();
-    		if (browser != null) {
-	    		browser.urlVisited(url);
-	    		
-	    		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    		} else {
-        		return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
-    		}
-    		
-    	} else {
-    		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    	}
-    }
+		if (test != null) {
+			BrowserControl browser = test.getBrowser();
+			if (browser != null) {
+				browser.urlVisited(url);
+
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			} else {
+				return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+			}
+
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
     
     private TestModule createTestModule(String testName, String id, BrowserControl browser) {
     	
@@ -391,22 +424,22 @@ public class TestRunner {
     
     // handle errors thrown by running tests
     @ExceptionHandler(TestFailureException.class)
-    public ResponseEntity<Object> conditionFailure(TestFailureException error) {
-    	try {
-	    	TestModule test = support.getRunningTestById(error.getTestId());
-	    	if (test != null) {
-	    		logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
-	    		test.stop();
-	    	}
-    	} catch (Exception e) {
-    		logger.error("Something terrible happened when handling an error, I give up", e);
-    	}
+	public ResponseEntity<Object> conditionFailure(TestFailureException error) {
+		try {
+			TestModule test = support.getRunningTestById(error.getTestId());
+			if (test != null) {
+				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
+				test.stop();
+			}
+		} catch (Exception e) {
+			logger.error("Something terrible happened when handling an error, I give up", e);
+		}
 
-    	JsonObject obj = new JsonObject();
-    	obj.addProperty("error", error.getMessage());
-    	obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
-    	obj.addProperty("testId", error.getTestId());
-    	return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+		JsonObject obj = new JsonObject();
+		obj.addProperty("error", error.getMessage());
+		obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
+		obj.addProperty("testId", error.getTestId());
+		return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
 }

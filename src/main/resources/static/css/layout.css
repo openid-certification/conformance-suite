@@ -4,15 +4,14 @@ body {
   font-size: 16px;
 }
 
-header {
-  cursor:pointer;
-  margin:0px 20px;
-  width:calc(100% - 40px);
-  height:80px;
-  background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
-  background-size: 20% auto;
-  border-bottom:solid 2px #c0c0c0;
+.pageHeader {
+  margin-top: 5px;
   margin-bottom:20px;
+  padding-bottom: 10px;
+}
+
+.pageHeader img {
+    max-height:40px;
 }
 
 h1 {
@@ -44,7 +43,7 @@ input[type=text], textarea {
   border:1px solid #ccc;
 }
 
-.wordwrap {
+.wrapLongStrings {
   word-wrap: break-word;  
   word-break: break-all;     
 }
@@ -60,12 +59,22 @@ textarea {
   margin:15px 0 0px;
 }
 
-button {
-  background-color: #ccc;
-}
-
 #launch-buttons button {
   margin:5px 5px 5px 0;
+}
+
+.runningTest {
+	border-bottom: 1px #eee solid;
+	padding: 5px;
+}
+
+.runningTest:hover {
+    background-color: #f6fefe;
+}
+
+#running-tests {
+	border-left: 1px #eee solid;
+	border-top: 1px #eee solid;
 }
 
 .testResult {
@@ -73,12 +82,6 @@ button {
   padding:5px;
   border-radius:5px;
 }
-
-.testResult hr {
-  border-top: 1px solid #333;
-  width:90%;
-}
-
 .testResult.result-unknown {
   background-color: #efefef;
 }
@@ -195,32 +198,97 @@ button {
   border-radius: 3px;
 }
 
-
-/** log detail **/
-#logDetail h1 .row div , #logDetail .row div {
-  position:relative;
-  margin: 5px 0;
-  float:left;
+.logContent {
+	border-top: 1px #eee solid;
 }
 
-#logDetail .header {
-  margin: 0 0 20px;
+.logItem {
+	border-bottom: 1px #eee solid;
+	padding-top: 7px;
+	padding-bottom: 3px;
 }
 
-.row .key {
-  left:20px;
-  min-width:140px;
-  color:#87c19c;
-  text-transform: bold;
+.logItem:hover {
+	background-color: #f6fefe;
 }
 
-.row .hyphen {
-  width:10px;
-  color:#c0c0c0;
+.log-source {
+	font-family: monospace;
+	font-size: 85%;
+	color: #666666;
 }
 
-.row .hyphen:after {
-  content:": ";
+.testStatusResultBlock {
+	padding: 5px 10px;
+	border-radius: 3px;
+	margin: 1px;
+	text-align: center;
+	font-size: 110%;
+}
+
+.testStatus-created {
+    background-color: #fcd9f6;
+    color: black;
+}
+
+.testStatus-configured {
+	background-color: #d3fffe;
+	color: black;
+}
+
+.testStatus-running {
+    background-color: #6d09e8;
+    color: white;
+}
+
+.testStatus-waiting {
+    background-color: #6ac4c2;
+    color: black;
+}
+
+.testStatus-interrupted {
+    background-color: #b70018;
+    color: white;
+}
+
+.testStatus-finished {
+    background-color: #383647;
+    color: white;
+}
+
+.testStatus-unknown {
+    background-color: #fcd9f6;
+    color: black;
+}
+
+.testResult-passed {
+    background-color: #40e809;
+    color: black;
+}
+
+.testResult-warning {
+    background-color: #d88602;
+    color: white;
+}
+
+.testResult-failed {
+    background-color: black;
+    color: white;
+}
+
+.testResult-review {
+    background-color: #6ac4c2;
+    color: black;
+}
+
+.testResult-unknown {
+    background-color: #fcd9f6;
+    color: black;
+}
+
+/* to make labels wrap better */
+.labelCollection {
+	line-height: 2.1em;
 }
 
 .moreInfo {
@@ -230,14 +298,12 @@ button {
   padding: 6px;
 }
 
-.moreInfo div {
-  margin:0;
-}
-
-.moreInfo .row .key {
-  left:0px;
-  width:auto;
-  margin-bottom:0;
+.pageFooter {
+    padding: 4rem 0;
+    margin-top: 4rem;
+    font-size: 85%;
+    text-align: center;
+    background-color: #f7f7f7;
 }
 
 /* Test result labels */
@@ -269,6 +335,26 @@ button {
   background-color: #00cc00;
 }
 
+.ownerSub {
+	background: #d9c9fe;
+	padding: 2px 10px;
+	border-top-left-radius: 6px;
+	border-bottom-left-radius: 6px;
+	border-top: 1px darkgrey solid;
+	border-left: 1px darkgrey solid;
+	border-bottom: 1px darkgrey solid;
+}
+
+.ownerIss {
+    background: #d3dcf5;
+    padding: 2px 10px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top: 1px darkgrey solid;
+    border-right: 1px darkgrey solid;
+    border-bottom: 1px darkgrey solid;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px)  {
 
@@ -285,25 +371,15 @@ button {
 
 /* < Tablet landscape */
 @media all and (max-width : 1023px)  {
-    header {
-      background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
-      background-size: 40% auto;
-    }
 }
 
 /* <= Phones */
 @media all and (max-width : 640px)  {
 
-    header {
-      background: transparent url("../images/FinTechLabs.io.png") left center no-repeat;
-      background-size: 60% auto;
-    }
-
 }
 
 /* <= Phones portrait */
 @media all and (max-width : 320px)  {
-
 
 }
 
