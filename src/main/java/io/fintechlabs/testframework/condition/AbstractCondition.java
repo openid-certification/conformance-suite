@@ -30,13 +30,11 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -63,6 +61,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.LoggingRequestInterceptor;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -447,19 +446,19 @@ public abstract class AbstractCondition implements Condition {
 	 * Convenience pass-through methods
 	 */
 	protected Map<String, Object> args(Object... a) {
-		return TestInstanceEventLog.args(a);
+		return EventLog.args(a);
 	}
 		
 	protected Map<String, Object> ex(Throwable cause) {
-		return TestInstanceEventLog.ex(cause);
+		return EventLog.ex(cause);
 	}
 	
 	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		return TestInstanceEventLog.ex(cause, in);
+		return EventLog.ex(cause, in);
 	}
 	
 	protected JsonObject ex(Throwable cause, JsonObject in) {
-		return TestInstanceEventLog.ex(cause, in);
+		return EventLog.ex(cause, in);
 	}
 	
 }

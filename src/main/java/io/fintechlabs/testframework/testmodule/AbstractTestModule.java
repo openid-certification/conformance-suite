@@ -17,11 +17,8 @@ package io.fintechlabs.testframework.testmodule;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +35,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 /**
@@ -541,19 +539,19 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Convenience pass-through methods
 	 */
 	protected Map<String, Object> args(Object... a) {
-		return TestInstanceEventLog.args(a);
+		return EventLog.args(a);
 	}
 		
 	protected Map<String, Object> ex(Throwable cause) {
-		return TestInstanceEventLog.ex(cause);
+		return EventLog.ex(cause);
 	}
 	
 	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		return TestInstanceEventLog.ex(cause, in);
+		return EventLog.ex(cause, in);
 	}
 	
 	protected JsonObject ex(Throwable cause, JsonObject in) {
-		return TestInstanceEventLog.ex(cause, in);
+		return EventLog.ex(cause, in);
 	}
 
 }
