@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.condition.client;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -94,12 +95,14 @@ public class CallTokenEndpoint extends AbstractCondition {
 
 			// extract the headers for use (below)
 			HttpHeaders headers = new HttpHeaders();
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 
 			JsonObject headersJson = env.get("token_endpoint_request_headers");
 			if (headersJson != null) {
 				for (String header : headersJson.keySet()) {
-					headers.add(header, headersJson.get(header).getAsString());
+					headers.set(header, headersJson.get(header).getAsString());
 				}
 			}
 			

@@ -65,6 +65,8 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
+import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
@@ -291,6 +293,14 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
 		call(EnsureResourceResponseEncodingIsUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9");
+
+		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+
+		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
 	}
 
 	/* (non-Javadoc)
