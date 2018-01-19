@@ -50,7 +50,7 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "implicit_hash")
+	@PreEnvironment() // We want an explicit error if implicit_hash is empty
 	@PostEnvironment(required = "callback_params")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("implicit_hash"))) {

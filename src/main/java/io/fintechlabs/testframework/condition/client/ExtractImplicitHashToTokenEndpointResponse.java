@@ -49,7 +49,7 @@ public class ExtractImplicitHashToTokenEndpointResponse extends AbstractConditio
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "implicit_hash")
+	@PreEnvironment() // We want an explicit error if implicit_hash is empty
 	@PostEnvironment(required = {"callback_params", "token_endpoint_response"})
 	public Environment evaluate(Environment env) {
 

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -227,11 +228,19 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		// process the callback
 		setStatus(Status.RUNNING);
 		
-		String hash = requestParts.get("body").getAsString();
-		
-		logger.info("Hash: " + hash);
-		
-		env.putString("implicit_hash", hash);
+		JsonElement body = requestParts.get("body");
+
+		if (body != null) {
+			String hash = body.getAsString();
+
+			logger.info("Hash: " + hash);
+
+			env.putString("implicit_hash", hash);
+		} else {
+			logger.warn("No hash submitted");
+
+			env.putString("implicit_hash", ""); // Clear any old value
+		}
 		
 		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 	
