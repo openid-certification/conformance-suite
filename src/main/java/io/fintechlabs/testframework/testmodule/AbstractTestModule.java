@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -165,16 +164,8 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	private void logException(Exception e) {
-		Map<String, Object> event = new HashMap<>();
-		event.put("msg", "Error from test framework");
-		event.put("error", e.getMessage());
-		event.put("error_class", e.getClass().getName());
-		
-		List<String> stack = Arrays.stream(e.getStackTrace())
-			.map(StackTraceElement::toString)
-			.collect(Collectors.toList());
-
-		event.put("stacktrace", stack);
+		Map<String, Object> event = ex(e);
+		event.put("msg", "Caught exception from test framework");
 		
 		eventLog.log(getName(), event);
 	}
@@ -465,7 +456,9 @@ public abstract class AbstractTestModule implements TestModule {
 			logResult = getResult().toString();
 		}
 
-		eventLog.log(getName(), ImmutableMap.of("result", logResult));
+		eventLog.log(getName(), args(
+				"msg", "Test was has stopped",
+				"result", logResult));
 
 		logFinalEnv();
 	}
@@ -484,11 +477,30 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 	
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
-		eventLog.log(getName(), ImmutableMap.of(
+		eventLog.log(getName(), args(
 				"msg", "Incoming HTTP request to test instance " + getId(),
 				"path", path,
 				"request", requestParts
 				));
+	}
+
+	/*
+	 * Convenience pass-through methods
+	 */
+	protected Map<String, Object> args(Object... a) {
+		return TestInstanceEventLog.args(a);
+	}
+		
+	protected Map<String, Object> ex(Throwable cause) {
+		return TestInstanceEventLog.ex(cause);
+	}
+	
+	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
+		return TestInstanceEventLog.ex(cause, in);
+	}
+	
+	protected JsonObject ex(Throwable cause, JsonObject in) {
+		return TestInstanceEventLog.ex(cause, in);
 	}
 
 }
