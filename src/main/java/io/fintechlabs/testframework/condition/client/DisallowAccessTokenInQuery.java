@@ -15,15 +15,20 @@
 package io.fintechlabs.testframework.condition.client;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Collections;
 
 import org.apache.http.HttpStatus;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -71,10 +76,17 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
+			HttpHeaders headers = new HttpHeaders();
+
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+
+			HttpEntity<?> request = new HttpEntity<>(headers);
+
 			UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(accountRequestsUrl);
 			builder.queryParam("access_token", accessToken);
 
-			ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, null, String.class);
+			ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, request, String.class);
 
 			return error("Got a successful response from the resource endpoint", args("body", response.getBody()));
 		} catch (RestClientResponseException e) {

@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.condition.client;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -83,15 +84,18 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 			RestTemplate restTemplate = createRestTemplate(env);
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.add("Authorization", String.join(" ", tokenType, accessToken));
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			headers.set("Authorization", String.join(" ", tokenType, accessToken));
+
 			if (requestHeaders != null) {
 				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
-					headers.add(header.getKey(), header.getValue().getAsString());
+					headers.set(header.getKey(), header.getValue().getAsString());
 				}
 			}
 
-			HttpEntity<String> request = new HttpEntity<String>("parameters", headers);
+			HttpEntity<?> request = new HttpEntity<>(headers);
 
 			ResponseEntity<String> response = restTemplate.exchange(accountRequestsUrl, HttpMethod.GET, request, String.class);
 

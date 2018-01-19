@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.condition.client;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -31,6 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -103,14 +105,22 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			RestTemplate restTemplate = createRestTemplate(env);
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-			headers.add("Authorization", String.join(" ", tokenType, accessToken));
+
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.set("Authorization", String.join(" ", tokenType, accessToken));
+
 			if (requestHeaders != null) {
 				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
-					headers.add(header.getKey(), header.getValue().getAsString());
+					headers.set(header.getKey(), header.getValue().getAsString());
 				}
 			}
+
+			// Stop RestTemplate from overwriting the Accept-Charset header
+			StringHttpMessageConverter converter = new StringHttpMessageConverter();
+			converter.setWriteAcceptCharset(false);
+			restTemplate.setMessageConverters(Collections.singletonList(converter));
 
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
