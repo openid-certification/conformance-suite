@@ -155,7 +155,7 @@ public class TestRunner {
 		}
 
 		// log the test creation event in the event log
-		Map<String, Object> testCreated = ImmutableMap.of("baseUrl", url, "config", config, "alias", alias, "testName", testName);
+		Map<String, Object> testCreated = TestInstanceEventLog.args("baseUrl", url, "config", config, "alias", alias, "testName", testName);
 
 		// add this test to the stack
 		testInfo.createTest(id, testName, url, config, alias, Instant.now());
@@ -188,6 +188,8 @@ public class TestRunner {
 
 			if (test != null) {
 				// TODO: make the override configurable to allow for conflict of re-used aliases
+				
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), TestInstanceEventLog.args("msg", "Stopping test due to alias conflict", "alias", alias, "new_test_id", id));
 				
 				test.stop(); // stop the currently-running test
 			}
