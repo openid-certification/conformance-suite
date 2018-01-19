@@ -113,6 +113,12 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : pre.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+								"expected", req,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
 					}
@@ -120,6 +126,12 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String s : pre.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
 					}
@@ -133,6 +145,12 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+								"expected", req,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
 					}
@@ -140,6 +158,13 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String s : post.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
+
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
 					}
@@ -199,12 +224,24 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : pre.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+							"expected", req,
+							"result", onFail
+							// TODO: log the environment here?
+						));
 						return;
 					}
 				}
 				for (String s : pre.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						return;
 					}
 				}
@@ -217,12 +254,24 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+								"expected", req,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						return;
 					}
 				}
 				for (String s : post.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						return;
 					}
 				}
