@@ -100,7 +100,7 @@ public class LogApi {
 		
 		if (dl) {
 			// TODO: come up with a better filename
-			headers.add("Content-Disposition", "download; filename=\"test-log-" + id + ".json\"");
+			headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".json\"");
 		}
 		
 		return ResponseEntity.ok().headers(headers).body(results);
