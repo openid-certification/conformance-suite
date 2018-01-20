@@ -17,11 +17,8 @@ package io.fintechlabs.testframework.testmodule;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -39,6 +35,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 /**
@@ -114,6 +111,12 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : pre.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+								"expected", req,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
 					}
@@ -121,6 +124,12 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String s : pre.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
 					}
@@ -134,6 +143,12 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+								"expected", req,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
 					}
@@ -141,6 +156,13 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String s : post.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
+
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
 					}
@@ -165,16 +187,8 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	private void logException(Exception e) {
-		Map<String, Object> event = new HashMap<>();
-		event.put("msg", "Error from test framework");
-		event.put("error", e.getMessage());
-		event.put("error_class", e.getClass().getName());
-		
-		List<String> stack = Arrays.stream(e.getStackTrace())
-			.map(StackTraceElement::toString)
-			.collect(Collectors.toList());
-
-		event.put("stacktrace", stack);
+		Map<String, Object> event = ex(e);
+		event.put("msg", "Caught exception from test framework");
 		
 		eventLog.log(getName(), event);
 	}
@@ -208,12 +222,24 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : pre.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+							"expected", req,
+							"result", onFail
+							// TODO: log the environment here?
+						));
 						return;
 					}
 				}
 				for (String s : pre.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						return;
 					}
 				}
@@ -226,12 +252,24 @@ public abstract class AbstractTestModule implements TestModule {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+								"expected", req,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						return;
 					}
 				}
 				for (String s : post.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+								"expected", s,
+								"result", onFail
+								// TODO: log the environment here?
+							));
 						return;
 					}
 				}
@@ -282,7 +320,9 @@ public abstract class AbstractTestModule implements TestModule {
 			fireTestSuccess();
 		}
 
-		eventLog.log(getName(), "Finished");
+		eventLog.log(getName(), args(
+				"msg", "Finished",
+				"result", getResult()));
 	}
 
 	protected void fireTestSuccess() {
@@ -461,11 +501,15 @@ public abstract class AbstractTestModule implements TestModule {
 		if (!getStatus().equals(Status.FINISHED)) {
 			setStatus(Status.INTERRUPTED);
 			logResult = "INTERRUPTED";
+			eventLog.log(getName(), args(
+					"msg", "Test was interrupted before it could complete",
+					"result", logResult));
 		} else {
 			logResult = getResult().toString();
+			eventLog.log(getName(), args(
+					"msg", "Test was stopped",
+					"result", logResult));
 		}
-
-		eventLog.log(getName(), ImmutableMap.of("result", logResult));
 
 		logFinalEnv();
 	}
@@ -484,11 +528,30 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 	
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
-		eventLog.log(getName(), ImmutableMap.of(
+		eventLog.log(getName(), args(
 				"msg", "Incoming HTTP request to test instance " + getId(),
 				"path", path,
 				"request", requestParts
 				));
+	}
+
+	/*
+	 * Convenience pass-through methods
+	 */
+	protected Map<String, Object> args(Object... a) {
+		return EventLog.args(a);
+	}
+		
+	protected Map<String, Object> ex(Throwable cause) {
+		return EventLog.ex(cause);
+	}
+	
+	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
+		return EventLog.ex(cause, in);
+	}
+	
+	protected JsonObject ex(Throwable cause, JsonObject in) {
+		return EventLog.ex(cause, in);
 	}
 
 }

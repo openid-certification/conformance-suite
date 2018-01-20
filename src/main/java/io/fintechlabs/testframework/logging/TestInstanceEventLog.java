@@ -68,6 +68,4 @@ public class TestInstanceEventLog {
 		eventLog.log(testId, source, owner, map);
 	}
 	
-	
-	
 }
