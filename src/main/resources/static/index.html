@@ -602,7 +602,6 @@
 		/**
 		 * 
 		 */
-
 		function walkJSON(element, root) {
 
 			_.each(element, function(value, key, obj) {
@@ -613,11 +612,16 @@
 				console.log("key=" + key);
 				console.log("obj=" + JSON.stringify(obj));
 				console.log("element=" + JSON.stringify(element));
-				 */
+				*/
+				var el = null;
 
-				var el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+				if (_.isString(value) && root == undefined && key != undefined) {
+					el = $(".config-form-element[data-json-target='" + key + "']");
+				} else {
+					el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+				}
 
-				if ($(document).find(el).length) {
+				if (el && $(document).find(el).length) {
 					if (_.isArray(value) || _.isObject(value)) {
 						el.val(JSON.stringify(value));
 					} else {
