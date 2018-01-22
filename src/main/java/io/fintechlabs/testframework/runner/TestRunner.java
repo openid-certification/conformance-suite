@@ -49,6 +49,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -154,13 +155,17 @@ public class TestRunner {
 			url = baseUrl + TestDispatcher.TEST_PATH + id;
 		}
 
-		// log the test creation event in the event log
-		Map<String, Object> testCreated = EventLog.args("baseUrl", url, "config", config, "alias", alias, "testName", testName);
-
 		// add this test to the stack
 		testInfo.createTest(id, testName, url, config, alias, Instant.now());
 
-		eventLog.log(id, "TEST-RUNNER", test.getOwner(), testCreated);
+		// log the test creation event in the event log
+		eventLog.log(id, "TEST-RUNNER", test.getOwner(), 
+				EventLog.args("msg", "Test instance " + id + " created",
+						"result", ConditionResult.INFO,
+						"baseUrl", url, 
+						"config", config, 
+						"alias", alias, 
+						"testName", testName));
 
 		test.configure(config, url);
 
