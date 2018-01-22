@@ -68,7 +68,7 @@
         <script type="text/template" id="logsListingTemplate">
             <thead>
             <tr>
-                <th>ID</th>
+                <th>Instance ID</th>
                 <th>Name</th>
                 <th>Started</th>
                 <th>Status</th>
@@ -80,15 +80,15 @@
             </thead>
 
             <tbody>
-            <% _.each(items, function(item) { %>
+            <% _.each(items, function(test) { %>
             <tr>
-                <td><a href="log-detail?log=<%- item.testId %>"><%- item.testId %></a></td>
-                <td><%- item.testName %></td>
-                <td data-order="<%- item.started %>"><%- new Date(item.started) %></td>
-                <td><%- item.status %></td>
-                <td><%- item.result %></td>
+                <td><a href="log-detail?log=<%- test.testId %>"><%- test.testId %></a></td>
+                <td><%- test.testName %></td>
+                <td data-order="<%- test.started %>"><%- new Date(test.started) %></td>
+                <td class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>"><%- test.status %></td>
+                <td class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>"><%- test.result %></td>
                 <% if (FAPI_UI.currentUser.isAdmin) { %>
-                <td><%- item.owner %></td>
+                <td><%- test.owner %></td>
                 <% } %>
             </tr>
             <% }); %>
