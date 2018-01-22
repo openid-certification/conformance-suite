@@ -28,6 +28,10 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends AbstractCondition {
 
+	private static final String PEM_HEADER = ".*?-----BEGIN [^-]+-----";
+
+	private static final String PEM_FOOTER = "-----END [^-]+-----.*";
+
 	/**
 	 * @param testId
 	 * @param log
@@ -54,9 +58,14 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 		}
 
 		try {
+			certString = stripPEM(certString);
 			Base64.getDecoder().decode(certString);
+
+			keyString = stripPEM(keyString);
 			Base64.getDecoder().decode(keyString);
+
 			if (caString != null) {
+				caString = stripPEM(caString);
 				Base64.getDecoder().decode(caString);
 			}
 		} catch (IllegalArgumentException e) {
@@ -76,6 +85,13 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 		
 		return env;
 
+	}
+
+	private String stripPEM(String cert) {
+
+		return cert.replaceAll(PEM_HEADER, "")
+				.replaceAll(PEM_FOOTER, "")
+				.replaceAll("[\r\n]", "");
 	}
 
 }
