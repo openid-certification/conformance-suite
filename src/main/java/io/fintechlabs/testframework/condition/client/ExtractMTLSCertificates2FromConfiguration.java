@@ -14,31 +14,32 @@
 
 package io.fintechlabs.testframework.condition.client;
 
-import io.fintechlabs.testframework.condition.AbstractGetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.AbstractExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class GetStaticClientConfiguration extends AbstractGetStaticClientConfiguration {
+public class ExtractMTLSCertificates2FromConfiguration extends AbstractExtractMTLSCertificatesFromConfiguration {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param optional
 	 */
-	public GetStaticClientConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractMTLSCertificates2FromConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "client", strings = "client_id")
-	public Environment evaluate(Environment in) {
+	@PostEnvironment(required = "mutual_tls_authentication")
+	public Environment evaluate(Environment env) {
 
-		return getStaticClientConfiguration(in, "client");
+		return extractMTLSCertificatesFromConfiguration(env, "mtls2");
 	}
 
 }

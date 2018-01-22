@@ -20,13 +20,13 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class GetStaticClientConfiguration extends AbstractGetStaticClientConfiguration {
+public class GetStaticClient2Configuration extends AbstractGetStaticClientConfiguration {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public GetStaticClientConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public GetStaticClient2Configuration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -38,7 +38,7 @@ public class GetStaticClientConfiguration extends AbstractGetStaticClientConfigu
 	@PostEnvironment(required = "client", strings = "client_id")
 	public Environment evaluate(Environment in) {
 
-		return getStaticClientConfiguration(in, "client");
+		return getStaticClientConfiguration(in, "client2");
 	}
 
 }
