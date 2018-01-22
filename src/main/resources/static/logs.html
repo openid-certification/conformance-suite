@@ -28,6 +28,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
 
@@ -46,43 +49,40 @@
 
         <!-- resident DOM -->
         <div class="container-fluid">
-            <div id="logsListingTemplate_render">
+          <div class="row">
+            <div class="col-md-12">
+            
+                <table id="logsListing">
+                
+                </table>
             
             </div>
+          </div>
         </div>
 
 
+        <!-- Templates -->
         <script type="text/template" id="logsListingTemplate">
 
-                <div id="logs">
-                    <div class="content">
-                        <div class="row listHeader">
-                            <div class="col-md-4"><a id="test-id-sort-action"><h2>TEST ID</h2></a></div>
-                            <div class="col-md-4"><a id="name-sort-action"><h2>NAME</h2></a></div>
-                            <div class="col-md-4"><a id="date-sort-action"><h2>DATE</h2></a></div>  
-                        </div>
-                        <%
-                            // repeat items 
-                            _.each(items, function(item,arrIndex) {
-                        %>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="link"><a href="log-detail.html?log=<%- item._id %>" class="item"><%- item._id %></a></div>
-                                    </div>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Started</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Owner</th>
+            </tr>
 
-                                    <div class="col-md-4">
-                                        <%- item.testName %>
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <%- new Date(item.started) %>
-                                    </div>
-                                </div>
-                        <%
-                            });
-                        %>
-                    </div>
-                </div>
+            <% _.each(items, function(item) { %>
+            <tr>
+                <td><a href="log-detail?log=<%- item.testId %>"><%- item.testId %></a></td>
+                <td><%- item.testName %></td>
+                <td><%- new Date(item.started) %></td>
+                <td><%- item.status %></td>
+                <td><%- item.result %></td>
+                <td><%- item.owner %></td>
+            </tr>
+            <% }); %>
 
         </script>
 
@@ -160,11 +160,9 @@
                      url: "/log", 
                      data: {}, 
                      success: function(logsList) {
-                         $('#logsListingTemplate_render').html(FAPI_UI.logTemplates.LOG_LISTING({items:logsList}));
-                         // add sort by functions to the list header
-                         $("#test-id-sort-action").click(function (evt) { render(_.sortBy(logsList, '_id')) });
-                         $("#name-sort-action").click(function (evt) { render(_.sortBy(logsList, 'testName')) });
-                         $("#date-sort-action").click(function (evt) { render(_.sortBy(logsList, 'started')) });
+                         $('#logsListing').html(FAPI_UI.logTemplates.LOG_LISTING({items:logsList}));
+                         
+                         
                          
                      },
                      error: function(jqhxr, status, error) {
