@@ -111,6 +111,7 @@ review:
     kubernetes: active
   except:
     - master
+    - production
 
 stop_review:
   stage: cleanup
@@ -130,6 +131,7 @@ stop_review:
     kubernetes: active
   except:
     - master
+    - production
 
 # Keys that start with a dot (.) will not be processed by GitLab CI.
 # Staging and canary jobs are disabled by default, to enable them
@@ -199,10 +201,9 @@ production:
   environment:
     name: production
     url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
-  when: manual
   only:
     refs:
-      - master
+      - production
     kubernetes: active
 
 # ---------------------------------------------------------------------------
