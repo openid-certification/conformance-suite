@@ -79,7 +79,7 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 	}
 
 	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
+	private Object handleCallback(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
 
@@ -92,7 +92,7 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
 
-	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
+	private Object handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
@@ -113,12 +113,7 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-		onAuthorizationCallbackResponse();
-
-		fireTestFinished();
-		stop();
-
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return onAuthorizationCallbackResponse();
 	}
 
 }

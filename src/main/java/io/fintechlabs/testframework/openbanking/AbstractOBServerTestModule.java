@@ -21,6 +21,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
@@ -32,6 +37,7 @@ import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndp
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
@@ -58,12 +64,14 @@ import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromToken
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
@@ -83,6 +91,8 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public abstract class AbstractOBServerTestModule extends AbstractTestModule {
+
+	private int whichClient;
 
 	public AbstractOBServerTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -109,6 +119,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+
+		whichClient = 1;
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
@@ -222,7 +234,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
 
-	protected void onAuthorizationCallbackResponse() {
+	protected Object onAuthorizationCallbackResponse() {
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
@@ -230,16 +242,78 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		performPostAuthorizationFlow();
+		return performPostAuthorizationFlow();
 	}
 
-	protected void performPostAuthorizationFlow() {
+	protected Object performPostAuthorizationFlow() {
 
-		// call the token endpoint and complete the flow
+		if (whichClient == 1) {
 
-		requestAuthorizationCode();
+			// call the token endpoint and complete the flow
 
-		requestProtectedResource();
+			requestAuthorizationCode();
+
+			callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+
+			requestProtectedResource();
+
+			call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
+
+			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+
+			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+
+			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+
+			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+
+			// Try the second client
+
+			whichClient = 2;
+
+			callAndStopOnFailure(GetStaticClient2Configuration.class);
+
+			exposeEnvString("client_id");
+
+			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+
+			call(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.WARNING);
+
+			performAuthorizationFlow();
+
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		} else {
+
+			// call the token endpoint and complete the flow
+
+			requestAuthorizationCode();
+
+			requestProtectedResource();
+
+			// Switch back to client 1
+
+			callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+			exposeEnvString("client_id");
+
+			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+
+			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
+
+			// Try client 2's access token with client 1's keys
+
+			callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
+
+			fireTestFinished();
+			stop();
+
+			return new ModelAndView("complete", ImmutableMap.of("test", this));
+		}
 	}
 
 	protected abstract void createAuthorizationCodeRequest();
@@ -275,16 +349,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
-		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-
-		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
-
-		call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
 
 		call(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-11");
 
@@ -293,14 +358,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
 		call(EnsureResourceResponseEncodingIsUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9");
-
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
 	}
 
 	/* (non-Javadoc)

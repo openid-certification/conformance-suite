@@ -18,7 +18,9 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.ModelAndView;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -107,7 +109,7 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 	}
 
 	@Override
-	protected void performPostAuthorizationFlow() {
+	protected Object performPostAuthorizationFlow() {
 
 		// call the token endpoint and expect an error, since this request does not
 		// meet any of the OB requirements for client authentication
@@ -117,6 +119,11 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
 		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
+
+		fireTestFinished();
+		stop();
+
+		return new ModelAndView("complete", ImmutableMap.of("test", this));
 	}
 
 }

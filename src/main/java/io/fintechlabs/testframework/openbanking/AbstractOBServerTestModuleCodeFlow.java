@@ -9,7 +9,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
@@ -52,18 +51,13 @@ public abstract class AbstractOBServerTestModuleCodeFlow extends AbstractOBServe
 	}
 
 	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
+	private Object handleCallback(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
 
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
 
-		onAuthorizationCallbackResponse();
-
-		fireTestFinished();
-		stop();
-
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return onAuthorizationCallbackResponse();
 	}
 
 	protected void logCodeFlowWarning() {
