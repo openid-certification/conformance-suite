@@ -282,7 +282,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
 
 		call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
 
