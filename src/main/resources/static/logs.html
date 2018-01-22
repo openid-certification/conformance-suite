@@ -32,7 +32,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
     <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -82,18 +83,23 @@
             <tbody>
             <% _.each(items, function(test) { %>
             <tr>
-                <td><a href="log-detail?log=<%- test.testId %>"><%- test.testId %></a></td>
+                <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><a class="btn btn-default btn-block" href="log-detail.html?log=<%- test.testId %>"><span class="glyphicon glyphicon-list-alt"></span> <%- test.testId %></a></td>
                 <td><%- test.testName %></td>
-                <td data-order="<%- test.started %>"><%- new Date(test.started) %></td>
+                <td data-order="<%- test.started %>"><%- new Date(test.started).toLocaleString() %></td>
                 <td class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>"><%- test.status %></td>
                 <td class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>"><%- test.result %></td>
                 <% if (FAPI_UI.currentUser.isAdmin) { %>
-                <td><%- test.owner %></td>
+                <td data-search="<%- test.owner ? test.owner.iss + ' ' + test.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: test.owner ? test.owner : {}}) %></td>
                 <% } %>
             </tr>
             <% }); %>
             </tbody>
 
+        </script>
+
+        <!-- Owner -->
+        <script type="text/template" id="logDetailTemplate_Owner">
+            <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
         </script>
 
         <!-- UserInfo Template-->
