@@ -27,6 +27,7 @@ var FAPI_UI = {
 	
 	loadLogListTemplates: function() {
 		this.logTemplates.LOG_LISTING = _.template($("#logsListingTemplate").html());
+		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
 	},
 
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner"],
