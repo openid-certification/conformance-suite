@@ -32,11 +32,13 @@ variables:
   BASE_HOST_NAME: fapi-conformance
   PRODUCTION_HOST: fintechlabs-fapi-conformance-suite
   STAGING_HOST: fintechlabs-fapi-conformance-suite-staging
+  DEMO_HOST: fintechlabs-fapi-conformance-suite-demo
 
 stages:
   - build
   - test
   - review
+  - demo
   - staging
   - canary
   - production
@@ -111,6 +113,8 @@ review:
     kubernetes: active
   except:
     - master
+    - production
+    - demo
 
 stop_review:
   stage: cleanup
@@ -130,6 +134,25 @@ stop_review:
     kubernetes: active
   except:
     - master
+    - production
+    - demo
+
+demo:
+  stage: demo
+  script:
+    - check_kube_domain
+    - install_dependencies
+    - download_chart
+    - ensure_namespace
+    - install_tiller
+    - deploy
+  environment:
+    name: demo
+    url: https://$DEMO_HOST.$AUTO_DEVOPS_DOMAIN
+  only:
+    refs:
+      - demo
+    kubernetes: active
 
 # Keys that start with a dot (.) will not be processed by GitLab CI.
 # Staging and canary jobs are disabled by default, to enable them
@@ -199,10 +222,9 @@ production:
   environment:
     name: production
     url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
-  when: manual
   only:
     refs:
-      - master
+      - production
     kubernetes: active
 
 # ---------------------------------------------------------------------------
