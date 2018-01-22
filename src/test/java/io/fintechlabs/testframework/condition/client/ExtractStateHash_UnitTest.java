@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.condition.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,12 +30,15 @@ import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
+/**
+ * @author jricher
+ *
+ */
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateStateHash_UnitTest {
+public class ExtractStateHash_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -41,7 +46,7 @@ public class ValidateStateHash_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateStateHash cond;
+	private ExtractStateHash cond;
 
 	/*
 	 * @throws java.lang.Exception
@@ -49,18 +54,23 @@ public class ValidateStateHash_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateStateHash("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractStateHash("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
+	
+	private void addIdToken(Environment env, String alg, String stateHash) {
 
-	private void addStateHash(Environment env, String alg, String s_hash) {
+		JsonObject header = new JsonObject();
+		header.addProperty("alg", alg);
 
-		JsonObject stateHash = new JsonObject();
-		stateHash.addProperty("alg", alg);
+		JsonObject claims = new JsonObject();
+		claims.addProperty("s_hash", stateHash);
 
-		stateHash.addProperty("s_hash", s_hash);
+		JsonObject idToken = new JsonObject();
+		idToken.add("header",  header);
+		idToken.add("claims", claims);
 
-		env.put("state_hash", stateHash);
+		env.put("id_token", idToken);
 
 	}
 
@@ -71,13 +81,17 @@ public class ValidateStateHash_UnitTest {
 	public void testEvaluate_noError() {
 
 		env.putString("state", "12345");
-		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
+		addIdToken(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("state_hash", "s_hash");
-		verify(env, atLeastOnce()).getString("state");
-		verify(env, atLeastOnce()).getString("state_hash", "alg");
+		verify(env, atLeastOnce()).getString("id_token", "claims.s_hash");
+		verify(env, atLeastOnce()).getString("id_token", "header.alg");
+
+		
+		assertThat(env.getString("state_hash", "s_hash")).isEqualTo("WZRHGrsBESr8wYFZ9sx0tA");
+		assertThat(env.getString("state_hash", "alg")).isEqualTo("HS256");
+
 	}
 
 	/**
@@ -98,18 +112,7 @@ public class ValidateStateHash_UnitTest {
 	public void testEvaluate_missingHash() {
 
 		env.putString("state", "12345");
-		addStateHash(env, "HS256", null);
-
-		cond.evaluate(env);
-	}
-
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_missingState() {
-
-		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
+		addIdToken(env, "HS256", null);
 
 		cond.evaluate(env);
 	}
@@ -121,33 +124,10 @@ public class ValidateStateHash_UnitTest {
 	public void testEvaluate_missingAlg() {
 
 		env.putString("state", "12345");
-		addStateHash(env, null, "WZRHGrsBESr8wYFZ9sx0tA");
+		addIdToken(env, null, "WZRHGrsBESr8wYFZ9sx0tA");
 
 		cond.evaluate(env);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_invalidAlg() {
-
-		env.putString("state", "12345");
-		addStateHash(env, "XXX", "WZRHGrsBESr8wYFZ9sx0tA");
-
-		cond.evaluate(env);
-	}
-
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_badHash() {
-
-		env.putString("state", "abcde");
-		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
-
-		cond.evaluate(env);
-	}
 
 }
