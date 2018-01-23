@@ -54,6 +54,7 @@ import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;
@@ -113,6 +114,8 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		callAndStopOnFailure(LoadUserInfo.class);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

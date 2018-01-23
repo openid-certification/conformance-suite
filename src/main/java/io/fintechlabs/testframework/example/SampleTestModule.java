@@ -69,6 +69,7 @@ import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
+import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -138,6 +139,8 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		
+		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
 		
 		//require(ExtractJWKsFromClientConfiguration.class);
 		

@@ -428,6 +428,18 @@
                                     }
                                 });
                             }
+
+                            // make requirements into links if possible
+                            $('.log-requirement', el).each(function() {
+                                var req = $(this).text();
+                                for (var prefix in FAPI_UI.specLinks) {
+                                    if (req.substring(0, prefix.length) == prefix) {
+                                        var specUrl = FAPI_UI.specLinks[prefix];
+                                        $(this).wrapInner("<a href='" + specUrl + "'></a>");
+                                        break;
+                                    }
+                                }
+                            });
                         });
 
                     },
