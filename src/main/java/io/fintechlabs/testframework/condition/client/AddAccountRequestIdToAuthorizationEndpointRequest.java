@@ -54,19 +54,6 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractC
 			authorizationEndpointRequest.add("claims", claims);
 		}
 
-		JsonObject claimsUserinfo;
-		if (claims.has("userinfo")) {
-			JsonElement userinfoElement = claims.get("userinfo");
-			if (userinfoElement.isJsonObject()) {
-				claimsUserinfo = userinfoElement.getAsJsonObject();
-			} else {
-				return error("Invalid userinfo in request claims", args("authorization_endpoint_request", authorizationEndpointRequest));
-			}
-		} else {
-			claimsUserinfo = new JsonObject();
-			claims.add("userinfo", claimsUserinfo);
-		}
-
 		JsonObject claimsIdToken;
 		if (claims.has("id_token")) {
 			JsonElement idTokenElement = claims.get("id_token");
@@ -83,8 +70,6 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractC
 		JsonObject intentId = new JsonObject();
 		intentId.addProperty("value", env.getString("account_request_id"));
 		intentId.addProperty("essential", true);
-
-		claimsUserinfo.add("openbanking_intent_id", intentId);
 		claimsIdToken.add("openbanking_intent_id", intentId);
 
 		env.put("authorization_endpoint_request", authorizationEndpointRequest);
