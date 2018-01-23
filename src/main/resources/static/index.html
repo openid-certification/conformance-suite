@@ -324,10 +324,8 @@
                 <% } %>
             </div>
             <div class="col-md-2"> <!-- controls -->
-                <button class="btn btn-default btn-block startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
-                <button class="btn btn-default btn-block stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
                 <button class="btn btn-default btn-block downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
-                <button class="btn btn-default btn-block viewBtn"><span class="glyphicon glyphicon-list-alt"></span> View Logs</button>
+                <button class="btn btn-default btn-block viewBtn"><span class="glyphicon glyphicon-list-alt"></span> View Test Details</button>
             </div>
             
         </div>
@@ -407,6 +405,7 @@
 				}
 
 				FAPI_UI.showBusy('Creating test...');
+			    window.open('/log-detail.html?log=' + encodeURIComponent(data.id));
 
 				$.ajax({
 					url: '/runner/?test=' + encodeURIComponent(testName),
@@ -415,7 +414,6 @@
 					data: $('#config').val(),
 					success: function(data, status) {
 						FAPI_UI.hideBusy();
-	                    window.open('/log-detail.html?log=' + encodeURIComponent(data.id));
 						updateRunningTable();
 					},
 					error: function(jqxhr, status, error) {
@@ -540,63 +538,6 @@
 					window.open('/log-detail.html?log=' + encodeURIComponent(testId));
 				});
                 
-                if (data.status) {
-                    if (data.status.toLowerCase() == 'failed'
-                            || data.status.toLowerCase() == 'interrupted') {
-                        // can't start or stop a stopped test
-                        $('.startBtn', runningTest).prop('disabled', true);
-                        $('.stopBtn', runningTest).prop('disabled', true);
-                    } else {
-                        // this test is currently running and can potentially be stopped
-                        $('.stopBtn', runningTest).prop('disabled', false);
-                    
-                        $('.stopBtn', runningTest).click(function (evt) {
-                            evt.preventDefault();
-                            FAPI_UI.showBusy('Stopping test...');
-                            
-	                         $.ajax({
-	                                url: '/runner/' + encodeURIComponent(testId),
-	                                type: 'DELETE',
-	                                error: function(jqxhr, status, error) {
-	                                       FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
-	                                }
-	                         })
-	                         .always(function() {
-	                                FAPI_UI.hideBusy();
-	                                updateRunningTable();
-	                         });
-	                    });
-	                    
-	                    // if the test is currently in a "created" or "configured" state it can also be started
-	                    if (data.status.toLowerCase() == 'created'
-	                            || data.status.toLowerCase() == 'configured') {
-	
-	                             $('.startBtn', runningTest).prop('disabled', false);
-	                             
-	                             $('.startBtn', runningTest).click(function(evt) {
-	                                   evt.preventDefault();
-	                                   FAPI_UI.showBusy('Starting test...');
-	                                   
-	                                   $.ajax({
-	                                       url: '/runner/' + encodeURIComponent(testId),
-	                                       type: 'POST',
-	                                       error: function(jqxhr, status, error) {
-	                                              FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
-	                                       }
-		                                })
-		                                .always(function() {
-		                                       FAPI_UI.hideBusy();
-		                                       updateRunningTable();
-		                                });
-		                             });
-	                             
-	                    } else {
-	                            // otherwise, the test can't be started
-	                        $('.startBtn', runningTest).prop('disabled', true);
-	                    }
-	                }
-                }
-                    
 			});
 		}
 

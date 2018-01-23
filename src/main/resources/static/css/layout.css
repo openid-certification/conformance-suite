@@ -218,6 +218,11 @@ textarea {
 	color: #666666;
 }
 
+/* Override the default link color */
+.log-requirement :link {
+	color: #ffffff;
+}
+
 .testStatusResultBlock {
 	padding: 5px 10px;
 	border-radius: 3px;
