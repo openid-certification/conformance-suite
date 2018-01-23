@@ -29,9 +29,9 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class EnsureResourceResponseEncodingIsUTF8 extends AbstractCondition {
+public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractCondition {
 
-	public EnsureResourceResponseEncodingIsUTF8(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureResourceResponseContentTypeIsJsonUTF8(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -44,26 +44,31 @@ public class EnsureResourceResponseEncodingIsUTF8 extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(contentTypeStr)) {
 			try {
 				MediaType parsedType = MediaType.parse(contentTypeStr);
+
 				Optional<Charset> charset = parsedType.charset();
 				if (charset.isPresent()) {
 					String charsetName = charset.get().name();
 					if (charsetName.equals("UTF-8")) {
 						logSuccess("Response charset is UTF-8", args("content_type", contentTypeStr));
-						return env;
 					} else {
 						return error("Response charset is not UTF-8",
 								args("content_type", contentTypeStr,
 										"charset", charset.get().name()));
 					}
+				} else {
+					return error("Response charset not declared", (args("content_type", contentTypeStr)));
+				}
+
+				if (parsedType.is(MediaType.JSON_UTF_8)) {
+					logSuccess("Response content type is JSON", args("content_type", contentTypeStr));
+					return env;
 				}
 			} catch (InvalidMediaTypeException e) {
 				return error("Unable to parse content type", args("content_type", contentTypeStr));
 			}
 		}
 
-		logSuccess("No charset was declared for response; parsed as UTF-8", args("content_type", Strings.nullToEmpty(contentTypeStr)));
-		return env;
-
+		return error("Resource endpoint did not declare a content type");
 	}
 
 }

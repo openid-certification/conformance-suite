@@ -59,7 +59,7 @@ import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
-import io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8;
+import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -357,7 +357,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
-		call(EnsureResourceResponseEncodingIsUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9");
+		call(EnsureResourceResponseContentTypeIsJsonUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 	}
 
 	/* (non-Javadoc)

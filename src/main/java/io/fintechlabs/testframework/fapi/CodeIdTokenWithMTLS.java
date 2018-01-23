@@ -54,7 +54,7 @@ import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
-import io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8;
+import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -299,7 +299,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 		
-		callAndStopOnFailure(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 		
 		fireTestFinished();
 		stop();
