@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition.client;
+package io.fintechlabs.testframework.condition.common;
 
 import com.google.common.base.Strings;
 
@@ -21,11 +21,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
-public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
+public class EnsureMinimumClientSecretEntropy extends AbstractEnsureMinimumEntropy {
 	/** The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of
 	 * slop is allowed for.
 	 */
@@ -35,7 +31,7 @@ public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureMinimumTokenEntropy(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureMinimumClientSecretEntropy(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -43,15 +39,15 @@ public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "token_endpoint_response")
+	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
-		String accessToken = env.getString("token_endpoint_response", "access_token");
+		String clientSecret = env.getString("client", "client_secret");
 
-		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Can't find access token");
+		if (Strings.isNullOrEmpty(clientSecret)) {
+			return error("Can't find client secret");
 		}
 		
-		return ensureMinimumEntropy(env, accessToken, requiredEntropy);
+		return ensureMinimumEntropy(env, clientSecret, requiredEntropy);
 	}
 
 }
