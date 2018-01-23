@@ -132,6 +132,15 @@ var FAPI_UI = {
 	    return val ? (obj[final] = val) : obj[final];
 	},
 
+	specLinks : {
+	    "FAPI-1-" : "https://bitbucket.org/openid/fapi/src/6bb2d42b34e182c6df45459075898a630ebb08b0/Financial_API_WD_001.md?at=master",
+	    "FAPI-2-" : "https://bitbucket.org/openid/fapi/src/6bb2d42b34e182c6df45459075898a630ebb08b0/Financial_API_WD_002.md?at=master",
+	    "OB-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/7046134/Open+Banking+Security+Profile+-+Implementer%27s+Draft+v1.1.0",
+	    "OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html",
+	    "RFC6819-" : "https://tools.ietf.org/html/rfc6819",
+	    "RFC7231-" : "https://tools.ietf.org/html/rfc7231"
+    },
+
 	testJSON : {}/*
 				server : {
 					discoveryUrl: ""
