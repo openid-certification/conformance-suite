@@ -63,7 +63,8 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 		
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 		
-		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
+				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 	}
 

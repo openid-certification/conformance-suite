@@ -290,15 +290,18 @@ public abstract class AbstractTestModule implements TestModule {
 		}
 	}
 
-	protected void skipIfMissing(String[] required, String[] strings, Class<? extends Condition> conditionClass) {
-		skipIfMissing(required, strings, conditionClass, ConditionResult.INFO);
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
+			Class<? extends Condition> conditionClass) {
+		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.INFO);
 	}
 
-	protected void skipIfMissing(String[] required, String[] strings, Class<? extends Condition> conditionClass, String...requirements) {
-		skipIfMissing(required, strings, conditionClass, ConditionResult.WARNING, requirements);
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
+			Class<? extends Condition> conditionClass, String...requirements) {
+		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.WARNING, requirements);
 	}
 	
-	protected void skipIfMissing(String[] required, String[] strings, Class<? extends Condition> conditionClass, ConditionResult onFail, String...requirements) {
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip, 
+			Class<? extends Condition> conditionClass, ConditionResult onFail, String...requirements) {
 		try {
 			
 			// create a new condition object from the class above
@@ -313,7 +316,7 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Skipped evaluation due to missing required object: " + req,
 							"expected", req,
-							"result", onFail
+							"result", onSkip
 							// TODO: log the environment here?
 						));
 						return;
@@ -327,7 +330,7 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 								"msg", "Skipped evaluation due to missing required string: " + s,
 								"expected", s,
-								"result", onFail
+								"result", onSkip
 								// TODO: log the environment here?
 							));
 						return;
@@ -335,7 +338,7 @@ public abstract class AbstractTestModule implements TestModule {
 				}
 			}
 
-			// call the actual function
+			// if we get here, call the actual function
 			call(conditionClass, onFail, requirements);
 			
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
