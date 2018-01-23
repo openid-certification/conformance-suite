@@ -43,6 +43,10 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		String keyString = env.getString("mutual_tls_authentication", "key");
 		String caString = env.getString("mutual_tls_authentication", "ca");
 
+		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
+			return error("Couldn't find TLS client certificate or key for MTLS");
+		}
+
 		Security.addProvider(new BouncyCastleProvider());
 		CertificateFactory certFactory = null;
 		try {
@@ -72,6 +76,8 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		} catch (NoSuchAlgorithmException e) {
 			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		} catch (InvalidKeySpecException e) {
+			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+		} catch (IllegalArgumentException e) {
 			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		}
 
