@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.client.*;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -30,54 +32,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
-import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
-import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
-import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
-import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
-import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
-import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
-import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
-import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
-import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
-import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
-import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
-import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
-import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
@@ -133,6 +87,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
+		call(ValidateMTLSCertificatesAsX509.class, ConditionResult.WARNING);
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -283,6 +238,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 			call(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.WARNING);
+			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.WARNING);
 
 			performAuthorizationFlow();
 
@@ -304,6 +260,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
+			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.WARNING);
 
 			// Try client 2's access token with client 1's keys
 

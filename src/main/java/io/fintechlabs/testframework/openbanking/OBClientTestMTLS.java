@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -107,6 +108,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
