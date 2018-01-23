@@ -28,12 +28,12 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8;
+import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureResourceResponseEncodingIsUTF8_UnitTest {
+public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -41,15 +41,15 @@ public class EnsureResourceResponseEncodingIsUTF8_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureResourceResponseEncodingIsUTF8 cond;
+	private EnsureResourceResponseContentTypeIsJsonUTF8 cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureResourceResponseEncodingIsUTF8("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureResourceResponseContentTypeIsJsonUTF8("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -64,7 +64,7 @@ public class EnsureResourceResponseEncodingIsUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidCharset() {
@@ -77,9 +77,9 @@ public class EnsureResourceResponseEncodingIsUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
-	@Test
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingCharset() {
 
 		JsonObject headers = new JsonObject();
@@ -90,9 +90,22 @@ public class EnsureResourceResponseEncodingIsUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseEncodingIsUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
-	@Test
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_invalidType() {
+
+		JsonObject headers = new JsonObject();
+		headers.addProperty("Content-Type", "text/json; charset=UTF-8");
+		env.put("resource_endpoint_response_headers", headers);
+
+		cond.evaluate(env);
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingContentType() {
 
 		JsonObject headers = new JsonObject();
