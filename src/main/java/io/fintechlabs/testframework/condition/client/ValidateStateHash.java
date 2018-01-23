@@ -36,21 +36,17 @@ public class ValidateStateHash extends AbstractCondition {
 	}
 
 	@Override
-	@PreEnvironment(required = "id_token", strings = "state")
+	@PreEnvironment(strings = "state", required = "state_hash")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("id_token")) {
-			return error("Couldn't find parsed ID token");
-		}
-
-		String s_hash = env.getString("id_token", "claims.s_hash");
+		String s_hash = env.getString("state_hash", "s_hash");
 		if (s_hash == null) {
-			return error("Couldn't find s_hash in ID token");
+			return error("Couldn't find s_hash");
 		}
 
-		String alg = env.getString("id_token", "header.alg");
+		String alg = env.getString("state_hash", "alg");
 		if (alg == null) {
-			return error("Couldn't find algorithm in ID token header");
+			return error("Couldn't find algorithm");
 		}
 
 		String state = env.getString("state");

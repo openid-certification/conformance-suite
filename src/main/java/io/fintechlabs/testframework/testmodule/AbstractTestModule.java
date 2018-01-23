@@ -290,6 +290,68 @@ public abstract class AbstractTestModule implements TestModule {
 		}
 	}
 
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
+			Class<? extends Condition> conditionClass) {
+		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.INFO);
+	}
+
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
+			Class<? extends Condition> conditionClass, String...requirements) {
+		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.WARNING, requirements);
+	}
+	
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip, 
+			Class<? extends Condition> conditionClass, ConditionResult onFail, String...requirements) {
+		try {
+			
+			// create a new condition object from the class above
+			Condition condition = conditionClass
+				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
+				.newInstance(id, eventLog, onFail, requirements);
+	
+			if (required != null) {
+				for (String req : required) {
+					if (!env.containsObj(req)) {
+						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find key in environment: " + req);
+						eventLog.log(condition.getMessage(), args(
+							"msg", "Skipped evaluation due to missing required object: " + req,
+							"expected", req,
+							"result", onSkip
+							// TODO: log the environment here?
+						));
+						return;
+					}
+				}
+			}
+			if (strings != null) {
+				for (String s : strings) {
+					if (Strings.isNullOrEmpty(env.getString(s))) {
+						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find string in environment: " + s);
+						eventLog.log(condition.getMessage(), args(
+								"msg", "Skipped evaluation due to missing required string: " + s,
+								"expected", s,
+								"result", onSkip
+								// TODO: log the environment here?
+							));
+						return;
+					}
+				}
+			}
+
+			// if we get here, call the actual function
+			call(conditionClass, onFail, requirements);
+			
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logger.error("Couldn't create optional condition object", e);
+			logException(e);
+			updateResultFromConditionFailure(onFail);
+		} catch (Exception e) {
+			logger.error("Generic error from underlying test framework", e);
+			logException(e);
+			updateResultFromConditionFailure(onFail);
+		}
+	}
+	
 	public String getId() {
 		return id;
 	}

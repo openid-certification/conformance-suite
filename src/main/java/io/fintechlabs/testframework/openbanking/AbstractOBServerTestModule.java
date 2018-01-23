@@ -332,8 +332,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		call(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-15");
 
-		call(ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-
 		call(CheckForRefreshTokenValue.class);
 
 		callAndStopOnFailure(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
