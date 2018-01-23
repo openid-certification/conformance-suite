@@ -405,6 +405,7 @@
 				}
 
 				FAPI_UI.showBusy('Creating test...');
+			    window.open('/log-detail.html?log=' + encodeURIComponent(data.id));
 
 				$.ajax({
 					url: '/runner/?test=' + encodeURIComponent(testName),
@@ -413,7 +414,6 @@
 					data: $('#config').val(),
 					success: function(data, status) {
 						FAPI_UI.hideBusy();
-	                    window.open('/log-detail.html?log=' + encodeURIComponent(data.id));
 						updateRunningTable();
 					},
 					error: function(jqxhr, status, error) {
