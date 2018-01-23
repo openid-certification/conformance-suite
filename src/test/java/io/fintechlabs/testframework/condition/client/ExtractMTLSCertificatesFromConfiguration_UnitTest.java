@@ -217,6 +217,73 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			"9DVB0Qhc4lBvLz5YXIlcMpnqZKTbydpgiMrgWouslxT3T0/6l3E=\\n" +
 			"-----END PRIVATE KEY-----\\n";
 	
+	// OB issuer chain
+	private String caPEM = "-----BEGIN CERTIFICATE-----\\n" + 
+			"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\\n" + 
+			"xbFBVdqAkgA7vg==\\n" + 
+			"-----END CERTIFICATE-----\\n" + 
+			"-----BEGIN CERTIFICATE-----\\n" + 
+			"MIIFaTCCA1GgAwIBAgIEWWdU0zANBgkqhkiG9w0BAQsFADBjMQswCQYDVQQGEwJH\\n" + 
+			"QjEdMBsGA1UEChMUT3BlbiBCYW5raW5nIExpbWl0ZWQxETAPBgNVBAsTCFRlc3Qg\\n" + 
+			"UEtJMSIwIAYDVQQDExlPcGVuIEJhbmtpbmcgVGVzdCBSb290IENBMB4XDTE3MDcx\\n" + 
+			"NjIwNTYzOVoXDTI3MDcxNjIxMjYzOVowZjELMAkGA1UEBhMCR0IxHTAbBgNVBAoT\\n" + 
+			"FE9wZW4gQmFua2luZyBMaW1pdGVkMREwDwYDVQQLEwhUZXN0IFBLSTElMCMGA1UE\\n" + 
+			"AxMcT3BlbiBCYW5raW5nIFRlc3QgSXNzdWluZyBDQTCCASIwDQYJKoZIhvcNAQEB\\n" + 
+			"BQADggEPADCCAQoCggEBAKRqnkNQSeADxIV58SNC/3B9A3GtggOoNIe8tbggVJ9S\\n" + 
+			"pGt4YR7tmn+ij/u6tKVauc4Za2d8RDw9aoh66r0emEMlcSxFM7PlAsQeQXLe2/Q9\\n" + 
+			"FBlRZojAcu4pynz8pDjEbcK94dcU61chctVf04idsBtQlRJqhsWdOzHoBueVh9JQ\\n" + 
+			"uDom5W0+4+uSC3YquuikQxFROYmOAz3qZRQXG6nXsw2ardMURjOlfHBMu/l2zJGF\\n" + 
+			"0G/hTFWvFGMB7g7JUtGfZfLngQ1Z/MolW6o3ct8NyxAJ675wsOLeP0LiFFLs6TG4\\n" + 
+			"oXUxSmlukDpL7mgcO/bXWNoGyMJiXeJMvMP0pVhlpZUCAwEAAaOCASAwggEcMA4G\\n" + 
+			"A1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMIG1BgNVHR8Ega0wgaow\\n" + 
+			"LKAqoCiGJmh0dHA6Ly9vYi50cnVzdGlzLmNvbS9vYnRlc3Ryb290Y2EuY3JsMHqg\\n" + 
+			"eKB2pHQwcjELMAkGA1UEBhMCR0IxHTAbBgNVBAoTFE9wZW4gQmFua2luZyBMaW1p\\n" + 
+			"dGVkMREwDwYDVQQLEwhUZXN0IFBLSTEiMCAGA1UEAxMZT3BlbiBCYW5raW5nIFRl\\n" + 
+			"c3QgUm9vdCBDQTENMAsGA1UEAxMEQ1JMMTAfBgNVHSMEGDAWgBTSYkPzbUv5C69Y\\n" + 
+			"LC0rqI01j9rYWTAdBgNVHQ4EFgQUDwHAL+hobPcjv45lbokNxqaFd7cwDQYJKoZI\\n" + 
+			"hvcNAQELBQADggIBADzs0nSe0yqgoxzp4/VC6/HkHUj02MjUB5cwqOmjr222XBZD\\n" + 
+			"Ga9AEzggszalhOKGPr+k6jYkrFIv/hc4qBSFaQyti+nihJWzHJulPs9RJynnArg3\\n" + 
+			"GtXJPkBtAH9bI94EajSTCWqWRNU1N5IY/fMRR+SzYPBW0L7qXG7yl+BgoMP7b0IS\\n" + 
+			"TjeBnh/2uYtWMYcVGUggid1h/0Fhu8oDcauMNyi+GwX5ba4EFthWXNLGF754Sh9p\\n" + 
+			"B3W6PbQ606atPrQ1Tt/MPC4PUs9uGA7s/XudqwsRIJ7HE9tLMxXwivRnNqwRc6F+\\n" + 
+			"a0bsjZhSCYlxHBGEjpSljP6s4eh5L33P6VQnDtIweuPZNKUPMnwPj3lRmm91/9Mf\\n" + 
+			"757PMJU4y/HpL80PLUGy/d43I96X6U8VeeLAiSsRDFlW9T9eTcIEG6exg6sMEeZr\\n" + 
+			"++L+Habc6AvvllkKK/4ZSIpDLSobm7YIj8Brvg5fBnpbBNx9PN4+LmrVBQ7R8vrN\\n" + 
+			"JFkpbvXfN+2bGv++2loAishhORug10yM1gSPtBhMUsx7on4/MqLSy0FdNpvLjJp5\\n" + 
+			"t7JUHCzID9uPdzVNDZlThN0YskTx9XX3TwqQoCeCXx4vscN0yciNbdJkNmilMJHn\\n" + 
+			"7+e2V9glTJo3xtFrQB+seQhlNMCop8VdC8tg1IDkk7GPXLhyjKejNgREN46o\\n" + 
+			"-----END CERTIFICATE-----\\n";
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -245,6 +312,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
 		verify(env, atLeastOnce()).getString("config", "mtls.key");
+		verify(env, atLeastOnce()).getString("config", "mtls.ca");
 		
 		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(cert);
 		assertThat(env.getString("mutual_tls_authentication", "key")).isEqualTo(key);
@@ -254,8 +322,9 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	public void testEvaluate_valuePresentPEM() {
 		
 		JsonObject config = new JsonParser().parse("{\"mtls\":{"
-				+ "\"cert\":\""+ certPEM + "\","
-				+ "\"key\":\"" + keyPEM + "\""
+				+ "\"cert\":\"" + certPEM + "\","
+				+ "\"key\":\"" + keyPEM + "\","
+				+ "\"ca\":\"" + caPEM + "\""
 				+ "}}").getAsJsonObject();
 
 		env.put("config", config);
@@ -264,6 +333,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
 		verify(env, atLeastOnce()).getString("config", "mtls.key");
+		verify(env, atLeastOnce()).getString("config", "mtls.ca");
 		
 		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(cert);
 		assertThat(env.getString("mutual_tls_authentication", "key")).isEqualTo(key);
