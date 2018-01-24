@@ -22,19 +22,25 @@ import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.Certificate;
 import org.bouncycastle.crypto.tls.CertificateRequest;
 import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.DefaultTlsClient;
+import org.bouncycastle.crypto.tls.NameType;
 import org.bouncycastle.crypto.tls.ProtocolVersion;
+import org.bouncycastle.crypto.tls.ServerName;
+import org.bouncycastle.crypto.tls.ServerNameList;
 import org.bouncycastle.crypto.tls.TlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsClient;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsCredentials;
+import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
 
 import com.google.common.base.Strings;
@@ -146,6 +152,16 @@ public class DisallowInsecureCipher extends AbstractCondition {
 					@Override
 					public ProtocolVersion getMinimumVersion() {
 						return ProtocolVersion.TLSv12;
+					}
+
+					@Override
+					@SuppressWarnings("rawtypes") // fit with the API
+					public Hashtable getClientExtensions() throws IOException {
+						Hashtable clientExtensions = super.getClientExtensions();
+						Vector<ServerName> serverNameList = new Vector<ServerName>();
+						serverNameList.addElement(new ServerName(NameType.host_name, tlsTestHost));
+						TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
+						return clientExtensions;
 					}
 
 					@Override
