@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
@@ -57,7 +58,7 @@ public class OBEnsureMATLSRequiredWithSecretPostAndMATLS extends AbstractOBEnsur
 
 		super.onConfigure(config, baseUrl);
 
-		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 	}
 
 	@Override
