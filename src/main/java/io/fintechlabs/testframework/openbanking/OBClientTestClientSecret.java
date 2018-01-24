@@ -28,6 +28,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -115,7 +116,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
+		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
@@ -43,7 +44,7 @@ public class OBEnsureRegisteredRedirectUriWithSecretBasicAndMATLS extends Abstra
 
 		super.onConfigure(config, baseUrl);
 
-		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
+		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 	}
 
 	@Override
