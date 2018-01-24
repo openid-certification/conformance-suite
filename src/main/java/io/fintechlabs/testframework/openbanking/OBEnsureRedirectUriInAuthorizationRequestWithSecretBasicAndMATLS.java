@@ -43,7 +43,7 @@ public class OBEnsureRedirectUriInAuthorizationRequestWithSecretBasicAndMATLS ex
 
 		super.onConfigure(config, baseUrl);
 
-		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
+		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 	}
 
 	@Override
