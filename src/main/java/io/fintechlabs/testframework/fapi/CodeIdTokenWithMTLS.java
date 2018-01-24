@@ -70,6 +70,7 @@ import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointReq
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
@@ -148,6 +149,9 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		
 		//require(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
+
+		// Validate the MTLS keys
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
