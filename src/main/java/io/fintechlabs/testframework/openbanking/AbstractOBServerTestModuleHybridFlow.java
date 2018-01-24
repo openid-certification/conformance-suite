@@ -59,7 +59,7 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "OB-5.2.2-8");
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 		
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 		

@@ -41,6 +41,7 @@ import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdIn
 import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
+import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
@@ -281,6 +282,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
 		
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+		
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 		
 		call(ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 		
