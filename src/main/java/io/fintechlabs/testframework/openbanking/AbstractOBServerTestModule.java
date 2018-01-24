@@ -133,8 +133,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
-		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
-		call(ValidateMTLSCertificatesAsX509.class, ConditionResult.WARNING);
+		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
+		call(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
