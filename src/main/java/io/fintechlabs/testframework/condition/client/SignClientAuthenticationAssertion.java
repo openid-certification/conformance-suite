@@ -99,7 +99,7 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 				
 				Algorithm alg = jwk.getAlgorithm();
 				if (alg == null) {
-					return error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
+					return error("No 'alg' field specified in key", args("jwk", jwk.toJSONString()));
 				}
 				
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
