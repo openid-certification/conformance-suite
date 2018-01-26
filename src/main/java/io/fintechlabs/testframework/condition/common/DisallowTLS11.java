@@ -34,6 +34,7 @@ import org.bouncycastle.crypto.tls.TlsClient;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsCredentials;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
+import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
 
 import com.google.common.base.Strings;
@@ -175,6 +176,11 @@ public class DisallowTLS11 extends AbstractCondition {
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.1 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 			    return env;
+			} else if ((e instanceof TlsFatalAlert)
+					&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
+				// If we get here then we haven't received a server hello agreeing on a version
+				logSuccess("Server refused TLS 1.0 handshake", args("host", tlsTestHost, "port", tlsTestPort));
+				return env;
 			} else {
 				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
