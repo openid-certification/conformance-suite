@@ -93,9 +93,12 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		setStatus(Status.WAITING);
 
+		String submissionUrl = env.getString("implicit_submit", "fullUrl");
+		logger.info("Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
+
 		return new ModelAndView("implicitCallback",
 				ImmutableMap.of("test", this,
-					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+					"implicitSubmitUrl", submissionUrl));
 	}
 
 	private Object handleImplicitSubmission(JsonObject requestParts) {
@@ -108,11 +111,11 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 		if (body != null) {
 			String hash = body.getAsString();
 
-			logger.info("Hash: " + hash);
+			logger.info("URL fragment (hash): " + hash);
 
 			env.putString("implicit_hash", hash);
 		} else {
-			logger.warn("No hash submitted");
+			logger.warn("No hash/URL fragment submitted");
 
 			env.putString("implicit_hash", ""); // Clear any old value
 		}
