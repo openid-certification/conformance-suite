@@ -14,27 +14,15 @@
 
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.AbstractExtractIdToken;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
-public class ExtractStateHash extends AbstractCondition {
+public class ExtractIdTokenFromTokenResponse extends AbstractExtractIdToken {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param conditionResultOnFailure
-	 * @param requirements
-	 */
-	public ExtractStateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractIdTokenFromTokenResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -42,37 +30,11 @@ public class ExtractStateHash extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "id_token")
-	@PostEnvironment(required = "state_hash")
+	@PreEnvironment(required = "token_endpoint_response")
+	@PostEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
 
-		env.remove("state_hash");
-
-		if (!env.containsObj("id_token")) {
-			return error("Couldn't find parsed ID token");
-		}
-
-		String s_hash = env.getString("id_token", "claims.s_hash");
-		if (s_hash == null) {
-			return error("Couldn't find s_hash in ID token");
-		}
-
-		String alg = env.getString("id_token", "header.alg");
-		if (alg == null) {
-			return error("Couldn't find algorithm in ID token header");
-		}
-
-		JsonObject stateHash = new JsonObject();
-		
-		stateHash.addProperty("s_hash", s_hash);
-		stateHash.addProperty("alg", alg);
-		
-		env.put("state_hash", stateHash);
-		
-		logSuccess("Extracted state hash from ID Token", stateHash);
-		
-		return env;
-		
+		return extractIdToken(env, "token_endpoint_response");
 	}
 
 }

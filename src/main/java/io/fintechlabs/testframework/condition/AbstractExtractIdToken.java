@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition.client;
+package io.fintechlabs.testframework.condition;
 
 import java.text.ParseException;
 
@@ -22,11 +22,6 @@ import com.google.gson.JsonParser;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -34,34 +29,24 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ParseIdToken extends AbstractCondition {
+public abstract class AbstractExtractIdToken extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public ParseIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AbstractExtractIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
-	@Override
-	@PreEnvironment(required = "token_endpoint_response")
-	@PostEnvironment(required = "id_token")
-	public Environment evaluate(Environment env) {
+	protected Environment extractIdToken(Environment env, String key) {
 
-		if (!env.containsObj("token_endpoint_response")) {
-			return error("Couldn't find a Token Endpoint Response");
-		}
-		
-		JsonElement idTokenElement = env.findElement("token_endpoint_response", "id_token");
+		JsonElement idTokenElement = env.findElement(key, "id_token");
 		if (idTokenElement == null || !idTokenElement.isJsonPrimitive()) {
-			return error("Couldn't find an ID Token in Token Endpoint Response");
+			return error("Couldn't find an ID Token in response");
 		}
 
-		String idTokenString = env.getString("token_endpoint_response", "id_token");
+		String idTokenString = idTokenElement.getAsString();
 		
 		try {
 			JWT idToken = JWTParser.parse(idTokenString);

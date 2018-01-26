@@ -17,12 +17,11 @@ import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.ParseIdToken;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ParseIdToken_UnitTest {
+public class ExtractIdTokenFromTokenResponse_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -34,7 +33,7 @@ public class ParseIdToken_UnitTest {
 	
 	private JsonObject badResponse;
 	
-	private ParseIdToken cond;
+	private ExtractIdTokenFromTokenResponse cond;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -42,7 +41,7 @@ public class ParseIdToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		cond = new ParseIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractIdTokenFromTokenResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
 		goodResponse = new JsonParser().parse("{"
 				+ "\"access_token\":"
@@ -71,7 +70,7 @@ public class ParseIdToken_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ParseIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
@@ -80,7 +79,7 @@ public class ParseIdToken_UnitTest {
 
 		cond.evaluate(env);
 		
-		verify(env, atLeastOnce()).getString("token_endpoint_response", "id_token");
+		verify(env, atLeastOnce()).findElement("token_endpoint_response", "id_token");
 		
 		assertThat(env.get("id_token")).isNotNull();
 		assertThat(env.getString("id_token", "value")).isEqualTo(goodResponse.get("id_token").getAsString());
@@ -89,7 +88,7 @@ public class ParseIdToken_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ParseIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {

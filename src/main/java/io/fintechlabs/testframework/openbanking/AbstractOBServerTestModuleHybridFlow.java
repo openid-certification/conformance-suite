@@ -15,11 +15,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractStateHash;
-import io.fintechlabs.testframework.condition.client.ParseIdToken;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
@@ -51,18 +50,16 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		super.requestAuthorizationCode();
 
-		callAndStopOnFailure(CheckForIdTokenValue.class);
-
-		callAndStopOnFailure(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-		
-		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
-		
+
+		call(ExtractStateHash.class);
+
 		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
 				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
