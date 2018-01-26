@@ -253,6 +253,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			// call the token endpoint and complete the flow
 
+			createAuthorizationCodeRequest();
+
 			requestAuthorizationCode();
 
 			callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
@@ -294,6 +296,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			// call the token endpoint and complete the flow
 
+			createAuthorizationCodeRequest();
+
 			requestAuthorizationCode();
 
 			requestProtectedResource();
@@ -323,8 +327,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	protected abstract void createAuthorizationCodeRequest();
 
 	protected void requestAuthorizationCode() {
-
-		createAuthorizationCodeRequest();
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
