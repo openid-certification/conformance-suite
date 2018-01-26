@@ -38,7 +38,6 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForIdTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
@@ -60,14 +59,16 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractStateHash;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
-import io.fintechlabs.testframework.condition.client.ParseIdToken;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
@@ -250,6 +251,19 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 		
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+		
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+		
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+		
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
+		
+		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+		
+		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
+				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		
 		// check the ID token from the hybrid response
 		
 		
@@ -273,11 +287,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 		
-		call(CheckForIdTokenValue.class);
-		
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 		
-		call(ParseIdToken.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 		
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
 		
@@ -285,7 +297,10 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 		
-		call(ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		call(ExtractStateHash.class);
+		
+		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
+				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 		
 		call(CheckForRefreshTokenValue.class);
 		

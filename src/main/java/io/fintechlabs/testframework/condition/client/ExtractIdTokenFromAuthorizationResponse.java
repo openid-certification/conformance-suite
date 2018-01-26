@@ -14,26 +14,15 @@
 
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.common.base.Strings;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.AbstractExtractIdToken;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
-public class CheckForIdTokenValue extends AbstractCondition {
+public class ExtractIdTokenFromAuthorizationResponse extends AbstractExtractIdToken {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public CheckForIdTokenValue(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractIdTokenFromAuthorizationResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -41,15 +30,12 @@ public class CheckForIdTokenValue extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "token_endpoint_response")
+	@PreEnvironment(required = "callback_params")
+	@PostEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "id_token"))) {
-			logSuccess("Found an ID token",
-					args("id_token", env.getString("token_endpoint_response", "id_token")));
-			return env;
-		} else {
-			return error("Couldn't find ID token");
-		}
+
+		return extractIdToken(env, "token_endpoint_response");
+
 	}
 
 }
