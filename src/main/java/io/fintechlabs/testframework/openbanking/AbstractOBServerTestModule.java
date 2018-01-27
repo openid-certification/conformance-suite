@@ -184,7 +184,9 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
+				"redirect_to", redirectTo,
+				"http", "redirect"));
 
 		browser.goToUrl(redirectTo);
 
