@@ -34,7 +34,7 @@ public class ExtractIdTokenFromAuthorizationResponse extends AbstractExtractIdTo
 	@PostEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
 
-		return extractIdToken(env, "token_endpoint_response");
+		return extractIdToken(env, "callback_params");
 
 	}
 
