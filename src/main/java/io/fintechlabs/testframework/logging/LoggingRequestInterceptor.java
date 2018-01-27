@@ -42,6 +42,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 			o.addProperty("request_body", new String(body, "UTF-8"));
 		}
 		o.addProperty("msg", "HTTP request");
+		o.addProperty("http", "request");
 		log.log(source, o);
 	}
 
@@ -54,6 +55,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 			o.addProperty("response_body", new String(response.body, "UTF-8"));
 		}
 		o.addProperty("msg", "HTTP response");
+		o.addProperty("http", "response");
 		log.log(source, o);
 	}
 
