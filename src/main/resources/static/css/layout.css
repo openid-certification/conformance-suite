@@ -195,7 +195,7 @@ textarea {
 }
 
 /* Override the default link color */
-.log-requirement :link {
+.log-requirement a:link, .log-requirement a:visited {
 	color: #ffffff;
 }
 
