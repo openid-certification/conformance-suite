@@ -592,6 +592,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
 		eventLog.log(getName(), args(
 				"msg", "Incoming HTTP request to test instance " + getId(),
+				"http", "incoming",
 				"path", path,
 				"request", requestParts
 				));

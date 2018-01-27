@@ -181,7 +181,7 @@
           <div class="row">
             <div data-item-log-id="<%- item._id %>" class="col-md-12 logItem">
 
-                <div class="row"><!-- time / result / source / owner -->
+                <div class="row"><!-- time / result & http / source / owner -->
 
                     <div class="col-md-1">
                     <% if (item.time) { %>
@@ -190,7 +190,7 @@
 
                     </div>
 
-                    <div class="col-md-1">
+                    <div class="col-md-1 labelCollection">
                       <% if (item.result) { 
                           // count the number of test types to render later on
                           FAPI_UI.testResults[item.result.toLowerCase()]++;
@@ -198,6 +198,11 @@
                       %> 
                       <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
                       <% } %>
+
+                      <% if (item.http) { %>
+                        <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
+                      <% } %>
+
                     </div>
 
                     <div class="col-md-8">
@@ -308,6 +313,20 @@
                 <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
             </button>
         </script>
+        
+        <!-- HTTP Message -->
+        <script type="text/template" id="logDetailTemplate_Http">
+            <span class="log-http">
+                <% if (http == 'request') { %>
+                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-right"></span> REQUEST</span>
+                <% } else if (http == 'response') { %>
+                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-left"></span> RESPONSE</span>
+                <% } else if (http == 'incoming') { %>
+                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-down"></span> INCOMING</span>
+                <% } %>
+            </span>
+        </script>
+        
         <!-- More -->
         <script type="text/template" id="logDetailTemplate_More">
             <div class="moreInfo collapse">
@@ -416,8 +435,7 @@
                             // see if we've got any "extra" bits that we want to display in a block
                             var more = _.pick(item, function(value, key, object) {
                                 return !_.contains(FAPI_UI.visibleFields, key)
-                                    && !key.startsWith("_")
-                                    && key.toLowerCase() != 'testid';
+                                    && !key.startsWith("_");
                             });
 
                             if (!_.isEmpty(more)) {
