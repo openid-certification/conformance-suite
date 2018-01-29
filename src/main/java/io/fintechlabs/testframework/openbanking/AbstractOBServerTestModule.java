@@ -249,19 +249,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
-
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
-
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-
-		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
-
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
 		return performPostAuthorizationFlow();
