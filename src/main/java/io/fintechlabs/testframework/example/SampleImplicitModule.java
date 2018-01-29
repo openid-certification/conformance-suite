@@ -73,8 +73,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 )
 public class SampleImplicitModule extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(SampleImplicitModule.class); 
-	
+	public static Logger logger = LoggerFactory.getLogger(SampleImplicitModule.class);
+
 	/**
 	 * 
 	 */
@@ -89,7 +89,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-		
+
 		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -97,13 +97,13 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		
+
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		
+
 		exposeEnvString("client_id");
 
 		setStatus(Status.CONFIGURED);
@@ -115,9 +115,9 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @see io.bspk.selenium.TestModule#start()
 	 */
 	public void start() {
-		
+
 		setStatus(Status.RUNNING);
-		
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
@@ -127,19 +127,19 @@ public class SampleImplicitModule extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-		
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToToken.class);
-		
+
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
-		
+
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-		
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
-				"redirect_to", redirectTo,
-				"http", "redirect"));
+
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
 
 		browser.goToUrl(redirectTo);
-		
+
 		setStatus(Status.WAITING);
 	}
 
@@ -151,7 +151,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		logIncomingHttpRequest(path, requestParts);
 
 		// dispatch based on the path
-		
+
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
@@ -159,7 +159,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		} else {
 			return new ModelAndView("testError");
 		}
-		
+
 	}
 
 	@UserFacing
@@ -170,12 +170,11 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ModelAndView("implicitCallback", 
-				ImmutableMap.of("test", this, 
-					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+		return new ModelAndView("implicitCallback",
+			ImmutableMap.of("test", this,
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
-	
-	
+
 	/**
 	 * @param path
 	 * @param req
@@ -189,7 +188,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		// process the callback
 		setStatus(Status.RUNNING);
-		
+
 		JsonElement body = requestParts.get("body");
 
 		if (body != null) {
@@ -203,25 +202,25 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 			env.putString("implicit_hash", ""); // Clear any old value
 		}
-		
+
 		callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
-	
+
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		
+
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-		
+
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 
 		call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-		
+
 		call(CheckForRefreshTokenValue.class);
-		
+
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
-		
+
 		fireTestFinished();
 		stop();
 

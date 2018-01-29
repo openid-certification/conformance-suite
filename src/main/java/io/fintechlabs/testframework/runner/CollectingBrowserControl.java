@@ -29,14 +29,14 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 public class CollectingBrowserControl implements BrowserControl {
 
 	private static Logger logger = LoggerFactory.getLogger(CollectingBrowserControl.class);
-	
+
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
-	
+
 	@Override
 	public void goToUrl(String url) {
 		logger.info("Browser going to: " + url);
-		
+
 		urls.add(url);
 	}
 
@@ -50,10 +50,10 @@ public class CollectingBrowserControl implements BrowserControl {
 	@Override
 	public void urlVisited(String url) {
 		logger.info("Browser went to: " + url);
-		
+
 		urls.remove(url);
 		visited.add(url);
-		
+
 	}
 
 	/**

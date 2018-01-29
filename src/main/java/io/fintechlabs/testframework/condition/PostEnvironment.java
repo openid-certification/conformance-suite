@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 
 /**
  * Require a set of conditions and/or strings to be in the environment
- * after a condition is evaluated. 
+ * after a condition is evaluated.
  * 
  * @author jricher
  *
@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PostEnvironment {
 	String[] required() default {};
+
 	String[] strings() default {};
 
 }

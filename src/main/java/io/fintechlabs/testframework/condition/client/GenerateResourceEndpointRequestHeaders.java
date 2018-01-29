@@ -23,7 +23,7 @@ public class GenerateResourceEndpointRequestHeaders extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"resource"})
+	@PreEnvironment(required = { "resource" })
 	@PostEnvironment(required = "resource_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 

@@ -35,17 +35,16 @@ public abstract class AbstractOpenBankingApiResponse extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-
 	protected JsonObject createResponse(JsonObject data) {
 		JsonObject response = new JsonObject();
-		
+
 		response.add("Data", data);
 
 		JsonObject meta = new JsonObject();
 		meta.addProperty("TotalPages", 1);
 		response.add("Meta", meta);
-		
+
 		return response;
 	}
-	
+
 }

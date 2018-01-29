@@ -47,15 +47,15 @@ public class SetAuthorizationEndpointRequestResponseTypeToToken extends Abstract
 		if (!env.containsObj("authorization_endpoint_request")) {
 			return error("Couldn't find authorization endpoint request");
 		}
-		
+
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
-		
+
 		authorizationEndpointRequest.addProperty("response_type", "token");
-		
+
 		env.put("authorization_endpoint_request", authorizationEndpointRequest);
-		
+
 		logSuccess("Added response_type parameter to request", authorizationEndpointRequest);
-		
+
 		return env;
 	}
 

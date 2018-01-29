@@ -62,7 +62,7 @@ public class EnsureTLS12 extends AbstractCondition {
 		}
 
 	}
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -88,7 +88,7 @@ public class EnsureTLS12 extends AbstractCondition {
 		if (tlsTestPort == null) {
 			return error("Couldn't find port to connect for TLS");
 		}
-		
+
 		try {
 			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
 
@@ -162,14 +162,14 @@ public class EnsureTLS12 extends AbstractCondition {
 				return env;
 			} else {
 				return error("Server used incorrect TLS version",
-						args("server_version", serverVersion.toString(),
-								"host", tlsTestHost,
-								"port", tlsTestPort));
+					args("server_version", serverVersion.toString(),
+						"host", tlsTestHost,
+						"port", tlsTestPort));
 			}
 		} catch (IOException e) {
 			return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 		}
-		
+
 	}
 
 }

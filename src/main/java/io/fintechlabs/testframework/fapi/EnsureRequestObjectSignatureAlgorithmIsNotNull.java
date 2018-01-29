@@ -126,9 +126,9 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
-				"redirect_to", redirectTo,
-				"http", "redirect"));
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
 
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
@@ -159,9 +159,8 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 			"path", path,
 			"method", req.getMethod(),
 			"requirements", ImmutableSet.of("FAPI-2-7.3-1"),
-			"requestParts", requestParts
-		));
-		
+			"requestParts", requestParts));
+
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 

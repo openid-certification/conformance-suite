@@ -45,13 +45,13 @@ public class GenerateOpenBankingAccountId extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String acct = RandomStringUtils.randomAlphanumeric(10);
-		
+
 		env.putString("account_id", acct);
-		
+
 		logSuccess("Created account", args("account", acct));
-		
+
 		return env;
-		
+
 	}
 
 }

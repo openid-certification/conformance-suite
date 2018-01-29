@@ -49,22 +49,22 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 		if (!env.containsObj("client")) {
 			return error("Couldn't find client configuration");
 		}
-		
+
 		// bump the client's internal JWK up to the root
 		JsonElement jwks = env.findElement("client", "jwks");
-		
+
 		if (jwks == null) {
 			return error("Couldn't find JWKs in client configuration");
 		} else if (!(jwks instanceof JsonObject)) {
 			return error("Invalid JWKs in client configuration - JSON decode failed");
 		}
-		
+
 		logSuccess("Extracted client JWK", args("jwks", jwks));
-		
+
 		env.put("jwks", jwks.getAsJsonObject());
-		
+
 		return env;
-		
+
 	}
 
 }

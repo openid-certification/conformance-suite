@@ -46,19 +46,19 @@ public class CreateOpenBankingAccountRequestResponse extends AbstractOpenBanking
 	public Environment evaluate(Environment env) {
 
 		String accountRequestId = env.getString("account_request_id");
-		
+
 		JsonObject data = new JsonObject();
 		data.addProperty("Status", "AwaitingAuthorisation");
 		data.addProperty("AccountRequestId", accountRequestId);
-		
+
 		JsonObject response = createResponse(data);
 
 		logSuccess("Created account request response object", args("account_request_response", response));
-		
+
 		env.put("account_request_response", response);
-		
+
 		return env;
-	
+
 	}
 
 }

@@ -47,27 +47,27 @@ public class LogApi {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
-	
+
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getAllTests() {
 
 		DBObject queryFilter;
-		if(authenticationFacade.isAdmin()){
+		if (authenticationFacade.isAdmin()) {
 			queryFilter = BasicDBObjectBuilder.start().get();
 		} else {
-			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			queryFilter = BasicDBObjectBuilder.start().add("testOwner", owner).get();
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId", queryFilter);
-		
+
 		List<DBObject> results = new ArrayList<>(testIds.size());
-		
+
 		for (String testId : testIds) {
 			// fetch the test object from the info log if available
 			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(testId);
-			
+
 			if (testInfo == null) {
 				// make a fake document with just the ID
 				results.add(BasicDBObjectBuilder.start("_id", testId).get());
@@ -76,34 +76,33 @@ public class LogApi {
 				results.add(testInfo);
 			}
 		}
-		
+
 		return new ResponseEntity<>(results, HttpStatus.OK);
-		
+
 	}
-	
+
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getTestInfo(@PathVariable("id") String id, @RequestParam(name = "dl", defaultValue = "false") boolean dl) {
-		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId",id);
+		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId", id);
 		if (!authenticationFacade.isAdmin()) {
 			queryBuilder = queryBuilder.add("testOwner", authenticationFacade.getPrincipal());
 		}
-		
+
 		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(queryBuilder.get())
 			.sort(BasicDBObjectBuilder.start()
-					.add("time", 1)
-					.get())
+				.add("time", 1)
+				.get())
 			.toArray();
-		
+
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		if (dl) {
 			// TODO: come up with a better filename
 			headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".json\"");
 		}
-		
+
 		return ResponseEntity.ok().headers(headers).body(results);
-		
+
 	}
-	
-	
+
 }

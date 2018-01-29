@@ -41,7 +41,7 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
-		
+
 		if (!env.containsObj("token_endpoint_response")) {
 			return error("Couldn't find token endpoint response");
 		}
@@ -52,7 +52,6 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 			logSuccess("No error from token endpoint");
 			return env;
 		}
-		
 
 	}
 

@@ -37,28 +37,28 @@ import io.fintechlabs.testframework.runner.TestRunnerSupport;
  */
 @Configuration
 public class ApplicationConfig {
-    @Bean
-    public HttpMessageConverters customConverters() {
-
-        Collection<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
-
-        // wire in the special GSON converter to the HTTP message outputs, will automatically handle all __wrapped_key_element structures added by GsonObjectToBsonDocumentConverter
-        GsonHttpMessageConverter gsonHttpMessageConverter = new CollapsingGsonHttpMessageConverter();
-        messageConverters.add(gsonHttpMessageConverter);
-
-        return new HttpMessageConverters(true, messageConverters);
-    }
-	
 	@Bean
-    public TestRunnerSupport testRunnerSupport() {
-    	return new InMemoryTestRunnerSupport();
-    }
-    
+	public HttpMessageConverters customConverters() {
+
+		Collection<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+
+		// wire in the special GSON converter to the HTTP message outputs, will automatically handle all __wrapped_key_element structures added by GsonObjectToBsonDocumentConverter
+		GsonHttpMessageConverter gsonHttpMessageConverter = new CollapsingGsonHttpMessageConverter();
+		messageConverters.add(gsonHttpMessageConverter);
+
+		return new HttpMessageConverters(true, messageConverters);
+	}
+
+	@Bean
+	public TestRunnerSupport testRunnerSupport() {
+		return new InMemoryTestRunnerSupport();
+	}
+
 	@Bean
 	@SuppressWarnings("unchecked")
 	public CustomConversions mongoCustomConversions() {
 		return new CustomConversions(Lists.newArrayList(
-				new GsonPrimitiveToBsonValueConverter(),
-				new GsonObjectToBsonDocumentConverter()));
+			new GsonPrimitiveToBsonValueConverter(),
+			new GsonObjectToBsonDocumentConverter()));
 	}
 }

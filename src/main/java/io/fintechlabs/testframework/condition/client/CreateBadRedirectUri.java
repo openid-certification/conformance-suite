@@ -37,7 +37,7 @@ public class CreateBadRedirectUri extends AbstractCondition {
 	public CreateBadRedirectUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
 	 */
@@ -46,18 +46,18 @@ public class CreateBadRedirectUri extends AbstractCondition {
 	@PostEnvironment(strings = "redirect_uri")
 	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
-		
+
 		if (Strings.isNullOrEmpty(baseUrl)) {
 			return error("Base URL was null or empty");
 		}
-		
+
 		// create a random redirect URI which shouldn't be registered with the server
 		String redirectUri = baseUrl + "/" + RandomStringUtils.randomAlphanumeric(10);
 		in.putString("redirect_uri", redirectUri);
-		
-		logSuccess("Created redirect URI", 
-				args("redirect_uri", redirectUri));
-		
+
+		logSuccess("Created redirect URI",
+			args("redirect_uri", redirectUri));
+
 		return in;
 	}
 

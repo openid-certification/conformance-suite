@@ -56,31 +56,31 @@ public class ImageAPI {
 
 	@PostMapping(path = "/log/{id}/imgfile")
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
-			@PathVariable(name="id") String testId) throws IOException {
-		ImmutableMap<String,String> testOwner = testInfoService.getTestOwner(testId);
+		@PathVariable(name = "id") String testId) throws IOException {
+		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
 		// Should this be checked? I.E. does a non-user facing client ever call this?
-		if(authenticationFacade.isAdmin() ||
-				authenticationFacade.getPrincipal().equals(testOwner)) {
+		if (authenticationFacade.isAdmin() ||
+			authenticationFacade.getPrincipal().equals(testOwner)) {
 			// create a new entry in the database
 			BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-					.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
-					.add("testId", testId)
-					.add("testOwner", testOwner)
-					.add("src", "_image-api")
-					.add("time", new Date().getTime())
-					.add("img", encoded);
+				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
+				.add("testId", testId)
+				.add("testOwner", testOwner)
+				.add("src", "_image-api")
+				.add("time", new Date().getTime())
+				.add("img", encoded);
 
 			mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
 		}
-		
+
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
-	
+
 	@PostMapping(path = "/log/{id}/imgfile/{placeholder}")
 	public ResponseEntity<Object> uploadImageToExitingLogEntry(@RequestBody String encoded,
-			@PathVariable(name="id") String testId,
-			@PathVariable(name="placeholder") String placeholder) throws IOException {
+		@PathVariable(name = "id") String testId,
+		@PathVariable(name = "placeholder") String placeholder) throws IOException {
 
 		List<Criteria> criterias = new ArrayList<Criteria>();
 
@@ -89,23 +89,22 @@ public class ImageAPI {
 
 		// if we're not admin, make sure we also own the log
 		if (authenticationFacade.getAuthenticationToken() != null &&
-				!authenticationFacade.isAdmin()) {
+			!authenticationFacade.isAdmin()) {
 			criterias.add(Criteria.where("testOwner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Criteria criteria = Criteria.where("testId").is(testId).andOperator(
-				criterias.toArray(new Criteria[criterias.size()]));
+			criterias.toArray(new Criteria[criterias.size()]));
 
 		Query query = Query.query(criteria);
-		
+
 		Update update = new Update();
 		update.unset("upload");
 		update.set("img", encoded);
 
 		mongoTemplate.updateFirst(query, update, DBEventLog.COLLECTION);
-		
+
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
-	
-	
+
 }

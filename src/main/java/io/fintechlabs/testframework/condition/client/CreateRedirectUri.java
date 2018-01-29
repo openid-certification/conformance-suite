@@ -47,18 +47,18 @@ public class CreateRedirectUri extends AbstractCondition {
 	@PostEnvironment(strings = "redirect_uri")
 	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
-		
+
 		if (Strings.isNullOrEmpty(baseUrl)) {
 			return error("Base URL was null or empty");
 		}
-		
+
 		// calculate the redirect URI based on our given base URL
 		String redirectUri = baseUrl + "/callback";
 		in.putString("redirect_uri", redirectUri);
-		
-		logSuccess("Created redirect URI", 
-				args("redirect_uri", redirectUri));
-		
+
+		logSuccess("Created redirect URI",
+			args("redirect_uri", redirectUri));
+
 		return in;
 	}
 

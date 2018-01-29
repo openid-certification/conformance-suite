@@ -46,11 +46,11 @@ public class CreateAuthorizationCode extends AbstractCondition {
 		String code = RandomStringUtils.randomAlphanumeric(10);
 
 		env.putString("authorization_code", code);
-		
+
 		logSuccess("Created authorization code", args("authorization_code", code));
-		
+
 		return env;
-		
+
 	}
 
 }

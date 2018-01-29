@@ -172,7 +172,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		}
 		env.put("client_request_headers", clientHeaders);
 
-
 		return null;
 	}
 
@@ -216,7 +215,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		JsonObject user = env.get("user_info_endpoint_response");
 
 		setStatus(Status.WAITING);
-		
+
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
@@ -254,14 +253,14 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		call(ExtractClientCredentialsFromFormPost.class);
 
 		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
-		
+
 		call(AuthenticateClientWithClientSecret.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
-		
+
 		// dispatch based on grant type
 		String grantType = requestParts.get("params").getAsJsonObject().get("grant_type").getAsString();
-		
+
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
 			return authorizationCodeGrantType(requestParts);
@@ -271,24 +270,24 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		} else {
 			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
 		}
-		
+
 	}
-	
+
 	private Object clientCredentialsGrantType(JsonObject requestParts) {
-		
+
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		
+
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
-		
+
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
-		
+
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
 
 	}
-	
+
 	private Object authorizationCodeGrantType(JsonObject requestParts) {
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
@@ -306,7 +305,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
-
 
 	}
 
@@ -343,31 +341,32 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		return new RedirectView(redirectTo, false, false, false);
 
 	}
-	
+
 	/**
 	 * OpenBanking account request API
+	 * 
 	 * @param requestParts
 	 * @return
 	 */
 	private Object accountRequestsEndpoint(JsonObject requestParts) {
-		
+
 		env.put("incoming_request", requestParts);
-		
+
 		call(ExtractBearerAccessTokenFromHeader.class);
 		call(ExtractBearerAccessTokenFromParams.class);
-		
+
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
-		
+
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
-		
+
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
-		
+
 		JsonObject accountRequestResponse = env.get("account_request_response");
-		
+
 		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
 	}
-	
+
 	private Object accountsEndpoint(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
@@ -380,9 +379,9 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateOpenBankingAccountId.class);
 		exposeEnvString("account_id");
-		
+
 		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
-		
+
 		// at this point we can assume the test is fully done
 		fireTestFinished();
 		stop();

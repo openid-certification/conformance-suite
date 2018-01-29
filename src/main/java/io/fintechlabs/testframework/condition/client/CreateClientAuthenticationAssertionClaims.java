@@ -46,35 +46,35 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"client", "server"})
+	@PreEnvironment(required = { "client", "server" })
 	@PostEnvironment(required = "client_assertion_claims")
 	public Environment evaluate(Environment env) {
 
 		String issuer = env.getString("client", "client_id");
 		String audience = env.getString("server", "token_endpoint");
-		
+
 		if (Strings.isNullOrEmpty(issuer) || Strings.isNullOrEmpty(audience)) {
 			return error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));
 		}
-	
+
 		JsonObject claims = new JsonObject();
 		claims.addProperty("iss", issuer);
 		claims.addProperty("sub", issuer);
 		claims.addProperty("aud", audience);
 		claims.addProperty("jti", RandomStringUtils.randomAlphanumeric(20));
-		
+
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(60);
-		
+
 		claims.addProperty("iat", iat.getEpochSecond());
 		claims.addProperty("exp", exp.getEpochSecond());
 
 		logSuccess("Created client assertion claims", claims);
-		
+
 		env.put("client_assertion_claims", claims);
-		
+
 		return env;
-		
+
 	}
 
 }

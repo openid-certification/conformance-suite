@@ -49,13 +49,12 @@ public class ExtractRequestedScopes extends AbstractCondition {
 			return error("Missing scope parameter");
 		} else {
 			logSuccess("Requested scopes", args("scope", scope));
-			
+
 			env.putString("scope", scope);
-			
+
 			return env;
 		}
-		
-		
+
 	}
 
 }

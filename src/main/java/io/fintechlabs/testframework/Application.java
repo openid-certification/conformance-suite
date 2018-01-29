@@ -15,9 +15,9 @@ import org.springframework.context.annotation.Bean;
 public class Application {
 
 	public static void main(String[] args) {
-		
+
 		Security.addProvider(new BouncyCastleProvider());
-		
+
 		SpringApplication.run(Application.class, args);
 	}
 

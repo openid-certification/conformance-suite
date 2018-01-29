@@ -37,9 +37,9 @@ public class ExpectRedirectUriErrorPage extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		
+
 		createUploadPlaceholder("Show redirect URI error page");
-		
+
 		return env;
 	}
 

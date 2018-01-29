@@ -47,9 +47,9 @@ public class ExtractBearerAccessTokenFromHeader extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		log("Incoming request headers", (JsonObject) env.findElement("incoming_request", "headers"));
-		
+
 		String auth = env.getString("incoming_request", "headers.authorization");
-		
+
 		if (!Strings.isNullOrEmpty(auth)) {
 			if (auth.toLowerCase().startsWith("bearer")) {
 				String incoming = auth.substring("bearer ".length(), auth.length());
@@ -66,7 +66,7 @@ public class ExtractBearerAccessTokenFromHeader extends AbstractCondition {
 		} else {
 			return error("Couldn't find authorization header");
 		}
-		
+
 	}
 
 }

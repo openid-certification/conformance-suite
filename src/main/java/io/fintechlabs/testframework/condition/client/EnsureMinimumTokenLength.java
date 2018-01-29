@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class EnsureMinimumTokenLength extends AbstractCondition {
 
 	private final double requiredLength = 128;
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -52,16 +52,16 @@ public class EnsureMinimumTokenLength extends AbstractCondition {
 		}
 
 		byte[] bytes = accessToken.getBytes();
-		
+
 		int bitLength = bytes.length * 8;
-		
+
 		if (bitLength >= requiredLength) {
 			logSuccess("Access token is of sufficient length", args("required", requiredLength, "actual", bitLength));
 			return env;
 		} else {
 			return error("Access token is not of sufficient length", args("required", requiredLength, "actual", bitLength));
 		}
-		
+
 	}
 
 }

@@ -41,22 +41,22 @@ public class AddClientIdToTokenEndpointRequest extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"token_endpoint_request_form_parameters", "client"})
+	@PreEnvironment(required = { "token_endpoint_request_form_parameters", "client" })
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
-		
+
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {
 			return error("Couldn't find request form");
 		}
-		
+
 		JsonObject o = env.get("token_endpoint_request_form_parameters");
-		
+
 		o.addProperty("client_id", env.getString("client", "client_id"));
 
 		env.put("token_endpoint_request_form_parameters", o);
-		
+
 		log(o);
-		
+
 		return env;
 
 	}

@@ -23,7 +23,7 @@ import com.google.gson.JsonSerializer;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 
-public class MongoDBRegisteredClientService implements RegisteredClientService{
+public class MongoDBRegisteredClientService implements RegisteredClientService {
 
 	public static final String COLLECTION = "OIDC_REGISTERED_CLIENTS";
 
@@ -31,26 +31,26 @@ public class MongoDBRegisteredClientService implements RegisteredClientService{
 	private MongoTemplate mongoTemplate;
 
 	/**
-	* Logger for this class
-	*/
+	 * Logger for this class
+	 */
 	private static final Logger logger = LoggerFactory.getLogger(MongoDBRegisteredClientService.class);
 
 	// This is from the JsonFileRegisteredClientService
 	private Gson gson = new GsonBuilder()
-			.registerTypeAdapter(RegisteredClient.class, new JsonSerializer<RegisteredClient>() {
-				@Override
-				public JsonElement serialize(RegisteredClient src, Type typeOfSrc, JsonSerializationContext context) {
-					return ClientDetailsEntityJsonProcessor.serialize(src);
-				}
-			})
-			.registerTypeAdapter(RegisteredClient.class, new JsonDeserializer<RegisteredClient>() {
-				@Override
-				public RegisteredClient deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-					return ClientDetailsEntityJsonProcessor.parseRegistered(json);
-				}
-			})
-			.setPrettyPrinting()
-			.create();
+		.registerTypeAdapter(RegisteredClient.class, new JsonSerializer<RegisteredClient>() {
+			@Override
+			public JsonElement serialize(RegisteredClient src, Type typeOfSrc, JsonSerializationContext context) {
+				return ClientDetailsEntityJsonProcessor.serialize(src);
+			}
+		})
+		.registerTypeAdapter(RegisteredClient.class, new JsonDeserializer<RegisteredClient>() {
+			@Override
+			public RegisteredClient deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return ClientDetailsEntityJsonProcessor.parseRegistered(json);
+			}
+		})
+		.setPrettyPrinting()
+		.create();
 
 	@Override
 	public RegisteredClient getByIssuer(String issuer) {
@@ -70,9 +70,9 @@ public class MongoDBRegisteredClientService implements RegisteredClientService{
 	@Override
 	public void save(String issuer, RegisteredClient client) {
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-				.add("_id", issuer)
-				.add("client_json",gson.toJson(client))
-				.add("time", new Date().getTime());
+			.add("_id", issuer)
+			.add("client_json", gson.toJson(client))
+			.add("time", new Date().getTime());
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}

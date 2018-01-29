@@ -61,7 +61,7 @@ public class FilterUserInfoForScopes extends AbstractCondition {
 
 		scopesToClaims.put("address", "address");
 	}
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -81,15 +81,15 @@ public class FilterUserInfoForScopes extends AbstractCondition {
 
 		String scope = env.getString("scope");
 		JsonObject userInfo = env.get("user_info");
-		
+
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope));
-		
+
 		JsonObject out = new JsonObject();
-		
+
 		// look through all the scopes that we have approved
-		for (String s: scopes) {
+		for (String s : scopes) {
 			if (scopesToClaims.containsKey(s)) {
-				for (String claim: scopesToClaims.get(s)) {
+				for (String claim : scopesToClaims.get(s)) {
 					if (userInfo.has(claim)) {
 						// if we have a claim that fits that scope, copy it over
 						out.add(claim, userInfo.get(claim));
@@ -97,9 +97,9 @@ public class FilterUserInfoForScopes extends AbstractCondition {
 				}
 			}
 		}
-		
+
 		env.put("user_info_endpoint_response", out);
-		
+
 		logSuccess("User info endpoint output", out);
 
 		return env;

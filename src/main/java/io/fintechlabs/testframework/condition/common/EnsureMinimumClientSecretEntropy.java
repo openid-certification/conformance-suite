@@ -22,7 +22,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureMinimumClientSecretEntropy extends AbstractEnsureMinimumEntropy {
-	/** The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of
+	/**
+	 * The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of
 	 * slop is allowed for.
 	 */
 	private final double requiredEntropy = 96;
@@ -46,7 +47,7 @@ public class EnsureMinimumClientSecretEntropy extends AbstractEnsureMinimumEntro
 		if (Strings.isNullOrEmpty(clientSecret)) {
 			return error("Can't find client secret");
 		}
-		
+
 		return ensureMinimumEntropy(env, clientSecret, requiredEntropy);
 	}
 

@@ -59,29 +59,29 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"client_assertion_claims", "jwks"})
+	@PreEnvironment(required = { "client_assertion_claims", "jwks" })
 	@PostEnvironment(strings = "client_assertion")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.get("client_assertion_claims");
 		JsonObject jwks = env.get("jwks");
-		
+
 		if (claims == null) {
 			return error("Couldn't find claims");
 		}
-		
+
 		if (jwks == null) {
 			return error("Couldn't find jwks");
 		}
-		
+
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
-			
+
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-			
+
 			if (jwkSet.getKeys().size() == 1) {
 				// figure out which algorithm to use
 				JWK jwk = jwkSet.getKeys().iterator().next();
-				
+
 				JWSSigner signer = null;
 				if (jwk.getKeyType().equals(KeyType.RSA)) {
 					signer = new RSASSASigner((RSAKey) jwk);
@@ -90,40 +90,37 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 				} else if (jwk.getKeyType().equals(KeyType.OCT)) {
 					signer = new MACSigner((OctetSequenceKey) jwk);
 				}
-				
+
 				if (signer == null) {
 					return error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
 				}
-				
+
 				Algorithm alg = jwk.getAlgorithm();
 				if (alg == null) {
 					return error("No 'alg' field specified in key", args("jwk", jwk.toJSONString()));
 				}
-				
+
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
-				
+
 				SignedJWT assertion = new SignedJWT(header, claimSet);
-				
+
 				assertion.sign(signer);
-				
+
 				env.putString("client_assertion", assertion.serialize());
-				
+
 				logSuccess("Signed the client assertion", args("client_assertion", assertion.serialize()));
-				
+
 				return env;
-				
+
 			} else {
 				return error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
 			}
-			
-			
-			
+
 		} catch (ParseException e) {
 			return error(e);
 		} catch (JOSEException e) {
 			return error(e);
 		}
-		
 
 	}
 

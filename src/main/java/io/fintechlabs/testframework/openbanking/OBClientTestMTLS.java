@@ -286,7 +286,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
 
-
 	}
 
 	/**

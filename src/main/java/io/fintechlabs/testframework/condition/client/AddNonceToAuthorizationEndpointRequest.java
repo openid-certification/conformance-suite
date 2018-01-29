@@ -49,19 +49,19 @@ public class AddNonceToAuthorizationEndpointRequest extends AbstractCondition {
 		if (Strings.isNullOrEmpty(nonce)) {
 			return error("Couldn't find nonce value");
 		}
-		
+
 		if (!env.containsObj("authorization_endpoint_request")) {
 			return error("Couldn't find authorization endpoint request");
 		}
-		
+
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
-		
+
 		authorizationEndpointRequest.addProperty("nonce", nonce);
-		
+
 		env.put("authorization_endpoint_request", authorizationEndpointRequest);
-		
+
 		logSuccess("Added nonce parameter to request", authorizationEndpointRequest);
-		
+
 		return env;
 
 	}

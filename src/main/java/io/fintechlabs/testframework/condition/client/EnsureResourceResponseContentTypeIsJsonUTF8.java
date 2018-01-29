@@ -50,8 +50,8 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractConditi
 						logSuccess("Response charset is UTF-8", args("content_type", contentTypeStr));
 					} else {
 						return error("Response charset is not UTF-8",
-								args("content_type", contentTypeStr,
-										"charset", charset.get().name()));
+							args("content_type", contentTypeStr,
+								"charset", charset.get().name()));
 					}
 				} else {
 					return error("Response charset not declared", (args("content_type", contentTypeStr)));

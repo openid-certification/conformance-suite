@@ -40,17 +40,17 @@ public class GenerateBearerAccessToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PostEnvironment(strings = {"access_token", "token_type"})
+	@PostEnvironment(strings = { "access_token", "token_type" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = RandomStringUtils.randomAlphanumeric(50);
-		
+
 		logSuccess("Generated access token", args("access_token", accessToken));
-		
+
 		env.putString("access_token", accessToken);
-		env.putString("token_type", "Bearer");		
+		env.putString("token_type", "Bearer");
 		return env;
-		
+
 	}
 
 }

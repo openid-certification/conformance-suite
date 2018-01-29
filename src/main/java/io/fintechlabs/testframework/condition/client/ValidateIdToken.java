@@ -47,37 +47,37 @@ public class ValidateIdToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"id_token", "server"}, strings = "client_id")
+	@PreEnvironment(required = { "id_token", "server" }, strings = "client_id")
 	public Environment evaluate(Environment env) {
-		
+
 		if (!env.containsObj("id_token")) {
 			return error("Couldn't find parsed ID token");
 		}
-		
+
 		String clientId = env.getString("client_id"); // to check the audience
 		String issuer = env.getString("server", "issuer"); // to validate the issuer
 		Instant now = Instant.now(); // to check timestamps
-		
+
 		// check all our testable values
-		if (Strings.isNullOrEmpty(clientId) 
-				|| Strings.isNullOrEmpty(issuer)) {
+		if (Strings.isNullOrEmpty(clientId)
+			|| Strings.isNullOrEmpty(issuer)) {
 			return error("Couldn't find values to test ID token against");
 		}
-		
+
 		JsonElement iss = env.findElement("id_token", "claims.iss");
 		if (iss == null) {
 			return error("Missing issuer");
 		}
-		
+
 		if (!issuer.equals(env.getString("id_token", "claims.iss"))) {
 			return error("Issuer mismatch", args("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
 		}
-		
+
 		JsonElement aud = env.findElement("id_token", "claims.aud");
 		if (aud == null) {
 			return error("Missing audience");
 		}
-		
+
 		if (aud.isJsonArray()) {
 			if (!aud.getAsJsonArray().contains(new JsonPrimitive(clientId))) {
 				return error("Audience not found", args("expected", clientId, "actual", aud));
@@ -87,7 +87,7 @@ public class ValidateIdToken extends AbstractCondition {
 				return error("Audience mismatch", args("expected", clientId, "actual", aud));
 			}
 		}
-		
+
 		Long exp = env.getLong("id_token", "claims.exp");
 		if (exp == null) {
 			return error("Missing expiration");
@@ -96,7 +96,7 @@ public class ValidateIdToken extends AbstractCondition {
 				return error("Token expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
 		}
-		
+
 		Long iat = env.getLong("id_token", "claims.iat");
 		if (iat == null) {
 			return error("Missing issuace time");
@@ -105,7 +105,7 @@ public class ValidateIdToken extends AbstractCondition {
 				return error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
-		
+
 		Long nbf = env.getLong("id_token", "claims.nbf");
 		if (nbf != null) {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
@@ -113,10 +113,10 @@ public class ValidateIdToken extends AbstractCondition {
 				log("Token has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
 		}
-		
+
 		logSuccess("ID token claims passed all validation checks");
 		return env;
-		
+
 	}
 
 }

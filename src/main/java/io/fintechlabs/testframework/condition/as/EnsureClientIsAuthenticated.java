@@ -46,10 +46,10 @@ public class EnsureClientIsAuthenticated extends AbstractCondition {
 			return error("Client was not authenticated");
 		} else {
 			logSuccess("Found client authentication, passing", args("client_authentication_success", env.getString("client_authentication_success")));
-			
+
 			return env;
 		}
-		
+
 	}
 
 }

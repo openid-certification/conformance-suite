@@ -44,7 +44,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
- * Tests that the AS will reject a non-registered redirect URI by 
+ * Tests that the AS will reject a non-registered redirect URI by
  * 
  * @author jricher
  *
@@ -74,7 +74,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-		
+
 		// create a random redirect URI 
 		callAndStopOnFailure(CreateBadRedirectUri.class);
 
@@ -83,13 +83,13 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		
+
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		
+
 		exposeEnvString("client_id");
 
 		setStatus(Status.CONFIGURED);
@@ -103,7 +103,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
@@ -113,30 +113,30 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-		
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-		
+
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
-		
+
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-		
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
-				"redirect_to", redirectTo,
-				"http", "redirect"));
+
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
 
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
-		
+
 		browser.goToUrl(redirectTo);
 
 		/**
 		 * We never expect the browser to come back from here, our test is done
 		 */
-		
+
 		setStatus(Status.FINISHED);
 
 		// someone needs to review this by hand
 		setResult(Result.REVIEW);
-		
+
 		stop();
 	}
 
@@ -147,17 +147,16 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		// If we get any kind of callback to this, it's an error: the authorization server should not ever respond the authorization request
-		
+
 		eventLog.log(getName(), ImmutableMap.of(
 			"msg", "Receved unexpected incoming request",
 			"path", path,
 			"method", req.getMethod(),
 			"requirements", ImmutableSet.of("FAPI-1-5.2.2-15"),
-			"requestParts", requestParts
-		));
-		
+			"requestParts", requestParts));
+
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
-		
+
 	}
 
 	/* (non-Javadoc)

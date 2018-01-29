@@ -47,11 +47,11 @@ import com.mongodb.util.JSON;
 @Component
 @WritingConverter
 public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, Bson> {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(GsonObjectToBsonDocumentConverter.class);
-	
+
 	private Gson gson = new GsonBuilder().create();
-	
+
 	@Override
 	public Bson convert(JsonObject source) {
 		if (source == null) {

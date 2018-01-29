@@ -22,23 +22,23 @@ public class UserInfoUIController {
 
 	/**
 	 * Provide a JSON result that represents the currently logged in user.
+	 * 
 	 * @return
 	 */
 	@RequestMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getCurrentUserInfo(){
+	public ResponseEntity<Object> getCurrentUserInfo() {
 		Map<String, Object> map = new HashMap<>();
 
 		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
-		Map<String,String> principal =  authenticationFacade.getPrincipal();
+		Map<String, String> principal = authenticationFacade.getPrincipal();
 		String displayName = authenticationFacade.getDisplayName();
 		UserInfo userInfo = token.getUserInfo();
-		map.put("iss",principal.get("iss"));
-		map.put("sub",principal.get("sub"));
+		map.put("iss", principal.get("iss"));
+		map.put("sub", principal.get("sub"));
 		map.put("principal", principal.toString());
-		map.put("displayName",displayName);
-		map.put("isAdmin",authenticationFacade.isAdmin());
-		map.put("userInfo",userInfo);
+		map.put("displayName", displayName);
+		map.put("isAdmin", authenticationFacade.isAdmin());
+		map.put("userInfo", userInfo);
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 }
-

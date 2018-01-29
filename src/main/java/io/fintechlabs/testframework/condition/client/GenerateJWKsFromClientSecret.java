@@ -53,28 +53,28 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String clientId = env.getString("client_id");
 		String clientSecret = env.getString("client", "client_secret");
-		
+
 		if (Strings.isNullOrEmpty(clientSecret)) {
 			return error("Couldn't find client secret");
 		}
-		
+
 		// generate a JWK Set for the client's secret
 		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes())
-				.algorithm(JWSAlgorithm.HS256) // TODO make this configurable
-				.keyID(clientId) // TODO make this configurable
-				.keyUse(KeyUse.SIGNATURE)
-				.build();
-		
+			.algorithm(JWSAlgorithm.HS256) // TODO make this configurable
+			.keyID(clientId) // TODO make this configurable
+			.keyUse(KeyUse.SIGNATURE)
+			.build();
+
 		JWKSet jwks = new JWKSet(jwk);
-		
+
 		JsonObject reparsed = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
-		
+
 		env.put("jwks", reparsed);
-		
+
 		logSuccess("Generated JWK Set from symmetric key", args("jwks", reparsed));
-		
+
 		return env;
-		
+
 	}
 
 }

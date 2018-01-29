@@ -52,18 +52,17 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		CertificateFactory certFactory = null;
 		try {
 
-			certFactory = CertificateFactory.getInstance("X.509","BC");
+			certFactory = CertificateFactory.getInstance("X.509", "BC");
 			X509Certificate certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(certString)));
 
-			KeyFactory kf = KeyFactory.getInstance("RSA","BC");
+			KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
 			KeySpec kspec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(keyString));
 			RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(kspec);
 
-
 			// Check that the private key and the certificate match
-			RSAPublicKey publicKey = (RSAPublicKey)certificate.getPublicKey();
-			if (!(privateKey.getModulus().equals(publicKey.getModulus()))){
-				return error("MTLS Private Key and Cert do not match",args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+			RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
+			if (!(privateKey.getModulus().equals(publicKey.getModulus()))) {
+				return error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 			}
 
 			if (!Strings.isNullOrEmpty(caString)) {
@@ -81,7 +80,6 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		} catch (IllegalArgumentException e) {
 			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		}
-
 
 		logSuccess("Mutual TLS authentication cert validated as X.509");
 		return env;

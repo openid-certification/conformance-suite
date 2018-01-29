@@ -28,7 +28,6 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
 	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
-
 	private String ADMIN_DOMAIN;
 
 	private String ADMIN_ISSUER;
@@ -38,13 +37,13 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 
 		Set<GrantedAuthority> out = new HashSet<>();
 
-		try{
+		try {
 			JWTClaimsSet claims = idToken.getJWTClaimsSet();
 			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
 			out.add(authority);
 			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
-					&& userInfo.getSource().has("hd")
-					&& userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(ADMIN_DOMAIN)){
+				&& userInfo.getSource().has("hd")
+				&& userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(ADMIN_DOMAIN)) {
 				out.add(ROLE_ADMIN);
 			}
 			out.add(ROLE_USER);
@@ -54,7 +53,7 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 		return out;
 	}
 
-	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domain, String admin_iss){
+	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domain, String admin_iss) {
 
 		this.ADMIN_DOMAIN = admin_domain;
 		this.ADMIN_ISSUER = admin_iss;

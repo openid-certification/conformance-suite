@@ -65,7 +65,7 @@ public class DisallowTLS10 extends AbstractCondition {
 		}
 
 	}
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -164,18 +164,18 @@ public class DisallowTLS10 extends AbstractCondition {
 				return error("The server accepted a TLS 1.0 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));
 			} else {
 				return error("Server used incorrect TLS version",
-						args("server_version", serverVersion.toString(),
-								"host", tlsTestHost,
-								"port", tlsTestPort));
+					args("server_version", serverVersion.toString(),
+						"host", tlsTestHost,
+						"port", tlsTestPort));
 			}
 		} catch (IOException e) {
 			if ((e instanceof TlsFatalAlertReceived)
-					&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
+				&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.0 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else if ((e instanceof TlsFatalAlert)
-					&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
+				&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.0 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
@@ -183,7 +183,7 @@ public class DisallowTLS10 extends AbstractCondition {
 				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
 		}
-		
+
 	}
 
 }

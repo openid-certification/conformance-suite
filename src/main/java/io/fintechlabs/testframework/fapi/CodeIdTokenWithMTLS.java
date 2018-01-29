@@ -109,10 +109,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 )
 public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
-	
 	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithMTLS.class);
 
-	
 	/**
 	 * @param name
 	 */
@@ -127,7 +125,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-		
+
 		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -136,18 +134,17 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		// Make sure we're calling the right server configuration
 		call(GetDynamicServerConfiguration.class);
 		call(GetStaticServerConfiguration.class);
-		
-		
+
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		
+
 		callAndStopOnFailure(FetchServerKeys.class);
-		
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		
+
 		exposeEnvString("client_id");
-		
+
 		//require(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
@@ -160,7 +157,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -169,7 +166,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
@@ -179,17 +176,17 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-		
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-		
+
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
-		
+
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-		
+
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
 		browser.goToUrl(redirectTo);
-		
+
 		setStatus(Status.WAITING);
 	}
 
@@ -199,9 +196,9 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		logIncomingHttpRequest(path, requestParts);
-		
+
 		// dispatch based on the path
-		
+
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
@@ -210,7 +207,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 			return new ModelAndView("testError");
 		}
 	}
-	
+
 	@UserFacing
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
@@ -219,16 +216,16 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ModelAndView("implicitCallback", 
-				ImmutableMap.of("test", this, 
-					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+		return new ModelAndView("implicitCallback",
+			ImmutableMap.of("test", this,
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
-	
+
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
-		
+
 		JsonElement body = requestParts.get("body");
 
 		if (body != null) {
@@ -242,90 +239,89 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			env.putString("implicit_hash", ""); // Clear any old value
 		}
-		
+
 		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-	
+
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		
+
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
-		
+
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
-		
+
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
-		
+
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
-		
+
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
-		
+
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
-		
-		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
-				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-		
+
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+
 		// check the ID token from the hybrid response
-		
-		
+
 		// call the token endpoint and complete the flow
-		
+
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-		
+
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-		
+
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-		
+
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
-		
+
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-		
+
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
-		
+
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
-		
+
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
-		
+
 		call(ExtractStateHash.class);
-		
-		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
-				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-		
+
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+
 		call(CheckForRefreshTokenValue.class);
-		
+
 		callAndStopOnFailure(EnsureMinimumTokenLength.class, "FAPI-1-5.2.2-16");
-		
+
 		call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
-		
+
 		// verify the access token against a protected resource
-		
+
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-		
+
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		
+
 		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-		
+
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
-		
+
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
-		
+
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
-		
+
 		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
-		
+
 		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
-		
+
 		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
-		
+
 		fireTestFinished();
 		stop();
 
@@ -340,7 +336,5 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
 	}
-
-
 
 }

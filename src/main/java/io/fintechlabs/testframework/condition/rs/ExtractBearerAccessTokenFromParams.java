@@ -57,7 +57,7 @@ public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
 		} else {
 			return error("Couldn't find access token in parameters");
 		}
-		
+
 	}
 
 }

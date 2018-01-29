@@ -40,19 +40,19 @@ public class RequireBearerClientCredentialsAccessToken extends AbstractCondition
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = {"incoming_access_token", "client_credentials_access_token"})
+	@PreEnvironment(strings = { "incoming_access_token", "client_credentials_access_token" })
 	public Environment evaluate(Environment env) {
 
 		String actual = env.getString("incoming_access_token");
 		String expected = env.getString("client_credentials_access_token");
-		
+
 		if (!Strings.isNullOrEmpty(actual) && actual.equals(expected)) {
 			logSuccess("Found access token in request", args("actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
 			return error("Invalid access token ", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
-		
+
 	}
 
 }

@@ -47,7 +47,7 @@ public class DBEventLog implements EventLog {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String)
 	 */
@@ -55,13 +55,13 @@ public class DBEventLog implements EventLog {
 	public void log(String testId, String source, Map<String, String> owner, String msg) {
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
-				.add("testId", testId)
-				.add("src", source)
-				.add("testOwner", owner)
-				.add("time", new Date().getTime())
-				.add("msg", msg);
-		
+			.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
+			.add("testId", testId)
+			.add("src", source)
+			.add("testOwner", owner)
+			.add("time", new Date().getTime())
+			.add("msg", msg);
+
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
 
@@ -70,14 +70,14 @@ public class DBEventLog implements EventLog {
 	 */
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, JsonObject obj) {
-		
+
 		DBObject dbObject = (DBObject) JSON.parse(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
 		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
 		dbObject.put("testId", testId);
 		dbObject.put("src", source);
 		dbObject.put("testOwner", owner);
 		dbObject.put("time", new Date().getTime());
-		
+
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
 
@@ -88,12 +88,12 @@ public class DBEventLog implements EventLog {
 	public void log(String testId, String source, Map<String, String> owner, Map<String, Object> map) {
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map) // this doesn't alter the incoming map
-				.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
-				.add("testId", testId)
-				.add("src", source)
-				.add("testOwner", owner)
-				.add("time", new Date().getTime());
-		
+			.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
+			.add("testId", testId)
+			.add("src", source)
+			.add("testOwner", owner)
+			.add("time", new Date().getTime());
+
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
 

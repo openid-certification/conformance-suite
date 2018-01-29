@@ -28,8 +28,11 @@ import java.lang.annotation.Target;
 public @interface PublishTestModule {
 
 	String testName();
+
 	String displayName();
+
 	String profile() default "SAMPLE";
+
 	String[] configurationFields() default {};
-	
+
 }

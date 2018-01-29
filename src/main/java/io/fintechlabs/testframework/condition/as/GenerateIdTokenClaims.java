@@ -44,7 +44,7 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"user_info", "client", "authorization_endpoint_request"}, strings = "issuer")
+	@PreEnvironment(required = { "user_info", "client", "authorization_endpoint_request" }, strings = "issuer")
 	@PostEnvironment(required = "id_token_claims")
 	public Environment evaluate(Environment env) {
 
@@ -52,11 +52,11 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 		String issuer = env.getString("issuer");
 		String clientId = env.getString("client", "client_id");
 		String nonce = env.getString("authorization_endpoint_request", "nonce");
-		
+
 		if (Strings.isNullOrEmpty(subject)) {
 			return error("Couldn't find subject");
 		}
-		
+
 		if (Strings.isNullOrEmpty(issuer)) {
 			return error("Couldn't find issuer");
 		}
@@ -64,28 +64,28 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 		if (Strings.isNullOrEmpty(clientId)) {
 			return error("Couldn't find client ID");
 		}
-		
+
 		JsonObject claims = new JsonObject();
 		claims.addProperty("iss", issuer);
 		claims.addProperty("sub", subject);
 		claims.addProperty("aud", clientId);
-		
+
 		if (!Strings.isNullOrEmpty(nonce)) {
 			claims.addProperty("nonce", nonce);
 		}
-		
+
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(5 * 60);
-		
+
 		claims.addProperty("iat", iat.getEpochSecond());
 		claims.addProperty("exp", exp.getEpochSecond());
 
 		env.put("id_token_claims", claims);
 
 		logSuccess("Created ID Token Claims", claims);
-		
+
 		return env;
-		
+
 	}
 
 }

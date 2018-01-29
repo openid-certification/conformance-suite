@@ -63,16 +63,16 @@ public class ExtractStateHash extends AbstractCondition {
 		}
 
 		JsonObject stateHash = new JsonObject();
-		
+
 		stateHash.addProperty("s_hash", s_hash);
 		stateHash.addProperty("alg", alg);
-		
+
 		env.put("state_hash", stateHash);
-		
+
 		logSuccess("Extracted state hash from ID Token", stateHash);
-		
+
 		return env;
-		
+
 	}
 
 }

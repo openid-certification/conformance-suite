@@ -182,9 +182,9 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
-				"redirect_to", redirectTo,
-				"http", "redirect"));
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
 
 		browser.goToUrl(redirectTo);
 
@@ -259,8 +259,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 
-		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
-				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 

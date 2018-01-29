@@ -50,7 +50,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.redirecturi}")
 	private String redirectURI;
 
-	private Set<String> scopes = ImmutableSet.of("openid","email","address","profile","phone");
+	private Set<String> scopes = ImmutableSet.of("openid", "email", "address", "profile", "phone");
 	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
 	// Specifcs for setting up a Static Client for Google
@@ -69,17 +69,17 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.admin.issuer}")
 	private String admin_iss;
 
-	private RegisteredClient googleClientConfig(){
+	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(googleClientId);
 		rc.setClientSecret(googleClientSecret);
-		rc.setScope(ImmutableSet.of("openid","email","profile"));
+		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
 		return rc;
 	}
 
 	// Create a partially filled in RegisteredClient to use as a template when performing Dynamic Registration
-	private RegisteredClient getClientTemplate(){
+	private RegisteredClient getClientTemplate() {
 		RegisteredClient clientTemplate = new RegisteredClient();
 		clientTemplate.setClientName(clientName);
 		clientTemplate.setScope(scopes);
@@ -90,13 +90,13 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	// Bean to set up the server configuration service. We're only doing dynamic setup.
 	@Bean
-	public DynamicServerConfigurationService serverConfigurationService(){
+	public DynamicServerConfigurationService serverConfigurationService() {
 		return new DynamicServerConfigurationService();
 	}
 
 	// Service to store/retrieve persisted information for dynamically registered clients.
 	@Bean
-	public RegisteredClientService registeredClientService(){
+	public RegisteredClientService registeredClientService() {
 
 		MongoDBRegisteredClientService registeredClientService = new MongoDBRegisteredClientService();
 		return registeredClientService;
@@ -105,7 +105,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	// Client Configuration Service. We're using a Hybrid one to allow statically defined clients (i.e. Google)
 	//   and dynamically registered clients.
 	@Bean
-	public HybridClientConfigurationService clientConfigurationService(){
+	public HybridClientConfigurationService clientConfigurationService() {
 		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
 
 		// set up the static clients. (i.e. Google)
@@ -121,24 +121,24 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint(){
-		return new LoginUrlAuthenticationEntryPoint(baseURL +"/openid_connect_login");
+	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
+		return new LoginUrlAuthenticationEntryPoint(baseURL + "/openid_connect_login");
 	}
 
 	@Bean
-	public HybridIssuerService issuerService(){
+	public HybridIssuerService issuerService() {
 		HybridIssuerService his = new HybridIssuerService();
 		his.setLoginPageUrl(baseURL + "/login");
 		return his;
 	}
 
 	@Bean
-	public PlainAuthRequestUrlBuilder authRequestUrlBuilder(){
+	public PlainAuthRequestUrlBuilder authRequestUrlBuilder() {
 		return new PlainAuthRequestUrlBuilder();
 	}
 
 	@Bean
-	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception{
+	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
 		OIDCAuthenticationFilter oidcaf = new OIDCAuthenticationFilter();
 		oidcaf.setIssuerService(issuerService());
 		oidcaf.setServerConfigurationService(serverConfigurationService());
@@ -155,7 +155,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public AuthenticationProvider configureOIDCAuthenticationProvider(){
+	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
 		// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a

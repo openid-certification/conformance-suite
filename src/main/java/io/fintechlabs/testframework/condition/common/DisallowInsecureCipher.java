@@ -60,8 +60,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
 		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	);
+		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384);
 
 	private static final Map<Integer, String> CIPHER_NAMES = new HashMap<Integer, String>();
 
@@ -74,8 +73,8 @@ public class DisallowInsecureCipher extends AbstractCondition {
 			final int PUBLIC_STATIC_FINAL = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
 
 			if (type.isPrimitive()
-					&& type.getName().equals("int")
-					&& ((modifiers & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL)) {
+				&& type.getName().equals("int")
+				&& ((modifiers & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL)) {
 				try {
 					int cipherId = field.getInt(null);
 					if (!CipherSuite.isSCSV(cipherId)) {
@@ -167,14 +166,14 @@ public class DisallowInsecureCipher extends AbstractCondition {
 					@Override
 					public void notifySelectedCipherSuite(int selectedCipherSuite) {
 						error("Server accepted a disallowed cipher",
-								args("host", tlsTestHost,
-										"port", tlsTestPort,
-										"cipher_suite", CIPHER_NAMES.get(selectedCipherSuite)));
+							args("host", tlsTestHost,
+								"port", tlsTestPort,
+								"cipher_suite", CIPHER_NAMES.get(selectedCipherSuite)));
 					}
 				};
 
 				log("Trying to connect with a disallowed cipher (this is not exhaustive: check the server configuration manually to verify conformance)",
-						args("host", tlsTestHost, "port", tlsTestPort));
+					args("host", tlsTestHost, "port", tlsTestPort));
 
 				protocol.connect(client);
 
@@ -193,7 +192,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				// It's our own error; pass it on
 				throw (ConditionError) e.getCause();
 			} else if ((e instanceof TlsFatalAlertReceived)
-					&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
+				&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
 				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {

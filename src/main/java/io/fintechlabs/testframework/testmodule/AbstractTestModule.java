@@ -43,14 +43,14 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
  *
  */
 public abstract class AbstractTestModule implements TestModule {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
-	private Map<String,String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
+	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
 	protected TestInstanceEventLog eventLog;
 	protected BrowserControl browser;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
@@ -59,7 +59,7 @@ public abstract class AbstractTestModule implements TestModule {
 	private Instant statusUpdated; // time stamp of when the status was last updated
 
 	protected TestInfoService testInfo;
-	
+
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
 	/**
@@ -74,7 +74,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
-		
+
 		setStatus(Status.CREATED);
 	}
 
@@ -88,23 +88,22 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass) {
 		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE);
 	}
-	
+
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE, requirements);
 	}
-	
+
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
-			
+
 			// create a new condition object from the class above
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
 				.newInstance(id, eventLog, onFail, requirements);
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
-	
+
 			// evaluate the condition and assign its results back to our environment
 			logger.info(">> Calling Condition " + conditionClass.getSimpleName());
-			
 
 			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
 			if (pre != null) {
@@ -112,11 +111,11 @@ public abstract class AbstractTestModule implements TestModule {
 					if (!env.containsObj(req)) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
-								"expected", req,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+							"expected", req,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
 					}
@@ -125,30 +124,30 @@ public abstract class AbstractTestModule implements TestModule {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
-								"expected", s,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+							"expected", s,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
 					}
 				}
 			}
-			
+
 			env = condition.evaluate(env);
-			
+
 			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);
 			if (post != null) {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
-								"expected", req,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+							"expected", req,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
 					}
@@ -157,11 +156,11 @@ public abstract class AbstractTestModule implements TestModule {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
-								"expected", s,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+							"expected", s,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 
 						fireTestFailure();
 						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
@@ -172,7 +171,7 @@ public abstract class AbstractTestModule implements TestModule {
 			logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			fireTestFailure();
 			throw new TestFailureException(error);
-			
+
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create required condition object", e);
 			logException(e);
@@ -189,34 +188,34 @@ public abstract class AbstractTestModule implements TestModule {
 	private void logException(Exception e) {
 		Map<String, Object> event = ex(e);
 		event.put("msg", "Caught exception from test framework");
-		
+
 		eventLog.log(getName(), event);
 	}
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 */
-	
+
 	protected void call(Class<? extends Condition> conditionClass) {
 		call(conditionClass, ConditionResult.INFO);
 	}
-	
+
 	protected void call(Class<? extends Condition> conditionClass, String... requirements) {
 		call(conditionClass, ConditionResult.WARNING, requirements);
 	}
-	
+
 	protected void call(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
-			
+
 			// create a new condition object from the class above
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
 				.newInstance(id, eventLog, onFail, requirements);
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
-	
+
 			// evaluate the condition and assign its results back to our environment
 			logger.info("}} Calling Condition " + conditionClass.getSimpleName());
-			
+
 			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
 			if (pre != null) {
 				for (String req : pre.required()) {
@@ -226,7 +225,7 @@ public abstract class AbstractTestModule implements TestModule {
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
 							"result", onFail
-							// TODO: log the environment here?
+						// TODO: log the environment here?
 						));
 						return;
 					}
@@ -235,29 +234,29 @@ public abstract class AbstractTestModule implements TestModule {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
-								"expected", s,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+							"expected", s,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 						return;
 					}
 				}
 			}
-			
+
 			env = condition.evaluate(env);
-			
+
 			PreEnvironment post = eval.getAnnotation(PreEnvironment.class);
 			if (post != null) {
 				for (String req : post.required()) {
 					if (!env.containsObj(req)) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
-								"expected", req,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+							"expected", req,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 						return;
 					}
 				}
@@ -265,17 +264,16 @@ public abstract class AbstractTestModule implements TestModule {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
-								"expected", s,
-								"result", onFail
-								// TODO: log the environment here?
-							));
+							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+							"expected", s,
+							"result", onFail
+						// TODO: log the environment here?
+						));
 						return;
 					}
 				}
 			}
-			
-			
+
 		} catch (ConditionError error) {
 			logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
 			updateResultFromConditionFailure(onFail);
@@ -291,24 +289,24 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
-			Class<? extends Condition> conditionClass) {
+		Class<? extends Condition> conditionClass) {
 		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.INFO);
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
-			Class<? extends Condition> conditionClass, String...requirements) {
+		Class<? extends Condition> conditionClass, String... requirements) {
 		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.WARNING, requirements);
 	}
-	
-	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip, 
-			Class<? extends Condition> conditionClass, ConditionResult onFail, String...requirements) {
+
+	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
+		Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		try {
-			
+
 			// create a new condition object from the class above
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
 				.newInstance(id, eventLog, onFail, requirements);
-	
+
 			if (required != null) {
 				for (String req : required) {
 					if (!env.containsObj(req)) {
@@ -317,7 +315,7 @@ public abstract class AbstractTestModule implements TestModule {
 							"msg", "Skipped evaluation due to missing required object: " + req,
 							"expected", req,
 							"result", onSkip
-							// TODO: log the environment here?
+						// TODO: log the environment here?
 						));
 						return;
 					}
@@ -328,11 +326,11 @@ public abstract class AbstractTestModule implements TestModule {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
 						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
-								"msg", "Skipped evaluation due to missing required string: " + s,
-								"expected", s,
-								"result", onSkip
-								// TODO: log the environment here?
-							));
+							"msg", "Skipped evaluation due to missing required string: " + s,
+							"expected", s,
+							"result", onSkip
+						// TODO: log the environment here?
+						));
 						return;
 					}
 				}
@@ -340,7 +338,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 			// if we get here, call the actual function
 			call(conditionClass, onFail, requirements);
-			
+
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logger.error("Couldn't create optional condition object", e);
 			logException(e);
@@ -351,23 +349,23 @@ public abstract class AbstractTestModule implements TestModule {
 			updateResultFromConditionFailure(onFail);
 		}
 	}
-	
+
 	public String getId() {
 		return id;
 	}
 
 	public Status getStatus() {
-		return status;		
+		return status;
 	}
 
 	protected void logFinalEnv() {
-//		Map<String, Object> finalEnv = new HashMap<>();
-//		for (String key : env.allObjectIds()) {
-//			finalEnv.put(key, env.get(key));
-//		}
-//		
-//		eventLog.log(getId(), "final_env", finalEnv);
-//		
+		//		Map<String, Object> finalEnv = new HashMap<>();
+		//		for (String key : env.allObjectIds()) {
+		//			finalEnv.put(key, env.get(key));
+		//		}
+		//		
+		//		eventLog.log(getId(), "final_env", finalEnv);
+		//		
 		logger.info("Final environment: " + env);
 	}
 
@@ -383,8 +381,8 @@ public abstract class AbstractTestModule implements TestModule {
 		}
 
 		eventLog.log(getName(), args(
-				"msg", "Finished",
-				"result", getResult()));
+			"msg", "Finished",
+			"result", getResult()));
 	}
 
 	protected void fireTestSuccess() {
@@ -403,7 +401,8 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	/**
-	 * @param result the result to set
+	 * @param result
+	 *            the result to set
 	 */
 	protected void setResult(Result result) {
 		this.result = result;
@@ -427,7 +426,7 @@ public abstract class AbstractTestModule implements TestModule {
 				break;
 		}
 	}
-	
+
 	/*
 	 * Test status state machine:
 	 * 
@@ -442,7 +441,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Any state can go to "UNKNOWN"
 	 */
 	protected void setStatus(Status status) {
-		
+
 		switch (getStatus()) {
 			case CREATED:
 				switch (status) {
@@ -508,7 +507,7 @@ public abstract class AbstractTestModule implements TestModule {
 			default:
 				break;
 		}
-		
+
 		this.status = status;
 		if (testInfo != null) {
 			testInfo.updateTestStatus(getId(), getStatus());
@@ -518,6 +517,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Add a key/value pair to the exposed values
+	 * 
 	 * @param key
 	 * @param val
 	 */
@@ -527,6 +527,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Expose a value from the environment
+	 * 
 	 * @param key
 	 */
 	protected void exposeEnvString(String key) {
@@ -564,13 +565,13 @@ public abstract class AbstractTestModule implements TestModule {
 			setStatus(Status.INTERRUPTED);
 			logResult = "INTERRUPTED";
 			eventLog.log(getName(), args(
-					"msg", "Test was interrupted before it could complete",
-					"result", logResult));
+				"msg", "Test was interrupted before it could complete",
+				"result", logResult));
 		} else {
 			logResult = getResult().toString();
 			eventLog.log(getName(), args(
-					"msg", "Test was stopped",
-					"result", logResult));
+				"msg", "Test was stopped",
+				"result", logResult));
 		}
 
 		logFinalEnv();
@@ -588,14 +589,13 @@ public abstract class AbstractTestModule implements TestModule {
 	public Instant getStatusUpdated() {
 		return statusUpdated;
 	}
-	
+
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
 		eventLog.log(getName(), args(
-				"msg", "Incoming HTTP request to test instance " + getId(),
-				"http", "incoming",
-				"path", path,
-				"request", requestParts
-				));
+			"msg", "Incoming HTTP request to test instance " + getId(),
+			"http", "incoming",
+			"path", path,
+			"request", requestParts));
 	}
 
 	/*
@@ -604,15 +604,15 @@ public abstract class AbstractTestModule implements TestModule {
 	protected Map<String, Object> args(Object... a) {
 		return EventLog.args(a);
 	}
-		
+
 	protected Map<String, Object> ex(Throwable cause) {
 		return EventLog.ex(cause);
 	}
-	
+
 	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
 		return EventLog.ex(cause, in);
 	}
-	
+
 	protected JsonObject ex(Throwable cause, JsonObject in) {
 		return EventLog.ex(cause, in);
 	}

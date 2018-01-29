@@ -46,9 +46,9 @@ public class RequireOpenIDScope extends AbstractCondition {
 	@PreEnvironment(strings = "scope")
 	public Environment evaluate(Environment env) {
 		String scope = env.getString("scope");
-		
+
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope));
-		
+
 		if (!scopes.contains("openid")) {
 			return error("Couldn't find openid scope", args("scopes", scopes));
 		} else {

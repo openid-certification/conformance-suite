@@ -49,33 +49,33 @@ public class CreateOpenBankingAccountsResponse extends AbstractOpenBankingApiRes
 	public Environment evaluate(Environment env) {
 
 		String accountId = env.getString("account_id");
-		
+
 		JsonObject accountRoot = new JsonParser().parse(
 				"      {\n" + 
-				"        \"AccountId\": \"" + accountId + "\",\n" + 
-				"        \"Currency\": \"GBP\",\n" + 
-				"        \"Nickname\": \"Bills\",\n" + 
-				"        \"Account\": {\n" + 
-				"          \"SchemeName\": \"SortCodeAccountNumber\",\n" + 
-				"          \"Identification\": \"80200110203345\",\n" + 
-				"          \"Name\": \"Mr Kevin\",\n" + 
-				"          \"SecondaryIdentification\": \"00021\"\n" + 
-				"        }\n" + 
-				"      }"
-				).getAsJsonObject();
-		
+				"        \"AccountId\": \"" + accountId + "\",\n" +
+				"        \"Currency\": \"GBP\",\n" +
+				"        \"Nickname\": \"Bills\",\n" +
+				"        \"Account\": {\n" +
+				"          \"SchemeName\": \"SortCodeAccountNumber\",\n" +
+				"          \"Identification\": \"80200110203345\",\n" +
+				"          \"Name\": \"Mr Kevin\",\n" +
+				"          \"SecondaryIdentification\": \"00021\"\n" +
+				"        }\n" +
+				"      }")
+			.getAsJsonObject();
+
 		JsonArray accounts = new JsonArray();
 		accounts.add(accountRoot);
-		
+
 		JsonObject data = new JsonObject();
 		data.add("Account", accounts);
 
 		JsonObject response = createResponse(data);
-		
+
 		logSuccess("Created account response object", args("accounts_endpoint_response", response));
-		
+
 		env.put("accounts_endpoint_response", response);
-		
+
 		return env;
 
 	}

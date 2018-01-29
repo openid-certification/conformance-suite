@@ -56,6 +56,6 @@ public class DummyUserFilter extends GenericFilterBean {
 
 			SecurityContextHolder.getContext().setAuthentication(new OIDCAuthenticationToken(sub, issuer, info, authorities, null, null, null));
 		}
-		chain.doFilter(request,response);
+		chain.doFilter(request, response);
 	}
 }

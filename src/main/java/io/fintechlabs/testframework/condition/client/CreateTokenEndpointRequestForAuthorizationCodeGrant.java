@@ -40,17 +40,17 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant extends Abstrac
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = {"code", "redirect_uri"})
+	@PreEnvironment(strings = { "code", "redirect_uri" })
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
-		
+
 		JsonObject o = new JsonObject();
 		o.addProperty("grant_type", "authorization_code");
 		o.addProperty("code", env.getString("code"));
 		o.addProperty("redirect_uri", env.getString("redirect_uri"));
-		
+
 		env.put("token_endpoint_request_form_parameters", o);
-		
+
 		logSuccess(o);
 
 		return env;

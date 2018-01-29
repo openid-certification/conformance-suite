@@ -43,15 +43,15 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "access_token"))
 			&& !Strings.isNullOrEmpty(env.getString("token_endpoint_response", "token_type"))) {
-			
-				logSuccess("Found an access token",
-						args("access_token", env.getString("token_endpoint_response", "access_token")));
-				return env;
-				
+
+			logSuccess("Found an access token",
+				args("access_token", env.getString("token_endpoint_response", "access_token")));
+			return env;
+
 		} else {
 			return error("Couldn't find required access token or token_type");
 		}
-		
+
 	}
 
 }

@@ -52,48 +52,47 @@ public class ExtractClientCredentialsFromBasicAuthorizationHeader extends Abstra
 	@PreEnvironment(required = "token_endpoint_request")
 	@PostEnvironment(required = "client_authentication")
 	public Environment evaluate(Environment env) {
-		
+
 		if (env.containsObj("client_authentication")) {
 			return error("Found existing client authentication");
 		}
-		
+
 		String auth = env.getString("token_endpoint_request", "headers.authorization");
-		
+
 		if (Strings.isNullOrEmpty(auth)) {
 			return error("Couldn't find authorization header");
-		} 
-		
+		}
+
 		if (!auth.toLowerCase().startsWith("basic")) {
 			return error("Not a basic authorization header", args("auth", auth));
 		}
-		
+
 		// parse the HTTP Basic Auth
-		
-		
+
 		String decoded = new String(Base64.getDecoder().decode( // base64 decode
-				auth.substring("Basic ".length()))); // strip off the "Basic " prefix first though
-		
+			auth.substring("Basic ".length()))); // strip off the "Basic " prefix first though
+
 		List<String> parts = Lists.newArrayList(Splitter.on(":").split(decoded)); // split the results at a colon to get username:password (in our case, clientId:clientSecret)
-		
+
 		if (parts.size() != 2) {
 			// we don't have two parts
 			return error("Unexpected number of parts to authorization header", args("basic_auth", parts));
 		}
-		
+
 		String clientId = parts.get(0);
 		String clientSecret = parts.get(1);
-		
+
 		JsonObject clientAuthentication = new JsonObject();
 		clientAuthentication.addProperty("client_id", clientId);
 		clientAuthentication.addProperty("client_secret", clientSecret);
 		clientAuthentication.addProperty("method", "client_secret_basic");
-		
+
 		env.put("client_authentication", clientAuthentication);
-		
+
 		logSuccess("Extracted client authentication", clientAuthentication);
-		
+
 		return env;
-		
+
 	}
 
 }

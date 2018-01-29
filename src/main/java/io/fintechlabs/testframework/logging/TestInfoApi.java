@@ -50,7 +50,7 @@ public class TestInfoApi {
 		if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find().toArray();
 		} else {
-			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
 				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(BasicDBObjectBuilder.start().add("owner", owner).get()).toArray();
 			}
@@ -65,7 +65,7 @@ public class TestInfoApi {
 		if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
 		} else {
-			ImmutableMap<String,String> owner = authenticationFacade.getPrincipal();
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
 				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("owner", owner).get());
 			}

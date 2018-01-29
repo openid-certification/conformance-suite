@@ -26,7 +26,8 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
-	/** The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of
+	/**
+	 * The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of
 	 * slop is allowed for.
 	 */
 	private final double requiredEntropy = 96;
@@ -50,7 +51,7 @@ public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
 		if (Strings.isNullOrEmpty(accessToken)) {
 			return error("Can't find access token");
 		}
-		
+
 		return ensureMinimumEntropy(env, accessToken, requiredEntropy);
 	}
 

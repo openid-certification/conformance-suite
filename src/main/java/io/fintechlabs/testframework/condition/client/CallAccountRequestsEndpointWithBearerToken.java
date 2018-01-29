@@ -55,7 +55,6 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 	private static final Logger logger = LoggerFactory.getLogger(CallAccountRequestsEndpointWithBearerToken.class);
 
-
 	/**
 	 * @param testId
 	 * @param log
@@ -68,8 +67,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "resource", "account_requests_endpoint_request"})
-	@PostEnvironment(required = {"resource_endpoint_response_headers", "account_requests_endpoint_response"})
+	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request" })
+	@PostEnvironment(required = { "resource_endpoint_response_headers", "account_requests_endpoint_response" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -98,8 +97,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-				.path(ACCOUNT_REQUESTS_RESOURCE)
-				.toUriString();
+			.path(ACCOUNT_REQUESTS_RESOURCE)
+			.toUriString();
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);

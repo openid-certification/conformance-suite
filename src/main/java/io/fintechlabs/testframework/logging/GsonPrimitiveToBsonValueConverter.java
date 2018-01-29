@@ -48,7 +48,7 @@ public class GsonPrimitiveToBsonValueConverter implements Converter<JsonPrimitiv
 		} else {
 			throw new IllegalArgumentException("Source JsonPrimitive not a known category: " + source);
 		}
-		
+
 	}
 
 }

@@ -6,7 +6,10 @@ import com.google.common.collect.ImmutableMap;
 
 public interface AuthenticationFacade {
 	OIDCAuthenticationToken getAuthenticationToken();
+
 	boolean isAdmin();
-	ImmutableMap<String,String> getPrincipal();
+
+	ImmutableMap<String, String> getPrincipal();
+
 	String getDisplayName();
 }

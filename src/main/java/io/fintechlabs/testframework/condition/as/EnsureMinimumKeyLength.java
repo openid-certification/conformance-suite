@@ -66,7 +66,7 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 				minimumLength = MINIMUM_KEY_LENGTH_EC;
 			} else {
 				// No requirement for other key types
-				continue;	
+				continue;
 			}
 
 			if (keyLength < minimumLength) {

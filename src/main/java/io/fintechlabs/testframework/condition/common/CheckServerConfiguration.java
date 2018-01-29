@@ -53,7 +53,7 @@ public class CheckServerConfiguration extends AbstractCondition {
 
 		return in;
 	}
-	
+
 	private void ensureString(Environment in, String path) {
 		String string = in.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
@@ -61,7 +61,7 @@ public class CheckServerConfiguration extends AbstractCondition {
 		} else {
 			logSuccess(args(path, string));
 		}
-		
+
 	}
 
 }

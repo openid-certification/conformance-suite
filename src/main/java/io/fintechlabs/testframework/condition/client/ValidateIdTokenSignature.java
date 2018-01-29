@@ -55,7 +55,7 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"id_token", "server_jwks"})
+	@PreEnvironment(required = { "id_token", "server_jwks" })
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {
@@ -73,18 +73,18 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 			// translate stored items into nimbus objects
 			SignedJWT jwt = SignedJWT.parse(idToken);
 			JWKSet jwkSet = JWKSet.parse(serverJwks.toString());
-	
+
 			SecurityContext context = new SimpleSecurityContext();
-			
+
 			JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
-			
+
 			JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
-			
+
 			List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
 			for (Key key : keys) {
 				JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 				JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
-				
+
 				if (jwt.verify(verifier)) {
 					logSuccess("ID Token signature validated", args("algorithm", key.getAlgorithm()));
 					return env;
@@ -93,14 +93,14 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 					// not a failure yet as it might pass a different key
 				}
 			}
-			
+
 			// if we got here, it hasn't been verified on any key
 			return error("Unable to verify ID token signature based on server keys");
-			
- 		} catch (JOSEException | ParseException e) {
+
+		} catch (JOSEException | ParseException e) {
 			return error("Error validating ID Token signature", e);
 		}
-		
+
 	}
 
 }

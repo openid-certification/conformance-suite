@@ -50,7 +50,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_request", "request_object_claims", "server"}, strings = "request_object")
+	@PreEnvironment(required = { "authorization_endpoint_request", "request_object_claims", "server" }, strings = "request_object")
 	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
 	public Environment evaluate(Environment env) {
 
@@ -90,8 +90,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 			String requestParameterValue = authorizationEndpointRequest.get(key).getAsString();
 
 			if (REQUIRED_PARAMETERS.contains(key)
-					|| requestObjectValue == null
-					|| !requestParameterValue.equals(requestObjectValue)) {
+				|| requestObjectValue == null
+				|| !requestParameterValue.equals(requestObjectValue)) {
 				builder.queryParam(key, authorizationEndpointRequest.get(key).getAsString());
 			}
 		}

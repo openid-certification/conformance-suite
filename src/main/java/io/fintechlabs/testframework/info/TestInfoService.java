@@ -30,6 +30,7 @@ public interface TestInfoService {
 
 	/**
 	 * Create a new test in the database
+	 * 
 	 * @param id
 	 * @param testName
 	 * @param url
@@ -40,6 +41,7 @@ public interface TestInfoService {
 
 	/**
 	 * Update the result of a test in the database
+	 * 
 	 * @param id
 	 * @param result
 	 */
@@ -47,6 +49,7 @@ public interface TestInfoService {
 
 	/**
 	 * Update the status of a test in the database
+	 * 
 	 * @param id
 	 * @param status
 	 */
@@ -54,8 +57,9 @@ public interface TestInfoService {
 
 	/**
 	 * Get the owner of a test ID.
+	 * 
 	 * @param id
 	 * @return
 	 */
-	ImmutableMap<String,String> getTestOwner(String id);
+	ImmutableMap<String, String> getTestOwner(String id);
 }

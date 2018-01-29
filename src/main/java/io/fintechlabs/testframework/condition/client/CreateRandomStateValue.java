@@ -45,7 +45,7 @@ public class CreateRandomStateValue extends AbstractCondition {
 		env.putString("state", state);
 
 		log("Created state value", args("state", state));
-		
+
 		return env;
 	}
 

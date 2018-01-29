@@ -50,7 +50,7 @@ public class DBTestInfoService implements TestInfoService {
 	public static final String COLLECTION = "TEST_INFO";
 
 	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
-	
+
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
@@ -58,27 +58,26 @@ public class DBTestInfoService implements TestInfoService {
 	private AuthenticationFacade authenticationFacade;
 
 	//Private cache for holding test owners without having to hit the db
-	LoadingCache<String,ImmutableMap<String,String>> testOwnerCache = CacheBuilder.newBuilder()
-			.maximumSize(1000)
-			.expireAfterAccess(30, TimeUnit.MINUTES)		// is 30 minutes a good time out? too much? too little?
-			.build(
-					new CacheLoader<String, ImmutableMap<String, String>>() {
-						@Override
-						public ImmutableMap<String, String> load(String key) {
-							Query query = Query.query(Criteria.where("_id").is(key));
-							BasicDBObject test = mongoTemplate.findOne(query, BasicDBObject.class, COLLECTION);
-							if (test != null &&
-									test.containsField("owner")) {
-								BasicDBObject owner = (BasicDBObject)test.get("owner");
-								String iss = owner.getString("iss");
-								String sub = owner.getString("sub");
-								return ImmutableMap.of("sub", sub, "iss", iss);
-							}
-							return null;
-						}
+	LoadingCache<String, ImmutableMap<String, String>> testOwnerCache = CacheBuilder.newBuilder()
+		.maximumSize(1000)
+		.expireAfterAccess(30, TimeUnit.MINUTES) // is 30 minutes a good time out? too much? too little?
+		.build(
+			new CacheLoader<String, ImmutableMap<String, String>>() {
+				@Override
+				public ImmutableMap<String, String> load(String key) {
+					Query query = Query.query(Criteria.where("_id").is(key));
+					BasicDBObject test = mongoTemplate.findOne(query, BasicDBObject.class, COLLECTION);
+					if (test != null &&
+						test.containsField("owner")) {
+						BasicDBObject owner = (BasicDBObject) test.get("owner");
+						String iss = owner.getString("iss");
+						String sub = owner.getString("sub");
+						return ImmutableMap.of("sub", sub, "iss", iss);
 					}
-			);
-	
+					return null;
+				}
+			});
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
 	 */
@@ -86,18 +85,18 @@ public class DBTestInfoService implements TestInfoService {
 	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started) {
 		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
 		ImmutableMap<String, String> owner = null;
-		if (token != null){
-			owner = (ImmutableMap<String, String>)token.getPrincipal();
+		if (token != null) {
+			owner = (ImmutableMap<String, String>) token.getPrincipal();
 		}
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-				.add("_id", id)
-				.add("testId", id)
-				.add("testName", testName)
-				.add("started", started.toString())
-				.add("config", config)
-				.add("alias", alias)
-				.add("owner", owner);
-		
+			.add("_id", id)
+			.add("testId", id)
+			.add("testName", testName)
+			.add("started", started.toString())
+			.add("config", config)
+			.add("alias", alias)
+			.add("owner", owner);
+
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
 
@@ -114,20 +113,19 @@ public class DBTestInfoService implements TestInfoService {
 		//		Criteria.where("_id").is(id));
 
 		// if there is a user logged in who isn't an admin, limit the search
-		if(authenticationFacade.getAuthenticationToken() != null &&
-				!authenticationFacade.isAdmin()){
+		if (authenticationFacade.getAuthenticationToken() != null &&
+			!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Query query = new Query(criteria);
-		
+
 		Update update = new Update();
 		update.set("result", result);
 
 		mongoTemplate.updateFirst(query, update, COLLECTION);
 
-		
 	}
 
 	/* (non-Javadoc)
@@ -144,8 +142,8 @@ public class DBTestInfoService implements TestInfoService {
 		//		Criteria.where("_id").is(id));
 
 		// if there is a user logged in who isn't an admin, limit the search
-		if(authenticationFacade.getAuthenticationToken() != null &&
-				!authenticationFacade.isAdmin()){
+		if (authenticationFacade.getAuthenticationToken() != null &&
+			!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
 		}
@@ -156,11 +154,11 @@ public class DBTestInfoService implements TestInfoService {
 		update.set("status", status);
 
 		mongoTemplate.updateFirst(query, update, COLLECTION);
-		
+
 	}
 
 	@Override
-	public ImmutableMap<String,String> getTestOwner(String testId){
+	public ImmutableMap<String, String> getTestOwner(String testId) {
 		try {
 			return testOwnerCache.get(testId);
 		} catch (ExecutionException e) {

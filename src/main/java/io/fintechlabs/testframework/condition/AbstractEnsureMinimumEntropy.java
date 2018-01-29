@@ -35,19 +35,18 @@ public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 	}
 
 	protected Environment ensureMinimumEntropy(Environment env, String s, double requiredEntropy) {
-		
+
 		double bitsPerCharacter = getShannonEntropy(s);
-		
+
 		double entropy = bitsPerCharacter * (double) s.length();
 
-		
 		if (entropy > requiredEntropy) {
 			logSuccess("Calculated entropy", args("expected", requiredEntropy, "actual", entropy));
 			return env;
 		} else {
 			return error("Minimum entropy not met", args("expected", requiredEntropy, "actual", entropy));
 		}
-		
+
 	}
 
 	// entropy calculation from https://rosettacode.org/wiki/Entropy#Java
