@@ -1,271 +1,322 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>FAPI Conformance Suite</title>
-
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	<title>FAPI Conformance Suite</title>
+	
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
+	
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
-
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	
+	
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-  </head>
-  <body>
-  	
-    <div class="pageHeader container-fluid">
-        <div class="row-fluid">
-            <div class="col-md-8">
-                <a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
-            </div>
-            <div id="userInfoDiv" class="col-md-4 text-right">
-            </div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
-    
-    <!-- error modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                </div>
-                <div class="modal-body">Error: <span id="errorMessage"></span></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+</head>
+<body>
 
-    <!-- loading modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <img src="/images/spinner.gif" width="100px" height="30px" />
-                    </div>
-                    <div>
-                        <span id="loadingMessage"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-	
+	<div class="pageHeader container-fluid">
+		<div class="row-fluid">
+			<div class="col-md-8">
+				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+			</div>
+			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+
+	<!-- error modal -->
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="errorLabel">Error</h4>
+				</div>
+				<div class="modal-body">
+					Error: <span id="errorMessage"></span>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- loading modal -->
+	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
+				</div>
+				<div class="modal-body">
+					<div class="text-center">
+						<img src="/images/spinner.gif" width="100px" height="30px" />
+					</div>
+					<div>
+						<span id="loadingMessage"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
 	<div class="container-fluid">
-        <div id="homePage">
+		<div id="homePage">
 
-            <!-- render available test launch options here -->
-            <div class="row">
-                <div class="col-md-12">
-                <h3>Select Test</h3>
-                <select id="testSelect" class="form-control">
-                    <option value="select">--- Select A Test ----</option>
-                </select>
-                </div>
-            </div>
+			<!-- render available test launch options here -->
+			<div class="row">
+				<div class="col-md-12">
+					<h3>Select Test</h3>
+					<select id="testSelect" class="form-control">
+						<option value="select">--- Select A Test ----</option>
+					</select>
+				</div>
+			</div>
 
-        <div class="row">
-            <div class="col-md-12">
+			<div class="row">
+				<div class="col-md-12">
 
-            <h3>Configure Test</h3>
+					<h3>Configure Test</h3>
 
-			<ul class="nav nav-tabs">
-			    <li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
-			    <li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
-			</ul>
+					<ul class="nav nav-tabs">
+						<li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
+						<li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
+					</ul>
 
 
-			<div class="tab-content">
-				<div id="formInput" class="tab-pane fade in active">
-                    <div class="config-form-container">
-					    <h3 class="config-form-container-header">Alias</h3>
-	                    <div class="row config-form-element-container">
-	                        <div class="col-md-2 key">alias</div>
-	                        <div class="col-md-10"><input type="text" class="config-form-element" data-json-target="alias" placeholder="alias for test instance, used to create consistent URIs across test instances"></input></div>
-	                    </div>
-				    </div>
+					<div class="tab-content">
+						<div id="formInput" class="tab-pane fade in active">
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Alias</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">alias</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="alias" placeholder="alias for test instance, used to create consistent URIs across test instances"></input>
+									</div>
+								</div>
+							</div>
 
-				    
-                    <div class="config-form-container">
-					  	<h3 class="config-form-container-header">Server</h3>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">discoveryUrl</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input></div>
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Server</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">discoveryUrl</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key"></div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea>
+									</div>
+								</div>
+							</div>
+
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Client</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_id</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_secret</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">scope</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">redirect_uri</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">jwks</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's private signing key in JSON Web Key Set format"></textarea>
+									</div>
+								</div>
+							</div>
+
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">TLS certificates for client</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">mtls.cert</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">mtls.key</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="mtls.key" placeholder="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></textarea>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">mtls.ca</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+									</div>
+								</div>
+							</div>
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Second client</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_id</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client2.client_id" placeholder="client id"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_secret</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client2.client_secret" placeholder="client secret, if applicable"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">scope</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client2.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">jwks</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="client2.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea>
+									</div>
+								</div>
+							</div>
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Second client TLS certificates</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">mtls2.cert</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="mtls2.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">mtls2.key</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="mtls2.key" placeholder="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></textarea>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">mtls2.ca</div>
+									<div class="col-md-10">
+										<textarea class="config-form-element" data-json-target="mtls2.ca" placeholder="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+									</div>
+								</div>
+							</div>
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">TLS</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">testHost</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">testPort</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input>
+									</div>
+								</div>
+							</div>
+
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Resource</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">resourceUrl</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input>
+									</div>
+								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">institution_id</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Institution ID assigned by OpenBanking"></input>
+									</div>
+								</div>
+							</div>
+
+
 						</div>
-	
-                        <div class="row config-form-element-container">
-	                        <div class="col-md-2 key"></div>
-	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea></div>
-	                    </div>
-				  	</div>
-
-
-                    <div class="config-form-container">
-						<h3 class="config-form-container-header">Client</h3>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">client_id</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="client id"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">client_secret</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">scope</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">redirect_uri</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">jwks</div>
-							<div class="col-md-10"><textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's private signing key in JSON Web Key Set format"></textarea></div>
-						</div>
-				    </div>
-
-
-                    <div class="config-form-container">
-						<h3 class="config-form-container-header">TLS certificates for client</h3>
-                        <div class="row config-form-element-container">
-	                        <div class="col-md-2 key">mtls.cert</div>
-	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea></div>
-	                    </div>
-	
-                        <div class="row config-form-element-container">
-	                        <div class="col-md-2 key">mtls.key</div>
-	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.key" placeholder="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></textarea></div>
-	                    </div>
-	
-                        <div class="row config-form-element-container">
-	                        <div class="col-md-2 key">mtls.ca</div>
-	                        <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea></div>
-	                    </div>
-	                 </div>
-
-                    <div class="config-form-container">
-						<h3 class="config-form-container-header">Second client</h3>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">client_id</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client2.client_id" placeholder="client id"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">client_secret</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client2.client_secret" placeholder="client secret, if applicable"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">scope</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="client2.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input></div>
-						</div>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">jwks</div>
-							<div class="col-md-10"><textarea class="config-form-element" data-json-target="client2.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea></div>
-						</div>
-				    </div>
-
-                    <div class="config-form-container">
-						<h3 class="config-form-container-header">Second client TLS certificates</h3>
-                        <div class="row config-form-element-container">
-                            <div class="col-md-2 key">mtls2.cert</div>
-                            <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls2.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea></div>
-                        </div>
-
-                        <div class="row config-form-element-container">
-                            <div class="col-md-2 key">mtls2.key</div>
-                            <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls2.key" placeholder="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></textarea></div>
-                        </div>
-
-                        <div class="row config-form-element-container">
-                            <div class="col-md-2 key">mtls2.ca</div>
-                            <div class="col-md-10"><textarea class="config-form-element" data-json-target="mtls2.ca" placeholder="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea></div>
-                        </div>
-	                 </div>
-
-                    <div class="config-form-container">
-						<h3 class="config-form-container-header">TLS</h3>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">testHost</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input></div>
-						</div>
-	
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">testPort</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input></div>
-						</div>
-	                 </div>
-					
-					<div class="config-form-container">
-						<h3 class="config-form-container-header">Resource</h3>
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">resourceUrl</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input></div>
-						</div>
-	
-                        <div class="row config-form-element-container">
-							<div class="col-md-2 key">institution_id</div>
-							<div class="col-md-10"><input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Institution ID assigned by OpenBanking"></input></div>
+						<div id="JSONInput" class="tab-pane fade">
+							<textarea id="config" placeholder="{JSON data}"></textarea>
 						</div>
 					</div>
-					
-					
+					<!-- / .tab-content -->
 				</div>
-				<div id="JSONInput" class="tab-pane fade">
-				  	<textarea id="config" placeholder="{JSON data}"></textarea>
-				</div>
-			</div><!-- / .tab-content -->
 			</div>
-        </div>
-        
-        <div class="row">
-            <div class="well col-md-6 col-md-offset-3">
-                <button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled=""><span class="glyphicon glyphicon-flag"></span> Launch Test</button>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <h3>Running tests</h3>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-2">
-                <button class="btn btn-default btn-block" id="refresh"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
-                <a href="logs.html" class="btn btn-info btn-block"><span class="glyphicon glyphicon-list"></span> View all available logs</a>
-            </div>
+			<div class="row">
+				<div class="well col-md-6 col-md-offset-3">
+					<button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled="">
+						<span class="glyphicon glyphicon-flag"></span> Launch Test
+					</button>
+				</div>
+			</div>
 
-            <div class="col-md-10" id="running-tests">
-                <!-- running tests get attached here -->
-            </div>        
-        </div>
-        
-    </div>
+			<div class="row">
+				<div class="col-md-12">
+					<h3>Running tests</h3>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-2">
+					<button class="btn btn-default btn-block" id="refresh">
+						<span class="glyphicon glyphicon-refresh"></span> Refresh
+					</button>
+					<a href="logs.html" class="btn btn-info btn-block"><span class="glyphicon glyphicon-list"></span> View all available logs</a>
+				</div>
 
-    <!-- Templates -->
+				<div class="col-md-10" id="running-tests">
+					<!-- running tests get attached here -->
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- Templates -->
 	<!-- UserInfo Template-->
-    <script type="text/template" id="userInfoTemplate">
+	<script type="text/template" id="userInfoTemplate">
         <div id="userInfoData">
             <form action="/logout" method="post" class="form-inline">
                 <p class="form-control-static">Logged in as
@@ -276,23 +327,23 @@
         </div>
     </script>
 
-    <!-- Test Launch Selectors -->
-    <script type="text/template" id="indexTemplate_TestOption">
+	<!-- Test Launch Selectors -->
+	<script type="text/template" id="indexTemplate_TestOption">
         <option value="<%- testName %>"><%- displayName %></option>
     </script>
 
-    <script type="text/template" id="indexTemplate_TestOptGroup">
+	<script type="text/template" id="indexTemplate_TestOptGroup">
         <optgroup label="<%- label %>">
         </optgroup>
     </script>
-        
-    <!-- Owner -->
-    <script type="text/template" id="logDetailTemplate_Owner">
+
+	<!-- Owner -->
+	<script type="text/template" id="logDetailTemplate_Owner">
         <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
     </script>
 
-    <!-- Running Test: Main -->
-    <script type="text/template" id="indexTemplate_RunningTest">
+	<!-- Running Test: Main -->
+	<script type="text/template" id="indexTemplate_RunningTest">
         <div class="runningTest row">
             <div class="col-md-2"> <!-- result/status -->
                 <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>">
@@ -339,8 +390,8 @@
 
     </script>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
@@ -348,22 +399,19 @@
 	<script type="text/javascript" src="js/fapi.ui.js"></script>
 
 	<script type="text/javascript">
-		
-	    /**
-	     * 
-	     */
+		/**
+		 * 
+		 */
 		$(function() {
 
-			$.when(FAPI_UI.loadHomepageTemplates())
-			     .then(function() {
-			            return FAPI_UI.getUserInfoDiv("#userInfoDiv");
-			     })
-			     .then(loadIndexPage());
+			$.when(FAPI_UI.loadHomepageTemplates()).then(function() {
+				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+			}).then(loadIndexPage());
 		});
-			     
-        function loadIndexPage() {
+
+		function loadIndexPage() {
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-			
+
 			$.getJSON('/runner/available', function(data) {
 				// save the list of available tests and associated info for later
 				FAPI_UI.availableTests = _.indexBy(data, 'testName');
@@ -371,24 +419,25 @@
 
 				// sort the tests into groups by profile
 				var groupedTests = _.groupBy(data, 'profile');
-			    // consistent ordering for groups
+				// consistent ordering for groups
 				var profiles = _.keys(groupedTests).sort();
 
-			    // render all of the tests into the dropdown
+				// render all of the tests into the dropdown
 				_.each(profiles, function(profile) {
 
-					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({label : profile}));
+					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
+						label: profile
+					}));
 					$('#testSelect').append(optGroup);
-					
+
 					// note that we're sorting the tests within each group as well
 					_.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
 						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION(item));
 					});
 
 				});
-			    
+
 			});
-			
 
 			$('#createTestBtn').click(function(evt) {
 				var testName = $('#testSelect').val();
@@ -420,11 +469,13 @@
 					data: $('#config').val(),
 					success: function(data, status) {
 						// forward to the test info page
-					    window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
+						window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
 					},
 					error: function(jqxhr, status, error) {
 						FAPI_UI.hideBusy();
-						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
+						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+							error: error
+						});
 						updateRunningTable();
 					}
 				});
@@ -456,8 +507,8 @@
 			})
 
 			// sync the JSON at least once
-		    updateFormElementsFromJSON();
-			
+			updateFormElementsFromJSON();
+
 		}
 
 		function updateConfigFieldVisibility() {
@@ -519,9 +570,11 @@
 						return getRunningTest(testId);
 					});
 				});
-				
+
 				deferred.then(function() {
-				    $('[data-toggle="tooltip"]').tooltip({container: 'body'});
+					$('[data-toggle="tooltip"]').tooltip({
+						container: 'body'
+					});
 				});
 			});
 
@@ -530,20 +583,22 @@
 		function getRunningTest(testId) {
 			return $.getJSON('/runner/' + encodeURIComponent(testId), function(data) {
 
-				var runningTest = $(FAPI_UI.logTemplates.RUNNING_TEST({test: data}));
-				
-				$('#running-tests').append(runningTest);
-				
-                $('.downloadBtn', runningTest).click(function(evt) {
-                    evt.preventDefault();
-                    window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
-                });
+				var runningTest = $(FAPI_UI.logTemplates.RUNNING_TEST({
+					test: data
+				}));
 
-                $('.viewBtn', runningTest).click(function(evt) {
+				$('#running-tests').append(runningTest);
+
+				$('.downloadBtn', runningTest).click(function(evt) {
+					evt.preventDefault();
+					window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
+				});
+
+				$('.viewBtn', runningTest).click(function(evt) {
 					evt.preventDefault();
 					window.open('/log-detail.html?log=' + encodeURIComponent(testId));
 				});
-                
+
 			});
 		}
 
@@ -582,7 +637,7 @@
 			}
 
 			$(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
-			
+
 			walkJSON(FAPI_UI.testJSON);
 		}
 
@@ -599,7 +654,7 @@
 				console.log("key=" + key);
 				console.log("obj=" + JSON.stringify(obj));
 				console.log("element=" + JSON.stringify(element));
-				*/
+				 */
 				var el = null;
 
 				if (_.isString(value) && root == undefined && key != undefined) {
@@ -677,8 +732,8 @@
 		}
 	</script>
 
-    <footer class="pageFooter"><span class="muted">FintechLabs.io conformance suite</span></footer>
-        
-
-  </body>
+	<footer class="pageFooter">
+		<span class="muted">FintechLabs.io conformance suite</span>
+	</footer>
+</body>
 </html>

@@ -37,9 +37,7 @@ import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -64,7 +62,7 @@ public class EnsureTLS12 extends AbstractCondition {
 		}
 
 	}
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -90,7 +88,7 @@ public class EnsureTLS12 extends AbstractCondition {
 		if (tlsTestPort == null) {
 			return error("Couldn't find port to connect for TLS");
 		}
-		
+
 		try {
 			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
 
@@ -132,7 +130,7 @@ public class EnsureTLS12 extends AbstractCondition {
 					@SuppressWarnings("rawtypes") // fit with the API
 					public Hashtable getClientExtensions() throws IOException {
 						Hashtable clientExtensions = super.getClientExtensions();
-						Vector<ServerName> serverNameList = new Vector<ServerName>();
+						Vector<ServerName> serverNameList = new Vector<>();
 						serverNameList.addElement(new ServerName(NameType.host_name, tlsTestHost));
 						TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
 						return clientExtensions;
@@ -164,14 +162,14 @@ public class EnsureTLS12 extends AbstractCondition {
 				return env;
 			} else {
 				return error("Server used incorrect TLS version",
-						args("server_version", serverVersion.toString(),
-								"host", tlsTestHost,
-								"port", tlsTestPort));
+					args("server_version", serverVersion.toString(),
+						"host", tlsTestHost,
+						"port", tlsTestPort));
 			}
 		} catch (IOException e) {
 			return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 		}
-		
+
 	}
 
 }

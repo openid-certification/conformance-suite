@@ -25,7 +25,11 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -52,7 +56,7 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "resource"})
+	@PreEnvironment(required = { "access_token", "resource" })
 	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
@@ -77,8 +81,8 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-				.path(ACCOUNTS_RESOURCE)
-				.toUriString();
+			.path(ACCOUNTS_RESOURCE)
+			.toUriString();
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);

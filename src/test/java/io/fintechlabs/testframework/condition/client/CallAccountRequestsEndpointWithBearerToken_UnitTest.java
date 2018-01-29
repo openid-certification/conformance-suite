@@ -18,8 +18,6 @@ import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -32,9 +30,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.condition.ConditionError;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
@@ -50,64 +50,64 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 
 	// Examples from OpenBanking spec
 
-	private static JsonObject requestObject = new JsonParser().parse("{\n" + 
-			"  \"Data\": {\n" + 
-			"    \"Permissions\": [\n" + 
-			"      \"ReadAccountsDetail\",\n" + 
-			"      \"ReadBalances\",\n" + 
-			"      \"ReadBeneficiariesDetail\",\n" + 
-			"      \"ReadDirectDebits\",\n" + 
-			"      \"ReadProducts\",\n" + 
-			"      \"ReadStandingOrdersDetail\",\n" + 
-			"      \"ReadTransactionsCredits\",\n" + 
-			"      \"ReadTransactionsDebits\",\n" + 
-			"      \"ReadTransactionsDetail\"\n" + 
-			"    ],\n" + 
-			"    \"ExpirationDateTime\": \"2017-05-02T00:00:00+00:00\",\n" + 
-			"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" + 
-			"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" + 
-			"  },\n" + 
-			"  \"Risk\": {}\n" + 
-			"}").getAsJsonObject();
+	private static JsonObject requestObject = new JsonParser().parse("{\n" +
+		"  \"Data\": {\n" +
+		"    \"Permissions\": [\n" +
+		"      \"ReadAccountsDetail\",\n" +
+		"      \"ReadBalances\",\n" +
+		"      \"ReadBeneficiariesDetail\",\n" +
+		"      \"ReadDirectDebits\",\n" +
+		"      \"ReadProducts\",\n" +
+		"      \"ReadStandingOrdersDetail\",\n" +
+		"      \"ReadTransactionsCredits\",\n" +
+		"      \"ReadTransactionsDebits\",\n" +
+		"      \"ReadTransactionsDetail\"\n" +
+		"    ],\n" +
+		"    \"ExpirationDateTime\": \"2017-05-02T00:00:00+00:00\",\n" +
+		"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" +
+		"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" +
+		"  },\n" +
+		"  \"Risk\": {}\n" +
+		"}").getAsJsonObject();
 
-	private static JsonObject responseObject = new JsonParser().parse("{\n" + 
-			"  \"Data\": {\n" + 
-			"    \"AccountRequestId\": \"88379\",\n" + 
-			"    \"Status\": \"AwaitingAuthorisation\",\n" + 
-			"    \"CreationDateTime\": \"2017-05-02T00:00:00+00:00\",\n" + 
-			"    \"Permissions\": [\n" + 
-			"      \"ReadAccountsDetail\",\n" + 
-			"      \"ReadBalances\",\n" + 
-			"      \"ReadBeneficiariesDetail\",\n" + 
-			"      \"ReadDirectDebits\",\n" + 
-			"      \"ReadProducts\",\n" + 
-			"      \"ReadStandingOrdersDetail\",\n" + 
-			"      \"ReadTransactionsCredits\",\n" + 
-			"      \"ReadTransactionsDebits\",\n" + 
-			"      \"ReadTransactionsDetail\"\n" + 
-			"    ],\n" + 
-			"    \"ExpirationDateTime\": \"2017-08-02T00:00:00+00:00\",\n" + 
-			"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" + 
-			"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" + 
-			"  },\n" + 
-			"  \"Risk\": {},\n" + 
-			"  \"Links\": {\n" + 
-			"    \"Self\": \"/account-requests/88379\"\n" + 
-			"  },\n" + 
-			"  \"Meta\": {\n" + 
-			"    \"TotalPages\": 1\n" + 
-			"  }\n" + 
-			"}").getAsJsonObject();
+	private static JsonObject responseObject = new JsonParser().parse("{\n" +
+		"  \"Data\": {\n" +
+		"    \"AccountRequestId\": \"88379\",\n" +
+		"    \"Status\": \"AwaitingAuthorisation\",\n" +
+		"    \"CreationDateTime\": \"2017-05-02T00:00:00+00:00\",\n" +
+		"    \"Permissions\": [\n" +
+		"      \"ReadAccountsDetail\",\n" +
+		"      \"ReadBalances\",\n" +
+		"      \"ReadBeneficiariesDetail\",\n" +
+		"      \"ReadDirectDebits\",\n" +
+		"      \"ReadProducts\",\n" +
+		"      \"ReadStandingOrdersDetail\",\n" +
+		"      \"ReadTransactionsCredits\",\n" +
+		"      \"ReadTransactionsDebits\",\n" +
+		"      \"ReadTransactionsDetail\"\n" +
+		"    ],\n" +
+		"    \"ExpirationDateTime\": \"2017-08-02T00:00:00+00:00\",\n" +
+		"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" +
+		"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" +
+		"  },\n" +
+		"  \"Risk\": {},\n" +
+		"  \"Links\": {\n" +
+		"    \"Self\": \"/account-requests/88379\"\n" +
+		"  },\n" +
+		"  \"Meta\": {\n" +
+		"    \"TotalPages\": 1\n" +
+		"  }\n" +
+		"}").getAsJsonObject();
 
 	private static JsonObject bearerToken = new JsonParser().parse("{"
-			+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
-			+ "\"type\":\"Bearer\""
-			+ "}").getAsJsonObject();
+		+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
+		+ "\"type\":\"Bearer\""
+		+ "}").getAsJsonObject();
 
 	private static JsonObject exampleToken = new JsonParser().parse("{"
-			+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
-			+ "\"type\":\"example\""
-			+ "}").getAsJsonObject();
+		+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
+		+ "\"type\":\"example\""
+		+ "}").getAsJsonObject();
 
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
@@ -115,8 +115,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 			.post("/account-requests")
 			.header("Authorization", "Bearer 2YotnFZFEjr1zCsicMWpAA")
 			.anyBody()
-			.willReturn(success(responseObject.toString(), "application/json"))
-	));
+			.willReturn(success(responseObject.toString(), "application/json"))));
 
 	private CallAccountRequestsEndpointWithBearerToken cond;
 
@@ -146,9 +145,9 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		cond.evaluate(env);
 
 		hoverfly.verify(service("example.com")
-				.post("/account-requests")
-				.header("Authorization", "Bearer 2YotnFZFEjr1zCsicMWpAA")
-				.anyBody());
+			.post("/account-requests")
+			.header("Authorization", "Bearer 2YotnFZFEjr1zCsicMWpAA")
+			.anyBody());
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
 		verify(env, atLeastOnce()).getString("access_token", "type");

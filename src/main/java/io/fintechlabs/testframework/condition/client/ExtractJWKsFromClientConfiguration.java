@@ -18,10 +18,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -51,22 +49,22 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 		if (!env.containsObj("client")) {
 			return error("Couldn't find client configuration");
 		}
-		
+
 		// bump the client's internal JWK up to the root
 		JsonElement jwks = env.findElement("client", "jwks");
-		
+
 		if (jwks == null) {
 			return error("Couldn't find JWKs in client configuration");
 		} else if (!(jwks instanceof JsonObject)) {
 			return error("Invalid JWKs in client configuration - JSON decode failed");
 		}
-		
+
 		logSuccess("Extracted client JWK", args("jwks", jwks));
-		
+
 		env.put("jwks", jwks.getAsJsonObject());
-		
+
 		return env;
-		
+
 	}
 
 }

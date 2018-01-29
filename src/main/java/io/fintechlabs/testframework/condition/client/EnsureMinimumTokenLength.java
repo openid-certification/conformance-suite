@@ -17,9 +17,7 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -30,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class EnsureMinimumTokenLength extends AbstractCondition {
 
 	private final double requiredLength = 128;
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -54,16 +52,16 @@ public class EnsureMinimumTokenLength extends AbstractCondition {
 		}
 
 		byte[] bytes = accessToken.getBytes();
-		
+
 		int bitLength = bytes.length * 8;
-		
+
 		if (bitLength >= requiredLength) {
 			logSuccess("Access token is of sufficient length", args("required", requiredLength, "actual", bitLength));
 			return env;
 		} else {
 			return error("Access token is not of sufficient length", args("required", requiredLength, "actual", bitLength));
 		}
-		
+
 	}
 
 }

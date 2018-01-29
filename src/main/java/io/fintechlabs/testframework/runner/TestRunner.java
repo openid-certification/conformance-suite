@@ -83,34 +83,32 @@ public class TestRunner {
 
 	@Autowired
 	private TestRunnerSupport support;
-	
+
 	@Autowired
 	private EventLog eventLog;
-	
+
 	@Autowired
 	private TestInfoService testInfo;
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
-	
+
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
-		
+
 		Set<Map<String, ?>> available = getTestModules().values().stream()
-				.map(e -> ImmutableMap.of(
-						"testName", e.a.testName(),
-						"displayName", e.a.displayName(),
-						"profile", e.a.profile(),
-						"configurationFields", e.a.configurationFields()
-						))
-				.collect(Collectors.toSet());
+			.map(e -> ImmutableMap.of(
+				"testName", e.a.testName(),
+				"displayName", e.a.displayName(),
+				"profile", e.a.profile(),
+				"configurationFields", e.a.configurationFields()))
+			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
-    
-    
+
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestBody JsonObject config, Model m) {
 
@@ -159,13 +157,13 @@ public class TestRunner {
 		testInfo.createTest(id, testName, url, config, alias, Instant.now());
 
 		// log the test creation event in the event log
-		eventLog.log(id, "TEST-RUNNER", test.getOwner(), 
-				EventLog.args("msg", "Test instance " + id + " created",
-						"result", ConditionResult.INFO,
-						"baseUrl", url, 
-						"config", config, 
-						"alias", alias, 
-						"testName", testName));
+		eventLog.log(id, "TEST-RUNNER", test.getOwner(),
+			EventLog.args("msg", "Test instance " + id + " created",
+				"result", ConditionResult.INFO,
+				"baseUrl", url,
+				"config", config,
+				"alias", alias,
+				"testName", testName));
 
 		test.configure(config, url);
 
@@ -180,7 +178,7 @@ public class TestRunner {
 
 	}
 
-    /**
+	/**
 	 * @param alias
 	 * @param id
 	 * @return
@@ -193,20 +191,19 @@ public class TestRunner {
 
 			if (test != null) {
 				// TODO: make the override configurable to allow for conflict of re-used aliases
-				
+
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test due to alias conflict", "alias", alias, "new_test_id", id));
-				
+
 				test.stop(); // stop the currently-running test
 			}
 		}
-		
+
 		support.addAlias(alias, id);
 		return true;
 	}
 
-
 	@RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
+	public ResponseEntity<Object> startTest(@PathVariable("id") String testId) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
 			Map<String, Object> map = createTestStatusMap(test);
@@ -224,9 +221,8 @@ public class TestRunner {
 			return ResponseEntity.notFound().build();
 		}
 
+	}
 
-    }
-    
 	@GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> getTestStatus(@PathVariable("id") String testId, Model m) {
 		//logger.info("Getting status of " + testId);
@@ -241,8 +237,8 @@ public class TestRunner {
 			return ResponseEntity.notFound().build();
 		}
 	}
-    
-    @DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+
+	@DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> cancelTest(@PathVariable("id") String testId) {
 		// logger.info("Canceling " + testId);
 
@@ -255,21 +251,21 @@ public class TestRunner {
 
 			// return its status
 			Map<String, Object> map = createTestStatusMap(test);
-			
+
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
 
-    @RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
-    	Set<String> testIds = support.getAllRunningTestIds();
+	@RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
+		Set<String> testIds = support.getAllRunningTestIds();
 
-    	return new ResponseEntity<Set<String>>(testIds, HttpStatus.OK);
-    }
-    
-    @RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+		return new ResponseEntity<>(testIds, HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> getBrowserStatus(@PathVariable("id") String testId, Model m) {
 		// logger.info("Getting status of " + testId);
 
@@ -293,7 +289,7 @@ public class TestRunner {
 		}
 	}
 
-    @RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
+	@RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
 	public ResponseEntity<String> visitBrowserUrl(@PathVariable("id") String testId, @RequestParam("url") String url, Model m) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
@@ -310,71 +306,72 @@ public class TestRunner {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-    
-    private TestModule createTestModule(String testName, String id, BrowserControl browser) {
-    	
-    	Class<? extends TestModule> testModuleClass = getTestModules().get(testName).c;
-    	
-    	TestModule module;
+
+	private TestModule createTestModule(String testName, String id, BrowserControl browser) {
+
+		Class<? extends TestModule> testModuleClass = getTestModules().get(testName).c;
+
+		TestModule module;
 		try {
-			
+
 			@SuppressWarnings("unchecked")
-			Map<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
-			
+			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
+
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
-			
+
 			// call the constructor
 			module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
 				.newInstance(id, owner, wrappedEventLog, browser, testInfo);
 			return module;
-			
+
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			
+
 			logger.warn("Couldn't create test module", e);
 
 			return null;
 		}
-    	
-    }
-    
-    private Map<String, TestModuleHolder> getTestModules() {
-    		return testModuleSupplier.get();
-    }
-    
-    private Map<String, TestModuleHolder> findTestModules() {
-    	
-    		Map<String, TestModuleHolder> testModules = new HashMap<>();
-    	
-    		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-    		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestModule.class));
-    		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
-    			try {
-					Class<? extends TestModule> c = (Class<? extends TestModule>) Class.forName(bd.getBeanClassName());
-					PublishTestModule a = c.getDeclaredAnnotation(PublishTestModule.class);
-					
-					testModules.put(a.testName(), new TestModuleHolder(c, a));
-					
+
+	}
+
+	private Map<String, TestModuleHolder> getTestModules() {
+		return testModuleSupplier.get();
+	}
+
+	private Map<String, TestModuleHolder> findTestModules() {
+
+		Map<String, TestModuleHolder> testModules = new HashMap<>();
+
+		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestModule.class));
+		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
+			try {
+				Class<? extends TestModule> c = (Class<? extends TestModule>) Class.forName(bd.getBeanClassName());
+				PublishTestModule a = c.getDeclaredAnnotation(PublishTestModule.class);
+
+				testModules.put(a.testName(), new TestModuleHolder(c, a));
+
 			} catch (ClassNotFoundException e) {
 				logger.error("Couldn't load test module definition: " + bd.getBeanClassName());
 			}
-    		}
-    		
-    		return testModules;
-    }
-    
-    private class TestModuleHolder {
-    		public Class<? extends TestModule> c;
-    		public PublishTestModule a;
-			/**
-			 * @param c
-			 * @param a
-			 */
-			public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
-				this.c = c;
-				this.a = a;
-			}
-    }
-    
+		}
+
+		return testModules;
+	}
+
+	private class TestModuleHolder {
+		public Class<? extends TestModule> c;
+		public PublishTestModule a;
+
+		/**
+		 * @param c
+		 * @param a
+		 */
+		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
+			this.c = c;
+			this.a = a;
+		}
+	}
+
 	private Map<String, Object> createTestStatusMap(TestModule test) {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", test.getName());
@@ -385,7 +382,7 @@ public class TestRunner {
 		map.put("owner", test.getOwner());
 		map.put("created", test.getCreated().toString());
 		map.put("updated", test.getStatusUpdated().toString());
-		
+
 		BrowserControl browser = test.getBrowser();
 		if (browser != null) {
 			if (browser instanceof CollectingBrowserControl) {
@@ -398,8 +395,8 @@ public class TestRunner {
 		return map;
 	}
 
-    // handle errors thrown by running tests
-    @ExceptionHandler(TestFailureException.class)
+	// handle errors thrown by running tests
+	@ExceptionHandler(TestFailureException.class)
 	public ResponseEntity<Object> conditionFailure(TestFailureException error) {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());

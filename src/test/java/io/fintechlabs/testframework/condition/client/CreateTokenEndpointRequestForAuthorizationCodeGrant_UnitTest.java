@@ -13,27 +13,26 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateTokenEndpointRequestForAuthorizationCodeGrant_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private CreateTokenEndpointRequestForAuthorizationCodeGrant cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CreateTokenEndpointRequestForAuthorizationCodeGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -42,15 +41,15 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant_UnitTest {
 	 */
 	@Test
 	public void testEvaluate() {
-		
+
 		env.putString("code", "SplxlOBeZQQYbYS6WxSbIA");
 		env.putString("redirect_uri", "https://client.example.com/cb");
-		
+
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("code");
 		verify(env, atLeastOnce()).getString("redirect_uri");
-		
+
 		assertThat(env.get("token_endpoint_request_form_parameters")).isNotNull();
 		assertThat(env.getString("token_endpoint_request_form_parameters", "grant_type")).isEqualTo("authorization_code");
 		assertThat(env.getString("token_endpoint_request_form_parameters", "code")).isEqualTo("SplxlOBeZQQYbYS6WxSbIA");

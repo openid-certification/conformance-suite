@@ -15,8 +15,6 @@
 package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,9 +26,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.condition.ConditionError;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -57,11 +57,11 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 
 		// Example from RFC6750
 		tokenResponse = new JsonParser().parse("{" +
-				"\"access_token\":\"mF_9.B5f-4.1JqM\"," +
-				"\"token_type\":\"Bearer\"," +
-				"\"expires_in\":3600," +
-				"\"refresh_token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"" +
-				"}").getAsJsonObject();
+			"\"access_token\":\"mF_9.B5f-4.1JqM\"," +
+			"\"token_type\":\"Bearer\"," +
+			"\"expires_in\":3600," +
+			"\"refresh_token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"" +
+			"}").getAsJsonObject();
 
 	}
 

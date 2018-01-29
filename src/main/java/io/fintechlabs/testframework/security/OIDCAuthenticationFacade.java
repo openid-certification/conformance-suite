@@ -1,22 +1,23 @@
 package io.fintechlabs.testframework.security;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 
 @Component
-public class OIDCAuthenticationFacade implements AuthenticationFacade{
+public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	@Override
 	public OIDCAuthenticationToken getAuthenticationToken() {
 		Authentication a = SecurityContextHolder.getContext().getAuthentication();
 		if (a instanceof OIDCAuthenticationToken) {
-			return (OIDCAuthenticationToken)a;
+			return (OIDCAuthenticationToken) a;
 		}
 		return null;
 	}
@@ -42,13 +43,13 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade{
 	public ImmutableMap<String, String> getPrincipal() {
 		OIDCAuthenticationToken token = getAuthenticationToken();
 		if (token != null) {
-			return (ImmutableMap<String,String>)token.getPrincipal();
+			return (ImmutableMap<String, String>) token.getPrincipal();
 		}
 		return null;
 	}
 
 	@Override
-	public String getDisplayName(){
+	public String getDisplayName() {
 		OIDCAuthenticationToken token = getAuthenticationToken();
 		if (token != null) {
 			Map<String, String> principal = getPrincipal();

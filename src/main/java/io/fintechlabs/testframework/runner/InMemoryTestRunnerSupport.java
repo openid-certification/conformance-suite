@@ -37,7 +37,7 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
  *
  */
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
-	
+
 	private Duration closedTestTimeout = Duration.ofMinutes(15);
 
 	@Autowired
@@ -45,10 +45,10 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 	// collection of all currently running tests
 	private Map<String, TestModule> runningTests = new LinkedHashMap<>();
-	
+
 	// collection of aliases assigned to tests
 	private Map<String, String> aliases = new HashMap<>();
-	
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#addRunningTest(java.lang.String, io.fintechlabs.testframework.testmodule.TestModule)
 	 */
@@ -90,12 +90,12 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		expireOldTests();
 		// Put in null check to handle non-userfacing interactions.
 		if (authenticationFacade.getAuthenticationToken() == null ||
-				authenticationFacade.isAdmin()) {
+			authenticationFacade.isAdmin()) {
 			return runningTests.get(testId);
 		} else {
 			TestModule test = runningTests.get(testId);
 			if (test != null &&
-					test.getOwner().equals((ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal())) {
+				test.getOwner().equals((ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal())) {
 				return test;
 			}
 			return null;
@@ -110,18 +110,18 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		expireOldTests();
 		// Put in null check to handle non-userfacing interactions.
 		if (authenticationFacade.getAuthenticationToken() == null ||
-				authenticationFacade.isAdmin()) {
+			authenticationFacade.isAdmin()) {
 			return runningTests.entrySet().stream()
-					.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
-					.map(e -> e.getValue().getId())
-					.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
+				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
+				.map(e -> e.getValue().getId())
+				.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
 		} else {
-			ImmutableMap<String,String> owner = (ImmutableMap<String,String>)authenticationFacade.getAuthenticationToken().getPrincipal();
+			ImmutableMap<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
 			return runningTests.entrySet().stream()
-					.filter(map -> map.getValue().getOwner().equals(owner))
-					.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
-					.map(e -> e.getValue().getId())
-					.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
+				.filter(map -> map.getValue().getOwner().equals(owner))
+				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
+				.map(e -> e.getValue().getId())
+				.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
 		}
 	}
 
@@ -141,7 +141,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		expireOldTests();
 		return runningTests.containsKey(testId);
 	}
-	
+
 	/**
 	 * @param testId
 	 */
@@ -149,7 +149,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	public void removeRunningTest(String testId) {
 		runningTests.remove(testId);
 	}
-	
+
 	private void expireOldTests() {
 		for (Map.Entry<String, TestModule> entry : new HashSet<>(runningTests.entrySet())) {
 			// if the test has been finished or interrupted, we check to see if it's timed out yet
@@ -158,7 +158,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 					&& entry.getValue().getStatusUpdated().plus(getClosedTestTimeout()).isBefore(Instant.now())) {
 				
 				removeRunningTest(entry.getKey());
-				
+
 			}
 		}
 	}
@@ -171,7 +171,8 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	}
 
 	/**
-	 * @param closedTestTimeout the closedTestTimeout to set
+	 * @param closedTestTimeout
+	 *            the closedTestTimeout to set
 	 */
 	public void setClosedTestTimeout(Duration closedTestTimeout) {
 		this.closedTestTimeout = closedTestTimeout;

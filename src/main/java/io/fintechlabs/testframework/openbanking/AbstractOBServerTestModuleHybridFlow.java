@@ -60,8 +60,8 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		call(ExtractStateHash.class);
 
-		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
-				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 	}
 
@@ -97,8 +97,8 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 		logger.info("Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
 
 		return new ModelAndView("implicitCallback",
-				ImmutableMap.of("test", this,
-					"implicitSubmitUrl", submissionUrl));
+			ImmutableMap.of("test", this,
+				"implicitSubmitUrl", submissionUrl));
 	}
 
 	private Object handleImplicitSubmission(JsonObject requestParts) {

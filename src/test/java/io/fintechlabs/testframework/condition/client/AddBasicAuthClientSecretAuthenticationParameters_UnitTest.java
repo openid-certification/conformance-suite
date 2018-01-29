@@ -15,8 +15,6 @@
 package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +25,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -58,9 +59,9 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 		// Example values from RFC 6749
 
 		client = new JsonParser().parse("{"
-				+ "\"client_id\":\"s6BhdRkqt3\","
-				+ "\"client_secret\":\"7Fjfp0ZBr1KtDRbnfVdmIw\""
-				+ "}").getAsJsonObject();
+			+ "\"client_id\":\"s6BhdRkqt3\","
+			+ "\"client_secret\":\"7Fjfp0ZBr1KtDRbnfVdmIw\""
+			+ "}").getAsJsonObject();
 
 		expectedAuth = "Basic czZCaGRSa3F0Mzo3RmpmcDBaQnIxS3REUmJuZlZkbUl3";
 

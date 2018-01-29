@@ -33,7 +33,7 @@ public class TestFailureException extends RuntimeException {
 	public TestFailureException(ConditionError cause) {
 		super(cause);
 	}
-	
+
 	/**
 	 * 
 	 */

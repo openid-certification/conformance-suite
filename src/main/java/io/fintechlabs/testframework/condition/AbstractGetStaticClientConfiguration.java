@@ -46,15 +46,14 @@ public abstract class AbstractGetStaticClientConfiguration extends AbstractCondi
 		} else {
 			// we've got a client object, put it in the environment
 			in.put("client", client.getAsJsonObject());
-			
+
 			// pull out the client ID and put it in the root environment for easy access
 			in.putString("client_id", in.getString("client", "client_id"));
-			
+
 			logSuccess("Found a static client object", client.getAsJsonObject());
 			return in;
 		}
-		
-		
+
 	}
 
 }

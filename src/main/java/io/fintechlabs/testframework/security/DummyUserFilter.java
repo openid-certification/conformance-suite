@@ -1,6 +1,13 @@
 package io.fintechlabs.testframework.security;
 
-import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.Set;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
@@ -13,14 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * DummyUserFilter is used to inject an authenticated <code>OIDCAuthenticationToken</code>
@@ -56,6 +56,6 @@ public class DummyUserFilter extends GenericFilterBean {
 
 			SecurityContextHolder.getContext().setAuthentication(new OIDCAuthenticationToken(sub, issuer, info, authorities, null, null, null));
 		}
-		chain.doFilter(request,response);
+		chain.doFilter(request, response);
 	}
 }

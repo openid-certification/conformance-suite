@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -52,6 +51,7 @@ import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
@@ -285,7 +285,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
-
 
 	}
 

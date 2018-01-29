@@ -95,8 +95,8 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCode 
 		setStatus(Status.WAITING);
 
 		return new ModelAndView("implicitCallback",
-				ImmutableMap.of("test", this,
-					"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+			ImmutableMap.of("test", this,
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
 	}
 
 	private Object handleImplicitSubmission(JsonObject requestParts) {

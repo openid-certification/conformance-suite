@@ -36,10 +36,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -58,7 +56,7 @@ public class SignRequestObject extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"request_object_claims", "jwks"})
+	@PreEnvironment(required = { "request_object_claims", "jwks" })
 	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
 
@@ -114,7 +112,7 @@ public class SignRequestObject extends AbstractCondition {
 				if (signer == null) {
 					return error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
 				}
-				
+
 				Algorithm alg = jwk.getAlgorithm();
 				if (alg == null) {
 					return error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
@@ -129,9 +127,9 @@ public class SignRequestObject extends AbstractCondition {
 				env.putString("request_object", requestObject.serialize());
 
 				logSuccess("Signed the request object", args("request_object", requestObject.serialize(),
-						"header", header.toString(),
-						"claims", claimSet.toString(),
-						"key", jwk.toJSONString()));
+					"header", header.toString(),
+					"claims", claimSet.toString(),
+					"key", jwk.toJSONString()));
 
 				return env;
 			} else {

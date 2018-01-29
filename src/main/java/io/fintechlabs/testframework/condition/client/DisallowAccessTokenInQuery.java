@@ -37,9 +37,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -55,7 +53,7 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "resource"})
+	@PreEnvironment(required = { "access_token", "resource" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -70,8 +68,8 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-				.path(ACCOUNTS_RESOURCE)
-				.toUriString();
+			.path(ACCOUNTS_RESOURCE)
+			.toUriString();
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);

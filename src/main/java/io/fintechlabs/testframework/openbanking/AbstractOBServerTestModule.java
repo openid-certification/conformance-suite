@@ -21,6 +21,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -75,17 +84,6 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
-
-import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
@@ -184,9 +182,9 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
-				"redirect_to", redirectTo,
-				"http", "redirect"));
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
 
 		browser.goToUrl(redirectTo);
 
@@ -261,8 +259,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 
-		skipIfMissing(new String[] {"state_hash"}, new String[] {}, ConditionResult.INFO, 
-				ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
@@ -405,7 +403,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	}
 
 	protected void logClientSecretWarning() {
-		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, Object> map = new HashMap<>();
 		map.put("msg", "client_secret_basic and client_secret_post are not recommended client authentication methods");
 		map.put("result", ConditionResult.WARNING);
 		map.put("requirements", Sets.newHashSet("OB-5.2.2-7.2"));

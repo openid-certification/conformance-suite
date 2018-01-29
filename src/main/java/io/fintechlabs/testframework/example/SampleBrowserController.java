@@ -26,22 +26,20 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 public class SampleBrowserController implements BrowserControl {
 
 	private static Logger logger = LoggerFactory.getLogger(SampleBrowserController.class);
-	
 
 	@Override
 	public void goToUrl(String url) {
-		
+
 		logger.info("Browser going to: " + url);
 
 	}
-
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.frontChannel.BrowserControl#urlVisited(java.lang.String)
 	 */
 	@Override
 	public void urlVisited(String url) {
-	
+
 		logger.info("Browser went to: " + url);
 
 	}

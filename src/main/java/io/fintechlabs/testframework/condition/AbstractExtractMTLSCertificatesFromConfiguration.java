@@ -44,15 +44,15 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 
 	protected Environment extractMTLSCertificatesFromConfiguration(Environment env, String key) {
 		// mutual_tls_authentication
-		
+
 		String certString = env.getString("config", key + ".cert");
 		String keyString = env.getString("config", key + ".key");
 		String caString = env.getString("config", key + ".ca");
-		
+
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
 			return error("Couldn't find TLS client certificate or key for MTLS");
 		}
-		
+
 		if (Strings.isNullOrEmpty(caString)) {
 			// Not an error; we just won't send a CA chain
 			log("No certificate authority found for MTLS");
@@ -76,11 +76,11 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 		if (caString != null) {
 			mtls.addProperty("ca", caString);
 		}
-		
+
 		env.put("mutual_tls_authentication", mtls);
-		
+
 		logSuccess("Mutual TLS authentication credentials loaded", mtls);
-		
+
 		return env;
 
 	}

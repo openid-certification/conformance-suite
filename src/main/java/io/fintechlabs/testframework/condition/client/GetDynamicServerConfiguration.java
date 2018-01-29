@@ -31,10 +31,8 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -59,34 +57,33 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
+
 		if (!env.containsObj("config")) {
 			return error("Couldn't find a configuration");
 		}
-		
+
 		String staticIssuer = env.getString("config", "server.issuer");
-		
+
 		if (!Strings.isNullOrEmpty(staticIssuer)) {
 			return error("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
 		}
-		
+
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");
-		
+
 		if (Strings.isNullOrEmpty(discoveryUrl)) {
 
 			String iss = env.getString("config", "server.discoveryIssuer");
 			discoveryUrl = iss + "/.well-known/openid-configuration";
-			
+
 			if (Strings.isNullOrEmpty(iss)) {
 				return error("Couldn't find discoveryUrl or discoveryIssuer field for discovery purposes");
 			}
-			
+
 		}
-		
+
 		// get out the server configuration component
 		if (!Strings.isNullOrEmpty(discoveryUrl)) {
 			// do an auto-discovery here
-			
 
 			// fetch the value
 			String jsonString;
@@ -100,32 +97,29 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			}
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
-				log("Downloaded server configuration", 
-						args("server_config_string", jsonString));
+				log("Downloaded server configuration",
+					args("server_config_string", jsonString));
 
 				try {
 					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
-					
+
 					logSuccess("Successfully parsed server configuration", serverConfig);
-					
+
 					env.put("server", serverConfig);
-					
+
 					return env;
 				} catch (JsonSyntaxException e) {
 					return error(e);
 				}
-				
-				
+
 			} else {
 				return error("empty server configuration");
 			}
-			
+
 		} else {
 			return error("Couldn't find or construct a discovery URL");
 		}
 
-		
-		
 	}
 
 }

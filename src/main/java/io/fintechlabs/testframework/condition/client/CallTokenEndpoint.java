@@ -41,10 +41,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -54,9 +52,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class CallTokenEndpoint extends AbstractCondition {
 
-
 	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpoint.class);
-
 
 	/**
 	 * @param testId
@@ -70,7 +66,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"server", "token_endpoint_request_form_parameters"})
+	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
@@ -89,7 +85,6 @@ public class CallTokenEndpoint extends AbstractCondition {
 			form.add(key, formJson.get(key).getAsString());
 		}
 
-
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
@@ -105,9 +100,9 @@ public class CallTokenEndpoint extends AbstractCondition {
 					headers.set(header, headersJson.get(header).getAsString());
 				}
 			}
-			
+
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
-			
+
 			String jsonString = null;
 
 			try {
@@ -121,7 +116,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 				return error("Didn't get back a response from the token endpoint");
 			} else {
 				log("Token endpoint response",
-						args("token_endpoint_response", jsonString));
+					args("token_endpoint_response", jsonString));
 
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(jsonString);
@@ -142,7 +137,6 @@ public class CallTokenEndpoint extends AbstractCondition {
 			logger.warn("Error creating HTTP Client", e);
 			return error("Error creating HTTP Client", e);
 		}
-		
 
 	}
 

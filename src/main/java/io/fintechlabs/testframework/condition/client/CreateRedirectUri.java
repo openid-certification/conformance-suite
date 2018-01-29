@@ -17,10 +17,8 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -49,18 +47,18 @@ public class CreateRedirectUri extends AbstractCondition {
 	@PostEnvironment(strings = "redirect_uri")
 	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
-		
+
 		if (Strings.isNullOrEmpty(baseUrl)) {
 			return error("Base URL was null or empty");
 		}
-		
+
 		// calculate the redirect URI based on our given base URL
 		String redirectUri = baseUrl + "/callback";
 		in.putString("redirect_uri", redirectUri);
-		
-		logSuccess("Created redirect URI", 
-				args("redirect_uri", redirectUri));
-		
+
+		logSuccess("Created redirect URI",
+			args("redirect_uri", redirectUri));
+
 		return in;
 	}
 

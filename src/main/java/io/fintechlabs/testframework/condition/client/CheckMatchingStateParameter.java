@@ -17,9 +17,7 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -48,10 +46,10 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 		if (!in.containsObj("callback_params")) {
 			return error("Couldn't find callback parameters");
 		}
-		
+
 		String expected = in.getString("state");
 		String actual = in.getString("callback_params", "state");
-		
+
 		if (Strings.isNullOrEmpty(expected)) {
 			// we didn't save a 'state' value, we need to make sure one wasn't returned
 			if (Strings.isNullOrEmpty(actual)) {
@@ -65,15 +63,15 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 			// we did save a state parameter, make sure it's the same as before
 			if (expected.equals(actual)) {
 				// we're good
-				logSuccess("Checking for state parameter", 
+				logSuccess("Checking for state parameter",
 					args("state", Strings.nullToEmpty(actual)));
-				
+
 				return in;
 			} else {
 				return error("State parameter did not match");
 			}
 		}
-		
+
 	}
 
 }

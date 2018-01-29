@@ -19,8 +19,6 @@ import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static io.specto.hoverfly.junit.dsl.matchers.HoverflyMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -33,9 +31,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.condition.ConditionError;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
@@ -52,9 +52,9 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	// Examples from RFC 6749
 
 	private static JsonObject bearerToken = new JsonParser().parse("{"
-			+ "\"value\":\"mF_9.B5f-4.1JqM\","
-			+ "\"type\":\"Bearer\""
-			+ "}").getAsJsonObject();
+		+ "\"value\":\"mF_9.B5f-4.1JqM\","
+		+ "\"type\":\"Bearer\""
+		+ "}").getAsJsonObject();
 
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
@@ -65,8 +65,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		service("bad.example.com")
 			.get("/accounts")
 			.queryParam("access_token", "mF_9.B5f-4.1JqM")
-			.willReturn(success("OK", "text/plain"))
-	));
+			.willReturn(success("OK", "text/plain"))));
 
 	private DisallowAccessTokenInQuery cond;
 
@@ -95,8 +94,8 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		cond.evaluate(env);
 
 		hoverfly.verify(service("good.example.com")
-				.get("/accounts")
-				.queryParam("access_token", "mF_9.B5f-4.1JqM"));
+			.get("/accounts")
+			.queryParam("access_token", "mF_9.B5f-4.1JqM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
 		verify(env, atLeastOnce()).getString("resource", "resourceUrl");

@@ -17,8 +17,6 @@ package io.fintechlabs.testframework.condition.as;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -48,10 +46,10 @@ public class EnsureClientIsAuthenticated extends AbstractCondition {
 			return error("Client was not authenticated");
 		} else {
 			logSuccess("Found client authentication, passing", args("client_authentication_success", env.getString("client_authentication_success")));
-			
+
 			return env;
 		}
-		
+
 	}
 
 }

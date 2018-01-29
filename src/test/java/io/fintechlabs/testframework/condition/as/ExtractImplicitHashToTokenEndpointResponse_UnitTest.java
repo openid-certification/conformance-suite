@@ -12,29 +12,29 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToTokenEndpointResponse;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExtractImplicitHashToTokenEndpointResponse_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private ExtractImplicitHashToTokenEndpointResponse cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new ExtractImplicitHashToTokenEndpointResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -43,13 +43,13 @@ public class ExtractImplicitHashToTokenEndpointResponse_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
-		
+
 		env.putString("implicit_hash", "#access_token=2YotnFZFEjr1zCsicMWpAA&state=xyz&token_type=example&expires_in=3600");
 
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("implicit_hash");
-		
+
 		assertThat(env.get("callback_params")).isNotNull();
 		assertThat(env.get("callback_params").entrySet().size()).isEqualTo(4);
 		assertThat(env.getString("callback_params", "access_token")).isEqualTo("2YotnFZFEjr1zCsicMWpAA");

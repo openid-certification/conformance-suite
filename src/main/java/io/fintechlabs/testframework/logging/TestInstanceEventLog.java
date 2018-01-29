@@ -67,5 +67,5 @@ public class TestInstanceEventLog {
 	public void log(String source, Map<String, Object> map) {
 		eventLog.log(testId, source, owner, map);
 	}
-	
+
 }

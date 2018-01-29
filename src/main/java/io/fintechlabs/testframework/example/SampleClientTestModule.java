@@ -66,7 +66,7 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
  *
  */
 @PublishTestModule(
-	testName = "sample-client-test", 
+	testName = "sample-client-test",
 	displayName = "Sample Client Test",
 	configurationFields = {
 		"server.jwks",
@@ -96,19 +96,19 @@ public class SampleClientTestModule extends AbstractTestModule {
 		callAndStopOnFailure(GenerateServerConfiguration.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
-		
+
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		
+
 		callAndStopOnFailure(LoadJWKs.class);
-		
+
 		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
-		
+
 		callAndStopOnFailure(LoadUserInfo.class);
-		
+
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
-		
+
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 		// this test can auto-start
@@ -146,7 +146,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 		} else {
 			return new ModelAndView("testError");
 		}
-		
+
 	}
 
 	/**
@@ -158,7 +158,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 */
 	private Object discoveryEndpoint() {
 		JsonObject serverConfiguration = env.get("server");
-		
+
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
@@ -170,26 +170,26 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object userinfoEndpoint(JsonObject requestParts) {
-		
+
 		setStatus(Status.RUNNING);
-		
+
 		env.put("incoming_request", requestParts);
 
 		call(ExtractBearerAccessTokenFromHeader.class);
 		call(ExtractBearerAccessTokenFromParams.class);
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
-		
+
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-1-5.2.3-7");
-		
+
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
-		
+
 		JsonObject user = env.get("user_info_endpoint_response");
-		
+
 		// at this point we can assume the test is fully done
 		fireTestFinished();
 		stop();
-		
+
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
@@ -204,10 +204,10 @@ public class SampleClientTestModule extends AbstractTestModule {
 	private Object registrationEndpoint(JsonObject requestParts) {
 
 		//env.put("client_registration_request", requestParts.get("body_json"));
-		
+
 		// TODO Auto-generated method stub
 		return null;
-		
+
 	}
 
 	/**
@@ -223,7 +223,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 		JsonObject jwks = env.get("public_jwks");
 
 		setStatus(Status.WAITING);
-		
+
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
@@ -239,30 +239,29 @@ public class SampleClientTestModule extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		env.put("token_endpoint_request", requestParts);
-		
+
 		call(ExtractClientCredentialsFromFormPost.class);
-		
+
 		call(AuthenticateClientWithClientSecret.class);
-		
+
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
-		
+
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
-		
+
 		callAndStopOnFailure(ValidateRedirectUri.class);
-				
+
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		
+
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
-		
+
 		callAndStopOnFailure(SignIdToken.class);
-		
+
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		setStatus(Status.WAITING);
-		
+
 		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
 
-		
 	}
 
 	/**
@@ -273,29 +272,29 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	private Object authorizationEndpoint(JsonObject requestParts) {
-	
+
 		setStatus(Status.RUNNING);
 
 		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
-		
+
 		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
-		
+
 		callAndStopOnFailure(ExtractRequestedScopes.class);
-		
+
 		callAndStopOnFailure(CreateAuthorizationCode.class);
-		
+
 		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class);
-		
+
 		exposeEnvString("authorization_endpoint_response_redirect");
-		
+
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
-		
+
 		setStatus(Status.WAITING);
 
 		return new RedirectView(redirectTo, false, false, false);
-	
+
 	}
 
 	/* (non-Javadoc)

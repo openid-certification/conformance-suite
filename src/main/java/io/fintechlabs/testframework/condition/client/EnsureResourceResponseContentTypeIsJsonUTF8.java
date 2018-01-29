@@ -23,9 +23,7 @@ import com.google.common.base.Strings;
 import com.google.common.net.MediaType;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -52,8 +50,8 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractConditi
 						logSuccess("Response charset is UTF-8", args("content_type", contentTypeStr));
 					} else {
 						return error("Response charset is not UTF-8",
-								args("content_type", contentTypeStr,
-										"charset", charset.get().name()));
+							args("content_type", contentTypeStr,
+								"charset", charset.get().name()));
 					}
 				} else {
 					return error("Response charset not declared", (args("content_type", contentTypeStr)));

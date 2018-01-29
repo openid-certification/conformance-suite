@@ -12,29 +12,28 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateRandomImplicitSubmitUrl_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private CreateRandomImplicitSubmitUrl cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CreateRandomImplicitSubmitUrl("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -43,13 +42,13 @@ public class CreateRandomImplicitSubmitUrl_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
-		
+
 		env.putString("base_url", "https://example.com");
-		
+
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("base_url");
-		
+
 		assertThat(env.get("implicit_submit")).isNotNull();
 		assertThat(env.getString("implicit_submit", "path")).isNotEmpty();
 		assertThat(env.getString("implicit_submit", "fullUrl")).isNotEmpty();
@@ -60,7 +59,7 @@ public class CreateRandomImplicitSubmitUrl_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
-		
+
 		cond.evaluate(env);
 	}
 }

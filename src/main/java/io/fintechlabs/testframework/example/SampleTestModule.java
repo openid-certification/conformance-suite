@@ -32,35 +32,26 @@ import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAut
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
-import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
-import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
-import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateStateHash;
@@ -84,7 +75,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "sample-test", 
+	testName = "sample-test",
 	displayName = "Sample AS Test",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -96,12 +87,13 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"mtls.cert",
 		"mtls.key",
 		"mtls.ca",
-		
+
 	}
 )
 public class SampleTestModule extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);
+
 	/**
 	 * 
 	 */
@@ -112,16 +104,17 @@ public class SampleTestModule extends AbstractTestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
+	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
-		
+
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "FAPI-1-7.1-1");
 		call(DisallowTLS10.class, "FAPI-1-7.1-1");
 		call(DisallowTLS11.class, "FAPI-1-7.1-1");
 		call(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
-		
+
 		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -129,27 +122,27 @@ public class SampleTestModule extends AbstractTestModule {
 
 		// Get the server's configuration
 		call(GetDynamicServerConfiguration.class);
-		
+
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		// fetch or load the server's keys as needed
 		callAndStopOnFailure(FetchServerKeys.class);
-		
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE,"RFC6819-5.1.4.2-2", "RFC6749-10.10");
-		
+
+		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+
 		//require(ExtractJWKsFromClientConfiguration.class);
-		
+
 		//require(GenerateJWKsFromClientSecret.class);
-		
+
 		exposeEnvString("client_id");
-		
+
 		// Set up the resource endpoint configuration
 		//callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		
+
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
@@ -157,10 +150,11 @@ public class SampleTestModule extends AbstractTestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#start()
 	 */
+	@Override
 	public void start() {
-		
+
 		setStatus(Status.RUNNING);
-		
+
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		callAndStopOnFailure(CreateRandomStateValue.class);
@@ -170,19 +164,19 @@ public class SampleTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-		
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-		
+
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
-		
+
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-		
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint", 
-				"redirect_to", redirectTo,
-				"http", "redirect"));
+
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
 
 		browser.goToUrl(redirectTo);
-		
+
 		setStatus(Status.WAITING);
 	}
 
@@ -193,14 +187,14 @@ public class SampleTestModule extends AbstractTestModule {
 	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		logIncomingHttpRequest(path, requestParts);
-		
+
 		// dispatch based on the path
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else {
 			return new ModelAndView("testError");
 		}
-		
+
 	}
 
 	/**
@@ -217,45 +211,45 @@ public class SampleTestModule extends AbstractTestModule {
 
 		// process the callback
 		setStatus(Status.RUNNING);
-		
+
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		
+
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-		
+
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		
+
 		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 		//require(CreateClientAuthenticationAssertionClaims.class);
-		
+
 		//require(SignClientAuthenticationAssertion.class);
-		
+
 		//require(AddClientAssertionToTokenEndpointRequest.class);
-		
+
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-		
+
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
-		
+
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-		
+
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
-		
+
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
-		
+
 		call(ValidateStateHash.class, "FAPI-2-5.2.2-4");
-		
+
 		call(CheckForRefreshTokenValue.class);
-		
+
 		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
-		
+
 		// verify the access token against a protected resource
 
 		/*
@@ -277,12 +271,12 @@ public class SampleTestModule extends AbstractTestModule {
 		
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		*/
-		
+
 		fireTestFinished();
 		stop();
 
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
-			
+
 	}
 
 	/* (non-Javadoc)

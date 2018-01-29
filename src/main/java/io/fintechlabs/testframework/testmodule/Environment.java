@@ -27,7 +27,7 @@ import com.google.gson.JsonObject;
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
  * 
- * This object stores JSON indexed by strings. Furthermore, the JSON can be indexed by foo.bar.baz selectors. 
+ * This object stores JSON indexed by strings. Furthermore, the JSON can be indexed by foo.bar.baz selectors.
  * 
  * @author jricher
  *
@@ -36,7 +36,7 @@ public class Environment {
 
 	private static final String STRING_VALUES = "_STRING_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
-			ImmutableMap.of(STRING_VALUES, new JsonObject())); // make sure we start with a place to put the string values
+		ImmutableMap.of(STRING_VALUES, new JsonObject())); // make sure we start with a place to put the string values
 
 	/**
 	 * Look to see if the JSON object is in this environment
@@ -48,7 +48,7 @@ public class Environment {
 	public boolean containsObj(String objId) {
 		return store.containsKey(objId);
 	}
-	
+
 	/**
 	 * @param key
 	 * @return
@@ -57,24 +57,26 @@ public class Environment {
 	public JsonObject get(String key) {
 		return store.get(key);
 	}
-	
+
 	/**
 	 * Remove a JSON object from this environment
+	 * 
 	 * @param key
 	 */
 	public void remove(String key) {
 		store.remove(key);
 	}
-	
+
 	/**
 	 * Look up a single-string entry
+	 * 
 	 * @param key
 	 * @return
 	 */
 	public String getString(String key) {
 		return getString(STRING_VALUES, key);
 	}
-	
+
 	/**
 	 * @param key
 	 * @param value
@@ -84,9 +86,10 @@ public class Environment {
 	public JsonObject put(String key, JsonObject value) {
 		return store.put(key, value);
 	}
-	
+
 	/**
 	 * Store a single string as a value
+	 * 
 	 * @param key
 	 * @param value
 	 * @return
@@ -107,7 +110,7 @@ public class Environment {
 	 *    } 
 	 *  } 
 	 * }
-	 *  
+	 * 
 	 * @param path
 	 */
 	public String getString(String objId, String path) {
@@ -125,7 +128,7 @@ public class Environment {
 			return null;
 		}
 	}
-	
+
 	public Integer getInteger(String objId, String path) {
 		JsonElement e = findElement(objId, path);
 		if (e != null) {
@@ -139,8 +142,7 @@ public class Environment {
 			return null;
 		}
 	}
-	
-	
+
 	public Long getLong(String objId, String path) {
 		JsonElement e = findElement(objId, path);
 		if (e != null) {
@@ -154,20 +156,20 @@ public class Environment {
 			return null;
 		}
 	}
-	
+
 	public JsonElement findElement(String objId, String path) {
-	
+
 		//
 		// TODO: memoize this lookup for efficiency
 		// 
-		
+
 		// start at the top
 		JsonElement e = get(objId);
-		
+
 		if (e == null) {
 			return null;
 		}
-		
+
 		Iterable<String> parts = Splitter.on('.').split(path);
 		Iterator<String> it = parts.iterator();
 
@@ -193,7 +195,7 @@ public class Environment {
 
 		// didn't find it
 		return null;
-		
+
 	}
 
 	/**
@@ -211,5 +213,4 @@ public class Environment {
 		return "Environment [store=" + store + "]";
 	}
 
-	
 }

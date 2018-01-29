@@ -17,9 +17,7 @@ package io.fintechlabs.testframework.condition.as;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -51,13 +49,12 @@ public class ExtractRequestedScopes extends AbstractCondition {
 			return error("Missing scope parameter");
 		} else {
 			logSuccess("Requested scopes", args("scope", scope));
-			
+
 			env.putString("scope", scope);
-			
+
 			return env;
 		}
-		
-		
+
 	}
 
 }

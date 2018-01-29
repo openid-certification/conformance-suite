@@ -23,77 +23,77 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private JsonObject server;
-	
+
 	private JsonObject authorizationEndpointRequest;
-	
+
 	private BuildPlainRedirectToAuthorizationEndpoint cond;
-	
+
 	private String clientId = "s6BhdRkqt3";
-	
+
 	private String state = "xyz123";
-	
+
 	private String scope = "address phone openid email profile";
-	
+
 	private String redirectUri = "https://client.example.com/cb";
-	
+
 	private String responseType = "code";
-	
+
 	private String authorizationEndpoint = "https://example.com/oauth/authorize";
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new BuildPlainRedirectToAuthorizationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
+
 		server = new JsonObject();
 		server.addProperty("authorization_endpoint", authorizationEndpoint);
-		
+
 		authorizationEndpointRequest = new JsonObject();
 		authorizationEndpointRequest.addProperty("client_id", clientId);
 		authorizationEndpointRequest.addProperty("redirect_uri", redirectUri);
 		authorizationEndpointRequest.addProperty("scope", scope);
 		authorizationEndpointRequest.addProperty("state", state);
 		authorizationEndpointRequest.addProperty("response_type", responseType);
-		
+
 		env.put("server", server);
 		env.put("authorization_endpoint_request", authorizationEndpointRequest);
 	}
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * @throws UnsupportedEncodingException 
+	 * 
+	 * @throws UnsupportedEncodingException
 	 */
 	@Test
 	public void testEvaluate() throws UnsupportedEncodingException {
-		
+
 		env.putString("client_id", "s6BhdRkqt3");
 		env.putString("state", "xyz");
 		env.putString("redirect_uri", "https://client.example.com/cb");
-		
+
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
 		verify(env, atLeastOnce()).get("authorization_endpoint_request");
 
 		assertThat(env.getString("redirect_to_authorization_endpoint")).startsWith(authorizationEndpoint);
-		
+
 		UriComponents redirectUriComponents = UriComponentsBuilder.fromUriString(env.getString("redirect_to_authorization_endpoint")).build();
 		Map<String, List<String>> redirectUriParams = redirectUriComponents.getQueryParams();
 

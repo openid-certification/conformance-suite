@@ -14,14 +14,11 @@
 
 package io.fintechlabs.testframework;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 import com.google.gson.Gson;
@@ -60,53 +57,53 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 		}
 	}
 
-	
-    /**
-     * Special GSON converter that looks for and collapses __wrapped_key_element fields
+	/**
+	 * Special GSON converter that looks for and collapses __wrapped_key_element fields
+	 * 
 	 * @return
 	 */
 	private Gson getDbObjectCollapsingGson() {
 		return new GsonBuilder()
-				.registerTypeHierarchyAdapter(DBObject.class, new JsonSerializer<DBObject>() {
+			.registerTypeHierarchyAdapter(DBObject.class, new JsonSerializer<DBObject>() {
 
-					private Gson internalGson = new Gson();
-					
-					@Override
-					public JsonElement serialize(DBObject src, Type typeOfSrc, JsonSerializationContext context) {
-						// run the field conversion
-						DBObject converted = (DBObject) convertStructureToField(src);
-						// delegate to regular GSON for the real work
-						return internalGson.toJsonTree(converted);
-					}
-					
-					private Object convertStructureToField(Object source) {
-						if (source instanceof List) {
-							// if it's a list of some type, loop through it
-							@SuppressWarnings("unchecked")
-							List<Object> list = (List<Object>)source;
-							List<Object> converted = list.stream()
-									.map(this::convertStructureToField)
-									.collect(Collectors.toList());
-							return converted;
-						} else if (source instanceof DBObject) {
-							// if it's an object, need to look through all the fields and convert any weird ones
-							DBObject dbo = (DBObject) source;
-							DBObject converted = new BasicDBObject();
-							for (String key : dbo.keySet()) {
-								if (key.startsWith("__wrapped_key_element_")) {
-									DBObject wrapped = (DBObject) dbo.get(key);
-									converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
-								} else {
-									converted.put(key, convertStructureToField(dbo.get(key)));
-								}
+				private Gson internalGson = new Gson();
+
+				@Override
+				public JsonElement serialize(DBObject src, Type typeOfSrc, JsonSerializationContext context) {
+					// run the field conversion
+					DBObject converted = (DBObject) convertStructureToField(src);
+					// delegate to regular GSON for the real work
+					return internalGson.toJsonTree(converted);
+				}
+
+				private Object convertStructureToField(Object source) {
+					if (source instanceof List) {
+						// if it's a list of some type, loop through it
+						@SuppressWarnings("unchecked")
+						List<Object> list = (List<Object>) source;
+						List<Object> converted = list.stream()
+							.map(this::convertStructureToField)
+							.collect(Collectors.toList());
+						return converted;
+					} else if (source instanceof DBObject) {
+						// if it's an object, need to look through all the fields and convert any weird ones
+						DBObject dbo = (DBObject) source;
+						DBObject converted = new BasicDBObject();
+						for (String key : dbo.keySet()) {
+							if (key.startsWith("__wrapped_key_element_")) {
+								DBObject wrapped = (DBObject) dbo.get(key);
+								converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
+							} else {
+								converted.put(key, convertStructureToField(dbo.get(key)));
 							}
-							return converted;
-						} else {
-							return source;
 						}
+						return converted;
+					} else {
+						return source;
 					}
-				})
-				.create();
+				}
+			})
+			.create();
 	}
 
 }

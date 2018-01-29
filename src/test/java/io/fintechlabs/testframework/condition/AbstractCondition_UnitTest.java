@@ -53,8 +53,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * This tests the behavior of the various utility methods in the 
- * abstract superclass used by most conditions. 
+ * This tests the behavior of the various utility methods in the
+ * abstract superclass used by most conditions.
  * 
  * @author jricher
  *
@@ -63,7 +63,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class AbstractCondition_UnitTest {
 
 	private static final String TEST_ID = "UNIT-TEST";
-	
+
 	private static final String TEST_CLASS_NAME = AbstractConditionTester.class.getSimpleName();
 
 	// plain condition
@@ -75,158 +75,156 @@ public class AbstractCondition_UnitTest {
 	private AbstractConditionTester opt;
 	// optional condition with requirements
 	private AbstractConditionTester optReqs;
-	
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private JsonObject obj;
-	
+
 	private Map<String, Object> map;
-	
+
 	@Captor
 	private ArgumentCaptor<JsonObject> objCaptor;
-	
+
 	@Captor
 	private ArgumentCaptor<Map<String, Object>> mapCaptor;
 
 	private String msg = "message string";
-	
+
 	private String req1 = "requirement-1";
-	
+
 	private String req2 = "requirement-2";
 
 	private Throwable cause = new Throwable("throwable message");
-	
+
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.FAILURE);
-		
+
 		condReqs = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.FAILURE, req1, req2);
-		
+
 		opt = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.INFO);
-		
+
 		optReqs = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.WARNING, req1, req2);
 
 		obj = new JsonParser().parse("{\"foo\": \"bar\", \"baz\": 1234}").getAsJsonObject();
-		
+
 		map = ImmutableMap.of("foo", "bar", "baz", 1234);
-		
-		
+
 	}
-	
+
 	@Test
 	public void testArgs_evenList() {
 		Map<String, Object> args = cond.args("foo", "bar", "baz", "quz");
-		
+
 		assertThat(args.size()).isEqualTo(2);
 		assertThat(args.get("foo")).isEqualTo("bar");
 		assertThat(args.get("baz")).isEqualTo("quz");
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testArgs_oddList() {
-		cond.args("foo", "bar", "baz", "quz", "batman");		
+		cond.args("foo", "bar", "baz", "quz", "batman");
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testArgs_null() {
-		cond.args(null);		
+		cond.args(null);
 	}
 
 	@Test
 	public void testArgs_emptyList() {
 		Map<String, Object> args = cond.args();
-		
+
 		assertThat(args.size()).isEqualTo(0);
 	}
-	
+
 	@Test
 	public void testLog_jsonObj() {
-		
+
 		cond.log(obj);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		assertThat(res.size()).isEqualTo(obj.size());
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
-		
+
 	}
-	
+
 	@Test
 	public void testLog_string() {
-		
+
 		cond.log(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), eq(msg));
-		
+
 	}
 
 	@Test
 	public void testLog_map() {
-		
+
 		cond.log(map);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		assertThat(res.size()).isEqualTo(map.size());
-		
+
 		// make sure 'res' has everything 'map' does
 		for (String key : map.keySet()) {
 			assertThat(res.containsKey(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
-		
+
 	}
-	
+
 	@Test
 	public void testLog_stringJsonObj() {
-		
+
 		cond.log(msg, obj);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg"
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
-		
+
 	}
-	
+
 	@Test
 	public void testLog_stringMap() {
-		
+
 		cond.log(msg, map);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg"
 		assertThat(res.size()).isEqualTo(map.size() + 1);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -236,26 +234,25 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-		
-	
+
 	/*
 	 * Test all the "success" methods
 	 */
-	
+
 	@Test
 	public void testLogSuccess_jsonObj() {
 		cond.logSuccess(obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "result"
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -268,40 +265,40 @@ public class AbstractCondition_UnitTest {
 		condReqs.logSuccess(obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "result" and "requirements"
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
-		
+
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
-		
+
 		JsonArray reqs = res.get("requirements").getAsJsonArray();
 		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
 		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogSuccess_string() {
 		cond.logSuccess(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "results"
 		assertThat(res.size()).isEqualTo(2);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -313,43 +310,43 @@ public class AbstractCondition_UnitTest {
 	@Test
 	public void testLogSuccess_string_withReqs() {
 		condReqs.logSuccess(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "results" and "requirements"
 		assertThat(res.size()).isEqualTo(3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
-		
+
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
-		
+
 	}
-	
+
 	@Test
 	public void testLogSuccess_map() {
 		cond.logSuccess(map);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "result"
 		assertThat(res.size()).isEqualTo(map.size() + 1);
-		
+
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
@@ -359,7 +356,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogSuccess_map_withReqs() {
 		condReqs.logSuccess(map);
@@ -367,19 +364,19 @@ public class AbstractCondition_UnitTest {
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "result" and "requirements"
 		assertThat(res.size()).isEqualTo(map.size() + 2);
-		
+
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("SUCCESS");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -396,12 +393,12 @@ public class AbstractCondition_UnitTest {
 		cond.logSuccess(msg, map);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result"
 		assertThat(res.size()).isEqualTo(map.size() + 2);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -414,7 +411,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogSuccess_stringMap_withReqs() {
 		condReqs.logSuccess(msg, map);
@@ -422,10 +419,10 @@ public class AbstractCondition_UnitTest {
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(map.size() + 3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -434,10 +431,10 @@ public class AbstractCondition_UnitTest {
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -454,18 +451,18 @@ public class AbstractCondition_UnitTest {
 		cond.logSuccess(msg, obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result"
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -478,32 +475,32 @@ public class AbstractCondition_UnitTest {
 		condReqs.logSuccess(msg, obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(obj.size() + 3);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
-		
+
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
-		
+
 		JsonArray reqs = res.get("requirements").getAsJsonArray();
 		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
 		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
 	}
-	
+
 	/*
 	 * Test all the "failure" methods when "optional" is set to "false"
 	 */
@@ -513,15 +510,15 @@ public class AbstractCondition_UnitTest {
 		cond.logFailure(obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "result"
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -534,40 +531,40 @@ public class AbstractCondition_UnitTest {
 		condReqs.logFailure(obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "result" and "requirements"
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-		
+
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
-		
+
 		JsonArray reqs = res.get("requirements").getAsJsonArray();
 		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
 		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogFailure_string() {
 		cond.logFailure(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "results"
 		assertThat(res.size()).isEqualTo(2);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -579,43 +576,43 @@ public class AbstractCondition_UnitTest {
 	@Test
 	public void testLogFailure_string_withReqs() {
 		condReqs.logFailure(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "results" and "requirements"
 		assertThat(res.size()).isEqualTo(3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
-		
+
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
-		
+
 	}
-	
+
 	@Test
 	public void testLogFailure_map() {
 		cond.logFailure(map);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "result"
 		assertThat(res.size()).isEqualTo(map.size() + 1);
-		
+
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
@@ -625,7 +622,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogFailure_map_withReqs() {
 		condReqs.logFailure(map);
@@ -633,19 +630,19 @@ public class AbstractCondition_UnitTest {
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "result" and "requirements"
 		assertThat(res.size()).isEqualTo(map.size() + 2);
-		
+
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -662,12 +659,12 @@ public class AbstractCondition_UnitTest {
 		cond.logFailure(msg, map);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result"
 		assertThat(res.size()).isEqualTo(map.size() + 2);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -680,7 +677,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogFailure_stringMap_withReqs() {
 		condReqs.logFailure(msg, map);
@@ -688,10 +685,10 @@ public class AbstractCondition_UnitTest {
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(map.size() + 3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -700,10 +697,10 @@ public class AbstractCondition_UnitTest {
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -720,18 +717,18 @@ public class AbstractCondition_UnitTest {
 		cond.logFailure(msg, obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result"
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -744,32 +741,32 @@ public class AbstractCondition_UnitTest {
 		condReqs.logFailure(msg, obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(obj.size() + 3);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-		
+
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
-		
+
 		JsonArray reqs = res.get("requirements").getAsJsonArray();
 		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
 		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
 	}
-	
+
 	/*
 	 * Test all the "failure" methods when "optional" is set to "true"
 	 */
@@ -779,15 +776,15 @@ public class AbstractCondition_UnitTest {
 		opt.logFailure(obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "result"
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("INFO");
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -800,40 +797,40 @@ public class AbstractCondition_UnitTest {
 		optReqs.logFailure(obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "result" and "requirements"
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
-		
+
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
-		
+
 		JsonArray reqs = res.get("requirements").getAsJsonArray();
 		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
 		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
 			assertThat(res.get(key)).isEqualTo(obj.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogFailure_string_opt() {
 		opt.logFailure(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "results"
 		assertThat(res.size()).isEqualTo(2);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -845,43 +842,43 @@ public class AbstractCondition_UnitTest {
 	@Test
 	public void testLogFailure_string_withReqs_opt() {
 		optReqs.logFailure(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "results" and "requirements"
 		assertThat(res.size()).isEqualTo(3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("WARNING");
-		
+
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
-		
+
 	}
-	
+
 	@Test
 	public void testLogFailure_map_opt() {
 		opt.logFailure(map);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "result"
 		assertThat(res.size()).isEqualTo(map.size() + 1);
-		
+
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("INFO");
 
@@ -891,7 +888,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogFailure_map_withReqs_opt() {
 		optReqs.logFailure(map);
@@ -899,19 +896,19 @@ public class AbstractCondition_UnitTest {
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "result" and "requirements"
 		assertThat(res.size()).isEqualTo(map.size() + 2);
-		
+
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("WARNING");
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -928,12 +925,12 @@ public class AbstractCondition_UnitTest {
 		opt.logFailure(msg, map);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result"
 		assertThat(res.size()).isEqualTo(map.size() + 2);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -946,7 +943,7 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get(key)).isEqualTo(map.get(key));
 		}
 	}
-	
+
 	@Test
 	public void testLogFailure_stringMap_withReqs_opt() {
 		optReqs.logFailure(msg, map);
@@ -954,10 +951,10 @@ public class AbstractCondition_UnitTest {
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(map.size() + 3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -966,10 +963,10 @@ public class AbstractCondition_UnitTest {
 
 		assertThat(res.containsKey("requirements"));
 		assertThat(res.get("requirements")).isInstanceOf(Collection.class);
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -986,18 +983,18 @@ public class AbstractCondition_UnitTest {
 		opt.logFailure(msg, obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result"
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("INFO");
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -1010,25 +1007,25 @@ public class AbstractCondition_UnitTest {
 		optReqs.logFailure(msg, obj);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-		
+
 		JsonObject res = objCaptor.getValue();
-		
+
 		// one extra field for "msg" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(obj.size() + 3);
 
 		assertThat(res.has("msg")).isEqualTo(true);
 		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-		
+
 		assertThat(res.has("result")).isEqualTo(true);
 		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
-		
+
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
-		
+
 		JsonArray reqs = res.get("requirements").getAsJsonArray();
 		assertThat(reqs.contains(new JsonPrimitive(req1))).isEqualTo(true);
 		assertThat(reqs.contains(new JsonPrimitive(req2))).isEqualTo(true);
-		
+
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
 			assertThat(res.has(key)).isEqualTo(true);
@@ -1048,21 +1045,21 @@ public class AbstractCondition_UnitTest {
 	public void testError_stringThrowable() {
 		try {
 			cond.error(msg, cause);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
 			assertThat(e.getCause()).isNotNull();
 			assertThat(e.getCause()).isEqualTo(cause);
 
 			verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-			
+
 			Map<String, Object> res = mapCaptor.getValue();
-			
+
 			// one extra field for "msg" and "results" and "error" and "error_class" and "stracktrace"
 			assertThat(res.size()).isEqualTo(5);
-			
+
 			assertThat(res.containsKey("msg")).isEqualTo(true);
 			assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -1070,25 +1067,25 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		}
 	}
-	
+
 	@Test
 	public void testError_string() {
 		try {
 			cond.error(msg);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
 			assertThat(e.getCause()).isNull();
 
 			verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-			
+
 			Map<String, Object> res = mapCaptor.getValue();
-			
+
 			// one extra field for "msg" and "results"
 			assertThat(res.size()).isEqualTo(2);
-			
+
 			assertThat(res.containsKey("msg")).isEqualTo(true);
 			assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -1096,26 +1093,26 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		}
 	}
-	
+
 	@Test
 	public void testError_throwable() {
 		try {
 			cond.error(cause);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME);
 			assertThat(e.getCause()).isNotNull();
 			assertThat(e.getCause()).isEqualTo(cause);
-			
+
 			verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-			
+
 			Map<String, Object> res = mapCaptor.getValue();
-			
+
 			// one extra field for "msg" and "results" and "error" and "error_class" and "stracktrace"
 			assertThat(res.size()).isEqualTo(5);
-			
+
 			assertThat(res.containsKey("msg")).isEqualTo(true);
 			assertThat(res.get("msg")).isEqualTo(cause.getMessage());
 
@@ -1123,26 +1120,26 @@ public class AbstractCondition_UnitTest {
 			assertThat(res.get("result").toString()).isEqualTo("FAILURE");
 		}
 	}
-	
+
 	@Test
 	public void testError_stringThrowableMap() {
 		try {
 			cond.error(msg, cause, map);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
 			assertThat(e.getCause()).isNotNull();
 			assertThat(e.getCause()).isEqualTo(cause);
-			
+
 			verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-			
+
 			Map<String, Object> res = mapCaptor.getValue();
-			
+
 			// one extra field for "msg" and "result" and "error" and "error_class" and "stracktrace"
 			assertThat(res.size()).isEqualTo(map.size() + 5);
-			
+
 			assertThat(res.containsKey("msg")).isEqualTo(true);
 			assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -1156,25 +1153,25 @@ public class AbstractCondition_UnitTest {
 			}
 		}
 	}
-	
+
 	@Test
 	public void testError_stringMap() {
 		try {
 			cond.error(msg, map);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
 			assertThat(e.getCause()).isNull();
-			
+
 			verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-			
+
 			Map<String, Object> res = mapCaptor.getValue();
-			
+
 			// one extra field for "msg" and "result"
 			assertThat(res.size()).isEqualTo(map.size() + 2);
-			
+
 			assertThat(res.containsKey("msg")).isEqualTo(true);
 			assertThat(res.get("msg")).isEqualTo(msg);
 
@@ -1189,26 +1186,26 @@ public class AbstractCondition_UnitTest {
 
 		}
 	}
-	
+
 	@Test
 	public void testError_throwableMap() {
 		try {
 			cond.error(cause, map);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME);
 			assertThat(e.getCause()).isNotNull();
 			assertThat(e.getCause()).isEqualTo(cause);
-			
+
 			verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-			
+
 			Map<String, Object> res = mapCaptor.getValue();
-			
+
 			// one extra field for "msg" and "result" and "error" and "error_class" and "stracktrace"
 			assertThat(res.size()).isEqualTo(map.size() + 5);
-			
+
 			assertThat(res.containsKey("msg")).isEqualTo(true);
 			assertThat(res.get("msg")).isEqualTo(cause.getMessage());
 
@@ -1223,32 +1220,32 @@ public class AbstractCondition_UnitTest {
 
 		}
 	}
-	
+
 	@Test
 	public void testError_stringThrowableJsonObject() {
 		try {
 			cond.error(msg, cause, obj);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
 			assertThat(e.getCause()).isNotNull();
 			assertThat(e.getCause()).isEqualTo(cause);
 
 			verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-			
+
 			JsonObject res = objCaptor.getValue();
-			
+
 			// one extra field for "msg" and "result" and "error" and "error_class" and "stracktrace"
 			assertThat(res.size()).isEqualTo(obj.size() + 5);
 
 			assertThat(res.has("msg")).isEqualTo(true);
 			assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-			
+
 			assertThat(res.has("result")).isEqualTo(true);
 			assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-			
+
 			// make sure 'res' has everything 'obj' does
 			for (String key : obj.keySet()) {
 				assertThat(res.has(key)).isEqualTo(true);
@@ -1256,31 +1253,31 @@ public class AbstractCondition_UnitTest {
 			}
 		}
 	}
-	
+
 	@Test
 	public void testError_stringJsonObject() {
 		try {
 			cond.error(msg, obj);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME + ": " + msg);
 			assertThat(e.getCause()).isNull();
 
 			verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-			
+
 			JsonObject res = objCaptor.getValue();
-			
+
 			// one extra field for "msg" and "result"
 			assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 			assertThat(res.has("msg")).isEqualTo(true);
 			assertThat(res.get("msg").getAsString()).isEqualTo(msg);
-			
+
 			assertThat(res.has("result")).isEqualTo(true);
 			assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-			
+
 			// make sure 'res' has everything 'obj' does
 			for (String key : obj.keySet()) {
 				assertThat(res.has(key)).isEqualTo(true);
@@ -1288,32 +1285,32 @@ public class AbstractCondition_UnitTest {
 			}
 		}
 	}
-	
+
 	@Test
 	public void testError_throwableJsonObject() {
 		try {
 			cond.error(cause, obj);
-			
+
 			failBecauseExceptionWasNotThrown(ConditionError.class);
-			
+
 		} catch (ConditionError e) {
 			assertThat(e.getMessage()).isEqualTo(TEST_CLASS_NAME);
 			assertThat(e.getCause()).isNotNull();
 			assertThat(e.getCause()).isEqualTo(cause);
 
 			verify(eventLog).log(eq(TEST_CLASS_NAME), objCaptor.capture());
-			
+
 			JsonObject res = objCaptor.getValue();
-			
+
 			// one extra field for "msg" and "result" and "error" and "error_class" and "stracktrace"
 			assertThat(res.size()).isEqualTo(obj.size() + 5);
 
 			assertThat(res.has("msg")).isEqualTo(true);
 			assertThat(res.get("msg").getAsString()).isEqualTo(cause.getMessage());
-			
+
 			assertThat(res.has("result")).isEqualTo(true);
 			assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
-			
+
 			// make sure 'res' has everything 'obj' does
 			for (String key : obj.keySet()) {
 				assertThat(res.has(key)).isEqualTo(true);
@@ -1325,46 +1322,46 @@ public class AbstractCondition_UnitTest {
 	/*
 	 * Tests for the upload placeholder
 	 */
-	
+
 	@Test
 	public void testCreateUploadPlaceholder() {
 		cond.createUploadPlaceholder();
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "upload" and "result"
 		assertThat(res.size()).isEqualTo(2);
-		
+
 		assertThat(res.containsKey("upload")).isEqualTo(true);
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
-		
+
 	}
-	
+
 	@Test
 	public void testCreateUploadPlaceholder_withReqs() {
 		condReqs.createUploadPlaceholder();
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "upload" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(3);
-		
+
 		assertThat(res.containsKey("upload")).isEqualTo(true);
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
@@ -1373,56 +1370,55 @@ public class AbstractCondition_UnitTest {
 	@Test
 	public void testCreateUploadPlaceholder_string() {
 		cond.createUploadPlaceholder(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "upload" and "result"
 		assertThat(res.size()).isEqualTo(3);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
-		
+
 		assertThat(res.containsKey("upload")).isEqualTo(true);
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
-		
+
 	}
-	
+
 	@Test
 	public void testCreateUploadPlaceholder_string_withReqs() {
 		condReqs.createUploadPlaceholder(msg);
-		
+
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
-		
+
 		Map<String, Object> res = mapCaptor.getValue();
-		
+
 		// one extra field for "msg" and "upload" and "result" and "requirements"
 		assertThat(res.size()).isEqualTo(4);
-		
+
 		assertThat(res.containsKey("msg")).isEqualTo(true);
 		assertThat(res.get("msg")).isEqualTo(msg);
-		
+
 		assertThat(res.containsKey("upload")).isEqualTo(true);
 		assertThat(res.get("upload")).isInstanceOf(String.class); // it can be any string
 
 		assertThat(res.containsKey("result")).isEqualTo(true);
 		assertThat(res.get("result").toString()).isEqualTo("REVIEW");
-		
+
 		@SuppressWarnings("unchecked")
 		Collection<String> reqs = (Collection<String>) res.get("requirements");
-		
+
 		assertThat(reqs.size()).isEqualTo(2);
 		assertThat(reqs.contains(req1));
 		assertThat(reqs.contains(req2));
 	}
-	
 
 	/**
-	 * This subclass exposes the utility methods used by Condition classes so that we can test them here. 
+	 * This subclass exposes the utility methods used by Condition classes so that we can test them here.
 	 * 
 	 * @author jricher
 	 *
@@ -1456,7 +1452,7 @@ public class AbstractCondition_UnitTest {
 		public Map<String, Object> args(Object... a) {
 			// TODO Auto-generated method stub
 			return super.args(a);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1466,7 +1462,7 @@ public class AbstractCondition_UnitTest {
 		protected void log(JsonObject obj) {
 			// TODO Auto-generated method stub
 			super.log(obj);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1476,7 +1472,7 @@ public class AbstractCondition_UnitTest {
 		protected void log(String msg) {
 			// TODO Auto-generated method stub
 			super.log(msg);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1486,7 +1482,7 @@ public class AbstractCondition_UnitTest {
 		protected void log(Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			super.log(map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1496,7 +1492,7 @@ public class AbstractCondition_UnitTest {
 		protected void log(String msg, JsonObject in) {
 			// TODO Auto-generated method stub
 			super.log(msg, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1506,7 +1502,7 @@ public class AbstractCondition_UnitTest {
 		protected void log(String msg, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			super.log(msg, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1516,7 +1512,7 @@ public class AbstractCondition_UnitTest {
 		protected void logSuccess(JsonObject in) {
 			// TODO Auto-generated method stub
 			super.logSuccess(in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1526,7 +1522,7 @@ public class AbstractCondition_UnitTest {
 		protected void logSuccess(String msg) {
 			// TODO Auto-generated method stub
 			super.logSuccess(msg);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1536,7 +1532,7 @@ public class AbstractCondition_UnitTest {
 		protected void logSuccess(Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			super.logSuccess(map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1546,7 +1542,7 @@ public class AbstractCondition_UnitTest {
 		protected void logSuccess(String msg, JsonObject in) {
 			// TODO Auto-generated method stub
 			super.logSuccess(msg, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1556,7 +1552,7 @@ public class AbstractCondition_UnitTest {
 		protected void logSuccess(String msg, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			super.logSuccess(msg, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1566,7 +1562,7 @@ public class AbstractCondition_UnitTest {
 		protected void logFailure(JsonObject in) {
 			// TODO Auto-generated method stub
 			super.logFailure(in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1576,7 +1572,7 @@ public class AbstractCondition_UnitTest {
 		protected void logFailure(String msg) {
 			// TODO Auto-generated method stub
 			super.logFailure(msg);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1586,7 +1582,7 @@ public class AbstractCondition_UnitTest {
 		protected void logFailure(Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			super.logFailure(map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1596,7 +1592,7 @@ public class AbstractCondition_UnitTest {
 		protected void logFailure(String msg, JsonObject in) {
 			// TODO Auto-generated method stub
 			super.logFailure(msg, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1606,7 +1602,7 @@ public class AbstractCondition_UnitTest {
 		protected void logFailure(String msg, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			super.logFailure(msg, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1616,7 +1612,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(String message, Throwable cause) {
 			// TODO Auto-generated method stub
 			return super.error(message, cause);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1626,7 +1622,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(String message) {
 			// TODO Auto-generated method stub
 			return super.error(message);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1636,7 +1632,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(Throwable cause) {
 			// TODO Auto-generated method stub
 			return super.error(cause);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1646,7 +1642,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(String message, Throwable cause, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			return super.error(message, cause, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1656,7 +1652,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(String message, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			return super.error(message, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1666,7 +1662,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(Throwable cause, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			return super.error(cause, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1676,7 +1672,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(String message, Throwable cause, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.error(message, cause, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1686,7 +1682,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(String message, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.error(message, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1696,7 +1692,7 @@ public class AbstractCondition_UnitTest {
 		protected Environment error(Throwable cause, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.error(cause, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1706,7 +1702,7 @@ public class AbstractCondition_UnitTest {
 		protected Set<String> getRequirements() {
 			// TODO Auto-generated method stub
 			return super.getRequirements();
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1716,7 +1712,7 @@ public class AbstractCondition_UnitTest {
 		protected void createUploadPlaceholder(String msg) {
 			// TODO Auto-generated method stub
 			super.createUploadPlaceholder(msg);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1726,7 +1722,7 @@ public class AbstractCondition_UnitTest {
 		protected void createUploadPlaceholder() {
 			// TODO Auto-generated method stub
 			super.createUploadPlaceholder();
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1736,7 +1732,7 @@ public class AbstractCondition_UnitTest {
 		protected Map<String, Object> ex(Throwable cause) {
 			// TODO Auto-generated method stub
 			return super.ex(cause);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1746,7 +1742,7 @@ public class AbstractCondition_UnitTest {
 		protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
 			// TODO Auto-generated method stub
 			return super.ex(cause, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1756,7 +1752,7 @@ public class AbstractCondition_UnitTest {
 		protected JsonObject ex(Throwable cause, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.ex(cause, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1766,7 +1762,7 @@ public class AbstractCondition_UnitTest {
 		protected HttpClient createHttpClient(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
 			// TODO Auto-generated method stub
 			return super.createHttpClient(env);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1776,13 +1772,9 @@ public class AbstractCondition_UnitTest {
 		protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 			// TODO Auto-generated method stub
 			return super.createRestTemplate(env);
-			
+
 		}
-		
-		
 
 	}
 
-	
-	
 }

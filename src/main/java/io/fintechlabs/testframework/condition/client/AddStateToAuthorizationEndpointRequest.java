@@ -18,10 +18,8 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -51,19 +49,19 @@ public class AddStateToAuthorizationEndpointRequest extends AbstractCondition {
 		if (Strings.isNullOrEmpty(state)) {
 			return error("Couldn't find state value");
 		}
-		
+
 		if (!env.containsObj("authorization_endpoint_request")) {
 			return error("Couldn't find authorization endpoint request");
 		}
-		
+
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
-		
+
 		authorizationEndpointRequest.addProperty("state", state);
-		
+
 		env.put("authorization_endpoint_request", authorizationEndpointRequest);
-		
+
 		logSuccess("Added state parameter to request", authorizationEndpointRequest);
-		
+
 		return env;
 
 	}

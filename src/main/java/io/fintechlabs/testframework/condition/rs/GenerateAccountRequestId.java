@@ -44,15 +44,13 @@ public class GenerateAccountRequestId extends AbstractCondition {
 	@PostEnvironment(strings = "account_request_id")
 	public Environment evaluate(Environment env) {
 
-
 		String acct = RandomStringUtils.randomAlphanumeric(10);
-		
+
 		env.putString("account_request_id", acct);
-		
+
 		logSuccess("Created account request", args("account_request_id", acct));
-		
+
 		return env;
-		
 
 	}
 

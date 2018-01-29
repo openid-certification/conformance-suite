@@ -17,9 +17,7 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -43,7 +41,7 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
-		
+
 		if (!env.containsObj("token_endpoint_response")) {
 			return error("Couldn't find token endpoint response");
 		}
@@ -54,7 +52,6 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 			logSuccess("No error from token endpoint");
 			return env;
 		}
-		
 
 	}
 

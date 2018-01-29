@@ -24,10 +24,8 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -54,25 +52,25 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 	@PostEnvironment(required = "callback_params")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("implicit_hash"))) {
-			
+
 			String hash = env.getString("implicit_hash").substring(1); // strip off the leading # character
-			
+
 			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
-			
+
 			log("Extracted response from hash", args("parameters", parameters));
-			
+
 			JsonObject o = new JsonObject();
 			for (NameValuePair pair : parameters) {
 				o.addProperty(pair.getName(), pair.getValue());
 			}
-			
+
 			// these count as both the authorization and token responses
 			env.put("callback_params", o);
-			
+
 			logSuccess("Extracted the hash values", o);
-			
+
 			return env;
-			
+
 		} else {
 			return error("Couldn't find the response in hash for implicit flow");
 		}

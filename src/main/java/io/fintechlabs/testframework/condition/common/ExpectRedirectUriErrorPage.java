@@ -15,8 +15,6 @@
 package io.fintechlabs.testframework.condition.common;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -39,9 +37,9 @@ public class ExpectRedirectUriErrorPage extends AbstractCondition {
 	 */
 	@Override
 	public Environment evaluate(Environment env) {
-		
+
 		createUploadPlaceholder("Show redirect URI error page");
-		
+
 		return env;
 	}
 

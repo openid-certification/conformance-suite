@@ -26,9 +26,8 @@ import com.google.gson.JsonParser;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -56,13 +55,13 @@ public class CheckForSubscriberInIdToken_UnitTest {
 		// Good sample from OpenID Connect Core spec
 
 		JsonObject goodClaims = new JsonParser().parse("{\n" +
-				" \"iss\": \"http://server.example.com\",\n" +
-				" \"sub\": \"248289761001\",\n" +
-				" \"aud\": \"s6BhdRkqt3\",\n" +
-				" \"nonce\": \"n-0S6_WzA2Mj\",\n" +
-				" \"exp\": 1311281970,\n" +
-				" \"iat\": 1311280970\n" +
-				"}").getAsJsonObject();
+			" \"iss\": \"http://server.example.com\",\n" +
+			" \"sub\": \"248289761001\",\n" +
+			" \"aud\": \"s6BhdRkqt3\",\n" +
+			" \"nonce\": \"n-0S6_WzA2Mj\",\n" +
+			" \"exp\": 1311281970,\n" +
+			" \"iat\": 1311280970\n" +
+			"}").getAsJsonObject();
 
 		goodToken = new JsonObject();
 		goodToken.add("claims", goodClaims);

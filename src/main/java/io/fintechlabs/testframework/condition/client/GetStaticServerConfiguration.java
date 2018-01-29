@@ -18,10 +18,8 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -50,10 +48,10 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 		if (!env.containsObj("config")) {
 			return error("Couldn't find a configuration");
 		}
-		
+
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");
 		String iss = env.getString("config", "server.discoveryIssuer");
-		
+
 		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
 			return error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
 		}
@@ -65,7 +63,7 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 		} else {
 			// we've got a server object, put it in the environment
 			env.put("server", server.getAsJsonObject());
-			
+
 			logSuccess("Found a static server object", server.getAsJsonObject());
 			return env;
 		}

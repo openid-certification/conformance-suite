@@ -23,9 +23,8 @@ import com.google.gson.JsonParser;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -60,55 +59,54 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 
-		String requestObjectClaimsString =
-				"  {\n" + 
-				"   \"iss\": \"s6BhdRkqt3\",\n" + 
-				"   \"aud\": \"https://server.example.com\",\n" + 
-				"   \"response_type\": \"code id_token\",\n" + 
-				"   \"client_id\": \"s6BhdRkqt3\",\n" + 
-				"   \"redirect_uri\": \"https://client.example.org/cb\",\n" + 
-				"   \"scope\": \"openid\",\n" + 
-				"   \"state\": \"af0ifjsldkj\",\n" + 
-				"   \"nonce\": \"n-0S6_WzA2Mj\",\n" + 
-				"   \"max_age\": 86400,\n" + 
-				"   \"claims\":\n" + 
-				"    {\n" + 
-				"     \"userinfo\":\n" + 
-				"      {\n" + 
-				"       \"given_name\": {\"essential\": true},\n" + 
-				"       \"nickname\": null,\n" + 
-				"       \"email\": {\"essential\": true},\n" + 
-				"       \"email_verified\": {\"essential\": true},\n" + 
-				"       \"picture\": null\n" + 
-				"      },\n" + 
-				"     \"id_token\":\n" + 
-				"      {\n" + 
-				"       \"gender\": null,\n" + 
-				"       \"birthdate\": {\"essential\": true},\n" + 
-				"       \"acr\": {\"values\": [\"urn:mace:incommon:iap:silver\"]}\n" + 
-				"      }\n" + 
-				"    }\n" + 
-				"  }";
+		String requestObjectClaimsString = "  {\n" +
+			"   \"iss\": \"s6BhdRkqt3\",\n" +
+			"   \"aud\": \"https://server.example.com\",\n" +
+			"   \"response_type\": \"code id_token\",\n" +
+			"   \"client_id\": \"s6BhdRkqt3\",\n" +
+			"   \"redirect_uri\": \"https://client.example.org/cb\",\n" +
+			"   \"scope\": \"openid\",\n" +
+			"   \"state\": \"af0ifjsldkj\",\n" +
+			"   \"nonce\": \"n-0S6_WzA2Mj\",\n" +
+			"   \"max_age\": 86400,\n" +
+			"   \"claims\":\n" +
+			"    {\n" +
+			"     \"userinfo\":\n" +
+			"      {\n" +
+			"       \"given_name\": {\"essential\": true},\n" +
+			"       \"nickname\": null,\n" +
+			"       \"email\": {\"essential\": true},\n" +
+			"       \"email_verified\": {\"essential\": true},\n" +
+			"       \"picture\": null\n" +
+			"      },\n" +
+			"     \"id_token\":\n" +
+			"      {\n" +
+			"       \"gender\": null,\n" +
+			"       \"birthdate\": {\"essential\": true},\n" +
+			"       \"acr\": {\"values\": [\"urn:mace:incommon:iap:silver\"]}\n" +
+			"      }\n" +
+			"    }\n" +
+			"  }";
 
-		requestObject = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImsyYmRjIn0.ew0KICJpc3MiOiAiczZCaGRSa3" + 
-				"F0MyIsDQogImF1ZCI6ICJodHRwczovL3NlcnZlci5leGFtcGxlLmNvbSIsDQogInJl" + 
-				"c3BvbnNlX3R5cGUiOiAiY29kZSBpZF90b2tlbiIsDQogImNsaWVudF9pZCI6ICJzNk" + 
-				"JoZFJrcXQzIiwNCiAicmVkaXJlY3RfdXJpIjogImh0dHBzOi8vY2xpZW50LmV4YW1w" + 
-				"bGUub3JnL2NiIiwNCiAic2NvcGUiOiAib3BlbmlkIiwNCiAic3RhdGUiOiAiYWYwaW" + 
-				"Zqc2xka2oiLA0KICJub25jZSI6ICJuLTBTNl9XekEyTWoiLA0KICJtYXhfYWdlIjog" + 
-				"ODY0MDAsDQogImNsYWltcyI6IA0KICB7DQogICAidXNlcmluZm8iOiANCiAgICB7DQ" + 
-				"ogICAgICJnaXZlbl9uYW1lIjogeyJlc3NlbnRpYWwiOiB0cnVlfSwNCiAgICAgIm5p" + 
-				"Y2tuYW1lIjogbnVsbCwNCiAgICAgImVtYWlsIjogeyJlc3NlbnRpYWwiOiB0cnVlfS" + 
-				"wNCiAgICAgImVtYWlsX3ZlcmlmaWVkIjogeyJlc3NlbnRpYWwiOiB0cnVlfSwNCiAg" + 
-				"ICAgInBpY3R1cmUiOiBudWxsDQogICAgfSwNCiAgICJpZF90b2tlbiI6IA0KICAgIH" + 
-				"sNCiAgICAgImdlbmRlciI6IG51bGwsDQogICAgICJiaXJ0aGRhdGUiOiB7ImVzc2Vu" + 
-				"dGlhbCI6IHRydWV9LA0KICAgICAiYWNyIjogeyJ2YWx1ZXMiOiBbInVybjptYWNlOm" + 
-				"luY29tbW9uOmlhcDpzaWx2ZXIiXX0NCiAgICB9DQogIH0NCn0.nwwnNsk1-Zkbmnvs" + 
-				"F6zTHm8CHERFMGQPhos-EJcaH4Hh-sMgk8ePrGhw_trPYs8KQxsn6R9Emo_wHwajyF" + 
-				"KzuMXZFSZ3p6Mb8dkxtVyjoy2GIzvuJT_u7PkY2t8QU9hjBcHs68PkgjDVTrG1uRTx" + 
-				"0GxFbuPbj96tVuj11pTnmFCUR6IEOXKYr7iGOCRB3btfJhM0_AKQUfqKnRlrRscc8K" + 
-				"ol-cSLWoYE9l5QqholImzjT_cMnNIznW9E7CDyWXTsO70xnB4SkG6pXfLSjLLlxmPG" + 
-				"iyon_-Te111V8uE83IlzCYIb_NMXvtTIVc1jpspnTSD7xMbpL-2QgwUsAlMGzw";
+		requestObject = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImsyYmRjIn0.ew0KICJpc3MiOiAiczZCaGRSa3" +
+			"F0MyIsDQogImF1ZCI6ICJodHRwczovL3NlcnZlci5leGFtcGxlLmNvbSIsDQogInJl" +
+			"c3BvbnNlX3R5cGUiOiAiY29kZSBpZF90b2tlbiIsDQogImNsaWVudF9pZCI6ICJzNk" +
+			"JoZFJrcXQzIiwNCiAicmVkaXJlY3RfdXJpIjogImh0dHBzOi8vY2xpZW50LmV4YW1w" +
+			"bGUub3JnL2NiIiwNCiAic2NvcGUiOiAib3BlbmlkIiwNCiAic3RhdGUiOiAiYWYwaW" +
+			"Zqc2xka2oiLA0KICJub25jZSI6ICJuLTBTNl9XekEyTWoiLA0KICJtYXhfYWdlIjog" +
+			"ODY0MDAsDQogImNsYWltcyI6IA0KICB7DQogICAidXNlcmluZm8iOiANCiAgICB7DQ" +
+			"ogICAgICJnaXZlbl9uYW1lIjogeyJlc3NlbnRpYWwiOiB0cnVlfSwNCiAgICAgIm5p" +
+			"Y2tuYW1lIjogbnVsbCwNCiAgICAgImVtYWlsIjogeyJlc3NlbnRpYWwiOiB0cnVlfS" +
+			"wNCiAgICAgImVtYWlsX3ZlcmlmaWVkIjogeyJlc3NlbnRpYWwiOiB0cnVlfSwNCiAg" +
+			"ICAgInBpY3R1cmUiOiBudWxsDQogICAgfSwNCiAgICJpZF90b2tlbiI6IA0KICAgIH" +
+			"sNCiAgICAgImdlbmRlciI6IG51bGwsDQogICAgICJiaXJ0aGRhdGUiOiB7ImVzc2Vu" +
+			"dGlhbCI6IHRydWV9LA0KICAgICAiYWNyIjogeyJ2YWx1ZXMiOiBbInVybjptYWNlOm" +
+			"luY29tbW9uOmlhcDpzaWx2ZXIiXX0NCiAgICB9DQogIH0NCn0.nwwnNsk1-Zkbmnvs" +
+			"F6zTHm8CHERFMGQPhos-EJcaH4Hh-sMgk8ePrGhw_trPYs8KQxsn6R9Emo_wHwajyF" +
+			"KzuMXZFSZ3p6Mb8dkxtVyjoy2GIzvuJT_u7PkY2t8QU9hjBcHs68PkgjDVTrG1uRTx" +
+			"0GxFbuPbj96tVuj11pTnmFCUR6IEOXKYr7iGOCRB3btfJhM0_AKQUfqKnRlrRscc8K" +
+			"ol-cSLWoYE9l5QqholImzjT_cMnNIznW9E7CDyWXTsO70xnB4SkG6pXfLSjLLlxmPG" +
+			"iyon_-Te111V8uE83IlzCYIb_NMXvtTIVc1jpspnTSD7xMbpL-2QgwUsAlMGzw";
 
 		server = new JsonObject();
 		server.addProperty("authorization_endpoint", "https://server.example.com/oauth/authorize");
@@ -127,7 +125,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * @throws UnsupportedEncodingException 
+	 * 
+	 * @throws UnsupportedEncodingException
 	 */
 	@Test
 	public void testEvaluate() throws UnsupportedEncodingException {
@@ -160,7 +159,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * @throws UnsupportedEncodingException 
+	 * 
+	 * @throws UnsupportedEncodingException
 	 */
 	@Test
 	public void testEvaluate_override() throws UnsupportedEncodingException {

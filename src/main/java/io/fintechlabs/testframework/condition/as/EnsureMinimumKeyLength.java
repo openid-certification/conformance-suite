@@ -22,9 +22,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -68,7 +66,7 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 				minimumLength = MINIMUM_KEY_LENGTH_EC;
 			} else {
 				// No requirement for other key types
-				continue;	
+				continue;
 			}
 
 			if (keyLength < minimumLength) {

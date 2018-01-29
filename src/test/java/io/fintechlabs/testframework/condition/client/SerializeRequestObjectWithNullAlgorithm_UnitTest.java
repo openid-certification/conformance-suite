@@ -20,9 +20,8 @@ import com.nimbusds.jwt.PlainJWT;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -51,39 +50,42 @@ public class SerializeRequestObjectWithNullAlgorithm_UnitTest {
 
 		requestObjectClaims = new JsonParser().parse(
 				"  {\n" + 
-				"   \"iss\": \"s6BhdRkqt3\",\n" + 
-				"   \"aud\": \"https://server.example.com\",\n" + 
-				"   \"response_type\": \"code id_token\",\n" + 
-				"   \"client_id\": \"s6BhdRkqt3\",\n" + 
-				"   \"redirect_uri\": \"https://client.example.org/cb\",\n" + 
-				"   \"scope\": \"openid\",\n" + 
-				"   \"state\": \"af0ifjsldkj\",\n" + 
-				"   \"nonce\": \"n-0S6_WzA2Mj\",\n" + 
-				"   \"max_age\": 86400,\n" + 
-				"   \"claims\":\n" + 
-				"    {\n" + 
-				"     \"userinfo\":\n" + 
-				"      {\n" + 
-				"       \"given_name\": {\"essential\": true},\n" + 
-				"       \"nickname\": null,\n" + 
-				"       \"email\": {\"essential\": true},\n" + 
-				"       \"email_verified\": {\"essential\": true},\n" + 
-				"       \"picture\": null\n" + 
-				"      },\n" + 
-				"     \"id_token\":\n" + 
-				"      {\n" + 
-				"       \"gender\": null,\n" + 
-				"       \"birthdate\": {\"essential\": true},\n" + 
-				"       \"acr\": {\"values\": [\"urn:mace:incommon:iap:silver\"]}\n" + 
-				"      }\n" + 
-				"    }\n" + 
-				"  }").getAsJsonObject();
+				"   \"iss\": \"s6BhdRkqt3\",\n" +
+				"   \"aud\": \"https://server.example.com\",\n" +
+				"   \"response_type\": \"code id_token\",\n" +
+				"   \"client_id\": \"s6BhdRkqt3\",\n" +
+				"   \"redirect_uri\": \"https://client.example.org/cb\",\n" +
+				"   \"scope\": \"openid\",\n" +
+				"   \"state\": \"af0ifjsldkj\",\n" +
+				"   \"nonce\": \"n-0S6_WzA2Mj\",\n" +
+				"   \"max_age\": 86400,\n" +
+				"   \"claims\":\n" +
+				"    {\n" +
+				"     \"userinfo\":\n" +
+				"      {\n" +
+				"       \"given_name\": {\"essential\": true},\n" +
+				"       \"nickname\": null,\n" +
+				"       \"email\": {\"essential\": true},\n" +
+				"       \"email_verified\": {\"essential\": true},\n" +
+				"       \"picture\": null\n" +
+				"      },\n" +
+				"     \"id_token\":\n" +
+				"      {\n" +
+				"       \"gender\": null,\n" +
+				"       \"birthdate\": {\"essential\": true},\n" +
+				"       \"acr\": {\"values\": [\"urn:mace:incommon:iap:silver\"]}\n" +
+				"      }\n" +
+				"    }\n" +
+				"  }")
+			.getAsJsonObject();
 
 	}
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * @throws JOSEException, ParseException
+	 * 
+	 * @throws JOSEException,
+	 *             ParseException
 	 */
 	@Test
 	public void testEvaluate_valuesPresent() throws JOSEException, ParseException {

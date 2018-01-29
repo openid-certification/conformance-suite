@@ -48,9 +48,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CallTokenEndpointExpectingError extends AbstractCondition {
 
-
 	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpointExpectingError.class);
-
 
 	/**
 	 * @param testId
@@ -64,7 +62,7 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"server", "token_endpoint_request_form_parameters"})
+	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
 	public Environment evaluate(Environment env) {
 
 		if (env.getString("server", "token_endpoint") == null) {
@@ -120,7 +118,7 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 				return error("Empty response from the token endpoint");
 			} else {
 				log("Token endpoint response",
-						args("token_endpoint_response", jsonString));
+					args("token_endpoint_response", jsonString));
 
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(jsonString);

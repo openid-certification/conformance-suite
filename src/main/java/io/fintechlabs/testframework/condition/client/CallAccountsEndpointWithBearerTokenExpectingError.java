@@ -58,7 +58,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = {"access_token", "resource"})
+	@PreEnvironment(required = { "access_token", "resource" })
 	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
@@ -83,8 +83,8 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-				.path(ACCOUNTS_RESOURCE)
-				.toUriString();
+			.path(ACCOUNTS_RESOURCE)
+			.toUriString();
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
@@ -104,7 +104,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 			HttpEntity<?> request = new HttpEntity<>(headers);
 
 			ResponseEntity<String> response = null;
-			
+
 			try {
 				response = restTemplate.exchange(accountRequestsUrl, HttpMethod.GET, request, String.class);
 			} catch (RestClientResponseException e) {

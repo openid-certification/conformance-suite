@@ -24,9 +24,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -50,8 +49,8 @@ public class EnsureMatchingClientCertificate_UnitTest {
 		cond = new EnsureMatchingClientCertificate("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		JsonObject client = new JsonParser().parse("{" +
-					"\"client_id\":\"CN=example.org\"" +
-					"}").getAsJsonObject();
+			"\"client_id\":\"CN=example.org\"" +
+			"}").getAsJsonObject();
 
 		env.put("client", client);
 

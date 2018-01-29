@@ -61,7 +61,7 @@ public abstract class AbstractOBServerTestModuleCodeFlow extends AbstractOBServe
 	}
 
 	protected void logCodeFlowWarning() {
-		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, Object> map = new HashMap<>();
 		map.put("msg", "Risks have been identified with \"code\" flow that can be mitigated with hybrid (code id_token) flow");
 		map.put("result", ConditionResult.WARNING);
 		map.put("requirements", Sets.newHashSet("OB-3.4"));

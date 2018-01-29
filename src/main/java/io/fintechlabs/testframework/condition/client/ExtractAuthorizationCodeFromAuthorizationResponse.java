@@ -17,9 +17,7 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -51,11 +49,11 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 			return error("Couldn't find authorizaiton code in callback");
 		} else {
 			in.putString("code", in.getString("callback_params", "code"));
-			logSuccess("Found authorization code", 
-					args("code", in.getString("callback_params", "code")));
+			logSuccess("Found authorization code",
+				args("code", in.getString("callback_params", "code")));
 			return in;
 		}
-		
+
 	}
 
 }
