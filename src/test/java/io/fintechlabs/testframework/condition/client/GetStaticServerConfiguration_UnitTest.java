@@ -19,43 +19,43 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GetStaticServerConfiguration_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private JsonObject server;
-	
+
 	private JsonObject goodConfig;
-	
+
 	private JsonObject badConfig_notObject;
-	
+
 	private JsonObject badConfig_serverMissing;
-	
+
 	private GetStaticServerConfiguration cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new GetStaticServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
+
 		server = new JsonParser().parse("{"
-				+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","
-				+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
-				+ "\"issuer\":\"ExampleApp\""
-				+ "}").getAsJsonObject();
-		
+			+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","
+			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
+			+ "\"issuer\":\"ExampleApp\""
+			+ "}").getAsJsonObject();
+
 		goodConfig = new JsonObject();
 		goodConfig.add("server", server);
-		
+
 		badConfig_notObject = new JsonObject();
 		badConfig_notObject.addProperty("server", "this is a string");
-		
+
 		badConfig_serverMissing = new JsonObject();
 	}
 
@@ -64,11 +64,11 @@ public class GetStaticServerConfiguration_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
-		
+
 		env.put("config", goodConfig);
-		
+
 		cond.evaluate(env);
-		
+
 		assertThat(env.get("server")).isEqualTo(server);
 	}
 
@@ -77,9 +77,9 @@ public class GetStaticServerConfiguration_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_serverNotObject() {
-		
+
 		env.put("config", badConfig_notObject);
-		
+
 		cond.evaluate(env);
 	}
 
@@ -88,9 +88,9 @@ public class GetStaticServerConfiguration_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_serverMissing() {
-		
+
 		env.put("config", badConfig_serverMissing);
-		
+
 		cond.evaluate(env);
 	}
 
@@ -99,7 +99,7 @@ public class GetStaticServerConfiguration_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_configMissing() {
-		
+
 		cond.evaluate(env);
 	}
 }

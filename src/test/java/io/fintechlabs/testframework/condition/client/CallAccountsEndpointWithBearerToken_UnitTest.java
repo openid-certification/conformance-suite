@@ -51,22 +51,21 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 	// Examples from RFC 6749
 
 	private static JsonObject bearerToken = new JsonParser().parse("{"
-			+ "\"value\":\"mF_9.B5f-4.1JqM\","
-			+ "\"type\":\"Bearer\""
-			+ "}").getAsJsonObject();
+		+ "\"value\":\"mF_9.B5f-4.1JqM\","
+		+ "\"type\":\"Bearer\""
+		+ "}").getAsJsonObject();
 
 	private static JsonObject exampleToken = new JsonParser().parse("{"
-			+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
-			+ "\"type\":\"example\""
-			+ "}").getAsJsonObject();
+		+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
+		+ "\"type\":\"example\""
+		+ "}").getAsJsonObject();
 
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
 		service("example.com")
 			.get("/accounts")
 			.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
-			.willReturn(success("OK", "text/plain"))
-	));
+			.willReturn(success("OK", "text/plain"))));
 
 	private CallAccountsEndpointWithBearerToken cond;
 
@@ -95,8 +94,8 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 		cond.evaluate(env);
 
 		hoverfly.verify(service("example.com")
-				.get("/accounts")
-				.header("Authorization", "Bearer mF_9.B5f-4.1JqM"));
+			.get("/accounts")
+			.header("Authorization", "Bearer mF_9.B5f-4.1JqM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
 		verify(env, atLeastOnce()).getString("access_token", "type");

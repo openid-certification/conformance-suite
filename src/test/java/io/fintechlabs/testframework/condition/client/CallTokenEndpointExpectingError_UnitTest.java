@@ -48,23 +48,23 @@ public class CallTokenEndpointExpectingError_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private static JsonObject requestParameters = new JsonParser().parse("{"
-			+ "\"grant_type\":\"client_credentials\""
-			+ "}").getAsJsonObject();
+		+ "\"grant_type\":\"client_credentials\""
+		+ "}").getAsJsonObject();
 
 	private static JsonObject requestHeaders = new JsonParser().parse("{"
-			+ "\"Authorization\":\"Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW\""
-			+ "}").getAsJsonObject();
+		+ "\"Authorization\":\"Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW\""
+		+ "}").getAsJsonObject();
 
 	private static JsonObject tokenResponse = new JsonParser().parse("{"
-			+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","
-			+ "\"token_type\":\"example\","
-			+ "\"expires_in\":3600,"
-			+ "\"example_parameter\":\"example_value\""
-			+ "}").getAsJsonObject();
+		+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","
+		+ "\"token_type\":\"example\","
+		+ "\"expires_in\":3600,"
+		+ "\"example_parameter\":\"example_value\""
+		+ "}").getAsJsonObject();
 
 	private static JsonObject errorResponse = new JsonParser().parse("{"
-			+ "\"error\":\"access_denied\""
-			+ "}").getAsJsonObject();
+		+ "\"error\":\"access_denied\""
+		+ "}").getAsJsonObject();
 
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
@@ -99,16 +99,16 @@ public class CallTokenEndpointExpectingError_UnitTest {
 	public void testEvaluate_errorInResponse() {
 
 		JsonObject server = new JsonParser().parse("{"
-				+ "\"token_endpoint\":\"https://good.example.com/token\""
-				+ "}").getAsJsonObject();
+			+ "\"token_endpoint\":\"https://good.example.com/token\""
+			+ "}").getAsJsonObject();
 		env.put("server", server);
 
 		cond.evaluate(env);
 
 		hoverfly.verify(service("good.example.com")
-				.post("/token")
-				.header("Authorization", "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW")
-				.body("grant_type=client_credentials"));
+			.post("/token")
+			.header("Authorization", "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW")
+			.body("grant_type=client_credentials"));
 
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
 	}
@@ -120,8 +120,8 @@ public class CallTokenEndpointExpectingError_UnitTest {
 	public void testEvaluate_noErrorInResponse() {
 
 		JsonObject server = new JsonParser().parse("{"
-				+ "\"token_endpoint\":\"https://bad.example.com/token\""
-				+ "}").getAsJsonObject();
+			+ "\"token_endpoint\":\"https://bad.example.com/token\""
+			+ "}").getAsJsonObject();
 		env.put("server", server);
 
 		cond.evaluate(env);

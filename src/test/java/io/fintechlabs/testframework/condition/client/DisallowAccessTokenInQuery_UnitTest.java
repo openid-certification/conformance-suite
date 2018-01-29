@@ -52,9 +52,9 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	// Examples from RFC 6749
 
 	private static JsonObject bearerToken = new JsonParser().parse("{"
-			+ "\"value\":\"mF_9.B5f-4.1JqM\","
-			+ "\"type\":\"Bearer\""
-			+ "}").getAsJsonObject();
+		+ "\"value\":\"mF_9.B5f-4.1JqM\","
+		+ "\"type\":\"Bearer\""
+		+ "}").getAsJsonObject();
 
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
@@ -65,8 +65,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		service("bad.example.com")
 			.get("/accounts")
 			.queryParam("access_token", "mF_9.B5f-4.1JqM")
-			.willReturn(success("OK", "text/plain"))
-	));
+			.willReturn(success("OK", "text/plain"))));
 
 	private DisallowAccessTokenInQuery cond;
 
@@ -95,8 +94,8 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		cond.evaluate(env);
 
 		hoverfly.verify(service("good.example.com")
-				.get("/accounts")
-				.queryParam("access_token", "mF_9.B5f-4.1JqM"));
+			.get("/accounts")
+			.queryParam("access_token", "mF_9.B5f-4.1JqM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
 		verify(env, atLeastOnce()).getString("resource", "resourceUrl");

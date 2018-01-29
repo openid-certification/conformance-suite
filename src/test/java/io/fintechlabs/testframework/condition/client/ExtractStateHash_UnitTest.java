@@ -57,7 +57,7 @@ public class ExtractStateHash_UnitTest {
 		cond = new ExtractStateHash("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
-	
+
 	private void addIdToken(Environment env, String alg, String stateHash) {
 
 		JsonObject header = new JsonObject();
@@ -67,7 +67,7 @@ public class ExtractStateHash_UnitTest {
 		claims.addProperty("s_hash", stateHash);
 
 		JsonObject idToken = new JsonObject();
-		idToken.add("header",  header);
+		idToken.add("header", header);
 		idToken.add("claims", claims);
 
 		env.put("id_token", idToken);
@@ -88,7 +88,6 @@ public class ExtractStateHash_UnitTest {
 		verify(env, atLeastOnce()).getString("id_token", "claims.s_hash");
 		verify(env, atLeastOnce()).getString("id_token", "header.alg");
 
-		
 		assertThat(env.getString("state_hash", "s_hash")).isEqualTo("WZRHGrsBESr8wYFZ9sx0tA");
 		assertThat(env.getString("state_hash", "alg")).isEqualTo("HS256");
 
@@ -128,6 +127,5 @@ public class ExtractStateHash_UnitTest {
 
 		cond.evaluate(env);
 	}
-
 
 }

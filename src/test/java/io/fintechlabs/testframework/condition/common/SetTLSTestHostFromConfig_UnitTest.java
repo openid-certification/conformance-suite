@@ -45,9 +45,9 @@ public class SetTLSTestHostFromConfig_UnitTest {
 	private SetTLSTestHostFromConfig cond;
 
 	private JsonObject tlsConfig = new JsonParser().parse("{"
-			+ "\"testHost\":\"example.com\","
-			+ "\"testPort\":443"
-			+ "}").getAsJsonObject();
+		+ "\"testHost\":\"example.com\","
+		+ "\"testPort\":443"
+		+ "}").getAsJsonObject();
 
 	/**
 	 * @throws java.lang.Exception

@@ -59,9 +59,9 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 		// Example values from RFC 6749
 
 		client = new JsonParser().parse("{"
-				+ "\"client_id\":\"s6BhdRkqt3\","
-				+ "\"client_secret\":\"7Fjfp0ZBr1KtDRbnfVdmIw\""
-				+ "}").getAsJsonObject();
+			+ "\"client_id\":\"s6BhdRkqt3\","
+			+ "\"client_secret\":\"7Fjfp0ZBr1KtDRbnfVdmIw\""
+			+ "}").getAsJsonObject();
 
 		expectedAuth = "Basic czZCaGRSa3F0Mzo3RmpmcDBaQnIxS3REUmJuZlZkbUl3";
 

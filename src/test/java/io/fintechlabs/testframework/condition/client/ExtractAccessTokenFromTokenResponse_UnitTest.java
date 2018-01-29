@@ -57,11 +57,11 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 
 		// Example from RFC6750
 		tokenResponse = new JsonParser().parse("{" +
-				"\"access_token\":\"mF_9.B5f-4.1JqM\"," +
-				"\"token_type\":\"Bearer\"," +
-				"\"expires_in\":3600," +
-				"\"refresh_token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"" +
-				"}").getAsJsonObject();
+			"\"access_token\":\"mF_9.B5f-4.1JqM\"," +
+			"\"token_type\":\"Bearer\"," +
+			"\"expires_in\":3600," +
+			"\"refresh_token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"" +
+			"}").getAsJsonObject();
 
 	}
 

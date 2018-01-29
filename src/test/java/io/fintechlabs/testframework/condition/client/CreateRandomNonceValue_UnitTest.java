@@ -15,21 +15,21 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateRandomNonceValue_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private CreateRandomNonceValue cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CreateRandomNonceValue("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -37,9 +37,9 @@ public class CreateRandomNonceValue_UnitTest {
 	 */
 	@Test
 	public void testEvaluate() {
-		
+
 		cond.evaluate(env);
-		
+
 		assertThat(env.getString("nonce")).isNotEmpty();
 	}
 }

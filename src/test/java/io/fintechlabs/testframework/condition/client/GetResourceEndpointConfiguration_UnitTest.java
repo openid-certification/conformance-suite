@@ -44,8 +44,8 @@ public class GetResourceEndpointConfiguration_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private static JsonObject resourceConfig = new JsonParser().parse("{" +
-			"\"resourceUrl\":\"https://example.com/\"" +
-			"}").getAsJsonObject();
+		"\"resourceUrl\":\"https://example.com/\"" +
+		"}").getAsJsonObject();
 
 	private GetResourceEndpointConfiguration cond;
 

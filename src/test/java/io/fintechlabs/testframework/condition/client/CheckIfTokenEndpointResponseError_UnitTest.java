@@ -20,38 +20,38 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CheckIfTokenEndpointResponseError_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private JsonObject successParams;
-	
+
 	private JsonObject errorParams;
-	
+
 	private CheckIfTokenEndpointResponseError cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CheckIfTokenEndpointResponseError("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
+
 		successParams = new JsonParser().parse("{"
-				+ "\"accessToken\":\"2YotnFZFEjr1zCsicMWpAA\","
-				+ "\"token_type\":\"example\","
-				+ "\"expires_in\":3600,"
-				+ "\"refresh_token\":\"tGzv3JOkF0XG5Qx2TlKWIA\","
-				+ "\"example_parameter\":\"example_value\""
-				+ "}").getAsJsonObject();
-		
+			+ "\"accessToken\":\"2YotnFZFEjr1zCsicMWpAA\","
+			+ "\"token_type\":\"example\","
+			+ "\"expires_in\":3600,"
+			+ "\"refresh_token\":\"tGzv3JOkF0XG5Qx2TlKWIA\","
+			+ "\"example_parameter\":\"example_value\""
+			+ "}").getAsJsonObject();
+
 		errorParams = new JsonParser().parse("{"
-				+ "\"error\":\"invalid_request\""
-				+ "}").getAsJsonObject();
+			+ "\"error\":\"invalid_request\""
+			+ "}").getAsJsonObject();
 	}
 
 	/**
@@ -59,11 +59,11 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noError() {
-		
+
 		env.put("token_endpoint_response", successParams);
 
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "error");
 	}
 
@@ -72,11 +72,11 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_error() {
-		
+
 		env.put("token_endpoint_response", errorParams);
 
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "error");
 	}
 }

@@ -49,8 +49,8 @@ public class EnsureMatchingClientCertificate_UnitTest {
 		cond = new EnsureMatchingClientCertificate("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		JsonObject client = new JsonParser().parse("{" +
-					"\"client_id\":\"CN=example.org\"" +
-					"}").getAsJsonObject();
+			"\"client_id\":\"CN=example.org\"" +
+			"}").getAsJsonObject();
 
 		env.put("client", client);
 

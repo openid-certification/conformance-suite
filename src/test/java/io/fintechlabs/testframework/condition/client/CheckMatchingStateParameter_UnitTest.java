@@ -20,35 +20,35 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CheckMatchingStateParameter_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private JsonObject paramsWithState;
-	
+
 	private JsonObject paramsWithoutState;
-	
+
 	private CheckMatchingStateParameter cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CheckMatchingStateParameter("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
+
 		paramsWithState = new JsonParser().parse("{"
-				+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","
-				+ "\"state\":\"xyz\""
-				+ "}").getAsJsonObject();
-		
+			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","
+			+ "\"state\":\"xyz\""
+			+ "}").getAsJsonObject();
+
 		paramsWithoutState = new JsonParser().parse("{"
-				+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\""
-				+ "}").getAsJsonObject();
+			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\""
+			+ "}").getAsJsonObject();
 	}
 
 	/**
@@ -56,12 +56,12 @@ public class CheckMatchingStateParameter_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_withState_statePresent() {
-		
+
 		env.putString("state", "xyz");
 		env.put("callback_params", paramsWithState);
 
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("state");
 		verify(env, atLeastOnce()).getString("callback_params", "state");
 	}
@@ -71,11 +71,11 @@ public class CheckMatchingStateParameter_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_withoutState_stateAbsent() {
-		
+
 		env.put("callback_params", paramsWithoutState);
 
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("state");
 		verify(env, atLeastOnce()).getString("callback_params", "state");
 	}
@@ -85,7 +85,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_withState_stateMissing() {
-		
+
 		env.putString("state", "xyz");
 		env.put("callback_params", paramsWithoutState);
 
@@ -97,7 +97,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_withState_stateMismatch() {
-		
+
 		env.putString("state", "abc");
 		env.put("callback_params", paramsWithState);
 
@@ -109,7 +109,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_withoutState_present() {
-		
+
 		env.put("callback_params", paramsWithState);
 
 		cond.evaluate(env);

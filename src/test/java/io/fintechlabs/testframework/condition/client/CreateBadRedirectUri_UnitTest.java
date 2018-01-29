@@ -19,21 +19,21 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateBadRedirectUri_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private CreateBadRedirectUri cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CreateBadRedirectUri("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -42,13 +42,13 @@ public class CreateBadRedirectUri_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
-		
+
 		env.putString("base_url", "https://example.com");
-		
+
 		cond.evaluate(env);
-		
+
 		verify(env, atLeastOnce()).getString("base_url");
-		
+
 		assertThat(env.getString("redirect_uri")).isNotBlank();
 	}
 
@@ -57,7 +57,7 @@ public class CreateBadRedirectUri_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
-		
+
 		cond.evaluate(env);
 	}
 }

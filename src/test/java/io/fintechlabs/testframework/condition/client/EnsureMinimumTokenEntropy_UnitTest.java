@@ -35,38 +35,37 @@ import io.fintechlabs.testframework.testmodule.Environment;
 @RunWith(MockitoJUnitRunner.class)
 public class EnsureMinimumTokenEntropy_UnitTest {
 
-
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
 
 	private EnsureMinimumTokenEntropy cond;
-	
+
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new EnsureMinimumTokenEntropy("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
-	
+
 	@Test
 	public void testEvaluate_entropyGood() {
 		JsonObject o = new JsonObject();
 		o.addProperty("access_token", "aQm0ukLetSUOXr1XA8RLHdeO9eFdoBGF8Sn1UhP9");
 		env.put("token_endpoint_response", o);
-		
+
 		cond.evaluate(env);
 	}
-	
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_entropyBad() {
 		JsonObject o = new JsonObject();
 		o.addProperty("access_token", "1111111111111111111111111111111111111111");
 		env.put("token_endpoint_response", o);
-		
-		cond.evaluate(env);		
+
+		cond.evaluate(env);
 	}
-	
+
 }

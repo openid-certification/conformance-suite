@@ -15,21 +15,21 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateRandomStateValue_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
-	
+
 	@Mock
 	private TestInstanceEventLog eventLog;
-	
+
 	private CreateRandomStateValue cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		cond = new CreateRandomStateValue("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -38,9 +38,9 @@ public class CreateRandomStateValue_UnitTest {
 	 */
 	@Test
 	public void testEvaluate() {
-		
+
 		cond.evaluate(env);
-		
+
 		assertThat(env.getString("state")).isNotEmpty();
 	}
 }

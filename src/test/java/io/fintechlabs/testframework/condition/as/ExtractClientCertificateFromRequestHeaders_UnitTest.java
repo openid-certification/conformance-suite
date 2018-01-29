@@ -52,17 +52,17 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 		cond = new ExtractClientCertificateFromRequestHeaders("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC 7468
-		String certificate = "-----BEGIN CERTIFICATE----- " + 
-				"MIIBmTCCAUegAwIBAgIBKjAJBgUrDgMCHQUAMBMxETAPBgNVBAMTCEF0bGFudGlz " + 
-				"MB4XDTEyMDcwOTAzMTAzOFoXDTEzMDcwOTAzMTAzN1owEzERMA8GA1UEAxMIQXRs " + 
-				"YW50aXMwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAu+BXo+miabDIHHx+yquqzqNh " + 
-				"Ryn/XtkJIIHVcYtHvIX+S1x5ErgMoHehycpoxbErZmVR4GCq1S2diNmRFZCRtQID " + 
-				"AQABo4GJMIGGMAwGA1UdEwEB/wQCMAAwIAYDVR0EAQH/BBYwFDAOMAwGCisGAQQB " + 
-				"gjcCARUDAgeAMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDAzA1BgNVHQEE " + 
-				"LjAsgBA0jOnSSuIHYmnVryHAdywMoRUwEzERMA8GA1UEAxMIQXRsYW50aXOCASow " + 
-				"CQYFKw4DAh0FAANBAKi6HRBaNEL5R0n56nvfclQNaXiDT174uf+lojzA4lhVInc0 " + 
-				"ILwpnZ1izL4MlI9eCSHhVQBHEp2uQdXJB+d5Byg= " + 
-				"-----END CERTIFICATE-----";
+		String certificate = "-----BEGIN CERTIFICATE----- " +
+			"MIIBmTCCAUegAwIBAgIBKjAJBgUrDgMCHQUAMBMxETAPBgNVBAMTCEF0bGFudGlz " +
+			"MB4XDTEyMDcwOTAzMTAzOFoXDTEzMDcwOTAzMTAzN1owEzERMA8GA1UEAxMIQXRs " +
+			"YW50aXMwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAu+BXo+miabDIHHx+yquqzqNh " +
+			"Ryn/XtkJIIHVcYtHvIX+S1x5ErgMoHehycpoxbErZmVR4GCq1S2diNmRFZCRtQID " +
+			"AQABo4GJMIGGMAwGA1UdEwEB/wQCMAAwIAYDVR0EAQH/BBYwFDAOMAwGCisGAQQB " +
+			"gjcCARUDAgeAMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDAzA1BgNVHQEE " +
+			"LjAsgBA0jOnSSuIHYmnVryHAdywMoRUwEzERMA8GA1UEAxMIQXRsYW50aXOCASow " +
+			"CQYFKw4DAh0FAANBAKi6HRBaNEL5R0n56nvfclQNaXiDT174uf+lojzA4lhVInc0 " +
+			"ILwpnZ1izL4MlI9eCSHhVQBHEp2uQdXJB+d5Byg= " +
+			"-----END CERTIFICATE-----";
 
 		sampleHeaders = new JsonObject();
 		sampleHeaders.addProperty("X-Ssl-Cert", certificate);
