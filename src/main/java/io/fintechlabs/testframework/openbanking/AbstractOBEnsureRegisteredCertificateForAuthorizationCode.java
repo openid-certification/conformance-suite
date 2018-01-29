@@ -17,10 +17,16 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
+import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractStateHash;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -46,6 +52,19 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCode 
 	@Override
 	protected Object performPostAuthorizationFlow() {
 
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
+
+		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		
 		createAuthorizationCodeRequest();
 
 		// Check that a call to the token endpoint succeeds normally

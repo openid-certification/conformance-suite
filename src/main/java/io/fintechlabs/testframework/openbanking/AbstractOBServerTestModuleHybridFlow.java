@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractStateHash;
@@ -123,6 +124,27 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
 		return onAuthorizationCallbackResponse();
+	}
+
+	/* Check the ID token and state hash before moving on to the rest of the test
+	 */
+	@Override
+	protected Object performPostAuthorizationFlow() {
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
+
+		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+
+		return super.performPostAuthorizationFlow();
+		
 	}
 
 }
