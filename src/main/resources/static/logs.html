@@ -1,76 +1,71 @@
-<!--
-
-
-
--->
+<!DOCTYPE html>
 <html>
 <head>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta charset="UTF-8">
-    <title>Fintech IO : UI for Test Output</title>
-
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-    
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
-    
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
-    <link rel="stylesheet" type="text/css" href="css/layout.css">
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
-
-    <script type="text/javascript" src="js/fapi.ui.js"></script>
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta charset="UTF-8">
+	<title>Fintech IO : UI for Test Output</title>
+	
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
+	
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+	<link rel="stylesheet" type="text/css" href="css/layout.css">
+	
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	
+	<!-- DataTables -->
+	<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+	
+	<script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
 
-    <body>
+<body>
 
-	    <div class="pageHeader container-fluid">
-	        <div class="row-fluid">
-	            <div class="col-md-8">
-	                <a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
-	            </div>
-	            <div id="userInfoDiv" class="col-md-4 text-right">
-	            </div>
-	        </div>
-	    </div>
-	    <div class="clearfix"></div>
+	<div class="pageHeader container-fluid">
+		<div class="row-fluid">
+			<div class="col-md-8">
+				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+			</div>
+			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
 
-        <!-- resident DOM -->
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-md-12">
-            
-                <table id="logsListing" class="table table-striped table-bordered table-hover" >
-		            <thead>
-		            </thead>
-		
-		            <tbody>
-		            </tbody>
-                </table>
-            
-            </div>
-          </div>
-        </div>
+	<!-- resident DOM -->
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-12">
+
+				<table id="logsListing" class="table table-striped table-bordered table-hover">
+					<thead>
+					</thead>
+
+					<tbody>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
 
 
-        <!-- Templates -->
-        <script type="text/template" id="logsListingHeader">
+	<!-- Templates -->
+	<script type="text/template" id="logsListingHeader">
                     <tr>
                         <th>Instance ID</th>
                         <th>Config</th>
@@ -83,8 +78,8 @@
                         <% } %>
                     </tr>
         </script>
-        
-        <script type="text/template" id="logsListingTemplate">
+
+	<script type="text/template" id="logsListingTemplate">
                     <tr>
                         <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><a class="btn btn-default btn-block" href="log-detail.html?log=<%- test.testId %>"><span class="glyphicon glyphicon-list-alt"></span> <%- test.testId %></a></td>
                         <td class="configColumn" data-search="<%- JSON.stringify(test.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-file"></span> View Config</button></td>
@@ -98,13 +93,13 @@
                     </tr>
         </script>
 
-        <!-- Owner -->
-        <script type="text/template" id="logDetailTemplate_Owner">
+	<!-- Owner -->
+	<script type="text/template" id="logDetailTemplate_Owner">
             <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
         </script>
 
-        <!-- UserInfo Template-->
-        <script type="text/template" id="userInfoTemplate">
+	<!-- UserInfo Template-->
+	<script type="text/template" id="userInfoTemplate">
             <div id="userInfoData">
                 <form action="/logout" method="post" class="form-inline">
                     <p class="form-control-static">Logged in as
@@ -114,129 +109,135 @@
                 </form>
             </div>
         </script>
-        
-	    <!-- error modal -->
-	    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-	        <div class="modal-dialog" role="document">
-	            <div class="modal-content">
-	                <div class="modal-header">
-	                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	                        <span aria-hidden="true">&times;</span>
-	                    </button>
-	                    <h4 class="modal-title" id="errorLabel">Error</h4>
-	                </div>
-	                <div class="modal-body">Error: <span id="errorMessage"></span></div>
-	                <div class="modal-footer">
-	                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	                </div>
-	            </div>
-	        </div>
-	    </div>
-	    
-	    <!-- loading modal -->
-        <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-            <div class="modal-dialog modal-sm" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="text-center">
-                            <img src="/images/spinner.gif" width="100px" height="30px" />
-                        </div>
-                        <div>
-                            <span id="loadingMessage"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Config modal popup -->
-        <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h4 class="modal-title">Configuration</h4>
-                    </div>
-                    <div class="modal-body">
-                        <textarea readonly="readonly" id="config"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
 
-        <script>
+	<!-- error modal -->
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="errorLabel">Error</h4>
+				</div>
+				<div class="modal-body">
+					Error: <span id="errorMessage"></span>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-            /**
-             * 
-             */
-            $(document).ready(function(){
-            	   FAPI_UI.showBusy();
-            	   $.when(FAPI_UI.loadLogListTemplates())
-            	       .then(function() {
-		                return FAPI_UI.getUserInfoDiv("#userInfoDiv");
-            	       })
-            	       .then(function() {
-		                return loadAvailableLogs();
-            	       })
-            	       .always(function() {
-            	    	        FAPI_UI.hideBusy();
-            	       });
-            });
+	<!-- loading modal -->
+	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
+				</div>
+				<div class="modal-body">
+					<div class="text-center">
+						<img src="/images/spinner.gif" width="100px" height="30px" />
+					</div>
+					<div>
+						<span id="loadingMessage"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-            /**
-             * 
-             */
-             
-             /**
-              * 
-              */
-             function loadAvailableLogs() {
-                 return $.ajax({ 
-                     type: 'GET', 
-                     url: "/log", 
-                     data: {}, 
-                     success: function(logsList) {
-                    	 
-                    	    $('#logsListing thead').html(FAPI_UI.logTemplates.LOG_LISTING_HEADER());
-                    	 
-                    	    _.each(logsList, function(test) {
-                    	        var logRow = $(FAPI_UI.logTemplates.LOG_LISTING({test: test}));
-	                         $('#logsListing tbody').append(logRow);
+	<!-- Config modal popup -->
+	<div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">Configuration</h4>
+				</div>
+				<div class="modal-body">
+					<textarea readonly="readonly" id="config"></textarea>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-	                         // wire up configuration button
-	                         $('.showConfigBtn', logRow).click(function (evt) {
-	                              evt.preventDefault();
-	                              $('#config').val(JSON.stringify(test.config, null, 4));
-	                              $('#configModal').modal('show');
-	                         });
-                    	    });
-                         
-                         $('#logsListing').DataTable({
-                        	    order: [[3, "desc"]], // sort by the "date" column, descending, by default
-                        	    columnDefs: [{
-                        	    	   targets: 1, orderable: false // disable sorting on the "view config" button
-                             }]
-                         });
-                         
-                     },
-                     error: function(jqhxr, status, error) {
-                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {error: error});
-                     }
-                 });
-             }
-        </script>
 
-    <footer class="pageFooter"><span class="muted">FintechLabs.io conformance suite</span></footer>
-        
-    </body>
+	<script>
+		/**
+		 * 
+		 */
+		$(document).ready(function() {
+			FAPI_UI.showBusy();
+			$.when(FAPI_UI.loadLogListTemplates()).then(function() {
+				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+			}).then(function() {
+				return loadAvailableLogs();
+			}).always(function() {
+				FAPI_UI.hideBusy();
+			});
+		});
+
+		/**
+		 * 
+		 */
+
+		/**
+		 * 
+		 */
+		function loadAvailableLogs() {
+			return $.ajax({
+				type: 'GET',
+				url: "/log",
+				data: {},
+				success: function(logsList) {
+
+					$('#logsListing thead').html(FAPI_UI.logTemplates.LOG_LISTING_HEADER());
+
+					_.each(logsList, function(test) {
+						var logRow = $(FAPI_UI.logTemplates.LOG_LISTING({
+							test: test
+						}));
+						$('#logsListing tbody').append(logRow);
+
+						// wire up configuration button
+						$('.showConfigBtn', logRow).click(function(evt) {
+							evt.preventDefault();
+							$('#config').val(JSON.stringify(test.config, null, 4));
+							$('#configModal').modal('show');
+						});
+					});
+
+					$('#logsListing').DataTable({
+						order: [[3, "desc"]], // sort by the "date" column, descending, by default
+						columnDefs: [{
+							targets: 1,
+							orderable: false
+						// disable sorting on the "view config" button
+						}]
+					});
+
+				},
+				error: function(jqhxr, status, error) {
+					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+						error: error
+					});
+				}
+			});
+		}
+	</script>
+
+	<footer class="pageFooter">
+		<span class="muted">FintechLabs.io conformance suite</span>
+	</footer>
+
+</body>
 
 </html>
