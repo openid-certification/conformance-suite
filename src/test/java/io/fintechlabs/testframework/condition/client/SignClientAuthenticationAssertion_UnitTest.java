@@ -17,9 +17,8 @@ import com.nimbusds.jwt.SignedJWT;
 
 import static org.junit.Assert.fail;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 

@@ -1,13 +1,17 @@
 package io.fintechlabs.testframework.security;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
 import org.mitre.openid.connect.client.OIDCAuthenticationProvider;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
-import org.mitre.openid.connect.client.service.impl.*;
+import org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService;
+import org.mitre.openid.connect.client.service.impl.HybridClientConfigurationService;
+import org.mitre.openid.connect.client.service.impl.HybridIssuerService;
+import org.mitre.openid.connect.client.service.impl.PlainAuthRequestUrlBuilder;
+import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +23,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.Set;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 @Configuration
 @EnableWebSecurity

@@ -16,10 +16,7 @@ package io.fintechlabs.testframework.logging;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-import com.google.common.collect.ImmutableMap;
-import io.fintechlabs.testframework.info.TestInfoService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
+
+import io.fintechlabs.testframework.info.TestInfoService;
 
 /**
  * @author jricher

@@ -1,23 +1,18 @@
 package io.fintechlabs.testframework.ui;
 
-import com.google.common.base.Strings;
-import io.fintechlabs.testframework.security.AuthenticationFacade;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 @Controller
 public class UserInfoUIController {

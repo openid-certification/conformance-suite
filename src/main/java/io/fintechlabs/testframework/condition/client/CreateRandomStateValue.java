@@ -17,9 +17,7 @@ package io.fintechlabs.testframework.condition.client;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 

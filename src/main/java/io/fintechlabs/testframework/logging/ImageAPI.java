@@ -19,14 +19,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.google.common.collect.ImmutableMap;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
@@ -36,7 +32,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
+
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 /**
  * @author jricher

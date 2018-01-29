@@ -17,9 +17,6 @@ package io.fintechlabs.testframework.logging;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.ImmutableMap;
-import com.mongodb.BasicDBObject;
-import io.fintechlabs.testframework.security.AuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
@@ -31,11 +28,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.info.DBTestInfoService;
-import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 /**
  * @author jricher

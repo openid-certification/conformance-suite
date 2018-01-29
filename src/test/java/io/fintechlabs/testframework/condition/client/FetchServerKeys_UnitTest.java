@@ -16,9 +16,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;

@@ -20,9 +20,8 @@ import com.google.gson.JsonParser;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;

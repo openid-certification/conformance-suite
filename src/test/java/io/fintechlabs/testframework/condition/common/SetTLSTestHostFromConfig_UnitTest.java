@@ -15,8 +15,6 @@
 package io.fintechlabs.testframework.condition.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +25,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;

@@ -1,20 +1,20 @@
 package io.fintechlabs.testframework.security;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.mitre.openid.connect.client.OIDCAuthoritiesMapper;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
 
 /**
  *

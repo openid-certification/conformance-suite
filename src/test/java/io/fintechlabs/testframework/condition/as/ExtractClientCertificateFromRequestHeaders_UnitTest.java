@@ -25,9 +25,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromRequestHeaders;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 

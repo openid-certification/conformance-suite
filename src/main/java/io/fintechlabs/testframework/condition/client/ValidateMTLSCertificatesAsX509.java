@@ -1,12 +1,5 @@
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.common.base.Strings;
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import java.io.ByteArrayInputStream;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +14,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import com.google.common.base.Strings;
+
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
