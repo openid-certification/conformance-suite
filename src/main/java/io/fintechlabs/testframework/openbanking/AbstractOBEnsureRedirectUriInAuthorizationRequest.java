@@ -14,6 +14,7 @@ public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends 
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
+	@Override
 	protected void performAuthorizationFlow() {
 
 		requestClientCredentialsGrant();

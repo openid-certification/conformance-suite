@@ -82,7 +82,7 @@ public class ImageAPI {
 		@PathVariable(name = "id") String testId,
 		@PathVariable(name = "placeholder") String placeholder) throws IOException {
 
-		List<Criteria> criterias = new ArrayList<Criteria>();
+		List<Criteria> criterias = new ArrayList<>();
 
 		// add the placeholder condition
 		criterias.add(Criteria.where("upload").is(placeholder));

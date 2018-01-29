@@ -17,6 +17,7 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
+	@Override
 	protected void performAuthorizationFlow() {
 
 		requestClientCredentialsGrant();

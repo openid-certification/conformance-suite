@@ -27,6 +27,7 @@ public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBSe
 		exposeEnvString("redirect_uri");
 	}
 
+	@Override
 	protected void performAuthorizationFlow() {
 
 		requestClientCredentialsGrant();

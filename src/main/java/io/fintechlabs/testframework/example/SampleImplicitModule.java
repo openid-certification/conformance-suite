@@ -114,6 +114,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#start()
 	 */
+	@Override
 	public void start() {
 
 		setStatus(Status.RUNNING);

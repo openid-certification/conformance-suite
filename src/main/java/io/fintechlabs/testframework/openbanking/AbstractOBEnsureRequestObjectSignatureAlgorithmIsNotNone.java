@@ -17,6 +17,7 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
+	@Override
 	protected void performAuthorizationFlow() {
 
 		requestClientCredentialsGrant();

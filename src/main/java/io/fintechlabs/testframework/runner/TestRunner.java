@@ -262,7 +262,7 @@ public class TestRunner {
 	public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
 		Set<String> testIds = support.getAllRunningTestIds();
 
-		return new ResponseEntity<Set<String>>(testIds, HttpStatus.OK);
+		return new ResponseEntity<>(testIds, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

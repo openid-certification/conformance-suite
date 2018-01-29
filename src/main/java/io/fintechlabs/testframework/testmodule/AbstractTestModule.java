@@ -78,6 +78,7 @@ public abstract class AbstractTestModule implements TestModule {
 		setStatus(Status.CREATED);
 	}
 
+	@Override
 	public Map<String, String> getOwner() {
 		return owner;
 	}
@@ -350,10 +351,12 @@ public abstract class AbstractTestModule implements TestModule {
 		}
 	}
 
+	@Override
 	public String getId() {
 		return id;
 	}
 
+	@Override
 	public Status getStatus() {
 		return status;
 	}
@@ -396,6 +399,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @return the result
 	 */
+	@Override
 	public Result getResult() {
 		return result;
 	}

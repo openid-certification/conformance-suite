@@ -104,6 +104,7 @@ public class SampleTestModule extends AbstractTestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
+	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
@@ -149,6 +150,7 @@ public class SampleTestModule extends AbstractTestModule {
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#start()
 	 */
+	@Override
 	public void start() {
 
 		setStatus(Status.RUNNING);

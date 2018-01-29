@@ -130,7 +130,7 @@ public class EnsureTLS12 extends AbstractCondition {
 					@SuppressWarnings("rawtypes") // fit with the API
 					public Hashtable getClientExtensions() throws IOException {
 						Hashtable clientExtensions = super.getClientExtensions();
-						Vector<ServerName> serverNameList = new Vector<ServerName>();
+						Vector<ServerName> serverNameList = new Vector<>();
 						serverNameList.addElement(new ServerName(NameType.host_name, tlsTestHost));
 						TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
 						return clientExtensions;
