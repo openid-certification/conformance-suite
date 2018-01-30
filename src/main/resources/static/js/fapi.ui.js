@@ -134,6 +134,17 @@ var FAPI_UI = {
 	    return val ? (obj[final] = val) : obj[final];
 	},
 
+	removeFromObject : function(obj, key) {
+	    var elements = key.split('.');
+	    if (elements.length > 1) {
+	       this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
+	    } else {
+	    	if (obj != undefined && _.isObject(obj) && _.isArray(elements) && elements.length) {
+	    		delete(obj[elements[0]]);
+	    	}
+	    }
+	},
+
 	specLinks : {
 	    "FAPI-1-" : "https://bitbucket.org/openid/fapi/src/6bb2d42b34e182c6df45459075898a630ebb08b0/Financial_API_WD_001.md?at=master",
 	    "FAPI-2-" : "https://bitbucket.org/openid/fapi/src/6bb2d42b34e182c6df45459075898a630ebb08b0/Financial_API_WD_002.md?at=master",
