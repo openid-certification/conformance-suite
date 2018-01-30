@@ -8,7 +8,7 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<meta charset="UTF-8">
 
-	<title>Fintech IO : UI for Test Output : Image Uploader</title>
+	<title>FintechLabs: Image Uploader</title>
 	
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -75,22 +75,58 @@
 	</script>
 </head>
 <body>
-	<!-- UserInfo Template-->
-	<script type="text/template" id="userInfoTemplate">
-            <div id="userInfoData">
-                <form action="/logout" method="post" class="form-inline">
-                    <p class="form-control-static">Logged in as
-                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                        <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
-            </div>
-        </script>
 
-	<a href="index.html"><header></header></a>
+    <div class="pageHeader container-fluid">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+            </div>
+            <div id="userInfoDiv" class="col-md-4 text-right"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+
+    <!-- error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- loading modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 	<div class="container-fluid">
-		<div id="userInfoDiv">Loading . . .</div>
 		<div>
 			<h1>Upload image to the log</h1>
 			<div class="content">
@@ -108,12 +144,25 @@
 				Image uploaded! <a class="btn btn-info">Return to the logs.</a>
 			</p>
 		</div>
-
-
 	</div>
 
+    <!-- Templates -->
+    <!-- UserInfo Template-->
+    <script type="text/template" id="userInfoTemplate">
+        <div id="userInfoData">
+            <form action="/logout" method="post" class="form-inline">
+                <p class="form-control-static">Logged in as
+                    <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+                    <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
+                <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+            </form>
+        </div>
+    </script>
 
-	<footer></footer>
+
+    <footer class="pageFooter">
+        <span class="muted">FintechLabs.io conformance suite</span>
+    </footer>
 
 </body>
 
