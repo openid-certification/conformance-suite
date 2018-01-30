@@ -38,7 +38,8 @@ public class ExpectGrantTypeErrorPage extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		createUploadPlaceholder("Show invalid_grant error page");
+		createUploadPlaceholder("If the server does not return an error back to the client, " +
+				"upload a screenshot of the error page from the use of an invalid grant type.");
 
 		return env;
 	}

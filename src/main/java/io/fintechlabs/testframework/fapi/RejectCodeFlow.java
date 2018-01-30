@@ -84,7 +84,7 @@ public class RejectCodeFlow extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		 callAndStopOnFailure(SetTLSTestHostFromConfig.class);
+		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
