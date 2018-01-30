@@ -212,7 +212,6 @@ public abstract class AbstractTestModule implements TestModule {
 							"result", onFail
 						// TODO: log the environment here?
 						));
-						updateResultFromConditionFailure(onFail);
 						if (stopOnFailure) {
 							fireTestFailure();
 							throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
@@ -232,7 +231,6 @@ public abstract class AbstractTestModule implements TestModule {
 							"result", onFail
 						// TODO: log the environment here?
 						));
-						updateResultFromConditionFailure(onFail);
 						if (stopOnFailure) {
 							fireTestFailure();
 							throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
