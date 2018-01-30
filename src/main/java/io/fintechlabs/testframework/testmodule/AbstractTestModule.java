@@ -133,7 +133,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
-		callConditionInternal(conditionClass, requirements, onFail, onSkip, true, required, strings);
+		callConditionInternal(conditionClass, requirements, onFail, onSkip, false, required, strings);
 	}
 
 	/**
