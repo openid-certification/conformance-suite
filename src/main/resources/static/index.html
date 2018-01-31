@@ -713,16 +713,7 @@
 				}
 			} catch (e) { // a string
 				if (val == "") { // if we have an empty string then delete the value
-					//console.log("omit:" + key);
-
-					var elements = key.split(".");
-					if (elements.length > 1) {
-						if (FAPI_UI.testJSON[elements[0]] != undefined) {
-							FAPI_UI.testJSON[elements[0]] = _.omit(FAPI_UI.testJSON[elements[0]], elements[1]);
-						}
-					} else {
-						FAPI_UI.testJSON = _.omit(FAPI_UI.testJSON, key);
-					}
+					FAPI_UI.removeFromObject(FAPI_UI.testJSON, key);
 				} else {
 					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
 				}
