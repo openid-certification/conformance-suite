@@ -293,8 +293,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
-			call(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.WARNING);
-			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.WARNING);
+			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 			performAuthorizationFlow();
 
@@ -317,8 +317,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
-			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.WARNING);
-			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.WARNING);
+			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
+			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
 
 			// Try client 2's access token with client 1's keys
 

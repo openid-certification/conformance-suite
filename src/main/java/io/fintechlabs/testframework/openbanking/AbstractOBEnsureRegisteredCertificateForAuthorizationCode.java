@@ -75,7 +75,7 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCode 
 
 		// Now try with the wrong certificate
 
-		call(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.WARNING);
+		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
 		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
 
