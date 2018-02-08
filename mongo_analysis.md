@@ -1,7 +1,7 @@
 # MongoDB Usage Analysis
 
 ## DB
-The application uses only on database, named `test_suite`
+The application uses only one database, named `test_suite`
 
 ### Collections
 There are three collections in the `test_suite` database
@@ -46,7 +46,7 @@ This collection contains information about each test instance in the framework.
 
 ##### Queries from `TestInfoApi.java`
 `/info` Request Mapping:
-> If the user is an admin, i tis just a `.find()` of all objects.
+> If the user is an admin, it is just a `.find()` of all objects.
 If the user isn't an admin, the `owner` field is used, since this is a majority of the cases, an index on just `owner` could be useful
 
 `/info/{id}` RequestMapping:
@@ -97,12 +97,10 @@ Along with the default `_id` index that is on all collections, the following ind
 `OIDC_REGISTERED_CLIENTS`
 > None. Only the `_id` field is used.
 
- `TEST_INFO` 
- > `owner` This is used quite often to limit results, so creating an index on this field would be most helpful
+`TEST_INFO` 
+> `owner` This is used quite often to limit results, so creating an index on this field would be most helpful
  
- `EVENT_LOG`
- > `testOwner` is used when preparing the list of log entries
- > `testId` is used extensivly (this is used in the 'distinct' call as well
- > `time` is used to sort fields along with `testId`
-
-
+`EVENT_LOG`
+> `testOwner` is used when preparing the list of log entries
+> `testId` is used extensivly (this is used in the 'distinct' call as well)
+> `time` is used to sort fields along with `testId`
