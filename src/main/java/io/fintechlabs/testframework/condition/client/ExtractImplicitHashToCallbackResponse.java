@@ -57,7 +57,7 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 
 			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
 
-			log("Extracted response from hash", args("parameters", parameters));
+			log("Extracted response from URL fragment", args("parameters", parameters));
 
 			JsonObject o = new JsonObject();
 			for (NameValuePair pair : parameters) {
@@ -72,7 +72,7 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 			return env;
 
 		} else {
-			return error("Couldn't find the response in hash for implicit flow");
+			return error("Couldn't find the authorization server's response in URL fragment (hash) for implicit flow");
 		}
 
 	}
