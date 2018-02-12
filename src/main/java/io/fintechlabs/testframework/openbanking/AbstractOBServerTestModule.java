@@ -281,7 +281,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
-			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+			call(CallAccountsEndpointWithBearerToken.class, ConditionResult.FAILURE, "RFC7231-5.3.2");
 
 			// Try the second client
 
