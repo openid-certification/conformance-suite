@@ -133,7 +133,7 @@ public class AbstractCondition_UnitTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testArgs_null() {
-		cond.args(null);
+		cond.args((Object[]) null);
 	}
 
 	@Test

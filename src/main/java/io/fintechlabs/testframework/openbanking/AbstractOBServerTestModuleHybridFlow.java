@@ -20,6 +20,7 @@ import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthoriza
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractStateHash;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
@@ -89,6 +90,10 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 	private Object handleCallback(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
+
+		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+
+		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 

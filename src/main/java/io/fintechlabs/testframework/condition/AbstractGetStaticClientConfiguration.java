@@ -42,7 +42,7 @@ public abstract class AbstractGetStaticClientConfiguration extends AbstractCondi
 		// make sure we've got a client object
 		JsonElement client = in.findElement("config", key);
 		if (client == null || !client.isJsonObject()) {
-			return error("Couldn't find client object in configuration");
+			return error("Definition for "+key+" not present in supplied configuration");
 		} else {
 			// we've got a client object, put it in the environment
 			in.put("client", client.getAsJsonObject());

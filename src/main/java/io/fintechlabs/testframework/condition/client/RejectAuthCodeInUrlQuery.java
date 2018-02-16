@@ -30,51 +30,26 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * @author jricher
+ * @author jheenan
  *
  */
-public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
+public class RejectAuthCodeInUrlQuery extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param optional
-	 */
-	public ExtractImplicitHashToCallbackResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public RejectAuthCodeInUrlQuery(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment() // We want an explicit error if implicit_hash is empty
-	@PostEnvironment(required = "callback_params")
+	@PostEnvironment(required = "callback_query_params")
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("implicit_hash"))) {
-
-			String hash = env.getString("implicit_hash").substring(1); // strip off the leading # character
-
-			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
-
-			log("Extracted response from URL fragment", args("parameters", parameters));
-
-			JsonObject o = new JsonObject();
-			for (NameValuePair pair : parameters) {
-				o.addProperty(pair.getName(), pair.getValue());
-			}
-
-			// these count as both the authorization and token responses
-			env.put("callback_params", o);
-
-			logSuccess("Extracted the hash values", o);
-
-			return env;
-
-		} else {
-			return error("Couldn't find the authorization server's response in URL fragment (hash) for implicit flow");
+		if (!Strings.isNullOrEmpty(env.getString("callback_query_params", "code"))) {
+			return error("Authorization code is present in URL query returned from authorization endpoint - hybrid/implicit flow require it to be returned in the URL fragment/hash only");
 		}
 
+		logSuccess("Authorization code is not present in URL query returned from authorization endpoint");
+		return env;
 	}
 
 }
+
