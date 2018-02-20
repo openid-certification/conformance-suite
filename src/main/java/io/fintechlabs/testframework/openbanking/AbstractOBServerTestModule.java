@@ -114,8 +114,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		call(GetDynamicServerConfiguration.class);
-		call(GetStaticServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
