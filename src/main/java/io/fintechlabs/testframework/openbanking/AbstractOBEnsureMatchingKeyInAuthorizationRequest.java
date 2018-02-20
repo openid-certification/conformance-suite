@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfig
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -33,6 +34,8 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 

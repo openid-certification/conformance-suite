@@ -40,6 +40,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -93,6 +94,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 		exposeEnvString("client_id");
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		setStatus(Status.CONFIGURED);
 

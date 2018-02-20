@@ -292,6 +292,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			exposeEnvString("client_id");
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
@@ -316,6 +317,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			exposeEnvString("client_id");
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
 			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
