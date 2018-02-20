@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
@@ -48,6 +49,7 @@ import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -245,6 +247,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	protected Object onAuthorizationCallbackResponse() {
 
+		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
@@ -288,6 +292,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			whichClient = 2;
 
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
+			callAndStopOnFailure(AddRedirectUriQuerySuffix.class);
+			callAndStopOnFailure(CreateRedirectUri.class);
 
 			exposeEnvString("client_id");
 

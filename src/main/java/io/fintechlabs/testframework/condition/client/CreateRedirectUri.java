@@ -52,8 +52,16 @@ public class CreateRedirectUri extends AbstractCondition {
 			return error("Base URL was null or empty");
 		}
 
+		String suffix = in.getString("redirect_uri_suffix");
+
+		if (!Strings.isNullOrEmpty(suffix)) {
+			log("Appending suffix to redirect URI", args("suffix", suffix));
+		} else {
+			suffix = "";
+		}
+
 		// calculate the redirect URI based on our given base URL
-		String redirectUri = baseUrl + "/callback";
+		String redirectUri = baseUrl + "/callback" + suffix;
 		in.putString("redirect_uri", redirectUri);
 
 		logSuccess("Created redirect URI",
