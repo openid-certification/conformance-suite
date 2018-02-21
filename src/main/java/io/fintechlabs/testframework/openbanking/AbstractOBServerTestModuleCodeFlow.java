@@ -56,6 +56,7 @@ public abstract class AbstractOBServerTestModuleCodeFlow extends AbstractOBServe
 		setStatus(Status.RUNNING);
 
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
+		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		return onAuthorizationCallbackResponse();
 	}

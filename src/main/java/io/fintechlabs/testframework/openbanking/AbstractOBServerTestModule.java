@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
@@ -44,10 +45,10 @@ import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourc
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
-import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -64,11 +65,9 @@ import io.fintechlabs.testframework.condition.client.EnsureResourceResponseConte
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractStateHash;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -80,10 +79,7 @@ import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderFo
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.ValidateIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
@@ -118,8 +114,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		call(GetDynamicServerConfiguration.class);
-		call(GetStaticServerConfiguration.class);
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -245,6 +240,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	protected Object onAuthorizationCallbackResponse() {
 
+		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
@@ -288,10 +285,13 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			whichClient = 2;
 
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
+			callAndStopOnFailure(AddRedirectUriQuerySuffix.class);
+			callAndStopOnFailure(CreateRedirectUri.class);
 
 			exposeEnvString("client_id");
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
@@ -316,6 +316,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			exposeEnvString("client_id");
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
 			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);

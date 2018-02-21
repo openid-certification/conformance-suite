@@ -109,6 +109,8 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCode 
 
 		setStatus(Status.RUNNING);
 
+		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);

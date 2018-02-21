@@ -102,9 +102,6 @@ public abstract class AbstractOBEnsureMATLSRequired extends AbstractOBServerTest
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 		}
 
-		// oauth-MTLS is not required for all OpenBanking client authentication methods
-		call(EnsureServerConfigurationSupportsMTLS.class, "FAPI-2-5.2.2-6");
-
 		performAuthorizationFlow();
 	}
 

@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.google.gson.JsonObject;
+
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
@@ -51,6 +53,25 @@ public class CreateRedirectUri_UnitTest {
 		verify(env, atLeastOnce()).getString("base_url");
 
 		assertThat(env.getString("redirect_uri")).isEqualTo("https://example.com/callback");
+
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(io.fintechlabs.testframework.testmodule.Environment).
+	 */
+	@Test
+	public void testEvaluate_valueAndSuffixPresent() {
+
+		env.putString("base_url", "https://example.com");
+
+		env.putString("redirect_uri_suffix", "?dummy1=lorem&dummy2=ipsum");
+
+		cond.evaluate(env);
+
+		verify(env, atLeastOnce()).getString("base_url");
+		verify(env, atLeastOnce()).getString("redirect_uri_suffix");
+
+		assertThat(env.getString("redirect_uri")).isEqualTo("https://example.com/callback?dummy1=lorem&dummy2=ipsum");
 
 	}
 

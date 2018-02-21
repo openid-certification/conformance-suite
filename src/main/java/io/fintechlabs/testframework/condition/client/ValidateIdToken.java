@@ -99,7 +99,7 @@ public class ValidateIdToken extends AbstractCondition {
 
 		Long iat = env.getLong("id_token", "claims.iat");
 		if (iat == null) {
-			return error("Missing issuace time");
+			return error("Missing issuance time");
 		} else {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
 				return error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
