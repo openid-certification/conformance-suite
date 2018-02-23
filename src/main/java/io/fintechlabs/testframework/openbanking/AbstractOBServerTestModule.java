@@ -285,8 +285,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			whichClient = 2;
 
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
-			callAndStopOnFailure(AddRedirectUriQuerySuffix.class);
-			callAndStopOnFailure(CreateRedirectUri.class);
+			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
 
 			exposeEnvString("client_id");
 
