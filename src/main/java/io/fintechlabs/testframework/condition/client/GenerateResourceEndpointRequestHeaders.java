@@ -36,7 +36,7 @@ public class GenerateResourceEndpointRequestHeaders extends AbstractCondition {
 
 		JsonObject headers = new JsonObject();
 
-		headers.addProperty("x-fapi-customer-last-logged-time", DateUtils.formatDate(loginDate));
+		headers.addProperty("x-fapi-auth-date", DateUtils.formatDate(loginDate));
 		headers.addProperty("x-fapi-financial-id", institutionId);
 
 		env.put("resource_endpoint_request_headers", headers);
