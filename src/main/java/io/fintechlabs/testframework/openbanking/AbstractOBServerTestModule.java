@@ -21,6 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -351,6 +355,14 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		call(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 
 		call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 	}
 
 	protected void requestProtectedResource() {
