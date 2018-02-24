@@ -17,6 +17,7 @@ package io.fintechlabs.testframework.condition.common;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.SecureRandom;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -163,14 +164,15 @@ public class DisallowTLS11 extends AbstractCondition {
 			if (serverVersion == ProtocolVersion.TLSv11) {
 				return error("The server accepted a TLS 1.1 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));
 			} else {
-				return error("Server used incorrect TLS version",
+				return error("Server used different TLS version than requested",
 					args("server_version", serverVersion.toString(),
 						"host", tlsTestHost,
 						"port", tlsTestPort));
 			}
 		} catch (IOException e) {
 			if ((e instanceof TlsFatalAlertReceived)
-				&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
+				&& (((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure ||
+				((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.protocol_version)){
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.1 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
@@ -179,8 +181,13 @@ public class DisallowTLS11 extends AbstractCondition {
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.0 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
+			} else if ((e instanceof SocketException)
+				&& ((SocketException) e).getMessage().equals("Connection reset")) {
+				// AWS ELB seem to reject like this instead of by failing the handshake
+				logSuccess("Server refused TLS 1.0 handshake", args("host", tlsTestHost, "port", tlsTestPort));
+				return env;
 			} else {
-				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
+				return error("Failed to make TLS connection, but in a different way than expected", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
 		}
 
