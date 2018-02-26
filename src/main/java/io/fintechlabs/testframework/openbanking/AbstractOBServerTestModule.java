@@ -21,8 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import org.springframework.http.HttpStatus;
@@ -289,7 +291,20 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			whichClient = 2;
 
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
-			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+
+			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
+
+			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0)
+			{
+				/* Temporary change to allow banks to disable tests until they have had a chance to register new
+				 * clients with the new redirect uris.
+				 */
+				call(RedirectQueryTestDisabled.class, ConditionResult.FAILURE, "RFC6749-3.1.2");
+			}
+			else
+			{
+				callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+			}
 			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
 
 			exposeEnvString("client_id");
