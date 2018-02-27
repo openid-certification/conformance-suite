@@ -79,6 +79,21 @@ public class ValidateStateHash_UnitTest {
 		verify(env, atLeastOnce()).getString("state_hash", "alg");
 	}
 
+	public void testEvaluate_specexample_noError() {
+
+		// This is the c_hash example from:
+		// http://openid.net/specs/openid-connect-core-1_0.html#code-id_tokenExample
+		// (the c_hash and s_hash algorithms are the same)
+		env.putString("state", "Qcb0Orv1zh30vL1MPRsbm-diHiMwcLyZvn1arpZv-Jxf_11jnpEX3Tgfvk");
+		addStateHash(env, "HS256", "LDktKdoQak3Pk0cnXxCltA");
+
+		cond.evaluate(env);
+
+		verify(env, atLeastOnce()).getString("state_hash", "s_hash");
+		verify(env, atLeastOnce()).getString("state");
+		verify(env, atLeastOnce()).getString("state_hash", "alg");
+	}
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */

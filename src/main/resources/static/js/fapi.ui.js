@@ -61,9 +61,9 @@ var FAPI_UI = {
 			case "interrupted":
 				return "The test failed to run to completion as a critical element failed. Please see the log, fix the error and run the test again to get a complete set of results.";
 			case "finished":
-				return "The test has completed running";
+				return "The test has run to completion.";
 			case "running":
-				return "The test is actively executing";
+				return "The test is actively executing. Reload this page to see the latest status.";
 			default:
 				return "";
 		}

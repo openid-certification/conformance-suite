@@ -53,14 +53,6 @@ public abstract class AbstractOBServerTestModuleHybridFlow extends AbstractOBSer
 
 		super.requestAuthorizationCode();
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-
 		call(ExtractStateHash.class);
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
