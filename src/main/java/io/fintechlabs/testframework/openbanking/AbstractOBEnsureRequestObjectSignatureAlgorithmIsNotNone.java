@@ -6,7 +6,6 @@ import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectT
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -25,8 +24,6 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 		createAccountRequest();
 
 		createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
 		createAuthorizationRedirect();
 
