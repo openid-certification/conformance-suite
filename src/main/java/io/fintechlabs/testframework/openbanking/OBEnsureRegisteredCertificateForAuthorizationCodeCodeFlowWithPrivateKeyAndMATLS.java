@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.openbanking;
 import java.util.Map;
 
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
@@ -58,7 +57,11 @@ public class OBEnsureRegisteredCertificateForAuthorizationCodeCodeFlowWithPrivat
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 }
