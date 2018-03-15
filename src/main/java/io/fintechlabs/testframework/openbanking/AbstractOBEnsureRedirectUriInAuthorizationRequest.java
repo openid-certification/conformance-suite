@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.openbanking;
 import java.util.Map;
 
 import io.fintechlabs.testframework.condition.client.ExpectRedirectUriMissingErrorPage;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -22,8 +21,6 @@ public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends 
 		createAccountRequest();
 
 		createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
 		// Remove the redirect URL
 		env.get("authorization_endpoint_request").remove("redirect_uri");

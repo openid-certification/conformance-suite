@@ -6,7 +6,6 @@ import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifi
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -26,8 +25,6 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		createAccountRequest();
 
 		createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
 		// Switch to client 2 JWKs
 
