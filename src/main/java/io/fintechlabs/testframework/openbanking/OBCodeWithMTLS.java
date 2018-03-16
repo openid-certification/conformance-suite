@@ -46,7 +46,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithMTLS extends AbstractOBServerTestModuleCodeFlow {
+public class OBCodeWithMTLS extends AbstractOBServerTestModuleCode {
 
 	public OBCodeWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);

@@ -16,36 +16,29 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-secret-basic-and-matls",
-	displayName = "OB: code (client_secret_basic authentication with MATLS)",
+	testName = "ob-ensure-registered-certificate-for-authorization-code-code-id-token-with-mtls",
+	displayName = "OB: ensure registered certificate for authorization code (code id_token with MTLS authentication)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
-		"client.client_secret",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
 		"client2.client_id",
 		"client2.scope",
 		"client2.jwks",
-		"client2.client_secret",
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
@@ -53,27 +46,16 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCode {
+public class OBEnsureRegisteredCertificateForAuthorizationCodeCodeIdTokenWithMTLS extends AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCodeIdToken {
 
-	public OBCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBEnsureRegisteredCertificateForAuthorizationCodeCodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
-		logClientSecretWarning();
-	}
-
-	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-
-		super.onConfigure(config, baseUrl);
-
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 	}
 
 	@Override
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-
-		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
@@ -82,8 +64,6 @@ public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCod
 	protected void createAuthorizationCodeRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}

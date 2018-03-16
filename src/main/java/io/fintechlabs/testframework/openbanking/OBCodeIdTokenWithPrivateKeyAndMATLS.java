@@ -48,7 +48,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleHybridFlow {
+public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleCodeIdToken {
 
 	public OBCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);

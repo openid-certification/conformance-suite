@@ -16,56 +16,36 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
+import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-secret-basic-and-matls",
-	displayName = "OB: code (client_secret_basic authentication with MATLS)",
+	testName = "ob-ensure-matls-required-code-id-token-with-private-key-and-matls",
+	displayName = "OB: ensure MATLS required (code id_token with private key authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
-		"client.client_secret",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"client2.client_secret",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCode {
+public class OBEnsureMATLSRequiredCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBEnsureMATLSRequiredCodeIdToken {
 
-	public OBCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBEnsureMATLSRequiredCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
-		logClientSecretWarning();
-	}
-
-	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-
-		super.onConfigure(config, baseUrl);
-
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 	}
 
 	@Override
@@ -73,9 +53,11 @@ public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCod
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 	@Override
@@ -83,9 +65,11 @@ public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCod
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 }

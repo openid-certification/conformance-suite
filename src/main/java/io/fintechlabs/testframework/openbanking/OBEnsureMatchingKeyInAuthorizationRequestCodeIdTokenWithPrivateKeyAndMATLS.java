@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
@@ -27,8 +13,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-private-key-and-matls",
-	displayName = "OB: code (private key authentication with MATLS)",
+	testName = "ob-ensure-matching-key-in-authorization-request-code-id-token-with-private-key-and-matls",
+	displayName = "OB: ensure matching key in authorization request (code id_token with private key authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -39,18 +25,14 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"client2.client_id",
-		"client2.scope",
 		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleCode {
+public class OBEnsureMatchingKeyInAuthorizationRequestCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBEnsureMatchingKeyInAuthorizationRequestCodeIdToken {
 
-	public OBCodeWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBEnsureMatchingKeyInAuthorizationRequestCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
