@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
@@ -27,8 +13,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-private-key-and-matls",
-	displayName = "OB: code (private key authentication with MATLS)",
+	testName = "ob-ensure-registered-certificate-for-authorization-code-code-id-token-with-private-key-and-matls",
+	displayName = "OB: ensure registered certificate for authorization code (code id_token with private key authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -48,9 +34,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleCode {
+public class OBEnsureRegisteredCertificateForAuthorizationCodeCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCodeIdToken {
 
-	public OBCodeWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBEnsureRegisteredCertificateForAuthorizationCodeCodeIdTokenWithPrivateKeyAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
 

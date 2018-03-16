@@ -30,8 +30,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-secret-basic-and-matls",
-	displayName = "OB: code (client_secret_basic authentication with MATLS)",
+	testName = "ob-ensure-matls-required-code-id-token-with-secret-basic-and-matls",
+	displayName = "OB: ensure MATLS required (code id_token with client_secret_basic authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -42,20 +42,13 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"client2.client_secret",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCode {
+public class OBEnsureMATLSRequiredCodeIdTokenWithSecretBasicAndMATLS extends AbstractOBEnsureMATLSRequiredCodeIdToken {
 
-	public OBCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBEnsureMATLSRequiredCodeIdTokenWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}

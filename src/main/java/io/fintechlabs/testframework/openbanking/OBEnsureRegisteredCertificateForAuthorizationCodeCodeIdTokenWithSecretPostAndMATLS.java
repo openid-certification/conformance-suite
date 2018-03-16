@@ -18,9 +18,8 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
@@ -30,8 +29,8 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-secret-basic-and-matls",
-	displayName = "OB: code (client_secret_basic authentication with MATLS)",
+	testName = "ob-ensure-registered-certificate-for-authorization-code-code-id-token-with-secret-post-and-matls",
+	displayName = "OB: ensure registered certificate for authorization code (code id_token with client_secret_post authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -53,9 +52,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCode {
+public class OBEnsureRegisteredCertificateForAuthorizationCodeCodeIdTokenWithSecretPostAndMATLS extends AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCodeIdToken {
 
-	public OBCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public OBEnsureRegisteredCertificateForAuthorizationCodeCodeIdTokenWithSecretPostAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 		logClientSecretWarning();
 	}
@@ -65,7 +64,7 @@ public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCod
 
 		super.onConfigure(config, baseUrl);
 
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
 	}
 
 	@Override
@@ -73,7 +72,7 @@ public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCod
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
@@ -83,7 +82,7 @@ public class OBCodeWithSecretBasicAndMATLS extends AbstractOBServerTestModuleCod
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
