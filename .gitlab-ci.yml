@@ -55,6 +55,9 @@ build:
     - setup_docker
     - install_build_dependencies
     - build
+  artifacts:
+    paths:
+      - target/fapi-test-suite.jar
   cache:
     paths:
       - .m2/
