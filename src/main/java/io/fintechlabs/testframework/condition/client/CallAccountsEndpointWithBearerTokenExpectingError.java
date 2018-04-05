@@ -70,7 +70,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 		String tokenType = env.getString("access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
 			return error("Token type not found");
-		} else if (!tokenType.equals("Bearer")) {
+		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
 			return error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
@@ -93,7 +93,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
-			headers.set("Authorization", String.join(" ", tokenType, accessToken));
+			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
 
 			if (requestHeaders != null) {
 				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
