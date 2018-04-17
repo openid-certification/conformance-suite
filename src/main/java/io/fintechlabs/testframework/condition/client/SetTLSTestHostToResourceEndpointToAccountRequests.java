@@ -25,13 +25,13 @@ import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.BaseUrlPri
 import io.fintechlabs.testframework.testmodule.Environment;
 
 
-public class SetTLSTestHostToResourceEndpoint extends AbstractSetTLSTestHost {
+public class SetTLSTestHostToResourceEndpointToAccountRequests extends AbstractSetTLSTestHost {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public SetTLSTestHostToResourceEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public SetTLSTestHostToResourceEndpointToAccountRequests(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -43,9 +43,9 @@ public class SetTLSTestHostToResourceEndpoint extends AbstractSetTLSTestHost {
 	@PostEnvironment(required = "tls")
 	public Environment evaluate(Environment env) {
 
-		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, BaseUrlPriority.BASE);
+		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, BaseUrlPriority.ACCOUNT_REQUESTS);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+			return error("Account Requests endpoint not found.");
 		}
 
 		return setTLSTestHost(env, resourceEndpoint);
