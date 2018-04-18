@@ -106,9 +106,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.resourceUrl",
-		"resource.resourceUrlAccountRequests",
-		"resource.resourceUrlAccountsResource"		
+		"resource.resourceUrl"
 	}
 )
 public class CodeIdTokenWithMTLS extends AbstractTestModule {
