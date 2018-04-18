@@ -37,6 +37,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
 	}
 )

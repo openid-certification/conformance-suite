@@ -39,6 +39,8 @@ import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint;
+import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class DisallowAccessTokenInQuery extends AbstractCondition {
@@ -61,7 +63,7 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 			return error("Access token not found");
 		}
 
-		String resourceEndpoint = env.getString("resource", "resourceUrl");
+		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
 			return error("Resource endpoint not found");
 		}

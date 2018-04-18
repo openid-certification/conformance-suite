@@ -84,6 +84,8 @@ import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguratio
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpointToAccountRequests;
+import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpointToAccountsResource;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
@@ -267,13 +269,22 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			requestAuthorizationCode();
 
-			callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
+			callAndStopOnFailure(SetTLSTestHostToResourceEndpointToAccountRequests.class);
 			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 
+
+			callAndStopOnFailure(SetTLSTestHostToResourceEndpointToAccountsResource.class);
+			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+
+			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+			
+			
 			requestProtectedResource();
 
 			call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");

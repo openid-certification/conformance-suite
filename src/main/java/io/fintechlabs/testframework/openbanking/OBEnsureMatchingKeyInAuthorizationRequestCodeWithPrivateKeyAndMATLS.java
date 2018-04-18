@@ -27,6 +27,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client2.client_id",
 		"client2.jwks",
 		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
 	}
 )
