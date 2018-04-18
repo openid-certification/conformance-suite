@@ -33,17 +33,21 @@ public final class OBGetResourceEndpoint {
 	}
 	
 	/**
-	 * Takes the three possible environment variables and return the one that the user really wants
-	 * based on the requested prioritisation. 
-	 * @param urlToPrioritise -- Endpoint(Base), AccountRequest or AccountsResource
-	 * @return
+	 * Returns the required Endpoint from the current running environment.
+	 * Added to allow the user to specify different base Endpoint URIs 
+	 * for both the Accounts Requests server and the Accounts Resource servers.
+	 * 
+	 * Defaults to returning the "resourceUrl" string.
+	 *  
+	 * @param requiredEndpoint -- AccountRequest or AccountsResource
+	 * @return the required Endpoint as a string.
 	 */
-	public static String getBaseResourceURL(Environment env, Endpoint urlToPrioritise) {
+	public static String getBaseResourceURL(Environment env, Endpoint requiredEndpoint) {
 		String resourceEndpoint = env.getString("resource", "resourceUrl");
 		String resourceAccountRequest = env.getString("resource","resourceUrlAccountRequests");
-		String resourceAccountsResource = env.getString("resource","resourceUrlAccountRequests");
+		String resourceAccountsResource = env.getString("resource","resourceUrlAccountsResource");
 		
-		switch (urlToPrioritise) {
+		switch (requiredEndpoint) {
 			case ACCOUNT_REQUESTS:
 				if (!Strings.isNullOrEmpty(resourceAccountRequest)) {
 					return resourceAccountRequest;
