@@ -19,8 +19,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public final class OBGetResourceEndpoint {
 
-	public static enum BaseUrlPriority {
-		BASE,
+	public static enum Endpoint {
 		ACCOUNT_REQUESTS,
 		ACCOUNTS_RESOURCE
 	}
@@ -39,14 +38,12 @@ public final class OBGetResourceEndpoint {
 	 * @param urlToPrioritise -- Endpoint(Base), AccountRequest or AccountsResource
 	 * @return
 	 */
-	public static String getBaseResourceURL(Environment env, BaseUrlPriority urlToPrioritise) {
+	public static String getBaseResourceURL(Environment env, Endpoint urlToPrioritise) {
 		String resourceEndpoint = env.getString("resource", "resourceUrl");
 		String resourceAccountRequest = env.getString("resource","resourceUrlAccountRequests");
 		String resourceAccountsResource = env.getString("resource","resourceUrlAccountRequests");
 		
 		switch (urlToPrioritise) {
-			case BASE:
-				return resourceEndpoint;
 			case ACCOUNT_REQUESTS:
 				if (!Strings.isNullOrEmpty(resourceAccountRequest)) {
 					return resourceAccountRequest;

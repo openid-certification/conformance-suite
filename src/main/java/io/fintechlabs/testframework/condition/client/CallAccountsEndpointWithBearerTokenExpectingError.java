@@ -45,7 +45,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint;
-import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.BaseUrlPriority;
+import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 
@@ -77,7 +77,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 			return error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
-		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, BaseUrlPriority.ACCOUNTS_RESOURCE);		
+		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);		
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
 			return error("Resource endpoint not found");
 		}
