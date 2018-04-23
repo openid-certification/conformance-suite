@@ -566,8 +566,12 @@ public abstract class AbstractTestModule implements TestModule {
 		eventLog.log(getName(), args(
 			"msg", "Incoming HTTP request to test instance " + getId(),
 			"http", "incoming",
-			"path", path,
-			"request", requestParts));
+			"incoming_path", path,
+			"incoming_params", requestParts.get("params"), 
+			"incoming_method", requestParts.get("method"),
+			"incoming_headers", requestParts.get("headers"),
+			"incoming_body", requestParts.get("body"),
+			"incoming_body_json", requestParts.get("body_json")));
 	}
 
 	/*
