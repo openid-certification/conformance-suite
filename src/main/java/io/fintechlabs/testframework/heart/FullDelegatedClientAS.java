@@ -94,14 +94,14 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 
 	}
 )
-public class HeartASFullClientProfile extends AbstractTestModule {
+public class FullDelegatedClientAS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(HeartASFullClientProfile.class);
+	public static Logger logger = LoggerFactory.getLogger(FullDelegatedClientAS.class);
 
 	/**
 	 * 
 	 */
-	public HeartASFullClientProfile(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public FullDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
