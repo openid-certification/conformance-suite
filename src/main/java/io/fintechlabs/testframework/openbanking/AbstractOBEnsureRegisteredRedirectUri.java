@@ -36,8 +36,6 @@ public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBSe
 
 		createAuthorizationRequest();
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-
 		createAuthorizationRedirect();
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
