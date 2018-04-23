@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.condition.common;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import com.google.common.base.Strings;
@@ -28,13 +30,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckServerConfiguration extends AbstractCondition {
+public class CheckHeartServerConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CheckServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CheckHeartServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -50,13 +52,15 @@ public class CheckServerConfiguration extends AbstractCondition {
 			return error("Couldn't find a server configuration at all");
 		}
 
-		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer");
+		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer", "introspection_endpoint", "revocation_endpoint", "revocation_endpoint", "jwks_uri");
 		
 		for (String key : lookFor) {
 			ensureString(in, key);
+			
+			ensureUri(in, key);
 		}
 		
-		logSuccess("Found required server configuration keys", args("keys", lookFor));
+		logSuccess("Found required server configuration keys", args("required", lookFor));
 
 		return in;
 	}
@@ -64,8 +68,19 @@ public class CheckServerConfiguration extends AbstractCondition {
 	private void ensureString(Environment in, String path) {
 		String string = in.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
-			error("Couldn't find required component", args("path", path));
+			error("Couldn't find required component", args("required", path));
 		}
+	}
+	
+	private void ensureUri(Environment in, String path) {
+		String string = in.getString("server", path);
+		
+		try {
+			URI uri = new URI(string);
+		} catch (URISyntaxException e) {
+			error("Couldn't parse key as URI", e, args("required", path, "uri", string));
+		}
+		
 	}
 
 }

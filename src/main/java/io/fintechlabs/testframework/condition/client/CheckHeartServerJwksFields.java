@@ -12,12 +12,14 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition.common;
+package io.fintechlabs.testframework.condition.client;
 
 import java.util.List;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
@@ -28,44 +30,44 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class CheckServerConfiguration extends AbstractCondition {
+public class CheckHeartServerJwksFields extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param conditionResultOnFailure
+	 * @param requirements
 	 */
-	public CheckServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CheckHeartServerJwksFields(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
+	@PreEnvironment(required = "server_jwks")
 	@Override
-	@PreEnvironment(required = "server")
-	public Environment evaluate(Environment in) {
+	public Environment evaluate(Environment env) {
 
-		// first make sure we've got a "server" object at all
-		if (!in.containsObj("server")) {
-			return error("Couldn't find a server configuration at all");
-		}
-
-		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer");
+		JsonObject jwks = env.get("server_jwks");
 		
-		for (String key : lookFor) {
-			ensureString(in, key);
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+
+		List<String> required = ImmutableList.of("kid", "alg", "kty");
+		
+		for (JsonElement e : keys) {
+			JsonObject key = e.getAsJsonObject();
+
+			for (String req : required) {
+				if (!key.has(req)) {
+					return error("Key missing required field", args("missing", req, "key", key));
+				}
+			}
 		}
 		
-		logSuccess("Found required server configuration keys", args("keys", lookFor));
-
-		return in;
-	}
-
-	private void ensureString(Environment in, String path) {
-		String string = in.getString("server", path);
-		if (Strings.isNullOrEmpty(string)) {
-			error("Couldn't find required component", args("path", path));
-		}
+		logSuccess("All keys contain required field", args("required", required));
+		
+		return env;
 	}
 
 }
