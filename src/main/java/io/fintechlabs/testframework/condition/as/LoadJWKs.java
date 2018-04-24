@@ -47,7 +47,7 @@ public class LoadJWKs extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = { "public_jwks", "jwks" })
+	@PostEnvironment(required = { "server_public_jwks", "server_jwks" })
 	public Environment evaluate(Environment env) {
 
 		JsonElement configured = env.findElement("config", "server.jwks");
@@ -63,10 +63,10 @@ public class LoadJWKs extends AbstractCondition {
 			JsonObject publicJwks = new JsonParser().parse(jwks.toJSONObject(true).toJSONString()).getAsJsonObject();
 			JsonObject privateJwks = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 
-			env.put("public_jwks", publicJwks);
-			env.put("jwks", privateJwks);
+			env.put("server_public_jwks", publicJwks);
+			env.put("server_jwks", privateJwks);
 
-			logSuccess("Parsed public and private JWK sets", args("public_jwks", publicJwks, "jwks", jwks));
+			logSuccess("Parsed public and private JWK sets", args("server_public_jwks", publicJwks, "server_jwks", jwks));
 
 			return env;
 

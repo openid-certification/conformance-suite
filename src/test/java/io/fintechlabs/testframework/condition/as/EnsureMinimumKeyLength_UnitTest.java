@@ -94,10 +94,10 @@ public class EnsureMinimumKeyLength_UnitTest {
 	@Test
 	public void testEvaluate_good() {
 
-		env.put("jwks", buildJwks(ecP256, rsa2048));
+		env.put("server_jwks", buildJwks(ecP256, rsa2048));
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("jwks");
+		verify(env, atLeastOnce()).get("server_jwks");
 	}
 
 	@Test(expected = ConditionError.class)
@@ -110,7 +110,7 @@ public class EnsureMinimumKeyLength_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_shortRSA() {
 
-		env.put("jwks", buildJwks(ecP256, rsa1024));
+		env.put("server_jwks", buildJwks(ecP256, rsa1024));
 		cond.evaluate(env);
 
 	}
