@@ -56,12 +56,12 @@ public class SignRequestObject extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = { "request_object_claims", "jwks" })
+	@PreEnvironment(required = { "request_object_claims", "client_jwks" })
 	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
 
 		JsonObject requestObjectClaims = env.get("request_object_claims");
-		JsonObject jwks = env.get("jwks");
+		JsonObject jwks = env.get("client_jwks");
 
 		if (requestObjectClaims == null) {
 			return error("Couldn't find request object claims");

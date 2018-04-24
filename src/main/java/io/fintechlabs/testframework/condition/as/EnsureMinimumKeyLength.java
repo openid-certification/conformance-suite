@@ -40,10 +40,10 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "jwks")
+	@PreEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.get("jwks");
+		JsonObject jwks = env.get("server_jwks");
 		if (jwks == null) {
 			return error("Couldn't find JWKs in environment");
 		}
@@ -74,7 +74,7 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 			}
 		}
 
-		logSuccess("Validated minimum key lengths", args("jwks", jwks));
+		logSuccess("Validated minimum key lengths", args("server_jwks", jwks));
 
 		return env;
 	}

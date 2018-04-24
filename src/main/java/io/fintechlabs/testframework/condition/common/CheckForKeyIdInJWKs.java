@@ -31,10 +31,10 @@ public class CheckForKeyIdInJWKs extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "jwks")
+	@PreEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		JsonElement keys = env.findElement("jwks", "keys");
+		JsonElement keys = env.findElement("server_jwks", "keys");
 		if (keys == null || !keys.isJsonArray()) {
 			return error("keys array not found in JWKs");
 		}
