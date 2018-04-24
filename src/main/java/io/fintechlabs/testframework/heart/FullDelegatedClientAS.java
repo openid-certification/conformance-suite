@@ -22,6 +22,8 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
@@ -41,7 +43,9 @@ import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
+import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreateJwksUri;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
@@ -72,26 +76,23 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
  *
  */
 @PublishTestModule(
-	testName = "sample-test",
-	displayName = "Sample AS Test",
+	testName = "heart-full-delegated-client",
+	displayName = "HEART AS: Full Delegated Client",
 	profile = "HEART",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.client_secret",
+		"client.jwks",
 		"client.scope",
 		"tls.testHost",
-		"tls.testPort",
-		"mtls.cert",
-		"mtls.key",
-		"mtls.ca",
-
+		"tls.testPort"
 	}
 )
 public class FullDelegatedClientAS extends AbstractTestModule {
@@ -132,15 +133,17 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		// fetch or load the server's keys as needed
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
+		
+		callAndStopOnFailure(CreateJwksUri.class);
+		exposeEnvString("jwks_uri");
 
-		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
-
-		callAndStopOnFailure(CheckClientRedirectUri.class);
+		callAndStopOnFailure(CheckRedirectUri.class);
 
 		exposeEnvString("client_id");
 
@@ -188,17 +191,32 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		logIncomingHttpRequest(path, requestParts);
 
 		// dispatch based on the path
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
+		} if (path.equals("jwks")) {
+			return handleJwks(requestParts);
 		} else {
 			return new ModelAndView("testError");
 		}
 
+	}
+
+	/**
+	 * @param requestParts
+	 * @return
+	 */
+	private Object handleJwks(JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+		JsonObject jwks = env.get("public_jwks");
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
 	/**
