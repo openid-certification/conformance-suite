@@ -44,7 +44,7 @@ public class CheckForSubscriberInIdToken extends AbstractCondition {
 			logSuccess("Found subscriber returned with access token", args("sub", sub));
 			return env;
 		} else {
-			return error("Couldn't find subscriber");
+			throw error("Couldn't find subscriber");
 		}
 	}
 

@@ -47,14 +47,14 @@ public class ValidateRedirectUri extends AbstractCondition {
 		String actual = env.getString("token_endpoint_request", "params.redirect_uri");
 
 		if (Strings.isNullOrEmpty(expected)) {
-			return error("Couldn't find redirect uri to compare");
+			throw error("Couldn't find redirect uri to compare");
 		}
 
 		if (expected.equals(actual)) {
 			logSuccess("Found redirect uri", args("redirect_uri", actual));
 			return env;
 		} else {
-			return error("Didn't find matching redirect uri", args("expected", expected, "actual", actual));
+			throw error("Didn't find matching redirect uri", args("expected", expected, "actual", actual));
 		}
 
 	}

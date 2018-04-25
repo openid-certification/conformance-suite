@@ -49,7 +49,7 @@ public class CheckForAccessTokenValue extends AbstractCondition {
 			return env;
 
 		} else {
-			return error("Couldn't find required access token or token_type");
+			throw error("Couldn't find required access token or token_type");
 		}
 
 	}

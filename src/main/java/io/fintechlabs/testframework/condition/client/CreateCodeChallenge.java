@@ -48,7 +48,7 @@ public class CreateCodeChallenge extends AbstractCondition{
 		String verifier = env.getString("code_verifier");
 
 		if(Strings.isNullOrEmpty(verifier)){
-			return error("code_verifier was null or empty");
+			throw error("code_verifier was null or empty");
 		}
 
 		try {
@@ -63,9 +63,9 @@ public class CreateCodeChallenge extends AbstractCondition{
 			log("Created code_challenge value", args("code_challenge", challenge));
 
 		} catch (NoSuchAlgorithmException e) {
-			return error("No such Algorithm Error",e);
+			throw error("No such Algorithm Error",e);
 		} catch (UnsupportedEncodingException e) {
-			return error("Unsupported Encoding while getting code_verifier bytes", e);
+			throw error("Unsupported Encoding while getting code_verifier bytes", e);
 		}
 
 		return env;

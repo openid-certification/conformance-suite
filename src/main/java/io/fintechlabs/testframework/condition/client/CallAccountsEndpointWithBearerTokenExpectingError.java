@@ -67,19 +67,19 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Access token not found");
+			throw error("Access token not found");
 		}
 
 		String tokenType = env.getString("access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
-			return error("Token type not found");
+			throw error("Token type not found");
 		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
-			return error("Access token is not a bearer token", args("token_type", tokenType));
+			throw error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
 		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);		
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+			throw error("Resource endpoint not found");
 		}
 
 		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
@@ -120,12 +120,12 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 			String responseBody = response.getBody();
 
 			if (Strings.isNullOrEmpty(responseBody)) {
-				return error("Empty response from the resource endpoint");
+				throw error("Empty response from the resource endpoint");
 			} else {
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(responseBody);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						return error("Resource endpoint did not return a JSON object");
+						throw error("Resource endpoint did not return a JSON object");
 					}
 
 					JsonObject responseObj = jsonRoot.getAsJsonObject();
@@ -134,15 +134,15 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 						logSuccess("Found error in resource endpoint error response", responseObj);
 						return env;
 					} else {
-						return error("No error from resource endpoint", responseObj);
+						throw error("No error from resource endpoint", responseObj);
 					}
 
 				} catch (JsonParseException e) {
-					return error(e);
+					throw error(e);
 				}
 			}
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			return error("Error creating HTTP client", e);
+			throw error("Error creating HTTP client", e);
 		}
 	}
 

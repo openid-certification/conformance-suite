@@ -53,7 +53,7 @@ public class LoadJWKs extends AbstractCondition {
 		JsonElement configured = env.findElement("config", "server.jwks");
 
 		if (configured == null) {
-			return error("Couldn't find a JWK set in configuration");
+			throw error("Couldn't find a JWK set in configuration");
 		}
 
 		// parse the JWKS to make sure it's valid
@@ -71,7 +71,7 @@ public class LoadJWKs extends AbstractCondition {
 			return env;
 
 		} catch (ParseException e) {
-			return error("Failure parsing JWK Set", e, args("jwk_string", configured));
+			throw error("Failure parsing JWK Set", e, args("jwk_string", configured));
 		}
 
 	}

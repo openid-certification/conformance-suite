@@ -45,7 +45,7 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractC
 			if (claimsElement.isJsonObject()) {
 				claims = claimsElement.getAsJsonObject();
 			} else {
-				return error("Invalid claims in request", args("authorization_endpoint_request", authorizationEndpointRequest));
+				throw error("Invalid claims in request", args("authorization_endpoint_request", authorizationEndpointRequest));
 			}
 		} else {
 			claims = new JsonObject();
@@ -58,7 +58,7 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractC
 			if (idTokenElement.isJsonObject()) {
 				claimsIdToken = idTokenElement.getAsJsonObject();
 			} else {
-				return error("Invalid id_token in request claims", args("authorization_endpoint_request", authorizationEndpointRequest));
+				throw error("Invalid id_token in request claims", args("authorization_endpoint_request", authorizationEndpointRequest));
 			}
 		} else {
 			claimsIdToken = new JsonObject();

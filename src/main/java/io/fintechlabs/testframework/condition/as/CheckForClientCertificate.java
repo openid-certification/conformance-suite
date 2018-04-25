@@ -40,7 +40,7 @@ public class CheckForClientCertificate extends AbstractCondition {
 			logSuccess("Found client certificate");
 			return env;
 		} else {
-			return error("Client certificate not found");
+			throw error("Client certificate not found");
 		}
 
 	}

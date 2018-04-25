@@ -43,7 +43,7 @@ public class EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint extends Ab
 	@PreEnvironment(required = "callback_params")
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
-			return error("Couldn't find callback parameters");
+			throw error("Couldn't find callback parameters");
 		}
 
 		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
@@ -51,10 +51,10 @@ public class EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint extends Ab
 				logSuccess("unsupported_response_type error from the authorization endpoint");
 				return in;
 			} else {
-				return error("Incorrect error from the authorization endpoint", in.get("callback_params"));
+				throw error("Incorrect error from the authorization endpoint", in.get("callback_params"));
 			}
 		} else {
-			return error("No unsupported_response_type error found from the authorization endpoint", in.get("callback_params"));
+			throw error("No unsupported_response_type error found from the authorization endpoint", in.get("callback_params"));
 		}
 
 	}

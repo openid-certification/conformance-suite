@@ -45,7 +45,7 @@ public class EnsureMinimumClientSecretEntropy extends AbstractEnsureMinimumEntro
 		String clientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientSecret)) {
-			return error("Can't find client secret");
+			throw error("Can't find client secret");
 		}
 
 		return ensureMinimumEntropy(env, clientSecret, requiredEntropy);

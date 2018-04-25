@@ -66,11 +66,11 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (env.getString("server", "token_endpoint") == null) {
-			return error("Couldn't find token endpoint");
+			throw error("Couldn't find token endpoint");
 		}
 
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {
-			return error("Couldn't find request form");
+			throw error("Couldn't find request form");
 		}
 
 		// build up the form
@@ -115,7 +115,7 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {
-				return error("Empty response from the token endpoint");
+				throw error("Empty response from the token endpoint");
 			} else {
 				log("Token endpoint response",
 					args("token_endpoint_response", jsonString));
@@ -123,7 +123,7 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						return error("Token Endpoint did not return a JSON object");
+						throw error("Token Endpoint did not return a JSON object");
 					}
 
 					JsonObject response = jsonRoot.getAsJsonObject();
@@ -132,16 +132,16 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 						logSuccess("Found error in token endpoint error response", env.get("token_endpoint_response"));
 						return env;
 					} else {
-						return error("No error from token endpoint", response);
+						throw error("No error from token endpoint", response);
 					}
 
 				} catch (JsonParseException e) {
-					return error(e);
+					throw error(e);
 				}
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
-			return error("Error creating HTTP Client", e);
+			throw error("Error creating HTTP Client", e);
 		}
 
 	}

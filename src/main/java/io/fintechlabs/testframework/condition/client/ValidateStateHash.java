@@ -39,17 +39,17 @@ public class ValidateStateHash extends AbstractCondition {
 
 		String s_hash = env.getString("state_hash", "s_hash");
 		if (s_hash == null) {
-			return error("Couldn't find s_hash");
+			throw error("Couldn't find s_hash");
 		}
 
 		String alg = env.getString("state_hash", "alg");
 		if (alg == null) {
-			return error("Couldn't find algorithm");
+			throw error("Couldn't find algorithm");
 		}
 
 		String state = env.getString("state");
 		if (state == null) {
-			return error("Couldn't find state");
+			throw error("Couldn't find state");
 		}
 
 		MessageDigest digester;
@@ -57,13 +57,13 @@ public class ValidateStateHash extends AbstractCondition {
 		try {
 			Matcher matcher = Pattern.compile("^(HS|RS|ES|PS)(256|384|512)$").matcher(alg);
 			if (!matcher.matches()) {
-				return error("Invalid algorithm", args("alg", alg));
+				throw error("Invalid algorithm", args("alg", alg));
 			}
 
 			String digestAlgorithm = "SHA-" + matcher.group(2);
 			digester = MessageDigest.getInstance(digestAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
-			return error("Unsupported digest for algorithm", e, args("alg", alg));
+			throw error("Unsupported digest for algorithm", e, args("alg", alg));
 		}
 
 		byte[] stateDigest = digester.digest(state.getBytes(StandardCharsets.US_ASCII));
@@ -73,7 +73,7 @@ public class ValidateStateHash extends AbstractCondition {
 
 		String expectedHash = Base64URL.encode(halfDigest).toString();
 		if (!s_hash.equals(expectedHash)) {
-			return error("Invalid s_hash in token", args("expected", expectedHash, "actual", s_hash));
+			throw error("Invalid s_hash in token", args("expected", expectedHash, "actual", s_hash));
 		}
 
 		logSuccess("State hash validated successfully", args("s_hash", s_hash));

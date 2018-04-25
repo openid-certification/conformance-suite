@@ -42,7 +42,7 @@ public class EnsureMatchingFAPIInteractionId extends AbstractCondition {
 			logSuccess("Interaction ID matched", args("fapi_interaction_id", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Mismatch between interaction IDs", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+			throw error("Mismatch between interaction IDs", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
 
 	}
