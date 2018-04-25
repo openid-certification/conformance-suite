@@ -36,16 +36,16 @@ public class CheckForKeyIdInJWKs extends AbstractCondition {
 
 		JsonElement keys = env.findElement("jwks", "keys");
 		if (keys == null || !keys.isJsonArray()) {
-			return error("keys array not found in JWKs");
+			throw error("keys array not found in JWKs");
 		}
 
 		for (JsonElement key : keys.getAsJsonArray()) {
 			if (!key.isJsonObject()) {
-				return error("invalid key in JWKs", args("key", key));
+				throw error("invalid key in JWKs", args("key", key));
 			}
 
 			if (!key.getAsJsonObject().has("kid")) {
-				return error("kid not found in key", args("key", key));
+				throw error("kid not found in key", args("key", key));
 			}
 		}
 

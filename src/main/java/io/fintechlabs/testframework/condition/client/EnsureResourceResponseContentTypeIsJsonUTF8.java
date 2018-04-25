@@ -49,12 +49,12 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractConditi
 					if (charsetName.equals("UTF-8")) {
 						logSuccess("Response charset is UTF-8", args("content_type", contentTypeStr));
 					} else {
-						return error("Response charset is not UTF-8",
+						throw error("Response charset is not UTF-8",
 							args("content_type", contentTypeStr,
 								"charset", charset.get().name()));
 					}
 				} else {
-					return error("Response charset not declared", (args("content_type", contentTypeStr)));
+					throw error("Response charset not declared", (args("content_type", contentTypeStr)));
 				}
 
 				if (parsedType.is(MediaType.JSON_UTF_8)) {
@@ -62,11 +62,11 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractConditi
 					return env;
 				}
 			} catch (InvalidMediaTypeException e) {
-				return error("Unable to parse content type", args("content_type", contentTypeStr));
+				throw error("Unable to parse content type", args("content_type", contentTypeStr));
 			}
 		}
 
-		return error("Resource endpoint did not declare a content type");
+		throw error("Resource endpoint did not declare a content type");
 	}
 
 }

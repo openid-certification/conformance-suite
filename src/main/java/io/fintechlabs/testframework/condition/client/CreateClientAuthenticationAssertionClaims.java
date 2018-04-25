@@ -54,7 +54,7 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 		String audience = env.getString("server", "token_endpoint");
 
 		if (Strings.isNullOrEmpty(issuer) || Strings.isNullOrEmpty(audience)) {
-			return error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));
+			throw error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));
 		}
 
 		JsonObject claims = new JsonObject();

@@ -45,7 +45,7 @@ public class SetTLSTestHostToResourceEndpointToAccountsResource extends Abstract
 
 		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Accounts Resource endpoint not found.");
+			throw error("Accounts Resource endpoint not found.");
 		}
 
 		return setTLSTestHost(env, resourceEndpoint);

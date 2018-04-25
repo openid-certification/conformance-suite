@@ -45,7 +45,7 @@ public class AddFormBasedClientSecretAuthenticationParameters extends AbstractCo
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {
-			return error("Couldn't find request form");
+			throw error("Couldn't find request form");
 		}
 
 		JsonObject o = env.get("token_endpoint_request_form_parameters");

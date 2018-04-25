@@ -229,75 +229,75 @@ public abstract class AbstractCondition implements Condition {
 	 */
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(String message, Throwable cause) {
+	protected ConditionError error(String message, Throwable cause) {
 		logFailure(message, ex(cause));
-		throw new ConditionError(testId, getMessage() + ": " + message, cause);
+		return new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(String message) {
+	protected ConditionError error(String message) {
 		logFailure(message);
-		throw new ConditionError(testId, getMessage() + ": " + message);
+		return new ConditionError(testId, getMessage() + ": " + message);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(Throwable cause) {
+	protected ConditionError error(Throwable cause) {
 		logFailure(cause.getMessage(), ex(cause));
-		throw new ConditionError(testId, getMessage(), cause);
+		return new ConditionError(testId, getMessage(), cause);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(String message, Throwable cause, Map<String, Object> map) {
+	protected ConditionError error(String message, Throwable cause, Map<String, Object> map) {
 		logFailure(message, ex(cause, map));
-		throw new ConditionError(testId, getMessage() + ": " + message, cause);
+		return new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(String message, Map<String, Object> map) {
+	protected ConditionError error(String message, Map<String, Object> map) {
 		logFailure(message, map);
-		throw new ConditionError(testId, getMessage() + ": " + message);
+		return new ConditionError(testId, getMessage() + ": " + message);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(Throwable cause, Map<String, Object> map) {
+	protected ConditionError error(Throwable cause, Map<String, Object> map) {
 		logFailure(cause.getMessage(), ex(cause, map));
-		throw new ConditionError(testId, getMessage(), cause);
+		return new ConditionError(testId, getMessage(), cause);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(String message, Throwable cause, JsonObject in) {
+	protected ConditionError error(String message, Throwable cause, JsonObject in) {
 		logFailure(message, ex(cause, in));
-		throw new ConditionError(testId, getMessage() + ": " + message, cause);
+		return new ConditionError(testId, getMessage() + ": " + message, cause);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(String message, JsonObject in) {
+	protected ConditionError error(String message, JsonObject in) {
 		logFailure(message, in);
-		throw new ConditionError(testId, getMessage() + ": " + message);
+		return new ConditionError(testId, getMessage() + ": " + message);
 	}
 
 	/**
-	 * Log a failure then throw a ConditionError
+	 * Log a failure then return a ConditionError
 	 */
-	protected Environment error(Throwable cause, JsonObject in) {
+	protected ConditionError error(Throwable cause, JsonObject in) {
 		logFailure(cause.getMessage(), ex(cause, in));
-		throw new ConditionError(testId, getMessage(), cause);
+		return new ConditionError(testId, getMessage(), cause);
 	}
 
 	/**

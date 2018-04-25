@@ -66,11 +66,11 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 		JsonObject jwks = env.get("jwks");
 
 		if (claims == null) {
-			return error("Couldn't find claims");
+			throw error("Couldn't find claims");
 		}
 
 		if (jwks == null) {
-			return error("Couldn't find jwks");
+			throw error("Couldn't find jwks");
 		}
 
 		try {
@@ -92,12 +92,12 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 				}
 
 				if (signer == null) {
-					return error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
+					throw error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
 				}
 
 				Algorithm alg = jwk.getAlgorithm();
 				if (alg == null) {
-					return error("No 'alg' field specified in key", args("jwk", jwk.toJSONString()));
+					throw error("No 'alg' field specified in key", args("jwk", jwk.toJSONString()));
 				}
 
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
@@ -113,13 +113,13 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 				return env;
 
 			} else {
-				return error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
+				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
 			}
 
 		} catch (ParseException e) {
-			return error(e);
+			throw error(e);
 		} catch (JOSEException e) {
-			return error(e);
+			throw error(e);
 		}
 
 	}

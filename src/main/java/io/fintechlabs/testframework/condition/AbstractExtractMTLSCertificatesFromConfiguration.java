@@ -50,7 +50,7 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 		String caString = env.getString("config", key + ".ca");
 
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
-			return error("Couldn't find TLS client certificate or key for MTLS");
+			throw error("Couldn't find TLS client certificate or key for MTLS");
 		}
 
 		if (Strings.isNullOrEmpty(caString)) {
@@ -67,7 +67,7 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 				caString = stripPEM(caString);
 			}
 		} catch (IllegalArgumentException e) {
-			return error("Couldn't decode certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+			throw error("Couldn't decode certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		}
 
 		JsonObject mtls = new JsonObject();

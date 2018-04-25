@@ -44,11 +44,11 @@ public class SetTLSTestHostFromConfig extends AbstractSetTLSTestHost {
 		Integer tlsTestPort = env.getInteger("config", "tls.testPort");
 
 		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS in config");
+			throw error("Couldn't find host to connect for TLS in config");
 		}
 
 		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS in config");
+			throw error("Couldn't find port to connect for TLS in config");
 		}
 
 		return setTLSTestHost(env, tlsTestHost, (int) tlsTestPort);

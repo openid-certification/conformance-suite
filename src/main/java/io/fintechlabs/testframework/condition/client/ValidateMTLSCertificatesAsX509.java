@@ -45,7 +45,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		String caString = env.getString("mutual_tls_authentication", "ca");
 
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
-			return error("Couldn't find TLS client certificate or key for MTLS");
+			throw error("Couldn't find TLS client certificate or key for MTLS");
 		}
 
 		Security.addProvider(new BouncyCastleProvider());
@@ -62,23 +62,15 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 			// Check that the private key and the certificate match
 			RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
 			if (!(privateKey.getModulus().equals(publicKey.getModulus()))) {
-				return error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+				throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 			}
 
 			if (!Strings.isNullOrEmpty(caString)) {
 				X509Certificate caCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(caString)));
 			}
 
-		} catch (CertificateException e) {
-			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
-		} catch (NoSuchProviderException e) {
-			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
-		} catch (NoSuchAlgorithmException e) {
-			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
-		} catch (InvalidKeySpecException e) {
-			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
-		} catch (IllegalArgumentException e) {
-			return error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+		} catch (CertificateException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
+			throw error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		}
 
 		logSuccess("Mutual TLS authentication cert validated as X.509");

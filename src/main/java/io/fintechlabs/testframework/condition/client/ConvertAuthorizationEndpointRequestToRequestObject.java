@@ -47,7 +47,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject extends Abstract
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
 
 		if (authorizationEndpointRequest == null) {
-			return error("Couldn't find authorization endpoint request");
+			throw error("Couldn't find authorization endpoint request");
 		}
 
 		JsonObject requestObjectClaims = new JsonObject();

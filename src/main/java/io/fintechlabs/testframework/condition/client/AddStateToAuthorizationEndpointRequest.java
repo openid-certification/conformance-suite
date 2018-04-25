@@ -47,11 +47,11 @@ public class AddStateToAuthorizationEndpointRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String state = env.getString("state");
 		if (Strings.isNullOrEmpty(state)) {
-			return error("Couldn't find state value");
+			throw error("Couldn't find state value");
 		}
 
 		if (!env.containsObj("authorization_endpoint_request")) {
-			return error("Couldn't find authorization endpoint request");
+			throw error("Couldn't find authorization endpoint request");
 		}
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");

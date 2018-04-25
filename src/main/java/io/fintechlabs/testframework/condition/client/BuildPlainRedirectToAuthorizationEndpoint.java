@@ -48,7 +48,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("authorization_endpoint_request")) {
-			return error("Couldn't find authorization endpoint request");
+			throw error("Couldn't find authorization endpoint request");
 		}
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
@@ -56,7 +56,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		String authorizationEndpoint = env.getString("server", "authorization_endpoint");
 
 		if (Strings.isNullOrEmpty(authorizationEndpoint)) {
-			return error("Couldn't find authorization endpoint");
+			throw error("Couldn't find authorization endpoint");
 		}
 
 		// send a front channel request to start things off

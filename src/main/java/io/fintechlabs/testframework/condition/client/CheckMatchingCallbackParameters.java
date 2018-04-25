@@ -37,7 +37,7 @@ public class CheckMatchingCallbackParameters extends AbstractCondition {
 			String actual = env.getString("callback_query_params", key);
 
 			if (!expected.equals(actual)) {
-				return error("Callback parameter invalid or missing", args("parameter", key, "expected", expected, "actual", actual));
+				throw error("Callback parameter invalid or missing", args("parameter", key, "expected", expected, "actual", actual));
 			}
 
 			o.addProperty(key, expected);

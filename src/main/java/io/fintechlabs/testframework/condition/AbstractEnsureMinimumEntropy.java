@@ -44,7 +44,7 @@ public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 			logSuccess("Calculated entropy", args("expected", requiredEntropy, "actual", entropy));
 			return env;
 		} else {
-			return error("Minimum entropy not met", args("expected", requiredEntropy, "actual", entropy));
+			throw error("Minimum entropy not met", args("expected", requiredEntropy, "actual", entropy));
 		}
 
 	}

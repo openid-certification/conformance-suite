@@ -45,13 +45,13 @@ public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCo
 		String id = env.getString("client", "client_id");
 
 		if (id == null) {
-			return error("Client ID not found in configuration");
+			throw error("Client ID not found in configuration");
 		}
 
 		String secret = env.getString("client", "client_secret");
 
 		if (secret == null) {
-			return error("Client secret not found in configuration");
+			throw error("Client secret not found in configuration");
 		}
 
 		JsonObject headers = env.get("token_endpoint_request_headers");

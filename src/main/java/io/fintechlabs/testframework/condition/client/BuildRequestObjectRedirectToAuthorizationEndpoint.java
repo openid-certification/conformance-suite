@@ -56,22 +56,22 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
 		if (authorizationEndpointRequest == null) {
-			return error("Couldn't find authorization endpoint request");
+			throw error("Couldn't find authorization endpoint request");
 		}
 
 		String requestObject = env.getString("request_object");
 		if (requestObject == null) {
-			return error("Couldn't find request object");
+			throw error("Couldn't find request object");
 		}
 
 		JsonObject requestObjectClaims = env.get("request_object_claims");
 		if (requestObjectClaims == null) {
-			return error("Couldn't find request object claims");
+			throw error("Couldn't find request object claims");
 		}
 
 		String authorizationEndpoint = env.getString("server", "authorization_endpoint");
 		if (Strings.isNullOrEmpty(authorizationEndpoint)) {
-			return error("Couldn't find authorization endpoint");
+			throw error("Couldn't find authorization endpoint");
 		}
 
 		// send a front channel request to start things off

@@ -60,12 +60,12 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Access token not found");
+			throw error("Access token not found");
 		}
 
 		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+			throw error("Resource endpoint not found");
 		}
 
 		// Build the endpoint URL
@@ -88,16 +88,16 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 
 			ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, request, String.class);
 
-			return error("Got a successful response from the resource endpoint", args("body", response.getBody()));
+			throw error("Got a successful response from the resource endpoint", args("body", response.getBody()));
 		} catch (RestClientResponseException e) {
 			if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST || e.getRawStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				logSuccess("Resource server refused request", args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 				return env;
 			} else {
-				return error("Error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
+				throw error("Error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 			}
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			return error("Error creating HTTP client", e);
+			throw error("Error creating HTTP client", e);
 		}
 	}
 

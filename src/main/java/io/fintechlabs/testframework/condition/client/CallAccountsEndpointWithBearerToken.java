@@ -64,19 +64,19 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Access token not found");
+			throw error("Access token not found");
 		}
 
 		String tokenType = env.getString("access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
-			return error("Token type not found");
+			throw error("Token type not found");
 		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
-			return error("Access token is not a bearer token", args("token_type", tokenType));
+			throw error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
 		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+			throw error("Resource endpoint not found");
 		}
 
 		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
@@ -119,9 +119,9 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 
 			return env;
 		} catch (RestClientResponseException e) {
-			return error("Error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
+			throw error("Error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			return error("Error creating HTTP client", e);
+			throw error("Error creating HTTP client", e);
 		}
 	}
 

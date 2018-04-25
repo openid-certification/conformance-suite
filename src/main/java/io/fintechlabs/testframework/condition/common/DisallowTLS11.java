@@ -86,11 +86,11 @@ public class DisallowTLS11 extends AbstractCondition {
 		Integer tlsTestPort = env.getInteger("tls", "testPort");
 
 		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+			throw error("Couldn't find host to connect for TLS");
 		}
 
 		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
+			throw error("Couldn't find port to connect for TLS");
 		}
 
 		try {
@@ -150,7 +150,7 @@ public class DisallowTLS11 extends AbstractCondition {
 				protocol.connect(client);
 
 				// By the time handshake completes an exception should have been thrown, but just in case:
-				return error("Connection completed unexpectedly");
+				throw error("Connection completed unexpectedly");
 
 			} finally {
 				try {
@@ -162,9 +162,9 @@ public class DisallowTLS11 extends AbstractCondition {
 		} catch (ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
 			if (serverVersion == ProtocolVersion.TLSv11) {
-				return error("The server accepted a TLS 1.1 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));
+				throw error("The server accepted a TLS 1.1 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));
 			} else {
-				return error("Server used different TLS version than requested",
+				throw error("Server used different TLS version than requested",
 					args("server_version", serverVersion.toString(),
 						"host", tlsTestHost,
 						"port", tlsTestPort));
@@ -187,7 +187,7 @@ public class DisallowTLS11 extends AbstractCondition {
 				logSuccess("Server refused TLS 1.0 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
-				return error("Failed to make TLS connection, but in a different way than expected", e, args("host", tlsTestHost, "port", tlsTestPort));
+				throw error("Failed to make TLS connection, but in a different way than expected", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
 		}
 

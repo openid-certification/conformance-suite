@@ -54,15 +54,15 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 		String nonce = env.getString("authorization_endpoint_request", "nonce");
 
 		if (Strings.isNullOrEmpty(subject)) {
-			return error("Couldn't find subject");
+			throw error("Couldn't find subject");
 		}
 
 		if (Strings.isNullOrEmpty(issuer)) {
-			return error("Couldn't find issuer");
+			throw error("Couldn't find issuer");
 		}
 
 		if (Strings.isNullOrEmpty(clientId)) {
-			return error("Couldn't find client ID");
+			throw error("Couldn't find client ID");
 		}
 
 		JsonObject claims = new JsonObject();

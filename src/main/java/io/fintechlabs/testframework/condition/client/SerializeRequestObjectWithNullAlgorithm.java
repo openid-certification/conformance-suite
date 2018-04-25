@@ -49,7 +49,7 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 		JsonObject requestObjectClaims = env.get("request_object_claims");
 
 		if (requestObjectClaims == null) {
-			return error("Couldn't find request object claims");
+			throw error("Couldn't find request object claims");
 		}
 
 		// FIXME: this processing should be handled in a separate condition
@@ -87,7 +87,7 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 
 			return env;
 		} catch (ParseException e) {
-			return error(e);
+			throw error(e);
 		}
 
 	}

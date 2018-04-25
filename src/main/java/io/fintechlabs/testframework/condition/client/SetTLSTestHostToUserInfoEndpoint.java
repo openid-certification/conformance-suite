@@ -43,7 +43,7 @@ public class SetTLSTestHostToUserInfoEndpoint extends AbstractSetTLSTestHost {
 		String endpointUrl = env.getString("server", "userinfo_endpoint");
 
 		if (Strings.isNullOrEmpty(endpointUrl)) {
-			return error("User info endpoint not found in server configuration");
+			throw error("User info endpoint not found in server configuration");
 		}
 
 		return setTLSTestHost(env, endpointUrl);

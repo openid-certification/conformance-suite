@@ -71,11 +71,11 @@ public class CallTokenEndpoint extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (env.getString("server", "token_endpoint") == null) {
-			return error("Couldn't find token endpoint");
+			throw error("Couldn't find token endpoint");
 		}
 
 		if (!env.containsObj("token_endpoint_request_form_parameters")) {
-			return error("Couldn't find request form");
+			throw error("Couldn't find request form");
 		}
 
 		// build up the form
@@ -109,11 +109,11 @@ public class CallTokenEndpoint extends AbstractCondition {
 				jsonString = restTemplate.postForObject(env.getString("server", "token_endpoint"), request, String.class);
 			} catch (RestClientResponseException e) {
 
-				return error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {
-				return error("Didn't get back a response from the token endpoint");
+				throw error("Didn't get back a response from the token endpoint");
 			} else {
 				log("Token endpoint response",
 					args("token_endpoint_response", jsonString));
@@ -121,7 +121,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						return error("Token Endpoint did not return a JSON object");
+						throw error("Token Endpoint did not return a JSON object");
 					}
 
 					logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
@@ -130,12 +130,12 @@ public class CallTokenEndpoint extends AbstractCondition {
 
 					return env;
 				} catch (JsonParseException e) {
-					return error(e);
+					throw error(e);
 				}
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
-			return error("Error creating HTTP Client", e);
+			throw error("Error creating HTTP Client", e);
 		}
 
 	}

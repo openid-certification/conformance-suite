@@ -53,7 +53,7 @@ public class ExtractClientCertificateFromRequestHeaders extends AbstractConditio
 
 		String certStr = env.getString("client_request_headers", "X-Ssl-Cert");
 		if (certStr == null) {
-			return error("Client certificate not found");
+			throw error("Client certificate not found");
 		}
 
 		try {
@@ -77,7 +77,7 @@ public class ExtractClientCertificateFromRequestHeaders extends AbstractConditio
 			return env;
 
 		} catch (CertificateException e) {
-			return error("Error parsing certificate", e, args("cert", certStr));
+			throw error("Error parsing certificate", e, args("cert", certStr));
 		}
 
 	}

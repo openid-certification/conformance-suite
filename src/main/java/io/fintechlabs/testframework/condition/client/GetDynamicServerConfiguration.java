@@ -59,13 +59,13 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("config")) {
-			return error("Couldn't find a configuration");
+			throw error("Couldn't find a configuration");
 		}
 
 		String staticIssuer = env.getString("config", "server.issuer");
 
 		if (!Strings.isNullOrEmpty(staticIssuer)) {
-			return error("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
+			throw error("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
 		}
 
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");
@@ -76,7 +76,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			discoveryUrl = iss + "/.well-known/openid-configuration";
 
 			if (Strings.isNullOrEmpty(iss)) {
-				return error("Couldn't find discoveryUrl or discoveryIssuer field for discovery purposes");
+				throw error("Couldn't find discoveryUrl or discoveryIssuer field for discovery purposes");
 			}
 
 		}
@@ -91,9 +91,9 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 				RestTemplate restTemplate = createRestTemplate(env);
 				jsonString = restTemplate.getForObject(discoveryUrl, String.class);
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-				return error("Error creating HTTP client", e);
+				throw error("Error creating HTTP client", e);
 			} catch (RestClientResponseException e) {
-				return error("Unable to fetch server configuration from " + discoveryUrl, e);
+				throw error("Unable to fetch server configuration from " + discoveryUrl, e);
 			}
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
@@ -109,15 +109,15 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 					return env;
 				} catch (JsonSyntaxException e) {
-					return error(e);
+					throw error(e);
 				}
 
 			} else {
-				return error("empty server configuration");
+				throw error("empty server configuration");
 			}
 
 		} else {
-			return error("Couldn't find or construct a discovery URL");
+			throw error("Couldn't find or construct a discovery URL");
 		}
 
 	}

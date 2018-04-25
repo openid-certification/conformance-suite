@@ -50,7 +50,7 @@ public class RequireBearerClientCredentialsAccessToken extends AbstractCondition
 			logSuccess("Found access token in request", args("actual", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Invalid access token ", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+			throw error("Invalid access token ", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
 
 	}

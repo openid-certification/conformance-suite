@@ -52,7 +52,7 @@ public class CreateRandomImplicitSubmitUrl extends AbstractCondition {
 		String baseUrl = env.getString("base_url");
 
 		if (Strings.isNullOrEmpty(baseUrl)) {
-			return error("Base URL was null or empty");
+			throw error("Base URL was null or empty");
 		}
 
 		// create a random submission URL

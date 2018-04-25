@@ -55,7 +55,7 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 		String clientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientSecret)) {
-			return error("Couldn't find client secret");
+			throw error("Couldn't find client secret");
 		}
 
 		// generate a JWK Set for the client's secret

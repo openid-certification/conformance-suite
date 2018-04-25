@@ -49,7 +49,7 @@ public class CreateRedirectUri extends AbstractCondition {
 		String baseUrl = in.getString("base_url");
 
 		if (Strings.isNullOrEmpty(baseUrl)) {
-			return error("Base URL was null or empty");
+			throw error("Base URL was null or empty");
 		}
 
 		String suffix = in.getString("redirect_uri_suffix");
