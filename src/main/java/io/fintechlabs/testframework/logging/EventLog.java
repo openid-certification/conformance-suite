@@ -91,6 +91,11 @@ public interface EventLog {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("error", cause.getMessage());
 		copy.addProperty("error_class", cause.getClass().getName());
+		
+		if (cause.getCause() != null) {
+			copy.addProperty("cause", cause.getCause().getMessage());
+			copy.addProperty("cause_class", cause.getCause().getClass().getName());
+		}
 
 		JsonArray stack = Arrays.stream(cause.getStackTrace())
 			.map(StackTraceElement::toString)
@@ -111,6 +116,11 @@ public interface EventLog {
 		Map<String, Object> event = new HashMap<>(in);
 		event.put("error", cause.getMessage());
 		event.put("error_class", cause.getClass().getName());
+
+		if (cause.getCause() != null) {
+			event.put("cause", cause.getCause().getMessage());
+			event.put("cause_class", cause.getCause().getClass().getName());
+		}
 
 		List<String> stack = Arrays.stream(cause.getStackTrace())
 			.map(StackTraceElement::toString)
