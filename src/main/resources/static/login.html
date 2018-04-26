@@ -30,14 +30,14 @@
 		<div class="row">
 			<div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
 				<h1 class="text-center">Login to the FAPI Conformance Suite</h1>
-				<p th:if="${param.error}" class="bg-danger">Invalid username and password.</p>
-				<p th:if="${param.logout}" class="bg-info">You have been logged out.</p>
+				<p id="error" class="bg-danger collapse">There was an error logging you in.</p>
+				<p id="logout" class="bg-info collapse">You have been logged out.</p>
 				<p class="text-center">
-					<a class="btn btn-danger btn-lg" th:href="@{/openid_connect_login(iss='https://accounts.google.com')}">Log in with Google</a>
+					<a class="btn btn-danger btn-lg" href="/openid_connect_login?iss=https://accounts.google.com">Log in with Google</a>
 				</p>
 				<div>
 					<h4 class="lead text-center">Or use another OIDC provider</h4>
-					<form th:action="@{/openid_connect_login}" method="post" id="login_form">
+					<form action="/openid_connect_login" method="post" id="login_form">
 						<div class="form-group">
 							<label for="identifier">User Name :</label> <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com" />
 						</div>
@@ -55,6 +55,25 @@
     <footer class="pageFooter">
         <span class="muted">FintechLabs.io conformance suite</span>
     </footer>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var urlParams = new URLSearchParams(window.location.search);
+
+        var error = urlParams.get('error');
+        var logout = urlParams.get('logout');
+        
+        if (error) {
+        	   $('#error').show();
+        }
+        
+        if (logout) {
+        	   $('#logout').show();
+        }
+        
+    });
+</script>
+
 
 </body>
 </html>
