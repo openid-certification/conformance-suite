@@ -47,11 +47,11 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
-	@PreEnvironment(strings = "access_token")
+	@PreEnvironment(required = "access_token")
 	@PostEnvironment(required = "access_token_jwt")
 	@Override
 	public Environment evaluate(Environment env) {
-		String accessToken = env.getString("access_token");
+		String accessToken = env.getString("access_token", "value");
 		
 		if (Strings.isNullOrEmpty(accessToken)) {
 			throw error("Access token is missing");
@@ -70,6 +70,8 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 			o.add("claims", claims);
 			
 			env.put("access_token_jwt", o);
+			
+			logSuccess("Extracted access token as a JWT", o);
 			
 			return env;
 			
