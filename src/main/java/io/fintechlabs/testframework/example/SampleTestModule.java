@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -192,7 +193,7 @@ public class SampleTestModule extends AbstractTestModule {
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 
 	}
@@ -207,7 +208,7 @@ public class SampleTestModule extends AbstractTestModule {
 	 * @return
 	 */
 	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
+	private Object handleCallback(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
@@ -275,7 +276,7 @@ public class SampleTestModule extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return new RedirectView("/log-detail.html?log=" + getId());
 
 	}
 
