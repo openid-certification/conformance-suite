@@ -57,6 +57,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
 	private Instant statusUpdated; // time stamp of when the status was last updated
+	private TestFailureException finalError; // final error from running the test
 
 	protected TestInfoService testInfo;
 
@@ -560,6 +561,20 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public Instant getStatusUpdated() {
 		return statusUpdated;
+	}
+
+	/**
+	 * @return the finalError
+	 */
+	public TestFailureException getFinalError() {
+		return finalError;
+	}
+
+	/**
+	 * @param finalError the finalError to set
+	 */
+	public void setFinalError(TestFailureException finalError) {
+		this.finalError = finalError;
 	}
 
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {

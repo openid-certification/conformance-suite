@@ -160,4 +160,14 @@ public interface TestModule {
 	 */
 	Instant getStatusUpdated();
 
+	/**
+	 * @param error the final error from this test while running
+	 */
+	void setFinalError(TestFailureException error);
+	
+	/**
+	 * @return the final error from this test while running, possibly null
+	 */
+	TestFailureException getFinalError();
+
 }

@@ -151,8 +151,14 @@
               </div>
             </div>
             <div class="container-fluid well well-sm collapse" id="runningTestInformation">
+              <div id="runningTestError" class="collapse"></div>
               <div class="alert alert-info" id="runningTestActive"><b>This test is currently running.</b> Values exported from the test are available below along with any URLs that need to be visited interactively.</div>
               <div class="alert alert-warning" id="runningTestInactive"><b>This test is no longer running.</b> Values exported from the test are available for review below. This test will be automatically removed from the test runner, but the logs will remain at this URL.</div>
+              <div class="row-fluid">
+                <div id="runningTestSuccess" class="collapse col-md-12">
+                    <div class="alert alert-success"><strong>The test has completed successfully!</strong></div>
+                </div>
+              </div>
               <div class="row-fluid">
                 <!-- attach controls and information for an actively running test here -->
                 <div class="col-md-5" id="runningTestExport">
@@ -399,6 +405,19 @@
             </div>
         </script>
 
+    <!-- Final error of running test -->
+    <script type="text/template" id="logDetailTemplate_FinalError">
+        <div class="alert alert-danger">
+            <strong>There was an error while running the test:</strong> <em><%- error.error %> (<%- error.error_class %>)</em>.
+            <button class="btn btn-default btn-xs" id="stacktraceBtn">Show Stacktrace</button>
+            <ul id="stacktrace" class="collapse">
+                <% _.each(error.stacktrace, function(v) { %>
+                    <li><%- v %></li>
+                <% }); %>
+            </ul>
+        </div>
+    </script>
+
 	<!-- resident DOM -->
 	<div class="container-fluid">
 		<div id="logDetail">
@@ -618,6 +637,7 @@
 								$('#startBtn').hide();
 							}
 						}
+						
 					}
 
 					// display the exported data
@@ -663,6 +683,20 @@
 								});
 							}
 
+						});
+					}
+					
+					// if there's a final test error, display it
+					if (data.error) {
+						$('#runningTestError').html(FAPI_UI.logTemplates.FINAL_ERROR({
+							error: data.error
+						}));
+						$('#runningTestError').show();
+						
+						$('#stacktraceBtn').click(function(event) {
+							event.preventDefault();
+							$('#stacktraceBtn').hide();
+							$('#stacktrace').show();
 						});
 					}
 
