@@ -45,15 +45,15 @@ public class AuthenticateClientWithClientSecret extends AbstractCondition {
 	@PostEnvironment(required = "client_authentication_success")
 	public Environment evaluate(Environment env) {
 		if (env.containsObj("client_authentication_success")) {
-			return error("Found existing client authentication");
+			throw error("Found existing client authentication");
 		}
 
 		if (!env.containsObj("client_authentication")) {
-			return error("Couldn't find client authentication");
+			throw error("Couldn't find client authentication");
 		}
 
 		if (Strings.isNullOrEmpty(env.getString("client_authentication", "method"))) {
-			return error("Couldn't determine client authentication method");
+			throw error("Couldn't determine client authentication method");
 		}
 
 		if (env.getString("client_authentication", "method").equals("client_secret_post")
@@ -72,11 +72,11 @@ public class AuthenticateClientWithClientSecret extends AbstractCondition {
 				return env;
 
 			} else {
-				return error("Mismatch client secrets", args("expected", expected, "actual", actual));
+				throw error("Mismatch client secrets", args("expected", expected, "actual", actual));
 			}
 
 		} else {
-			return error("Can't handle client method " + env.getString("client_authentication", "method"));
+			throw error("Can't handle client method " + env.getString("client_authentication", "method"));
 		}
 
 	}

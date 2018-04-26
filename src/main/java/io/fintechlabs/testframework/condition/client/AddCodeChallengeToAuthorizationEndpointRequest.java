@@ -46,16 +46,16 @@ public class AddCodeChallengeToAuthorizationEndpointRequest extends AbstractCond
 	public Environment evaluate(Environment env) {
 		String code_challenge = env.getString("code_challenge");
 		if (Strings.isNullOrEmpty(code_challenge)) {
-			return error("Couldn't find code_challenge value");
+			throw error("Couldn't find code_challenge value");
 		}
 
 		String code_challenge_method = env.getString("code_challenge_method");
 		if (Strings.isNullOrEmpty(code_challenge)) {
-			return error("Couldn't find code_challenge_method value");
+			throw error("Couldn't find code_challenge_method value");
 		}
 
 		if (!env.containsObj("authorization_endpoint_request")) {
-			return error("Couldn't find authorization endpoint request");
+			throw error("Couldn't find authorization endpoint request");
 		}
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");

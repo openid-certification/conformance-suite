@@ -76,26 +76,26 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Access token not found");
+			throw error("Access token not found");
 		}
 
 		String tokenType = env.getString("access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
-			return error("Token type not found");
+			throw error("Token type not found");
 		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
-			return error("Access token is not a bearer token", args("token_type", tokenType));
+			throw error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
 		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNT_REQUESTS);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+			throw error("Resource endpoint not found");
 		}
 
 		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
 
 		JsonObject requestObject = env.get("account_requests_endpoint_request");
 		if (requestObject == null) {
-			return error("Couldn't find request object");
+			throw error("Couldn't find request object");
 		}
 
 		// Build the endpoint URL
@@ -131,14 +131,14 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			String jsonString = response.getBody();
 
 			if (Strings.isNullOrEmpty(jsonString)) {
-				return error("Didn't get back a response from the account requests endpoint");
+				throw error("Didn't get back a response from the account requests endpoint");
 			} else {
 				log("Account requests endpoint response", args("account_requests_endpoint_response", jsonString));
 
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						return error("Account requests endpoint did not return a JSON object");
+						throw error("Account requests endpoint did not return a JSON object");
 					}
 
 					JsonObject responseHeaders = new JsonObject();
@@ -153,14 +153,14 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 					return env;
 				} catch (JsonParseException e) {
-					return error(e);
+					throw error(e);
 				}
 			}
 		} catch (RestClientResponseException e) {
-			return error("Error from the account requests endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			throw error("Error from the account requests endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
-			return error("Error creating HTTP Client", e);
+			throw error("Error creating HTTP Client", e);
 		}
 
 	}

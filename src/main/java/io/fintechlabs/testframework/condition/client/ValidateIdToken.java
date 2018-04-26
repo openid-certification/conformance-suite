@@ -51,7 +51,7 @@ public class ValidateIdToken extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {
-			return error("Couldn't find parsed ID token");
+			throw error("Couldn't find parsed ID token");
 		}
 
 		String clientId = env.getString("client_id"); // to check the audience
@@ -61,48 +61,48 @@ public class ValidateIdToken extends AbstractCondition {
 		// check all our testable values
 		if (Strings.isNullOrEmpty(clientId)
 			|| Strings.isNullOrEmpty(issuer)) {
-			return error("Couldn't find values to test ID token against");
+			throw error("Couldn't find values to test ID token against");
 		}
 
 		JsonElement iss = env.findElement("id_token", "claims.iss");
 		if (iss == null) {
-			return error("Missing issuer");
+			throw error("Missing issuer");
 		}
 
 		if (!issuer.equals(env.getString("id_token", "claims.iss"))) {
-			return error("Issuer mismatch", args("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
+			throw error("Issuer mismatch", args("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
 		}
 
 		JsonElement aud = env.findElement("id_token", "claims.aud");
 		if (aud == null) {
-			return error("Missing audience");
+			throw error("Missing audience");
 		}
 
 		if (aud.isJsonArray()) {
 			if (!aud.getAsJsonArray().contains(new JsonPrimitive(clientId))) {
-				return error("Audience not found", args("expected", clientId, "actual", aud));
+				throw error("Audience not found", args("expected", clientId, "actual", aud));
 			}
 		} else {
 			if (!clientId.equals(aud.getAsString())) {
-				return error("Audience mismatch", args("expected", clientId, "actual", aud));
+				throw error("Audience mismatch", args("expected", clientId, "actual", aud));
 			}
 		}
 
 		Long exp = env.getLong("id_token", "claims.exp");
 		if (exp == null) {
-			return error("Missing expiration");
+			throw error("Missing expiration");
 		} else {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
-				return error("Token expired", args("expiration", new Date(exp * 1000L), "now", now));
+				throw error("Token expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
 		}
 
 		Long iat = env.getLong("id_token", "claims.iat");
 		if (iat == null) {
-			return error("Missing issuance time");
+			throw error("Missing issuance time");
 		} else {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				return error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+				throw error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 

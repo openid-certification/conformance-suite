@@ -42,7 +42,7 @@ public class SetTLSTestHostToResourceEndpoint extends AbstractSetTLSTestHost {
 
 		String resourceEndpoint = env.getString("resource", "resourceUrl");
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			return error("Resource endpoint not found");
+			throw error("Resource endpoint not found");
 		}
 
 		return setTLSTestHost(env, resourceEndpoint);

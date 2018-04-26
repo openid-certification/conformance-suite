@@ -44,7 +44,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 	@PreEnvironment(required = "callback_params", strings = "state")
 	public Environment evaluate(Environment in) {
 		if (!in.containsObj("callback_params")) {
-			return error("Couldn't find callback parameters");
+			throw error("Couldn't find callback parameters");
 		}
 
 		String expected = in.getString("state");
@@ -57,7 +57,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 				logSuccess("No state parameter to check");
 				return in;
 			} else {
-				return error("State parameter did not match", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+				throw error("State parameter did not match", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			}
 		} else {
 			// we did save a state parameter, make sure it's the same as before
@@ -68,7 +68,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 
 				return in;
 			} else {
-				return error("State parameter did not match");
+				throw error("State parameter did not match");
 			}
 		}
 

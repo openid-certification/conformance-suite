@@ -44,7 +44,7 @@ public class CheckServerConfiguration extends AbstractCondition {
 
 		// first make sure we've got a "server" object at all
 		if (!in.containsObj("server")) {
-			return error("Couldn't find a server configuration at all");
+			throw error("Couldn't find a server configuration at all");
 		}
 
 		ensureString(in, "authorization_endpoint");
@@ -57,7 +57,7 @@ public class CheckServerConfiguration extends AbstractCondition {
 	private void ensureString(Environment in, String path) {
 		String string = in.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
-			error("Couldn't find required component", args("path", path));
+			throw error("Couldn't find required component", args("path", path));
 		} else {
 			logSuccess(args(path, string));
 		}

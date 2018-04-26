@@ -43,7 +43,7 @@ public class SetTLSTestHostToAuthorizationEndpoint extends AbstractSetTLSTestHos
 		String endpointUrl = env.getString("server", "authorization_endpoint");
 
 		if (Strings.isNullOrEmpty(endpointUrl)) {
-			return error("Authorization endpoint not found in server configuration");
+			throw error("Authorization endpoint not found in server configuration");
 		}
 
 		return setTLSTestHost(env, endpointUrl);

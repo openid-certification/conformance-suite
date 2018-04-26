@@ -46,7 +46,7 @@ public class CheckForScopesInTokenResponse extends AbstractCondition {
 				args("scope", env.getString("token_endpoint_response", "scope")));
 			return env;
 		} else {
-			return error("Couldn't find scope");
+			throw error("Couldn't find scope");
 		}
 	}
 

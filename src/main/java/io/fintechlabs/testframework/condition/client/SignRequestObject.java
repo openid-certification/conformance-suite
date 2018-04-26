@@ -64,11 +64,11 @@ public class SignRequestObject extends AbstractCondition {
 		JsonObject jwks = env.get("client_jwks");
 
 		if (requestObjectClaims == null) {
-			return error("Couldn't find request object claims");
+			throw error("Couldn't find request object claims");
 		}
 
 		if (jwks == null) {
-			return error("Couldn't find jwks");
+			throw error("Couldn't find jwks");
 		}
 
 		if (!requestObjectClaims.has("iss")) {
@@ -110,12 +110,12 @@ public class SignRequestObject extends AbstractCondition {
 				}
 
 				if (signer == null) {
-					return error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
+					throw error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
 				}
 
 				Algorithm alg = jwk.getAlgorithm();
 				if (alg == null) {
-					return error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
+					throw error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
 				}
 
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
@@ -133,12 +133,12 @@ public class SignRequestObject extends AbstractCondition {
 
 				return env;
 			} else {
-				return error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
+				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
 			}
 		} catch (ParseException e) {
-			return error(e);
+			throw error(e);
 		} catch (JOSEException e) {
-			return error(e);
+			throw error(e);
 		}
 
 	}

@@ -44,7 +44,7 @@ public class RejectAuthCodeInUrlQuery extends AbstractCondition {
 	@PostEnvironment(required = "callback_query_params")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("callback_query_params", "code"))) {
-			return error("Authorization code is present in URL query returned from authorization endpoint - hybrid/implicit flow require it to be returned in the URL fragment/hash only");
+			throw error("Authorization code is present in URL query returned from authorization endpoint - hybrid/implicit flow require it to be returned in the URL fragment/hash only");
 		}
 
 		logSuccess("Authorization code is not present in URL query returned from authorization endpoint");

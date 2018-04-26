@@ -107,11 +107,11 @@ public class DisallowInsecureCipher extends AbstractCondition {
 		Integer tlsTestPort = env.getInteger("tls", "testPort");
 
 		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+			throw error("Couldn't find host to connect for TLS");
 		}
 
 		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
+			throw error("Couldn't find port to connect for TLS");
 		}
 
 		try {
@@ -165,7 +165,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 
 					@Override
 					public void notifySelectedCipherSuite(int selectedCipherSuite) {
-						error("Server accepted a disallowed cipher",
+						throw error("Server accepted a disallowed cipher",
 							args("host", tlsTestHost,
 								"port", tlsTestPort,
 								"cipher_suite", CIPHER_NAMES.get(selectedCipherSuite)));
@@ -178,7 +178,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				protocol.connect(client);
 
 				// By the time handshake completes an error should have been thrown, but just in case:
-				return error("Connection completed unexpectedly");
+				throw error("Connection completed unexpectedly");
 
 			} finally {
 				try {
@@ -196,7 +196,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
-				return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
+				throw error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
 		}
 	}

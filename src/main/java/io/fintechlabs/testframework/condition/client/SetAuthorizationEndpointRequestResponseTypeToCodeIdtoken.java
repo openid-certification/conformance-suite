@@ -45,7 +45,7 @@ public class SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken extends Ab
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		if (!env.containsObj("authorization_endpoint_request")) {
-			return error("Couldn't find authorization endpoint request");
+			throw error("Couldn't find authorization endpoint request");
 		}
 
 		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");

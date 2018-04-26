@@ -29,7 +29,7 @@ public class RedirectQueryTestDisabled extends AbstractGetStaticClientConfigurat
 	@Override
 	public Environment evaluate(Environment env) {
 		/* This condition only exists to log a failure */
-		return error("Tests that use a redirect uri with a query have been disabled by disableRedirectQueryTest in test configuration");
+		throw error("Tests that use a redirect uri with a query have been disabled by disableRedirectQueryTest in test configuration");
 	}
 
 }

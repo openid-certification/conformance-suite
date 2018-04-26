@@ -38,7 +38,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse extends 
 
 		String accountRequestId = env.getString("account_requests_endpoint_response", "Data.AccountRequestId");
 		if (Strings.isNullOrEmpty(accountRequestId)) {
-			return error("Couldn't find account request ID");
+			throw error("Couldn't find account request ID");
 		}
 
 		env.putString("account_request_id", accountRequestId);

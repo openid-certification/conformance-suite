@@ -58,13 +58,13 @@ public class ExtractBearerAccessTokenFromHeader extends AbstractCondition {
 					env.putString("incoming_access_token", incoming);
 					return env;
 				} else {
-					return error("Couldn't find access token in header");
+					throw error("Couldn't find access token in header");
 				}
 			} else {
-				return error("Couldn't find bearer token in authorization header");
+				throw error("Couldn't find bearer token in authorization header");
 			}
 		} else {
-			return error("Couldn't find authorization header");
+			throw error("Couldn't find authorization header");
 		}
 
 	}
