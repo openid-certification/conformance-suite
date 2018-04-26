@@ -73,7 +73,7 @@ public class ExtractImplicitHashToTokenEndpointResponse extends AbstractConditio
 			return env;
 
 		} else {
-			return error("Couldn't find the response in hash for implicit flow");
+			throw error("Couldn't find the response in hash for implicit flow");
 		}
 
 	}

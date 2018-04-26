@@ -43,11 +43,11 @@ public class CheckIfTokenEndpointResponseError extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("token_endpoint_response")) {
-			return error("Couldn't find token endpoint response");
+			throw error("Couldn't find token endpoint response");
 		}
 
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "error"))) {
-			return error("Token endpoint error response", env.get("token_endpoint_response"));
+			throw error("Token endpoint error response", env.get("token_endpoint_response"));
 		} else {
 			logSuccess("No error from token endpoint");
 			return env;

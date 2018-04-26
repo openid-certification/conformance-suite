@@ -36,14 +36,14 @@ public class CheckForFAPIInteractionIdInResourceResponse extends AbstractConditi
 		String interactionIdStr = env.getString("resource_endpoint_response_headers", "x-fapi-interaction-id");
 
 		if (Strings.isNullOrEmpty(interactionIdStr)) {
-			return error("Interaction ID not found in resource endpoint response headers");
+			throw error("Interaction ID not found in resource endpoint response headers");
 		}
 
 		try {
 			@SuppressWarnings("unused")
 			UUID interactionId = UUID.fromString(interactionIdStr);
 		} catch (IllegalArgumentException e) {
-			return error("Invalid interaction ID - not a UUID", args("interaction_id", interactionIdStr));
+			throw error("Invalid interaction ID - not a UUID", args("interaction_id", interactionIdStr));
 		}
 
 		logSuccess("Found interaction ID", args("interaction_id", interactionIdStr));

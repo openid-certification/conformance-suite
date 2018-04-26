@@ -39,12 +39,12 @@ public class ExtractAccessTokenFromTokenResponse extends AbstractCondition {
 
 		String accessTokenString = env.getString("token_endpoint_response", "access_token");
 		if (Strings.isNullOrEmpty(accessTokenString)) {
-			return error("Couldn't find access token");
+			throw error("Couldn't find access token");
 		}
 
 		String tokenType = env.getString("token_endpoint_response", "token_type");
 		if (Strings.isNullOrEmpty(tokenType)) {
-			return error("Couldn't find token type");
+			throw error("Couldn't find token type");
 		}
 
 		JsonObject o = new JsonObject();

@@ -49,17 +49,17 @@ public class ExtractStateHash extends AbstractCondition {
 		env.remove("state_hash");
 
 		if (!env.containsObj("id_token")) {
-			return error("Couldn't find parsed ID token");
+			throw error("Couldn't find parsed ID token");
 		}
 
 		String s_hash = env.getString("id_token", "claims.s_hash");
 		if (s_hash == null) {
-			return error("Couldn't find s_hash in ID token");
+			throw error("Couldn't find s_hash in ID token");
 		}
 
 		String alg = env.getString("id_token", "header.alg");
 		if (alg == null) {
-			return error("Couldn't find algorithm in ID token header");
+			throw error("Couldn't find algorithm in ID token header");
 		}
 
 		JsonObject stateHash = new JsonObject();

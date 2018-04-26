@@ -59,11 +59,11 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {
-			return error("Couldn't find parsed ID token");
+			throw error("Couldn't find parsed ID token");
 		}
 
 		if (!env.containsObj("server_jwks")) {
-			return error("Couldn't find server's public key");
+			throw error("Couldn't find server's public key");
 		}
 
 		String idToken = env.getString("id_token", "value");
@@ -95,10 +95,10 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 			}
 
 			// if we got here, it hasn't been verified on any key
-			return error("Unable to verify ID token signature based on server keys");
+			throw error("Unable to verify ID token signature based on server keys");
 
 		} catch (JOSEException | ParseException e) {
-			return error("Error validating ID Token signature", e);
+			throw error("Error validating ID Token signature", e);
 		}
 
 	}

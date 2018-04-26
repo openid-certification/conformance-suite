@@ -43,7 +43,7 @@ public class SetTLSTestHostToRegistrationEndpoint extends AbstractSetTLSTestHost
 		String endpointUrl = env.getString("server", "registration_endpoint");
 
 		if (Strings.isNullOrEmpty(endpointUrl)) {
-			return error("Registration endpoint not found in server configuration");
+			throw error("Registration endpoint not found in server configuration");
 		}
 
 		return setTLSTestHost(env, endpointUrl);

@@ -49,7 +49,7 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 
 		if (supportedAuthMethods == null) {
 			// Null implies default (only client_secret_basic)
-			return error("Only default auth method supported");
+			throw error("Only default auth method supported");
 		}
 
 		boolean supportsMtls = false;
@@ -62,13 +62,13 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 				}
 			}
 		} catch (ClassCastException e) {
-			return error("Invalid supported auth methods metadata", e, args("token_endpoint_auth_methods_supported", supportedAuthMethods));
+			throw error("Invalid supported auth methods metadata", e, args("token_endpoint_auth_methods_supported", supportedAuthMethods));
 		}
 
 		if (supportsMtls) {
 			return env;
 		} else {
-			return error("No MTLS auth methods supported", args("token_endpoint_auth_methods_supported", supportedAuthMethods));
+			throw error("No MTLS auth methods supported", args("token_endpoint_auth_methods_supported", supportedAuthMethods));
 		}
 	}
 

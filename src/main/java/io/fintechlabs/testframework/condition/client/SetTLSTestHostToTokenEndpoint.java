@@ -43,7 +43,7 @@ public class SetTLSTestHostToTokenEndpoint extends AbstractSetTLSTestHost {
 		String endpointUrl = env.getString("server", "token_endpoint");
 
 		if (Strings.isNullOrEmpty(endpointUrl)) {
-			return error("Token endpoint not found in server configuration");
+			throw error("Token endpoint not found in server configuration");
 		}
 
 		return setTLSTestHost(env, endpointUrl);

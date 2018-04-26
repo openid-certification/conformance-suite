@@ -72,7 +72,7 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 			return env;
 
 		} else {
-			return error("Couldn't find the authorization server's response in URL fragment (hash) for implicit flow");
+			throw error("Couldn't find the authorization server's response in URL fragment (hash) for implicit flow");
 		}
 
 	}

@@ -52,7 +52,7 @@ public class EnsureMatchingClientId extends AbstractCondition {
 				args("client_id", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
-			return error("Mismatch between client ID", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+			throw error("Mismatch between client ID", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 		}
 
 	}

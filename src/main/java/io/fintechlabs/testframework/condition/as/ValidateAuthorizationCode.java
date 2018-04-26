@@ -47,14 +47,14 @@ public class ValidateAuthorizationCode extends AbstractCondition {
 		String actual = env.getString("token_endpoint_request", "params.code");
 
 		if (Strings.isNullOrEmpty(expected)) {
-			return error("Couldn't find authorization code to compare");
+			throw error("Couldn't find authorization code to compare");
 		}
 
 		if (expected.equals(actual)) {
 			logSuccess("Found authorization code", args("authorization_code", actual));
 			return env;
 		} else {
-			return error("Didn't find matching authorization code", args("expected", expected, "actual", actual));
+			throw error("Didn't find matching authorization code", args("expected", expected, "actual", actual));
 		}
 	}
 

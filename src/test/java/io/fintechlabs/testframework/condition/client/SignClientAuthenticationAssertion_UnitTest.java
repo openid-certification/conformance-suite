@@ -92,7 +92,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 	public void testEvaluate_rsa() {
 
 		env.put("client_assertion_claims", claims);
-		env.put("jwks", rsaJwks);
+		env.put("client_jwks", rsaJwks);
 
 		cond.evaluate(env);
 
@@ -119,7 +119,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 	public void testEvaluate_oct() {
 
 		env.put("client_assertion_claims", claims);
-		env.put("jwks", octJwks);
+		env.put("client_jwks", octJwks);
 
 		cond.evaluate(env);
 
@@ -147,7 +147,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noClaims() {
 
-		env.put("jwks", rsaJwks);
+		env.put("client_jwks", rsaJwks);
 
 		cond.evaluate(env);
 

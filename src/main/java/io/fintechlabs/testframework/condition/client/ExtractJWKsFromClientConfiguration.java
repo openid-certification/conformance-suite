@@ -14,8 +14,12 @@
 
 package io.fintechlabs.testframework.condition.client;
 
+import java.text.ParseException;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
@@ -43,28 +47,39 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(required = "client")
-	@PostEnvironment(required = "jwks")
+	@PostEnvironment(required = "client_jwks")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("client")) {
-			return error("Couldn't find client configuration");
+			throw error("Couldn't find client configuration");
 		}
 
 		// bump the client's internal JWK up to the root
 		JsonElement jwks = env.findElement("client", "jwks");
 
 		if (jwks == null) {
-			return error("Couldn't find JWKs in client configuration");
+			throw error("Couldn't find JWKs in client configuration");
 		} else if (!(jwks instanceof JsonObject)) {
-			return error("Invalid JWKs in client configuration - JSON decode failed");
+			throw error("Invalid JWKs in client configuration - JSON decode failed");
 		}
 
-		logSuccess("Extracted client JWK", args("jwks", jwks));
+		try {
+			JWKSet parsed = JWKSet.parse(jwks.toString());
+			JWKSet pub = parsed.toPublicJWKSet();
+			
+			JsonObject pubObj = (new JsonParser().parse(pub.toString())).getAsJsonObject();
+			
+			logSuccess("Extracted client JWK", args("client_jwks", jwks, "public_client_jwks", pubObj));
 
-		env.put("jwks", jwks.getAsJsonObject());
+			env.put("client_jwks", jwks.getAsJsonObject());
+			env.put("client_public_jwks", pubObj.getAsJsonObject());
 
-		return env;
+			return env;
 
+			
+		} catch (ParseException e) {
+			throw error("Invalid JWKs in client configuration, JWKS parsing failed", e, args("client_jwks", jwks));
+		}
 	}
 
 }

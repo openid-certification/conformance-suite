@@ -49,13 +49,13 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(strings = "client_id", required = "client")
-	@PostEnvironment(required = "jwks")
+	@PostEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 		String clientId = env.getString("client_id");
 		String clientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientSecret)) {
-			return error("Couldn't find client secret");
+			throw error("Couldn't find client secret");
 		}
 
 		// generate a JWK Set for the client's secret
@@ -69,9 +69,9 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 
 		JsonObject reparsed = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 
-		env.put("jwks", reparsed);
+		env.put("server_jwks", reparsed);
 
-		logSuccess("Generated JWK Set from symmetric key", args("jwks", reparsed));
+		logSuccess("Generated JWK Set from symmetric key", args("server_jwks", reparsed));
 
 		return env;
 

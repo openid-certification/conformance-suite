@@ -31,21 +31,21 @@ public class CheckForKeyIdInJWKs extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "jwks")
+	@PreEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		JsonElement keys = env.findElement("jwks", "keys");
+		JsonElement keys = env.findElement("server_jwks", "keys");
 		if (keys == null || !keys.isJsonArray()) {
-			return error("keys array not found in JWKs");
+			throw error("keys array not found in JWKs");
 		}
 
 		for (JsonElement key : keys.getAsJsonArray()) {
 			if (!key.isJsonObject()) {
-				return error("invalid key in JWKs", args("key", key));
+				throw error("invalid key in JWKs", args("key", key));
 			}
 
 			if (!key.getAsJsonObject().has("kid")) {
-				return error("kid not found in key", args("key", key));
+				throw error("kid not found in key", args("key", key));
 			}
 		}
 

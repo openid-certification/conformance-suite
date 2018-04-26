@@ -40,19 +40,19 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "jwks")
+	@PreEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.get("jwks");
+		JsonObject jwks = env.get("server_jwks");
 		if (jwks == null) {
-			return error("Couldn't find JWKs in environment");
+			throw error("Couldn't find JWKs in environment");
 		}
 
 		JWKSet jwkset;
 		try {
 			jwkset = JWKSet.parse(jwks.toString());
 		} catch (ParseException e) {
-			return error("Failure parsing JWK Set", e);
+			throw error("Failure parsing JWK Set", e);
 		}
 
 		for (JWK jwk : jwkset.getKeys()) {
@@ -70,11 +70,11 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 			}
 
 			if (keyLength < minimumLength) {
-				return error("Key length too short", args("minimum", minimumLength, "actual", keyLength, "key", jwk));
+				throw error("Key length too short", args("minimum", minimumLength, "actual", keyLength, "key", jwk));
 			}
 		}
 
-		logSuccess("Validated minimum key lengths", args("jwks", jwks));
+		logSuccess("Validated minimum key lengths", args("server_jwks", jwks));
 
 		return env;
 	}

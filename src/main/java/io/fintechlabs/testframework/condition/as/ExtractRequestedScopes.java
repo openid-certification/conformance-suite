@@ -46,7 +46,7 @@ public class ExtractRequestedScopes extends AbstractCondition {
 		String scope = env.getString("authorization_endpoint_request", "scope");
 
 		if (Strings.isNullOrEmpty(scope)) {
-			return error("Missing scope parameter");
+			throw error("Missing scope parameter");
 		} else {
 			logSuccess("Requested scopes", args("scope", scope));
 

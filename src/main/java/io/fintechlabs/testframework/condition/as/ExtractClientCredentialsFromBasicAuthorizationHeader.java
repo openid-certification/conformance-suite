@@ -54,17 +54,17 @@ public class ExtractClientCredentialsFromBasicAuthorizationHeader extends Abstra
 	public Environment evaluate(Environment env) {
 
 		if (env.containsObj("client_authentication")) {
-			return error("Found existing client authentication");
+			throw error("Found existing client authentication");
 		}
 
 		String auth = env.getString("token_endpoint_request", "headers.authorization");
 
 		if (Strings.isNullOrEmpty(auth)) {
-			return error("Couldn't find authorization header");
+			throw error("Couldn't find authorization header");
 		}
 
 		if (!auth.toLowerCase().startsWith("basic")) {
-			return error("Not a basic authorization header", args("auth", auth));
+			throw error("Not a basic authorization header", args("auth", auth));
 		}
 
 		// parse the HTTP Basic Auth
@@ -76,7 +76,7 @@ public class ExtractClientCredentialsFromBasicAuthorizationHeader extends Abstra
 
 		if (parts.size() != 2) {
 			// we don't have two parts
-			return error("Unexpected number of parts to authorization header", args("basic_auth", parts));
+			throw error("Unexpected number of parts to authorization header", args("basic_auth", parts));
 		}
 
 		String clientId = parts.get(0);

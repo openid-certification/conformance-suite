@@ -49,7 +49,7 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		String baseUrl = env.getString("base_url");
 
 		if (Strings.isNullOrEmpty(baseUrl)) {
-			return error("Couldn't find a base URL");
+			throw error("Couldn't find a base URL");
 		}
 
 		// set off the URLs below with a slash, if needed

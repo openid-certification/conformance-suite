@@ -31,7 +31,7 @@ public class GenerateResourceEndpointRequestHeaders extends AbstractCondition {
 
 		String institutionId = env.getString("resource", "institution_id");
 		if (Strings.isNullOrEmpty(institutionId)) {
-			return error("Institution ID not found in resource configuration");
+			throw error("Institution ID not found in resource configuration");
 		}
 
 		JsonObject headers = new JsonObject();

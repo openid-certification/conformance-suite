@@ -82,11 +82,11 @@ public class EnsureTLS12 extends AbstractCondition {
 		Integer tlsTestPort = env.getInteger("tls", "testPort");
 
 		if (Strings.isNullOrEmpty(tlsTestHost)) {
-			return error("Couldn't find host to connect for TLS");
+			throw error("Couldn't find host to connect for TLS");
 		}
 
 		if (tlsTestPort == null) {
-			return error("Couldn't find port to connect for TLS");
+			throw error("Couldn't find port to connect for TLS");
 		}
 
 		try {
@@ -146,7 +146,7 @@ public class EnsureTLS12 extends AbstractCondition {
 				protocol.connect(client);
 
 				// By the time handshake completes an exception should have been thrown, but just in case:
-				return error("Connection completed unexpectedly");
+				throw error("Connection completed unexpectedly");
 
 			} finally {
 				try {
@@ -161,13 +161,13 @@ public class EnsureTLS12 extends AbstractCondition {
 				logSuccess("Server agreed to TLS 1.2", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
-				return error("Server used incorrect TLS version",
+				throw error("Server used incorrect TLS version",
 					args("server_version", serverVersion.toString(),
 						"host", tlsTestHost,
 						"port", tlsTestPort));
 			}
 		} catch (IOException e) {
-			return error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
+			throw error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
 		}
 
 	}

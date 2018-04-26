@@ -36,13 +36,13 @@ public abstract class AbstractGetStaticClientConfiguration extends AbstractCondi
 	protected Environment getStaticClientConfiguration(Environment in, String key) {
 
 		if (!in.containsObj("config")) {
-			return error("Couldn't find a configuration");
+			throw error("Couldn't find a configuration");
 		}
 
 		// make sure we've got a client object
 		JsonElement client = in.findElement("config", key);
 		if (client == null || !client.isJsonObject()) {
-			return error("Definition for "+key+" not present in supplied configuration");
+			throw error("Definition for "+key+" not present in supplied configuration");
 		} else {
 			// we've got a client object, put it in the environment
 			in.put("client", client.getAsJsonObject());

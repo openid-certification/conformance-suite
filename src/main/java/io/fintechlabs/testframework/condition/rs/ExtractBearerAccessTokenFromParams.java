@@ -55,7 +55,7 @@ public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
 			env.putString("incoming_access_token", incoming);
 			return env;
 		} else {
-			return error("Couldn't find access token in parameters");
+			throw error("Couldn't find access token in parameters");
 		}
 
 	}

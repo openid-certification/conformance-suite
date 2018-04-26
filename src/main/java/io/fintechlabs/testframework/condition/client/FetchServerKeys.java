@@ -61,14 +61,14 @@ public class FetchServerKeys extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("server")) {
-			return error("No server configuration found");
+			throw error("No server configuration found");
 		}
 
 		JsonElement jwks = env.findElement("server", "jwks");
 
 		if (jwks != null && jwks.isJsonObject()) {
 			env.put("server_jwks", jwks.getAsJsonObject());
-			logSuccess("Found static server JWKS", args("jwks", jwks));
+			logSuccess("Found static server JWKS", args("server_jwks", jwks));
 			return env;
 		} else {
 			// we don't have a key yet, see if we can fetch it
@@ -94,19 +94,19 @@ public class FetchServerKeys extends AbstractCondition {
 					JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
 					env.put("server_jwks", jwkSet);
 
-					logSuccess("Parsed server JWK", args("jwk", jwkSet));
+					logSuccess("Parsed server JWK", args("server_jwks", jwkSet));
 					return env;
 
 				} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-					return error("Error creating HTTP client", e);
+					throw error("Error creating HTTP client", e);
 				} catch (RestClientException e) {
-					return error("Exception while fetching server key", e);
+					throw error("Exception while fetching server key", e);
 				} catch (ParseException e) {
-					return error("Unable to parse jwk set", e);
+					throw error("Unable to parse jwk set", e);
 				}
 
 			} else {
-				return error("Didn't find a JWKS or a JWKS URI in the server configuration");
+				throw error("Didn't find a JWKS or a JWKS URI in the server configuration");
 			}
 
 		}

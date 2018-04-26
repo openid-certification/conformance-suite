@@ -53,7 +53,7 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 		String scope = env.getString("scope");
 
 		if (Strings.isNullOrEmpty(accessToken) || Strings.isNullOrEmpty(tokenType)) {
-			return error("Missing required access_token or token_type");
+			throw error("Missing required access_token or token_type");
 		}
 
 		JsonObject tokenEndpointResponse = new JsonObject();

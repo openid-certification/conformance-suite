@@ -47,19 +47,19 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("client")) {
-			return error("Couldn't find client configuration");
+			throw error("Couldn't find client configuration");
 		}
 
 		String clientId = env.getString("client_id");
 
 		if (Strings.isNullOrEmpty(clientId)) {
-			return error("Couldn't find client ID");
+			throw error("Couldn't find client ID");
 		}
 
 		String redirectUri = env.getString("redirect_uri");
 
 		if (Strings.isNullOrEmpty(redirectUri)) {
-			return error("Couldn't find redirect URI");
+			throw error("Couldn't find redirect URI");
 		}
 
 		JsonObject authorizationEndpointRequest = new JsonObject();

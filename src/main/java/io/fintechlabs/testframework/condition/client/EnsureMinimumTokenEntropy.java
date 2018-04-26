@@ -49,7 +49,7 @@ public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
 		String accessToken = env.getString("token_endpoint_response", "access_token");
 
 		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Can't find access token");
+			throw error("Can't find access token");
 		}
 
 		return ensureMinimumEntropy(env, accessToken, requiredEntropy);
