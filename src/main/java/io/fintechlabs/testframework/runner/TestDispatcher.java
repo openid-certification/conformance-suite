@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -159,6 +160,7 @@ public class TestDispatcher {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 			}
+			test.setFinalError(error);
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {
 				// look for the user-facing annotation in the stack
@@ -174,7 +176,8 @@ public class TestDispatcher {
 					for (Method m : clz.getDeclaredMethods()) {
 						if (m.getName().equals(ste.getMethodName()) && m.isAnnotationPresent(UserFacing.class)) {
 							// if this is user-facing, return a user-facing view
-							return new ModelAndView("testError", ImmutableMap.of("error", error));
+							//return new ModelAndView("testError", ImmutableMap.of("error", error));
+							return new RedirectView("/log-detail.html?log=" + error.getTestId());
 						}
 
 					}
