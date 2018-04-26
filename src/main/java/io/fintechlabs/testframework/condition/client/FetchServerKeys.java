@@ -68,7 +68,7 @@ public class FetchServerKeys extends AbstractCondition {
 
 		if (jwks != null && jwks.isJsonObject()) {
 			env.put("server_jwks", jwks.getAsJsonObject());
-			logSuccess("Found static server JWKS", args("jwks", jwks));
+			logSuccess("Found static server JWKS", args("server_jwks", jwks));
 			return env;
 		} else {
 			// we don't have a key yet, see if we can fetch it
@@ -94,7 +94,7 @@ public class FetchServerKeys extends AbstractCondition {
 					JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
 					env.put("server_jwks", jwkSet);
 
-					logSuccess("Parsed server JWK", args("jwk", jwkSet));
+					logSuccess("Parsed server JWK", args("server_jwks", jwkSet));
 					return env;
 
 				} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
