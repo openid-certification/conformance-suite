@@ -49,7 +49,7 @@ public class CheckHeartServerConfiguration extends AbstractCondition {
 
 		// first make sure we've got a "server" object at all
 		if (!in.containsObj("server")) {
-			return error("Couldn't find a server configuration at all");
+			throw error("Couldn't find a server configuration at all");
 		}
 
 		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer", "introspection_endpoint", "revocation_endpoint", "revocation_endpoint", "jwks_uri");

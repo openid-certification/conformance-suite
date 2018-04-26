@@ -60,11 +60,11 @@ public class ValidateAccessTokenSignature extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		if (!env.containsObj("access_token_jwt")) {
-			return error("Couldn't find parsed access token");
+			throw error("Couldn't find parsed access token");
 		}
 
 		if (!env.containsObj("server_jwks")) {
-			return error("Couldn't find server's public key");
+			throw error("Couldn't find server's public key");
 		}
 
 		String accessToken = env.getString("access_token_jwt", "value");
@@ -96,10 +96,10 @@ public class ValidateAccessTokenSignature extends AbstractCondition {
 			}
 
 			// if we got here, it hasn't been verified on any key
-			return error("Unable to verify access token signature based on server keys");
+			throw error("Unable to verify access token signature based on server keys");
 
 		} catch (JOSEException | ParseException e) {
-			return error("Error validating access Token signature", e);
+			throw error("Error validating access Token signature", e);
 		}
 	}
 

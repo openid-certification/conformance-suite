@@ -58,7 +58,7 @@ public class CheckRedirectUri extends AbstractCondition {
 				InetAddress addr = InetAddress.getByName(uri.getHost());
 				
 				if (!addr.isLoopbackAddress()) {
-					return error("Address given was not a loopback (localhost) address", args("scheme", uri.getScheme(), "host", uri.getHost()));
+					throw error("Address given was not a loopback (localhost) address", args("scheme", uri.getScheme(), "host", uri.getHost()));
 				}
 				
 				logSuccess("Plain http on localhost allowed", args("scheme", uri.getScheme(), "host", uri.getHost()));
@@ -75,7 +75,7 @@ public class CheckRedirectUri extends AbstractCondition {
 				return env;
 			}
 		} catch (URISyntaxException | UnknownHostException e) {
-			return error("Couldn't parse key as URI", e, args("uri", redirectUri));
+			throw error("Couldn't parse key as URI", e, args("uri", redirectUri));
 		}
 		
 	}

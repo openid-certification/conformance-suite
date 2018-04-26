@@ -78,7 +78,7 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 
 			
 		} catch (ParseException e) {
-			return error("Invalid JWKs in client configuration, JWKS parsing failed", e, args("client_jwks", jwks));
+			throw error("Invalid JWKs in client configuration, JWKS parsing failed", e, args("client_jwks", jwks));
 		}
 	}
 

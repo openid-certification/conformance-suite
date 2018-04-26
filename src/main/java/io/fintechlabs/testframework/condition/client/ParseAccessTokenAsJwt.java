@@ -54,7 +54,7 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 		String accessToken = env.getString("access_token");
 		
 		if (Strings.isNullOrEmpty(accessToken)) {
-			return error("Access token is missing");
+			throw error("Access token is missing");
 		}
 		
 		try {
@@ -74,7 +74,7 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 			return env;
 			
 		} catch (ParseException e) {
-			return error("Couldn't parse access token as a JWT", e, args("access_token", accessToken));
+			throw error("Couldn't parse access token as a JWT", e, args("access_token", accessToken));
 		}
 	}
 

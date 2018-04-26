@@ -51,7 +51,7 @@ public class ValidateAccessTokenHeartClaims extends AbstractCondition {
 		JsonObject claims = env.get("access_token_jwt.claims");
 		
 		if (claims == null) {
-			return error("Couldn't find access token JWT claims", args("access_token_jwt", env.get("access_token_jwt")));
+			throw error("Couldn't find access token JWT claims", args("access_token_jwt", env.get("access_token_jwt")));
 		}
 		
 		List<String> required = ImmutableList.of("iss", "azp", "exp", "jti");
@@ -60,19 +60,19 @@ public class ValidateAccessTokenHeartClaims extends AbstractCondition {
 		Set<String> claimsFound = claims.keySet();
 		
 		if (!claimsFound.containsAll(required)) {
-			return error("Missing required claims in access token", args("expected", required, "actual", claimsFound));
+			throw error("Missing required claims in access token", args("expected", required, "actual", claimsFound));
 		}
 
 		String clientId = env.getString("client_id");
 		String azp = env.getString("access_token_jwt", "claims.azp");
 		if (!clientId.equals(azp)) {
-			return error("azp claim was not client id", args("expected", clientId, "actual", azp));
+			throw error("azp claim was not client id", args("expected", clientId, "actual", azp));
 		}
 		
 		String issuer = env.getString("server", "issuer");
 		String iss = env.getString("access_token_jwt", "claims.iss");
 		if (!issuer.equals(iss)) {
-			return error("iss claim was not issuer", args("expected", issuer, "actual", iss));
+			throw error("iss claim was not issuer", args("expected", issuer, "actual", iss));
 		}
 		
 		logSuccess("Found all required claims", args("required", required, "optional", optional, "actual", claimsFound));

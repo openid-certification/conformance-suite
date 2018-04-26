@@ -60,7 +60,7 @@ public class CheckHeartServerJwksFields extends AbstractCondition {
 
 			for (String req : required) {
 				if (!key.has(req)) {
-					return error("Key missing required field", args("missing", req, "key", key));
+					throw error("Key missing required field", args("missing", req, "key", key));
 				}
 			}
 		}
