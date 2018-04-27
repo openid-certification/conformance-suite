@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
+import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -57,7 +57,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 		call(ExtractStateHash.class);
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 	}
 
@@ -142,7 +142,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		return super.performPostAuthorizationFlow();
 		

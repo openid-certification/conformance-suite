@@ -16,8 +16,8 @@ import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2Fro
 import io.fintechlabs.testframework.condition.client.ExtractStateHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -44,7 +44,7 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 		
 		createAuthorizationCodeRequest();
 

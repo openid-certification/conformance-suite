@@ -76,7 +76,7 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
+import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
@@ -265,7 +265,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		// check the ID token from the hybrid response
 
@@ -302,7 +302,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(ExtractStateHash.class);
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		call(CheckForRefreshTokenValue.class);
 

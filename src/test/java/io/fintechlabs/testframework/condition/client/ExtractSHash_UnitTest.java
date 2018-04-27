@@ -38,7 +38,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ExtractStateHash_UnitTest {
+public class ExtractSHash_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -75,7 +75,7 @@ public class ExtractStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -94,7 +94,7 @@ public class ExtractStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingIdToken() {
@@ -105,7 +105,7 @@ public class ExtractStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingHash() {
@@ -117,7 +117,7 @@ public class ExtractStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingAlg() {
