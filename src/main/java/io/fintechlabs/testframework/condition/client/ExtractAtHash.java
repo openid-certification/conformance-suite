@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author ddrysdale
  *
  */
-public class ExtractSHash extends ExtractHash {
+public class ExtractAtHash extends ExtractHash {
 
 	/**
 	 * @param testId
@@ -34,10 +34,10 @@ public class ExtractSHash extends ExtractHash {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public ExtractSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractAtHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "s_hash"; 
-		super.EnvName = "state_hash";
+		super.HashName = "at_hash"; 
+		super.EnvName = "at_hash";
 	}
 
 	/* (non-Javadoc)
@@ -45,7 +45,7 @@ public class ExtractSHash extends ExtractHash {
 	 */
 	@Override
 	@PreEnvironment(required = "id_token")
-	@PostEnvironment(required = "state_hash")
+	@PostEnvironment(required = "at_hash")
 	public Environment evaluate(Environment env) {
 
 		return super.evaluate(env);
