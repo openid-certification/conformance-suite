@@ -23,10 +23,10 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * @author jricher
+ * @author ddrysdale
  *
  */
-public class ExtractStateHash extends AbstractCondition {
+public class ExtractCHash extends ExtractHash {
 
 	/**
 	 * @param testId
@@ -34,8 +34,10 @@ public class ExtractStateHash extends AbstractCondition {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public ExtractStateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractCHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
+		super.HashName = "c_hash"; 
+		super.EnvName = "c_hash";
 	}
 
 	/* (non-Javadoc)
@@ -43,35 +45,10 @@ public class ExtractStateHash extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(required = "id_token")
-	@PostEnvironment(required = "state_hash")
+	@PostEnvironment(required = "c_hash")
 	public Environment evaluate(Environment env) {
 
-		env.remove("state_hash");
-
-		if (!env.containsObj("id_token")) {
-			throw error("Couldn't find parsed ID token");
-		}
-
-		String s_hash = env.getString("id_token", "claims.s_hash");
-		if (s_hash == null) {
-			throw error("Couldn't find s_hash in ID token");
-		}
-
-		String alg = env.getString("id_token", "header.alg");
-		if (alg == null) {
-			throw error("Couldn't find algorithm in ID token header");
-		}
-
-		JsonObject stateHash = new JsonObject();
-
-		stateHash.addProperty("s_hash", s_hash);
-		stateHash.addProperty("alg", alg);
-
-		env.put("state_hash", stateHash);
-
-		logSuccess("Extracted state hash from ID Token", stateHash);
-
-		return env;
+		return super.evaluate(env);
 
 	}
 

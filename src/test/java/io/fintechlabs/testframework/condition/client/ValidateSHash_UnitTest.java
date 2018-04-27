@@ -32,7 +32,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateStateHash_UnitTest {
+public class ValidateSHash_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -40,7 +40,7 @@ public class ValidateStateHash_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateStateHash cond;
+	private ValidateSHash cond;
 
 	/*
 	 * @throws java.lang.Exception
@@ -48,7 +48,7 @@ public class ValidateStateHash_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateStateHash("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateSHash("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 
@@ -64,7 +64,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -95,7 +95,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingIdToken() {
@@ -106,7 +106,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingHash() {
@@ -118,7 +118,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingState() {
@@ -129,7 +129,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingAlg() {
@@ -141,7 +141,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidAlg() {
@@ -153,7 +153,7 @@ public class ValidateStateHash_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateStateHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateSHash#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badHash() {

@@ -57,12 +57,14 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractStateHash;
+import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
@@ -71,10 +73,12 @@ import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguratio
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
+import io.fintechlabs.testframework.condition.client.ValidateAtHash;
+import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
-import io.fintechlabs.testframework.condition.client.ValidateStateHash;
+import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
@@ -262,10 +266,20 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractSHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		
+		call(ExtractCHash.class, "FAPI-2-5.2.2-4");
+
+		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateCHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		
+		call(ExtractAtHash.class, "FAPI-2-5.2.2-4");
+
+		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateAtHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");		
 
 		// check the ID token from the hybrid response
 
@@ -295,10 +309,10 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-		call(ExtractStateHash.class);
+		call(ExtractSHash.class);
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateStateHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		call(CheckForRefreshTokenValue.class);
 
