@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 import org.slf4j.Logger;
@@ -27,7 +28,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 
-
+/**
+ * @author srmoore
+ *
+ */
+@PublishTestModule(
+	testName = "heart-dynamic-registration-client",
+	displayName = "HEART AS: Dynamic Registration Client",
+	profile = "HEART",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_name",
+		"client.jwks",
+		"client.scope",
+		"tls.testHost",
+		"tls.testPort"
+	}
+)
 public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(DynamicClientRegistrationAS.class);
@@ -63,7 +80,9 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
 		// get the client configuration that we'll use to dynamically register
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(GetDynamicClientConfiguration.class);
+
+		// TODO: Check the client information for heart specific stuff?
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
 
 		callAndStopOnFailure(CreateJwksUri.class);
@@ -71,7 +90,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckRedirectUri.class);
 
-		exposeEnvString("client_id");
+		exposeEnvString("client_name");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -83,9 +102,13 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		// create dynamic registration request
+		callAndStopOnFailure(CreateDynamicRegistrationRequestFromClientInformation.class);
 		// submit request
+		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
 		// check response back - is good, no?
-		
+
+		// IF management interface, delete the client to clean up
+
 		// since we're not waiting for any browser interaction, we can just finish?
 		fireTestFinished();
 		stop();
