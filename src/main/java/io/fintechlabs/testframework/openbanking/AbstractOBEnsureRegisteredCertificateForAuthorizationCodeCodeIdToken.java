@@ -20,7 +20,10 @@ import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+<<<<<<< HEAD
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+=======
+>>>>>>> Refactoring ValidateStateHash to accommodate c_hash, at_hash and s_hash.
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
