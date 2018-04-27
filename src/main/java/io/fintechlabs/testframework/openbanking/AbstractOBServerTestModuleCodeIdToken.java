@@ -20,8 +20,12 @@ import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParame
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
+<<<<<<< HEAD
 import io.fintechlabs.testframework.condition.client.ExtractStateHash;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+=======
+import io.fintechlabs.testframework.condition.client.ExtractSHash;
+>>>>>>> Renaming of ExtractStateHash to be ExtractSHash. In keeping with ValidateSHash.
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
@@ -54,7 +58,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		super.requestAuthorizationCode();
 
-		call(ExtractStateHash.class);
+		call(ExtractSHash.class);
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
@@ -139,7 +143,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 
-		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractSHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");

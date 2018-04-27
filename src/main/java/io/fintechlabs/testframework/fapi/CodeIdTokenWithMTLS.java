@@ -62,7 +62,7 @@ import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthoriza
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractStateHash;
+import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
@@ -262,7 +262,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractSHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
@@ -295,7 +295,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-		call(ExtractStateHash.class);
+		call(ExtractSHash.class);
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");

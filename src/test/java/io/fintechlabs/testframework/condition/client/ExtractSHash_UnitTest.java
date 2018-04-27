@@ -46,7 +46,7 @@ public class ExtractSHash_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ExtractStateHash cond;
+	private ExtractSHash cond;
 
 	/*
 	 * @throws java.lang.Exception
@@ -54,7 +54,7 @@ public class ExtractSHash_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractStateHash("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractSHash("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 

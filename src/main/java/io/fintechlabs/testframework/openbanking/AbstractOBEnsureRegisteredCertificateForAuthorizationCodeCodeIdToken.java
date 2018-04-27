@@ -13,7 +13,7 @@ import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractStateHash;
+import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
@@ -41,7 +41,7 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 
-		call(ExtractStateHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractSHash.class, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");

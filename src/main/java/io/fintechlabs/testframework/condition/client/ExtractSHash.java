@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ExtractStateHash extends AbstractCondition {
+public class ExtractSHash extends AbstractCondition {
 
 	/**
 	 * @param testId
@@ -34,7 +34,7 @@ public class ExtractStateHash extends AbstractCondition {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public ExtractStateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
