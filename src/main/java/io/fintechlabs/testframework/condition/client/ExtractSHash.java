@@ -36,7 +36,7 @@ public class ExtractSHash extends ExtractHash {
 	 */
 	public ExtractSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "state_hash"; 
+		super.HashName = "s_hash"; 
 		super.EnvName = "state_hash";
 	}
 

@@ -9,7 +9,8 @@ public class ValidateAtHash extends ValidateHash {
 
 	public ValidateAtHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "c_hash";
+		super.HashName = "at_hash";
+		super.EnvName = "at_hash";
 	}
 
 	@Override

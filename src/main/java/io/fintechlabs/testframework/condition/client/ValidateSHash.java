@@ -23,6 +23,7 @@ public class ValidateSHash extends ValidateHash {
 	public ValidateSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 		super.HashName = "s_hash";
+		super.EnvName = "state_hash";
 	}
 
 	@Override

@@ -11,6 +11,7 @@ public class ValidateCHash extends ValidateHash {
 	public ValidateCHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 		super.HashName = "c_hash";
+		super.EnvName = "c_hash";
 	}
 
 	@Override
