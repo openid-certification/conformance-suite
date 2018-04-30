@@ -17,7 +17,8 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public abstract class ValidateHash extends AbstractCondition {
 	
-	protected String HashName; 
+	protected String HashName;
+	protected String EnvName = null;
 	
 	public ValidateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -25,8 +26,8 @@ public abstract class ValidateHash extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-
-		JsonObject hashJson = env.get(HashName);
+		
+		JsonObject hashJson = env.get(EnvName);
 		if (hashJson == null) {
 			throw error("Couldn't find " + HashName);
 		}
@@ -44,6 +45,12 @@ public abstract class ValidateHash extends AbstractCondition {
 		String alg = algElement.getAsString();
 		String hash = hashElement.getAsString();
 
+		
+		String state = env.getString("state");
+		if (state == null) {
+			throw error("Couldn't find state");
+		}
+		
 		MessageDigest digester;
 
 		try {
@@ -58,7 +65,7 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Unsupported digest for algorithm", e, args("alg", alg));
 		}
 
-		byte[] stateDigest = digester.digest(hash.getBytes(StandardCharsets.US_ASCII));
+		byte[] stateDigest = digester.digest(state.getBytes(StandardCharsets.US_ASCII));
 
 		byte[] halfDigest = new byte[stateDigest.length / 2];
 		System.arraycopy(stateDigest, 0, halfDigest, 0, halfDigest.length);
