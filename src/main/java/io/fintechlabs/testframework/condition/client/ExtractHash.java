@@ -69,7 +69,7 @@ public abstract class ExtractHash extends AbstractCondition {
 
 		logSuccess("Extracted " + HashName + " from ID Token", outData);
 		
-		return null;
+		return env;
 	}
 
 }
