@@ -6,6 +6,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
@@ -23,20 +25,24 @@ public abstract class ValidateHash extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String hash = env.getString("state_hash", HashName);
-		if (hash == null) {
+
+		JsonObject hashJson = env.get(HashName);
+		if (hashJson == null) {
 			throw error("Couldn't find " + HashName);
 		}
 
-		String alg = env.getString("state_hash", "alg");
-		if (alg == null) {
-			throw error("Couldn't find algorithm");
+		JsonElement algElement= hashJson.get("alg");
+		if (algElement == null) {
+			throw error("Could not find alg field."); 
 		}
 
-		String state = env.getString("state");
-		if (state == null) {
-			throw error("Couldn't find state");
+		JsonElement hashElement = hashJson.get(HashName);
+		if (hashElement == null) {
+			throw error("Could not find " + HashName + " field.");
 		}
+
+		String alg = algElement.getAsString();
+		String hash = hashElement.getAsString();
 
 		MessageDigest digester;
 
@@ -52,7 +58,7 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Unsupported digest for algorithm", e, args("alg", alg));
 		}
 
-		byte[] stateDigest = digester.digest(state.getBytes(StandardCharsets.US_ASCII));
+		byte[] stateDigest = digester.digest(hash.getBytes(StandardCharsets.US_ASCII));
 
 		byte[] halfDigest = new byte[stateDigest.length / 2];
 		System.arraycopy(stateDigest, 0, halfDigest, 0, halfDigest.length);
