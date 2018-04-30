@@ -94,6 +94,10 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 						!Strings.isNullOrEmpty(registrationAccessToken)) {
 						env.putString("registration_client_uri", registrationClientUri);
 						env.putString("registration_access_token", registrationAccessToken);
+
+						logSuccess("Extracted dynamic registration management credentials",
+							args("registration_client_uri", registrationClientUri,
+								"registration_access_token", registrationAccessToken));
 					}
 
 					return env;

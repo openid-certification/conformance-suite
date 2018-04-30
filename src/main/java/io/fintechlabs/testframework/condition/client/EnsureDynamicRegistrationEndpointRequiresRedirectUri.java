@@ -64,7 +64,7 @@ public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends Abstra
 
 			try {
 				jsonString = restTemplate.postForObject(env.getString("server", "registration_endpoint"), request, String.class);
-				throw error("Got a successful response from the registration endpoint", args("body", jsonString));
+				throw error("Registration endpoint returned successful response for a request with no redirect URI", args("body", jsonString));
 			} catch (RestClientResponseException e) {
 				if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST) {
 					logSuccess("Registration endpoint refused request", args("code", e.getRawStatusCode(), "status", e.getStatusText()));

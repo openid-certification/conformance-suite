@@ -84,7 +84,13 @@ public abstract class AbstractCondition implements Condition {
 		this.requirements = Sets.newHashSet(requirements);
 	}
 
-	protected String getTestId() { return this.testId; }
+	/**
+	 * Get the testId for this instance
+	 * @return The test Id for the current instance
+	 */
+	protected String getTestId() {
+		return this.testId;
+	}
 
 	/*
 	 * Logging utilities
