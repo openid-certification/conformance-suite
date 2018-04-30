@@ -12,6 +12,7 @@ import com.nimbusds.jose.util.Base64URL;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -46,11 +47,8 @@ public abstract class ValidateHash extends AbstractCondition {
 		String hash = hashElement.getAsString();
 
 		
-		String state = env.getString("state");
-		if (state == null) {
-			throw error("Couldn't find state");
-		}
-		
+		String baseString = getBaseStringBasedOnType(env);
+
 		MessageDigest digester;
 
 		try {
@@ -65,7 +63,7 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Unsupported digest for algorithm", e, args("alg", alg));
 		}
 
-		byte[] stateDigest = digester.digest(state.getBytes(StandardCharsets.US_ASCII));
+		byte[] stateDigest = digester.digest(baseString.getBytes(StandardCharsets.US_ASCII));
 
 		byte[] halfDigest = new byte[stateDigest.length / 2];
 		System.arraycopy(stateDigest, 0, halfDigest, 0, halfDigest.length);
@@ -78,6 +76,49 @@ public abstract class ValidateHash extends AbstractCondition {
 		logSuccess("State hash validated successfully", args(HashName, hash));
 
 		return env;
+	}
+	
+	private String getBaseStringBasedOnType(Environment env) {
+
+		String baseString = null;
+		
+		switch (HashName) {
+			case "s_hash":
+				log("Doing s_hash validation...");
+				
+				baseString = env.getString("state");
+				if (baseString == null) {
+					throw error("Couldn't find state");
+				}
+				
+				log("Read state:" + baseString);
+				break;
+				
+			case "at_hash":
+				log("Doing at_hash validation...");
+				
+				JsonObject accessToken = env.get("access_token"); 
+				if (accessToken == null) {
+					throw error("Could not get access_token object..."); 
+				}
+				baseString = accessToken.get("value").getAsString();
+
+				log("Read access_token:" +  baseString);
+				break;
+				
+			case "c_hash":
+				log("Doing c_hash (callback_params.code) validation...");
+
+				baseString = env.getString("callback_params", "code");
+				
+				log("Read Code:" + baseString);
+				break;
+			
+			default:
+				throw error("Invalid HashName(" + HashName + ")");
+		}
+
+		return baseString;
 	}
 
 }
