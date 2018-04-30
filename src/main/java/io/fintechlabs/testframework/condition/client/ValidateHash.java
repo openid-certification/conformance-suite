@@ -84,36 +84,24 @@ public abstract class ValidateHash extends AbstractCondition {
 		
 		switch (HashName) {
 			case "s_hash":
-				log("Doing s_hash validation...");
-				
 				baseString = env.getString("state");
 				if (baseString == null) {
 					throw error("Couldn't find state");
 				}
-				
-				log("Read state:" + baseString);
 				break;
-				
 			case "at_hash":
-				log("Doing at_hash validation...");
-				
 				JsonObject accessToken = env.get("access_token"); 
 				if (accessToken == null) {
 					throw error("Could not get access_token object..."); 
 				}
 				baseString = accessToken.get("value").getAsString();
-
-				log("Read access_token:" +  baseString);
 				break;
-				
 			case "c_hash":
-				log("Doing c_hash (callback_params.code) validation...");
-
 				baseString = env.getString("callback_params", "code");
-				
-				log("Read Code:" + baseString);
+				if (baseString == null) {
+					throw error("Could not find callback_params.code");
+				}
 				break;
-			
 			default:
 				throw error("Invalid HashName(" + HashName + ")");
 		}
