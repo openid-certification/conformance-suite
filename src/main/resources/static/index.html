@@ -6,16 +6,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<title>FintechLabs: Conformance Suite</title>
-	
+
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	
+
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
-	
-	
+
+
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
@@ -145,6 +145,12 @@
 									</div>
 								</div>
 								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_name</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="client.client_name" placeholder="client name"></input>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
 									<div class="col-md-2 key">scope</div>
 									<div class="col-md-10">
 										<input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input>
@@ -266,14 +272,14 @@
 										<input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests"></input>
 									</div>
 								</div>
-								
+
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrlAccountRequests</div>
 									<div class="col-md-10">
 										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountRequests" placeholder="Base URL to use in resource account request server tests"></input>
 									</div>
 								</div>
-								
+
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrlAccountsResource</div>
 									<div class="col-md-10">
@@ -281,7 +287,7 @@
 									</div>
 								</div>
 
-								
+
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">institution_id</div>
@@ -401,7 +407,7 @@
                 <button class="btn btn-default btn-block downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                 <button class="btn btn-default btn-block viewBtn"><span class="glyphicon glyphicon-list-alt"></span> View Test Details</button>
             </div>
-            
+
         </div>
 
     </script>
@@ -416,7 +422,7 @@
 
 	<script type="text/javascript">
 		/**
-		 * 
+		 *
 		 */
 		$(function() {
 
@@ -470,7 +476,7 @@
 				console.log('Button clicked: ' + testName);
 
 				/* Figures out which tab is visible then populates the form appropriately
-				this is to ensure that the $('#config') value has properly updated in the event of a 
+				this is to ensure that the $('#config') value has properly updated in the event of a
 				quick paste into a form field  with no tab switch and then a button press */
 				if ($("#formInput").hasClass("active")) {
 					updateJSONFromFormElements();
@@ -504,7 +510,7 @@
 			$('#refresh').click(function(event) {
 				updateRunningTable();
 			});
-			// refresh the running table right now        
+			// refresh the running table right now
 			updateRunningTable();
 
 			// Config UI
@@ -570,7 +576,7 @@
 		}
 
 		/**
-		 * 
+		 *
 		 */
 		function updateRunningTable() {
 			$.getJSON('/runner/running', function(data) {
@@ -658,7 +664,7 @@
 		}
 
 		/**
-		 * 
+		 *
 		 */
 		function walkJSON(element, root) {
 

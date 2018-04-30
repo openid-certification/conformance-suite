@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
@@ -23,7 +24,7 @@ public class GetDynamicClientConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "client", strings = "client_name")
+	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment in) {
 
 		if (!in.containsObj("config")) {
@@ -37,10 +38,12 @@ public class GetDynamicClientConfiguration extends AbstractCondition {
 			// we've got a client object, put it in the environment
 			in.put("client", client.getAsJsonObject());
 
-			// pull out the client name and put it in the root environment for easy access
-			in.putString("client_name", in.getString("client", "client_name"));
-
-			logSuccess("Found a static client object", client.getAsJsonObject());
+			// pull out the client name and put it in the root environment for easy access (if there is one)
+			String clientName = in.getString("client", "client_name");
+			if (!Strings.isNullOrEmpty(clientName)) {
+				in.putString("client_name", in.getString("client", "client_name"));
+			}
+			logSuccess("Found a client object", client.getAsJsonObject());
 			return in;
 		}
 	}

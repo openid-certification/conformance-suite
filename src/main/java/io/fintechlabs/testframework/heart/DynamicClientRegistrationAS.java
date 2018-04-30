@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
@@ -24,8 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -33,14 +32,12 @@ import org.springframework.web.servlet.ModelAndView;
  *
  */
 @PublishTestModule(
-	testName = "heart-dynamic-registration-client",
-	displayName = "HEART AS: Dynamic Registration Client",
+	testName = "heart-dynamic-client-registration",
+	displayName = "HEART AS: OAuth Dynamic Client Registration",
 	profile = "HEART",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_name",
-		"client.jwks",
-		"client.scope",
 		"tls.testHost",
 		"tls.testPort"
 	}
@@ -82,15 +79,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		// get the client configuration that we'll use to dynamically register
 		callAndStopOnFailure(GetDynamicClientConfiguration.class);
 
-		// TODO: Check the client information for heart specific stuff?
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
-
-		callAndStopOnFailure(CreateJwksUri.class);
-		exposeEnvString("jwks_uri");
-
 		callAndStopOnFailure(CheckRedirectUri.class);
-
-		exposeEnvString("client_name");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -101,15 +90,37 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		// create dynamic registration request
-		callAndStopOnFailure(CreateDynamicRegistrationRequestFromClientInformation.class);
-		// submit request
+		// create basic dynamic registration request
+		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
+		expose("client_name", env.findElement("dynamic_registration_request", "client_name").getAsString());
+
+		// Run without redirect uris OAuth 2.0 Dynamic Registration section 2.
+		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);
+		callAndStopOnFailure(EnsureDynamicRegistrationEndpointRequiresRedirectUri.class);
+		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToAuthorizationCode.class);
+		callAndStopOnFailure(EnsureDynamicRegistrationEndpointRequiresRedirectUri.class);
+
+		// Add in the redirect URIs needed for proper registration
+		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
+
+		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-		// check response back - is good, no?
 
 		// IF management interface, delete the client to clean up
+		skipIfMissing(new String[] {},
+			new String[] {"registration_client_uri", "registration_access_token"},
+			Condition.ConditionResult.INFO,
+			UnregisterDynamicallyRegisteredClient.class);
 
-		// since we're not waiting for any browser interaction, we can just finish?
+		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToAuthorizationCode.class);
+		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+
+		// IF management interface, delete the client to clean up
+		skipIfMissing(new String[] {},
+			new String[] {"registration_client_uri", "registration_access_token"},
+			Condition.ConditionResult.INFO,
+			UnregisterDynamicallyRegisteredClient.class);
+
 		fireTestFinished();
 		stop();
 	}
@@ -120,23 +131,9 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		// dispatch based on the path
 		// since we're only doing the registration, nothing should come back on the callback
-		// if (path.equals("callback")) {
-		// 	return handleCallback(requestParts);
-		//}
-		if (path.equals("jwks")) {
-			return handleJwks(requestParts);
-		} else {
-			return new ModelAndView("testError");
-		}
-	}
 
-	private Object handleJwks(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
-		JsonObject jwks = env.get("public_jwks");
+		return new ModelAndView("testError");
 
-		setStatus(Status.WAITING);
-
-		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
 	@Override

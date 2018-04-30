@@ -1,15 +1,11 @@
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -30,18 +26,17 @@ import java.util.Collections;
 
 /**
  * @author srmoore
- *
  */
-public class CallDynamicRegistrationEndpoint extends AbstractCondition {
-	private static final Logger logger = LoggerFactory.getLogger(CallDynamicRegistrationEndpoint.class);
+public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends AbstractCondition {
 
-	public CallDynamicRegistrationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements){
+	private static final Logger logger = LoggerFactory.getLogger(EnsureDynamicRegistrationEndpointRequiresRedirectUri.class);
+
+	public EnsureDynamicRegistrationEndpointRequiresRedirectUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements){
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	@Override
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})
-	@PostEnvironment(required = "dynamic_registration_response")
 	public Environment evaluate(Environment env) {
 
 		if (env.getString("server", "registration_endpoint") == null) {
@@ -69,38 +64,17 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 			try {
 				jsonString = restTemplate.postForObject(env.getString("server", "registration_endpoint"), request, String.class);
+				throw error("Got a successful response from the registration endpoint", args("body", jsonString));
 			} catch (RestClientResponseException e) {
-				throw error("Error from the dynamic registration endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
-			}
-
-			if (Strings.isNullOrEmpty(jsonString)) {
-				throw error("Didn't get back a response from the registration endpoint");
-			} else {
-				log("Registration endpoint response", args("dynamic_registration_response", jsonString));
-
-				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Registration Endpoint did not return a JSON object");
-					}
-
-					logSuccess("Parsed registration endpoint response", jsonRoot.getAsJsonObject());
-
-					env.put("dynamic_registration_response", jsonRoot.getAsJsonObject());
-
-					String registrationClientUri = jsonRoot.getAsJsonObject().get("registration_client_uri").getAsString();
-					String registrationAccessToken = jsonRoot.getAsJsonObject().get("registration_access_token").getAsString();
-					if (!Strings.isNullOrEmpty(registrationClientUri) &&
-						!Strings.isNullOrEmpty(registrationAccessToken)) {
-						env.putString("registration_client_uri", registrationClientUri);
-						env.putString("registration_access_token", registrationAccessToken);
-					}
-
+				if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST) {
+					logSuccess("Registration endpoint refused request", args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 					return env;
-				} catch (JsonParseException e) {
-					throw error(e);
+				} else {
+					throw error("Error from the registration endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 				}
 			}
+
+
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
