@@ -58,7 +58,9 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
@@ -74,6 +76,8 @@ import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointReq
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.ValidateAtHash;
+import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
@@ -266,7 +270,17 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		
+		call(ExtractCHash.class, "FAPI-2-5.2.2-4");
 
+		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateCHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		
+		call(ExtractAtHash.class, "FAPI-2-5.2.2-4");
+
+		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateAtHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");		
+		
 		// check the ID token from the hybrid response
 
 		// call the token endpoint and complete the flow
