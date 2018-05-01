@@ -88,16 +88,21 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 					env.put("client", jsonRoot.getAsJsonObject());
 
-					String registrationClientUri = jsonRoot.getAsJsonObject().get("registration_client_uri").getAsString();
-					String registrationAccessToken = jsonRoot.getAsJsonObject().get("registration_access_token").getAsString();
-					if (!Strings.isNullOrEmpty(registrationClientUri) &&
-						!Strings.isNullOrEmpty(registrationAccessToken)) {
-						env.putString("registration_client_uri", registrationClientUri);
-						env.putString("registration_access_token", registrationAccessToken);
+					if (jsonRoot.getAsJsonObject().has("registration_client_uri") &&
+						jsonRoot.getAsJsonObject().has("registration_access_token")) {
 
-						logSuccess("Extracted dynamic registration management credentials",
-							args("registration_client_uri", registrationClientUri,
-								"registration_access_token", registrationAccessToken));
+						String registrationClientUri = jsonRoot.getAsJsonObject().get("registration_client_uri").getAsString();
+						String registrationAccessToken = jsonRoot.getAsJsonObject().get("registration_access_token").getAsString();
+						
+						if (!Strings.isNullOrEmpty(registrationClientUri) &&
+							!Strings.isNullOrEmpty(registrationAccessToken)) {
+							env.putString("registration_client_uri", registrationClientUri);
+							env.putString("registration_access_token", registrationAccessToken);
+
+							logSuccess("Extracted dynamic registration management credentials",
+								args("registration_client_uri", registrationClientUri,
+									"registration_access_token", registrationAccessToken));
+						}
 					}
 
 					return env;
