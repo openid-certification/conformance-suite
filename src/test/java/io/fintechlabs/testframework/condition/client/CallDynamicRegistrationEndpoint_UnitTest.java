@@ -2,7 +2,8 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.specto.hoverfly.junit.rule.HoverflyRule;
@@ -83,7 +84,11 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		service("bad.example.com")
 			.post("/registration")
 			.anyBody()
-			.willReturn(success("This is not JSON!", "text/plain"))));
+			.willReturn(success("This is not JSON!", "text/plain")),
+		service("empty.example.com")
+			.post("/registration")
+			.anyBody()
+			.willReturn(success())));
 
 	private CallDynamicRegistrationEndpoint cond;
 
@@ -95,7 +100,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new CallDynamicRegistrationEndpoint("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new CallDynamicRegistrationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
@@ -152,5 +157,61 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		assertThat(env.get("client").entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
 		assertThat(env.getString("registration_client_uri")).isNullOrEmpty();
 		assertThat(env.getString("registration_access_token")).isNullOrEmpty();
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_noServerRegistraitonEndpoint(){
+		JsonObject server = new JsonParser().parse("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
+		env.put("server",server);
+		cond.evaluate(env);
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testBadRequestResponseFromServer(){
+
+		JsonObject server = new JsonParser().parse("{"
+			+ "\"registration_endpoint\":\"https://error.example.com/registration\""
+			+ "}").getAsJsonObject();
+		env.put("server", server);
+
+		env.put("dynamic_registration_request", requestParameters);
+
+		cond.evaluate(env);
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testInvalidJsonReturnedFromServer(){
+		JsonObject server = new JsonParser().parse("{"
+			+ "\"registration_endpoint\":\"https://bad.example.com/registration\""
+			+ "}").getAsJsonObject();
+		env.put("server", server);
+
+		env.put("dynamic_registration_request", requestParameters);
+
+		cond.evaluate(env);
+	}
+
+	/**
+	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testEmptyBodyReturnedFromServer(){
+		JsonObject server = new JsonParser().parse("{"
+			+ "\"registration_endpoint\":\"https://empty.example.com/registration\""
+			+ "}").getAsJsonObject();
+		env.put("server", server);
+
+		env.put("dynamic_registration_request", requestParameters);
+
+		cond.evaluate(env);
 	}
 }
