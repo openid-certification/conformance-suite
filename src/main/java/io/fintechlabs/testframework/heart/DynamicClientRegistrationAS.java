@@ -112,6 +112,9 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 			Condition.ConditionResult.INFO,
 			UnregisterDynamicallyRegisteredClient.class);
 
+		callAndStopOnFailure(EnsureImplicitGrantTypeInClient.class);
+		callAndStopOnFailure(EnsureTokenResponseTypeInClient.class);
+
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToAuthorizationCode.class);
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
 
@@ -120,6 +123,10 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 			new String[] {"registration_client_uri", "registration_access_token"},
 			Condition.ConditionResult.INFO,
 			UnregisterDynamicallyRegisteredClient.class);
+
+		// client is still in the env, check the grant_types and response_types
+		callAndStopOnFailure(EnsureAuthorizationCodeGrantTypeInClient.class);
+		callAndStopOnFailure(EnsureCodeResponseTypeInClient.class);
 
 		fireTestFinished();
 		stop();
