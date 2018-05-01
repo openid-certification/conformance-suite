@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
@@ -23,7 +24,9 @@ public class SetDynamicRegistrationRequestGrantTypeToAuthorizationCode extends A
 			throw error("No dynamic registration request object found");
 		}
 		JsonObject dynamicRegistrationRequest = env.get("dynamic_registration_request");
-		dynamicRegistrationRequest.addProperty("grant_type","authroization_code");
+		JsonArray grantTypes = new JsonArray();
+		grantTypes.add("authorization_code");
+		dynamicRegistrationRequest.add("grant_types",grantTypes);
 		env.put("dynamic_registration_request", dynamicRegistrationRequest);
 
 		return env;

@@ -41,7 +41,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})
-	@PostEnvironment(required = "dynamic_registration_response")
+	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
 		if (env.getString("server", "registration_endpoint") == null) {
@@ -49,7 +49,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 		}
 
 		if (!env.containsObj("dynamic_registration_request")){
-			throw error("Coudln't find dynamic registration request");
+			throw error("Couldn't find dynamic registration request");
 		}
 
 		JsonObject requestObj = env.get("dynamic_registration_request");
@@ -86,7 +86,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 					logSuccess("Parsed registration endpoint response", jsonRoot.getAsJsonObject());
 
-					env.put("dynamic_registration_response", jsonRoot.getAsJsonObject());
+					env.put("client", jsonRoot.getAsJsonObject());
 
 					String registrationClientUri = jsonRoot.getAsJsonObject().get("registration_client_uri").getAsString();
 					String registrationAccessToken = jsonRoot.getAsJsonObject().get("registration_access_token").getAsString();

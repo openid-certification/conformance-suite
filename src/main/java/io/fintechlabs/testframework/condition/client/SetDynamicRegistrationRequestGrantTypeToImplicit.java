@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
@@ -23,7 +24,9 @@ public class SetDynamicRegistrationRequestGrantTypeToImplicit extends AbstractCo
 			throw error("No dynamic registration request object found");
 		}
 		JsonObject dynamicRegistrationRequest = env.get("dynamic_registration_request");
-		dynamicRegistrationRequest.addProperty("grant_type","implicit");
+		JsonArray grantTypes = new JsonArray();
+		grantTypes.add("implicit");
+		dynamicRegistrationRequest.add("grant_types",grantTypes);
 		env.put("dynamic_registration_request", dynamicRegistrationRequest);
 
 		return env;
