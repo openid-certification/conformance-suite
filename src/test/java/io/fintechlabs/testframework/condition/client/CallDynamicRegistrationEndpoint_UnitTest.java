@@ -72,7 +72,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 			.post("/registration")
 			.anyBody()
 			.willReturn(success(goodResponse.toString(), "application/json")),
-		service("good_noregapi.example.com")
+		service("noregapi.example.com")
 			.post("/registration")
 			.anyBody()
 			.willReturn(success(goodResponseNoRegistrationAPI.toString(), "application/json")),
@@ -133,7 +133,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	public void testEvaluate_noError_noRegistrationClientUri() {
 
 		JsonObject server = new JsonParser().parse("{"
-			+ "\"registration_endpoint\":\"https://good_noregapi.example.com/registration\""
+			+ "\"registration_endpoint\":\"https://noregapi.example.com/registration\""
 			+ "}").getAsJsonObject();
 		env.put("server", server);
 
@@ -142,14 +142,14 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		cond.evaluate(env);
 
-		hoverfly.verify(service("good.example.com")
+		hoverfly.verify(service("noregapi.example.com")
 			.post("/registration")
 			.body(requestParameters.toString()));
 
 		verify(env, atLeastOnce()).getString("server", "registration_endpoint");
 
 		assertThat(env.get("client")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("client").entrySet()).containsAll(goodResponse.entrySet());
+		assertThat(env.get("client").entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
 		assertThat(env.getString("registration_client_uri")).isNullOrEmpty();
 		assertThat(env.getString("registration_access_token")).isNullOrEmpty();
 	}
