@@ -24,17 +24,17 @@ public class OBValidateIdTokenIntentId extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {
-			return error("Couldn't find parsed ID token");
+			throw error("Couldn't find parsed ID token");
 		}
 		
 		String obIntentId = env.getString("id_token", "claims.openbanking_intent_id");
 		
 		if (obIntentId == null) {
-			return error("Missing openbanking_intent_id");
+			throw error("Missing openbanking_intent_id");
 		}
 		
 		if (!env.getString("account_request_id").equals(obIntentId)) {
-			return error("Mismatch: openbanking_intent_id(server):" + obIntentId + ". Expected:" + env.getString("account_request_id"));
+			throw error("Mismatch: openbanking_intent_id(server):" + obIntentId + ". Expected:" + env.getString("account_request_id"));
 		} 
 		
 		logSuccess("openbanking_intent_id passed all validation checks");
