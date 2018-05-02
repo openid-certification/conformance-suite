@@ -41,12 +41,12 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 	@Test
 	public void testEvalutate_properGrantType(){
 		JsonObject goodRespone = new JsonParser().parse("{" +
-			"\"client_id\":\"0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"client_id\":\"UNIT-TEST_Client_Id\"," +
 			"\"client_secret\":\"secret\"," +
 			"\"client_secret_expires_at\":0," +
 			"\"client_id_issued_at\":1525197719," +
 			"\"registration_access_token\":\"reg.access.token\"," +
-			"\"registration_client_uri\":\"https://example.org/register/0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"registration_client_uri\":\"https://example.org/register/UNIT-TEST_Client_Id\"," +
 			"\"redirect_uris\":[\"https://localhost:8443/test/a/unit-test/callback\"]," +
 			"\"client_name\":\"unit-test-client\"," +
 			"\"token_endpoint_auth_method\":\"client_secret_basic\"," +
@@ -64,12 +64,12 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvalutate_wrongGrantType(){
 		JsonObject goodRespone = new JsonParser().parse("{" +
-			"\"client_id\":\"0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"client_id\":\"UNIT-TEST_Client_Id\"," +
 			"\"client_secret\":\"secret\"," +
 			"\"client_secret_expires_at\":0," +
 			"\"client_id_issued_at\":1525197719," +
 			"\"registration_access_token\":\"reg.access.token\"," +
-			"\"registration_client_uri\":\"https://example.org/register/0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"registration_client_uri\":\"https://example.org/register/UNIT-TEST_Client_Id\"," +
 			"\"redirect_uris\":[\"https://localhost:8443/test/a/unit-test/callback\"]," +
 			"\"client_name\":\"unit-test-client\"," +
 			"\"token_endpoint_auth_method\":\"client_secret_basic\"," +
@@ -87,12 +87,12 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvalutate_noGrantType(){
 		JsonObject goodRespone = new JsonParser().parse("{" +
-			"\"client_id\":\"0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"client_id\":\"UNIT-TEST_Client_Id\"," +
 			"\"client_secret\":\"secret\"," +
 			"\"client_secret_expires_at\":0," +
 			"\"client_id_issued_at\":1525197719," +
 			"\"registration_access_token\":\"reg.access.token\"," +
-			"\"registration_client_uri\":\"https://example.org/register/0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"registration_client_uri\":\"https://example.org/register/UNIT-TEST_Client_Id\"," +
 			"\"redirect_uris\":[\"https://localhost:8443/test/a/unit-test/callback\"]," +
 			"\"client_name\":\"unit-test-client\"," +
 			"\"token_endpoint_auth_method\":\"client_secret_basic\"," +
@@ -109,12 +109,12 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvalutate_tooManyGrantTypes(){
 		JsonObject goodRespone = new JsonParser().parse("{" +
-			"\"client_id\":\"0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"client_id\":\"UNIT-TEST_Client_Id\"," +
 			"\"client_secret\":\"secret\"," +
 			"\"client_secret_expires_at\":0," +
 			"\"client_id_issued_at\":1525197719," +
 			"\"registration_access_token\":\"reg.access.token\"," +
-			"\"registration_client_uri\":\"https://example.org/register/0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"registration_client_uri\":\"https://example.org/register/UNIT-TEST_Client_Id\"," +
 			"\"redirect_uris\":[\"https://localhost:8443/test/a/unit-test/callback\"]," +
 			"\"client_name\":\"unit-test-client\"," +
 			"\"token_endpoint_auth_method\":\"client_secret_basic\"," +
@@ -132,12 +132,12 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void tooManyEvalutate_emptyArrayGrantType(){
 		JsonObject goodRespone = new JsonParser().parse("{" +
-			"\"client_id\":\"0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"client_id\":\"UNIT-TEST_Client_Id\"," +
 			"\"client_secret\":\"secret\"," +
 			"\"client_secret_expires_at\":0," +
 			"\"client_id_issued_at\":1525197719," +
 			"\"registration_access_token\":\"reg.access.token\"," +
-			"\"registration_client_uri\":\"https://example.org/register/0e05f9bb-e912-4b9a-852a-369af0c2a102\"," +
+			"\"registration_client_uri\":\"https://example.org/register/UNIT-TEST_Client_Id\"," +
 			"\"redirect_uris\":[\"https://localhost:8443/test/a/unit-test/callback\"]," +
 			"\"client_name\":\"unit-test-client\"," +
 			"\"token_endpoint_auth_method\":\"client_secret_basic\"," +

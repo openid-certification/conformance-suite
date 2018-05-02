@@ -32,18 +32,22 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 		cond = new CreateDynamicRegistrationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
+	/**
+	 * Test for {@link CreateDynamicRegistrationRequest#evaluate(Environment)}
+	 */
 	@Test
 	public void testEvaluate_noClientName(){
-		System.out.println("noName: " + env);
 		cond.evaluate(env);
 		assertThat(env.get("dynamic_registration_request")).isNotNull();
 		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("UNIT-TEST");
 	}
 
+	/**
+	 * Test for {@link CreateDynamicRegistrationRequest#evaluate(Environment)}
+	 */
 	@Test
 	public void testEvaluate_withClientName(){
 		env.putString("client_name","my-client-name");
-		System.out.println("withName: " + env);
 		cond.evaluate(env);
 		assertThat(env.get("dynamic_registration_request")).isNotNull();
 		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("my-client-name UNIT-TEST");
