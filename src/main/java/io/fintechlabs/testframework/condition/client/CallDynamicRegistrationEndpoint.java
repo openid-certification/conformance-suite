@@ -93,7 +93,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 						String registrationClientUri = jsonRoot.getAsJsonObject().get("registration_client_uri").getAsString();
 						String registrationAccessToken = jsonRoot.getAsJsonObject().get("registration_access_token").getAsString();
-						
+
 						if (!Strings.isNullOrEmpty(registrationClientUri) &&
 							!Strings.isNullOrEmpty(registrationAccessToken)) {
 							env.putString("registration_client_uri", registrationClientUri);
@@ -104,7 +104,6 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 									"registration_access_token", registrationAccessToken));
 						}
 					}
-
 					return env;
 				} catch (JsonParseException e) {
 					throw error(e);
