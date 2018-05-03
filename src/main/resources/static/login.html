@@ -57,22 +57,22 @@
     </footer>
 
     <script type="text/javascript">
-    $(document).ready(function() {
-        var urlParams = new URLSearchParams(window.location.search);
-
-        var error = urlParams.get('error');
-        var logout = urlParams.get('logout');
-        
-        if (error) {
-        	   $('#error').show();
-        }
-        
-        if (logout) {
-        	   $('#logout').show();
-        }
-        
-    });
-</script>
+	    $(document).ready(function() {
+	        var urlParams = new URLSearchParams(window.location.search);
+	
+	        var error = urlParams.get('error');
+	        var logout = urlParams.get('logout');
+	        
+	        if (error) {
+	        	   $('#error').show();
+	        }
+	        
+	        if (logout) {
+	        	   $('#logout').show();
+	        }
+	        
+	    });
+    </script>
 
 
 </body>
