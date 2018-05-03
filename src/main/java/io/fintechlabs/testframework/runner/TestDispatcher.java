@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -160,7 +161,12 @@ public class TestDispatcher {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 			}
-			test.setFinalError(error);
+			
+			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				test.setFinalError(error);
+			}
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {
 				// look for the user-facing annotation in the stack
