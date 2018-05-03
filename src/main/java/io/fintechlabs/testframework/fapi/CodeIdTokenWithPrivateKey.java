@@ -225,8 +225,10 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ModelAndView("implicitCallback",
-			ImmutableMap.of("test", this,
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+			ImmutableMap.of(
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 	}
 
 	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
