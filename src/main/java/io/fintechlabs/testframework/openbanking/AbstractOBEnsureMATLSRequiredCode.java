@@ -120,7 +120,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return redirectToLogDetailPage();
 	}
 
 }

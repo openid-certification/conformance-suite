@@ -149,7 +149,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		logIncomingHttpRequest(path, requestParts);
 
 		// dispatch based on the path
@@ -188,7 +188,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
+	private Object handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
@@ -228,7 +228,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return redirectToLogDetailPage();
 
 	}
 
