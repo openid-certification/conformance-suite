@@ -24,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -268,7 +265,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 
-		return new RedirectView("/log-detail.html?log=" + getId());
+		return redirectToLogDetailPage();
 
 	}
 
