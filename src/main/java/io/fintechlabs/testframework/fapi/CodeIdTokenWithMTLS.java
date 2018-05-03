@@ -208,7 +208,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
 			return handleImplicitSubmission(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 	}
 

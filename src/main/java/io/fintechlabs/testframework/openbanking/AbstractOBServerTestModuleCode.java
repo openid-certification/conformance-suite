@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointReq
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTestModule {
@@ -46,7 +47,7 @@ public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTes
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 	}
 
