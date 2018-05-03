@@ -96,8 +96,10 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 		logger.info("Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
 
 		return new ModelAndView("implicitCallback",
-			ImmutableMap.of("test", this,
-				"implicitSubmitUrl", submissionUrl));
+			ImmutableMap.of(
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 	}
 
 	private Object handleImplicitSubmission(JsonObject requestParts) {
