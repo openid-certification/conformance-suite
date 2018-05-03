@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
@@ -172,8 +173,10 @@ public class SampleImplicitModule extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ModelAndView("implicitCallback",
-			ImmutableMap.of("test", this,
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+			ImmutableMap.of(
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 	}
 
 	/**
