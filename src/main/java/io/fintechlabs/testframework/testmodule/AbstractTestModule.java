@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
@@ -589,6 +590,10 @@ public abstract class AbstractTestModule implements TestModule {
 			"incoming_body_json", requestParts.get("body_json")));
 	}
 
+	protected RedirectView redirectToLogDetailPage() {
+		return new RedirectView("/log-detail.html?log=" + getId());
+	}
+	
 	/*
 	 * Convenience pass-through methods
 	 */
