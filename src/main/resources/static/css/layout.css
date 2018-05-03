@@ -240,8 +240,8 @@ textarea {
 }
 
 .testStatus-unknown {
-	background-color: #fcd9f6;
-	color: black;
+    background-color: #dedada;
+    color: #6d6a6a;
 }
 
 .testResult-passed {
@@ -265,8 +265,8 @@ textarea {
 }
 
 .testResult-unknown {
-	background-color: #fcd9f6;
-	color: black;
+	background-color: #dedada;
+	color: #6d6a6a;
 }
 
 /* to make labels wrap better */
