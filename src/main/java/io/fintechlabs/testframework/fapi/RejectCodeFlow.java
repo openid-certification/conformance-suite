@@ -153,7 +153,7 @@ public class RejectCodeFlow extends AbstractTestModule {
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 
 	}

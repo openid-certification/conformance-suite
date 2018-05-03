@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitU
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBServerTestModule {
@@ -76,7 +77,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
 			return handleImplicitSubmission(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 	}
 
