@@ -31,13 +31,13 @@ import java.security.NoSuchAlgorithmException;
  * @author srmoore
  *
  */
-public class CreateCodeChallenge extends AbstractCondition{
+public class CreateS256CodeChallenge extends AbstractCondition{
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateCodeChallenge(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CreateS256CodeChallenge(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
