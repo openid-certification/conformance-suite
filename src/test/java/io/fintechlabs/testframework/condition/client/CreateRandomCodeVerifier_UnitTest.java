@@ -14,7 +14,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateRandomStateValue_UnitTest {
+public class CreateRandomCodeVerifier_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,7 +22,7 @@ public class CreateRandomStateValue_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CreateRandomStateValue cond;
+	private CreateRandomCodeVerifier cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -30,17 +30,17 @@ public class CreateRandomStateValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateRandomStateValue("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomCodeVerifier("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CreateRandomStateValue#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate() {
+
 		cond.evaluate(env);
 
-		String res1 = env.getString("state");
+		String res1 = env.getString("code_verifier");
 		
 		assertThat(res1).isNotNull();
 		assertThat(res1).isNotEmpty();
@@ -48,7 +48,7 @@ public class CreateRandomStateValue_UnitTest {
 		// call it twice to make sure we get a different value
 		cond.evaluate(env);
 
-		String res2 = env.getString("state");
+		String res2 = env.getString("code_verifier");
 		
 		assertThat(res2).isNotNull();
 		assertThat(res2).isNotEmpty();
