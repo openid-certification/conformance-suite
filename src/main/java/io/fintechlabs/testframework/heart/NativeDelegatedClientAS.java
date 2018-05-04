@@ -24,11 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
@@ -43,7 +48,9 @@ import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter
 import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateJwksUri;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
@@ -78,26 +85,25 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "heart-full-delegated-client",
-	displayName = "HEART AS: Full Delegated Client",
+	testName = "heart-native-delegated-client",
+	displayName = "HEART AS: Native Delegated Client",
 	profile = "HEART",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.jwks",
 		"client.scope",
 		"tls.testHost",
 		"tls.testPort"
 	}
 )
-public class FullDelegatedClientAS extends AbstractTestModule {
+public class NativeDelegatedClientAS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(FullDelegatedClientAS.class);
+	public static Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
 
 	/**
 	 * 
 	 */
-	public FullDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public NativeDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
@@ -133,11 +139,6 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
-		
-		callAndStopOnFailure(CreateJwksUri.class);
-		exposeEnvString("jwks_uri");
-
 		callAndStopOnFailure(CheckRedirectUri.class);
 
 		exposeEnvString("client_id");
@@ -169,6 +170,11 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
+		// set up PKCE
+		callAndStopOnFailure(CreateRandomCodeVerifier.class);
+		callAndStopOnFailure(CreateS256CodeChallenge.class);
+		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class);
+
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
@@ -193,38 +199,14 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		// dispatch based on the path
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
-		} else if (path.equals("jwks")) {
-			return handleJwks(requestParts);
 		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+			return new ModelAndView("testError");
 		}
 
 	}
 
-	/**
-	 * @param requestParts
-	 * @return
-	 */
-	private Object handleJwks(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
-		JsonObject jwks = env.get("public_jwks");
-
-		setStatus(Status.WAITING);
-
-		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
-	}
-
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
+	private ModelAndView handleCallback(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
@@ -237,12 +219,10 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		
+		// handle PKCE
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class);
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -265,7 +245,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 
-		return redirectToLogDetailPage();
+		return new ModelAndView("complete", ImmutableMap.of("test", this));
 
 	}
 
