@@ -14,8 +14,8 @@
 
 package io.fintechlabs.testframework.condition.common;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 import com.google.common.base.Strings;
@@ -52,14 +52,14 @@ public class CheckHeartServerConfiguration extends AbstractCondition {
 			throw error("Couldn't find a server configuration at all");
 		}
 
-		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer", "introspection_endpoint", "revocation_endpoint", "revocation_endpoint", "jwks_uri");
-		
+		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer", "introspection_endpoint", "revocation_endpoint", "jwks_uri");
+
 		for (String key : lookFor) {
 			ensureString(in, key);
-			
-			ensureUri(in, key);
+
+			ensureUrl(in, key);
 		}
-		
+
 		logSuccess("Found required server configuration keys", args("required", lookFor));
 
 		return in;
@@ -68,19 +68,19 @@ public class CheckHeartServerConfiguration extends AbstractCondition {
 	private void ensureString(Environment in, String path) {
 		String string = in.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
-			error("Couldn't find required component", args("required", path));
+			throw error("Couldn't find required component", args("required", path));
 		}
 	}
-	
-	private void ensureUri(Environment in, String path) {
+
+	private void ensureUrl(Environment in, String path) {
 		String string = in.getString("server", path);
-		
+
 		try {
-			URI uri = new URI(string);
-		} catch (URISyntaxException e) {
-			error("Couldn't parse key as URI", e, args("required", path, "uri", string));
+				URL url = new URL(string);
+		} catch (MalformedURLException e) {
+			throw error("Couldn't parse key as URL", e, args("required", path, "url", string));
 		}
-		
+
 	}
 
 }
