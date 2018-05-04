@@ -22,15 +22,10 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
@@ -47,23 +42,19 @@ import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointRespons
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
-import io.fintechlabs.testframework.condition.client.CreateJwksUri;
 import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ParseAccessTokenAsJwt;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenHeartClaims;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenSignature;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
@@ -200,13 +191,13 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 		}
 
 	}
 
 	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
+	private Object handleCallback(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
@@ -245,7 +236,7 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return redirectToLogDetailPage();
 
 	}
 
