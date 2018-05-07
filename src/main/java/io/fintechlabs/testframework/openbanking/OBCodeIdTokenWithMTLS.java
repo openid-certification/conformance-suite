@@ -19,6 +19,7 @@ import java.util.Map;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -58,6 +59,7 @@ public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModuleCodeIdToken
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
