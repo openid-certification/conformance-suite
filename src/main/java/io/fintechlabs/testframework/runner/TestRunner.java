@@ -52,6 +52,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -408,7 +409,11 @@ public class TestRunner {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 			}
-			test.setFinalError(error);
+			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				test.setFinalError(error);
+			}
 			
 		} catch (Exception e) {
 			logger.error("Something terrible happened when handling an error, I give up", e);
