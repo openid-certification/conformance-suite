@@ -50,7 +50,6 @@ public class CreateRandomCodeVerifier_UnitTest {
 
 		String res2 = env.getString("code_verifier");
 		
-		assertThat(res2).isNotNull();
 		assertThat(res2).isNotEmpty();
 		assertThat(res1).isNotEqualTo(res2);
 	}

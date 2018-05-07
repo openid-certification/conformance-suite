@@ -57,7 +57,6 @@ public class CreateS256CodeChallenge_UnitTest {
 		
 		String res = env.getString("code_challenge");
 
-		assertThat(res).isNotNull();
 		assertThat(res).isNotEmpty();
 
 		byte[] bytes = codeVerifier.getBytes(StandardCharsets.US_ASCII);
