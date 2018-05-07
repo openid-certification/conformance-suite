@@ -76,7 +76,7 @@ public class CheckHeartServerConfiguration extends AbstractCondition {
 		String string = in.getString("server", path);
 
 		try {
-				URL url = new URL(string);
+			URL url = new URL(string);
 		} catch (MalformedURLException e) {
 			throw error("Couldn't parse key as URL", e, args("required", path, "url", string));
 		}
