@@ -14,7 +14,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateRandomNonceValue_UnitTest {
+public class CreateRandomCodeVerifier_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,7 +22,7 @@ public class CreateRandomNonceValue_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CreateRandomNonceValue cond;
+	private CreateRandomCodeVerifier cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -30,16 +30,17 @@ public class CreateRandomNonceValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateRandomNonceValue("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomCodeVerifier("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
 	 */
 	@Test
 	public void testEvaluate() {
+
 		cond.evaluate(env);
 
-		String res1 = env.getString("nonce");
+		String res1 = env.getString("code_verifier");
 		
 		assertThat(res1).isNotNull();
 		assertThat(res1).isNotEmpty();
@@ -47,7 +48,7 @@ public class CreateRandomNonceValue_UnitTest {
 		// call it twice to make sure we get a different value
 		cond.evaluate(env);
 
-		String res2 = env.getString("nonce");
+		String res2 = env.getString("code_verifier");
 		
 		assertThat(res2).isNotEmpty();
 		assertThat(res1).isNotEqualTo(res2);

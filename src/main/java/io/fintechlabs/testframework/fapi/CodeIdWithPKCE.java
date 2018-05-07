@@ -31,7 +31,7 @@ import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateCodeChallenge;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
@@ -137,7 +137,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateRandomCodeVerifier.class);
 		exposeEnvString("code_verifier");
-		callAndStopOnFailure(CreateCodeChallenge.class);
+		callAndStopOnFailure(CreateS256CodeChallenge.class);
 		exposeEnvString("code_challenge");
 		exposeEnvString("code_challenge_method");
 		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class);

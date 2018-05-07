@@ -23,6 +23,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -31,13 +32,13 @@ import java.security.NoSuchAlgorithmException;
  * @author srmoore
  *
  */
-public class CreateCodeChallenge extends AbstractCondition{
+public class CreateS256CodeChallenge extends AbstractCondition{
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public CreateCodeChallenge(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CreateS256CodeChallenge(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -52,7 +53,7 @@ public class CreateCodeChallenge extends AbstractCondition{
 		}
 
 		try {
-			byte[] bytes = verifier.getBytes("US-ASCII");
+			byte[] bytes = verifier.getBytes(StandardCharsets.US_ASCII);
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
 			md.update(bytes, 0, bytes.length);
 			byte[] digest = md.digest();
@@ -64,8 +65,6 @@ public class CreateCodeChallenge extends AbstractCondition{
 
 		} catch (NoSuchAlgorithmException e) {
 			throw error("No such Algorithm Error",e);
-		} catch (UnsupportedEncodingException e) {
-			throw error("Unsupported Encoding while getting code_verifier bytes", e);
 		}
 
 		return env;
