@@ -358,7 +358,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			fireTestFinished();
 			stop();
 
-			return new ModelAndView("complete", ImmutableMap.of("test", this));
+			return redirectToLogDetailPage();
 		}
 	}
 

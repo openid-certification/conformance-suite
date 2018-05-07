@@ -63,6 +63,7 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "ob-client-test-mtls",
@@ -140,7 +141,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 
 	}
@@ -165,7 +166,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		} else if (path.equals("token")) {
 			return tokenEndpoint(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 	}
 

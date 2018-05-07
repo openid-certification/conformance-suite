@@ -24,6 +24,7 @@ var FAPI_UI = {
 		this.logTemplates.EXPORTED = _.template($("#logDetailTemplate_Exported").html());
 		this.logTemplates.BROWSER = _.template($("#logDetailTemplate_Browser").html());
 		this.logTemplates.HTTP = _.template($("#logDetailTemplate_Http").html());
+		this.logTemplates.FINAL_ERROR = _.template($('#logDetailTemplate_FinalError').html());
 	},
 	
 	loadLogListTemplates: function() {

@@ -152,7 +152,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		} else if (path.equals("open-banking/v1.1/accounts")) {
 			return accountsEndpoint(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 
 	}

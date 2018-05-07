@@ -16,7 +16,9 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,8 +49,10 @@ import org.springframework.web.util.UriUtils;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -382,6 +386,7 @@ public class TestRunner {
 		map.put("owner", test.getOwner());
 		map.put("created", test.getCreated().toString());
 		map.put("updated", test.getStatusUpdated().toString());
+		map.put("error", EventLog.ex(test.getFinalError()));
 
 		BrowserControl browser = test.getBrowser();
 		if (browser != null) {
@@ -404,6 +409,12 @@ public class TestRunner {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 			}
+			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				test.setFinalError(error);
+			}
+			
 		} catch (Exception e) {
 			logger.error("Something terrible happened when handling an error, I give up", e);
 		}

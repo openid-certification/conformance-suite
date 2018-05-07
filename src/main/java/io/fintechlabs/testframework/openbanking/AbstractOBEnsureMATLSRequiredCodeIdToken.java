@@ -120,7 +120,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return redirectToLogDetailPage();
 	}
 
 }

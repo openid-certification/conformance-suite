@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
@@ -57,6 +58,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
 	private Instant statusUpdated; // time stamp of when the status was last updated
+	private TestFailureException finalError; // final error from running the test
 
 	protected TestInfoService testInfo;
 
@@ -562,6 +564,20 @@ public abstract class AbstractTestModule implements TestModule {
 		return statusUpdated;
 	}
 
+	/**
+	 * @return the finalError
+	 */
+	public TestFailureException getFinalError() {
+		return finalError;
+	}
+
+	/**
+	 * @param finalError the finalError to set
+	 */
+	public void setFinalError(TestFailureException finalError) {
+		this.finalError = finalError;
+	}
+
 	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
 		eventLog.log(getName(), args(
 			"msg", "Incoming HTTP request to test instance " + getId(),
@@ -574,6 +590,10 @@ public abstract class AbstractTestModule implements TestModule {
 			"incoming_body_json", requestParts.get("body_json")));
 	}
 
+	protected RedirectView redirectToLogDetailPage() {
+		return new RedirectView("/log-detail.html?log=" + getId());
+	}
+	
 	/*
 	 * Convenience pass-through methods
 	 */

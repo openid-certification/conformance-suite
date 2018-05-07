@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
@@ -48,11 +49,13 @@ public class ValidateAccessTokenHeartClaims extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject claims = env.get("access_token_jwt.claims");
+		JsonElement el = env.findElement("access_token_jwt", "claims");
 		
-		if (claims == null) {
+		if (el == null || !el.isJsonObject()) {
 			throw error("Couldn't find access token JWT claims", args("access_token_jwt", env.get("access_token_jwt")));
 		}
+		
+		JsonObject claims = el.getAsJsonObject();
 		
 		List<String> required = ImmutableList.of("iss", "azp", "exp", "jti");
 		List<String> optional = ImmutableList.of("sub", "aud");

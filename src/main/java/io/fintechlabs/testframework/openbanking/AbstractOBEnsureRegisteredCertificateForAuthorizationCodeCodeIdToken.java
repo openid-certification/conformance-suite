@@ -60,7 +60,7 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return redirectToLogDetailPage();
 	}
 
 }
