@@ -42,7 +42,7 @@ public class EnsureNoRefreshToken extends AbstractCondition {
 	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "refresh_token"))) {
-			throw error("Found a refresh token",
+			throw error("Found a refresh token, but it is not allowed",
 				args("refresh_token", env.getString("token_endpoint_response", "refresh_token")));
 		} else {
 			logSuccess("Couldn't find refresh token");
