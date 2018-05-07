@@ -30,7 +30,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
+public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -38,15 +38,20 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CreateTokenEndpointRequestForClientCredentialsGrant cond;
+	private SetAccountScopeOnTokenEndpointRequest cond;
 
+	private JsonObject tokenEndpointRequest = new JsonObject();
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateTokenEndpointRequestForClientCredentialsGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetAccountScopeOnTokenEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		
+		env.put("token_endpoint_request_form_parameters", tokenEndpointRequest);
+		
 	}
 
 	/**
@@ -60,7 +65,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
-		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
+		assertThat(parameters.get("scope").getAsString()).isEqualTo("accounts");
 
 	}
 
