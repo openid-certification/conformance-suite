@@ -24,6 +24,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -39,6 +40,10 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private CreateTokenEndpointRequestForClientCredentialsGrant cond;
+	
+	private JsonObject clientWithScope;
+	
+	private JsonObject clientWithoutScope;
 
 	/**
 	 * @throws java.lang.Exception
@@ -47,14 +52,20 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	public void setUp() throws Exception {
 
 		cond = new CreateTokenEndpointRequestForClientCredentialsGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
+		
+		clientWithScope = new JsonParser().parse("{\"scope\": \"foo bar\"}").getAsJsonObject();
+		clientWithoutScope = new JsonParser().parse("{}").getAsJsonObject();
+		
 	}
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
-	public void testEvaluate() {
+	public void testEvaluate_withScope() {
 
+		env.put("client", clientWithScope);
+		
 		cond.evaluate(env);
 
 		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
@@ -62,6 +73,22 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
 
+		assertThat(parameters.has("scope")).isTrue();
+		assertThat(parameters.get("scope")).isEqualTo(clientWithScope.get("scope"));
 	}
 
+	@Test
+	public void testEvaluate_withoutScope() {
+
+		env.put("client", clientWithoutScope);
+		
+		cond.evaluate(env);
+
+		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
+
+		assertThat(parameters).isNotNull();
+		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
+		
+		assertThat(parameters.has("scope")).isFalse();
+	}
 }
