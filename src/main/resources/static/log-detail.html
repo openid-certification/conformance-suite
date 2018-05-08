@@ -24,6 +24,8 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
+
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
 	
 	<script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -331,11 +333,15 @@
             <div class="moreInfo collapse">
                 <dl class="dl-horizontal">
             <%
+                // regular rexpression for displaying JWTs
+                var jwtRe = /^([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
+
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
             %>
                     <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom"><%- key %></dt>
                     <dd class="wrapLongStrings">
+
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
             <% } else if (key == 'stacktrace') { %>
@@ -344,11 +350,17 @@
                         <li><%- v %></li>
                     <% }); %>
                 </ul>
-            <% } else if (_.isString(value)) { %>
-                <%- value %>
+            <% } else if (jwtRe.exec(value)) { // it's a JWT 
+                var jwt = jwtRe.exec(value);
+            %>
+                    <span class="jwtHeader"><%- jwt[1] %></span><b>.</b><span class="jwtPayload"><%- jwt[2] %></span><b>.</b><span class="jwtSignature"><%- jwt[3] %><%
+                if (jwt[4]) { %><b>.</b><span class="jweCypher"><%- jwt[5] %></span><b>.</b><span class="jweTag"><%- jwt[6] %></span><% } %>
+            <% } else if (_.isString(value) || _.isNumber(value)) { // it's a plain string %>
+                    <%- value %>
             <% } else { // by default run it through the json viewer %>
-                <%- JSON.stringify(value) %>
+                    <pre class="prettyprint lang-javascript"><%- JSON.stringify(value, null, 2) %></pre>
             <% } %>
+
                     </dd>
             <%
                 });
@@ -465,6 +477,9 @@
 									$(this).data('activated', true);
 								}
 							});
+							
+							// prettyprint any raw JSON values
+							PR.prettyPrint();
 						}
 					});
 
