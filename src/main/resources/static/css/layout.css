@@ -337,6 +337,11 @@ textarea {
 	border-bottom: 1px darkgrey solid;
 }
 
+/* pretty-printed JSON blocks */
+pre.prettyprint {
+	border: none !important;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px) {
 }
