@@ -24,14 +24,13 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
+public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -39,22 +38,19 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CreateTokenEndpointRequestForClientCredentialsGrant cond;
-	
-	private JsonObject clientWithScope;
-	
-	private JsonObject clientWithoutScope;
+	private SetAccountScopeOnTokenEndpointRequest cond;
 
+	private JsonObject tokenEndpointRequest = new JsonObject();
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateTokenEndpointRequestForClientCredentialsGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetAccountScopeOnTokenEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
 		
-		clientWithScope = new JsonParser().parse("{\"scope\": \"foo bar\"}").getAsJsonObject();
-		clientWithoutScope = new JsonParser().parse("{}").getAsJsonObject();
+		env.put("token_endpoint_request_form_parameters", tokenEndpointRequest);
 		
 	}
 
@@ -62,33 +58,15 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
-	public void testEvaluate_withScope() {
+	public void testEvaluate() {
 
-		env.put("client", clientWithScope);
-		
 		cond.evaluate(env);
 
 		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
-		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
+		assertThat(parameters.get("scope").getAsString()).isEqualTo("accounts");
 
-		assertThat(parameters.has("scope")).isTrue();
-		assertThat(parameters.get("scope")).isEqualTo(clientWithScope.get("scope"));
 	}
 
-	@Test
-	public void testEvaluate_withoutScope() {
-
-		env.put("client", clientWithoutScope);
-		
-		cond.evaluate(env);
-
-		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
-
-		assertThat(parameters).isNotNull();
-		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
-		
-		assertThat(parameters.has("scope")).isFalse();
-	}
 }
