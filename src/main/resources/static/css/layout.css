@@ -49,6 +49,10 @@ input[type=text], textarea {
 	word-break: break-all;
 }
 
+.wrapLongStrings pre {
+	white-space: pre-wrap;
+}
+
 /** index.html **/
 textarea {
 	width: 100%;
