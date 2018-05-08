@@ -24,6 +24,8 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
+
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
 	
 	<script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -350,10 +352,10 @@
                         <li><%- v %></li>
                     <% }); %>
                 </ul>
-            <% } else if (_.isString(value)) { %>
+            <% } else if (_.isString(value) || _.isNumber(value)) { // it's a plain string %>
                 <%- value %>
             <% } else { // by default run it through the json viewer %>
-                <%- JSON.stringify(value) %>
+                <pre class="prettyprint lang-javascript"><%- JSON.stringify(value, null, 2) %></pre>
             <% } %>
                     </dd>
             <%
@@ -484,6 +486,9 @@
 									$(this).data('activated', true);
 								}
 							});
+							
+							// clean up display for all the raw JSON values
+							PR.prettyPrint();
 						}
 					});
 
