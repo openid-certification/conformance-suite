@@ -21,6 +21,26 @@ import java.util.logging.Level;
  */
 public class SeleniumBrowserControl implements BrowserControl {
 
+	/*  EXAMPLE OF WHAT TO ADD TO CONFIG:
+	 "browserCommands": [
+        {
+            "task": "Initial Login",
+            "commands": [
+                ["text","id","j_username","user"],
+                ["text","id","j_password","password"],
+                ["click","name","submit"]
+            ]
+        },
+        {
+            "task": "Authorize Client",
+            "commands": [
+                ["click","id","remember-not"],
+                ["click","name","authorize"]
+            ]
+        }
+     ]
+	 */
+
 	private static Logger logger = LoggerFactory.getLogger(SeleniumBrowserControl.class);
 
 	private JsonObject config;
