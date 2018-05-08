@@ -64,7 +64,7 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
 /**
- * 
+ *
  * GET /runner/available: list of available tests
  * GET /runner/running: list of running tests
  * POST /runner: create test
@@ -73,7 +73,7 @@ import io.fintechlabs.testframework.testmodule.TestModule;
  * DELETE /runner/id: cancel test
  * GET /runner/browser/id: get front-channel external URLs
  * POST /runner/browser/id/visit: mark front-channel external URL as visited
- * 
+ *
  * @author jricher
  *
  */
@@ -118,7 +118,9 @@ public class TestRunner {
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
-		BrowserControl browser = new CollectingBrowserControl();
+		// TODO: If config has BrowserController commands (i.e. Selenium) use that, otherwise use CollectingBrowserControl
+		//BrowserControl browser = new CollectingBrowserControl();
+		BrowserControl browser = new SeleniumBrowserControl(config);
 
 		TestModule test = createTestModule(testName, id, browser);
 
@@ -415,7 +417,7 @@ public class TestRunner {
 				// ConditionError will get handled by the logging system, no need to display with stacktrace
 				test.setFinalError(error);
 			}
-			
+
 		} catch (Exception e) {
 			logger.error("Something terrible happened when handling an error, I give up", e);
 		}
