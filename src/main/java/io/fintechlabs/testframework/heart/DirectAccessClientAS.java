@@ -22,10 +22,13 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
@@ -42,19 +45,25 @@ import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointRespons
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.client.CreateJwksUri;
 import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ParseAccessTokenAsJwt;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenHeartClaims;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenSignature;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
@@ -70,31 +79,33 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
  *
  */
 @PublishTestModule(
-	testName = "heart-native-delegated-client",
-	displayName = "HEART AS: Native Delegated Client",
+	testName = "heart-direct-access-client",
+	displayName = "HEART AS: Direct Access Client",
 	profile = "HEART",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
+		"client.jwks",
 		"client.scope",
 		"tls.testHost",
 		"tls.testPort"
 	}
 )
-public class NativeDelegatedClientAS extends AbstractTestModule {
+public class DirectAccessClientAS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
+	public static Logger logger = LoggerFactory.getLogger(DirectAccessClientAS.class);
 
 	/**
 	 * 
 	 */
-	public NativeDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public DirectAccessClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
@@ -111,11 +122,6 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		call(DisallowTLS10.class, "HEART-OAuth2-6");
 		call(DisallowTLS11.class, "HEART-OAuth2-6");
 
-		callAndStopOnFailure(CreateRedirectUri.class);
-
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
-
 		// Get the server's configuration
 		call(GetDynamicServerConfiguration.class, "HEART-OAuth2-3.1.5");
 
@@ -130,12 +136,12 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(CheckRedirectUri.class);
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
+		
+		callAndStopOnFailure(CreateJwksUri.class);
+		exposeEnvString("jwks_uri");
 
 		exposeEnvString("client_id");
-
-		// Set up the resource endpoint configuration
-		//callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -149,71 +155,12 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-
-		// set up PKCE
-		callAndStopOnFailure(CreateRandomCodeVerifier.class, "HEART-OAuth2-2.1.2");
-		callAndStopOnFailure(CreateS256CodeChallenge.class, "HEART-OAuth2-2.1.2");
-		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class, "HEART-OAuth2-2.1.2");
-
-		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
-
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		browser.goToUrl(redirectTo);
-
-		setStatus(Status.WAITING);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		logIncomingHttpRequest(path, requestParts);
-
-		// dispatch based on the path
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
-		}
-
-	}
-
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
-
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		
-		// handle PKCE
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
+		// authenticate using a signed assertion
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -231,13 +178,36 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		
 		call(CheckForScopesInTokenResponse.class);
 
-		call(CheckForRefreshTokenValue.class);
+		callAndStopOnFailure(EnsureNoRefreshToken.class);
 
 		fireTestFinished();
 		stop();
+	}
 
-		return redirectToLogDetailPage();
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
+	 */
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		logIncomingHttpRequest(path, requestParts);
+
+		// dispatch based on the path
+		if (path.equals("jwks")) {
+			return handleJwks(requestParts);
+		} else {
+			throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
+		}
+
+	}
+
+	private Object handleJwks(JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+		JsonObject jwks = env.get("public_jwks");
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
 	/* (non-Javadoc)

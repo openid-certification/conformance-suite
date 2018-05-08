@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointR
 import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -53,6 +54,7 @@ public class OBEnsureRegisteredRedirectUriCodeIdTokenWithSecretPostAndMATLS exte
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
 
 		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 

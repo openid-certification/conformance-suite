@@ -34,7 +34,6 @@ import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndp
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
@@ -48,6 +47,7 @@ import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
@@ -142,9 +142,6 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		// Set up the resource endpoint configuration
-		//callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
@@ -238,11 +235,10 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		// authenticate using a signed assertion
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -260,7 +256,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		
 		call(CheckForScopesInTokenResponse.class);
 
-		call(CheckForRefreshTokenValue.class);
+		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
 
 		fireTestFinished();
 		stop();
