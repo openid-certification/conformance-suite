@@ -160,7 +160,9 @@
 					<h4 class="modal-title">Configuration</h4>
 				</div>
 				<div class="modal-body">
-					<textarea readonly="readonly" id="config"></textarea>
+				    <div class="wrapLongStrings">
+						<pre id="config"></pre>
+				    </div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -210,7 +212,7 @@
 						// wire up configuration button
 						$('.showConfigBtn', logRow).click(function(evt) {
 							evt.preventDefault();
-							$('#config').val(JSON.stringify(test.config, null, 4));
+							$('#config').html(_.escape(JSON.stringify(test.config, null, 4)));
 							$('#configModal').modal('show');
 						});
 					});

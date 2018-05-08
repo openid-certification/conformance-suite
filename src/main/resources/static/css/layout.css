@@ -49,6 +49,10 @@ input[type=text], textarea {
 	word-break: break-all;
 }
 
+.wrapLongStrings pre {
+	white-space: pre-wrap;
+}
+
 /** index.html **/
 textarea {
 	width: 100%;
@@ -336,6 +340,32 @@ textarea {
 	border-top: 1px darkgrey solid;
 	border-right: 1px darkgrey solid;
 	border-bottom: 1px darkgrey solid;
+}
+
+/* pretty-printed JSON blocks */
+pre.prettyprint {
+	border: none !important;
+}
+
+/* highlighted JWTs */
+.jwtHeader {
+	color: #fb015b;
+}
+
+.jwtPayload {
+	color: #d63aff;
+}
+
+.jwtSignature {
+	color: #00b9f1;
+}
+
+.jweCypher {
+	color: #f1a551;
+}
+
+.jweTag {
+	color: #38a321;
 }
 
 /* People on large monitors <= 3000 */
