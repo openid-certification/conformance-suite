@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -44,6 +45,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -159,6 +161,12 @@ public class TestDispatcher {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 			}
+			
+			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				test.setFinalError(error);
+			}
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {
 				// look for the user-facing annotation in the stack
@@ -174,7 +182,8 @@ public class TestDispatcher {
 					for (Method m : clz.getDeclaredMethods()) {
 						if (m.getName().equals(ste.getMethodName()) && m.isAnnotationPresent(UserFacing.class)) {
 							// if this is user-facing, return a user-facing view
-							return new ModelAndView("testError", ImmutableMap.of("error", error));
+							//return new ModelAndView("testError", ImmutableMap.of("error", error));
+							return new RedirectView("/log-detail.html?log=" + error.getTestId());
 						}
 
 					}

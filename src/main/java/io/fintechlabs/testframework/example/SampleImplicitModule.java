@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
@@ -148,7 +149,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
 	 */
 	@Override
-	public ModelAndView handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		logIncomingHttpRequest(path, requestParts);
 
 		// dispatch based on the path
@@ -158,7 +159,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
 			return handleImplicitSubmission(requestParts);
 		} else {
-			return new ModelAndView("testError");
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 
 	}
@@ -172,8 +173,10 @@ public class SampleImplicitModule extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ModelAndView("implicitCallback",
-			ImmutableMap.of("test", this,
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl")));
+			ImmutableMap.of(
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 	}
 
 	/**
@@ -185,7 +188,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 * @param m
 	 * @return
 	 */
-	private ModelAndView handleImplicitSubmission(JsonObject requestParts) {
+	private Object handleImplicitSubmission(JsonObject requestParts) {
 
 		// process the callback
 		setStatus(Status.RUNNING);
@@ -225,7 +228,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 
-		return new ModelAndView("complete", ImmutableMap.of("test", this));
+		return redirectToLogDetailPage();
 
 	}
 

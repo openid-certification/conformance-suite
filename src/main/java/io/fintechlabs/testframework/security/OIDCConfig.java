@@ -128,7 +128,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public HybridIssuerService issuerService() {
 		HybridIssuerService his = new HybridIssuerService();
-		his.setLoginPageUrl(baseURL + "/login");
+		his.setLoginPageUrl(baseURL + "/login.html");
 		return his;
 	}
 
@@ -182,7 +182,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login", "/css/**", "/js/**", "/images/**")
+					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**")
 					.permitAll()
 				.anyRequest()
 					.authenticated()
@@ -197,7 +197,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				//.authenticationEntryPoint(authenticationEntryPoint())
 				.and()
 				.logout()
-				.logoutSuccessUrl("/login")
+				.logoutSuccessUrl("/login.html")
 				.permitAll();
 
 		if(devmode) {
