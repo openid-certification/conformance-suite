@@ -342,6 +342,27 @@ pre.prettyprint {
 	border: none !important;
 }
 
+/* highlighted JWTs */
+.jwtHeader {
+	color: #fb015b;
+}
+
+.jwtPayload {
+	color: #d63aff;
+}
+
+.jwtSignature {
+	color: #00b9f1;
+}
+
+.jweCypher {
+	color: #f1a551;
+}
+
+.jweTag {
+	color: #38a321;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px) {
 }

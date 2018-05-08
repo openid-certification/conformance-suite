@@ -333,11 +333,15 @@
             <div class="moreInfo collapse">
                 <dl class="dl-horizontal">
             <%
+                // regular rexpression for displaying JWTs
+                var jwtRe = /^([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
+
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
             %>
                     <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom"><%- key %></dt>
                     <dd class="wrapLongStrings">
+
             <% if (key == 'img') { %>
                 <img src="<%- value %>">
             <% } else if (key == 'stacktrace') { %>
@@ -346,11 +350,17 @@
                         <li><%- v %></li>
                     <% }); %>
                 </ul>
+            <% } else if (jwtRe.exec(value)) { // it's a JWT 
+                var jwt = jwtRe.exec(value);
+            %>
+                    <span class="jwtHeader"><%- jwt[1] %></span><b>.</b><span class="jwtPayload"><%- jwt[2] %></span><b>.</b><span class="jwtSignature"><%- jwt[3] %><%
+                if (jwt[4]) { %><b>.</b><span class="jweCypher"><%- jwt[5] %></span><b>.</b><span class="jweTag"><%- jwt[6] %></span><% } %>
             <% } else if (_.isString(value) || _.isNumber(value)) { // it's a plain string %>
-                <%- value %>
+                    <%- value %>
             <% } else { // by default run it through the json viewer %>
-                <pre class="prettyprint lang-javascript"><%- JSON.stringify(value, null, 2) %></pre>
+                    <pre class="prettyprint lang-javascript"><%- JSON.stringify(value, null, 2) %></pre>
             <% } %>
+
                     </dd>
             <%
                 });
