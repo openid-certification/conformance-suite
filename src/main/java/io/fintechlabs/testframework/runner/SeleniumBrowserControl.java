@@ -57,11 +57,11 @@ public class SeleniumBrowserControl implements BrowserControl {
 		taskExecutor = new SimpleAsyncTaskExecutor();
 	}
 
-	private class webRunner implements Runnable {
+	private class WebRunner implements Runnable {
 		private String url;
 		private ResponseCodeHtmlUnitDriver driver;
 
-		public webRunner(String url, ResponseCodeHtmlUnitDriver driver){
+		public WebRunner(String url, ResponseCodeHtmlUnitDriver driver){
 			this.url = url;
 			this.driver = driver;
 		}
@@ -126,7 +126,7 @@ public class SeleniumBrowserControl implements BrowserControl {
 
 	@Override
 	public void goToUrl(String url) {
-		webRunner wr = new webRunner(url, driver);
+		WebRunner wr = new WebRunner(url, driver);
 		taskExecutor.execute(wr);
 	}
 
