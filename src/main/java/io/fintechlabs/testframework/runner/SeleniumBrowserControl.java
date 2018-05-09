@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.runner;
 import com.gargoylesoftware.htmlunit.Page;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.Async;
 
 import java.util.logging.Level;
 
@@ -68,7 +66,6 @@ public class SeleniumBrowserControl implements BrowserControl {
 			this.driver = driver;
 		}
 
-		// TODO: Make this take a series of browser commands, as well as better logging messages.
 		public void run() {
 			// FIXME: We shouldn't be 'sleeping' here. Some better scheduling/execution should be used.
 			try {
@@ -96,7 +93,8 @@ public class SeleniumBrowserControl implements BrowserControl {
 			logger.info("Completed Browser Commands");
 		}
 
-		// TODO fill this out
+		// TODO: Add in other 'By' statements like XPATH
+		// TODO: make this more like an actual parser? Maybe?
 		public void doCommand(JsonArray commandSet){
 			// general format for command is [command_string, element_id_type, element_id, other_args]
 
