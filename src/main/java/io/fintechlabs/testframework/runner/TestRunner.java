@@ -118,9 +118,12 @@ public class TestRunner {
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
-		// TODO: If config has BrowserController commands (i.e. Selenium) use that, otherwise use CollectingBrowserControl
-		//BrowserControl browser = new CollectingBrowserControl();
-		BrowserControl browser = new SeleniumBrowserControl(config);
+		BrowserControl browser;
+		if (config.has("browserCommands")) {
+			browser = new SeleniumBrowserControl(config);
+		} else {
+			browser = new CollectingBrowserControl();
+		}
 
 		TestModule test = createTestModule(testName, id, browser);
 
