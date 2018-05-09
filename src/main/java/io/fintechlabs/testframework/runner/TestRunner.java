@@ -120,7 +120,7 @@ public class TestRunner {
 
 		BrowserControl browser;
 		if (config.has("browserCommands")) {
-			browser = new SeleniumBrowserControl(config);
+			browser = new SeleniumBrowserControl(config, id);
 		} else {
 			browser = new CollectingBrowserControl();
 		}
