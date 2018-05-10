@@ -182,7 +182,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**")
+					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/test/**")
 					.permitAll()
 				.anyRequest()
 					.authenticated()
