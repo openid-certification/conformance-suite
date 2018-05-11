@@ -26,7 +26,9 @@ import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -120,8 +122,92 @@ public class LogApi {
 
 	}
 
-	@GetMapping(value = "/log/{id}", produces = "application/x-tar")
-	public ResponseEntity<StreamingResponseBody> getTestInfo(@PathVariable("id") String id, @RequestParam(name = "dl", defaultValue = "false") boolean dl) {
+	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<DBObject>> getLogResults(@PathVariable("id") String id) {
+		List<DBObject> results = getTestResults(id);
+		
+		return ResponseEntity.ok().body(results);
+	}
+	
+	@GetMapping(value = "/log/export/{id}", produces = "application/x-gtar")
+	public ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id) {
+		List<DBObject> results = getTestResults(id);
+
+		DBObject testInfo = null;
+		if (authenticationFacade.isAdmin()) {
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
+		} else {
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			if (owner != null) {
+				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("owner", owner).get());
+			}
+		}
+
+		if (testInfo == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		testInfo.put("results", results);
+		
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".json\"");
+	
+		final DBObject _testInfo = testInfo; 
+		
+		StreamingResponseBody responseBody = new StreamingResponseBody() {
+
+			@Override
+			public void writeTo(OutputStream out) throws IOException {
+
+				try {
+					BZip2CompressorOutputStream bZip2CompressorOutputStream = new BZip2CompressorOutputStream(out);
+					
+					TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bZip2CompressorOutputStream);
+					
+					TarArchiveEntry testLog = new TarArchiveEntry("test-log-" + id + ".json");
+
+					Signature signature = Signature.getInstance("SHA1withRSA");
+					signature.initSign(priv);
+					
+					SignatureOutputStream signatureOutputStream = new SignatureOutputStream(tarArchiveOutputStream, signature);
+					
+					String json = gson.toJson(_testInfo);
+					
+					testLog.setSize(json.getBytes().length);
+					tarArchiveOutputStream.putArchiveEntry(testLog);
+					
+					signatureOutputStream.write(json.getBytes());
+
+					signatureOutputStream.flush();
+					signatureOutputStream.close();
+					
+					tarArchiveOutputStream.closeArchiveEntry();
+					
+					TarArchiveEntry signatureFile = new TarArchiveEntry("test-log-" + id + ".sig");
+					
+					String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
+					signatureFile.setSize(encodedSignature.getBytes().length);
+					
+					tarArchiveOutputStream.putArchiveEntry(signatureFile);
+					
+					tarArchiveOutputStream.write(encodedSignature.getBytes());
+					
+					tarArchiveOutputStream.closeArchiveEntry();
+					
+					tarArchiveOutputStream.close();
+					
+					out.close();
+				} catch (Exception ex) {
+					throw new IOException(ex);
+				}
+			}
+		};
+
+		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+	private List<DBObject> getTestResults(String id) {
 		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId", id);
 		if (!authenticationFacade.isAdmin()) {
 			queryBuilder = queryBuilder.add("testOwner", authenticationFacade.getPrincipal());
@@ -132,68 +218,7 @@ public class LogApi {
 				.add("time", 1)
 				.get())
 			.toArray();
-
-		HttpHeaders headers = new HttpHeaders();
-
-		if (dl) {
-			// TODO: come up with a better filename
-			headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".json\"");
-		
-			StreamingResponseBody responseBody = new StreamingResponseBody() {
-
-				@Override
-				public void writeTo(OutputStream out) throws IOException {
-
-					try {
-						BZip2CompressorOutputStream bZip2CompressorOutputStream = new BZip2CompressorOutputStream(out);
-						
-						TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bZip2CompressorOutputStream);
-						
-						TarArchiveEntry testLog = new TarArchiveEntry("test-log-" + id + ".json");
-	
-						Signature signature = Signature.getInstance("SHA1withRSA");
-						signature.initSign(priv);
-						
-						SignatureOutputStream signatureOutputStream = new SignatureOutputStream(tarArchiveOutputStream, signature);
-						
-						String json = gson.toJson(results);
-						
-						testLog.setSize(json.getBytes().length);
-						tarArchiveOutputStream.putArchiveEntry(testLog);
-						
-						signatureOutputStream.write(json.getBytes());
-
-						signatureOutputStream.flush();
-						signatureOutputStream.close();
-						
-						tarArchiveOutputStream.closeArchiveEntry();
-						
-						TarArchiveEntry signatureFile = new TarArchiveEntry("test-log-" + id + ".sig");
-						
-						String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
-						signatureFile.setSize(encodedSignature.getBytes().length);
-						
-						tarArchiveOutputStream.putArchiveEntry(signatureFile);
-						
-						tarArchiveOutputStream.write(encodedSignature.getBytes());
-						
-						tarArchiveOutputStream.closeArchiveEntry();
-						
-						tarArchiveOutputStream.close();
-						
-						out.close();
-					} catch (Exception ex) {
-						throw new IOException(ex);
-					}
-				}
-			};
-
-			return ResponseEntity.ok().headers(headers).body(responseBody);
-		}
-
-		//return ResponseEntity.ok().headers(headers).body(results);
-		return null;
-
+		return results;
 	}
 
 	private static class SignatureOutputStream extends OutputStream {
