@@ -16,16 +16,15 @@ package io.fintechlabs.testframework.logging;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +32,8 @@ import java.util.Map;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.bouncycastle.crypto.signers.RSADigestSigner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.google.common.collect.ImmutableMap;
@@ -62,6 +60,9 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
  */
 @Controller
 public class LogApi {
+
+	@Value("${fintechlabs.base_url:http://localhost:8080}")
+	private String baseUrl;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -151,9 +152,15 @@ public class LogApi {
 		
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".json\"");
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".tar.bz2\"");
 	
-		final DBObject _testInfo = testInfo; 
+		final Map<String, Object> export = new HashMap<>();
+		
+		export.put("exportedAt", new Date());
+		export.put("exportedFrom", baseUrl);
+		export.put("exportedBy", authenticationFacade.getPrincipal());
+		export.put("testInfo", testInfo);
+		export.put("results", results);
 		
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
@@ -161,43 +168,41 @@ public class LogApi {
 			public void writeTo(OutputStream out) throws IOException {
 
 				try {
-					BZip2CompressorOutputStream bZip2CompressorOutputStream = new BZip2CompressorOutputStream(out);
+					BZip2CompressorOutputStream compressorOutputStream = new BZip2CompressorOutputStream(out);
 					
-					TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bZip2CompressorOutputStream);
+					TarArchiveOutputStream archiveOutputStream = new TarArchiveOutputStream(compressorOutputStream);
 					
 					TarArchiveEntry testLog = new TarArchiveEntry("test-log-" + id + ".json");
 
 					Signature signature = Signature.getInstance("SHA1withRSA");
 					signature.initSign(priv);
 					
-					SignatureOutputStream signatureOutputStream = new SignatureOutputStream(tarArchiveOutputStream, signature);
+					SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
 					
-					String json = gson.toJson(_testInfo);
+					String json = gson.toJson(export);
 					
 					testLog.setSize(json.getBytes().length);
-					tarArchiveOutputStream.putArchiveEntry(testLog);
+					archiveOutputStream.putArchiveEntry(testLog);
 					
 					signatureOutputStream.write(json.getBytes());
 
 					signatureOutputStream.flush();
 					signatureOutputStream.close();
 					
-					tarArchiveOutputStream.closeArchiveEntry();
+					archiveOutputStream.closeArchiveEntry();
 					
 					TarArchiveEntry signatureFile = new TarArchiveEntry("test-log-" + id + ".sig");
 					
 					String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
 					signatureFile.setSize(encodedSignature.getBytes().length);
 					
-					tarArchiveOutputStream.putArchiveEntry(signatureFile);
+					archiveOutputStream.putArchiveEntry(signatureFile);
 					
-					tarArchiveOutputStream.write(encodedSignature.getBytes());
+					archiveOutputStream.write(encodedSignature.getBytes());
 					
-					tarArchiveOutputStream.closeArchiveEntry();
+					archiveOutputStream.closeArchiveEntry();
 					
-					tarArchiveOutputStream.close();
-					
-					out.close();
+					archiveOutputStream.close();
 				} catch (Exception ex) {
 					throw new IOException(ex);
 				}
