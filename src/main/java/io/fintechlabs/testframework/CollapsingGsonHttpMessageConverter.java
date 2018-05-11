@@ -93,6 +93,9 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 							if (key.startsWith("__wrapped_key_element_")) {
 								DBObject wrapped = (DBObject) dbo.get(key);
 								converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
+							} else if (key.equals("_class")) {
+								// skip all class elements
+								
 							} else {
 								converted.put(key, convertStructureToField(dbo.get(key)));
 							}
