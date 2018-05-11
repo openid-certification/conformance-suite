@@ -62,7 +62,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 	 * 
 	 * @return
 	 */
-	private Gson getDbObjectCollapsingGson() {
+	public static Gson getDbObjectCollapsingGson() {
 		return new GsonBuilder()
 			.registerTypeHierarchyAdapter(DBObject.class, new JsonSerializer<DBObject>() {
 
