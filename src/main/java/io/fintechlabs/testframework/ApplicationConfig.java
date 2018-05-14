@@ -17,6 +17,7 @@ package io.fintechlabs.testframework;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ import io.fintechlabs.testframework.logging.GsonObjectToBsonDocumentConverter;
 import io.fintechlabs.testframework.logging.GsonPrimitiveToBsonValueConverter;
 import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
+import io.fintechlabs.testframework.security.KeyManager;
 
 /**
  * @author jricher
@@ -61,4 +63,10 @@ public class ApplicationConfig {
 			new GsonPrimitiveToBsonValueConverter(),
 			new GsonObjectToBsonDocumentConverter()));
 	}
+	
+	@Bean
+	public KeyManager keyManager() {
+		return new KeyManager();
+	}
+	
 }
