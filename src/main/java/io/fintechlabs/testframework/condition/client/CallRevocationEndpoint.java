@@ -39,7 +39,6 @@ public class CallRevocationEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "server", "revocation_endpoint_request_form_parameters" })
-	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 		if (env.getString("server", "revocation_endpoint") == null) {
 			throw error("Couldn't find revocation endpoint");

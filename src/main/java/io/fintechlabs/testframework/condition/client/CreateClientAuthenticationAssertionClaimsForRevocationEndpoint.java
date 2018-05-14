@@ -51,8 +51,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint exte
 
 		// TODO:  We should be using the "revocation_endpoint" as audience, but for compatiability reasons,
 		//	we'll be using just the issuer
-		//String audience = env.getString("server", "revocation_endpoint");
-		String audience = issuer;
+		String audience = env.getString("server", "issuer");
 
 		if (Strings.isNullOrEmpty(issuer) || Strings.isNullOrEmpty(audience)) {
 			throw error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));
