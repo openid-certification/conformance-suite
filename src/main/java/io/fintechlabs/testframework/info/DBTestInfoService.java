@@ -22,6 +22,7 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -50,6 +51,9 @@ public class DBTestInfoService implements TestInfoService {
 	public static final String COLLECTION = "TEST_INFO";
 
 	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
+
+	@Value("${fintechlabs.version}")
+	private String version;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -95,7 +99,8 @@ public class DBTestInfoService implements TestInfoService {
 			.add("started", started.toString())
 			.add("config", config)
 			.add("alias", alias)
-			.add("owner", owner);
+			.add("owner", owner)
+			.add("version", version);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
