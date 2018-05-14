@@ -80,5 +80,12 @@ public class KeyManager {
 			return null;
 		}
 	}
+
+	/**
+	 * Get only the public keys in this key set.
+	 */
+	public JWKSet getPublicKeys() {
+		return jwkSet.toPublicJWKSet();
+	}
 	
 }
