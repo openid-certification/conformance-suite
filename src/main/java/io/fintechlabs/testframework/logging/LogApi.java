@@ -132,8 +132,6 @@ public class LogApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		testInfo.put("results", results);
-		
 		HttpHeaders headers = new HttpHeaders();
 
 		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".tar.bz2\"");
