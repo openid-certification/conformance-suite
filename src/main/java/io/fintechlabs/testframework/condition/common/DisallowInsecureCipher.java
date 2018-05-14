@@ -14,10 +14,20 @@
 
 package io.fintechlabs.testframework.condition.common;
 
+import static io.fintechlabs.testframework.condition.common.ProxyUtil.setupSocket;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -26,7 +36,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.Certificate;
 import org.bouncycastle.crypto.tls.CertificateRequest;
@@ -42,17 +51,6 @@ import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsCredentials;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Ints;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
 
 public class DisallowInsecureCipher extends AbstractCondition {
 
@@ -115,7 +113,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 		}
 
 		try {
-			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
+			Socket socket = setupSocket(tlsTestHost, tlsTestPort);
 
 			try {
 
