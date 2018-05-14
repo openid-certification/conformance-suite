@@ -16,13 +16,8 @@ package io.fintechlabs.testframework.logging;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,6 +59,9 @@ public class LogApi {
 
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
 	private String baseUrl;
+	
+	@Value("${fintechlabs.version}")
+	private String version;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -145,6 +143,7 @@ public class LogApi {
 		export.put("exportedAt", new Date());
 		export.put("exportedFrom", baseUrl);
 		export.put("exportedBy", authenticationFacade.getPrincipal());
+		export.put("exportedVersion", version);
 		export.put("testInfo", testInfo);
 		export.put("results", results);
 		
