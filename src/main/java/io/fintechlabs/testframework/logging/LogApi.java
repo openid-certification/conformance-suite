@@ -53,6 +53,7 @@ import com.mongodb.DBObject;
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.info.DBTestInfoService;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.security.KeyManager;
 
 /**
  * @author jricher
@@ -70,25 +71,10 @@ public class LogApi {
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
+	@Autowired
+	private KeyManager keyManager;
+	
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
-	
-	{
-		KeyPairGenerator generator = null;
-		try {
-			generator = KeyPairGenerator.getInstance("RSA");
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        generator.initialize(2048);
-        KeyPair kp = generator.generateKeyPair();
-
-        pub = (RSAPublicKey) kp.getPublic();
-        priv = (RSAPrivateKey) kp.getPrivate();
-	}
-	
-	private RSAPublicKey pub;
-	private RSAPrivateKey priv;
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getAllTests() {
@@ -175,7 +161,7 @@ public class LogApi {
 					TarArchiveEntry testLog = new TarArchiveEntry("test-log-" + id + ".json");
 
 					Signature signature = Signature.getInstance("SHA1withRSA");
-					signature.initSign(priv);
+					signature.initSign(keyManager.getSigningPrivateKey());
 					
 					SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
 					
