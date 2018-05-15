@@ -45,7 +45,6 @@ public class ExtractExpiresInFromTokenEndpointResponse extends AbstractCondition
 		
 		JsonElement expiresInValue = tokenEndpoint.get("expires_in");
 		if (expiresInValue == null) {
-			tokenEndpoint.addProperty("result",ConditionResult.REVIEW.toString());
 			log("expires_in: UNDEFINED.", tokenEndpoint);
 			return env;
 		}
