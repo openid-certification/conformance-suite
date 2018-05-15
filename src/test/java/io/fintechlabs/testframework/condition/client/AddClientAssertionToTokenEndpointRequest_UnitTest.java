@@ -44,7 +44,7 @@ public class AddClientAssertionToTokenEndpointRequest_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(io.fintechlabs.testframework.testmodule.Environment).
+	 * Test method for {@link AddClientAssertionToTokenEndpointRequest#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate() {
@@ -62,7 +62,7 @@ public class AddClientAssertionToTokenEndpointRequest_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(io.fintechlabs.testframework.testmodule.Environment).
+	 * Test method for {@link AddClientAssertionToTokenEndpointRequest#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingForm() {
