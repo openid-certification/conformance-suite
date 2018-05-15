@@ -40,7 +40,7 @@ public class ExtractExpiresInFromTokenEndpointResponse extends AbstractCondition
 		
 		JsonObject tokenEndpoint = env.get("token_endpoint_response");
 		if (tokenEndpoint == null) {
-			return error("Couldn't find token_endpoint for expires_in analysis.");
+			throw error("Couldn't find token_endpoint for expires_in analysis.");
 		}
 		
 		JsonElement expiresInValue = tokenEndpoint.get("expires_in");

@@ -40,12 +40,12 @@ public class ValidateExpiresIn extends AbstractCondition {
 			JsonPrimitive jp = je.getAsJsonPrimitive();
 			if (!jp.isNumber()) {
 				logFailure(expiresIn);
-				return error("expires_in, is not a Number!");
+				throw error("expires_in, is not a Number!");
 			}
 			
 		} catch (IllegalStateException ex) {
 			logFailure(expiresIn);
-			return error("expires_in, is not a primative!");
+			throw error("expires_in, is not a primative!");
 		}
 		
 		logSuccess("expires_in, passes all validation",expiresIn);
