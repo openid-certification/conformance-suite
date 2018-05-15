@@ -22,16 +22,9 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
-<<<<<<< HEAD
-<<<<<<< HEAD
-import io.fintechlabs.testframework.condition.client.ExtractStateHash;
+import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
-=======
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
->>>>>>> Renaming of ExtractStateHash to be ExtractSHash. In keeping with ValidateSHash.
-=======
-import io.fintechlabs.testframework.condition.client.ExtractSHash;
->>>>>>> Refactoring ValidateStateHash to accommodate c_hash, at_hash and s_hash.
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;

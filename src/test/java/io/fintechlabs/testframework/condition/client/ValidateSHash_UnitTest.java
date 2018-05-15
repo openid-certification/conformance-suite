@@ -74,9 +74,6 @@ public class ValidateSHash_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("state_hash", "s_hash");
-		verify(env, atLeastOnce()).getString("state");
-		verify(env, atLeastOnce()).getString("state_hash", "alg");
 	}
 
 	public void testEvaluate_specexample_noError() {

@@ -11,10 +11,10 @@ import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+
+import com.google.common.base.Strings;
 
 public abstract class ValidateHash extends AbstractCondition {
 	
@@ -43,9 +43,25 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Could not find " + HashName + " field.");
 		}
 
-		String alg = algElement.getAsString();
-		String hash = hashElement.getAsString();
+		
+		String alg = null;
+		String hash = null; 
+		
+		if (algElement.isJsonPrimitive()) {
+			alg = algElement.getAsString();
+		}
+		
+		if (hashElement.isJsonPrimitive()) {
+			hash = hashElement.getAsString();
+		}
 
+		if (Strings.isNullOrEmpty(alg)) {
+			throw error("Alg is null or empty. Invalid");
+		}
+		
+		if (Strings.isNullOrEmpty(hash)) {
+			throw error(HashName + " element is null or empty. Invalid");
+		}
 		
 		String baseString = getBaseStringBasedOnType(env);
 
