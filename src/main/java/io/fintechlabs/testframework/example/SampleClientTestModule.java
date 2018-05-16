@@ -28,6 +28,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.as.AddUserinfoUrlToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
@@ -94,6 +95,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 		env.put("config", config);
 
 		callAndStopOnFailure(GenerateServerConfiguration.class);
+		callAndStopOnFailure(AddUserinfoUrlToServerConfiguration.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
