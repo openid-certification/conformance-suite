@@ -408,6 +408,7 @@ public class TestRunner {
 			if (test != null) {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
+				eventLog.log(test.getId(), "TEST-RUNNER", null, EventLog.ex(error));
 			}
 			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
