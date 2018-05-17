@@ -45,7 +45,7 @@ public class CreateIntrospectionResponse extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = {"access_token"}, required = {"introspection_request", "resource"})
+	@PreEnvironment(strings = {"access_token", "client_id"}, required = {"introspection_request", "resource"})
 	@PostEnvironment(required = "introspection_response")
 	public Environment evaluate(Environment env) {
 
