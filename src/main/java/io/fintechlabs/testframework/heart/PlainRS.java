@@ -148,10 +148,9 @@ public class PlainRS extends AbstractTestModule {
 		setStatus(Status.WAITING);
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		setStatus(Status.RUNNING);
-		
-		// TODO: check the response
 
-		setStatus(Status.WAITING);
+		fireTestSuccess();
+		setStatus(Status.FINISHED);
 	}
 
 	/* (non-Javadoc)
