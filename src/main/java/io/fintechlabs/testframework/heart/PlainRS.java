@@ -31,11 +31,15 @@ import io.fintechlabs.testframework.condition.as.AddIntrospectionUrlToServerConf
 import io.fintechlabs.testframework.condition.as.AddRevocationUrlToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenFromASToClient;
 import io.fintechlabs.testframework.condition.as.CreateIntrospectionResponse;
+import io.fintechlabs.testframework.condition.as.EnsureResourceAssertionTypeIsJwt;
+import io.fintechlabs.testframework.condition.as.ExtractAssertionFromIntrospectionRequest;
 import io.fintechlabs.testframework.condition.as.ExtractJWKsFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.as.GenerateServerConfiguration;
 import io.fintechlabs.testframework.condition.as.GetStaticResourceConfiguration;
 import io.fintechlabs.testframework.condition.as.LoadJWKs;
+import io.fintechlabs.testframework.condition.as.ValidateResourceAssertionClaims;
+import io.fintechlabs.testframework.condition.as.ValidateResourceAssertionSignature;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
@@ -179,6 +183,14 @@ public class PlainRS extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		env.put("introspection_request", requestParts);
+		
+		callAndStopOnFailure(ExtractAssertionFromIntrospectionRequest.class);
+		
+		callAndStopOnFailure(EnsureResourceAssertionTypeIsJwt.class);
+		
+		callAndStopOnFailure(ValidateResourceAssertionClaims.class);
+		
+		callAndStopOnFailure(ValidateResourceAssertionSignature.class);
 
 		callAndStopOnFailure(CreateIntrospectionResponse.class);
 
