@@ -14,8 +14,12 @@
 
 package io.fintechlabs.testframework.condition.as;
 
-import com.google.common.base.Strings;
+import java.text.ParseException;
+
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
@@ -27,14 +31,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateServerConfiguration extends AbstractCondition {
+public class ExtractJWKsFromResourceConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public GenerateServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractJWKsFromResourceConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -42,37 +46,40 @@ public class GenerateServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "base_url")
-	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
+	@PreEnvironment(required = "resource")
+	@PostEnvironment(required = "resource_jwks")
 	public Environment evaluate(Environment env) {
 
-		String baseUrl = env.getString("base_url");
-
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw error("Couldn't find a base URL");
+		if (!env.containsObj("resource")) {
+			throw error("Couldn't find resource configuration");
 		}
 
-		// set off the URLs below with a slash, if needed
-		if (!baseUrl.endsWith("/")) {
-			baseUrl = baseUrl + "/";
+		// bump the client's internal JWK up to the root
+		JsonElement jwks = env.findElement("resource", "jwks");
+
+		if (jwks == null) {
+			throw error("Couldn't find JWKs in resource configuration");
+		} else if (!(jwks instanceof JsonObject)) {
+			throw error("Invalid JWKs in resource configuration - JSON decode failed");
 		}
 
-		// create a base server configuration object based on the base URL
-		JsonObject server = new JsonObject();
+		try {
+			JWKSet parsed = JWKSet.parse(jwks.toString());
+			JWKSet pub = parsed.toPublicJWKSet();
+			
+			JsonObject pubObj = (new JsonParser().parse(pub.toString())).getAsJsonObject();
+			
+			logSuccess("Extracted resource JWK", args("resource_jwks", jwks, "public_resource_jwks", pubObj));
 
-		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrl + "authorize");
-		server.addProperty("token_endpoint", baseUrl + "token");
-		server.addProperty("jwks_uri", baseUrl + "jwks");
+			env.put("resource_jwks", jwks.getAsJsonObject());
+			env.put("resource_public_jwks", pubObj.getAsJsonObject());
 
-		// add this as the server configuration
-		env.put("server", server);
+			return env;
 
-		env.putString("issuer", baseUrl);
-		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
-
-		return env;
-
+			
+		} catch (ParseException e) {
+			throw error("Invalid JWKs in resource configuration, JWKS parsing failed", e, args("resource_jwks", jwks));
+		}
 	}
 
 }

@@ -14,7 +14,6 @@
 
 package io.fintechlabs.testframework.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
@@ -27,14 +26,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateServerConfiguration extends AbstractCondition {
+public class CopyAccessTokenFromASToClient extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
-	 * @param optional
+	 * @param conditionResultOnFailure
+	 * @param requirements
 	 */
-	public GenerateServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CopyAccessTokenFromASToClient(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -42,37 +42,25 @@ public class GenerateServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "base_url")
-	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
+	@PreEnvironment(strings = { "access_token", "token_type" })
+	@PostEnvironment(required = "access_token")
 	public Environment evaluate(Environment env) {
 
-		String baseUrl = env.getString("base_url");
+		String accessTokenString = env.getString("access_token");
+		String tokenType = env.getString("token_type");
+		
+		JsonObject o = new JsonObject();
+		o.addProperty("value", accessTokenString);
+		o.addProperty("type", tokenType);
 
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw error("Couldn't find a base URL");
-		}
+		env.put("access_token", o);
 
-		// set off the URLs below with a slash, if needed
-		if (!baseUrl.endsWith("/")) {
-			baseUrl = baseUrl + "/";
-		}
-
-		// create a base server configuration object based on the base URL
-		JsonObject server = new JsonObject();
-
-		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrl + "authorize");
-		server.addProperty("token_endpoint", baseUrl + "token");
-		server.addProperty("jwks_uri", baseUrl + "jwks");
-
-		// add this as the server configuration
-		env.put("server", server);
-
-		env.putString("issuer", baseUrl);
-		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
+		logSuccess("Copied the access token", o);
 
 		return env;
 
+		
+		
 	}
 
 }

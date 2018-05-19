@@ -14,8 +14,13 @@
 
 package io.fintechlabs.testframework.condition.as;
 
+import java.text.ParseException;
+
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
@@ -27,14 +32,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class GenerateServerConfiguration extends AbstractCondition {
+public class ExtractAssertionFromIntrospectionRequest extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
-	 * @param optional
+	 * @param conditionResultOnFailure
+	 * @param requirements
 	 */
-	public GenerateServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractAssertionFromIntrospectionRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -42,37 +48,38 @@ public class GenerateServerConfiguration extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "base_url")
-	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
+	@PreEnvironment(required = "introspection_request")
+	@PostEnvironment(required = "resource_assertion")
 	public Environment evaluate(Environment env) {
 
-		String baseUrl = env.getString("base_url");
-
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw error("Couldn't find a base URL");
+		String assertion = env.getString("introspection_request", "params.client_assertion");
+		String assertionType = env.getString("introspection_request", "params.client_assertion_type");
+		
+		if (Strings.isNullOrEmpty(assertion) || Strings.isNullOrEmpty(assertionType)) {
+			throw error("Couldn't find assertion or assertion type in request");
 		}
-
-		// set off the URLs below with a slash, if needed
-		if (!baseUrl.endsWith("/")) {
-			baseUrl = baseUrl + "/";
+		
+		try {
+			JWT parsed = JWTParser.parse(assertion);
+			
+			JsonParser parser = new JsonParser();
+			
+			JsonObject o = new JsonObject();
+			
+			o.addProperty("assertion", assertion);
+			o.addProperty("assertion_type", assertionType);
+			o.add("assertion_header", parser.parse(parsed.getHeader().toString()));
+			o.add("assertion_payload", parser.parse(parsed.getJWTClaimsSet().toString()));
+			
+			env.put("resource_assertion", o);
+			
+			logSuccess("Extracted assertion from resource server", o);
+			
+			return env;
+		} catch (ParseException e) {
+			throw error("Couldn't parse client assertion", e);
 		}
-
-		// create a base server configuration object based on the base URL
-		JsonObject server = new JsonObject();
-
-		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrl + "authorize");
-		server.addProperty("token_endpoint", baseUrl + "token");
-		server.addProperty("jwks_uri", baseUrl + "jwks");
-
-		// add this as the server configuration
-		env.put("server", server);
-
-		env.putString("issuer", baseUrl);
-		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
-
-		return env;
-
+		
 	}
 
 }
