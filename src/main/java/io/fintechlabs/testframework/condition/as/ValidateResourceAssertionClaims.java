@@ -50,7 +50,7 @@ public class ValidateResourceAssertionClaims extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "resource_assertion", strings = {"resource_id", "issuer"})
+	@PreEnvironment(required = {"resource_assertion", "server"}, strings = {"resource_id", "issuer"})
 	public Environment evaluate(Environment env) {
 
 		JsonObject payload = env.findElement("resource_assertion", "assertion_payload").getAsJsonObject();
@@ -68,6 +68,8 @@ public class ValidateResourceAssertionClaims extends AbstractCondition {
 		}
 		
 		String issuer = env.getString("issuer");
+		String introspectionEndpoint = env.getString("server", "introspection_endpoint");
+
 		JsonElement a = env.findElement("resource_assertion", "assertion_payload.aud");
 		
 		if (a == null) {
@@ -77,14 +79,14 @@ public class ValidateResourceAssertionClaims extends AbstractCondition {
 		if (a.isJsonArray()) {
 			JsonArray aud = a.getAsJsonArray();
 			
-			if (!aud.contains(new JsonPrimitive(issuer))) {
-				throw error("Audience didn't match the server issuer", args("expected", issuer, "actual", aud));
+			if (!aud.contains(new JsonPrimitive(issuer)) && !aud.contains(new JsonPrimitive(introspectionEndpoint))) {
+				throw error("Audience didn't match the server issuer", args("issuer", issuer, "endpoint", introspectionEndpoint, "actual", aud));
 			}
 		} else {
 			String aud = a.getAsString();
 			
-			if (!issuer.equals(aud)) {
-				throw error("Audience didn't match the server issuer", args("expected", issuer, "actual", aud));
+			if (!issuer.equals(aud) && !introspectionEndpoint.equals(aud)) {
+				throw error("Audience didn't match the server issuer", args("issuer", issuer, "endpoint", introspectionEndpoint, "actual", aud));
 			}
 		}
 		
