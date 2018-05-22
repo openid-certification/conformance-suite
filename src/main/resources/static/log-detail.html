@@ -142,12 +142,20 @@
                         </div>
                     </div>
                     <% } %>
+                    <% if (test.planId) { %>
+                    <div class="row">
+                        <div class="col-md-1">Plan ID:</div>
+                        <div class="col-md-11"><%- test.planId %></div>
+                    </div>
+                    <% } %>
                 </div>
 
                 <div class="col-md-2"> <!-- controls -->
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Repeat Test</button>
                     <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                    <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
+                    <button class="btn btn-default btn-block collapse" id="nextPlanBtn"><span class="glyphicon glyphicon-fast-forward"></span> Continue Plan</button>
                 </div>
 
               </div>
@@ -543,7 +551,7 @@
 						FAPI_UI.showBusy('Creating a clone of this test...');
 
 						$.ajax({
-							url: '/runner/?test=' + encodeURIComponent(data.testName),
+							url: '/runner/?test=' + encodeURIComponent(data.testName) + (data.planId ? '&plan=' + encodeURIComponent(data.planId) : ''),
 							type: 'POST',
 							contentType: 'application/json',
 							data: JSON.stringify(data.config),
@@ -560,6 +568,15 @@
 						});
 
 					});
+					
+					if (data.planId) {
+						$('#planBtn').click(function(evt) {
+							evt.preventDefault();
+							window.location.assign('/plan.html?plan=' + encodeURIComponent(data.planId));
+						});
+						$('#planBtn').show();
+						$('#nextPlanBtn').show();
+					}
 
 				},
 				error: function(jqxhr, status, error) {
