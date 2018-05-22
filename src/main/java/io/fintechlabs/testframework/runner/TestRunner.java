@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -56,8 +57,11 @@ import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.plan.PublishTestPlan;
+import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -93,7 +97,7 @@ public class TestRunner {
 
 	@Autowired
 	private TestInfoService testInfo;
-
+	
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
@@ -114,7 +118,7 @@ public class TestRunner {
 	}
 
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestBody JsonObject config, Model m) {
+	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestParam(name = "plan", required = false) String planId, @RequestBody JsonObject config, Model m) {
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
@@ -157,8 +161,8 @@ public class TestRunner {
 			url = baseUrl + TestDispatcher.TEST_PATH + id;
 		}
 
-		// add this test to the stack
-		testInfo.createTest(id, testName, url, config, alias, Instant.now());
+		// record that this test was started
+		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId);
 
 		// log the test creation event in the event log
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(),
@@ -167,6 +171,7 @@ public class TestRunner {
 				"baseUrl", url,
 				"config", config,
 				"alias", alias,
+				"planId", planId,
 				"testName", testName));
 
 		test.configure(config, url);
@@ -310,21 +315,27 @@ public class TestRunner {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-
+	
 	private TestModule createTestModule(String testName, String id, BrowserControl browser) {
 
-		Class<? extends TestModule> testModuleClass = getTestModules().get(testName).c;
+		TestModuleHolder holder = getTestModules().get(testName);
+		
+		if (holder == null) {
+			logger.warn("Couldn't find a test module for " + testName);
+			return null;
+		}
 
-		TestModule module;
 		try {
 
+			Class<? extends TestModule> testModuleClass = holder.c;
+			
 			@SuppressWarnings("unchecked")
 			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
 			// call the constructor
-			module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
+			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
 				.newInstance(id, owner, wrappedEventLog, browser, testInfo);
 			return module;
 
@@ -365,17 +376,12 @@ public class TestRunner {
 	private class TestModuleHolder {
 		public Class<? extends TestModule> c;
 		public PublishTestModule a;
-
-		/**
-		 * @param c
-		 * @param a
-		 */
 		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
 			this.c = c;
 			this.a = a;
 		}
 	}
-
+	
 	private Map<String, Object> createTestStatusMap(TestModule test) {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", test.getName());
