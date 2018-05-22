@@ -575,7 +575,54 @@
 							window.location.assign('/plan.html?plan=' + encodeURIComponent(data.planId));
 						});
 						$('#planBtn').show();
-						$('#nextPlanBtn').show();
+						
+						$.ajax({
+							url: '/plan/' + encodeURIComponent(data.planId),
+							type: 'GET',
+							success: function(planData) {
+								
+								var modules = _.pluck(planData.modules, 'testModule');
+								var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
+								
+								if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {
+									// there's a "next" module we can run in this test plan
+									
+									var nextModule = modules[thisModuleIndex + 1];
+
+				                    $('#nextPlanBtn').click(function(evt) {
+				                        evt.preventDefault();
+
+				                        FAPI_UI.showBusy('Creating a new test for ' + nextModule + '...');
+
+				                        $.ajax({
+				                            url: '/runner/?test=' + encodeURIComponent(nextModule) + '&plan=' + encodeURIComponent(data.planId),
+				                            type: 'POST',
+				                            contentType: 'application/json',
+				                            data: JSON.stringify(data.config),
+				                            success: function(data, status) {
+				                                // we need to switch to the new window now
+				                                var newUrl = window.location.href.replace(testId, data.id);
+				                                window.location.assign(newUrl);
+				                            },
+				                            error: function(jqxhr, status, error) {
+				                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+				                                    error: error
+				                                });
+				                            }
+				                        });
+				                    });
+				                    
+									$('#nextPlanBtn').show();
+								}
+								
+							},
+                            error: function(jqxhr, status, error) {
+                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                    error: error
+                                });
+                            }
+						})
+						
 					}
 
 				},
