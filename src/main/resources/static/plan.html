@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta charset="UTF-8">
+	<title>FintechLabs: Test Plan</title>
+	
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+	<link rel="stylesheet" type="text/css" href="css/layout.css">
+	
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
+
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+	
+	<script type="text/javascript" src="js/fapi.ui.js"></script>
+</head>
+
+<body>
+
+	<div class="pageHeader container-fluid">
+		<div class="row-fluid">
+			<div class="col-md-8">
+				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+			</div>
+			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+
+	<!-- error modal -->
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="errorLabel">Error</h4>
+				</div>
+				<div class="modal-body">
+					Error: <span id="errorMessage"></span>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- loading modal -->
+	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
+				</div>
+				<div class="modal-body">
+					<div class="text-center">
+						<img src="/images/spinner.gif" width="100px" height="30px" />
+					</div>
+					<div>
+						<span id="loadingMessage"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- UserInfo Template-->
+	<script type="text/template" id="userInfoTemplate">
+        <div id="userInfoData">
+            <form action="/logout" method="post" class="form-inline">
+                <p class="form-control-static">Logged in as
+                    <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+                    <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
+                <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+            </form>
+        </div>
+    </script>
+    
+    <!-- Main plan -->
+    <script type="text/template" id="planTemplate_PlanStart">
+
+        <div class="well well-sm container-fluid">
+            <div class="row-fluid" id="planHeader"> <!-- main header -->
+                
+                <div class="col-md-10">
+    
+                    <div class="row">
+                        <div class="col-md-1">Plan Name:</div>
+                        <div class="col-md-11"><%- plan.planName %></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">Plan ID:</div>
+                        <div class="col-md-11"><%- plan._id %></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">Started:</div>
+                        <div class="col-md-11"><%- plan.started %></div>
+                    </div>
+
+                    <% if (FAPI_UI.currentUser.isAdmin) { %>
+                    <div class="row">
+                        <div class="col-md-1">Test Owner:</div>
+                        <div class="col-md-11">
+                            <%= FAPI_UI.logTemplates.OWNER({owner: plan.owner}) %>
+                        </div>
+                    </div>
+                    <% } %>
+
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-file"></span> View Config</button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="container-fluid" id="planItems"> <!-- container for plan results -->
+            <% _.each(plan.modules, function(module) { %>
+                <% var lastInstance = module.instances.pop(); %>
+            <div class="row logItem" data-instance-id="<%- lastInstance %>">
+                <div class="col-md-2 testStatusAndResult">
+
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-default btn-block startBtn"><span class="glyphicon glyphicon-play"></span> Run New Test</button>
+                    <button class="btn btn-default btn-block collapse viewBtn"><span class="glyphicon glyphicon-list-alt"></span> View Logs</button>
+                    <button class="btn btn-default btn-block collapse downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                </div>
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-1">Test Name:</div>
+                        <div class="col-md-11"><%- module.testModule %></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">Test ID:</div>
+                        <div class="col-md-11"><%- lastInstance ? lastInstance : 'NONE' %></div>
+                    </div>
+                </div>
+            </div>
+            <% }); %>
+        </div> 
+
+    </script>
+
+    <!-- Test status and results -->
+    <script type="text/template" id="planTemplate_TestStatusAndResult">
+		<div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
+		    <%- test.status ? test.status : 'UNKNOWN' %>
+		    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
+		</div>
+		<div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'unknown' %>">
+		    <%- test.result ? test.result : 'UNKNOWN' %>
+		    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
+		</div>
+	</script>
+
+    <!-- Owner -->
+    <script type="text/template" id="planTemplate_Owner">
+            <span class="plan-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
+    </script>
+
+
+	<!-- resident DOM -->
+	<div class="container-fluid">
+		<div id="planDetail">
+			<div class="header"></div>
+			<div class="content container-fluid">
+				<!-- main page is rendered here -->
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+    
+	   function getPlan(planId) {
+		   
+		   return $.ajax({
+			   type: 'GET',
+			   url: '/plan/' + encodeURIComponent(planId),
+			   data: {},
+			   success: function(data) {
+				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({plan: data}));
+				   
+				   $('[data-instance-id]').each(function() {
+                      var _self = $(this);
+	                      
+					  var testId = _self.data('instanceId');
+
+					  if (testId) {
+						  // wire up the download button
+                          $('.downloadBtn', _self).click(function(evt) {
+                              evt.preventDefault();
+                              window.open('/log/export/' + encodeURIComponent(testId));
+                          });
+                          $('.downloadBtn', _self).show();
+                          // show the view button
+                          $('.viewBtn', _self).click(function(evt) {
+                        	      evt.preventDefault();
+                        	      window.location.assign('/log-detail.html?log=' + encodeURIComponent(testId));
+                          });
+                          $('.viewBtn', _self).show();
+                          // fetch the test status
+                          console.log('Fetching |' + testId + '|');
+	                      $.ajax({
+	                          type: 'GET',
+	                          url: '/info/' + encodeURIComponent(testId),
+	                          data: {},
+	                          success: function(data) {
+	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
+	                          },
+	                          error: function(jqxhr, status, error) {
+	                              FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+	                                  error: error
+	                              });
+	                          }
+	                      });
+					  } else {
+						  // render an "UNKNOWN" field
+                          $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: {}}));
+					  }
+					  
+					  
+				   });
+				   
+			   },
+               error: function(jqxhr, status, error) {
+                   FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                       error: error
+                   });
+               }
+		   })
+		   
+	   }
+	
+	
+		$(document).ready(function() {
+			var urlParams = new URLSearchParams(window.location.search);
+			var planId = urlParams.get('plan');
+
+			FAPI_UI.showBusy();
+
+			$.when(FAPI_UI.loadPlanTemplates()) // Load the templates
+			.then(function() {
+				return FAPI_UI.getUserInfoDiv("#userInfoDiv") // Then get the current user info
+			}).then(function() {
+				return getPlan(planId); // Only once the user is loaded, then render the plan info
+			}).always(function() {
+				FAPI_UI.hideBusy();
+			});
+		});
+	</script>
+
+
+	<footer class="pageFooter">
+		<span class="muted">FintechLabs.io conformance suite</span>
+	</footer>
+
+</body>
+
+</html>
