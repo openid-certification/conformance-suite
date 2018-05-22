@@ -81,6 +81,28 @@
 		</div>
 	</div>
 
+    <!-- Config modal popup -->
+    <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">Configuration</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="wrapLongStrings">
+                        <pre id="config"></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 	<!-- UserInfo Template-->
 	<script type="text/template" id="userInfoTemplate">
         <div id="userInfoData">
@@ -128,7 +150,7 @@
                 </div>
 
                 <div class="col-md-2">
-                    <button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-file"></span> View Config</button>
+                    <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-file"></span> View Config</button>
                 </div>
 
             </div>
@@ -200,6 +222,13 @@
 			   data: {},
 			   success: function(data) {
 				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({plan: data}));
+
+				   // wire up configuration button
+                   $('#showConfigBtn').click(function(evt) {
+                       evt.preventDefault();
+                       $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
+                       $('#configModal').modal('show');
+                   });
 				   
 				   $('[data-instance-id]').each(function() {
                       var _self = $(this);
