@@ -37,6 +37,7 @@ import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 
+import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
@@ -49,7 +50,7 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
 public class DBTestInfoService implements TestInfoService {
 
 	public static final String COLLECTION = "TEST_INFO";
-
+	
 	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
 
 	@Value("${fintechlabs.version}")
@@ -60,6 +61,9 @@ public class DBTestInfoService implements TestInfoService {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+	
+	@Autowired
+	private TestPlanService testPlanService;
 
 	//Private cache for holding test owners without having to hit the db
 	LoadingCache<String, ImmutableMap<String, String>> testOwnerCache = CacheBuilder.newBuilder()
@@ -86,7 +90,7 @@ public class DBTestInfoService implements TestInfoService {
 	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
 	 */
 	@Override
-	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started) {
+	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId) {
 		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
 		ImmutableMap<String, String> owner = null;
 		if (token != null) {
@@ -100,9 +104,14 @@ public class DBTestInfoService implements TestInfoService {
 			.add("config", config)
 			.add("alias", alias)
 			.add("owner", owner)
+			.add("planId", planId)
 			.add("version", version);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+		
+		if (planId != null) {
+			testPlanService.updateTestPlanWithModule(planId, testName, id);
+		}
 	}
 
 	/* (non-Javadoc)

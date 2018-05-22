@@ -14,52 +14,39 @@
 
 package io.fintechlabs.testframework.info;
 
-import java.time.Instant;
+import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.mongodb.DBObject;
 
-import io.fintechlabs.testframework.testmodule.TestModule.Result;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import io.fintechlabs.testframework.plan.TestPlan;
 
 /**
  * @author jricher
  *
  */
-public interface TestInfoService {
+public interface TestPlanService {
 
 	/**
-	 * Create a new test in the database
-	 * 
-	 * @param id
+	 * @param planId
 	 * @param testName
-	 * @param url
+	 * @param id
+	 */
+	void updateTestPlanWithModule(String planId, String testName, String id);
+
+	/**
+	 * @param id
+	 * @param planName
 	 * @param config
-	 * @param alias
+	 * @param owner
+	 * @param testModules
 	 */
-	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId);
+	void createTestPlan(String id, String planName, JsonObject config, String[] testModules);
 
 	/**
-	 * Update the result of a test in the database
-	 * 
-	 * @param id
-	 * @param result
-	 */
-	void updateTestResult(String id, Result result);
-
-	/**
-	 * Update the status of a test in the database
-	 * 
-	 * @param id
-	 * @param status
-	 */
-	void updateTestStatus(String id, Status status);
-
-	/**
-	 * Get the owner of a test ID.
-	 * 
 	 * @param id
 	 * @return
 	 */
-	ImmutableMap<String, String> getTestOwner(String id);
+	Map getTestPlan(String id);
+
 }
