@@ -14,14 +14,19 @@
 
 package io.fintechlabs.testframework.condition.common;
 
+import static io.fintechlabs.testframework.condition.common.ProxyUtil.setupSocket;
+
+import com.google.common.base.Strings;
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.SecureRandom;
 import java.util.Hashtable;
 import java.util.Vector;
-
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.Certificate;
 import org.bouncycastle.crypto.tls.CertificateRequest;
@@ -38,16 +43,8 @@ import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
 
-import com.google.common.base.Strings;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
-
 /**
  * @author jricher
- *
  */
 public class DisallowTLS10 extends AbstractCondition {
 
@@ -94,7 +91,7 @@ public class DisallowTLS10 extends AbstractCondition {
 		}
 
 		try {
-			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
+			Socket socket = setupSocket(tlsTestHost, tlsTestPort);
 
 			try {
 
