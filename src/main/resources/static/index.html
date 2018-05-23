@@ -79,14 +79,22 @@
 		<div id="homePage">
 
 			<!-- render available test launch options here -->
-			<div class="row">
-				<div class="col-md-12">
-					<h3>Select Test</h3>
-					<select id="testSelect" class="form-control">
-						<option value="select">--- Select A Test ----</option>
-					</select>
-				</div>
-			</div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>Select Test</h3>
+                    <select id="testSelect" class="form-control">
+                        <option value="select">--- Select A Test ----</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>Select Plan</h3>
+                    <select id="planSelect" class="form-control">
+                        <option value="select">--- Select A Test Plan ----</option>
+                    </select>
+                </div>
+            </div>
 
 			<div class="row">
 				<div class="col-md-12">
@@ -358,7 +366,7 @@
 
 	<!-- Test Launch Selectors -->
 	<script type="text/template" id="indexTemplate_TestOption">
-        <option value="<%- testName %>"><%- displayName %></option>
+        <option value="<%- val %>"><%- display %></option>
     </script>
 
 	<script type="text/template" id="indexTemplate_TestOptGroup">
@@ -433,54 +441,95 @@
 		 */
 		$(function() {
 
+            FAPI_UI.showBusy('Loading available tests...');
+			
 			$.when(FAPI_UI.loadHomepageTemplates()).then(function() {
 				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
-			}).then(loadIndexPage());
+			}).then(function() {
+			    return loadAvailableTests();
+			}).then(function() {
+				return loadAvailablePlans();
+			}).then(function() {
+				return loadIndexPage();
+			});
 		});
 
-		function loadIndexPage() {
-			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+		function loadAvailableTests() {
+			return $.getJSON('/runner/available', function(data) {
+                // save the list of available tests and associated info for later
+                FAPI_UI.availableTests = _.indexBy(data, 'testName');
+                //console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
 
-			$.getJSON('/runner/available', function(data) {
-				// save the list of available tests and associated info for later
-				FAPI_UI.availableTests = _.indexBy(data, 'testName');
-				console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
+                // sort the tests into groups by profile
+                var groupedTests = _.groupBy(data, 'profile');
+                // consistent ordering for groups
+                var profiles = _.keys(groupedTests).sort();
 
-				// sort the tests into groups by profile
-				var groupedTests = _.groupBy(data, 'profile');
-				// consistent ordering for groups
-				var profiles = _.keys(groupedTests).sort();
+                // render all of the tests into the dropdown
+                _.each(profiles, function(profile) {
 
-				// render all of the tests into the dropdown
+                    var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
+                        label: profile
+                    }));
+                    $('#testSelect').append(optGroup);
+
+                    // note that we're sorting the tests within each group as well
+                    _.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
+                        optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
+                        	   val: item.testName,
+                        	   display: item.displayName
+                        }));
+                    });
+
+                });
+            });
+		}
+		
+		function loadAvailablePlans() {
+			return $.getJSON('/plan/available', function(data) {
+				FAPI_UI.availablePlans = _.indexBy(data, 'planName');
+
+				// sort the plans into groups by profile
+				var groupedPlans = _.groupBy(data, 'profile');
+				// consistent ordering for plans
+				var profiles = _.keys(groupedPlans).sort();
+				
+				// render all the plans into the dropdown
 				_.each(profiles, function(profile) {
-
+					
 					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
 						label: profile
 					}));
-					$('#testSelect').append(optGroup);
-
-					// note that we're sorting the tests within each group as well
-					_.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
-						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION(item));
+					$('#planSelect').append(optGroup);
+					
+					// note that we're sorting the plans within each group as well
+					_.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
+						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
+							val: item.planName,
+							display: item.displayName
+						}));
 					});
-
 				});
-
+				
 			});
+		}
+		
+		function loadIndexPage() {
+			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 
 			$('#createTestBtn').click(function(evt) {
 				var testName = $('#testSelect').val();
 
 				// if the user hasn't picked anything, just bail here
 				if (!testName || testName == 'select') {
-					console.log("No test selected");
+					//console.log("No test selected");
 					FAPI_UI.showError({
 						error: "Please select a test from the dropdown list"
 					});
 					return;
 				}
 
-				console.log('Button clicked: ' + testName);
+				//console.log('Button clicked: ' + testName);
 
 				/* Figures out which tab is visible then populates the form appropriately
 				this is to ensure that the $('#config') value has properly updated in the event of a
@@ -537,6 +586,8 @@
 
 			// sync the JSON at least once
 			updateFormElementsFromJSON();
+			
+            FAPI_UI.hideBusy();
 
 		}
 
@@ -545,7 +596,7 @@
 
 			// if the user hasn't picked anything, disable the create button
 			if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
-				console.log("No test selected");
+				//console.log("No test selected");
 				var fieldsToShow = [];
 				$('#createTestBtn').prop('disabled', true);
 			} else {
@@ -586,8 +637,8 @@
 		 *
 		 */
 		function updateRunningTable() {
-			$.getJSON('/runner/running', function(data) {
-				console.log('running: ', JSON.stringify(data));
+			return $.getJSON('/runner/running', function(data) {
+				//console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
 
 				// run this as a string of deferreds to guarantee order
@@ -676,14 +727,6 @@
 		function walkJSON(element, root) {
 
 			_.each(element, function(value, key, obj) {
-				/*
-				console.log("****** WALK NODE ******");
-				console.log("root=" + root);
-				console.log("value=" + JSON.stringify(value));
-				console.log("key=" + key);
-				console.log("obj=" + JSON.stringify(obj));
-				console.log("element=" + JSON.stringify(element));
-				 */
 				var el = null;
 
 				if (_.isString(value) && root == undefined && key != undefined) {
@@ -715,22 +758,6 @@
 		 */
 
 		function populateJSON(key, val) {
-
-			/*
-			var obj = { "a": { "b": '1', "c": 0 } };
-			// get
-			console.log("obj.a.c="+Object.prop(obj, 'a.c')); // -> 0
-			// set
-			Object.prop(obj, 'a.c', 5);
-			console.log(obj); // -> { a: { b: '1', c: 5 } }
-			Object.prop(obj, 'create.me.now', "hello");
-			console.log(obj); // -> { a: { b: '1', c: 5 }, create:{me:{now:"hello"}} }
-			 */
-
-			/*
-			console.log("key=" + key);
-			console.log("val=" + val);
-			 */
 			// check to see if we have an "array string" or a "number string"
 			// i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
 			try {
@@ -748,7 +775,7 @@
 				}
 			}
 
-			console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
+			//console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
 	</script>
 
