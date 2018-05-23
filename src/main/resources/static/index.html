@@ -14,14 +14,26 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
-
-
+	<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+	
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
 		<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
 </head>
 <body>
 
@@ -80,16 +92,22 @@
 
 			<!-- render available test launch options here -->
             <div class="row">
-                <div class="col-md-12">
-                    <h3>Select Test</h3>
+                <div class="col-md-1">
+                    <!-- toggle selector for launch type, single test by default -->
+                    <input checked data-toggle="toggle" 
+                        data-on="Single Test" data-off="Multi Test Plan" 
+                        data-onstyle="info" data-offstyle="primary"
+                        data-style="btn-block"
+                        data-width="auto" data-height="auto"
+                        checked
+                        type="checkbox" id="singleTestSelector">
+                </div>
+                <div class="col-md-11" id="testSelector">
                     <select id="testSelect" class="form-control">
                         <option value="select">--- Select A Test ----</option>
                     </select>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <h3>Select Plan</h3>
+                <div class="col-md-11 collapse" id="planSelector">
                     <select id="planSelect" class="form-control">
                         <option value="select">--- Select A Test Plan ----</option>
                     </select>
@@ -322,11 +340,15 @@
 				</div>
 			</div>
 
-			<div class="row">
+			<div class="row top10">
 				<div class="well col-md-6 col-md-offset-3">
+				    <button class="btn btn-block collapse">Fake Button for spacing, ignore</button>
 					<button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled="">
 						<span class="glyphicon glyphicon-flag"></span> Launch Test
 					</button>
+                    <button class="btn btn-primary btn-block btn-lg collapse" id="createPlanBtn" disabled="">
+                        <span class="glyphicon glyphicon-flag"></span> Start Test Plan
+                    </button>
 				</div>
 			</div>
 
@@ -426,14 +448,6 @@
         </div>
 
     </script>
-
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-	<script type="text/javascript" src="js/fapi.ui.js"></script>
 
 	<script type="text/javascript">
 		/**
@@ -559,7 +573,10 @@
 				});
 			});
 
+			// update field visibility when the selectors change
 			$('#testSelect').on('change', updateConfigFieldVisibility);
+			$('#planSelect').on('change', updateConfigFieldVisibility);
+			
 			// update the config visibility right now
 			updateConfigFieldVisibility();
 
@@ -587,28 +604,66 @@
 			// sync the JSON at least once
 			updateFormElementsFromJSON();
 			
+			// update the test/plan components on the toggle switch
+			$('#singleTestSelector').on('change', updateSingleTestSelector);
+			// refresh right now
+			updateSingleTestSelector();
+			
             FAPI_UI.hideBusy();
 
 		}
+		
+		function updateSingleTestSelector() {
+            if ($('#singleTestSelector').is(':checked')) {
+                // single test selected
+                $('#testSelector').show();
+                $('#planSelector').hide();
+                $('#createTestBtn').show();
+                $('#createPlanBtn').hide();
+            } else {
+                // multi test plan selected
+                $('#testSelector').hide();
+                $('#planSelector').show();
+                $('#createTestBtn').hide();
+                $('#createPlanBtn').show();
+            }
+		}
 
 		function updateConfigFieldVisibility() {
-			var testName = $('#testSelect').val();
-
-			// if the user hasn't picked anything, disable the create button
-			if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
-				//console.log("No test selected");
-				var fieldsToShow = [];
-				$('#createTestBtn').prop('disabled', true);
-			} else {
-				var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
-				// enable the create button
-				$('#createTestBtn').prop('disabled', false);
-			}
-
-			if (!fieldsToShow) {
-				// the test hasn't defined anything, set a default
-				fieldsToShow = [];
-			}
+			
+            if ($('#singleTestSelector').is(':checked')) {
+            	   // single test selected
+				var testName = $('#testSelect').val();
+	
+				// if the user hasn't picked anything, disable the create button
+				if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
+					//console.log("No test selected");
+					var fieldsToShow = [];
+					$('#createTestBtn').prop('disabled', true);
+				} else {
+					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
+					// enable the create button
+					$('#createTestBtn').prop('disabled', false);
+				}
+	
+				if (!fieldsToShow) {
+					// the test hasn't defined anything, set a default
+					fieldsToShow = [];
+				}
+            } else {
+            	   // multi test plan selected
+            	   var planName = $('#planSelect').val();
+            	   
+            	   // if the user hasn't picked anything, disable the create button
+            	   if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
+            		   var fieldsToShow = [];
+            		   $('#createPlanBtn').prop('disabled', true);
+            	   } else {
+            		   fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
+            		   // TODO: load up all fields from associated tests into a set if there's none
+            		   $('#createPlanBtn').prop('disabled', false);
+            	   }
+            }
 
 			fieldsToShow.push('alias'); // always show the alias field
 
