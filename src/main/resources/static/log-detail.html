@@ -81,6 +81,27 @@
 		</div>
 	</div>
 
+    <!-- Config modal popup -->
+    <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">Configuration</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="wrapLongStrings">
+                        <pre id="config"></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 	<!-- LogStart -->
@@ -153,6 +174,7 @@
                 <div class="col-md-2"> <!-- controls -->
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Repeat Test</button>
                     <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
+                    <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
                     <button class="btn btn-default btn-block collapse" id="nextPlanBtn"><span class="glyphicon glyphicon-fast-forward"></span> Continue Plan</button>
@@ -568,6 +590,13 @@
 						});
 
 					});
+
+                    // wire up configuration button
+                    $('#showConfigBtn').click(function(evt) {
+                        evt.preventDefault();
+                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
+                        $('#configModal').modal('show');
+                    });
 					
 					if (data.planId) {
 						$('#planBtn').click(function(evt) {
