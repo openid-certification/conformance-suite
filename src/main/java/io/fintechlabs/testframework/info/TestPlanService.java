@@ -14,12 +14,10 @@
 
 package io.fintechlabs.testframework.info;
 
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
-import com.mongodb.DBObject;
-
-import io.fintechlabs.testframework.plan.TestPlan;
 
 /**
  * @author jricher
@@ -48,5 +46,10 @@ public interface TestPlanService {
 	 * @return
 	 */
 	Map getTestPlan(String id);
+
+	/**
+	 * @return
+	 */
+	List<Map> getAllPlansForCurrentUser();
 
 }

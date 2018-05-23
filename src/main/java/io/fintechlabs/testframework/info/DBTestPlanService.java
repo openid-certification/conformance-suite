@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
@@ -36,6 +40,7 @@ import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
+import io.fintechlabs.testframework.logging.DBEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 /**
@@ -133,7 +138,6 @@ public class DBTestPlanService implements TestPlanService {
 		if (authenticationFacade.getAuthenticationToken() != null &&
 			!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
-			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Query query = new Query(criteria);
@@ -145,6 +149,27 @@ public class DBTestPlanService implements TestPlanService {
 		} else {
 			return testPlan.toMap();
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getAllPlansForCurrentUser()
+	 */
+	@Override
+	public List<Map> getAllPlansForCurrentUser() {
+		
+		Criteria criteria = new Criteria();
+		
+		if (authenticationFacade.getAuthenticationToken() != null &&
+			!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		}
+
+		Query query = new Query(criteria);
+		
+		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).toArray();
+
+		return results.stream().map(e -> e.toMap()).collect(Collectors.toList());
+		
 	}
 
 

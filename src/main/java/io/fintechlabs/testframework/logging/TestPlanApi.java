@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.logging;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,7 +42,10 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 
+import io.fintechlabs.testframework.info.DBTestInfoService;
 import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
@@ -79,6 +83,15 @@ public class TestPlanApi {
 		map.put("modules", holder.a.testModuleNames());
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
+	}
+	
+	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> getTestPlansForCurrentUser() {
+
+		List<Map> allPlans = planService.getAllPlansForCurrentUser();
+		
+		return new ResponseEntity<>(allPlans, HttpStatus.OK);
+		
 	}
 	
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
