@@ -627,6 +627,7 @@
                 $('#createTestBtn').hide();
                 $('#createPlanBtn').show();
             }
+            updateConfigFieldVisibility();
 		}
 
 		function updateConfigFieldVisibility() {
@@ -653,14 +654,19 @@
             } else {
             	   // multi test plan selected
             	   var planName = $('#planSelect').val();
-            	   
+
             	   // if the user hasn't picked anything, disable the create button
             	   if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
             		   var fieldsToShow = [];
             		   $('#createPlanBtn').prop('disabled', true);
             	   } else {
-            		   fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
-            		   // TODO: load up all fields from associated tests into a set if there's none
+            		   var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
+            		   
+            		   // add in any fields from the associated modules
+        			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
+        				    fieldsToShow = _.unique(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+        			   });
+            		   
             		   $('#createPlanBtn').prop('disabled', false);
             	   }
             }
