@@ -7,7 +7,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<meta charset="UTF-8">
-	<title>FintechLabs: Available logs</title>
+	<title>FintechLabs: Available plans</title>
 	
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -51,7 +51,7 @@
 		<div class="row">
 			<div class="col-md-12">
 
-				<table id="logsListing" class="table table-striped table-bordered table-hover">
+				<table id="plansListing" class="table table-striped table-bordered table-hover">
 					<thead>
 					</thead>
 
@@ -65,44 +65,36 @@
 
 
 	<!-- Templates -->
-	<script type="text/template" id="logsListingHeader">
+	<script type="text/template" id="plansListingHeader">
                     <tr>
                         <th>Instance ID</th>
                         <th>Config</th>
                         <th>Name</th>
                         <th>Started</th>
-                        <th>Plan ID</th>
-                        <th>Status</th>
-                        <th>Result</th>
+                        <th>Modules</th>
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
                         <th>Owner</th>
                         <% } %>
                     </tr>
         </script>
 
-	<script type="text/template" id="logsListingTemplate">
+	<script type="text/template" id="plansListingTemplate">
                     <tr>
-                        <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><a class="btn btn-default btn-block" href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted"><%- test.testId %></code></a></td>
-                        <td class="configColumn" data-search="<%- JSON.stringify(test.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
-                        <td><%- test.testName %></td>
-                        <td data-order="<%- test.started %>"><%- new Date(test.started).toLocaleString() %></td>
-                        <% if (test.planId) { %>
-                        <td data-order=<%- test.planId %>" data-search="<%- test.planId %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- encodeURIComponent(test.planId) %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- test.planId %></code></a></td>
-                        <% } else { %>
-                        <td></td>
-                        <% } %>
-                        <td class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>"><%- test.status %></td>
-                        <td class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>"><%- test.result %></td>
+                        <td data-order="<%- plan._id %>" data-search="<%- plan._id %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- plan._id %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- plan._id %></code></a></td>
+                        <td class="configColumn" data-search="<%- JSON.stringify(plan.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
+                        <td><%- plan.planName %></td>
+                        <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>
+                        <td data-search="<%- _.pluck(plan.modules, 'testModule') %>"><%- _.pluck(plan.modules, 'testModule').join(', ') %></td>
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <td data-search="<%- test.owner ? test.owner.iss + ' ' + test.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: test.owner ? test.owner : {}}) %></td>
+                        <td data-search="<%- plan.owner ? plan.owner.iss + ' ' + plan.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: plan.owner ? plan.owner : {}}) %></td>
                         <% } %>
                     </tr>
-        </script>
+    </script>
 
 	<!-- Owner -->
 	<script type="text/template" id="logDetailTemplate_Owner">
             <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
-        </script>
+    </script>
 
 	<!-- UserInfo Template-->
 	<script type="text/template" id="userInfoTemplate">
@@ -184,10 +176,10 @@
 		 */
 		$(document).ready(function() {
 			FAPI_UI.showBusy();
-			$.when(FAPI_UI.loadLogListTemplates()).then(function() {
+			$.when(FAPI_UI.loadPlanListTemplates()).then(function() {
 				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
 			}).then(function() {
-				return loadAvailableLogs();
+				return loadAvailablePlans();
 			}).always(function() {
 				FAPI_UI.hideBusy();
 			});
@@ -200,36 +192,42 @@
 		/**
 		 * 
 		 */
-		function loadAvailableLogs() {
+		function loadAvailablePlans() {
 			return $.ajax({
 				type: 'GET',
-				url: "/log",
+				url: "/plan",
 				data: {},
-				success: function(logsList) {
+				success: function(data) {
 
-					$('#logsListing thead').html(FAPI_UI.logTemplates.LOG_LISTING_HEADER());
+					$('#plansListing thead').html(FAPI_UI.logTemplates.PLAN_LISTING_HEADER());
 
-					_.each(logsList, function(test) {
-						var logRow = $(FAPI_UI.logTemplates.LOG_LISTING({
-							test: test
+					_.each(data, function(plan) {
+						var logRow = $(FAPI_UI.logTemplates.PLAN_LISTING({
+							plan: plan
 						}));
-						$('#logsListing tbody').append(logRow);
+						$('#plansListing tbody').append(logRow);
 
 						// wire up configuration button
 						$('.showConfigBtn', logRow).click(function(evt) {
 							evt.preventDefault();
-							$('#config').html(_.escape(JSON.stringify(test.config, null, 4)));
+							$('#config').html(_.escape(JSON.stringify(plan.config, null, 4)));
 							$('#configModal').modal('show');
 						});
 					});
 
-					$('#logsListing').DataTable({
+					$('#plansListing').DataTable({
 						order: [[3, "desc"]], // sort by the "date" column, descending, by default
 						columnDefs: [{
+							// disable sorting on the "view config" button
 							targets: 1,
 							orderable: false
-						// disable sorting on the "view config" button
-						}]
+						},
+						{
+							// disable sorting on the "modules" column
+							targets: 4,
+							orderable: false
+						}
+						]
 					});
 
 				},
