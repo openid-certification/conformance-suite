@@ -572,6 +572,45 @@
 					}
 				});
 			});
+			
+			$('#createPlanBtn').click(function(evt) {
+				var planName = $('#planSelect').val();
+				
+				// if the user hasn't picked anything, just bail
+				if (!planName || planName == 'select') {
+					FAPI_UI.showError({
+						error: "Please select a test plan from the dropdown list"
+					});
+					return;
+				}
+
+                /* Figures out which tab is visible then populates the form appropriately
+                this is to ensure that the $('#config') value has properly updated in the event of a
+                quick paste into a form field  with no tab switch and then a button press */
+                if ($("#formInput").hasClass("active")) {
+                    updateJSONFromFormElements();
+                }
+
+                FAPI_UI.showBusy('Creating plan...');
+                
+                $.ajax({
+                	   url: '/plan?planName=' + encodeURIComponent(planName),
+                	   type: 'POST',
+                	   contentType: 'application/json',
+                	   data: $('#config').val(),
+                	   success: function(data, status) {
+                		   // forward to the test plan page
+                		   window.location.assign('/plan.html?plan=' + encodeURIComponent(data.id));
+                	   },
+                    error: function(jqxhr, status, error) {
+                        FAPI_UI.hideBusy();
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                            error: error
+                        });
+                        updateRunningTable();
+                    }
+                });
+			});
 
 			// update field visibility when the selectors change
 			$('#testSelect').on('change', updateConfigFieldVisibility);
