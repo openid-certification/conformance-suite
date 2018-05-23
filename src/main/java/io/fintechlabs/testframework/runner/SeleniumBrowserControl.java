@@ -17,6 +17,7 @@ import org.springframework.util.PatternMatchUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
 /**
@@ -60,6 +61,7 @@ public class SeleniumBrowserControl implements BrowserControl {
 	private String testId;
 
 	private TaskExecutor taskExecutor;
+	private Lock lock;
 	private Map<String, JsonArray> commandsForUrls;
 
 	SeleniumBrowserControl(JsonObject config, String testId){
@@ -90,7 +92,7 @@ public class SeleniumBrowserControl implements BrowserControl {
 			logger.info("Checking pattern: " +urlPattern + " against: " + url);
 			logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
 			if(PatternMatchUtils.simpleMatch(urlPattern,url)){
-				WebRunner wr = new WebRunner(url, commandsForUrls.get(urlPattern));
+				WebRunner wr = new WebRunner(url, commandsForUrls.get(urlPattern), lock);
 				taskExecutor.execute(wr);
 				logger.info("We ran the WebRunner... we should return now");
 				return;
@@ -105,6 +107,11 @@ public class SeleniumBrowserControl implements BrowserControl {
 		// SHOULD NEVER BE CALLED
 	}
 
+	@Override
+	public void setLock(Lock lock) {
+		this.lock = lock;
+	}
+
 
 	/**
 	 * Private Runnable class that acts as the browser and allows goToUrl to return before the page gets hit.
@@ -114,44 +121,45 @@ public class SeleniumBrowserControl implements BrowserControl {
 		private String url;
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray commandSet;
+		private Lock lock;
 
 		/**
 		 * @param url			url to go to
 		 * @param commandSet	{@link JsonArray} of commands to perform once we get to the page
 		 */
-		WebRunner(String url, JsonArray commandSet){
+		WebRunner(String url, JsonArray commandSet, Lock lock){
 			this.url = url;
 			this.commandSet = commandSet;
+			this.lock = lock;
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
 		}
 
 		public void run() {
-			// FIXME: We shouldn't be 'sleeping' here. Some better scheduling/execution should be used.
+			this.lock.lock();
 			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			logger.info("Sending Browser to: " + url);
-			driver.get(url);
-			int responseCode = driver.getResponseCode();
-			logger.info("Inital Response Code: " + responseCode);
+				logger.info("Sending Browser to: " + url);
+				driver.get(url);
+				int responseCode = driver.getResponseCode();
+				logger.info("Inital Response Code: " + responseCode);
 
-			//JsonArray commandSet = config.getAsJsonArray("browserCommands");
+				//JsonArray commandSet = config.getAsJsonArray("browserCommands");
 
-			for (int i = 0; i < this.commandSet.size(); i++) {
-				JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
-				logger.info("Performing: " + currentTask.get("task").getAsString());
-				JsonArray commands = currentTask.getAsJsonArray("commands");
-				for (int j = 0; j < commands.size(); j++){
-					doCommand(commands.get(j).getAsJsonArray());
+				for (int i = 0; i < this.commandSet.size(); i++) {
+					JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
+					logger.info("Performing: " + currentTask.get("task").getAsString());
+					JsonArray commands = currentTask.getAsJsonArray("commands");
+					for (int j = 0; j < commands.size(); j++) {
+						doCommand(commands.get(j).getAsJsonArray());
+					}
+					responseCode = driver.getResponseCode();
+					logger.info("\tResponse Code: " + responseCode);
 				}
-				responseCode = driver.getResponseCode();
-				logger.info("\tResponse Code: " + responseCode);
+				logger.info("Completed Browser Commands");
+			} finally {
+				this.lock.unlock();
 			}
-			logger.info("Completed Browser Commands");
 		}
 
 		/**

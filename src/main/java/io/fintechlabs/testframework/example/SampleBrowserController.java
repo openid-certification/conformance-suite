@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 
+import java.util.concurrent.locks.Lock;
+
 /**
  * @author jricher
  *
@@ -42,6 +44,11 @@ public class SampleBrowserController implements BrowserControl {
 
 		logger.info("Browser went to: " + url);
 
+	}
+
+	@Override
+	public void setLock(Lock lock) {
+		// this lock object is used when the browser control wants to use a Task on another thread.
 	}
 
 }

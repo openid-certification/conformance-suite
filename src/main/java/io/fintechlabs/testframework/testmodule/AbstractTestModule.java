@@ -19,6 +19,9 @@ import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +50,9 @@ public abstract class AbstractTestModule implements TestModule {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
+	// Set up Thread executor
+	//private ExecutorService executorService = Executors.newCachedThreadPool();
+
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
@@ -72,6 +78,7 @@ public abstract class AbstractTestModule implements TestModule {
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
+		this.browser.setLock(env.lock);
 		this.testInfo = testInfo;
 
 		this.created = Instant.now();
@@ -140,7 +147,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Internal uber-method for calling a condition
-	 * 
+	 *
 	 * @param conditionClass
 	 *            The condition to call and evaluate
 	 * @param onFail
@@ -336,9 +343,9 @@ public abstract class AbstractTestModule implements TestModule {
 		//		for (String key : env.allObjectIds()) {
 		//			finalEnv.put(key, env.get(key));
 		//		}
-		//		
+		//
 		//		eventLog.log(getId(), "final_env", finalEnv);
-		//		
+		//
 		logger.info("Final environment: " + env);
 	}
 
@@ -403,7 +410,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/*
 	 * Test status state machine:
-	 * 
+	 *
 	 *          /----------->--------------------------------\
 	 *         /           /                                  \
 	 *        /----------------->----------------\             \
@@ -411,7 +418,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 *   CREATED -> CONFIGURED -> RUNNING --> FINISHED      INTERRUPTED
 	 *                         \     ^--v      ^              ^
 	 *                          \-> WAITING --/--------------/
-	 * 
+	 *
 	 * Any state can go to "UNKNOWN"
 	 */
 	protected void setStatus(Status status) {
@@ -491,7 +498,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Add a key/value pair to the exposed values
-	 * 
+	 *
 	 * @param key
 	 * @param val
 	 */
@@ -501,7 +508,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Expose a value from the environment
-	 * 
+	 *
 	 * @param key
 	 */
 	protected void exposeEnvString(String key) {
@@ -583,7 +590,7 @@ public abstract class AbstractTestModule implements TestModule {
 			"msg", "Incoming HTTP request to test instance " + getId(),
 			"http", "incoming",
 			"incoming_path", path,
-			"incoming_params", requestParts.get("params"), 
+			"incoming_params", requestParts.get("params"),
 			"incoming_method", requestParts.get("method"),
 			"incoming_headers", requestParts.get("headers"),
 			"incoming_body", requestParts.get("body"),
@@ -593,7 +600,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected RedirectView redirectToLogDetailPage() {
 		return new RedirectView("/log-detail.html?log=" + getId());
 	}
-	
+
 	/*
 	 * Convenience pass-through methods
 	 */
@@ -611,6 +618,10 @@ public abstract class AbstractTestModule implements TestModule {
 
 	protected JsonObject ex(Throwable cause, JsonObject in) {
 		return EventLog.ex(cause, in);
+	}
+
+	public Lock getLock() {
+		return env.lock;
 	}
 
 }

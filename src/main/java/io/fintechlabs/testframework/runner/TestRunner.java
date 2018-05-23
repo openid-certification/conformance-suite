@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -98,6 +100,8 @@ public class TestRunner {
 	private AuthenticationFacade authenticationFacade;
 
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
+
+	private ExecutorService executorService = Executors.newCachedThreadPool();
 
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
@@ -220,7 +224,12 @@ public class TestRunner {
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
 			// TODO: fire this off in a background task thread?
-			test.start();
+			//test.start();
+			executorService.submit(() -> {
+				// Grab the lock...
+				test.start();
+				// release the lock...
+			});
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 

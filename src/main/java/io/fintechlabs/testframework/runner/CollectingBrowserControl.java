@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.runner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,11 @@ public class CollectingBrowserControl implements BrowserControl {
 		urls.remove(url);
 		visited.add(url);
 
+	}
+
+	@Override
+	public void setLock(Lock lock) {
+		// we don't use a lock in this implementation.
 	}
 
 	/**

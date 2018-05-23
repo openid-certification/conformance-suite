@@ -15,6 +15,7 @@ package io.fintechlabs.testframework.testmodule;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,18 +26,18 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 
 /**
- * 
+ *
  * TestModule instances are assumed to have a constructor with the signature:
- * 
+ *
  * String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo
- * 
+ *
  * @author jricher
  *
  */
 public interface TestModule {
 
 	public static enum Status {
-		CREATED, // test has been instantiated 
+		CREATED, // test has been instantiated
 		CONFIGURED, // configuration files have been sent and set up
 		RUNNING, // test is executing
 		WAITING, // test is waiting for external input
@@ -164,10 +165,15 @@ public interface TestModule {
 	 * @param error the final error from this test while running
 	 */
 	void setFinalError(TestFailureException error);
-	
+
 	/**
 	 * @return the final error from this test while running, possibly null
 	 */
 	TestFailureException getFinalError();
+
+	/**
+	 * @return the lock object contained in the environment for multi-threading
+	 */
+	Lock getLock();
 
 }

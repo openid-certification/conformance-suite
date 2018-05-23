@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.frontChannel;
 
+import java.util.concurrent.locks.Lock;
+
 /**
  * @author jricher
  *
@@ -22,16 +24,17 @@ public interface BrowserControl {
 
 	/**
 	 * Flag a URL as needing to be visited
-	 * 
+	 *
 	 * @param url
 	 */
 	void goToUrl(String url);
 
 	/**
 	 * Flag a URL as having been visited
-	 * 
+	 *
 	 * @param url
 	 */
 	void urlVisited(String url);
 
+	void setLock(Lock lock);
 }

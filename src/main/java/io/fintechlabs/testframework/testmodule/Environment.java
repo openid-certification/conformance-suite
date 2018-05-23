@@ -17,6 +17,7 @@ package io.fintechlabs.testframework.testmodule;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -26,13 +27,18 @@ import com.google.gson.JsonObject;
 
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
- * 
+ *
  * This object stores JSON indexed by strings. Furthermore, the JSON can be indexed by foo.bar.baz selectors.
- * 
+ *
  * @author jricher
  *
  */
 public class Environment {
+
+	/**
+	 * Set up a lock for threading purposes
+	 */
+	public ReentrantLock lock = new ReentrantLock(true); // set with fairness policy to get up control to the longest waiting thread
 
 	private static final String STRING_VALUES = "_STRING_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
@@ -40,7 +46,7 @@ public class Environment {
 
 	/**
 	 * Look to see if the JSON object is in this environment
-	 * 
+	 *
 	 * @param objId
 	 * @return
 	 * @see java.util.Map#containsKey(java.lang.Object)
@@ -60,7 +66,7 @@ public class Environment {
 
 	/**
 	 * Remove a JSON object from this environment
-	 * 
+	 *
 	 * @param key
 	 */
 	public void remove(String key) {
@@ -69,7 +75,7 @@ public class Environment {
 
 	/**
 	 * Look up a single-string entry
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -89,7 +95,7 @@ public class Environment {
 
 	/**
 	 * Store a single string as a value
-	 * 
+	 *
 	 * @param key
 	 * @param value
 	 * @return
@@ -102,15 +108,15 @@ public class Environment {
 
 	/**
 	 * Search the environment for a key with lookup values separated by ".", so "foo.bar.baz" is found in:
-	 * 
+	 *
 	 * {
-	 *  foo: { 
-	 *    bar: { 
-	 *      baz: "value" 
-	 *    } 
-	 *  } 
+	 *  foo: {
+	 *    bar: {
+	 *      baz: "value"
+	 *    }
+	 *  }
 	 * }
-	 * 
+	 *
 	 * @param path
 	 */
 	public String getString(String objId, String path) {
@@ -161,7 +167,7 @@ public class Environment {
 
 		//
 		// TODO: memoize this lookup for efficiency
-		// 
+		//
 
 		// start at the top
 		JsonElement e = get(objId);
