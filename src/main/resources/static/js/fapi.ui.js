@@ -44,6 +44,8 @@ var FAPI_UI = {
 
 	availableTests : {},
 	
+	availablePlans : {},
+	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());
