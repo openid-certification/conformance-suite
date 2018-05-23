@@ -16,6 +16,11 @@ package io.fintechlabs.testframework.condition;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -52,6 +57,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.assertj.core.util.Strings;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -418,6 +424,35 @@ public abstract class AbstractCondition implements Condition {
 		return restTemplate;
 	}
 
+	/**
+	 * @param targetHost The host that will be used to create the socket.
+	 * @param targetPort The port that will be used to create the socket.
+	 * @return a newly created socket using the system HTTP proxy if one is set.
+	 * @throws IOException thrown if there is an issue with the socket connection.
+	 */
+	protected Socket setupSocket(String targetHost, Integer targetPort) throws IOException {
+		String proxyHost = System.getProperty("https.proxyHost", "");
+		int proxyPort = Integer.parseInt(System.getProperty("https.proxyPort", "0"));
+		Socket socket;
+		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
+			
+			log("Creating socket through system HTTP proxy", args(
+					"proxy_host", proxyHost,
+					"proxy_port", proxyPort,
+					"target_host", targetHost,
+					"target_port", targetPort,
+					"result", ConditionResult.WARNING
+				));
+			
+			Proxy proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+			socket = new Socket(proxy);
+			socket.connect(new InetSocketAddress(targetHost, targetPort));
+		} else {
+			socket = new Socket(InetAddress.getByName(targetHost), targetPort);
+		}
+		return socket;
+	}
+	
 	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
 
