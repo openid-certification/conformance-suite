@@ -600,7 +600,7 @@
                 	   data: $('#config').val(),
                 	   success: function(data, status) {
                 		   // forward to the test plan page
-                		   window.location.assign('/plan.html?plan=' + encodeURIComponent(data.id));
+                		   window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
                 	   },
                     error: function(jqxhr, status, error) {
                         FAPI_UI.hideBusy();
