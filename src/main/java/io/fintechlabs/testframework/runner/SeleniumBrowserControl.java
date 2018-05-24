@@ -89,12 +89,15 @@ public class SeleniumBrowserControl implements BrowserControl {
 	public void goToUrl(String url) {
 		// use the URL to find the command set. If there isn't a match, throw an error?
 		for (String urlPattern : commandsForUrls.keySet()) {
-			logger.info("Checking pattern: " +urlPattern + " against: " + url);
-			logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
+			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
+			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
 			if(PatternMatchUtils.simpleMatch(urlPattern,url)){
-				WebRunner wr = new WebRunner(url, commandsForUrls.get(urlPattern), lock);
+				// Wait till we can grab the lock before starting... then release the lock immediately
+				lock.lock(); // we're only using this to make sure the test is ready to accept connections before starting
+				lock.unlock();
+				WebRunner wr = new WebRunner(url, commandsForUrls.get(urlPattern));
 				taskExecutor.execute(wr);
-				logger.info("We ran the WebRunner... we should return now");
+				logger.info("WebRunner submitted to task executor for: " + url);
 				return;
 			}
 		}
@@ -126,39 +129,33 @@ public class SeleniumBrowserControl implements BrowserControl {
 		 * @param url			url to go to
 		 * @param commandSet	{@link JsonArray} of commands to perform once we get to the page
 		 */
-		WebRunner(String url, JsonArray commandSet, Lock lock){
+		WebRunner(String url, JsonArray commandSet){
 			this.url = url;
 			this.commandSet = commandSet;
-			this.lock = lock;
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
 		}
 
 		public void run() {
-			this.lock.lock();
-			try {
-				logger.info("Sending Browser to: " + url);
-				driver.get(url);
-				int responseCode = driver.getResponseCode();
-				logger.info("Inital Response Code: " + responseCode);
+			logger.info("Sending Browser to: " + url);
+			driver.get(url);
+			int responseCode = driver.getResponseCode();
+			logger.info("Inital Response Code: " + responseCode);
 
-				//JsonArray commandSet = config.getAsJsonArray("browserCommands");
+			//JsonArray commandSet = config.getAsJsonArray("browserCommands");
 
-				for (int i = 0; i < this.commandSet.size(); i++) {
-					JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
-					logger.info("Performing: " + currentTask.get("task").getAsString());
-					JsonArray commands = currentTask.getAsJsonArray("commands");
-					for (int j = 0; j < commands.size(); j++) {
-						doCommand(commands.get(j).getAsJsonArray());
-					}
-					responseCode = driver.getResponseCode();
-					logger.info("\tResponse Code: " + responseCode);
+			for (int i = 0; i < this.commandSet.size(); i++) {
+				JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
+				logger.info("Performing: " + currentTask.get("task").getAsString());
+				JsonArray commands = currentTask.getAsJsonArray("commands");
+				for (int j = 0; j < commands.size(); j++) {
+					doCommand(commands.get(j).getAsJsonArray());
 				}
-				logger.info("Completed Browser Commands");
-			} finally {
-				this.lock.unlock();
+				responseCode = driver.getResponseCode();
+				logger.info("\tResponse Code: " + responseCode);
 			}
+			logger.info("Completed Browser Commands");
 		}
 
 		/**

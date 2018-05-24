@@ -178,7 +178,15 @@ public class TestRunner {
 				"alias", alias,
 				"testName", testName));
 
-		test.configure(config, url);
+		executorService.submit(() -> {
+				// Grab the lock...
+				//test.getLock().lock();
+				//try {
+				test.configure(config, url);
+				//} finally {
+				//	test.getLock().unlock();
+				//}
+			});
 
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
@@ -227,7 +235,12 @@ public class TestRunner {
 			//test.start();
 			executorService.submit(() -> {
 				// Grab the lock...
+				//test.getLock().lock();
+				//try {
 				test.start();
+				//} finally {
+				//	test.getLock().unlock();
+				//}
 				// release the lock...
 			});
 
@@ -394,6 +407,7 @@ public class TestRunner {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", test.getName());
 		map.put("id", test.getId());
+		// TODO: Take the status out of the runner, and make it only come from `/info/<testid>`
 		map.put("status", test.getStatus());
 		map.put("result", test.getResult());
 		map.put("exposed", test.getExposedValues());

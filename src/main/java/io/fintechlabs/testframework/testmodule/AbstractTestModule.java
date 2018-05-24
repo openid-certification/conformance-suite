@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -430,62 +431,78 @@ public abstract class AbstractTestModule implements TestModule {
 					case INTERRUPTED:
 					case FINISHED:
 					case UNKNOWN:
+						clearLock();
 						break;
 					default:
+						clearLock();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
 			case CONFIGURED:
 				switch (status) {
 					case RUNNING:
+						getLock().lock();
+						break;
 					case INTERRUPTED:
 					case FINISHED:
 					case WAITING:
 					case UNKNOWN:
+						clearLock();
 						break;
 					default:
+						clearLock();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
-			case RUNNING:
+			case RUNNING:  // We should have the lock when we're running
 				switch (status) {
 					case INTERRUPTED:
 					case FINISHED:
 					case WAITING:
 					case UNKNOWN:
+						clearLock();
 						break;
 					default:
+						clearLock();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
-			case WAITING:
+			case WAITING:  // we shouldn't have the lock if we're waiting.
 				switch (status) {
 					case RUNNING:
+						getLock().lock();  // we want to grab the lock whenever we start running
+						break;
 					case INTERRUPTED:
 					case FINISHED:
 					case UNKNOWN:
 						break;
 					default:
+						clearLock();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
 			case INTERRUPTED:
 				switch (status) {
 					case INTERRUPTED:
+						clearLock();
 						break;
 					default:
+						clearLock();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
 			case FINISHED:
 				switch (status) {
 					case FINISHED:
+						clearLock();
 						break;
 					default:
+						clearLock();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 			case UNKNOWN:
 			default:
+				clearLock();
 				break;
 		}
 
@@ -494,6 +511,15 @@ public abstract class AbstractTestModule implements TestModule {
 			testInfo.updateTestStatus(getId(), getStatus());
 		}
 		this.statusUpdated = Instant.now();
+	}
+
+	/**
+	 * Helper to check if we have the lock, and if we do, unlock it.
+	 */
+	private void clearLock(){
+		if(getLock().isHeldByCurrentThread()){
+			getLock().unlock();
+		}
 	}
 
 	/**
@@ -620,7 +646,7 @@ public abstract class AbstractTestModule implements TestModule {
 		return EventLog.ex(cause, in);
 	}
 
-	public Lock getLock() {
+	public ReentrantLock getLock() {
 		return env.lock;
 	}
 
