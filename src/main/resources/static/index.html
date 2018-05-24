@@ -14,14 +14,26 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
-
-
+	<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+	
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
 		<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
 </head>
 <body>
 
@@ -79,14 +91,28 @@
 		<div id="homePage">
 
 			<!-- render available test launch options here -->
-			<div class="row">
-				<div class="col-md-12">
-					<h3>Select Test</h3>
-					<select id="testSelect" class="form-control">
-						<option value="select">--- Select A Test ----</option>
-					</select>
-				</div>
-			</div>
+            <div class="row">
+                <div class="col-md-1">
+                    <!-- toggle selector for launch type, single test by default -->
+                    <input checked data-toggle="toggle" 
+                        data-on="Single Test" data-off="Multi Test Plan" 
+                        data-onstyle="info" data-offstyle="primary"
+                        data-style="btn-block"
+                        data-width="auto" data-height="auto"
+                        checked
+                        type="checkbox" id="singleTestSelector">
+                </div>
+                <div class="col-md-11" id="testSelector">
+                    <select id="testSelect" class="form-control">
+                        <option value="select">--- Select A Test ----</option>
+                    </select>
+                </div>
+                <div class="col-md-11 collapse" id="planSelector">
+                    <select id="planSelect" class="form-control">
+                        <option value="select">--- Select A Test Plan ----</option>
+                    </select>
+                </div>
+            </div>
 
 			<div class="row">
 				<div class="col-md-12">
@@ -314,11 +340,15 @@
 				</div>
 			</div>
 
-			<div class="row">
+			<div class="row top10">
 				<div class="well col-md-6 col-md-offset-3">
+				    <button class="btn btn-block collapse">Fake Button for spacing, ignore</button>
 					<button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled="">
 						<span class="glyphicon glyphicon-flag"></span> Launch Test
 					</button>
+                    <button class="btn btn-primary btn-block btn-lg collapse" id="createPlanBtn" disabled="">
+                        <span class="glyphicon glyphicon-flag"></span> Start Test Plan
+                    </button>
 				</div>
 			</div>
 
@@ -332,7 +362,8 @@
 					<button class="btn btn-default btn-block" id="refresh">
 						<span class="glyphicon glyphicon-refresh"></span> Refresh
 					</button>
-					<a href="logs.html" class="btn btn-info btn-block"><span class="glyphicon glyphicon-list"></span> View all available logs</a>
+                    <a href="logs.html" class="btn btn-info btn-block"><span class="glyphicon glyphicon-duplicate"></span> View all available logs</a>
+                    <a href="plans.html" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> View all available plans</a>
 				</div>
 
 				<div class="col-md-10" id="running-tests">
@@ -358,7 +389,7 @@
 
 	<!-- Test Launch Selectors -->
 	<script type="text/template" id="indexTemplate_TestOption">
-        <option value="<%- testName %>"><%- displayName %></option>
+        <option value="<%- val %>"><%- display %></option>
     </script>
 
 	<script type="text/template" id="indexTemplate_TestOptGroup">
@@ -419,68 +450,101 @@
 
     </script>
 
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-	<script type="text/javascript" src="js/fapi.ui.js"></script>
-
 	<script type="text/javascript">
 		/**
 		 *
 		 */
 		$(function() {
 
+            FAPI_UI.showBusy('Loading available tests...');
+			
 			$.when(FAPI_UI.loadHomepageTemplates()).then(function() {
 				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
-			}).then(loadIndexPage());
+			}).then(function() {
+			    return loadAvailableTests();
+			}).then(function() {
+				return loadAvailablePlans();
+			}).then(function() {
+				return loadIndexPage();
+			});
 		});
 
-		function loadIndexPage() {
-			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+		function loadAvailableTests() {
+			return $.getJSON('/runner/available', function(data) {
+                // save the list of available tests and associated info for later
+                FAPI_UI.availableTests = _.indexBy(data, 'testName');
+                //console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
 
-			$.getJSON('/runner/available', function(data) {
-				// save the list of available tests and associated info for later
-				FAPI_UI.availableTests = _.indexBy(data, 'testName');
-				console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
+                // sort the tests into groups by profile
+                var groupedTests = _.groupBy(data, 'profile');
+                // consistent ordering for groups
+                var profiles = _.keys(groupedTests).sort();
 
-				// sort the tests into groups by profile
-				var groupedTests = _.groupBy(data, 'profile');
-				// consistent ordering for groups
-				var profiles = _.keys(groupedTests).sort();
+                // render all of the tests into the dropdown
+                _.each(profiles, function(profile) {
 
-				// render all of the tests into the dropdown
+                    var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
+                        label: profile
+                    }));
+                    $('#testSelect').append(optGroup);
+
+                    // note that we're sorting the tests within each group as well
+                    _.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
+                        optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
+                        	   val: item.testName,
+                        	   display: item.displayName
+                        }));
+                    });
+
+                });
+            });
+		}
+		
+		function loadAvailablePlans() {
+			return $.getJSON('/plan/available', function(data) {
+				FAPI_UI.availablePlans = _.indexBy(data, 'planName');
+
+				// sort the plans into groups by profile
+				var groupedPlans = _.groupBy(data, 'profile');
+				// consistent ordering for plans
+				var profiles = _.keys(groupedPlans).sort();
+				
+				// render all the plans into the dropdown
 				_.each(profiles, function(profile) {
-
+					
 					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
 						label: profile
 					}));
-					$('#testSelect').append(optGroup);
-
-					// note that we're sorting the tests within each group as well
-					_.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
-						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION(item));
+					$('#planSelect').append(optGroup);
+					
+					// note that we're sorting the plans within each group as well
+					_.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
+						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
+							val: item.planName,
+							display: item.displayName
+						}));
 					});
-
 				});
-
+				
 			});
+		}
+		
+		function loadIndexPage() {
+			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 
 			$('#createTestBtn').click(function(evt) {
 				var testName = $('#testSelect').val();
 
 				// if the user hasn't picked anything, just bail here
 				if (!testName || testName == 'select') {
-					console.log("No test selected");
+					//console.log("No test selected");
 					FAPI_UI.showError({
 						error: "Please select a test from the dropdown list"
 					});
 					return;
 				}
 
-				console.log('Button clicked: ' + testName);
+				//console.log('Button clicked: ' + testName);
 
 				/* Figures out which tab is visible then populates the form appropriately
 				this is to ensure that the $('#config') value has properly updated in the event of a
@@ -509,8 +573,50 @@
 					}
 				});
 			});
+			
+			$('#createPlanBtn').click(function(evt) {
+				var planName = $('#planSelect').val();
+				
+				// if the user hasn't picked anything, just bail
+				if (!planName || planName == 'select') {
+					FAPI_UI.showError({
+						error: "Please select a test plan from the dropdown list"
+					});
+					return;
+				}
 
+                /* Figures out which tab is visible then populates the form appropriately
+                this is to ensure that the $('#config') value has properly updated in the event of a
+                quick paste into a form field  with no tab switch and then a button press */
+                if ($("#formInput").hasClass("active")) {
+                    updateJSONFromFormElements();
+                }
+
+                FAPI_UI.showBusy('Creating plan...');
+                
+                $.ajax({
+                	   url: '/plan?planName=' + encodeURIComponent(planName),
+                	   type: 'POST',
+                	   contentType: 'application/json',
+                	   data: $('#config').val(),
+                	   success: function(data, status) {
+                		   // forward to the test plan page
+                		   window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
+                	   },
+                    error: function(jqxhr, status, error) {
+                        FAPI_UI.hideBusy();
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                            error: error
+                        });
+                        updateRunningTable();
+                    }
+                });
+			});
+
+			// update field visibility when the selectors change
 			$('#testSelect').on('change', updateConfigFieldVisibility);
+			$('#planSelect').on('change', updateConfigFieldVisibility);
+			
 			// update the config visibility right now
 			updateConfigFieldVisibility();
 
@@ -537,27 +643,73 @@
 
 			// sync the JSON at least once
 			updateFormElementsFromJSON();
+			
+			// update the test/plan components on the toggle switch
+			$('#singleTestSelector').on('change', updateSingleTestSelector);
+			// refresh right now
+			updateSingleTestSelector();
+			
+            FAPI_UI.hideBusy();
 
+		}
+		
+		function updateSingleTestSelector() {
+            if ($('#singleTestSelector').is(':checked')) {
+                // single test selected
+                $('#testSelector').show();
+                $('#planSelector').hide();
+                $('#createTestBtn').show();
+                $('#createPlanBtn').hide();
+            } else {
+                // multi test plan selected
+                $('#testSelector').hide();
+                $('#planSelector').show();
+                $('#createTestBtn').hide();
+                $('#createPlanBtn').show();
+            }
+            updateConfigFieldVisibility();
 		}
 
 		function updateConfigFieldVisibility() {
-			var testName = $('#testSelect').val();
+			
+            if ($('#singleTestSelector').is(':checked')) {
+            	   // single test selected
+				var testName = $('#testSelect').val();
+	
+				// if the user hasn't picked anything, disable the create button
+				if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
+					//console.log("No test selected");
+					var fieldsToShow = [];
+					$('#createTestBtn').prop('disabled', true);
+				} else {
+					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
+					// enable the create button
+					$('#createTestBtn').prop('disabled', false);
+				}
+	
+				if (!fieldsToShow) {
+					// the test hasn't defined anything, set a default
+					fieldsToShow = [];
+				}
+            } else {
+            	   // multi test plan selected
+            	   var planName = $('#planSelect').val();
 
-			// if the user hasn't picked anything, disable the create button
-			if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
-				console.log("No test selected");
-				var fieldsToShow = [];
-				$('#createTestBtn').prop('disabled', true);
-			} else {
-				var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
-				// enable the create button
-				$('#createTestBtn').prop('disabled', false);
-			}
-
-			if (!fieldsToShow) {
-				// the test hasn't defined anything, set a default
-				fieldsToShow = [];
-			}
+            	   // if the user hasn't picked anything, disable the create button
+            	   if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
+            		   var fieldsToShow = [];
+            		   $('#createPlanBtn').prop('disabled', true);
+            	   } else {
+            		   var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
+            		   
+            		   // add in any fields from the associated modules
+        			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
+        				    fieldsToShow = _.unique(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+        			   });
+            		   
+            		   $('#createPlanBtn').prop('disabled', false);
+            	   }
+            }
 
 			fieldsToShow.push('alias'); // always show the alias field
 
@@ -586,8 +738,8 @@
 		 *
 		 */
 		function updateRunningTable() {
-			$.getJSON('/runner/running', function(data) {
-				console.log('running: ', JSON.stringify(data));
+			return $.getJSON('/runner/running', function(data) {
+				//console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
 
 				// run this as a string of deferreds to guarantee order
@@ -676,14 +828,6 @@
 		function walkJSON(element, root) {
 
 			_.each(element, function(value, key, obj) {
-				/*
-				console.log("****** WALK NODE ******");
-				console.log("root=" + root);
-				console.log("value=" + JSON.stringify(value));
-				console.log("key=" + key);
-				console.log("obj=" + JSON.stringify(obj));
-				console.log("element=" + JSON.stringify(element));
-				 */
 				var el = null;
 
 				if (_.isString(value) && root == undefined && key != undefined) {
@@ -715,22 +859,6 @@
 		 */
 
 		function populateJSON(key, val) {
-
-			/*
-			var obj = { "a": { "b": '1', "c": 0 } };
-			// get
-			console.log("obj.a.c="+Object.prop(obj, 'a.c')); // -> 0
-			// set
-			Object.prop(obj, 'a.c', 5);
-			console.log(obj); // -> { a: { b: '1', c: 5 } }
-			Object.prop(obj, 'create.me.now', "hello");
-			console.log(obj); // -> { a: { b: '1', c: 5 }, create:{me:{now:"hello"}} }
-			 */
-
-			/*
-			console.log("key=" + key);
-			console.log("val=" + val);
-			 */
 			// check to see if we have an "array string" or a "number string"
 			// i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
 			try {
@@ -748,7 +876,7 @@
 				}
 			}
 
-			console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
+			//console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
 	</script>
 

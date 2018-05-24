@@ -153,7 +153,7 @@ public interface TestModule {
 	Map<String, String> getOwner();
 
 	/**
-	 * @return get the Date marking when the test was created
+	 * @return get the Instant marking when the test was created
 	 */
 	Instant getCreated();
 
