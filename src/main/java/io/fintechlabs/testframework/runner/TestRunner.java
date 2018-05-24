@@ -99,7 +99,7 @@ public class TestRunner {
 
 	@Autowired
 	private TestInfoService testInfo;
-	
+
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
@@ -184,13 +184,7 @@ public class TestRunner {
 				"testName", testName));
 
 		executorService.submit(() -> {
-				// Grab the lock...
-				//test.getLock().lock();
-				//try {
 				test.configure(config, url);
-				//} finally {
-				//	test.getLock().unlock();
-				//}
 			});
 
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
@@ -236,17 +230,8 @@ public class TestRunner {
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
-			// TODO: fire this off in a background task thread?
-			//test.start();
 			executorService.submit(() -> {
-				// Grab the lock...
-				//test.getLock().lock();
-				//try {
 				test.start();
-				//} finally {
-				//	test.getLock().unlock();
-				//}
-				// release the lock...
 			});
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
@@ -342,11 +327,11 @@ public class TestRunner {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
+
 	private TestModule createTestModule(String testName, String id, BrowserControl browser) {
 
 		TestModuleHolder holder = getTestModules().get(testName);
-		
+
 		if (holder == null) {
 			logger.warn("Couldn't find a test module for " + testName);
 			return null;
@@ -355,7 +340,7 @@ public class TestRunner {
 		try {
 
 			Class<? extends TestModule> testModuleClass = holder.c;
-			
+
 			@SuppressWarnings("unchecked")
 			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
 
@@ -408,7 +393,7 @@ public class TestRunner {
 			this.a = a;
 		}
 	}
-	
+
 	private Map<String, Object> createTestStatusMap(TestModule test) {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", test.getName());
