@@ -22,14 +22,12 @@ public class ValidateSHash extends ValidateHash {
 
 	public ValidateSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "s_hash";
-		super.EnvName = "state_hash";
 	}
 
 	@Override
 	@PreEnvironment(strings = "state", required = "state_hash")
 	public Environment evaluate(Environment env) {
-		return super.evaluate(env);
+		return super.validateHash(env, "s_hash", "state_hash");
 	}
 
 }

@@ -10,14 +10,12 @@ public class ValidateCHash extends ValidateHash {
 
 	public ValidateCHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "c_hash";
-		super.EnvName = "c_hash";
 	}
 
 	@Override
 	@PreEnvironment(strings = "state", required = "c_hash")
 	public Environment evaluate(Environment env) {
-		return super.evaluate(env);
+		return super.validateHash(env,"c_hash","c_hash");
 	}
 
 	

@@ -18,19 +18,15 @@ import com.google.common.base.Strings;
 
 public abstract class ValidateHash extends AbstractCondition {
 	
-	protected String HashName;
-	protected String EnvName = null;
-	
 	public ValidateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	@Override
-	public Environment evaluate(Environment env) {
+	public Environment validateHash(Environment env, String hashName, String envName ) {
 		
-		JsonObject hashJson = env.get(EnvName);
+		JsonObject hashJson = env.get(envName);
 		if (hashJson == null) {
-			throw error("Couldn't find " + HashName);
+			throw error("Couldn't find " + hashName);
 		}
 
 		JsonElement algElement= hashJson.get("alg");
@@ -38,9 +34,9 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Could not find alg field."); 
 		}
 
-		JsonElement hashElement = hashJson.get(HashName);
+		JsonElement hashElement = hashJson.get(hashName);
 		if (hashElement == null) {
-			throw error("Could not find " + HashName + " field.");
+			throw error("Could not find " + hashName + " field.");
 		}
 
 		
@@ -60,10 +56,10 @@ public abstract class ValidateHash extends AbstractCondition {
 		}
 		
 		if (Strings.isNullOrEmpty(hash)) {
-			throw error(HashName + " element is null or empty. Invalid");
+			throw error(hashName + " element is null or empty. Invalid");
 		}
 		
-		String baseString = getBaseStringBasedOnType(env);
+		String baseString = getBaseStringBasedOnType(env, hashName);
 
 		MessageDigest digester;
 
@@ -86,19 +82,19 @@ public abstract class ValidateHash extends AbstractCondition {
 
 		String expectedHash = Base64URL.encode(halfDigest).toString();
 		if (!hash.equals(expectedHash)) {
-			throw error("Invalid " + HashName + " in token", args("expected", expectedHash, "actual", hash));
+			throw error("Invalid " + hashName + " in token", args("expected", expectedHash, "actual", hash));
 		}
 
-		logSuccess("State hash validated successfully", args(HashName, hash));
+		logSuccess("State hash validated successfully", args(hashName, hash));
 
 		return env;
 	}
 	
-	private String getBaseStringBasedOnType(Environment env) {
+	private String getBaseStringBasedOnType(Environment env, String hashName) {
 
 		String baseString = null;
 		
-		switch (HashName) {
+		switch (hashName) {
 			case "s_hash":
 				baseString = env.getString("state");
 				if (baseString == null) {
@@ -119,7 +115,7 @@ public abstract class ValidateHash extends AbstractCondition {
 				}
 				break;
 			default:
-				throw error("Invalid HashName(" + HashName + ")");
+				throw error("Invalid HashName(" + hashName + ")");
 		}
 
 		return baseString;

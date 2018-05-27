@@ -36,8 +36,6 @@ public class ExtractAtHash extends ExtractHash {
 	 */
 	public ExtractAtHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "at_hash"; 
-		super.EnvName = "at_hash";
 	}
 
 	/* (non-Javadoc)
@@ -48,7 +46,7 @@ public class ExtractAtHash extends ExtractHash {
 	@PostEnvironment(required = "at_hash")
 	public Environment evaluate(Environment env) {
 
-		return super.evaluate(env);
+		return super.extractHash(env, "at_hash", "at_hash");
 
 	}
 

@@ -28,8 +28,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public abstract class ExtractHash extends AbstractCondition {
 
-	protected String HashName; 
-	protected String EnvName;
 	
 	/**
 	 * @param testId
@@ -41,18 +39,17 @@ public abstract class ExtractHash extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 	
-	@Override
-	public Environment evaluate(Environment env) {
+	public Environment extractHash(Environment env, String hashName, String envName) {
 		
-		env.remove(EnvName);
+		env.remove(envName);
 
 		if (!env.containsObj("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 
-		String hash = env.getString("id_token", "claims." + HashName);
+		String hash = env.getString("id_token", "claims." + hashName);
 		if (hash == null) {
-			throw error("Couldn't find " + HashName + " in ID token");
+			throw error("Couldn't find " + hashName + " in ID token");
 		}
 
 		String alg = env.getString("id_token", "header.alg");
@@ -62,12 +59,12 @@ public abstract class ExtractHash extends AbstractCondition {
 
 		JsonObject outData = new JsonObject();
 
-		outData.addProperty(HashName, hash);
+		outData.addProperty(hashName, hash);
 		outData.addProperty("alg", alg);
 
-		env.put(EnvName, outData);
+		env.put(envName, outData);
 
-		logSuccess("Extracted " + HashName + " from ID Token", outData);
+		logSuccess("Extracted " + hashName + " from ID Token", outData);
 		
 		return env;
 	}

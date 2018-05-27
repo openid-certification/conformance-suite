@@ -9,14 +9,12 @@ public class ValidateAtHash extends ValidateHash {
 
 	public ValidateAtHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "at_hash";
-		super.EnvName = "at_hash";
 	}
 
 	@Override
 	@PreEnvironment(strings = "state", required = "at_hash")
 	public Environment evaluate(Environment env) {
-		return super.evaluate(env);
+		return super.validateHash(env,"at_hash","at_hash");
 	}
 
 	

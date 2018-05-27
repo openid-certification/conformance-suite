@@ -36,8 +36,6 @@ public class ExtractCHash extends ExtractHash {
 	 */
 	public ExtractCHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		super.HashName = "c_hash"; 
-		super.EnvName = "c_hash";
 	}
 
 	/* (non-Javadoc)
@@ -48,7 +46,7 @@ public class ExtractCHash extends ExtractHash {
 	@PostEnvironment(required = "c_hash")
 	public Environment evaluate(Environment env) {
 
-		return super.evaluate(env);
+		return super.extractHash(env, "c_hash", "c_hash");
 
 	}
 
