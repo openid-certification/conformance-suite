@@ -22,7 +22,7 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
-import io.fintechlabs.testframework.condition.client.ValidateSHash;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -39,7 +39,9 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
-		
+
+		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+
 		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");

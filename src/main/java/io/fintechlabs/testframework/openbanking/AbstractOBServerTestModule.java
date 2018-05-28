@@ -83,6 +83,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
@@ -396,6 +397,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
 		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
 
