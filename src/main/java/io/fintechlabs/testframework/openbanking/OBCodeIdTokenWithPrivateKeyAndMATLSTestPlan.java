@@ -24,7 +24,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 @PublishTestPlan (
 	testPlanName = "ob-code-id-token-with-private-key-and-matls-test-plan",
 	displayName = "OB: code id_token with private key client authentication Test Plan",
-	profile = "OpenBanking",
+	profile = "OB",
 	testModuleNames = {
 		"ob-code-id-token-with-private-key-and-matls",
 		"ob-ensure-matls-required-code-id-token-with-private-key-and-matls",
