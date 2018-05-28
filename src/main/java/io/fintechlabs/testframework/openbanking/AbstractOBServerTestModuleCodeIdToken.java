@@ -24,7 +24,7 @@ import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResp
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
-import io.fintechlabs.testframework.condition.client.ExtractSHash;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -150,7 +150,9 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
-		
+
+		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+
 		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
