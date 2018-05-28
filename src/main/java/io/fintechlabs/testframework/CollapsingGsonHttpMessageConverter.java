@@ -71,7 +71,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 				@Override
 				public JsonElement serialize(DBObject src, Type typeOfSrc, JsonSerializationContext context) {
 					// run the field conversion
-					DBObject converted = (DBObject) convertStructureToField(src);
+					Object converted = convertStructureToField(src);
 					// delegate to regular GSON for the real work
 					return internalGson.toJsonTree(converted);
 				}
