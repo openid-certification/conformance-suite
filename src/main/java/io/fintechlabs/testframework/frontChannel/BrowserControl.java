@@ -83,9 +83,6 @@ public class BrowserControl {
 			commandsForUrls.put(urlMatcher, current.getAsJsonArray("commandSet"));
 		}
 
-		// quite down CSS errors/warnings in the parser selenium/htmlunit uses
-		java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
-
 		// Make this autowired? Or at least passed in from the TestRunner?
 		taskExecutor = new SimpleAsyncTaskExecutor();
 	}

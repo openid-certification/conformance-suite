@@ -2,6 +2,8 @@
 package io.fintechlabs.testframework;
 
 import java.security.Security;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.catalina.connector.Connector;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -17,6 +19,9 @@ public class Application {
 	public static void main(String[] args) {
 
 		Security.addProvider(new BouncyCastleProvider());
+
+		// quiet down CSS errors/warnings in the parser selenium/htmlunit uses
+		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
 
 		SpringApplication.run(Application.class, args);
 	}
