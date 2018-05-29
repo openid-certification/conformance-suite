@@ -16,9 +16,7 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -42,7 +40,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,18 +49,14 @@ import org.springframework.web.util.UriUtils;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.plan.PublishTestPlan;
-import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -126,12 +119,7 @@ public class TestRunner {
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
-		BrowserControl browser;
-		if (config.has("browserCommands")) {
-			browser = new SeleniumBrowserControl(config, id);
-		} else {
-			browser = new CollectingBrowserControl();
-		}
+		BrowserControl browser = new BrowserControl(config, id);
 
 		TestModule test = createTestModule(testName, id, browser);
 
@@ -296,10 +284,8 @@ public class TestRunner {
 			if (browser != null) {
 				Map<String, Object> map = new HashMap<>();
 				map.put("id", testId);
-				if (browser instanceof CollectingBrowserControl) {
-					map.put("urls", ((CollectingBrowserControl) browser).getUrls());
-					map.put("visited", ((CollectingBrowserControl) browser).getVisited());
-				}
+				map.put("urls", browser.getUrls());
+				map.put("visited", browser.getVisited());
 
 				return new ResponseEntity<>(map, HttpStatus.OK);
 			} else {
@@ -409,12 +395,10 @@ public class TestRunner {
 
 		BrowserControl browser = test.getBrowser();
 		if (browser != null) {
-			if (browser instanceof CollectingBrowserControl) {
-				Map<String, Object> bmap = new HashMap<>();
-				bmap.put("urls", ((CollectingBrowserControl) browser).getUrls());
-				bmap.put("visited", ((CollectingBrowserControl) browser).getVisited());
-				map.put("browser", bmap);
-			}
+			Map<String, Object> bmap = new HashMap<>();
+			bmap.put("urls", browser.getUrls());
+			bmap.put("visited", browser.getVisited());
+			map.put("browser", bmap);
 		}
 		return map;
 	}
