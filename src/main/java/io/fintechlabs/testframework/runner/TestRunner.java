@@ -119,9 +119,7 @@ public class TestRunner {
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
-		BrowserControl browser = new BrowserControl(config, id);
-
-		TestModule test = createTestModule(testName, id, browser);
+		TestModule test = createTestModule(testName, id, config);
 
 		if (test == null) {
 			// return an error
@@ -314,7 +312,7 @@ public class TestRunner {
 		}
 	}
 
-	private TestModule createTestModule(String testName, String id, BrowserControl browser) {
+	private TestModule createTestModule(String testName, String id, JsonObject config) {
 
 		TestModuleHolder holder = getTestModules().get(testName);
 
@@ -332,6 +330,8 @@ public class TestRunner {
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
+			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog);
+			
 			// call the constructor
 			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
 				.newInstance(id, owner, wrappedEventLog, browser, testInfo);

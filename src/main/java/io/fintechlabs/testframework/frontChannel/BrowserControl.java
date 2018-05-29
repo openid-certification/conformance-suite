@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -69,8 +70,11 @@ public class BrowserControl {
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
 
-	public BrowserControl(JsonObject config, String testId){
+	private TestInstanceEventLog eventLog;
+
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog){
 		this.testId = testId;
+		this.eventLog = eventLog;
 
 
 		// loop through the commandSets to find the various URL matchers to use
