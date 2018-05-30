@@ -30,6 +30,9 @@ public class VerifyIdTokenExpHeart extends AbstractCondition {
 			if (Instant.ofEpochSecond(iat).plusSeconds(60 * 5).isBefore(Instant.ofEpochSecond(exp)) ) {
 				throw error("Valid for more than 5 minutes", args("expiration", new Date(exp * 1000L), "issued_at", new Date(iat * 1000L)));
 			}
+			if (Instant.ofEpochSecond(iat).isAfter(Instant.ofEpochSecond(exp))) {
+				throw error("Expired before issued", args("expiration", new Date(exp * 1000L), "issued_at", new Date(iat * 1000L)));
+			}
 		}
 		return env;
 	}
