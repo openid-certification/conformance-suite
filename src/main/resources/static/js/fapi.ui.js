@@ -7,6 +7,7 @@ var FAPI_UI = {
 		this.logTemplates.TEST_OPTGROUP = _.template($("#indexTemplate_TestOptGroup").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
 		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
+		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
 	},
 
 	loadLogDetailTemplates: function() {

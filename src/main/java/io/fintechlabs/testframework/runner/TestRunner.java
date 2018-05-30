@@ -384,9 +384,6 @@ public class TestRunner {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", test.getName());
 		map.put("id", test.getId());
-		// TODO: Take the status out of the runner, and make it only come from `/info/<testid>`
-		map.put("status", test.getStatus());
-		map.put("result", test.getResult());
 		map.put("exposed", test.getExposedValues());
 		map.put("owner", test.getOwner());
 		map.put("created", test.getCreated().toString());

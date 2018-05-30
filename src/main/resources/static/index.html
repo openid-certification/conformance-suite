@@ -404,16 +404,9 @@
 
 	<!-- Running Test: Main -->
 	<script type="text/template" id="indexTemplate_RunningTest">
-        <div class="runningTest row">
-            <div class="col-md-2"> <!-- result/status -->
-                <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>">
-                    <%- test.status %>
-                    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
-                </div>
-                <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>">
-                    <%- test.result %>
-                    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
-                </div>
+        <div class="runningTest row" data-instance-id="<%- test.id %>">
+            <div class="col-md-2 testStatusAndResult"> <!-- result/status -->
+
             </div>
             <div class="col-md-8"> <!-- test name / date -->
                 <div class="row">
@@ -448,6 +441,18 @@
 
         </div>
 
+    </script>
+    
+    <!-- result/status block -->
+    <script type="text/template" id="logTemplate_TestStatusAndResult">
+        <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
+            <%- test.status ? test.status : 'UNKNOWN' %>
+            <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
+        </div>
+        <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'unknown' %>">
+            <%- test.result ? test.result : 'UNKNOWN' %>
+            <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
+        </div>
     </script>
 
 	<script type="text/javascript">
@@ -779,7 +784,23 @@
 					evt.preventDefault();
 					window.open('/log-detail.html?log=' + encodeURIComponent(testId));
 				});
-
+			}).then(function() {
+				
+				var _self =  $(`[data-instance-id='${testId}']`);
+				
+				return $.ajax({
+                    type: 'GET',
+                    url: '/info/' + encodeURIComponent(testId),
+                    data: {},
+                    success: function(data) {
+                        $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
+                    },
+                    error: function(jqxhr, status, error) {
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                            error: error
+                        });
+                    }
+                });
 			});
 		}
 
