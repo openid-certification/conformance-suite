@@ -214,7 +214,7 @@
 	<!-- Log detail element -->
 	<script type="text/template" id="logDetailTemplate">
           <div class="row">
-            <div data-item-log-id="<%- item._id %>" class="col-md-12 logItem">
+            <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem">
 
                 <div class="row"><!-- time / result & http / source / owner -->
 
@@ -483,55 +483,71 @@
 				success: function(data) {
 
 					// clear any existing log items
-					$('#logDetail .logContent').html('');
+					//$('#logDetail .logContent').html('');
 
 					$.each(data, function(i, item) {
 
-						// render the base element
-						var el = $(FAPI_UI.logTemplates.LOG_DETAIL({
-							item: item
-						}));
-						$('#logDetail .logContent').append(el);
+					    var existing = $(`[data-item-entry-id='${item._id}']`);
+						
+					    if (existing.length == 0) {
+					    	
+	                        // render the base element
+	                        var el = $(FAPI_UI.logTemplates.LOG_DETAIL({
+	                            item: item
+	                        }));
+	                        $('#logDetail .logContent').append(el);
 
-						// see if we've got any "extra" bits that we want to display in a block
-						var more = _.pick(item, function(value, key, object) {
-							return !_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_");
-						});
+	                        // see if we've got any "extra" bits that we want to display in a block
+	                        var more = _.pick(item, function(value, key, object) {
+	                            return !_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_");
+	                        });
 
-						if (!_.isEmpty(more)) {
-							// we have extra fields so let's attach them
-							var moreButton = $(FAPI_UI.logTemplates.MORE_BUTTON({
-								more: more,
-								item: item
-							}));
-							var moreInfo = $(FAPI_UI.logTemplates.MORE({
-								more: more,
-								item: item
-							}));
+	                        if (!_.isEmpty(more)) {
+	                            // we have extra fields so let's attach them
+	                            var moreButton = $(FAPI_UI.logTemplates.MORE_BUTTON({
+	                                more: more,
+	                                item: item
+	                            }));
+	                            var moreInfo = $(FAPI_UI.logTemplates.MORE({
+	                                more: more,
+	                                item: item
+	                            }));
 
-							$('.moreButtonContainer', el).append(moreButton);
-							$('.moreInfoContainer', el).append(moreInfo);
+	                            $('.moreButtonContainer', el).append(moreButton);
+	                            $('.moreInfoContainer', el).append(moreInfo);
 
-							// wire up the button
-							$('.moreBtn', el).click(function(evt) {
-								if ($(this).data('activated')) {
-									// it's already been activated, need to hide things
-									$('.moreInfo', el).hide(); // hide the content
-									$('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
-									$(this).data('activated', false);
-								} else {
-									// need to show the collapsed entity
-									$('.moreInfo', el).show(); // show the content
-									$('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
-									$(this).data('activated', true);
-								}
-							});
-							
-							// prettyprint any raw JSON values
-							PR.prettyPrint();
-						}
+	                            // wire up the button
+	                            $('.moreBtn', el).click(function(evt) {
+	                                if ($(this).data('activated')) {
+	                                    // it's already been activated, need to hide things
+	                                    $('.moreInfo', el).hide(); // hide the content
+	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+	                                    $(this).data('activated', false);
+	                                } else {
+	                                    // need to show the collapsed entity
+	                                    $('.moreInfo', el).show(); // show the content
+	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+	                                    $(this).data('activated', true);
+	                                }
+	                            });
+	                            
+	                            // prettyprint any raw JSON values
+	                            PR.prettyPrint();
+	                        }
+					    } else {
+					    	   // skipping an existing element
+					    	   //console.log('Skipping existing: ' + item._id);
+					    }
+					    
 					});
 
+                    // update the log item list every couple seconds
+                    setTimeout(function() {
+                        getLogs(testId);
+                    }, 5000);
+
+
+					
 				},
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -807,7 +823,7 @@
 							$('#stacktrace').show();
 						});
 					}
-
+					
 				},
 				error: function(jqxhr, status, error) {
 					// test isn't currently in the runner, can't start or stop it
