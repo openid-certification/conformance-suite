@@ -560,7 +560,9 @@
 				success: function(data) {
 					
 					// save the status for the 'active' panel later
-					FAPI_UI.status = data.status.toLowerCase();
+					if (data.status) {
+						FAPI_UI.status = data.status.toLowerCase();
+					}
 					
 					// see if we've already rendered this
 					var existing = $(`#logDetail .header [data-instance-id='${testId}']`);
