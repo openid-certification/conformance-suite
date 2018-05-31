@@ -253,10 +253,12 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
-			eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
-			test.stop();
+			executorService.submit(() -> {
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
+				test.stop();
+			});
 
-			// return its status
+			// return its immediate status
 			Map<String, Object> map = createTestStatusMap(test);
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
