@@ -35,6 +35,7 @@ public class BrowserControl {
 			"commandSet": [
 				{
 					"task": "Initial Login",
+					"expectedUrl": "https://mitreid.org/login*",
 					"commands": [
 						["text","id","j_username","user"],
 						["text","id","j_password","password"],
@@ -43,11 +44,17 @@ public class BrowserControl {
 				},
 				{
 					"task": "Authorize Client",
+					"expectedUrl": "https://mitreid.org/authorize*",
+                    "skipable": true,
 					"commands": [
 						["click","id","remember-not"],
 						["click","name","authorize"]
 					]
-				}
+				},
+                {
+                    "task": "Verify Complete",
+                    "expectedUrl": "https://localhost*"
+                }
 			]
 		}
      ]
