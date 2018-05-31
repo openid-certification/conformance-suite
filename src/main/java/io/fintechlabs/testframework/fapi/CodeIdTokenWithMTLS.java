@@ -39,6 +39,7 @@ import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthori
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
@@ -230,6 +231,9 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
+		skipIfMissing(new String[] { "callback_query_params" }, new String[] {}, ConditionResult.INFO,
+				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+				
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);

@@ -15,6 +15,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
@@ -105,6 +106,9 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
+		skipIfMissing(new String[] { "callback_query_params" }, new String[] {}, ConditionResult.INFO,
+				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);
