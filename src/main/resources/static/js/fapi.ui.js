@@ -58,6 +58,8 @@ var FAPI_UI = {
 	
 	status: 'unknown',
 	
+	latestTestEntry: undefined,
+	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());

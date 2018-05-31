@@ -462,14 +462,11 @@
 	</div>
 
 	<script type="text/javascript">
-		/**
-		 *
-		 */
 		function getLogs(testId) {
 
 			return $.ajax({
 				type: 'GET',
-				url: "/log/" + encodeURIComponent(testId),
+				url: "/log/" + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
 				data: {},
 				success: function(data) {
 
@@ -480,6 +477,7 @@
 
 					    var existing = $(`[data-item-entry-id='${item._id}']`);
 						
+					    // check to see if we've seen it before
 					    if (existing.length == 0) {
 					    	
 	                        // render the base element
@@ -525,6 +523,10 @@
 	                            // prettyprint any raw JSON values
 	                            PR.prettyPrint();
 	                        }
+	                        
+	                        // write down the "last" log entry we've seen so far so we don't have to re-fetch it at all; if it does happen we can ignore it
+                            FAPI_UI.latestTestEntry = _.max([FAPI_UI.latestTestEntry, item.time]);
+                            
 					    } else {
 					    	   // skipping an existing element
 					    	   //console.log('Skipping existing: ' + item._id);
@@ -547,6 +549,8 @@
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 						error: error
 					});
+                    // don't update anymore
+                    FAPI_UI.running = false;
 				}
 			});
 		}
@@ -605,6 +609,8 @@
 	                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 	                                    error: error
 	                                });
+	                                // don't update anymore
+	                                FAPI_UI.running = false;
 	                            }
 	                        });
 
@@ -628,6 +634,8 @@
                                     FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
                                         error: error
                                     });
+                                    // don't update anymore
+                                    FAPI_UI.running = false;
                                 }
                             }).then(function() {
                                 stopReloader();
@@ -648,6 +656,8 @@
                                     FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
                                         error: error
                                     });
+                                    // don't update anymore
+                                    FAPI_UI.running = false;
                                 }
                             }).then(function() {
                                 return reload(testId);
@@ -695,6 +705,8 @@
 	                                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 	                                                    error: error
 	                                                });
+	                                                // don't update anymore
+	                                                FAPI_UI.running = false;
 	                                            }
 	                                        });
 	                                    });
@@ -707,6 +719,8 @@
 	                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 	                                    error: error
 	                                });
+	                                // don't update anymore
+	                                FAPI_UI.running = false;
 	                            }
 	                        })
 	                        
@@ -721,6 +735,8 @@
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 						error: error
 					});
+                    // don't update anymore
+                    FAPI_UI.running = false;
 				}
 			});
 		}
@@ -795,6 +811,8 @@
 										FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 											error: error
 										});
+					                    // don't update anymore
+					                    FAPI_UI.running = false;
 									}
 								}).then(function() {
 									return reload(testId);
@@ -840,14 +858,16 @@
 
 		function startReloader(testId) {
 			clearTimeout(FAPI_UI.reloader);
-			FAPI_UI.reloader = setTimeout(function() {
-                return reload(testId)
-                .always(function() {
-                    if (FAPI_UI.running) {
-                        startReloader(testId);
-                    }
-                });
-            }, 1000);
+			if (FAPI_UI.running) {
+				FAPI_UI.reloader = setTimeout(function() {
+	                return reload(testId)
+	                .always(function() {
+	                    if (FAPI_UI.running) {
+	                        startReloader(testId);
+	                    }
+	                });
+	            }, 1000);
+			}
 		}
 		
 		function stopReloader() {
