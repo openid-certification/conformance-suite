@@ -170,8 +170,8 @@ public class TestRunner {
 				"testName", testName));
 
 		executorService.submit(() -> {
-				test.configure(config, url);
-			});
+			test.configure(config, url);
+		});
 
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
