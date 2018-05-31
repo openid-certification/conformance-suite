@@ -27,6 +27,7 @@ var FAPI_UI = {
 		this.logTemplates.HTTP = _.template($("#logDetailTemplate_Http").html());
 		this.logTemplates.FINAL_ERROR = _.template($('#logDetailTemplate_FinalError').html());
 		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
+		this.logTemplates.SUMMARY = _.template($('#logDetailTemplate_ResultsSummary').html());
 	},
 	
 	loadLogListTemplates: function() {
@@ -52,6 +53,10 @@ var FAPI_UI = {
 	availableTests : {},
 	
 	availablePlans : {},
+	
+	running: false,
+	
+	status: 'unknown',
 	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {

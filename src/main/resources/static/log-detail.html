@@ -105,24 +105,7 @@
 
     <!-- summary -->
     <script type="text/template" id="logDetailTemplate_ResultsSummary">
-        <!-- calculated test results -->
-        <div>
-            <div>
-                <small>Test condition summary:</small>
-            </div>
-            <div class="labelCollection">
-            <%
-                var hiddenKeys = ["passed", "finished", "total"];
-                _.each(summary, function(value, key, o) {
-                    if (value && !_.contains(hiddenKeys, key)) {
-            %>
-                <span class="label result-<%- key %>"><%- key.toUpperCase() %> <span class="badge"><%- value %></span></span>
-            <%
-                    }
-                });
-            %>
-            </div>
-        </div>
+        <span class="label result-<%- result.toLowerCase() %>"><%- result.toUpperCase() %> <span class="badge"><%- value ? value : '0' %></span></span>
     </script>
 
 	<!-- LogStart -->
@@ -162,6 +145,13 @@
                         <div class="col-md-11"><%- test.planId %></div>
                     </div>
                     <% } %>
+                    <div class="row">
+                        <!-- calculated test results -->
+                        <div class="col-md-1">Summary:</div>
+                        <div class="col-md-11 labelCollection" id="testResultSummary">
+
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-md-2"> <!-- controls -->
@@ -316,7 +306,7 @@
 
 	<!-- Result -->
 	<script type="text/template" id="logDetailTemplate_Result">
-            <div class="labelCollection">
+            <div class="labelCollection" data-entry-result="<%- item.result.toLowerCase() %>">
                 <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
             </div>
         </script>
@@ -541,7 +531,17 @@
 					    }
 					    
 					});
-
+					
+				    // total the amounts for display
+				    var allResults = $('[data-entry-result]').map(function() { return $(this).data('entryResult'); }).get();
+				    var resultTotals = _.countBy(allResults, _.identity());
+				    
+				    var possibleResults = ['success', 'failure', 'warning', 'review', 'interrupted', 'info'];
+				    var results = '';
+				    _.each(possibleResults, function(result) {
+				    	   results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
+				    });
+				    $('#testResultSummary').html(results);
 				},
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -558,6 +558,9 @@
 				url: '/info/' + encodeURIComponent(testId),
 				data: {},
 				success: function(data) {
+					
+					// save the status for the 'active' panel later
+					FAPI_UI.status = data.status.toLowerCase();
 					
 					// see if we've already rendered this
 					var existing = $(`#logDetail .header [data-instance-id='${testId}']`);
@@ -612,6 +615,45 @@
 	                        $('#configModal').modal('show');
 	                    });
 	                    
+                        $('#stopBtn').click(function(evt) {
+                            evt.preventDefault();
+                            FAPI_UI.showBusy('Stopping test...');
+
+                            $.ajax({
+                                url: '/runner/' + encodeURIComponent(testId),
+                                type: 'DELETE',
+                                error: function(jqxhr, status, error) {
+                                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                        error: error
+                                    });
+                                }
+                            }).then(function() {
+                                stopReloader();
+                                return reload(testId);
+                            }).always(function() {
+                                FAPI_UI.hideBusy();
+                            });
+                        });
+
+                        $('#startBtn').click(function(evt) {
+                            evt.preventDefault();
+                            FAPI_UI.showBusy('Starting test...');
+
+                            $.ajax({
+                                url: '/runner/' + encodeURIComponent(testId),
+                                type: 'POST',
+                                error: function(jqxhr, status, error) {
+                                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                        error: error
+                                    });
+                                }
+                            }).then(function() {
+                                return reload(testId);
+                            }).always(function() {
+                                FAPI_UI.hideBusy();
+                            });
+                        });
+
 	                    if (data.planId) {
 	                        $('#planBtn').click(function(evt) {
 	                            evt.preventDefault();
@@ -682,6 +724,7 @@
 		}
 
 		function getActive(testId) {
+			
 			// try to load up the active test information if it's available, otherwise cut out some controls
 			return $.ajax({
 				type: 'GET',
@@ -690,9 +733,12 @@
 					// show the overall container
 					$('#runningTestInformation').show();
 
+					// if it's an active test, keep it updated unless we figure out otherwise
+                    FAPI_UI.running = true;
+                    
 					// found an active test, light up the buttons appropriately
-					if (data.status) {
-						if (data.status.toLowerCase() == 'finished' || data.status.toLowerCase() == 'interrupted') {
+					if (FAPI_UI.status) {
+						if (FAPI_UI.status == 'finished' || FAPI_UI.status == 'interrupted') {
 							// can't start or stop a stopped test
 							$('#startBtn').hide();
 							$('#stopBtn').hide();
@@ -700,6 +746,8 @@
 							$('#runningTestActive').hide();
 							$('#runningTestInactive').show();
 							$('#runningTestArchived').hide();
+							// no need to keep updating either
+							FAPI_UI.running = false;
 						} else {
 							// this test is currently running and can potentially be stopped
 							$('#stopBtn').show();
@@ -707,50 +755,9 @@
 							$('#runningTestInactive').hide();
 							$('#runningTestArchived').hide();
 
-							$('#stopBtn').click(function(evt) {
-								evt.preventDefault();
-								FAPI_UI.showBusy('Stopping test...');
-
-								$.ajax({
-									url: '/runner/' + encodeURIComponent(testId),
-									type: 'DELETE',
-									error: function(jqxhr, status, error) {
-										FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-											error: error
-										});
-									}
-								}).then(function() {
-									stopReloader(testId);
-									return reload(testId);
-								}).always(function() {
-									FAPI_UI.hideBusy();
-								});
-							});
-
 							// if the test is currently in a "created" or "configured" state it can also be started
-							if (data.status.toLowerCase() == 'created' || data.status.toLowerCase() == 'configured') {
-
+							if (FAPI_UI.status == 'created' || FAPI_UI.status == 'configured') {
 								$('#startBtn').show();
-
-								$('#startBtn').click(function(evt) {
-									evt.preventDefault();
-									FAPI_UI.showBusy('Starting test...');
-
-									$.ajax({
-										url: '/runner/' + encodeURIComponent(testId),
-										type: 'POST',
-										error: function(jqxhr, status, error) {
-											FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-												error: error
-											});
-										}
-									}).then(function() {
-										return reload(testId);
-									}).always(function() {
-										FAPI_UI.hideBusy();
-									});
-								});
-
 							} else {
 								// otherwise, the test can't be started
 								$('#startBtn').hide();
@@ -823,6 +830,8 @@
 					$('#runningTestActive').hide();
 					$('#runningTestInactive').hide();
 					$('#runningTestArchived').show();
+					// don't update anymore
+					FAPI_UI.running = false;
 				}
 			});
 		}
@@ -832,12 +841,15 @@
 			FAPI_UI.reloader = setTimeout(function() {
                 return reload(testId)
                 .always(function() {
-                    startReloader(testId);
+                    if (FAPI_UI.running) {
+                        startReloader(testId);
+                    }
                 });
             }, 1000);
 		}
 		
-		function stopReloader(testId) {
+		function stopReloader() {
+			FAPI_UI.running = false;
 			clearTimeout(FAPI_UI.reloader);
 		}
 
@@ -852,9 +864,6 @@
             });
 		}
 		
-		/**
-		 *
-		 */
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var testId = urlParams.get('log');
