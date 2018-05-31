@@ -55,7 +55,7 @@ public abstract class AbstractTestModule implements TestModule {
 	//private ExecutorService executorService = Executors.newCachedThreadPool();
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.UNKNOWN; // current status of the test
+	private Status status = Status.CREATED; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
@@ -431,6 +431,7 @@ public abstract class AbstractTestModule implements TestModule {
 					case INTERRUPTED:
 					case FINISHED:
 					case UNKNOWN:
+					case CREATED:
 						clearLock();
 						break;
 					default:

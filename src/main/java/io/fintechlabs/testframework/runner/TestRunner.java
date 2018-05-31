@@ -170,8 +170,8 @@ public class TestRunner {
 				"testName", testName));
 
 		executorService.submit(() -> {
-				test.configure(config, url);
-			});
+			test.configure(config, url);
+		});
 
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
@@ -253,10 +253,12 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
-			eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
-			test.stop();
+			executorService.submit(() -> {
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
+				test.stop();
+			});
 
-			// return its status
+			// return its immediate status
 			Map<String, Object> map = createTestStatusMap(test);
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
@@ -384,9 +386,6 @@ public class TestRunner {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", test.getName());
 		map.put("id", test.getId());
-		// TODO: Take the status out of the runner, and make it only come from `/info/<testid>`
-		map.put("status", test.getStatus());
-		map.put("result", test.getResult());
 		map.put("exposed", test.getExposedValues());
 		map.put("owner", test.getOwner());
 		map.put("created", test.getCreated().toString());

@@ -39,6 +39,7 @@ import com.mongodb.BasicDBObjectBuilder;
 
 import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
@@ -105,6 +106,7 @@ public class DBTestInfoService implements TestInfoService {
 			.add("alias", alias)
 			.add("owner", owner)
 			.add("planId", planId)
+			.add("status", TestModule.Status.CREATED)
 			.add("version", version);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);

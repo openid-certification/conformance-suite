@@ -65,7 +65,7 @@ public class BrowserControl {
 
 	private TaskExecutor taskExecutor;
 	private Lock lock;
-	private Map<String, JsonArray> commandsForUrls;
+	private Map<String, JsonArray> commandsForUrls = new HashMap<>();
 
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
@@ -79,7 +79,11 @@ public class BrowserControl {
 
 		// loop through the commandSets to find the various URL matchers to use
 		JsonArray browserCommands = config.getAsJsonArray("browserCommands");
-		commandsForUrls = new HashMap<>();
+		
+		if (browserCommands == null) {
+			return;
+		}
+		
 		for (int bc = 0; bc < browserCommands.size(); bc++){
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
 			String urlMatcher = current.get("match").getAsString();
