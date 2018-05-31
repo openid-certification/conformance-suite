@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.frontChannel;
 
-import com.gargoylesoftware.htmlunit.Page;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -21,7 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
-import java.util.logging.Level;
+
+import static io.fintechlabs.testframework.logging.EventLog.args;
 
 /**
  * @author srmoore
@@ -35,6 +35,7 @@ public class BrowserControl {
 			"commandSet": [
 				{
 					"task": "Initial Login",
+					"expectedUrl": "https://mitreid.org/login*",
 					"commands": [
 						["text","id","j_username","user"],
 						["text","id","j_password","password"],
@@ -43,11 +44,17 @@ public class BrowserControl {
 				},
 				{
 					"task": "Authorize Client",
+					"expectedUrl": "https://mitreid.org/authorize*",
+                    "skipable": true,
 					"commands": [
 						["click","id","remember-not"],
 						["click","name","authorize"]
 					]
-				}
+				},
+                {
+                    "task": "Verify Complete",
+                    "expectedUrl": "https://localhost*"
+                }
 			]
 		}
      ]
@@ -62,6 +69,7 @@ public class BrowserControl {
 	private static Logger logger = LoggerFactory.getLogger(BrowserControl.class);
 
 	private String testId;
+	private String baseUrl;
 
 	private TaskExecutor taskExecutor;
 	private Lock lock;
@@ -79,11 +87,11 @@ public class BrowserControl {
 
 		// loop through the commandSets to find the various URL matchers to use
 		JsonArray browserCommands = config.getAsJsonArray("browserCommands");
-		
+
 		if (browserCommands == null) {
 			return;
 		}
-		
+
 		for (int bc = 0; bc < browserCommands.size(); bc++){
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
 			String urlMatcher = current.get("match").getAsString();
@@ -96,7 +104,7 @@ public class BrowserControl {
 	}
 
 	public void goToUrl(String url) {
-		// use the URL to find the command set. If there isn't a match, throw an error?
+		// use the URL to find the command set.
 		for (String urlPattern : commandsForUrls.keySet()) {
 			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
 			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
@@ -135,6 +143,7 @@ public class BrowserControl {
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray commandSet;
 
+
 		/**
 		 * @param url			url to go to
 		 * @param commandSet	{@link JsonArray} of commands to perform once we get to the page
@@ -148,26 +157,84 @@ public class BrowserControl {
 		}
 
 		public void run() {
-			logger.info("Sending Browser to: " + url);
-			driver.get(url);
-			int responseCode = driver.getResponseCode();
-			logger.info("Inital Response Code: " + responseCode);
-
-			//JsonArray commandSet = config.getAsJsonArray("browserCommands");
-
-			for (int i = 0; i < this.commandSet.size(); i++) {
-				JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
-				logger.info("Performing: " + currentTask.get("task").getAsString());
-				JsonArray commands = currentTask.getAsJsonArray("commands");
-				for (int j = 0; j < commands.size(); j++) {
-					doCommand(commands.get(j).getAsJsonArray());
+			try {
+				logger.info("Sending Browser to: " + url);
+				driver.get(url);
+				int responseCode = driver.getResponseCode();
+				String commandResult = "failure";
+				if (responseCode == 200) {
+					commandResult = "success";
 				}
-				responseCode = driver.getResponseCode();
-				logger.info("\tResponse Code: " + responseCode);
+				logger.info("Initial Response Code: " + responseCode);
+				logStatus("Initial GET", commandResult);
+
+				if (commandResult.equals("failure")){
+					throw new TestFailureException(testId, "WebRunner initial GET failed with " + driver.getStatus());
+				}
+
+				for (int i = 0; i < this.commandSet.size(); i++) {
+					boolean skipCommandSet = false;
+					JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
+					if(currentTask.get("task") == null) {
+						throw new TestFailureException(testId, "Invalid Task Definition - no 'task' property - " + currentTask);
+					}
+					logger.info("Performing: " + currentTask.get("task").getAsString());
+					logger.info("WebRunner current url:" + driver.getCurrentUrl());
+					// check if current URL matches the 'matcher' for the task
+
+					if(currentTask.get("expectedUrl") == null){
+						throw new TestFailureException(testId, "Invalid Task Definition - no 'expectedUrl' property - " + currentTask);
+					}
+
+					String expectedUrlMatcher = currentTask.get("expectedUrl").getAsString();
+					if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
+						if(!PatternMatchUtils.simpleMatch(expectedUrlMatcher,driver.getCurrentUrl())){
+							if(currentTask.get("skipable") != null && currentTask.get("skipable").getAsBoolean()) {
+								commandResult = "";
+								logStatus("Skiping Task due to URL mis-match", currentTask.get("task").getAsString(), commandResult, currentTask);
+								skipCommandSet = true;
+							} else {
+								commandResult = "failure";
+								logStatus("Unexpected URL for task '" + driver.getCurrentUrl() + "'", currentTask.get("task").getAsString(), commandResult, currentTask);
+								throw new TestFailureException(testId, "WebRunner unexpected url for task: " + currentTask.get("task").getAsString());
+							}
+						}
+
+					}
+
+					// if it does run the commands
+					if(!skipCommandSet) {
+						JsonArray commands = currentTask.getAsJsonArray("commands");
+						if (commands != null) {  // we can have no commands to just do a check that currentUrl is what we expect
+							for (int j = 0; j < commands.size(); j++) {
+								doCommand(commands.get(j).getAsJsonArray());
+							}
+						}
+
+						// Check the server response (All browser command tasks should result in a submit/new page.)
+
+						responseCode = driver.getResponseCode();
+						logger.info("\tResponse Code: " + responseCode);
+
+						if (responseCode == 200) {
+							commandResult = "success";
+							logStatus(currentTask.get("task").getAsString(), commandResult, currentTask);
+
+						} else {
+							commandResult = "failure";
+							logStatus(currentTask.get("task").getAsString(), commandResult, currentTask);
+							throw new TestFailureException(testId, "WebRunner Response Failure: '" + driver.getStatus());
+						}
+					}
+				}
+				logger.info("Completed Browser Commands");
+				// if we've successfully completed the command set, consider this URL visited
+				urlVisited(url);
+			} catch (Exception e) {
+				logger.error("WebRunner caught exception", e);
+				eventLog.log("WebRunner", args("msg", e.getMessage(), "result", "interrupted"));
+				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
 			}
-			logger.info("Completed Browser Commands");
-			// if we've successfully completed the command set, consider this URL visited
-			urlVisited(url);
 		}
 
 		/**
@@ -221,6 +288,38 @@ public class BrowserControl {
 			throw new TestFailureException(testId, "Invalid Command Selector: Type: " + type + " Value: " + value);
 		}
 
+		private void logStatus(String taskName, String result) {
+			logStatus("", taskName, result,null);
+		}
+
+		private void logStatus(String taskName, String result, JsonObject task) {
+			logStatus("", taskName, result, task);
+		}
+
+		private void logStatus(String message, String taskName, String result) {
+			logStatus(message, taskName, result,null);
+		}
+
+		private void logStatus(String message, String taskName, String result, JsonObject task) {
+			String logMessage = taskName + ": " + driver.getStatus();
+			if (!Strings.isNullOrEmpty(message)) {
+				logMessage = logMessage + " - " + message;
+			}
+			Map<String, Object> logArgs = args("msg", logMessage,
+				"taskUrl", this.url,
+				"taskName", taskName,
+				"currentUrl", driver.getCurrentUrl(),
+				"serverResponse", driver.getStatus(),
+				"serverResponseCode", driver.getResponseCode(),
+				"result", result);
+			if (task != null) {
+				logArgs.put("task", task);
+			}
+			eventLog.log(
+				"WebRunner",
+				logArgs
+			);
+		}
 	}
 
 	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
@@ -233,8 +332,13 @@ public class BrowserControl {
 		public ResponseCodeHtmlUnitDriver() { super(false); }
 
 		public int getResponseCode() {
-			Page page = this.lastPage();
-			return page.getWebResponse().getStatusCode();
+			return this.lastPage().getWebResponse().getStatusCode();
+		}
+
+		public String getStatus() {
+			String responseCodeString = this.lastPage().getWebResponse().getStatusCode() + "-" +
+				this.lastPage().getWebResponse().getStatusMessage();
+			return responseCodeString;
 		}
 
 	}
@@ -246,7 +350,7 @@ public class BrowserControl {
 	public List<String> getUrls() {
 		return urls;
 	}
-	
+
 	/**
 	 * Get the list of URLs that have been visited.
 	 * @return
