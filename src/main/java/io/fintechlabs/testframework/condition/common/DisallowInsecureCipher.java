@@ -17,7 +17,6 @@ package io.fintechlabs.testframework.condition.common;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -115,7 +114,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 		}
 
 		try {
-			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
+			Socket socket = setupSocket(tlsTestHost, tlsTestPort);
 
 			try {
 

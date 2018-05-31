@@ -71,6 +71,7 @@ import io.fintechlabs.testframework.condition.client.EnsureResourceResponseConte
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -81,12 +82,15 @@ import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfigur
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
+import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpointToAccountRequests;
 import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpointToAccountsResource;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -205,6 +209,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		
+		call(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, new String[] {}, ConditionResult.INFO,
+				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
 	}
 
 	protected abstract void createClientCredentialsRequest();
@@ -373,6 +381,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		
+		call(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, new String[] {}, ConditionResult.INFO,
+				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
 
 		call(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-15");
 
@@ -385,6 +397,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+
+		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+
+		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 

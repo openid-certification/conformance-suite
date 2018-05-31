@@ -15,7 +15,6 @@
 package io.fintechlabs.testframework.condition.common;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.Hashtable;
@@ -90,7 +89,7 @@ public class EnsureTLS12 extends AbstractCondition {
 		}
 
 		try {
-			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
+			Socket socket = setupSocket(tlsTestHost, tlsTestPort);
 
 			try {
 
