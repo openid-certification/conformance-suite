@@ -60,6 +60,18 @@ var FAPI_UI = {
 	
 	latestTestEntry: undefined,
 	
+	reloadPause: 100,
+	
+	resetReloadPause : function() {
+		FAPI_UI.reloadPause = 100; // start at 100ms on reset
+	},
+	
+	incrementReloadPause : function() {
+		if (FAPI_UI.reloadPause < 5000) { // cap at ~5s
+			FAPI_UI.reloadPause += Math.floor(FAPI_UI.reloadPause / 4); // increment by 25%
+		}
+	},
+	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());

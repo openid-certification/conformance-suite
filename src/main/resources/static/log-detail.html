@@ -473,6 +473,14 @@
 					// clear any existing log items
 					//$('#logDetail .logContent').html('');
 
+					if (data.length > 0) {
+						// we got some potentially new test data, reload faster
+						FAPI_UI.resetReloadPause();
+					} else {
+						// we didn't get new data, slow down
+						FAPI_UI.incrementReloadPause();
+					}
+					
 					$.each(data, function(i, item) {
 
 					    var existing = $(`[data-item-entry-id='${item._id}']`);
@@ -565,7 +573,10 @@
 					
 					// save the status for the 'active' panel later
 					if (data.status) {
-						FAPI_UI.status = data.status.toLowerCase();
+						if (FAPI_UI.status != data.status.toLowerCase()) {
+						    FAPI_UI.resetReloadPause(); // the status changed, might want to pay more attention							
+							FAPI_UI.status = data.status.toLowerCase();
+						}
 					}
 					
 					// see if we've already rendered this
@@ -866,7 +877,7 @@
 	                        startReloader(testId);
 	                    }
 	                });
-	            }, 1000);
+	            }, FAPI_UI.reloadPause);
 			}
 		}
 		
