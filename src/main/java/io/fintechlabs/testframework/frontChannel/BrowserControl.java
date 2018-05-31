@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
+import static io.fintechlabs.testframework.logging.EventLog.args;
+
 /**
  * @author srmoore
  */
@@ -96,7 +98,7 @@ public class BrowserControl {
 	}
 
 	public void goToUrl(String url) {
-		// use the URL to find the command set. If there isn't a match, throw an error?
+		// use the URL to find the command set.
 		for (String urlPattern : commandsForUrls.keySet()) {
 			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
 			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
@@ -135,6 +137,7 @@ public class BrowserControl {
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray commandSet;
 
+
 		/**
 		 * @param url			url to go to
 		 * @param commandSet	{@link JsonArray} of commands to perform once we get to the page
@@ -148,26 +151,49 @@ public class BrowserControl {
 		}
 
 		public void run() {
-			logger.info("Sending Browser to: " + url);
-			driver.get(url);
-			int responseCode = driver.getResponseCode();
-			logger.info("Inital Response Code: " + responseCode);
-
-			//JsonArray commandSet = config.getAsJsonArray("browserCommands");
-
-			for (int i = 0; i < this.commandSet.size(); i++) {
-				JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
-				logger.info("Performing: " + currentTask.get("task").getAsString());
-				JsonArray commands = currentTask.getAsJsonArray("commands");
-				for (int j = 0; j < commands.size(); j++) {
-					doCommand(commands.get(j).getAsJsonArray());
+			try {
+				logger.info("Sending Browser to: " + url);
+				driver.get(url);
+				int responseCode = driver.getResponseCode();
+				String commandResult = "failure";
+				if (responseCode == 200) {
+					commandResult = "success";
 				}
-				responseCode = driver.getResponseCode();
-				logger.info("\tResponse Code: " + responseCode);
+				logger.info("Initial Response Code: " + responseCode);
+				eventLog.log("WebRunner: Initial GET", args("url", this.url, "task", "Initial GET", "responseCode", responseCode, "result", commandResult));
+
+				//JsonArray commandSet = config.getAsJsonArray("browserCommands");
+
+				for (int i = 0; i < this.commandSet.size(); i++) {
+					JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
+					logger.info("Performing: " + currentTask.get("task").getAsString());
+
+					// check if current URL matches the 'matcher' for the task
+
+					// if it does run the commands
+					JsonArray commands = currentTask.getAsJsonArray("commands");
+					for (int j = 0; j < commands.size(); j++) {
+						doCommand(commands.get(j).getAsJsonArray());
+					}
+					responseCode = driver.getResponseCode();
+					logger.info("\tResponse Code: " + responseCode);
+
+					if (responseCode == 200) {
+						commandResult = "success";
+					} else {
+						commandResult = "failure";
+					}
+					eventLog.log("WebRunner: " + currentTask.get("task").getAsString(), args("url", this.url, "task", currentTask, "responseCode", responseCode, "result", commandResult));
+
+					// if it does not, see if it is a skipable set
+				}
+				logger.info("Completed Browser Commands");
+				// if we've successfully completed the command set, consider this URL visited
+				urlVisited(url);
+			} catch (Exception e) {
+				eventLog.log("Web Runner Exception", args("Exception", e.getMessage(), "result", "interrupted"));
+				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
 			}
-			logger.info("Completed Browser Commands");
-			// if we've successfully completed the command set, consider this URL visited
-			urlVisited(url);
 		}
 
 		/**
@@ -246,7 +272,7 @@ public class BrowserControl {
 	public List<String> getUrls() {
 		return urls;
 	}
-	
+
 	/**
 	 * Get the list of URLs that have been visited.
 	 * @return
