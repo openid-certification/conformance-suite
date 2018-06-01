@@ -15,7 +15,6 @@
 package io.fintechlabs.testframework.condition.common;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.SecureRandom;
@@ -47,7 +46,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
- *
  */
 public class DisallowTLS10 extends AbstractCondition {
 
@@ -94,7 +92,7 @@ public class DisallowTLS10 extends AbstractCondition {
 		}
 
 		try {
-			Socket socket = new Socket(InetAddress.getByName(tlsTestHost), tlsTestPort);
+			Socket socket = setupSocket(tlsTestHost, tlsTestPort);
 
 			try {
 
