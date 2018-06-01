@@ -172,12 +172,6 @@ public class TestDispatcher {
 				// ConditionError will get handled by the logging system, no need to display with stacktrace
 				test.setFinalError(error);
 			}
-			
-			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
-				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-				// ConditionError will get handled by the logging system, no need to display with stacktrace
-				test.setFinalError(error);
-			}
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {
 				// look for the user-facing annotation in the stack
