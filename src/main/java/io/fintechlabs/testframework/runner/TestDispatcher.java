@@ -46,6 +46,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -65,6 +66,9 @@ public class TestDispatcher {
 
 	@Autowired
 	private TestRunnerSupport support;
+
+	@Autowired
+	private EventLog eventLog;
 
 	/**
 	 * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
@@ -160,6 +164,13 @@ public class TestDispatcher {
 			if (test != null) {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
+			}
+			
+			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				test.setFinalError(error);
 			}
 			
 			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {

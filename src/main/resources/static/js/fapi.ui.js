@@ -167,7 +167,8 @@ var FAPI_UI = {
 	    "OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html",
 	    "RFC6749-" : "https://tools.ietf.org/html/rfc6749",
 	    "RFC6819-" : "https://tools.ietf.org/html/rfc6819",
-	    "RFC7231-" : "https://tools.ietf.org/html/rfc7231"
+	    "RFC7231-" : "https://tools.ietf.org/html/rfc7231",
+	    "HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html"
     },
 
 	testJSON : {}

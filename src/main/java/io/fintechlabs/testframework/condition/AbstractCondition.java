@@ -90,6 +90,14 @@ public abstract class AbstractCondition implements Condition {
 		this.requirements = Sets.newHashSet(requirements);
 	}
 
+	/**
+	 * Get the testId for this instance
+	 * @return The test Id for the current instance
+	 */
+	protected String getTestId() {
+		return this.testId;
+	}
+
 	/*
 	 * Logging utilities
 	 */
@@ -308,7 +316,7 @@ public abstract class AbstractCondition implements Condition {
 
 	/**
 	 * Get the list of requirements that this test would fulfill if it passed
-	 * 
+	 *
 	 * @return
 	 */
 	protected Set<String> getRequirements() {

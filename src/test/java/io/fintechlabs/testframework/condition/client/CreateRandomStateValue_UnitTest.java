@@ -38,9 +38,19 @@ public class CreateRandomStateValue_UnitTest {
 	 */
 	@Test
 	public void testEvaluate() {
-
 		cond.evaluate(env);
 
-		assertThat(env.getString("state")).isNotEmpty();
+		String res1 = env.getString("state");
+		
+		assertThat(res1).isNotNull();
+		assertThat(res1).isNotEmpty();
+
+		// call it twice to make sure we get a different value
+		cond.evaluate(env);
+
+		String res2 = env.getString("state");
+		
+		assertThat(res2).isNotEmpty();
+		assertThat(res1).isNotEqualTo(res2);
 	}
 }

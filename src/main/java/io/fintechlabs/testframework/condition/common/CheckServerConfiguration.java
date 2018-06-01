@@ -14,7 +14,10 @@
 
 package io.fintechlabs.testframework.condition.common;
 
+import java.util.List;
+
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
@@ -47,9 +50,13 @@ public class CheckServerConfiguration extends AbstractCondition {
 			throw error("Couldn't find a server configuration at all");
 		}
 
-		ensureString(in, "authorization_endpoint");
-		ensureString(in, "token_endpoint");
-		ensureString(in, "issuer");
+		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer");
+		
+		for (String key : lookFor) {
+			ensureString(in, key);
+		}
+		
+		logSuccess("Found required server configuration keys", args("keys", lookFor));
 
 		return in;
 	}
@@ -58,10 +65,7 @@ public class CheckServerConfiguration extends AbstractCondition {
 		String string = in.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
 			throw error("Couldn't find required component", args("path", path));
-		} else {
-			logSuccess(args(path, string));
 		}
-
 	}
 
 }

@@ -65,9 +65,6 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		server.addProperty("token_endpoint", baseUrl + "token");
 		server.addProperty("jwks_uri", baseUrl + "jwks");
 
-		server.addProperty("registration_endpoint", baseUrl + "register"); // TODO: should this be pulled into an optional mix-in?
-		server.addProperty("userinfo_endpoint", baseUrl + "userinfo"); // TODO: should this be pulled into an optional mix-in?
-
 		// add this as the server configuration
 		env.put("server", server);
 
