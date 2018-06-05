@@ -105,7 +105,7 @@ public class TestRunner {
 		private String testId;
 		private Callable myCallable;
 
-		public BackgroundTask(String testId, Callable callable){
+		public BackgroundTask(String testId, Callable callable) {
 			this.testId = testId;
 			this.myCallable = callable;
 		}
@@ -113,7 +113,7 @@ public class TestRunner {
 		@Override
 		public Object call() throws TestFailureException {
 			Object returnObj = null;
-			try{
+			try {
 				returnObj = myCallable.call();
 			} catch (Exception e) {
 				throw new TestFailureException(testId, e.getMessage());
@@ -125,12 +125,12 @@ public class TestRunner {
 	/* TODO: Remove this?
 	private class BackgroundException extends Exception {
 		private String testId;
-
+	
 		public BackgroundException(String testId, String message, Throwable cause) {
 			super(message, cause);
 			this.testId = testId;
 		}
-
+	
 		public String getTestId(){
 			return testId;
 		}
@@ -140,7 +140,7 @@ public class TestRunner {
 		private TestRunner testRunner;
 		private boolean running = false;
 
-		public FutureWatcher(TestRunner testRunner){
+		public FutureWatcher(TestRunner testRunner) {
 			this.testRunner = testRunner;
 		}
 
@@ -151,24 +151,24 @@ public class TestRunner {
 		@Override
 		public void run() {
 			running = true;
-			while(running) {
+			while (running) {
 				try {
-					FutureTask future = (FutureTask)executorCompletionService.poll(1, TimeUnit.SECONDS);
-					if (future != null && !future.isCancelled()){
+					FutureTask future = (FutureTask) executorCompletionService.poll(1, TimeUnit.SECONDS);
+					if (future != null && !future.isCancelled()) {
 						future.get();
 					}
 				} catch (InterruptedException e) {
 					// If we've been interrupted, then either it was on purpose, or something went very very wrong.
 					e.printStackTrace();
 				} catch (ExecutionException e) {
-					if (e.getCause().getClass().equals(TestFailureException.class)){
+					if (e.getCause().getClass().equals(TestFailureException.class)) {
 						// This should always be the case for our BackgroundTasks
-						TestFailureException testFailureException = (TestFailureException)e.getCause();
+						TestFailureException testFailureException = (TestFailureException) e.getCause();
 
 						// Clean up other tasks for this test id
 						String testId = testFailureException.getTestId();
 						for (Future f : taskFutures.get(testId)) {
-							if(!f.isDone()) {
+							if (!f.isDone()) {
 								f.cancel(true); // True allows the task to be interrupted.
 							}
 						}
@@ -191,7 +191,7 @@ public class TestRunner {
 			executorService.submit(futureWatcher);
 		}
 		List<Future> futures;
-		if(taskFutures.containsKey(testId)){
+		if (taskFutures.containsKey(testId)) {
 			futures = taskFutures.remove(testId);
 		} else {
 			futures = new ArrayList<Future>();
@@ -495,6 +495,7 @@ public class TestRunner {
 	private class TestModuleHolder {
 		public Class<? extends TestModule> c;
 		public PublishTestModule a;
+
 		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
 			this.c = c;
 			this.a = a;
