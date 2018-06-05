@@ -30,13 +30,13 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 public class BrowserControl {
 
 	/*  EXAMPLE OF WHAT TO ADD TO CONFIG:
-	 "browserCommands": [
+	 "browser": [
 	   	{
 	   		"match":"https://mitreid.org/authorize*",
-			"commandSet": [
+			"commands": [
 				{
 					"task": "Initial Login",
-					"expectedUrl": "https://mitreid.org/login*",
+					"match": "https://mitreid.org/login*",
 					"commands": [
 						["text","id","j_username","user"],
 						["text","id","j_password","password"],
@@ -45,8 +45,8 @@ public class BrowserControl {
 				},
 				{
 					"task": "Authorize Client",
-					"expectedUrl": "https://mitreid.org/authorize*",
-	                "skipable": true,
+					"match": "https://mitreid.org/authorize*",
+					"optional": true,
 					"commands": [
 						["click","id","remember-not"],
 						["click","name","authorize"]
@@ -54,7 +54,7 @@ public class BrowserControl {
 				},
 	            {
 	                "task": "Verify Complete",
-	                "expectedUrl": "https://localhost*"
+	                "match": "https://localhost*"
 	            }
 			]
 		}
@@ -70,7 +70,6 @@ public class BrowserControl {
 	private static Logger logger = LoggerFactory.getLogger(BrowserControl.class);
 
 	private String testId;
-	private String baseUrl;
 
 	private ExecutorCompletionService taskExecutor;
 	private Lock lock;
@@ -85,8 +84,8 @@ public class BrowserControl {
 		this.testId = testId;
 		this.eventLog = eventLog;
 
-		// loop through the commandSets to find the various URL matchers to use
-		JsonArray browserCommands = config.getAsJsonArray("browserCommands");
+		// loop through the commands to find the various URL matchers to use
+		JsonArray browserCommands = config.getAsJsonArray("browser");
 
 		if (browserCommands == null) {
 			return;
@@ -96,7 +95,7 @@ public class BrowserControl {
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
 			String urlMatcher = current.get("match").getAsString();
 			logger.info("Found URL MATHCER: " + urlMatcher);
-			commandsForUrls.put(urlMatcher, current.getAsJsonArray("commandSet"));
+			commandsForUrls.put(urlMatcher, current.getAsJsonArray("commands"));
 		}
 
 		// Make this autowired? Or at least passed in from the TestRunner?
@@ -142,17 +141,17 @@ public class BrowserControl {
 	private class WebRunner implements Runnable {
 		private String url;
 		private ResponseCodeHtmlUnitDriver driver;
-		private JsonArray commandSet;
+		private JsonArray commands;
 
 		/**
 		 * @param url
 		 *            url to go to
-		 * @param commandSet
+		 * @param commands
 		 *            {@link JsonArray} of commands to perform once we get to the page
 		 */
-		WebRunner(String url, JsonArray commandSet) {
+		WebRunner(String url, JsonArray commands) {
 			this.url = url;
-			this.commandSet = commandSet;
+			this.commands = commands;
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
@@ -174,9 +173,9 @@ public class BrowserControl {
 					throw new TestFailureException(testId, "WebRunner initial GET failed with " + driver.getStatus());
 				}
 
-				for (int i = 0; i < this.commandSet.size(); i++) {
-					boolean skipCommandSet = false;
-					JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
+				for (int i = 0; i < this.commands.size(); i++) {
+					boolean skip = false;
+					JsonObject currentTask = this.commands.get(i).getAsJsonObject();
 					if (currentTask.get("task") == null) {
 						throw new TestFailureException(testId, "Invalid Task Definition - no 'task' property - " + currentTask);
 					}
@@ -184,17 +183,17 @@ public class BrowserControl {
 					logger.info("WebRunner current url:" + driver.getCurrentUrl());
 					// check if current URL matches the 'matcher' for the task
 
-					if (currentTask.get("expectedUrl") == null) {
-						throw new TestFailureException(testId, "Invalid Task Definition - no 'expectedUrl' property - " + currentTask);
+					if (currentTask.get("match") == null) {
+						throw new TestFailureException(testId, "Invalid Task Definition - no 'match' property - " + currentTask);
 					}
+					String expectedUrlMatcher = currentTask.get("match").getAsString();
 
-					String expectedUrlMatcher = currentTask.get("expectedUrl").getAsString();
 					if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
 						if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, driver.getCurrentUrl())) {
-							if (currentTask.get("skipable") != null && currentTask.get("skipable").getAsBoolean()) {
+							if (currentTask.has("optional") && currentTask.get("optional").getAsBoolean()) {
 								commandResult = "";
 								logStatus("Skiping Task due to URL mis-match", currentTask.get("task").getAsString(), commandResult, currentTask);
-								skipCommandSet = true;
+								skip = true;
 							} else {
 								commandResult = "failure";
 								logStatus("Unexpected URL for task '" + driver.getCurrentUrl() + "'", currentTask.get("task").getAsString(), commandResult, currentTask);
@@ -205,7 +204,7 @@ public class BrowserControl {
 					}
 
 					// if it does run the commands
-					if (!skipCommandSet) {
+					if (!skip) {
 						JsonArray commands = currentTask.getAsJsonArray("commands");
 						if (commands != null) { // we can have no commands to just do a check that currentUrl is what we expect
 							for (int j = 0; j < commands.size(); j++) {
