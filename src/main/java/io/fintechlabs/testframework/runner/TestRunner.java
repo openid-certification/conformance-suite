@@ -467,10 +467,13 @@ public class TestRunner {
 
 	}
 
+	// get the test modules from the memoized copy, filling it if necessary
 	private Map<String, TestModuleHolder> getTestModules() {
 		return testModuleSupplier.get();
 	}
 
+	// this is used to load all the test modules into the memoized copy used above
+	// we memoize this because reflection is slow
 	private Map<String, TestModuleHolder> findTestModules() {
 
 		Map<String, TestModuleHolder> testModules = new HashMap<>();
