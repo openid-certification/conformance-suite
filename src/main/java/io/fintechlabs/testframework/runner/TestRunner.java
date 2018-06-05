@@ -16,11 +16,8 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -99,6 +96,98 @@ public class TestRunner {
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
+	private ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
+	private Map<String, List<Future>> taskFutures = new HashMap<>();
+	private FutureWatcher futureWatcher;
+
+	// TODO: Move this stuff to it's own file?
+	private class BackgroundTask implements Callable {
+		private String testId;
+		private Callable myCallable;
+
+		public BackgroundTask(String testId, Callable callable){
+			this.testId = testId;
+			this.myCallable = callable;
+		}
+
+		@Override
+		public Object call() throws TestFailureException {
+			Object returnObj = null;
+			try{
+				returnObj = myCallable.call();
+			} catch (Exception e) {
+				throw new TestFailureException(testId, e.getMessage());
+				// TODO: Clean up other Tasks here? or in Exception Handler?
+				//throw new BackgroundException(testId, e.getMessage(), e);
+			}
+			return returnObj;
+		}
+	}
+
+	/* TODO: Remove this?
+	private class BackgroundException extends Exception {
+		private String testId;
+
+		public BackgroundException(String testId, String message, Throwable cause) {
+			super(message, cause);
+			this.testId = testId;
+		}
+
+		public String getTestId(){
+			return testId;
+		}
+	}*/
+
+	private class FutureWatcher implements Runnable {
+		private TestRunner testRunner;
+		private boolean running = false;
+
+		public FutureWatcher(TestRunner testRunner){
+			this.testRunner = testRunner;
+		}
+
+		public void stop() {
+			this.running = false;
+		}
+
+		@Override
+		public void run() {
+			running = true;
+			while(running) {
+				try {
+					FutureTask future = (FutureTask)executorCompletionService.poll(1, TimeUnit.SECONDS);
+					if (future != null && !future.isCancelled()){
+						future.get();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					if (e.getCause().getClass().equals(TestFailureException.class)){
+						// This should always be the case for our BackgroundTasks
+						TestFailureException testFailureException = (TestFailureException)e.getCause();
+						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
+						conditionFailure(testFailureException);
+					}
+
+				}
+			}
+		}
+	}
+
+	private void runInBackground(String testId, Callable callable) {
+		if (futureWatcher == null) {
+			futureWatcher = new FutureWatcher(this);
+			executorService.submit(futureWatcher);
+		}
+		List<Future> futures;
+		if(taskFutures.containsKey(testId)){
+			futures = taskFutures.remove(testId);
+		} else {
+			futures = new ArrayList<Future>();
+		}
+		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
+		taskFutures.put(testId, futures);
+	}
 
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
@@ -169,10 +258,15 @@ public class TestRunner {
 				"planId", planId,
 				"testName", testName));
 
+		/*
 		executorService.submit(() -> {
 			test.configure(config, url);
 		});
-
+		*/
+		runInBackground(id, () -> {
+			test.configure(config, url);
+			return "done";
+		});
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
 		Map<String, String> map = new HashMap<>();
@@ -216,8 +310,15 @@ public class TestRunner {
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
+			/*
 			executorService.submit(() -> {
 				test.start();
+			});
+			*/
+
+			runInBackground(test.getId(), () -> {
+				test.start();
+				return "started";
 			});
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
@@ -253,9 +354,16 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
+			/*
 			executorService.submit(() -> {
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
 				test.stop();
+			});
+			*/
+			runInBackground(test.getId(), () -> {
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
+				test.stop();
+				return "stopped";
 			});
 
 			// return its immediate status
@@ -332,8 +440,8 @@ public class TestRunner {
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
-			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog);
-			
+			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executorCompletionService);
+
 			// call the constructor
 			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
 				.newInstance(id, owner, wrappedEventLog, browser, testInfo);

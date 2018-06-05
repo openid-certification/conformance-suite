@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.locks.Lock;
 
 import static io.fintechlabs.testframework.logging.EventLog.args;
@@ -71,7 +72,7 @@ public class BrowserControl {
 	private String testId;
 	private String baseUrl;
 
-	private TaskExecutor taskExecutor;
+	private ExecutorCompletionService taskExecutor;
 	private Lock lock;
 	private Map<String, JsonArray> commandsForUrls = new HashMap<>();
 
@@ -80,7 +81,7 @@ public class BrowserControl {
 
 	private TestInstanceEventLog eventLog;
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog){
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, ExecutorCompletionService executorCompletionService){
 		this.testId = testId;
 		this.eventLog = eventLog;
 
@@ -100,7 +101,8 @@ public class BrowserControl {
 		}
 
 		// Make this autowired? Or at least passed in from the TestRunner?
-		taskExecutor = new SimpleAsyncTaskExecutor();
+		//taskExecutor = new SimpleAsyncTaskExecutor();
+		taskExecutor = executorCompletionService;
 	}
 
 	public void goToUrl(String url) {
@@ -113,7 +115,7 @@ public class BrowserControl {
 				lock.lock(); // we're only using this to make sure the test is ready to accept connections before starting
 				lock.unlock();
 				WebRunner wr = new WebRunner(url, commandsForUrls.get(urlPattern));
-				taskExecutor.execute(wr);
+				taskExecutor.submit(wr, "web runner ran");
 				logger.info("WebRunner submitted to task executor for: " + url);
 				return;
 			}
