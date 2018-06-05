@@ -117,8 +117,6 @@ public class TestRunner {
 				returnObj = myCallable.call();
 			} catch (Exception e) {
 				throw new TestFailureException(testId, e.getMessage());
-				// TODO: Clean up other Tasks here? or in Exception Handler?
-				//throw new BackgroundException(testId, e.getMessage(), e);
 			}
 			return returnObj;
 		}
@@ -160,13 +158,26 @@ public class TestRunner {
 						future.get();
 					}
 				} catch (InterruptedException e) {
+					// If we've been interrupted, then either it was on purpose, or something went very very wrong.
 					e.printStackTrace();
 				} catch (ExecutionException e) {
 					if (e.getCause().getClass().equals(TestFailureException.class)){
 						// This should always be the case for our BackgroundTasks
 						TestFailureException testFailureException = (TestFailureException)e.getCause();
+
+						// Clean up other tasks for this test id
+						String testId = testFailureException.getTestId();
+						for (Future f : taskFutures.get(testId)) {
+							if(!f.isDone()) {
+								f.cancel(true); // True allows the task to be interrupted.
+							}
+						}
+
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
+					} else {
+						// TODO: Better handling if we get something we wern't expecting?
+						e.printStackTrace();
 					}
 
 				}
