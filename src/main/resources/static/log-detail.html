@@ -558,7 +558,7 @@
 						error: error
 					});
                     // don't update anymore
-                    FAPI_UI.running = false;
+                    stopReloader();
 				}
 			});
 		}
@@ -621,7 +621,7 @@
 	                                    error: error
 	                                });
 	                                // don't update anymore
-	                                FAPI_UI.running = false;
+	                                stopReloader();
 	                            }
 	                        });
 
@@ -646,7 +646,7 @@
                                         error: error
                                     });
                                     // don't update anymore
-                                    FAPI_UI.running = false;
+                                    stopReloader();
                                 }
                             }).then(function() {
                                 stopReloader();
@@ -668,7 +668,7 @@
                                         error: error
                                     });
                                     // don't update anymore
-                                    FAPI_UI.running = false;
+                                    stopReloader();
                                 }
                             }).then(function() {
                                 return reload(testId);
@@ -717,7 +717,7 @@
 	                                                    error: error
 	                                                });
 	                                                // don't update anymore
-	                                                FAPI_UI.running = false;
+	                                                stopReloader();
 	                                            }
 	                                        });
 	                                    });
@@ -731,7 +731,7 @@
 	                                    error: error
 	                                });
 	                                // don't update anymore
-	                                FAPI_UI.running = false;
+	                                stopReloader();
 	                            }
 	                        })
 	                        
@@ -747,7 +747,7 @@
 						error: error
 					});
                     // don't update anymore
-                    FAPI_UI.running = false;
+                    stopReloader();
 				}
 			});
 		}
@@ -776,7 +776,7 @@
 							$('#runningTestInactive').show();
 							$('#runningTestArchived').hide();
 							// no need to keep updating either
-							FAPI_UI.running = false;
+							stopReloader();
 						} else {
 							// this test is currently running and can potentially be stopped
 							$('#stopBtn').show();
@@ -823,7 +823,7 @@
 											error: error
 										});
 					                    // don't update anymore
-					                    FAPI_UI.running = false;
+					                    stopReloader();
 									}
 								}).then(function() {
 									return reload(testId);
@@ -862,7 +862,7 @@
 					$('#runningTestInactive').hide();
 					$('#runningTestArchived').show();
 					// don't update anymore
-					FAPI_UI.running = false;
+					stopReloaderNow();
 				}
 			});
 		}
@@ -881,7 +881,14 @@
 			}
 		}
 		
-		function stopReloader() {
+		// delay stopping the reloader for a little bit to get any last minute additions to the logs
+        function stopReloader() {
+			setTimeout(function() {
+				stopReloaderNow();
+			}, FAPI_UI.maxReloadPause);
+        }
+
+		function stopReloaderNow() {
 			FAPI_UI.running = false;
 			clearTimeout(FAPI_UI.reloader);
 		}
