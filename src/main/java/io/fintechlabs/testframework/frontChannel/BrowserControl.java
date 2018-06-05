@@ -1,19 +1,6 @@
 package io.fintechlabs.testframework.frontChannel;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.util.PatternMatchUtils;
+import static io.fintechlabs.testframework.logging.EventLog.args;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +9,20 @@ import java.util.Map;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.locks.Lock;
 
-import static io.fintechlabs.testframework.logging.EventLog.args;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.util.PatternMatchUtils;
+
+import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
  * @author srmoore
@@ -46,25 +46,25 @@ public class BrowserControl {
 				{
 					"task": "Authorize Client",
 					"expectedUrl": "https://mitreid.org/authorize*",
-                    "skipable": true,
+	                "skipable": true,
 					"commands": [
 						["click","id","remember-not"],
 						["click","name","authorize"]
 					]
 				},
-                {
-                    "task": "Verify Complete",
-                    "expectedUrl": "https://localhost*"
-                }
+	            {
+	                "task": "Verify Complete",
+	                "expectedUrl": "https://localhost*"
+	            }
 			]
 		}
-     ]
-
-     Each "Task" should be things that happen on a single page. In the above example, the first task logs in and ends
-     with clicking the submit button on the login page, resulting in a new page to get loaded. (The result of logging in).
-
-     The second task clicks the "Do not remember this choice" radio button, and then clicks the authorize button which
-     then should trigger the redirect from the server.
+	 ]
+	
+	 Each "Task" should be things that happen on a single page. In the above example, the first task logs in and ends
+	 with clicking the submit button on the login page, resulting in a new page to get loaded. (The result of logging in).
+	
+	 The second task clicks the "Do not remember this choice" radio button, and then clicks the authorize button which
+	 then should trigger the redirect from the server.
 	 */
 
 	private static Logger logger = LoggerFactory.getLogger(BrowserControl.class);
@@ -81,10 +81,9 @@ public class BrowserControl {
 
 	private TestInstanceEventLog eventLog;
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, ExecutorCompletionService executorCompletionService){
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, ExecutorCompletionService executorCompletionService) {
 		this.testId = testId;
 		this.eventLog = eventLog;
-
 
 		// loop through the commandSets to find the various URL matchers to use
 		JsonArray browserCommands = config.getAsJsonArray("browserCommands");
@@ -93,7 +92,7 @@ public class BrowserControl {
 			return;
 		}
 
-		for (int bc = 0; bc < browserCommands.size(); bc++){
+		for (int bc = 0; bc < browserCommands.size(); bc++) {
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
 			String urlMatcher = current.get("match").getAsString();
 			logger.info("Found URL MATHCER: " + urlMatcher);
@@ -110,7 +109,7 @@ public class BrowserControl {
 		for (String urlPattern : commandsForUrls.keySet()) {
 			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
 			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
-			if(PatternMatchUtils.simpleMatch(urlPattern,url)){
+			if (PatternMatchUtils.simpleMatch(urlPattern, url)) {
 				// Wait till we can grab the lock before starting... then release the lock immediately
 				lock.lock(); // we're only using this to make sure the test is ready to accept connections before starting
 				lock.unlock();
@@ -145,12 +144,13 @@ public class BrowserControl {
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray commandSet;
 
-
 		/**
-		 * @param url			url to go to
-		 * @param commandSet	{@link JsonArray} of commands to perform once we get to the page
+		 * @param url
+		 *            url to go to
+		 * @param commandSet
+		 *            {@link JsonArray} of commands to perform once we get to the page
 		 */
-		WebRunner(String url, JsonArray commandSet){
+		WebRunner(String url, JsonArray commandSet) {
 			this.url = url;
 			this.commandSet = commandSet;
 
@@ -170,28 +170,28 @@ public class BrowserControl {
 				logger.info("Initial Response Code: " + responseCode);
 				logStatus("Initial GET", commandResult);
 
-				if (commandResult.equals("failure")){
+				if (commandResult.equals("failure")) {
 					throw new TestFailureException(testId, "WebRunner initial GET failed with " + driver.getStatus());
 				}
 
 				for (int i = 0; i < this.commandSet.size(); i++) {
 					boolean skipCommandSet = false;
 					JsonObject currentTask = this.commandSet.get(i).getAsJsonObject();
-					if(currentTask.get("task") == null) {
+					if (currentTask.get("task") == null) {
 						throw new TestFailureException(testId, "Invalid Task Definition - no 'task' property - " + currentTask);
 					}
 					logger.info("Performing: " + currentTask.get("task").getAsString());
 					logger.info("WebRunner current url:" + driver.getCurrentUrl());
 					// check if current URL matches the 'matcher' for the task
 
-					if(currentTask.get("expectedUrl") == null){
+					if (currentTask.get("expectedUrl") == null) {
 						throw new TestFailureException(testId, "Invalid Task Definition - no 'expectedUrl' property - " + currentTask);
 					}
 
 					String expectedUrlMatcher = currentTask.get("expectedUrl").getAsString();
 					if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
-						if(!PatternMatchUtils.simpleMatch(expectedUrlMatcher,driver.getCurrentUrl())){
-							if(currentTask.get("skipable") != null && currentTask.get("skipable").getAsBoolean()) {
+						if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, driver.getCurrentUrl())) {
+							if (currentTask.get("skipable") != null && currentTask.get("skipable").getAsBoolean()) {
 								commandResult = "";
 								logStatus("Skiping Task due to URL mis-match", currentTask.get("task").getAsString(), commandResult, currentTask);
 								skipCommandSet = true;
@@ -205,9 +205,9 @@ public class BrowserControl {
 					}
 
 					// if it does run the commands
-					if(!skipCommandSet) {
+					if (!skipCommandSet) {
 						JsonArray commands = currentTask.getAsJsonArray("commands");
-						if (commands != null) {  // we can have no commands to just do a check that currentUrl is what we expect
+						if (commands != null) { // we can have no commands to just do a check that currentUrl is what we expect
 							for (int j = 0; j < commands.size(); j++) {
 								doCommand(commands.get(j).getAsJsonArray());
 							}
@@ -244,14 +244,15 @@ public class BrowserControl {
 		 * Only two action types are supported this way: "click" to click on a WebElement, and "text" which enters
 		 * text into a field like an input box.
 		 *
-		 * @throws TestFailureException if an invalid command is specified
+		 * @throws TestFailureException
+		 *             if an invalid command is specified
 		 * @param command
 		 */
-		void doCommand(JsonArray command){
+		void doCommand(JsonArray command) {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
 			String commandString = command.get(0).getAsString();
 			// ["click", "id" or "name", "id_or_name"]
-			if(!Strings.isNullOrEmpty(commandString)) {
+			if (!Strings.isNullOrEmpty(commandString)) {
 				if (commandString.equalsIgnoreCase("click")) {
 					driver.findElement(getSelector(command.get(1).getAsString(), command.get(2).getAsString())).click();
 					return;
@@ -270,13 +271,14 @@ public class BrowserControl {
 		 * Returns the appropriate {@link By} statement based on type and value.
 		 * Currently supports id, name, xpath, css (css selector), and class (html class)
 		 *
-		 * @throws TestFailureException if an invalid type is specified.
+		 * @throws TestFailureException
+		 *             if an invalid type is specified.
 		 * @param type
 		 * @param value
 		 * @return
 		 */
 		private By getSelector(String type, String value) {
-			if (type.equalsIgnoreCase("id")){
+			if (type.equalsIgnoreCase("id")) {
 				return By.id(value);
 			} else if (type.equalsIgnoreCase("name")) {
 				return By.name(value);
@@ -291,7 +293,7 @@ public class BrowserControl {
 		}
 
 		private void logStatus(String taskName, String result) {
-			logStatus("", taskName, result,null);
+			logStatus("", taskName, result, null);
 		}
 
 		private void logStatus(String taskName, String result, JsonObject task) {
@@ -299,7 +301,7 @@ public class BrowserControl {
 		}
 
 		private void logStatus(String message, String taskName, String result) {
-			logStatus(message, taskName, result,null);
+			logStatus(message, taskName, result, null);
 		}
 
 		private void logStatus(String message, String taskName, String result, JsonObject task) {
