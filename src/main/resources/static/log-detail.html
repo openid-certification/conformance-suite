@@ -784,8 +784,8 @@
 							$('#runningTestInactive').hide();
 							$('#runningTestArchived').hide();
 
-							// if the test is currently in a "created" or "configured" state it can also be started
-							if (FAPI_UI.status == 'created' || FAPI_UI.status == 'configured') {
+							// if the test is currently in a "configured" state it can also be started
+							if (FAPI_UI.status == 'configured') {
 								$('#startBtn').show();
 							} else {
 								// otherwise, the test can't be started
