@@ -60,7 +60,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		super.requestAuthorizationCode();
 
-		call(ExtractSHash.class);
+		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
@@ -159,7 +159,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 
-		call(ExtractSHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
