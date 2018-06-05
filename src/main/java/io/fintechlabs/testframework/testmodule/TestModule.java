@@ -177,4 +177,9 @@ public interface TestModule {
 	 */
 	ReentrantLock getLock();
 
+	/**
+	 * @param failed
+	 */
+	void setResult(Result result);
+
 }

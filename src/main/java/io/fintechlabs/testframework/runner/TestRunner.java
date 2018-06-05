@@ -58,6 +58,7 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModule.Result;
 
 /**
  *
@@ -115,6 +116,8 @@ public class TestRunner {
 			Object returnObj = null;
 			try {
 				returnObj = myCallable.call();
+			} catch (TestFailureException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new TestFailureException(testId, e.getMessage());
 			}
@@ -137,12 +140,7 @@ public class TestRunner {
 	}*/
 
 	private class FutureWatcher implements Runnable {
-		private TestRunner testRunner;
 		private boolean running = false;
-
-		public FutureWatcher(TestRunner testRunner) {
-			this.testRunner = testRunner;
-		}
 
 		public void stop() {
 			this.running = false;
@@ -159,7 +157,7 @@ public class TestRunner {
 					}
 				} catch (InterruptedException e) {
 					// If we've been interrupted, then either it was on purpose, or something went very very wrong.
-					e.printStackTrace();
+					logger.error("Background task was interrupted", e);
 				} catch (ExecutionException e) {
 					if (e.getCause().getClass().equals(TestFailureException.class)) {
 						// This should always be the case for our BackgroundTasks
@@ -175,9 +173,19 @@ public class TestRunner {
 
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
+						
+						TestModule test = support.getRunningTestById(testId);
+						if (test != null) {
+							// there's an exception, stop the test
+							test.stop();
+							test.setFinalError(testFailureException);
+							test.setResult(Result.FAILED);
+						}
+						
 					} else {
 						// TODO: Better handling if we get something we wern't expecting?
-						e.printStackTrace();
+						logger.error("Execution failure", e);
+						//eventLog.log(testId, "TEST RUNNER", authenticationFacade.getPrincipal(), EventLog.ex(e));
 					}
 
 				}
@@ -187,7 +195,7 @@ public class TestRunner {
 
 	private void runInBackground(String testId, Callable callable) {
 		if (futureWatcher == null) {
-			futureWatcher = new FutureWatcher(this);
+			futureWatcher = new FutureWatcher();
 			executorService.submit(futureWatcher);
 		}
 		List<Future> futures;
