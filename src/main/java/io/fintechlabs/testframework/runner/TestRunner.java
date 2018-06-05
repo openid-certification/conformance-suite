@@ -125,20 +125,6 @@ public class TestRunner {
 		}
 	}
 
-	/* TODO: Remove this?
-	private class BackgroundException extends Exception {
-		private String testId;
-	
-		public BackgroundException(String testId, String message, Throwable cause) {
-			super(message, cause);
-			this.testId = testId;
-		}
-	
-		public String getTestId(){
-			return testId;
-		}
-	}*/
-
 	private class FutureWatcher implements Runnable {
 		private boolean running = false;
 
@@ -173,7 +159,7 @@ public class TestRunner {
 
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
-						
+
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// there's an exception, stop the test
@@ -181,7 +167,7 @@ public class TestRunner {
 							test.setFinalError(testFailureException);
 							test.setResult(Result.FAILED);
 						}
-						
+
 					} else {
 						// TODO: Better handling if we get something we wern't expecting?
 						logger.error("Execution failure", e);
