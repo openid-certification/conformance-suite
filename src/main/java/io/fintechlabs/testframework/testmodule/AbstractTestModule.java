@@ -386,7 +386,8 @@ public abstract class AbstractTestModule implements TestModule {
 	 * @param result
 	 *            the result to set
 	 */
-	protected void setResult(Result result) {
+	@Override
+	public void setResult(Result result) {
 		this.result = result;
 		if (testInfo != null) {
 			testInfo.updateTestResult(getId(), getResult());

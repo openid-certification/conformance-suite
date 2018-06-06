@@ -16,11 +16,8 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -61,6 +58,7 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModule.Result;
 
 /**
  *
@@ -99,6 +97,102 @@ public class TestRunner {
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
+	private ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
+	private Map<String, List<Future>> taskFutures = new HashMap<>();
+	private FutureWatcher futureWatcher;
+
+	// TODO: Move this stuff to it's own file?
+	private class BackgroundTask implements Callable {
+		private String testId;
+		private Callable myCallable;
+
+		public BackgroundTask(String testId, Callable callable) {
+			this.testId = testId;
+			this.myCallable = callable;
+		}
+
+		@Override
+		public Object call() throws TestFailureException {
+			Object returnObj = null;
+			try {
+				returnObj = myCallable.call();
+			} catch (TestFailureException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new TestFailureException(testId, e.getMessage());
+			}
+			return returnObj;
+		}
+	}
+
+	private class FutureWatcher implements Runnable {
+		private boolean running = false;
+
+		public void stop() {
+			this.running = false;
+		}
+
+		@Override
+		public void run() {
+			running = true;
+			while (running) {
+				try {
+					FutureTask future = (FutureTask) executorCompletionService.poll(1, TimeUnit.SECONDS);
+					if (future != null && !future.isCancelled()) {
+						future.get();
+					}
+				} catch (InterruptedException e) {
+					// If we've been interrupted, then either it was on purpose, or something went very very wrong.
+					logger.error("Background task was interrupted", e);
+				} catch (ExecutionException e) {
+					if (e.getCause().getClass().equals(TestFailureException.class)) {
+						// This should always be the case for our BackgroundTasks
+						TestFailureException testFailureException = (TestFailureException) e.getCause();
+
+						// Clean up other tasks for this test id
+						String testId = testFailureException.getTestId();
+						for (Future f : taskFutures.get(testId)) {
+							if (!f.isDone()) {
+								f.cancel(true); // True allows the task to be interrupted.
+							}
+						}
+
+						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
+						conditionFailure(testFailureException);
+
+						TestModule test = support.getRunningTestById(testId);
+						if (test != null) {
+							// there's an exception, stop the test
+							test.stop();
+							test.setFinalError(testFailureException);
+							test.setResult(Result.FAILED);
+						}
+
+					} else {
+						// TODO: Better handling if we get something we wern't expecting?
+						logger.error("Execution failure", e);
+						//eventLog.log(testId, "TEST RUNNER", authenticationFacade.getPrincipal(), EventLog.ex(e));
+					}
+
+				}
+			}
+		}
+	}
+
+	private void runInBackground(String testId, Callable callable) {
+		if (futureWatcher == null) {
+			futureWatcher = new FutureWatcher();
+			executorService.submit(futureWatcher);
+		}
+		List<Future> futures;
+		if (taskFutures.containsKey(testId)) {
+			futures = taskFutures.remove(testId);
+		} else {
+			futures = new ArrayList<Future>();
+		}
+		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
+		taskFutures.put(testId, futures);
+	}
 
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
@@ -169,10 +263,15 @@ public class TestRunner {
 				"planId", planId,
 				"testName", testName));
 
+		/*
 		executorService.submit(() -> {
 			test.configure(config, url);
 		});
-
+		*/
+		runInBackground(id, () -> {
+			test.configure(config, url);
+			return "done";
+		});
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());
 
 		Map<String, String> map = new HashMap<>();
@@ -216,8 +315,15 @@ public class TestRunner {
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
+			/*
 			executorService.submit(() -> {
 				test.start();
+			});
+			*/
+
+			runInBackground(test.getId(), () -> {
+				test.start();
+				return "started";
 			});
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
@@ -253,9 +359,16 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
+			/*
 			executorService.submit(() -> {
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
 				test.stop();
+			});
+			*/
+			runInBackground(test.getId(), () -> {
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
+				test.stop();
+				return "stopped";
 			});
 
 			// return its immediate status
@@ -332,8 +445,8 @@ public class TestRunner {
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
-			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog);
-			
+			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executorCompletionService);
+
 			// call the constructor
 			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
 				.newInstance(id, owner, wrappedEventLog, browser, testInfo);
@@ -348,10 +461,13 @@ public class TestRunner {
 
 	}
 
+	// get the test modules from the memoized copy, filling it if necessary
 	private Map<String, TestModuleHolder> getTestModules() {
 		return testModuleSupplier.get();
 	}
 
+	// this is used to load all the test modules into the memoized copy used above
+	// we memoize this because reflection is slow
 	private Map<String, TestModuleHolder> findTestModules() {
 
 		Map<String, TestModuleHolder> testModules = new HashMap<>();
@@ -376,6 +492,7 @@ public class TestRunner {
 	private class TestModuleHolder {
 		public Class<? extends TestModule> c;
 		public PublishTestModule a;
+
 		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
 			this.c = c;
 			this.a = a;

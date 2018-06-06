@@ -62,12 +62,14 @@ var FAPI_UI = {
 	
 	reloadPause: 100,
 	
+	maxReloadPause: 5000, // cap at ~5s
+	
 	resetReloadPause : function() {
 		FAPI_UI.reloadPause = 100; // start at 100ms on reset
 	},
 	
 	incrementReloadPause : function() {
-		if (FAPI_UI.reloadPause < 5000) { // cap at ~5s
+		if (FAPI_UI.reloadPause < FAPI_UI.maxReloadPause) { 
 			FAPI_UI.reloadPause += Math.floor(FAPI_UI.reloadPause / 4); // increment by 25%
 		}
 	},
