@@ -263,11 +263,6 @@ public class TestRunner {
 				"planId", planId,
 				"testName", testName));
 
-		/*
-		executorService.submit(() -> {
-			test.configure(config, url);
-		});
-		*/
 		runInBackground(id, () -> {
 			test.configure(config, url);
 			return "done";
@@ -315,12 +310,6 @@ public class TestRunner {
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
-			/*
-			executorService.submit(() -> {
-				test.start();
-			});
-			*/
-
 			runInBackground(test.getId(), () -> {
 				test.start();
 				return "started";
@@ -359,12 +348,6 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
-			/*
-			executorService.submit(() -> {
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
-				test.stop();
-			});
-			*/
 			runInBackground(test.getId(), () -> {
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
 				test.stop();

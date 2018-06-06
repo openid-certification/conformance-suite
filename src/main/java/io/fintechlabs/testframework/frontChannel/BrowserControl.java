@@ -216,7 +216,6 @@ public class BrowserControl {
 
 					String expectedUrlMatcher = "*"; // default to matching any URL
 					if (currentTask.has("match")) {
-						//throw new TestFailureException(testId, "Invalid Task Definition - no 'match' property - " + currentTask);
 						// if there is a more specific "match" element, use its value instead
 						expectedUrlMatcher = currentTask.get("match").getAsString();
 					}
@@ -224,8 +223,6 @@ public class BrowserControl {
 					if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
 						if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, driver.getCurrentUrl())) {
 							if (currentTask.has("optional") && currentTask.get("optional").getAsBoolean()) {
-								//logStatus("Skiping Task due to URL mis-match", currentTask.get("task").getAsString(), null, currentTask);
-								
 								eventLog.log("WebRunner", args(
 									"msg", "Skipping optional task due to URL mismatch",
 									"match", expectedUrlMatcher,
@@ -235,10 +232,8 @@ public class BrowserControl {
 									"commands", currentTask.get("commands")
 								));
 								
-								skip = true;
+								skip = true; // we're going to skip this command
 							} else {
-								//logStatus("Unexpected URL for task '" + driver.getCurrentUrl() + "'", currentTask.get("task").getAsString(), ConditionResult.FAILURE, currentTask);
-								
 								eventLog.log("WebRunner", args(
 									"msg", "Unexpected URL for non-optional task",
 									"match", expectedUrlMatcher,
@@ -271,10 +266,6 @@ public class BrowserControl {
 						logger.debug("\tResponse Code: " + responseCode);
 
 						if (responseCode == 200) {
-							
-							//logStatus(currentTask.get("task").getAsString(), ConditionResult.SUCCESS, currentTask);
-							
-							
 							eventLog.log("WebRunner", args(
 								"msg", "Completed processing of webpage",
 								"match", expectedUrlMatcher,
@@ -287,8 +278,6 @@ public class BrowserControl {
 							));
 							
 						} else {
-							//logStatus(currentTask.get("task").getAsString(), ConditionResult.FAILURE, currentTask);
-							
 							eventLog.log("WebRunner", args(
 								"msg", "Failure processing of webpage",
 								"match", expectedUrlMatcher,
@@ -326,7 +315,6 @@ public class BrowserControl {
 		private void doCommand(JsonArray command, String taskName) {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
 			String commandString = command.get(0).getAsString();
-			// ["click", "id" or "name", "id_or_name"]
 			if (!Strings.isNullOrEmpty(commandString)) {
 				
 				// selectors common to all elements
@@ -334,10 +322,8 @@ public class BrowserControl {
 				String target = command.get(2).getAsString();
 				
 				if (commandString.equalsIgnoreCase("click")) {
-					
-					
-					//logCommand(null, taskName, commandString, target, null, null);
-					
+					// ["click", "id" or "name", "id_or_name"]
+
 					eventLog.log("WebRunner", args(
 						"msg", "Clicking an element",
 						"url", driver.getCurrentUrl(),
@@ -351,8 +337,8 @@ public class BrowserControl {
 					driver.findElement(getSelector(elementType, target)).click();
 					
 					return;
-					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
 				} else if (commandString.equalsIgnoreCase("text")) {
+					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
 					
 					String value = command.get(3).getAsString();
 					
@@ -371,9 +357,6 @@ public class BrowserControl {
 					
 					entryBox.sendKeys(value);
 					logger.debug("\t\tEntered text: " + value);
-
-					//logCommand(null, taskName, commandString, target, value, null);
-					
 					return;
 				}
 			}
@@ -407,10 +390,9 @@ public class BrowserControl {
 		
 	}
 
-	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
-
 	/**
-	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
+	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited. 
+	 * The driver doesn't normally have this functionality.
 	 */
 	private class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
 
