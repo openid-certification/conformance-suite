@@ -29,14 +29,14 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class ExtractClientCertificateFromRequestHeaders extends AbstractCondition {
+public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 * @param optional
 	 */
-	public ExtractClientCertificateFromRequestHeaders(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractClientCertificateFromTokenEndpointRequestHeaders(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -44,14 +44,14 @@ public class ExtractClientCertificateFromRequestHeaders extends AbstractConditio
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "client_request_headers")
+	@PreEnvironment(required = "token_endpoint_request")
 	@PostEnvironment(required = "client_certificate")
 	public Environment evaluate(Environment env) {
 
 		// Remove any certificate from a previous connection
 		env.remove("client_certificate");
 
-		String certStr = env.getString("client_request_headers", "X-Ssl-Cert");
+		String certStr = env.getString("token_endpoint_request", "headers.X-Ssl-Cert");
 		if (certStr == null) {
 			throw error("Client certificate not found");
 		}

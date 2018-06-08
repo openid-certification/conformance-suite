@@ -23,7 +23,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
@@ -34,9 +33,11 @@ import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredenti
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
+import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
@@ -71,7 +72,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "ob-client-test-client-secret",
-	displayName = "OB: client test (client_secret authentication)",
+	displayName = "OB: client test (client_secret authentication alone)",
 	profile = "OB",
 	configurationFields = {
 		"server.jwks",
@@ -163,16 +164,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		// Update the environment with the current request headers
-		JsonObject clientHeaders = new JsonObject();
-		Enumeration<String> headerNames = req.getHeaderNames();
-		while (headerNames.hasMoreElements()) {
-			String name = headerNames.nextElement();
-			clientHeaders.addProperty(name, req.getHeader(name));
-		}
-		env.put("client_request_headers", clientHeaders);
-
-		return null;
+		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
 	/**
@@ -253,8 +245,12 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		call(ExtractClientCredentialsFromFormPost.class);
 
 		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
+		
+		//call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		call(AuthenticateClientWithClientSecret.class);
+		
+		//call(EnsureMatchingClientCertificate.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
 
