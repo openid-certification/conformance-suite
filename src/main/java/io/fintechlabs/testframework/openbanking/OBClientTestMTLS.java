@@ -110,9 +110,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
-
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 
