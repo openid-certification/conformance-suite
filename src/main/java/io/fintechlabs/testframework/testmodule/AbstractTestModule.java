@@ -19,10 +19,6 @@ import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +75,7 @@ public abstract class AbstractTestModule implements TestModule {
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
-		this.browser.setLock(env.lock);
+		this.browser.setLock(env.getLock());
 		this.testInfo = testInfo;
 
 		this.created = Instant.now();
@@ -443,7 +439,7 @@ public abstract class AbstractTestModule implements TestModule {
 			case CONFIGURED:
 				switch (status) {
 					case RUNNING:
-						getLock().lock();
+						acquireLock();
 						break;
 					case INTERRUPTED:
 					case FINISHED:
@@ -472,7 +468,7 @@ public abstract class AbstractTestModule implements TestModule {
 			case WAITING:  // we shouldn't have the lock if we're waiting.
 				switch (status) {
 					case RUNNING:
-						getLock().lock();  // we want to grab the lock whenever we start running
+						acquireLock();  // we want to grab the lock whenever we start running
 						break;
 					case INTERRUPTED:
 					case FINISHED:
@@ -519,8 +515,8 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Helper to check if we have the lock, and if we do, unlock it.
 	 */
 	private void clearLock(){
-		if(getLock().isHeldByCurrentThread()){
-			getLock().unlock();
+		if(env.getLock().isHeldByCurrentThread()){
+			env.getLock().unlock();
 		}
 	}
 
@@ -648,8 +644,8 @@ public abstract class AbstractTestModule implements TestModule {
 		return EventLog.ex(cause, in);
 	}
 
-	public ReentrantLock getLock() {
-		return env.lock;
+	public void acquireLock() {
+		env.getLock().lock();
 	}
 
 }

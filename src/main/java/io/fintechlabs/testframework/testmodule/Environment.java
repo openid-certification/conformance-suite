@@ -38,7 +38,7 @@ public class Environment {
 	/**
 	 * Set up a lock for threading purposes
 	 */
-	public ReentrantLock lock = new ReentrantLock(true); // set with fairness policy to get up control to the longest waiting thread
+	private ReentrantLock lock = new ReentrantLock(true); // set with fairness policy to get up control to the longest waiting thread
 
 	private static final String STRING_VALUES = "_STRING_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
@@ -217,6 +217,13 @@ public class Environment {
 	@Override
 	public String toString() {
 		return "Environment [store=" + store + "]";
+	}
+
+	/**
+	 * @return the lock
+	 */
+	public ReentrantLock getLock() {
+		return lock;
 	}
 
 }

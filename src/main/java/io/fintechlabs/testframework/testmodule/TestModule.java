@@ -173,11 +173,6 @@ public interface TestModule {
 	TestFailureException getFinalError();
 
 	/**
-	 * @return the lock object contained in the environment for multi-threading
-	 */
-	ReentrantLock getLock();
-
-	/**
 	 * @param failed
 	 */
 	void setResult(Result result);
