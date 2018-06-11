@@ -24,9 +24,14 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -53,7 +58,6 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		cond = new AddFAPIInteractionIdToResourceEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("resource_endpoint_request_headers", new JsonObject());
 	}
 
 	/**
@@ -69,6 +73,38 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 		verify(env, atLeastOnce()).getString("fapi_interaction_id");
 
 		assertThat(env.getString("resource_endpoint_request_headers", "x-fapi-interaction-id")).isEqualTo(interactionId);
+	}
+
+	@Test
+	public void testEvaluate_existingHeaders() {
+
+		env.putString("fapi_interaction_id", interactionId);
+		env.put("resource_endpoint_request_headers",	new JsonObject());
+		
+		cond.evaluate(env);
+		
+		JsonObject req = env.get("resource_endpoint_request_headers");
+		
+		assertNotNull(req);
+		assertTrue(req.has("x-fapi-interaction-id"));
+		assertEquals(interactionId, req.get("x-fapi-interaction-id").getAsString());
+	
+	}
+
+	@Test
+	public void testEvaluate_existingHeadersOverwrite() {
+
+		env.putString("fapi_interaction_id", interactionId);
+		env.put("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-interaction-id\":\"foo-bar\"}").getAsJsonObject());
+		
+		cond.evaluate(env);
+		
+		JsonObject req = env.get("resource_endpoint_request_headers");
+		
+		assertNotNull(req);
+		assertTrue(req.has("x-fapi-interaction-id"));
+		assertEquals(interactionId, req.get("x-fapi-interaction-id").getAsString());
+	
 	}
 
 }
