@@ -7,6 +7,7 @@ var FAPI_UI = {
 		this.logTemplates.TEST_OPTGROUP = _.template($("#indexTemplate_TestOptGroup").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
 		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
+		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
 	},
 
 	loadLogDetailTemplates: function() {
@@ -25,6 +26,8 @@ var FAPI_UI = {
 		this.logTemplates.BROWSER = _.template($("#logDetailTemplate_Browser").html());
 		this.logTemplates.HTTP = _.template($("#logDetailTemplate_Http").html());
 		this.logTemplates.FINAL_ERROR = _.template($('#logDetailTemplate_FinalError').html());
+		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
+		this.logTemplates.SUMMARY = _.template($('#logDetailTemplate_ResultsSummary').html());
 	},
 	
 	loadLogListTemplates: function() {
@@ -36,7 +39,7 @@ var FAPI_UI = {
 	loadPlanTemplates: function() {
 		this.logTemplates.PLAN_START = _.template($('#planTemplate_PlanStart').html());
 		this.logTemplates.OWNER = _.template($('#planTemplate_Owner').html());
-		this.logTemplates.TEST_STATUS = _.template($('#planTemplate_TestStatusAndResult').html());
+		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
 	},
 
 	loadPlanListTemplates: function() {
@@ -46,11 +49,30 @@ var FAPI_UI = {
 	},
 	
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http"],
-	testResults : {passed:false, finished:false, success:0, warning:0, failure:0, interrupted:0, review:0, info:0, default:0, total:0},
 
 	availableTests : {},
 	
 	availablePlans : {},
+	
+	running: false,
+	
+	status: 'unknown',
+	
+	latestTestEntry: undefined,
+	
+	reloadPause: 100,
+	
+	maxReloadPause: 5000, // cap at ~5s
+	
+	resetReloadPause : function() {
+		FAPI_UI.reloadPause = 100; // start at 100ms on reset
+	},
+	
+	incrementReloadPause : function() {
+		if (FAPI_UI.reloadPause < FAPI_UI.maxReloadPause) { 
+			FAPI_UI.reloadPause += Math.floor(FAPI_UI.reloadPause / 4); // increment by 25%
+		}
+	},
 	
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {

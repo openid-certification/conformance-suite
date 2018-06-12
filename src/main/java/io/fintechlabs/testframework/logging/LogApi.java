@@ -30,6 +30,8 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.google.common.collect.ImmutableMap;
@@ -108,8 +111,8 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<DBObject>> getLogResults(@PathVariable("id") String id) {
-		List<DBObject> results = getTestResults(id);
+	public ResponseEntity<List<DBObject>> getLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
+		List<DBObject> results = getTestResults(id, since);
 		
 		return ResponseEntity.ok().body(results);
 	}
@@ -195,13 +198,27 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
+	/**
+	 * @param id
+	 * @return
+	 */
 	private List<DBObject> getTestResults(String id) {
-		BasicDBObjectBuilder queryBuilder = BasicDBObjectBuilder.start().add("testId", id);
-		if (!authenticationFacade.isAdmin()) {
-			queryBuilder = queryBuilder.add("testOwner", authenticationFacade.getPrincipal());
-		}
+		return getTestResults(id, null);
+	}
 
-		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(queryBuilder.get())
+	private List<DBObject> getTestResults(String id, Long since) {
+		Criteria criteria = new Criteria();
+		criteria.and("testId").is(id);
+		
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		}
+		
+		if (since != null) {
+			criteria.and("time").gt(since);
+		}
+		
+		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(criteria.getCriteriaObject())
 			.sort(BasicDBObjectBuilder.start()
 				.add("time", 1)
 				.get())

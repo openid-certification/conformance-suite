@@ -185,7 +185,7 @@
     </script>
 
     <!-- Test status and results -->
-    <script type="text/template" id="planTemplate_TestStatusAndResult">
+    <script type="text/template" id="logTemplate_TestStatusAndResult">
 		<div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
 		    <%- test.status ? test.status : 'UNKNOWN' %>
 		    <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>

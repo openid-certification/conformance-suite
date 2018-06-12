@@ -103,42 +103,18 @@
         </div>
     </div>
 
+    <!-- summary -->
+    <script type="text/template" id="logDetailTemplate_ResultsSummary">
+        <span class="label result-<%- result.toLowerCase() %>"><%- result.toUpperCase() %> <span class="badge"><%- value ? value : '0' %></span></span>
+    </script>
 
 	<!-- LogStart -->
 	<script type="text/template" id="logDetailTemplate_LogStart">
 
-            <div class="well well-sm container-fluid">
+            <div class="well well-sm container-fluid" data-instance-id="<%- test.testId %>">
               <div class="row-fluid" id="logHeader"> <!-- main header -->
         
                 <div class="col-md-2" id="testStatusAndResult"><!-- status and results block -->
-
-                    <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
-                        <%- test.status ? test.status : 'UNKNOWN' %>
-                        <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
-                    </div>
-                    <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'unknown' %>">
-                        <%- test.result ? test.result : 'UNKNOWN' %>
-                        <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
-                    </div>
-
-                    <!-- calculated test results -->
-                    <div>
-                        <div>
-                            <small>Test condition summary:</small>
-                        </div>
-                        <div class="labelCollection">
-                    <%
-                        var hiddenKeys = ["passed", "finished", "total"];
-                        _.each(summary, function(value, key, o) {
-                            if (value && !_.contains(hiddenKeys, key)) {
-                    %>
-                                <span class="label result-<%- key %>"><%- key.toUpperCase() %> <span class="badge"><%- value %></span></span>
-                    <%
-                            }
-                        });
-                    %>
-                        </div>
-                    </div>
 
                 </div>
 
@@ -169,6 +145,13 @@
                         <div class="col-md-11"><%- test.planId %></div>
                     </div>
                     <% } %>
+                    <div class="row">
+                        <!-- calculated test results -->
+                        <div class="col-md-1">Summary:</div>
+                        <div class="col-md-11 labelCollection" id="testResultSummary">
+
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-md-2"> <!-- controls -->
@@ -200,7 +183,7 @@
 
                 </div>
                 <div class="col-md-1">
-                    <button class="btn btn-default btn-block collapse" id="startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
+                    <button class="btn btn-success btn-block collapse" id="startBtn"><span class="glyphicon glyphicon-play"></span> Start</button>
                     <button class="btn btn-default btn-block collapse" id="stopBtn"><span class="glyphicon glyphicon-stop"></span> Stop</button>
                 </div>
               </div>
@@ -214,7 +197,7 @@
 	<!-- Log detail element -->
 	<script type="text/template" id="logDetailTemplate">
           <div class="row">
-            <div data-item-log-id="<%- item._id %>" class="col-md-12 logItem">
+            <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem">
 
                 <div class="row"><!-- time / result & http / source / owner -->
 
@@ -226,11 +209,7 @@
                     </div>
 
                     <div class="col-md-1 labelCollection">
-                      <% if (item.result) { 
-                          // count the number of test types to render later on
-                          FAPI_UI.testResults[item.result.toLowerCase()]++;
-                          FAPI_UI.testResults.total++;
-                      %> 
+                      <% if (item.result) { %> 
                       <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
                       <% } %>
 
@@ -327,7 +306,7 @@
 
 	<!-- Result -->
 	<script type="text/template" id="logDetailTemplate_Result">
-            <div class="labelCollection">
+            <div class="labelCollection" data-entry-result="<%- item.result.toLowerCase() %>">
                 <span class="log-result label result-<%- item.result.toLowerCase() %>"><%- item.result.toUpperCase() %></span>
             </div>
         </script>
@@ -460,6 +439,18 @@
         </div>
     </script>
 
+    <!-- result/status block -->
+    <script type="text/template" id="logTemplate_TestStatusAndResult">
+        <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
+            <%- test.status ? test.status : 'UNKNOWN' %>
+            <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
+        </div>
+        <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'unknown' %>">
+            <%- test.result ? test.result : 'UNKNOWN' %>
+            <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
+        </div>
+    </script>
+
 	<!-- resident DOM -->
 	<div class="container-fluid">
 		<div id="logDetail">
@@ -471,72 +462,103 @@
 	</div>
 
 	<script type="text/javascript">
-		/**
-		 *
-		 */
 		function getLogs(testId) {
 
 			return $.ajax({
 				type: 'GET',
-				url: "/log/" + encodeURIComponent(testId),
+				url: "/log/" + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
 				data: {},
 				success: function(data) {
 
 					// clear any existing log items
-					$('#logDetail .logContent').html('');
+					//$('#logDetail .logContent').html('');
 
+					if (data.length > 0) {
+						// we got some potentially new test data, reload faster
+						FAPI_UI.resetReloadPause();
+					} else {
+						// we didn't get new data, slow down
+						FAPI_UI.incrementReloadPause();
+					}
+					
 					$.each(data, function(i, item) {
 
-						// render the base element
-						var el = $(FAPI_UI.logTemplates.LOG_DETAIL({
-							item: item
-						}));
-						$('#logDetail .logContent').append(el);
+					    var existing = $(`[data-item-entry-id='${item._id}']`);
+						
+					    // check to see if we've seen it before
+					    if (existing.length == 0) {
+					    	
+	                        // render the base element
+	                        var el = $(FAPI_UI.logTemplates.LOG_DETAIL({
+	                            item: item
+	                        }));
+	                        $('#logDetail .logContent').append(el);
 
-						// see if we've got any "extra" bits that we want to display in a block
-						var more = _.pick(item, function(value, key, object) {
-							return !_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_");
-						});
+	                        // see if we've got any "extra" bits that we want to display in a block
+	                        var more = _.pick(item, function(value, key, object) {
+	                            return !_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_");
+	                        });
 
-						if (!_.isEmpty(more)) {
-							// we have extra fields so let's attach them
-							var moreButton = $(FAPI_UI.logTemplates.MORE_BUTTON({
-								more: more,
-								item: item
-							}));
-							var moreInfo = $(FAPI_UI.logTemplates.MORE({
-								more: more,
-								item: item
-							}));
+	                        if (!_.isEmpty(more)) {
+	                            // we have extra fields so let's attach them
+	                            var moreButton = $(FAPI_UI.logTemplates.MORE_BUTTON({
+	                                more: more,
+	                                item: item
+	                            }));
+	                            var moreInfo = $(FAPI_UI.logTemplates.MORE({
+	                                more: more,
+	                                item: item
+	                            }));
 
-							$('.moreButtonContainer', el).append(moreButton);
-							$('.moreInfoContainer', el).append(moreInfo);
+	                            $('.moreButtonContainer', el).append(moreButton);
+	                            $('.moreInfoContainer', el).append(moreInfo);
 
-							// wire up the button
-							$('.moreBtn', el).click(function(evt) {
-								if ($(this).data('activated')) {
-									// it's already been activated, need to hide things
-									$('.moreInfo', el).hide(); // hide the content
-									$('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
-									$(this).data('activated', false);
-								} else {
-									// need to show the collapsed entity
-									$('.moreInfo', el).show(); // show the content
-									$('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
-									$(this).data('activated', true);
-								}
-							});
-							
-							// prettyprint any raw JSON values
-							PR.prettyPrint();
-						}
+	                            // wire up the button
+	                            $('.moreBtn', el).click(function(evt) {
+	                                if ($(this).data('activated')) {
+	                                    // it's already been activated, need to hide things
+	                                    $('.moreInfo', el).hide(); // hide the content
+	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+	                                    $(this).data('activated', false);
+	                                } else {
+	                                    // need to show the collapsed entity
+	                                    $('.moreInfo', el).show(); // show the content
+	                                    $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+	                                    $(this).data('activated', true);
+	                                }
+	                            });
+	                            
+	                            // prettyprint any raw JSON values
+	                            PR.prettyPrint();
+	                        }
+	                        
+	                        // write down the "last" log entry we've seen so far so we don't have to re-fetch it at all; if it does happen we can ignore it
+                            FAPI_UI.latestTestEntry = _.max([FAPI_UI.latestTestEntry, item.time]);
+                            
+					    } else {
+					    	   // skipping an existing element
+					    	   //console.log('Skipping existing: ' + item._id);
+					    }
+					    
 					});
-
+					
+				    // total the amounts for display
+				    var allResults = $('[data-entry-result]').map(function() { return $(this).data('entryResult'); }).get();
+				    var resultTotals = _.countBy(allResults, _.identity());
+				    
+				    var possibleResults = ['success', 'failure', 'warning', 'review', 'interrupted', 'info'];
+				    var results = '';
+				    _.each(possibleResults, function(result) {
+				    	   results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
+				    });
+				    $('#testResultSummary').html(results);
 				},
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 						error: error
 					});
+                    // don't update anymore
+                    stopReloader();
 				}
 			});
 		}
@@ -548,122 +570,190 @@
 				url: '/info/' + encodeURIComponent(testId),
 				data: {},
 				success: function(data) {
-					$('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({
-						test: data,
-						summary: FAPI_UI.testResults
-					}));
-
-					$('#logDetail .header [data-toggle="tooltip"]').tooltip({
-						container: 'body'
-					});
-
-					$('#downloadBtn').click(function(evt) {
-						evt.preventDefault();
-						window.open('/log/export/' + encodeURIComponent(testId));
-					});
-
-					$('#uploadBtn').click(function(evt) {
-						evt.preventDefault();
-						window.open('/upload.html?log=' + encodeURIComponent(testId));
-					});
-
-					$('#reloadBtn').click(function(evt) {
-						evt.preventDefault();
-
-						FAPI_UI.showBusy('Creating a clone of this test...');
-
-						$.ajax({
-							url: '/runner/?test=' + encodeURIComponent(data.testName) + (data.planId ? '&plan=' + encodeURIComponent(data.planId) : ''),
-							type: 'POST',
-							contentType: 'application/json',
-							data: JSON.stringify(data.config),
-							success: function(data, status) {
-								// we need to switch to the new window now
-								var newUrl = window.location.href.replace(testId, data.id);
-								window.location.assign(newUrl);
-							},
-							error: function(jqxhr, status, error) {
-								FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-									error: error
-								});
-							}
-						});
-
-					});
-
-                    // wire up configuration button
-                    $('#showConfigBtn').click(function(evt) {
-                        evt.preventDefault();
-                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
-                        $('#configModal').modal('show');
-                    });
 					
-					if (data.planId) {
-						$('#planBtn').click(function(evt) {
-							evt.preventDefault();
-							window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId));
-						});
-						$('#planBtn').show();
-						
-						$.ajax({
-							url: '/plan/' + encodeURIComponent(data.planId),
-							type: 'GET',
-							success: function(planData) {
-								
-								var modules = _.pluck(planData.modules, 'testModule');
-								var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
-								
-								if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {
-									// there's a "next" module we can run in this test plan
-									
-									var nextModule = modules[thisModuleIndex + 1];
-
-				                    $('#nextPlanBtn').click(function(evt) {
-				                        evt.preventDefault();
-
-				                        FAPI_UI.showBusy('Creating a new test for ' + nextModule + '...');
-
-				                        $.ajax({
-				                            url: '/runner/?test=' + encodeURIComponent(nextModule) + '&plan=' + encodeURIComponent(data.planId),
-				                            type: 'POST',
-				                            contentType: 'application/json',
-				                            data: JSON.stringify(data.config),
-				                            success: function(data, status) {
-				                                // we need to switch to the new window now
-				                                var newUrl = window.location.href.replace(testId, data.id);
-				                                window.location.assign(newUrl);
-				                            },
-				                            error: function(jqxhr, status, error) {
-				                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-				                                    error: error
-				                                });
-				                            }
-				                        });
-				                    });
-				                    
-									$('#nextPlanBtn').show();
-								}
-								
-							},
-                            error: function(jqxhr, status, error) {
-                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                    error: error
-                                });
-                            }
-						})
-						
+					// save the status for the 'active' panel later
+					if (data.status) {
+						if (FAPI_UI.status != data.status.toLowerCase()) {
+						    FAPI_UI.resetReloadPause(); // the status changed, might want to pay more attention							
+							FAPI_UI.status = data.status.toLowerCase();
+						}
 					}
+					
+					// see if we've already rendered this
+					var existing = $(`#logDetail .header [data-instance-id='${testId}']`);
+					
+					if (existing.length == 0) {
+	                    $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({
+	                        test: data
+	                    }));
+	                    
+	                    $('#logDetail .header [data-toggle="tooltip"]').tooltip({
+	                        container: 'body'
+	                    });
+
+	                    $('#downloadBtn').click(function(evt) {
+	                        evt.preventDefault();
+	                        window.open('/log/export/' + encodeURIComponent(testId));
+	                    });
+
+	                    $('#uploadBtn').click(function(evt) {
+	                        evt.preventDefault();
+	                        window.open('/upload.html?log=' + encodeURIComponent(testId));
+	                    });
+
+	                    $('#reloadBtn').click(function(evt) {
+	                        evt.preventDefault();
+
+	                        FAPI_UI.showBusy('Creating a clone of this test...');
+
+	                        $.ajax({
+	                            url: '/runner/?test=' + encodeURIComponent(data.testName) + (data.planId ? '&plan=' + encodeURIComponent(data.planId) : ''),
+	                            type: 'POST',
+	                            contentType: 'application/json',
+	                            data: JSON.stringify(data.config),
+	                            success: function(data, status) {
+	                                // we need to switch to the new window now
+	                                var newUrl = window.location.href.replace(testId, data.id);
+	                                window.location.assign(newUrl);
+	                            },
+	                            error: function(jqxhr, status, error) {
+	                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+	                                    error: error
+	                                });
+	                                // don't update anymore
+	                                stopReloader();
+	                            }
+	                        });
+
+	                    });
+
+	                    // wire up configuration button
+	                    $('#showConfigBtn').click(function(evt) {
+	                        evt.preventDefault();
+	                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
+	                        $('#configModal').modal('show');
+	                    });
+	                    
+                        $('#stopBtn').click(function(evt) {
+                            evt.preventDefault();
+                            FAPI_UI.showBusy('Stopping test...');
+
+                            $.ajax({
+                                url: '/runner/' + encodeURIComponent(testId),
+                                type: 'DELETE',
+                                error: function(jqxhr, status, error) {
+                                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                        error: error
+                                    });
+                                    // don't update anymore
+                                    stopReloader();
+                                }
+                            }).then(function() {
+                                stopReloader();
+                                return reload(testId);
+                            }).always(function() {
+                                FAPI_UI.hideBusy();
+                            });
+                        });
+
+                        $('#startBtn').click(function(evt) {
+                            evt.preventDefault();
+                            FAPI_UI.showBusy('Starting test...');
+
+                            $.ajax({
+                                url: '/runner/' + encodeURIComponent(testId),
+                                type: 'POST',
+                                error: function(jqxhr, status, error) {
+                                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                        error: error
+                                    });
+                                    // don't update anymore
+                                    stopReloader();
+                                }
+                            }).then(function() {
+                                return reload(testId);
+                            }).always(function() {
+                                FAPI_UI.hideBusy();
+                            });
+                        });
+
+	                    if (data.planId) {
+	                        $('#planBtn').click(function(evt) {
+	                            evt.preventDefault();
+	                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId));
+	                        });
+	                        $('#planBtn').show();
+	                        
+	                        $.ajax({
+	                            url: '/plan/' + encodeURIComponent(data.planId),
+	                            type: 'GET',
+	                            success: function(planData) {
+	                                
+	                                var modules = _.pluck(planData.modules, 'testModule');
+	                                var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
+	                                
+	                                if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {
+	                                    // there's a "next" module we can run in this test plan
+	                                    
+	                                    var nextModule = modules[thisModuleIndex + 1];
+
+	                                    $('#nextPlanBtn').click(function(evt) {
+	                                        evt.preventDefault();
+
+	                                        FAPI_UI.showBusy('Creating a new test for ' + nextModule + '...');
+
+	                                        $.ajax({
+	                                            url: '/runner/?test=' + encodeURIComponent(nextModule) + '&plan=' + encodeURIComponent(data.planId),
+	                                            type: 'POST',
+	                                            contentType: 'application/json',
+	                                            data: JSON.stringify(data.config),
+	                                            success: function(data, status) {
+	                                                // we need to switch to the new window now
+	                                                var newUrl = window.location.href.replace(testId, data.id);
+	                                                window.location.assign(newUrl);
+	                                            },
+	                                            error: function(jqxhr, status, error) {
+	                                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+	                                                    error: error
+	                                                });
+	                                                // don't update anymore
+	                                                stopReloader();
+	                                            }
+	                                        });
+	                                    });
+	                                    
+	                                    $('#nextPlanBtn').show();
+	                                }
+	                                
+	                            },
+	                            error: function(jqxhr, status, error) {
+	                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+	                                    error: error
+	                                });
+	                                // don't update anymore
+	                                stopReloader();
+	                            }
+	                        })
+	                        
+	                    }
+					}
+
+					// update the status and result regardless of whether we rendered the header in full
+				    $('#logDetail .header #testStatusAndResult').html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
 
 				},
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 						error: error
 					});
+                    // don't update anymore
+                    stopReloader();
 				}
 			});
 		}
 
 		function getActive(testId) {
+			
 			// try to load up the active test information if it's available, otherwise cut out some controls
 			return $.ajax({
 				type: 'GET',
@@ -672,9 +762,12 @@
 					// show the overall container
 					$('#runningTestInformation').show();
 
+					// if it's an active test, keep it updated unless we figure out otherwise
+                    FAPI_UI.running = true;
+                    
 					// found an active test, light up the buttons appropriately
-					if (data.status) {
-						if (data.status.toLowerCase() == 'finished' || data.status.toLowerCase() == 'interrupted') {
+					if (FAPI_UI.status) {
+						if (FAPI_UI.status == 'finished' || FAPI_UI.status == 'interrupted') {
 							// can't start or stop a stopped test
 							$('#startBtn').hide();
 							$('#stopBtn').hide();
@@ -682,6 +775,8 @@
 							$('#runningTestActive').hide();
 							$('#runningTestInactive').show();
 							$('#runningTestArchived').hide();
+							// no need to keep updating either
+							stopReloader();
 						} else {
 							// this test is currently running and can potentially be stopped
 							$('#stopBtn').show();
@@ -689,57 +784,9 @@
 							$('#runningTestInactive').hide();
 							$('#runningTestArchived').hide();
 
-							$('#stopBtn').click(function(evt) {
-								evt.preventDefault();
-								FAPI_UI.showBusy('Stopping test...');
-
-								$.ajax({
-									url: '/runner/' + encodeURIComponent(testId),
-									type: 'DELETE',
-									error: function(jqxhr, status, error) {
-										FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-											error: error
-										});
-									}
-								}).then(function() {
-									return getLogs(testId);
-								}).then(function() {
-									return getHeader(testId);
-								}).then(function() {
-									return getActive(testId);
-								}).always(function() {
-									FAPI_UI.hideBusy();
-								});
-							});
-
-							// if the test is currently in a "created" or "configured" state it can also be started
-							if (data.status.toLowerCase() == 'created' || data.status.toLowerCase() == 'configured') {
-
+							// if the test is currently in a "configured" state it can also be started
+							if (FAPI_UI.status == 'configured') {
 								$('#startBtn').show();
-
-								$('#startBtn').click(function(evt) {
-									evt.preventDefault();
-									FAPI_UI.showBusy('Starting test...');
-
-									$.ajax({
-										url: '/runner/' + encodeURIComponent(testId),
-										type: 'POST',
-										error: function(jqxhr, status, error) {
-											FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-												error: error
-											});
-										}
-									}).then(function() {
-										return getLogs(testId);
-									}).then(function() {
-										return getHeader(testId);
-									}).then(function() {
-										return getActive(testId);
-									}).always(function() {
-										FAPI_UI.hideBusy();
-									});
-								});
-
 							} else {
 								// otherwise, the test can't be started
 								$('#startBtn').hide();
@@ -775,13 +822,11 @@
 										FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 											error: error
 										});
+					                    // don't update anymore
+					                    stopReloader();
 									}
 								}).then(function() {
-									return getLogs(testId);
-								}).then(function() {
-									return getHeader(testId);
-								}).then(function() {
-									return getActive(testId);
+									return reload(testId);
 								}).always(function() {
 									FAPI_UI.hideBusy();
 								});
@@ -807,7 +852,7 @@
 							$('#stacktrace').show();
 						});
 					}
-
+					
 				},
 				error: function(jqxhr, status, error) {
 					// test isn't currently in the runner, can't start or stop it
@@ -816,13 +861,49 @@
 					$('#runningTestActive').hide();
 					$('#runningTestInactive').hide();
 					$('#runningTestArchived').show();
+					// don't update anymore
+					stopReloaderNow();
 				}
 			});
 		}
 
-		/**
-		 *
-		 */
+		function startReloader(testId) {
+			clearTimeout(FAPI_UI.reloader);
+			if (FAPI_UI.running) {
+				FAPI_UI.reloader = setTimeout(function() {
+	                return reload(testId)
+	                .always(function() {
+	                    if (FAPI_UI.running) {
+	                        startReloader(testId);
+	                    }
+	                });
+	            }, FAPI_UI.reloadPause);
+			}
+		}
+		
+		// delay stopping the reloader for a little bit to get any last minute additions to the logs
+        function stopReloader() {
+			setTimeout(function() {
+				stopReloaderNow();
+			}, FAPI_UI.maxReloadPause);
+        }
+
+		function stopReloaderNow() {
+			FAPI_UI.running = false;
+			clearTimeout(FAPI_UI.reloader);
+		}
+
+		function reload(testId) {
+            return $.when()
+            .then(function() {
+                return getHeader(testId);
+            }).then(function() {
+                return getLogs(testId);
+            }).then(function() {
+                return getActive(testId);
+            });
+		}
+		
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var testId = urlParams.get('log');
@@ -833,13 +914,14 @@
 			.then(function() {
 				return FAPI_UI.getUserInfoDiv("#userInfoDiv") // Then get the current user info
 			}).then(function() {
-				return getLogs(testId); // Only once the user is loaded, then render the logs
-			}).then(function() {
 				return getHeader(testId); // once the logs are loaded, render the header
+			}).then(function() {
+				return getLogs(testId); // Only once the user is loaded, then render the logs
 			}).then(function() { // once we have the test info, check to see if the test is currently active
 				return getActive(testId);
 			}).always(function() {
 				FAPI_UI.hideBusy();
+				startReloader(testId);
 			});
 		});
 	</script>
