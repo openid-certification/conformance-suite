@@ -39,9 +39,9 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private JsonObject sampleHeaders;
+	private JsonObject tokenEndpointRequest;
 
-	private ExtractClientCertificateFromRequestHeaders cond;
+	private ExtractClientCertificateFromTokenEndpointRequestHeaders cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -49,7 +49,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractClientCertificateFromRequestHeaders("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractClientCertificateFromTokenEndpointRequestHeaders("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC 7468
 		String certificate = "-----BEGIN CERTIFICATE----- " +
@@ -64,18 +64,21 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 			"ILwpnZ1izL4MlI9eCSHhVQBHEp2uQdXJB+d5Byg= " +
 			"-----END CERTIFICATE-----";
 
-		sampleHeaders = new JsonObject();
+		JsonObject sampleHeaders = new JsonObject();
 		sampleHeaders.addProperty("X-Ssl-Cert", certificate);
+		
+		tokenEndpointRequest = new JsonObject();
+		tokenEndpointRequest.add("headers", sampleHeaders);
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromRequestHeaders#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("client_request_headers", sampleHeaders);
+		env.put("token_endpoint_request", tokenEndpointRequest);
 
 		cond.evaluate(env);
 
@@ -85,7 +88,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromRequestHeaders#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {

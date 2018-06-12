@@ -23,13 +23,13 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
+import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
@@ -37,7 +37,8 @@ import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
-import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromRequestHeaders;
+import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
@@ -67,14 +68,15 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "ob-client-test-mtls",
-	displayName = "OB: client test (MTLS authentication)",
+	displayName = "OB: client test (MTLS authentication with client secret)",
 	profile = "OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
 		"client.client_secret",
 		"client.scope",
-		"client.redirect_uri"
+		"client.redirect_uri",
+		"client.jwks"
 	}
 )
 public class OBClientTestMTLS extends AbstractTestModule {
@@ -107,9 +109,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		callAndStopOnFailure(LoadUserInfo.class);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -261,15 +260,51 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		env.put("token_endpoint_request", requestParts);
 
-		call(ExtractClientCertificateFromRequestHeaders.class);
+		call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
+		
+		callAndStopOnFailure(EnsureMatchingClientCertificate.class);
 
+		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
+		
 		call(ExtractClientCredentialsFromFormPost.class);
 
 		call(AuthenticateClientWithClientSecret.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
+
+		// dispatch based on grant type
+		String grantType = requestParts.get("params").getAsJsonObject().get("grant_type").getAsString();
+
+		if (grantType.equals("authorization_code")) {
+			// we're doing the authorization code grant for user access
+			return authorizationCodeGrantType(requestParts);
+		} else if (grantType.equals("client_credentials")) {
+			// we're doing the client credentials grant for initial token access
+			return clientCredentialsGrantType(requestParts);
+		} else {
+			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
+		}
+
+	}
+
+	private Object clientCredentialsGrantType(JsonObject requestParts) {
+
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+
+		// this puts the client credentials specific token into its own box for later
+		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
+
+	}
+
+	private Object authorizationCodeGrantType(JsonObject requestParts) {
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
@@ -301,12 +336,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
-
-		call(ExtractClientCertificateFromRequestHeaders.class);
-
-		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
-
-		callAndStopOnFailure(EnsureMatchingClientCertificate.class);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
