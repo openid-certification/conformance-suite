@@ -60,20 +60,20 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		super.requestAuthorizationCode();
 
-		call(ExtractSHash.class);
+		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		call(ExtractCHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateCHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.FAILURE ,
+			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		call(ExtractAtHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 	}
 
@@ -159,20 +159,20 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 
-		call(ExtractSHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 		
-		call(ExtractCHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateCHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 		
-		call(ExtractAtHash.class, "FAPI-2-5.2.2-4");
+		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");		
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");		
 		
 		
 
