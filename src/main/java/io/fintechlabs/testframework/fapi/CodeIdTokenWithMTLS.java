@@ -333,7 +333,6 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		exposeEnvString("fapi_interaction_id");
 		
-		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
