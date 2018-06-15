@@ -346,11 +346,13 @@ public abstract class AbstractTestModule implements TestModule {
 		logger.info("Final environment: " + env);
 	}
 
-	protected void fireSetupDone() {
+	@Override
+	public void fireSetupDone() {
 		eventLog.log(getName(), "Setup Done");
 	}
 
-	protected void fireTestFinished() {
+	@Override
+	public void fireTestFinished() {
 		setStatus(Status.FINISHED);
 
 		if (getResult() == Result.UNKNOWN) {
@@ -362,11 +364,18 @@ public abstract class AbstractTestModule implements TestModule {
 			"result", getResult()));
 	}
 
-	protected void fireTestSuccess() {
+	@Override
+	public void fireTestReviewNeeded() {
+		setResult(Result.REVIEW);
+	}
+	
+	@Override
+	public void fireTestSuccess() {
 		setResult(Result.PASSED);
 	}
 
-	protected void fireTestFailure() {
+	@Override
+	public void fireTestFailure() {
 		setResult(Result.FAILED);
 	}
 
@@ -382,8 +391,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 * @param result
 	 *            the result to set
 	 */
-	@Override
-	public void setResult(Result result) {
+	protected void setResult(Result result) {
 		this.result = result;
 		if (testInfo != null) {
 			testInfo.updateTestResult(getId(), getResult());

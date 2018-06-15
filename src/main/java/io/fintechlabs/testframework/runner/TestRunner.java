@@ -165,7 +165,7 @@ public class TestRunner {
 							// there's an exception, stop the test
 							test.stop();
 							test.setFinalError(testFailureException);
-							test.setResult(Result.FAILED);
+							test.fireTestFailure();
 						}
 
 					} else {

@@ -15,7 +15,6 @@
 package io.fintechlabs.testframework.logging;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,9 +33,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.runner.TestRunnerSupport;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModule.Result;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
@@ -49,8 +53,11 @@ public class ImageAPI {
 	private MongoTemplate mongoTemplate;
 
 	@Autowired
-	TestInfoService testInfoService;
+	private TestInfoService testInfoService;
 
+	@Autowired
+	private TestRunnerSupport testRunnerSupport;
+	
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
@@ -72,6 +79,9 @@ public class ImageAPI {
 				.add("img", encoded);
 
 			mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
+
+			// an image was uploaded, it needs to be reviewed
+			setTestReviewNeeded(testId);
 		}
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -82,19 +92,14 @@ public class ImageAPI {
 		@PathVariable(name = "id") String testId,
 		@PathVariable(name = "placeholder") String placeholder) throws IOException {
 
-		List<Criteria> criterias = new ArrayList<>();
+		Criteria findTestId = Criteria.where("testId").is(testId);
+		
 
 		// add the placeholder condition
-		criterias.add(Criteria.where("upload").is(placeholder));
+		Criteria placeholderExists = Criteria.where("upload").is(placeholder);
 
 		// if we're not admin, make sure we also own the log
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
-			criterias.add(Criteria.where("testOwner").is(authenticationFacade.getPrincipal()));
-		}
-
-		Criteria criteria = Criteria.where("testId").is(testId).andOperator(
-			criterias.toArray(new Criteria[criterias.size()]));
+		Criteria criteria = createCriteria(findTestId, placeholderExists);
 
 		Query query = Query.query(criteria);
 
@@ -103,8 +108,65 @@ public class ImageAPI {
 		update.set("img", encoded);
 
 		mongoTemplate.updateFirst(query, update, DBEventLog.COLLECTION);
+		
+		// an image was uploaded, it needs to be reviewed
+		setTestReviewNeeded(testId);
+		
+		// check to see if all placeholders are set by searching for any remaining ones on this test
+		Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
+		
+		
+		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
+		Query search = Query.query(postSearch);
+		List<DBObject> remainingPlaceholders = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+		
+		if (remainingPlaceholders.size() == 0) {
+			// there aren't any placeholders left on this test, update its status
+			
+			// first, see if it's currently running; if so we update the object directly
+			TestModule test = testRunnerSupport.getRunningTestById(testId);
+			if (test != null) {
+				test.fireTestFinished();
+			} else {
+				// otherwise we need to do it directly
+				testInfoService.updateTestStatus(testId, Status.FINISHED);
+			}
+		}
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+
+	/**
+	 * @param testId
+	 */
+	private void setTestReviewNeeded(String testId) {
+		// first, see if it's currently running; if so we update the object directly
+		TestModule test = testRunnerSupport.getRunningTestById(testId);
+		if (test != null) {
+			test.fireTestReviewNeeded();
+		} else {
+			// otherwise we need to do it directly
+			testInfoService.updateTestResult(testId, Result.REVIEW);
+		}		
+	}
+
+	// Create a Criteria with or without the security constraints as needed
+	private Criteria createCriteria(Criteria findTestId, Criteria placeholderExists) {
+		Criteria criteria = new Criteria();
+		if (authenticationFacade.getAuthenticationToken() != null &&
+			!authenticationFacade.isAdmin()) {
+			criteria = criteria.andOperator(
+				findTestId,
+				placeholderExists,
+				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
+			);
+		} else {
+			criteria = criteria.andOperator(
+				findTestId,
+				placeholderExists
+			);
+		}
+		return criteria;
 	}
 
 }
