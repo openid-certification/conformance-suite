@@ -35,16 +35,7 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 
 		browser.goToUrl(redirectTo);
 
-		/**
-		 * We never expect the browser to come back from here, our test is done
-		 */
-
-		setStatus(Status.FINISHED);
-
-		// someone needs to review this by hand
-		setResult(Result.REVIEW);
-
-		stop();
+		setStatus(Status.WAITING);
 	}
 
 	@Override

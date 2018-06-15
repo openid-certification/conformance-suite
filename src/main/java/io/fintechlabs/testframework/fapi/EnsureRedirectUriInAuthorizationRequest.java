@@ -122,16 +122,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		browser.goToUrl(redirectTo);
 
-		/**
-		 * We never expect the browser to come back from here, our test is done
-		 */
-
-		setStatus(Status.FINISHED);
-
-		// someone needs to review this by hand
-		setResult(Result.REVIEW);
-
-		stop();
+		setStatus(Status.WAITING);
 	}
 
 	/* (non-Javadoc)
@@ -139,8 +130,8 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// TODO Auto-generated method stub
-		return null;
+		logIncomingHttpRequest(path, requestParts);
+		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 
 	/* (non-Javadoc)
@@ -148,6 +139,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	 */
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		logIncomingHttpRequest(path, requestParts);
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 
