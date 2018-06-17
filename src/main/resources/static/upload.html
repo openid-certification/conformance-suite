@@ -31,29 +31,49 @@
 		$(document).ready(function() {
 			FAPI_UI.getUserInfoDiv("#userInfoDiv");
 	
+			// browse for a local file
 			$('#file').change(function(evt) {
 				var reader = new FileReader();
 	
 				reader.onload = function(evt) {
 					var content = evt.target.result;
-					console.log(content);
+					//console.log(content);
 					$('#preview').prop('src', content);
 				};
 	
 				reader.readAsDataURL($('#file').prop('files')[0]);
 			});
-	
+			
+			// paste an image
+			$('body').on('paste', function(e) {
+			    var reader = new FileReader();
+	             
+                reader.onload = function(evt) {
+                    var content = evt.target.result;
+                    //console.log(content);
+                    $('#preview').prop('src', content);
+                };
+
+                // loop through the clipboard to see if there's an image
+                _.each(e.originalEvent.clipboardData.items, function(item) {
+                    if (item.type.startsWith('image/')) {
+                        reader.readAsDataURL(item.getAsFile());
+                    }
+                });
+	                
+			});
+			
 			$('#upload').click(function(evt) {
 				evt.preventDefault();
-	
+				
 				var urlParams = new URLSearchParams(window.location.search);
 				var testId = urlParams.get('log');
 				var placeholder = urlParams.get('placeholder');
 	
 				if (placeholder) {
-					var url = "log/" + encodeURIComponent(testId) + '/imgfile/' + encodeURIComponent(placeholder);
+					var url = "/log/" + encodeURIComponent(testId) + '/imgfile/' + encodeURIComponent(placeholder);
 				} else {
-					var url = "log/" + encodeURIComponent(testId) + '/imgfile'
+					var url = "/log/" + encodeURIComponent(testId) + '/imgfile'
 				}
 	
 				$.ajax({
@@ -64,7 +84,7 @@
 					processData: false,
 					success: function(data) {
 						$('#preview').prop('src', '');
-						$('#success a').prop('href', '/log-detail.html?log=' + encodeURIComponent(testId));
+						$('#success a').prop('href', 'log-detail.html?log=' + encodeURIComponent(testId));
 						$('#success').show();
 					}
 				});
