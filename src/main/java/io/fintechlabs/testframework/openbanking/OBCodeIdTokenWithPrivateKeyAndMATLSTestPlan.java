@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
  */
 @PublishTestPlan (
 	testPlanName = "ob-code-id-token-with-private-key-and-matls-test-plan",
-	displayName = "OB: code id_token with private key client authentication Test Plan",
+	displayName = "OB: code id_token with private key and matls Test Plan",
 	profile = "OB",
 	testModuleNames = {
 		"ob-code-id-token-with-private-key-and-matls",
