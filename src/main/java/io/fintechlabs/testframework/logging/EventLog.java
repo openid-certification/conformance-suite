@@ -131,4 +131,16 @@ public interface EventLog {
 		return event;
 	}
 
+	/**
+	 * Start a new log block and return its ID
+	 * 
+	 * @return
+	 */
+	String startBlock();
+
+	/**
+	 * end a log block and return the previous block ID
+	 */
+	String endBlock();
+	
 }

@@ -68,4 +68,20 @@ public class TestInstanceEventLog {
 		eventLog.log(testId, source, owner, map);
 	}
 
+	/**
+	 * @return
+	 * @see io.fintechlabs.testframework.logging.EventLog#startBlock()
+	 */
+	public String startBlock() {
+		return eventLog.startBlock();
+	}
+
+	/**
+	 * @return
+	 * @see io.fintechlabs.testframework.logging.EventLog#endBlock()
+	 */
+	public String endBlock() {
+		return eventLog.endBlock();
+	}
+
 }
