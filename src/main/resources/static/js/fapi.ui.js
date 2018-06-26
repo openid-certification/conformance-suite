@@ -180,7 +180,7 @@ var FAPI_UI = {
 	    if (elements.length > 1) {
 	       this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
 	    } else {
-	    	if (obj != undefined && _.isObject(obj) && _.isArray(elements) && elements.length) {
+	    	if (obj !== undefined && _.isObject(obj) && _.isArray(elements) && elements.length) {
 	    		delete(obj[elements[0]]);
 	    	}
 	    }
