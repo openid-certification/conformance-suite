@@ -163,7 +163,7 @@ var FAPI_UI = {
 	// responsible for converting any dot syntax in our key parameter into object refs
 	prop : function(obj, prop, val){
 	    var props = prop.split('.')
-	      , final = props.pop(), p 
+	      , final = props.pop(), p;
 	    while(p = props.shift()){
 	        if (typeof obj[p] === 'undefined') {
 	        	obj[p] = {}; // create the object
