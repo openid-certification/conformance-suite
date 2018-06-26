@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.testmodule;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +44,8 @@ public class Environment {
 	private static final String STRING_VALUES = "_STRING_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
 		ImmutableMap.of(STRING_VALUES, new JsonObject())); // make sure we start with a place to put the string values
+	
+	private Map<String, String> keyMap = new HashMap<>();
 
 	/**
 	 * Look to see if the JSON object is in this environment
@@ -52,7 +55,7 @@ public class Environment {
 	 * @see java.util.Map#containsKey(java.lang.Object)
 	 */
 	public boolean containsObj(String objId) {
-		return store.containsKey(objId);
+		return store.containsKey(getEffectiveKey(objId));
 	}
 
 	/**
@@ -61,7 +64,7 @@ public class Environment {
 	 * @see java.util.Map#get(java.lang.Object)
 	 */
 	public JsonObject get(String key) {
-		return store.get(key);
+		return store.get(getEffectiveKey(key));
 	}
 
 	/**
@@ -70,7 +73,13 @@ public class Environment {
 	 * @param key
 	 */
 	public void remove(String key) {
-		store.remove(key);
+		if (isKeyMapped(key)) {
+			// if it's a mapping just remove the mapping
+			unmapKey(key);
+		} else {
+			// otherwise remove it directly
+			store.remove(key);
+		}
 	}
 
 	/**
@@ -90,7 +99,7 @@ public class Environment {
 	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
 	 */
 	public JsonObject put(String key, JsonObject value) {
-		return store.put(key, value);
+		return store.put(getEffectiveKey(key), value);
 	}
 
 	/**
@@ -216,7 +225,7 @@ public class Environment {
 	 */
 	@Override
 	public String toString() {
-		return "Environment [store=" + store + "]";
+		return "Environment [store=" + store + ", keyMap=" + keyMap + "]";
 	}
 
 	/**
@@ -224,6 +233,51 @@ public class Environment {
 	 */
 	public ReentrantLock getLock() {
 		return lock;
+	}
+	
+	/**
+	 * If the key is mapped to another value, get the underlying value. Otherwise return the input key.
+	 * @param key
+	 * @return
+	 */
+	public String getEffectiveKey(String key) {
+		if (keyMap.containsKey(key)) {
+			return keyMap.get(key);
+		} else {
+			return key;
+		}
+	}
+	
+	/**
+	 * Add a mapping from one key value to another. When things are looked up by "from" it will look for "to" in the storage.
+	 * 
+	 * This lookup does not chain to multiple levels -- if "to" is a mapping to something else, it will not be found.
+	 * 
+	 * @param from
+	 * @param to
+	 * @return the previously mapped "to" or "null" if not mapped
+	 */
+	public String mapKey(String from, String to) {
+		return keyMap.put(from, to);
+	}
+	
+	/**
+	 * Remove a mapped key
+	 * 
+	 * @param key
+	 * @return the previously mapped key or "null" if not mapped
+	 */
+	public String unmapKey(String key) {
+		return keyMap.remove(key);
+	}
+	
+	/**
+	 * Test if a given key is a mapping to another value
+	 * @param key
+	 * @return
+	 */
+	public boolean isKeyMapped(String key) {
+		return keyMap.containsKey(key);
 	}
 
 }
