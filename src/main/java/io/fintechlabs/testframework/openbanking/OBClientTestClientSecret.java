@@ -54,6 +54,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
+import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;

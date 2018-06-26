@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -128,16 +126,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		browser.goToUrl(redirectTo);
 
-		/**
-		 * We never expect the browser to come back from here, our test is done
-		 */
-
-		setStatus(Status.FINISHED);
-
-		// someone needs to review this by hand
-		setResult(Result.REVIEW);
-
-		stop();
+		setStatus(Status.WAITING);
 	}
 
 	/* (non-Javadoc)
@@ -146,14 +135,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		// If we get any kind of callback to this, it's an error: the authorization server should not ever respond the authorization request
-
-		eventLog.log(getName(), ImmutableMap.of(
-			"msg", "Receved unexpected incoming request",
-			"path", path,
-			"method", req.getMethod(),
-			"requirements", ImmutableSet.of("FAPI-1-5.2.2-15"),
-			"requestParts", requestParts));
+		logIncomingHttpRequest(path, requestParts);
 
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 
@@ -164,6 +146,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	 */
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		logIncomingHttpRequest(path, requestParts);
+		
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 

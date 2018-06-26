@@ -173,8 +173,28 @@ public interface TestModule {
 	TestFailureException getFinalError();
 
 	/**
-	 * @param failed
+	 * Mark the test as failed and finished.
 	 */
-	void setResult(Result result);
+	void fireTestFailure();
+
+	/**
+	 * Mark the test as succeeded and finished.
+	 */
+	void fireTestSuccess();
+
+	/**
+	 * Mark the test as finished without setting a result.
+	 */
+	void fireTestFinished();
+
+	/**
+	 * Mark the test as having completed its setup.
+	 */
+	void fireSetupDone();
+
+	/**
+	 * Mark the test as requiring a manual review.
+	 */
+	void fireTestReviewNeeded();
 
 }
