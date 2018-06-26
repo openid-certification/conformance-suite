@@ -127,7 +127,11 @@ var FAPI_UI = {
 	 */
 	showError : function(error) {
 		if (error != null) {
-			$('#errorMessage').html(_.escape(error.error));
+			var msg = error.error;
+			if (error.message) {
+			    msg += " : " + error.message
+			}
+			$('#errorMessage').html(_.escape(msg));
 		} else {
 			$('#errorMessage').html('Error from server.');
 		}
@@ -159,7 +163,7 @@ var FAPI_UI = {
 	// responsible for converting any dot syntax in our key parameter into object refs
 	prop : function(obj, prop, val){
 	    var props = prop.split('.')
-	      , final = props.pop(), p 
+	      , final = props.pop(), p;
 	    while(p = props.shift()){
 	        if (typeof obj[p] === 'undefined') {
 	        	obj[p] = {}; // create the object
@@ -176,7 +180,7 @@ var FAPI_UI = {
 	    if (elements.length > 1) {
 	       this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
 	    } else {
-	    	if (obj != undefined && _.isObject(obj) && _.isArray(elements) && elements.length) {
+	    	if (obj !== undefined && _.isObject(obj) && _.isArray(elements) && elements.length) {
 	    		delete(obj[elements[0]]);
 	    	}
 	    }
