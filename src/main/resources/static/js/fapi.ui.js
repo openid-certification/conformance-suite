@@ -127,7 +127,11 @@ var FAPI_UI = {
 	 */
 	showError : function(error) {
 		if (error != null) {
-			$('#errorMessage').html(_.escape(error.error));
+			var msg = error.error;
+			if (error.message) {
+			    msg += " : " + error.message
+			}
+			$('#errorMessage').html(_.escape(msg));
 		} else {
 			$('#errorMessage').html('Error from server.');
 		}
