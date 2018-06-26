@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
@@ -22,9 +23,19 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class AddFAPIInteractionIdToResourceEndpointRequest extends AbstractCondition {
+/**
+ * @author jricher
+ *
+ */
+public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractCondition {
 
-	public AddFAPIInteractionIdToResourceEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	/**
+	 * @param testId
+	 * @param log
+	 * @param conditionResultOnFailure
+	 * @param requirements
+	 */
+	public AddFAPIFinancialIdToResourceEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -32,21 +43,28 @@ public class AddFAPIInteractionIdToResourceEndpointRequest extends AbstractCondi
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "resource_endpoint_request_headers", strings = "fapi_interaction_id")
+	@PreEnvironment(required = "client")
 	@PostEnvironment(required = "resource_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 
+		// get the configured financial ID
+		String financialId = env.getString("client", "fapi_financial_id");
+		if (Strings.isNullOrEmpty(financialId)) {
+			throw error("Couldn't find financial ID");
+		}
+		
 		// get the previous headers if they exist
 		JsonObject headers = env.get("resource_endpoint_request_headers");
 		if (headers == null) {
 			headers = new JsonObject();
 		}
 		
-		String interactionId = env.getString("fapi_interaction_id");
-		headers.addProperty("x-fapi-interaction-id", interactionId);
+		headers.addProperty("x-fapi-financial-id", financialId);
+		
 		env.put("resource_endpoint_request_headers", headers);
-
+		
 		return env;
+		
 	}
 
 }
