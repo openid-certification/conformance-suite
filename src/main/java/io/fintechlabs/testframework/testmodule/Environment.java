@@ -73,13 +73,7 @@ public class Environment {
 	 * @param key
 	 */
 	public void remove(String key) {
-		if (isKeyMapped(key)) {
-			// if it's a mapping just remove the mapping
-			unmapKey(key);
-		} else {
-			// otherwise remove it directly
-			store.remove(key);
-		}
+		store.remove(getEffectiveKey(key));
 	}
 
 	/**
@@ -213,13 +207,6 @@ public class Environment {
 
 	}
 
-	/**
-	 * @return
-	 */
-	public Set<String> allObjectIds() {
-		return store.keySet();
-	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -277,7 +264,7 @@ public class Environment {
 	 * @return
 	 */
 	public boolean isKeyMapped(String key) {
-		return keyMap.containsKey(key);
+		return keyMap.containsValue(key);
 	}
 
 }
