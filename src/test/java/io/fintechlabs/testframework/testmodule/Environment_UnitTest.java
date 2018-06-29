@@ -323,14 +323,17 @@ public class Environment_UnitTest {
 	@Test
 	public void testMappedObjects() {
 		assertNull(env.get(mappedKey));
+		assertFalse(env.containsObj(mappedKey));
 		
 		env.mapKey(mappedKey, testKey);
 		
 		assertEquals(testObject, env.get(mappedKey));
+		assertTrue(env.containsObj(mappedKey));
 		
 		env.unmapKey(mappedKey);
 		
 		assertNull(env.get(mappedKey));
+		assertFalse(env.containsObj(mappedKey));
 	}
 
 }
