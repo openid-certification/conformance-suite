@@ -19,14 +19,15 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
@@ -111,7 +112,14 @@ public class DBEventLog implements EventLog {
 
 	@Override
 	public String startBlock() {
-		blockId = Integer.toHexString(random.nextInt(256 * 256 * 256));
+		// create a random six-character hex string that we can use as a CSS color code in the logs
+		blockId = Strings.padStart(
+			Integer.toHexString(
+				random.nextInt(256 * 256 * 256))
+			, 6, '0');
+		
+		
+		
 		return blockId;
 	}
 	
