@@ -14,13 +14,16 @@
 
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.gson.JsonElement;
+
+import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.AbstractGetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class GetStaticClient2Configuration extends AbstractGetStaticClientConfiguration {
+public class GetStaticClient2Configuration extends AbstractCondition {
 
 	/**
 	 * @param testId
@@ -35,10 +38,23 @@ public class GetStaticClient2Configuration extends AbstractGetStaticClientConfig
 	 */
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "client", strings = "client_id")
-	public Environment evaluate(Environment in) {
+	@PostEnvironment(required = "client2")
+	public Environment evaluate(Environment env) {
+		if (!env.containsObj("config")) {
+			throw error("Couldn't find a configuration");
+		}
 
-		return getStaticClientConfiguration(in, "client2");
+		// make sure we've got a client object
+		JsonElement client = env.findElement("config", "client2");
+		if (client == null || !client.isJsonObject()) {
+			throw error("Definition for client2 not present in supplied configuration");
+		} else {
+			// we've got a client object, put it in the environment
+			env.put("client2", client.getAsJsonObject());
+
+			logSuccess("Found a static second client object", client.getAsJsonObject());
+			return env;
+		}
 	}
 
 }

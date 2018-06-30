@@ -42,50 +42,7 @@ public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends A
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	protected Environment extractMTLSCertificatesFromConfiguration(Environment env, String key) {
-		// mutual_tls_authentication
-
-		String certString = env.getString("config", key + ".cert");
-		String keyString = env.getString("config", key + ".key");
-		String caString = env.getString("config", key + ".ca");
-
-		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
-			throw error("Couldn't find TLS client certificate or key for MTLS");
-		}
-
-		if (Strings.isNullOrEmpty(caString)) {
-			// Not an error; we just won't send a CA chain
-			log("No certificate authority found for MTLS");
-		}
-
-		try {
-			certString = stripPEM(certString);
-
-			keyString = stripPEM(keyString);
-
-			if (caString != null) {
-				caString = stripPEM(caString);
-			}
-		} catch (IllegalArgumentException e) {
-			throw error("Couldn't decode certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
-		}
-
-		JsonObject mtls = new JsonObject();
-		mtls.addProperty("cert", certString);
-		mtls.addProperty("key", keyString);
-		if (caString != null) {
-			mtls.addProperty("ca", caString);
-		}
-
-		env.put("mutual_tls_authentication", mtls);
-
-		logSuccess("Mutual TLS authentication credentials loaded", mtls);
-
-		return env;
-
-	}
-
-	private String stripPEM(String in) throws IllegalArgumentException {
+	protected String stripPEM(String in) throws IllegalArgumentException {
 
 		Matcher m = PEM_PATTERN.matcher(in);
 
