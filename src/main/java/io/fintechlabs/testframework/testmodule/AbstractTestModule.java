@@ -185,7 +185,8 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Skipped evaluation due to missing required object: " + req,
 							"expected", req,
-							"result", onSkip
+							"result", onSkip,
+							"mapped", env.isKeyMapped(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
 						return;
@@ -215,7 +216,8 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
-							"result", onFail
+							"result", onFail,
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
 						if (stopOnFailure) {
@@ -260,7 +262,8 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
-							"result", onFail
+							"result", onFail,
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
 						if (stopOnFailure) {
