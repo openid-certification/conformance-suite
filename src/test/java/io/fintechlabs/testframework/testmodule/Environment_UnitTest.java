@@ -303,17 +303,20 @@ public class Environment_UnitTest {
 	@Test
 	public void testMappedKeys() {
 		assertEquals(mappedKey, env.getEffectiveKey(mappedKey));
-		assertFalse(env.isKeyMapped(testKey));
+		assertFalse(env.isKeyShadowed(testKey));
+		assertFalse(env.isKeyMapped(mappedKey));
 		
 		env.mapKey(mappedKey, testKey);
 		
 		assertEquals(testKey, env.getEffectiveKey(mappedKey));
-		assertTrue(env.isKeyMapped(testKey));
+		assertTrue(env.isKeyShadowed(testKey));
+		assertTrue(env.isKeyMapped(mappedKey));
 		
 		env.unmapKey(mappedKey);
 		
 		assertEquals(mappedKey, env.getEffectiveKey(mappedKey));
-		assertFalse(env.isKeyMapped(testKey));
+		assertFalse(env.isKeyShadowed(testKey));
+		assertFalse(env.isKeyMapped(mappedKey));
 
 	}
 
@@ -334,6 +337,21 @@ public class Environment_UnitTest {
 		
 		assertNull(env.get(mappedKey));
 		assertFalse(env.containsObj(mappedKey));
+	}
+	
+	@Test
+	public void testShadowedObjects() {
+		env.put(altKey, altObject);
+		
+		assertEquals(altObject, env.get(altKey));
+		
+		env.mapKey(altKey, testKey);
+		
+		assertEquals(testObject, env.get(altKey));
+		
+		env.unmapKey(altKey);
+		
+		assertEquals(altObject, env.get(altKey));
 	}
 
 }

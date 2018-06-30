@@ -224,6 +224,10 @@ public class Environment {
 	
 	/**
 	 * If the key is mapped to another value, get the underlying value. Otherwise return the input key.
+	 *
+	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
+	 * exist in the environment, its value will not be found.
+	 * 
 	 * @param key
 	 * @return
 	 */
@@ -238,7 +242,16 @@ public class Environment {
 	/**
 	 * Add a mapping from one key value to another. When things are looked up by "from" it will look for "to" in the storage.
 	 * 
-	 * This lookup does not chain to multiple levels -- if "to" is a mapping to something else, it will not be found.
+	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
+	 * exist in the environment, its value will not be found.
+	 * 
+	 * For example, if the environment contains:
+	 * 
+	 * 	foo => bar,
+	 *  baz => qux
+	 * 
+	 * And the key "baz" is mapped over "foo" using mapKey(baz, foo), then calling get(baz)
+	 * will return "bar" and not "qux".
 	 * 
 	 * @param from
 	 * @param to
@@ -259,12 +272,38 @@ public class Environment {
 	}
 	
 	/**
-	 * Test if a given key is a mapping to another value
+	 * Test if a given key is mapped by another value. If this is true, then the value represented by this key
+	 * is available through the mapped key as well. 
+	 * 
+	 * For example, if the environment contains:
+	 * 
+	 * 	foo => bar
+	 * 
+	 * And the key "baz" is mapped over "foo", then isKeyShadowed(foo) will return true.
+	 * 
 	 * @param key
 	 * @return
 	 */
-	public boolean isKeyMapped(String key) {
+	public boolean isKeyShadowed(String key) {
 		return keyMap.containsValue(key);
+	}
+	
+	/**
+	 * Test if a given key is mapped to another value. If this is true, then calling "get" with this key
+	 * will return the mapped value and not any unmapped values for this key which may also exist in the 
+	 * environment. 
+	 * 
+	 * For example, if the environment contains:
+	 * 
+	 * 	foo => bar,
+	 *  baz => qux
+	 * 
+	 * And the key "baz" is mapped over "foo", then isKeyMapped(baz) will return true, and calling get(baz)
+	 * will return "bar" and not "qux".
+	 *
+	 */
+	public boolean isKeyMapped(String key) {
+		return keyMap.containsKey(key);
 	}
 
 }
