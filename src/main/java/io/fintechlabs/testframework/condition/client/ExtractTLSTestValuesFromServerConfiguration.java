@@ -15,7 +15,8 @@
 package io.fintechlabs.testframework.condition.client;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
@@ -23,6 +24,8 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.condition.util.TLSTestValueExtractor;
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -32,6 +35,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class ExtractTLSTestValuesFromServerConfiguration extends AbstractCondition {
 
+	@Autowired
+	private TLSTestValueExtractor extractor;
+	
 	/**
 	 * @param testId
 	 * @param log
@@ -50,57 +56,50 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 	@PostEnvironment(required = {"authorization_endpoint_tls", "token_endpoint_tls"}) // these two are required, others are added as found: userinfo_endpoint_tls, registration_endpoint_tls
 	public Environment evaluate(Environment env) {
 
-		String authorizationEndpoint = env.getString("server", "authorization_endpoint");
-		if (Strings.isNullOrEmpty(authorizationEndpoint)) {
-			throw error("Authorization endpoint not found");
-		}
-		
-		JsonObject authorizationEndpointTls = extractTlsFromUrl(authorizationEndpoint);
-		env.put("authorization_endpoint_tls", authorizationEndpointTls);
-		
-		String tokenEndpoint = env.getString("server", "token_endpoint");
-		if (Strings.isNullOrEmpty(tokenEndpoint)) {
-			throw error("Token endpoint not found");
-		}
-		
-		JsonObject tokenEndpointTls = extractTlsFromUrl(tokenEndpoint);
-		env.put("token_endpoint_tls", tokenEndpointTls);
-		
-		String userInfoEndpoint = env.getString("server", "userinfo_endpoint");
-		JsonObject userInfoEndpointTls = null;
-		if (!Strings.isNullOrEmpty(userInfoEndpoint)) {
-			userInfoEndpointTls = extractTlsFromUrl(userInfoEndpoint);
-			env.put("userinfo_endpoint_tls", userInfoEndpointTls);
-		}
-		
-		String registrationEndpoint = env.getString("server", "registration_endpoint");
-		JsonObject registrationEndpointTls = null;
-		if (!Strings.isNullOrEmpty(registrationEndpoint)) {
-			registrationEndpointTls = extractTlsFromUrl(registrationEndpoint);
-			env.put("registration_endpoint_tls", registrationEndpointTls);
-		}
-		
-		logSuccess("Extracted TLS information from authorization server configuration", args(
-				"authorization_endpoint", authorizationEndpointTls,
-				"token_endpoint", tokenEndpointTls,
-				"userinfo_endpoint", userInfoEndpointTls,
-				"registration_endpoint", registrationEndpointTls
-			));
-
-		return env;
-	}
-
-	private JsonObject extractTlsFromUrl(String urlString) {
 		try {
-			URL url = new URL(urlString);
-			JsonObject tls = new JsonObject();
-			tls.addProperty("testHost", url.getHost());
-			tls.addProperty("testPort", url.getPort() > 0 ? url.getPort() : url.getDefaultPort());
+			String authorizationEndpoint = env.getString("server", "authorization_endpoint");
+			if (Strings.isNullOrEmpty(authorizationEndpoint)) {
+				throw error("Authorization endpoint not found");
+			}
 			
-			return tls;
+			JsonObject authorizationEndpointTls = extractor.extractTlsFromUrl(authorizationEndpoint);
+			env.put("authorization_endpoint_tls", authorizationEndpointTls);
+			
+			String tokenEndpoint = env.getString("server", "token_endpoint");
+			if (Strings.isNullOrEmpty(tokenEndpoint)) {
+				throw error("Token endpoint not found");
+			}
+			
+			JsonObject tokenEndpointTls = extractor.extractTlsFromUrl(tokenEndpoint);
+			env.put("token_endpoint_tls", tokenEndpointTls);
+			
+			String userInfoEndpoint = env.getString("server", "userinfo_endpoint");
+			JsonObject userInfoEndpointTls = null;
+			if (!Strings.isNullOrEmpty(userInfoEndpoint)) {
+				userInfoEndpointTls = extractor.extractTlsFromUrl(userInfoEndpoint);
+				env.put("userinfo_endpoint_tls", userInfoEndpointTls);
+			}
+			
+			String registrationEndpoint = env.getString("server", "registration_endpoint");
+			JsonObject registrationEndpointTls = null;
+			if (!Strings.isNullOrEmpty(registrationEndpoint)) {
+				registrationEndpointTls = extractor.extractTlsFromUrl(registrationEndpoint);
+				env.put("registration_endpoint_tls", registrationEndpointTls);
+			}
+			
+			logSuccess("Extracted TLS information from authorization server configuration", args(
+					"authorization_endpoint", authorizationEndpointTls,
+					"token_endpoint", tokenEndpointTls,
+					"userinfo_endpoint", userInfoEndpointTls,
+					"registration_endpoint", registrationEndpointTls
+				));
+	
+			return env;
 		} catch (MalformedURLException e) {
-			throw error("URL not properly formed", e, args("url", urlString));
+			throw error("URL not properly formed", e);
 		}
+			
 	}
+
 	
 }
