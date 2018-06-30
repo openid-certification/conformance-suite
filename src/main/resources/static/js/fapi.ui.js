@@ -55,7 +55,7 @@ var FAPI_UI = {
 		this.logTemplates.MESSAGE = _.template($("#logDetailTemplate_Message").html());
 	},
 	
-	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http"],
+	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId"],
 
 	availableTests : {},
 	
