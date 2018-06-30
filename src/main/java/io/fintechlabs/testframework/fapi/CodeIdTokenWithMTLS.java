@@ -65,17 +65,19 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
+import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
+import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
+import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
@@ -160,11 +162,21 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		//require(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
+		// get the second client and second MTLS cert set for mixup tests
+		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+		
 		// Validate the MTLS keys
 		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
+		// validate the secondary MTLS keys
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		env.unmapKey("mutual_tls_authentication");
+
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 
@@ -184,25 +196,36 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		
+		eventLog.startBlock("Resource Endpoint TLS test");
+		env.mapKey("tls", "resource_endpoint_tls");
+		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+
 		eventLog.endBlock();
 		env.unmapKey("tls");
 
@@ -222,7 +245,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getName(), "Redirecting to url " + redirectTo);
+		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
 		browser.goToUrl(redirectTo);
 
@@ -362,9 +385,6 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("fapi_interaction_id");
 		
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-
-		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
-		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
 
