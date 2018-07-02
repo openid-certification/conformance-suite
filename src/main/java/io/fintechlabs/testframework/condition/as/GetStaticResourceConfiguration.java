@@ -16,13 +16,13 @@ package io.fintechlabs.testframework.condition.as;
 
 import com.google.gson.JsonElement;
 
-import io.fintechlabs.testframework.condition.AbstractGetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class GetStaticResourceConfiguration extends AbstractGetStaticClientConfiguration {
+public class GetStaticResourceConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId

@@ -5,7 +5,6 @@ import java.util.Map;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.CreateBadRedirectUri;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;

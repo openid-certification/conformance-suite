@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.openbanking;
 
 import com.google.common.base.Strings;
+
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public final class OBGetResourceEndpoint {

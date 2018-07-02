@@ -2,10 +2,6 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
-
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
