@@ -36,6 +36,7 @@ import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndp
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
@@ -71,6 +72,7 @@ import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
@@ -111,9 +113,15 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
+		"client2.client_id",
+		"client2.jwks",
+		"client2.scope",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
 		"resource.resourceUrl"
 	}
 )
@@ -264,7 +272,15 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
+			
+			if (env.isKeyMapped("client")) {
+				// we're doing the second client
+				return handleSecondClientImplicitSubmission(requestParts);
+			} else {
+				// we're doing the first client
+				return handleImplicitSubmission(requestParts);
+			}
+			
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -317,6 +333,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
+		// check the ID token from the hybrid response
+
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
@@ -339,8 +357,6 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");		
-
-		// check the ID token from the hybrid response
 
 		// call the token endpoint and complete the flow
 
@@ -383,8 +399,10 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		exposeEnvString("fapi_interaction_id");
+
+		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
 		
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-1-6.2.2-6");
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
 
@@ -397,6 +415,78 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		
+		// get token for second client
+		eventLog.startBlock("Second client");
+		env.mapKey("client", "client2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		callAndStopOnFailure(CreateRandomStateValue.class);
+		exposeEnvString("state");
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+		callAndStopOnFailure(CreateRandomNonceValue.class);
+		exposeEnvString("nonce");
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+
+		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+
+		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
+
+		browser.goToUrl(redirectTo);
+
+		setStatus(Status.WAITING);
+
+		return redirectToLogDetailPage();
+
+	}
+	
+	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
+		
+		// process the callback
+		setStatus(Status.RUNNING);
+
+		JsonElement body = requestParts.get("body");
+
+		if (body != null) {
+			String hash = body.getAsString();
+
+			logger.info("Hash: " + hash);
+
+			env.putString("implicit_hash", hash);
+		} else {
+			logger.warn("No hash submitted");
+
+			env.putString("implicit_hash", ""); // Clear any old value
+		}
+
+		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
+		
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+
+		// use the code with the first client's ID
+		env.unmapKey("client");
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		env.mapKey("client", "client2");
+
+		callAndStopOnFailure(CallTokenEndpointExpectingError.class);
+		
+		// put everything back where we found it
+		env.unmapKey("client");
+		env.unmapKey("mutual_tls_authentication");
+		eventLog.endBlock();
 		
 		fireTestFinished();
 		stop();
