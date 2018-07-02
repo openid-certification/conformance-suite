@@ -54,7 +54,7 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 
 		// FIXME: this processing should be handled in a separate condition
 		if (!requestObjectClaims.has("iss")) {
-			String clientId = env.getString("client_id");
+			String clientId = env.getString("client", "client_id");
 			if (clientId != null) {
 				requestObjectClaims.addProperty("iss", clientId);
 			} else {

@@ -48,10 +48,10 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "client_id", required = "client")
+	@PreEnvironment(required = "client")
 	@PostEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
-		String clientId = env.getString("client_id");
+		String clientId = env.getString("client", "client_id");
 		String clientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientSecret)) {

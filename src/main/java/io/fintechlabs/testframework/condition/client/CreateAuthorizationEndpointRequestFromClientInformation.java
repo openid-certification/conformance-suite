@@ -42,7 +42,7 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "client", strings = { "redirect_uri", "client_id" })
+	@PreEnvironment(required = "client", strings = { "redirect_uri" })
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
@@ -50,7 +50,7 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 			throw error("Couldn't find client configuration");
 		}
 
-		String clientId = env.getString("client_id");
+		String clientId = env.getString("client", "client_id");
 
 		if (Strings.isNullOrEmpty(clientId)) {
 			throw error("Couldn't find client ID");
