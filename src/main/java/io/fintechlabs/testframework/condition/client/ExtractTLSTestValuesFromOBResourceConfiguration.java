@@ -26,13 +26,15 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.condition.util.TLSTestValueExtractor;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint;
+import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
  *
  */
-public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondition {
+public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
@@ -40,8 +42,9 @@ public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondi
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public ExtractTLSTestValuesFromResourceConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractTLSTestValuesFromOBResourceConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
+		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -49,21 +52,32 @@ public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondi
 	 */
 	@Override
 	@PreEnvironment(required = "resource")
-	@PostEnvironment(required = "resource_endpoint_tls")
+	@PostEnvironment(required = {"accounts_resource_endpoint_tls", "accounts_request_endpoint_tls"})
 	public Environment evaluate(Environment env) {
-
 		try {
-			String resourceEndpoint = env.getString("resource", "resourceUrl");
-			if (Strings.isNullOrEmpty(resourceEndpoint)) {
-				throw error("Resource endpoint not found");
+			
+			String accountsResourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
+			if (Strings.isNullOrEmpty(accountsResourceEndpoint)) {
+				throw error("Accounts resource endpoint not found");
 			}
 	
-			JsonObject resourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(resourceEndpoint);
+			JsonObject accountsResourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(accountsResourceEndpoint);
 			
-			env.put("resource_endpoint_tls", resourceEndpointTls);
+			env.put("accounts_resource_endpoint_tls", accountsResourceEndpointTls);
+			
+			String accountsRequestEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNT_REQUESTS);
+			if (Strings.isNullOrEmpty(accountsRequestEndpoint)) {
+				throw error("Accounts resource endpoint not found");
+			}
+	
+			JsonObject accountsRequestEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(accountsRequestEndpoint);
+			
+			env.put("accounts_request_endpoint_tls", accountsRequestEndpointTls);
+			
 			
 			logSuccess("Extracted TLS information from resource endpoint", args(
-					"resource_endpoint", resourceEndpointTls
+					"accounts_resource_endpoint", accountsResourceEndpointTls,
+					"accounts_request_endpoint", accountsRequestEndpointTls
 				));
 			
 			return env;

@@ -17,20 +17,18 @@ package io.fintechlabs.testframework.condition.util;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.springframework.stereotype.Service;
-
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.logging.EventLog;
-
 /**
+ * Extracts the host and port of a given URL string (including the default port if none is
+ * specified) into a JSON object, for use with TLS testing.
+ * 
  * @author jricher
  *
  */
-@Service
 public class TLSTestValueExtractor {
 
-	public JsonObject extractTlsFromUrl(String urlString) throws MalformedURLException {
+	public static JsonObject extractTlsFromUrl(String urlString) throws MalformedURLException {
 		URL url = new URL(urlString);
 		JsonObject tls = new JsonObject();
 		tls.addProperty("testHost", url.getHost());

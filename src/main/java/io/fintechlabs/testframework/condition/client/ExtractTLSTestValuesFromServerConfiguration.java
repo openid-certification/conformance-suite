@@ -35,9 +35,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class ExtractTLSTestValuesFromServerConfiguration extends AbstractCondition {
 
-	@Autowired
-	private TLSTestValueExtractor extractor;
-	
 	/**
 	 * @param testId
 	 * @param log
@@ -62,7 +59,7 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 				throw error("Authorization endpoint not found");
 			}
 			
-			JsonObject authorizationEndpointTls = extractor.extractTlsFromUrl(authorizationEndpoint);
+			JsonObject authorizationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(authorizationEndpoint);
 			env.put("authorization_endpoint_tls", authorizationEndpointTls);
 			
 			String tokenEndpoint = env.getString("server", "token_endpoint");
@@ -70,20 +67,20 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 				throw error("Token endpoint not found");
 			}
 			
-			JsonObject tokenEndpointTls = extractor.extractTlsFromUrl(tokenEndpoint);
+			JsonObject tokenEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(tokenEndpoint);
 			env.put("token_endpoint_tls", tokenEndpointTls);
 			
 			String userInfoEndpoint = env.getString("server", "userinfo_endpoint");
 			JsonObject userInfoEndpointTls = null;
 			if (!Strings.isNullOrEmpty(userInfoEndpoint)) {
-				userInfoEndpointTls = extractor.extractTlsFromUrl(userInfoEndpoint);
+				userInfoEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(userInfoEndpoint);
 				env.put("userinfo_endpoint_tls", userInfoEndpointTls);
 			}
 			
 			String registrationEndpoint = env.getString("server", "registration_endpoint");
 			JsonObject registrationEndpointTls = null;
 			if (!Strings.isNullOrEmpty(registrationEndpoint)) {
-				registrationEndpointTls = extractor.extractTlsFromUrl(registrationEndpoint);
+				registrationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(registrationEndpoint);
 				env.put("registration_endpoint_tls", registrationEndpointTls);
 			}
 			

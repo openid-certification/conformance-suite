@@ -12,37 +12,27 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.condition;
+package io.fintechlabs.testframework.condition.util;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
  *
  */
-public abstract class AbstractExtractMTLSCertificatesFromConfiguration extends AbstractCondition {
+public class PEMFormatter {
 
 	private static final Pattern PEM_PATTERN = Pattern.compile("^-----BEGIN [^-]+-----$(.*?)^-----END [^-]+-----$", Pattern.MULTILINE | Pattern.DOTALL);
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param optional
-	 */
-	public AbstractExtractMTLSCertificatesFromConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	protected String stripPEM(String in) throws IllegalArgumentException {
+	public static String stripPEM(String in) throws IllegalArgumentException {
 
 		Matcher m = PEM_PATTERN.matcher(in);
 
