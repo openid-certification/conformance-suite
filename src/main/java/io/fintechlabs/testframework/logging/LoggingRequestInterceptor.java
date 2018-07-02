@@ -19,10 +19,12 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 
 	private final String source;
 	private final TestInstanceEventLog log;
+	private JsonObject mutualTls;
 
-	public LoggingRequestInterceptor(String source, TestInstanceEventLog log) {
+	public LoggingRequestInterceptor(String source, TestInstanceEventLog log, JsonObject mutualTls) {
 		this.source = source;
 		this.log = log;
+		this.mutualTls = mutualTls; // if we get in the mutual TLS parameters from the environment, save them for logging purposes
 	}
 
 	@Override
@@ -43,6 +45,9 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 		}
 		o.addProperty("msg", "HTTP request");
 		o.addProperty("http", "request");
+		if (mutualTls != null) {
+			o.add("request_mutual_tls", mutualTls);
+		}
 		log.log(source, o);
 	}
 

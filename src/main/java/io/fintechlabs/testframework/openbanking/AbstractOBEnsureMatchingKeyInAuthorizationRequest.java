@@ -4,8 +4,6 @@ import java.util.Map;
 
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
-import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
-import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -28,13 +26,18 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 
 		// Switch to client 2 JWKs
 
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		eventLog.startBlock();
+		env.mapKey("client", "client2");
+		
+		//callAndStopOnFailure(GetStaticClient2Configuration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		env.unmapKey("client");
+		eventLog.endBlock();
+		//callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		createAuthorizationRedirect();
 
@@ -46,6 +49,7 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 
 		browser.goToUrl(redirectTo);
 
+		
 		setStatus(Status.WAITING);
 	}
 
