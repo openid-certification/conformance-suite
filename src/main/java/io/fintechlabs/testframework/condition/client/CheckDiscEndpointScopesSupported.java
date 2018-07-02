@@ -31,7 +31,7 @@ public class CheckDiscEndpointScopesSupported extends ValidateJsonArray {
 	
 	private static final String errorMessageWhenNull = "Endpoint Scopes Supported: Not Found";
 	private static final String errorMessageNonArray = "Expect Json Array of " + environmentVariableText;
-	private static final String errorMessageNotEnough = "The server does not support enough of the required protocols";
+	private static final String errorMessageNotEnough = "The server does not support enough of the required scopes";
   
 
 	public CheckDiscEndpointScopesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {

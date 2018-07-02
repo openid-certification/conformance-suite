@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointIdTokenSigningAlgValuesSupported extends ValidateJsonArray {
 	
 	private static final String environmentVariable = "id_token_signing_alg_values_supported";
-  private static final String environmentVariableText = "Endpoint ID Token Signing Alg Values Supported";
+  private static final String environmentVariableText = "Required ID Token signing alg values are present";
   
 	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
   
