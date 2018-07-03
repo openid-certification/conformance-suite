@@ -169,7 +169,6 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
