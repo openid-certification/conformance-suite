@@ -26,6 +26,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "OB: code with mtls Test Plan",
 	profile = "OB",
 	testModuleNames = {
+		"ob-discovery-end-point-verification",
 		"ob-code-with-mtls",
 		"ob-ensure-matls-required-code-with-mtls",
 		"ob-ensure-matching-key-in-authorization-request-code-with-mtls",

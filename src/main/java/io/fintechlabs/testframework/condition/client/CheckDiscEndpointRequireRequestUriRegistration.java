@@ -12,45 +12,39 @@
  * limitations under the License.
  *******************************************************************************/
 
+//Author: ddrysdale
 
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class ValidateExpiresIn extends AbstractCondition {
+public class CheckDiscEndpointRequireRequestUriRegistration extends ValidateJsonBoolean {
 
-	public ValidateExpiresIn(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	private static final String environmentVariable = "require_request_uri_registration";
+	private static final String environmentVariableText = "Endpoint Require Request URL Registration Supported ";
+	private static final boolean requiredValue = false; 
+  
+	public CheckDiscEndpointRequireRequestUriRegistration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
-	@Override
-	@PreEnvironment(strings = {}, required = "expires_in")
-	public Environment evaluate(Environment env) {
 
-		JsonObject expiresIn = env.get("expires_in");
-		JsonElement je = expiresIn.get("expires_in"); 
-		try {
-			JsonPrimitive jp = je.getAsJsonPrimitive();
-			if (!jp.isNumber()) {
-				logFailure(expiresIn);
-				throw error("expires_in, is not a Number!");
-			}
-			
-		} catch (IllegalStateException ex) {
-			logFailure(expiresIn);
-			throw error("expires_in, is not a primitive!");
-		}
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
+	 */
+	@Override
+	@PreEnvironment(required = "server")
+	public Environment evaluate(Environment env) {
 		
-		logSuccess("expires_in, passes all validation",expiresIn);
-		return env;
+		return validate(env, environmentVariable, environmentVariableText, requiredValue);
 
 	}
 
 }
+
+
