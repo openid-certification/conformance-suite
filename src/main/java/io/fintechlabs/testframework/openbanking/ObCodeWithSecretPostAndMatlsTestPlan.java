@@ -26,6 +26,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "OB: code with secret post and matls Test Plan",
 	profile = "OB",
 	testModuleNames = {
+		"ob-discovery-end-point-verification",
 		"ob-code-with-secret-post-and-matls",
 		"ob-ensure-matls-required-code-with-secret-post-and-matls",
 		"ob-ensure-matching-key-in-authorization-request-code-with-secret-post-and-matls",
