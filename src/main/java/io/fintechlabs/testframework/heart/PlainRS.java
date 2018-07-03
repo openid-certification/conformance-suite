@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddIntrospectionUrlToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddRevocationUrlToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenFromASToClient;
@@ -42,10 +43,12 @@ import io.fintechlabs.testframework.condition.as.ValidateResourceAssertionClaims
 import io.fintechlabs.testframework.condition.as.ValidateResourceAssertionSignature;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
+import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
@@ -120,6 +123,7 @@ public class PlainRS extends AbstractTestModule {
 
 		// Set up the resource configuration
 		callAndStopOnFailure(GetStaticResourceConfiguration.class);
+		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromResourceConfiguration.class, "HEART-OAuth2-2.1.5");
 		
@@ -141,6 +145,16 @@ public class PlainRS extends AbstractTestModule {
 	public void start() {
 
 		setStatus(Status.RUNNING);
+
+		eventLog.startBlock("Resource Endpoint TLS test");
+		env.mapKey("tls", "resource_endpoint_tls");
+		call(EnsureTLS12.class, ConditionResult.FAILURE);
+		call(DisallowTLS10.class, ConditionResult.FAILURE);
+		call(DisallowTLS11.class, ConditionResult.FAILURE);
+		call(DisallowInsecureCipher.class, ConditionResult.FAILURE);
+
+		eventLog.endBlock();
+		env.unmapKey("tls");
 
 		// create an access token for the client to use
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
