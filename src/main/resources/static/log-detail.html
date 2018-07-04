@@ -217,6 +217,13 @@
                         <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
                       <% } %>
 
+					  <% if (item.upload) { %>
+						<span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>
+					  <% } %>
+
+					  <% if (item.img) { %>
+						<span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
+					  <% } %>
                     </div>
 
                     <div class="col-md-8">
@@ -235,14 +242,6 @@
 
                 </div>
 
-                <% if (item.upload) { %>
-                <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
-                    <div class="col-md-10 col-md-offset-2">
-                            <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
-                    </div>
-                </div>
-                <% } %>
-
                 <div class="row"><!-- more button / requirements / message -->
                     <div class="col-md-1 moreButtonContainer">
 
@@ -256,8 +255,20 @@
 
                     <div class="col-md-10">
                         <% if (item.msg) { %>
-                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+							<div class="row">
+								<div class="col-md-12">
+        		        		            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+								</div>
+							</div>
                         <% } %>
+		                <% if (item.upload) { %>
+	        			        <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
+    	            			    		<div class="col-md-12">
+    	                     		   <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+    		                			</div>
+							</div>
+						<% } %>
+
                     </div>
 
                 </div>
@@ -301,7 +312,7 @@
 
 	<!-- Upload -->
 	<script type="text/template" id="logDetailTemplate_Upload">
-            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>&placeholder=<%- encodeURIComponent(item.upload) %>">Attach image...</a>
+            <a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>">Attach image to log file...</a>
         </script>
 
 	<!-- Result -->
@@ -358,7 +369,7 @@
                     <dd class="wrapLongStrings">
 
             <% if (key == 'img') { %>
-                <img src="<%- value %>">
+                <img src="<%- value %>" class="img-responsive center-block imagePreview">
             <% } else if (key == 'stacktrace') { %>
                 <ul>
                     <% _.each(value, function(v) { %>
