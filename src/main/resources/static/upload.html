@@ -30,6 +30,27 @@
 	<script>
 		$(document).ready(function() {
 			FAPI_UI.getUserInfoDiv("#userInfoDiv");
+
+			var urlParams = new URLSearchParams(window.location.search);
+            var testId = urlParams.get('log');
+		
+			$.ajax({
+				type: 'GET',
+				url: '/log/' + encodeURIComponent(testId) + '/images',
+				success: function(data) {
+				    _.each(data, function(item) {
+				    	   // check to see if it's an "upload required" or an existing image
+				    	   if (item.upload) {
+				    		   console.log('Upload required: ' + item._id);
+				    	   } else if (item.img) {
+				    		   console.log('Existing image: ' + item._id);
+				    	   } else {
+				    		   // show an error?
+				    		   console.log('Well that is weird ' + item._id);
+				    	   }
+				    });
+				}
+			});
 	
 			// browse for a local file
 			$('#file').change(function(evt) {
