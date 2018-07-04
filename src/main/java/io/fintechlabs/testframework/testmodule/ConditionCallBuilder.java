@@ -72,8 +72,8 @@ public class ConditionCallBuilder {
 	/**
 	 * @param stopOnFailure the stopOnFailure to set
 	 */
-	public ConditionCallBuilder stopOnFailure(boolean stopOnFailure) {
-		this.stopOnFailure = stopOnFailure;
+	public ConditionCallBuilder dontStopOnFailure() {
+		this.stopOnFailure = false;
 		return this;
 	}
 
