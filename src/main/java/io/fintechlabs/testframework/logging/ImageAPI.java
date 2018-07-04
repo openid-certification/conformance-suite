@@ -25,8 +25,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -123,47 +125,72 @@ public class ImageAPI {
 		if (remainingPlaceholders.size() == 0) {
 			// there aren't any placeholders left on this test, update its status
 			
-			// first, see if it's currently running; if so we update the object directly
+			// first, see if it's currently running; if so we update the running object
 			TestModule test = testRunnerSupport.getRunningTestById(testId);
 			if (test != null) {
-				test.fireTestFinished();
+				test.fireTestFinished();		// set our current status to finished
+				test.stop();					// stop the running test
 			} else {
-				// otherwise we need to do it directly
+				// otherwise we need to do it directly in the database
 				testInfoService.updateTestStatus(testId, Status.FINISHED);
 			}
 		}
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
+	
+	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public ResponseEntity<Object> getAllImages(@PathVariable(name = "id") String testId) {
+		
+		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
+		
+		Criteria findTestId = Criteria.where("testId").is(testId);
+		
+		Criteria anyImages =
+			new Criteria().orOperator(
+				Criteria.where("img").exists(true),
+				Criteria.where("upload").exists(true)
+			);
+		
+		// add in the security parameters
+		Criteria criteria = createCriteria(findTestId, anyImages);
+		
+		Query search = Query.query(criteria);
+		
+		List<DBObject> images = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+		
+		return new ResponseEntity<>(images, HttpStatus.OK);
+		
+	}
 
 	/**
 	 * @param testId
 	 */
 	private void setTestReviewNeeded(String testId) {
-		// first, see if it's currently running; if so we update the object directly
+		// first, see if it's currently running; if so we update the running object
 		TestModule test = testRunnerSupport.getRunningTestById(testId);
 		if (test != null) {
 			test.fireTestReviewNeeded();
 		} else {
-			// otherwise we need to do it directly
+			// otherwise we need to do it directly in the database
 			testInfoService.updateTestResult(testId, Result.REVIEW);
 		}		
 	}
 
 	// Create a Criteria with or without the security constraints as needed
-	private Criteria createCriteria(Criteria findTestId, Criteria placeholderExists) {
+	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints) {
 		Criteria criteria = new Criteria();
 		if (authenticationFacade.getAuthenticationToken() != null &&
 			!authenticationFacade.isAdmin()) {
 			criteria = criteria.andOperator(
 				findTestId,
-				placeholderExists,
+				additionalConstraints,
 				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
 			);
 		} else {
 			criteria = criteria.andOperator(
 				findTestId,
-				placeholderExists
+				additionalConstraints
 			);
 		}
 		return criteria;
