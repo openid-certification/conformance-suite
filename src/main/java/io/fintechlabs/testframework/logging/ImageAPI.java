@@ -32,7 +32,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
@@ -65,7 +67,8 @@ public class ImageAPI {
 
 	@PostMapping(path = "/log/{id}/imgfile")
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
-		@PathVariable(name = "id") String testId) throws IOException {
+		@PathVariable(name = "id") String testId,
+		@RequestParam(name = "description", required = false) String description) throws IOException {
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
 		// Should this be checked? I.E. does a non-user facing client ever call this?
@@ -78,6 +81,7 @@ public class ImageAPI {
 				.add("testOwner", testOwner)
 				.add("src", "_image-api")
 				.add("time", new Date().getTime())
+				.add("msg", Strings.emptyToNull(description))
 				.add("img", encoded);
 
 			mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
