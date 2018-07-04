@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="mobile-web-app-capable" content="yes">
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 
-	<title>FintechLabs: Image Uploader</title>
-	
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
-	<link rel="stylesheet" type="text/css" href="css/layout.css">
-	
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-	
-	<script type="text/javascript" src="js/fapi.ui.js"></script>
-	
-	<script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+
+<title>FintechLabs: Image Uploader</title>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+<link rel="stylesheet" type="text/css" href="css/layout.css">
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+<script type="text/javascript" src="js/fapi.ui.js"></script>
+
+<script>
 		$(document).ready(function() {
 			FAPI_UI.getUserInfoDiv("#userInfoDiv");
 
@@ -117,54 +117,54 @@
 </head>
 <body>
 
-    <div class="pageHeader container-fluid">
-        <div class="row-fluid">
-            <div class="col-md-8">
-                <a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
-            </div>
-            <div id="userInfoDiv" class="col-md-4 text-right"></div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
+	<div class="pageHeader container-fluid">
+		<div class="row-fluid">
+			<div class="col-md-8">
+				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+			</div>
+			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
 
-    <!-- error modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                </div>
-                <div class="modal-body">
-                    Error: <span id="errorMessage"></span>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- error modal -->
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="errorLabel">Error</h4>
+				</div>
+				<div class="modal-body">
+					Error: <span id="errorMessage"></span>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <!-- loading modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <img src="/images/spinner.gif" width="100px" height="30px" />
-                    </div>
-                    <div>
-                        <span id="loadingMessage"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- loading modal -->
+	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
+				</div>
+				<div class="modal-body">
+					<div class="text-center">
+						<img src="/images/spinner.gif" width="100px" height="30px" />
+					</div>
+					<div>
+						<span id="loadingMessage"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 
 	<div class="container-fluid">
@@ -187,9 +187,9 @@
 		</div>
 	</div>
 
-    <!-- Templates -->
-    <!-- UserInfo Template-->
-    <script type="text/template" id="userInfoTemplate">
+	<!-- Templates -->
+	<!-- UserInfo Template-->
+	<script type="text/template" id="userInfoTemplate">
         <div id="userInfoData">
             <form action="/logout" method="post" class="form-inline">
                 <p class="form-control-static">Logged in as
@@ -201,9 +201,9 @@
     </script>
 
 
-    <footer class="pageFooter">
-        <span class="muted">FintechLabs.io conformance suite</span>
-    </footer>
+	<footer class="pageFooter">
+		<span class="muted">FintechLabs.io conformance suite</span>
+	</footer>
 
 </body>
 
