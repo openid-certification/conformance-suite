@@ -16,8 +16,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import java.net.MalformedURLException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 

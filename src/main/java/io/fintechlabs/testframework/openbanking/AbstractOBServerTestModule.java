@@ -147,6 +147,14 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 		call(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.FAILURE);
 
+		// get the second client's JWKs
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		
 		// validate the secondary MTLS keys
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
