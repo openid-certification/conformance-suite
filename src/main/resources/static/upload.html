@@ -141,16 +141,52 @@
 						var reader = new FileReader();
 
 						reader.onload = function(evt) {
+							// once it's loaded from the file, preview it and enable the upload button
+							
 							var content = evt.target.result;
-							//console.log(content);
-							$('img', el).prop('src', content);
+							$('.imagePreview', el).prop('src', content);
+							
+							$('.uploadBtn', el)
+								.prop('disabled', false)
+								.removeClass('btn-default')
+								.addClass('btn-success');
+							
 						};
 
+						// this reads the file data and triggers the 'onload' function above
 						reader.readAsDataURL($(this).prop('files')[0]);
+					});
+					
+					$('.uploadBtn').click(function(evt) {
+						evt.preventDefault();
+
+						var urlParams = new URLSearchParams(window.location.search);
+						var testId = urlParams.get('log');
+						var placeholder = urlParams.get('placeholder');
+
+						var url = "/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
+
+						$.ajax({
+							type: 'POST',
+							url: url,
+							data: $('.imagePreview', el).prop('src'),
+							contentType: false,
+							processData: false,
+							success: function(data) {
+								// on a successful upload, replace the old element with a new one
+								el.replaceWith(FAPI_UI.logTemplates.EXISTING({item: data}));
+							}, 
+							error: function(jqxhr, status, error) {
+								FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+									error: error
+								});
+							}
+						});
+
 					});
 				});
 				
-				// wire up the buttons on the 
+				// wire up the buttons on the "add a new image" panel
 				
 			}, 
 			error: function(jqxhr, status, error) {
@@ -274,7 +310,7 @@
 							<span class="glyphicon glyphicon-camera"></span> Select File</input>
     							<input type="file" hidden>
 						</label>					
-						<button class="btn btn-default">Upload</button>
+						<button class="btn btn-default uploadBtn" disabled>Upload</button>
 					</div>
 				</div>
 			</div>
