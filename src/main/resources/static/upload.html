@@ -196,8 +196,8 @@
 
 
 	<div class="logContent container-fluid">
-	
-	<!-- 
+
+		<!-- 
 		<div>
 			<h1>Upload image to the log</h1>
 			<div class="content">
@@ -230,15 +230,31 @@
             </form>
         </div>
     </script>
-    
-    <!-- Pending Image Uploader -->
+
+	<!-- Pending Image Uploader -->
 	<script type="text/html" id="pendingImageUploader">
 		<div class="row">
 			<div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
 				<div class="row">
-					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span> IMAGE REQUIRED</div></div>
-					<div class="col-md-11">
-						-- upload controls here pls --
+					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+					<div class="col-md-8">
+						<!-- test details and form controls -->
+						<% if (item.src) { %>
+							<%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+						<% } %>
+						<% if (item.msg) { %>
+							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+						<% } %>
+						
+						<label class="btn btn-default">
+							<span class="glyphicon glyphicon-camera"></span> Select File</input>
+    							<input type="file" hidden>
+						</label>					
+						<button class="btn btn-default">Upload</button>
+					</div>
+					<div class="col-md-3">
+						<!-- image preview -->
+						<img src="" alt="" class="img-responsive center-block imagePreview" />
 					</div>
 				</div>
 			</div>
@@ -250,9 +266,18 @@
 		<div class="row">
 			<div class="col-md-12 logItem">
 				<div class="row">
-					<div class="col-md-1"><div class="bg-success testStatusResultBlock"><span class="glyphicon glyphicon-ok-sign"></span> IMAGE UPLOADED</div></div>
-					<div class="col-md-11">
-						-- image  view here pls --
+					<div class="col-md-1"><div class="bg-success testStatusResultBlock"><span class="glyphicon glyphicon-ok-sign"></span></div></div>
+					<div class="col-md-8">
+						<% if (item.src) { %>
+							<%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+						<% } %>
+						<% if (item.msg) { %>
+							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+						<% } %>
+					</div>
+					<div class="col-md-3">
+						<!-- image view -->
+						<img src="<%- item.img %>" alt="" class="img-responsive center-block imagePreview" />
 					</div>
 				</div>
 			</div>
@@ -264,14 +289,36 @@
 		<div class="row">
 			<div class="col-md-12 logItem">
 				<div class="row">
-					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span> UPLOAD ADDITIONAL IMAGES</div></div>
-					<div class="col-md-11">
-						-- upload controls here pls --
+					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+					<div class="col-md-8">
+						<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+
+						<input type="text" class="form-control" placeholder="Description" />
+						<label class="btn btn-default">
+							<span class="glyphicon glyphicon-camera"></span> Select File</input>
+    							<input type="file" hidden>
+						</label>					
+						<button class="btn btn-default">Upload</button>
+					</div>
+					<div class="col-md-3">
+						<!-- image preview -->
+						<img src="" alt="" class="img-responsive center-block imagePreview" />
 					</div>
 				</div>
 			</div>
 		</div>
 	</script>
+
+	<!-- Source -->
+	<script type="text/html" id="logDetailTemplate_Source">
+		<span class="log-source"><%- item.src %></span>
+	</script>
+
+	<!-- Message -->
+	<script type="text/html" id="logDetailTemplate_Message">
+		<p class="log-message wrapLongStrings"><%- item.msg %></p>
+	</script>
+
 
 	<footer class="pageFooter">
 		<span class="muted">FintechLabs.io conformance suite</span>
