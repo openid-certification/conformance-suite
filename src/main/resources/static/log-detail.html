@@ -156,7 +156,7 @@
 
                 <div class="col-md-2"> <!-- controls -->
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Repeat Test</button>
-                    <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
+                    <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Images <span class="badge" id="uploadCount"></span></button>
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
@@ -236,7 +236,7 @@
                 </div>
 
                 <% if (item.upload) { %>
-                <div class="row"><!-- image upload (if necessary) -->
+                <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
                     <div class="col-md-10 col-md-offset-2">
                             <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
                     </div>
@@ -552,7 +552,19 @@
 				    	   results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
 				    });
 				    $('#testResultSummary').html(results);
-				},
+                    // count up any "image required" items
+
+                    var uploadCount = $('[data-image-required]').length;
+                    if (uploadCount) {
+                        $('#uploadCount').html(uploadCount);
+                        $('#uploadBtn').addClass('btn-info');
+                        $('#uploadBtn').removeClass('btn-default');
+                    } else {
+                        $('#uploadCount').html('');
+                        $('#uploadBtn').removeClass('btn-info');
+                        $('#uploadBtn').addClass('btn-default');
+                    }
+                 },
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 						error: error
