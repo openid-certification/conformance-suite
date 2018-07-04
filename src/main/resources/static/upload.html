@@ -132,6 +132,26 @@
 				// add the "add more" block
 				$('.logContent').append(FAPI_UI.logTemplates.ADDITIONAL({}));
 				
+				
+				// wire up the buttons on all the image uploaders
+				$('[data-upload-id]').each(function() {
+					var el = $(this);
+					
+					$('[type="file"]', el).change(function(evt) {
+						var reader = new FileReader();
+
+						reader.onload = function(evt) {
+							var content = evt.target.result;
+							//console.log(content);
+							$('img', el).prop('src', content);
+						};
+
+						reader.readAsDataURL($(this).prop('files')[0]);
+					});
+				});
+				
+				// wire up the buttons on the 
+				
 			}, 
 			error: function(jqxhr, status, error) {
 				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -237,6 +257,10 @@
 			<div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
 				<div class="row">
 					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+					<div class="col-md-3">
+						<!-- image preview -->
+						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview" />
+					</div>
 					<div class="col-md-8">
 						<!-- test details and form controls -->
 						<% if (item.src) { %>
@@ -252,10 +276,6 @@
 						</label>					
 						<button class="btn btn-default">Upload</button>
 					</div>
-					<div class="col-md-3">
-						<!-- image preview -->
-						<img src="" alt="" class="img-responsive center-block imagePreview" />
-					</div>
 				</div>
 			</div>
 		</div>
@@ -267,6 +287,10 @@
 			<div class="col-md-12 logItem">
 				<div class="row">
 					<div class="col-md-1"><div class="bg-success testStatusResultBlock"><span class="glyphicon glyphicon-ok-sign"></span></div></div>
+					<div class="col-md-3">
+						<!-- image view -->
+						<img src="<%- item.img %>" alt="" class="img-responsive center-block imagePreview" />
+					</div>
 					<div class="col-md-8">
 						<% if (item.src) { %>
 							<%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
@@ -274,10 +298,6 @@
 						<% if (item.msg) { %>
 							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
 						<% } %>
-					</div>
-					<div class="col-md-3">
-						<!-- image view -->
-						<img src="<%- item.img %>" alt="" class="img-responsive center-block imagePreview" />
 					</div>
 				</div>
 			</div>
@@ -290,6 +310,10 @@
 			<div class="col-md-12 logItem">
 				<div class="row">
 					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+					<div class="col-md-3">
+						<!-- image preview -->
+						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview" />
+					</div>
 					<div class="col-md-8">
 						<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
 
@@ -299,10 +323,6 @@
     							<input type="file" hidden>
 						</label>					
 						<button class="btn btn-default">Upload</button>
-					</div>
-					<div class="col-md-3">
-						<!-- image preview -->
-						<img src="" alt="" class="img-responsive center-block imagePreview" />
 					</div>
 				</div>
 			</div>
