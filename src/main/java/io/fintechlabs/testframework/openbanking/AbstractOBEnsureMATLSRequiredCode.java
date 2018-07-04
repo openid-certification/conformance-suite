@@ -18,19 +18,10 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToRegistrationEndpoint;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToUserInfoEndpoint;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -56,51 +47,36 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 
 		// check that all known endpoints support TLS correctly
 
-		JsonObject serverConfig = env.get("server"); // verified present by CheckServerConfiguration
+		eventLog.startBlock("Authorization endpoint TLS test");
+		env.mapKey("tls", "authorization_endpoint_tls");
+		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		// additional ciphers are allowed on the authorization endpoint
 
-		if (serverConfig.has("authorization_endpoint")) {
+		eventLog.startBlock("Token Endpoint TLS test");
+		env.mapKey("tls", "token_endpoint_tls");
+		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		
+		eventLog.startBlock("Userinfo Endpoint TLS test");
+		env.mapKey("tls", "userinfo_endpoint_tls");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
-			callAndStopOnFailure(SetTLSTestHostToAuthorizationEndpoint.class);
-
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-
-			// Additional ciphers are allowed for the authorization endpoint
-		}
-
-		if (serverConfig.has("token_endpoint")) {
-
-			callAndStopOnFailure(SetTLSTestHostToTokenEndpoint.class);
-
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-		}
-
-		if (serverConfig.has("userinfo_endpoint")) {
-
-			callAndStopOnFailure(SetTLSTestHostToUserInfoEndpoint.class);
-
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-		}
-
-		if (serverConfig.has("userinfo_endpoint")) {
-
-			callAndStopOnFailure(SetTLSTestHostToRegistrationEndpoint.class);
-
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-1-7.1-1");
-
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-		}
+		eventLog.startBlock("Registration Endpoint TLS test");
+		env.mapKey("tls", "registration_endpoint_tls");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		
+		eventLog.endBlock();
+		env.unmapKey("tls");
 
 		performAuthorizationFlow();
 	}
