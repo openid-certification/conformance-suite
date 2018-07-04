@@ -19,108 +19,136 @@
 <link rel="stylesheet" type="text/css" href="css/layout.css">
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js" type="text/javascript"></script>
 <!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous" type="text/javascript"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
 
 <script type="text/javascript" src="js/fapi.ui.js"></script>
 
-<script>
-		$(document).ready(function() {
-			FAPI_UI.getUserInfoDiv("#userInfoDiv");
+<script type="text/javascript">
+	$(document).ready(function() {
+		FAPI_UI.getUserInfoDiv("#userInfoDiv");
+
+		var urlParams = new URLSearchParams(window.location.search);
+		var testId = urlParams.get('log');
+		var placeholder = urlParams.get('placeholder');
+
+		FAPI_UI.showBusy();
+		
+		$.when(FAPI_UI.loadImageUploadTemplates()) // load the templates
+		.then(function() {
+			return FAPI_UI.getUserInfoDiv('#userInfoDiv'); // then get the current user
+		}).then(function() {
+			return loadImagesForLog(testId); // load the existing and placeholder images and render the page
+		}).always(function() {
+			FAPI_UI.hideBusy();
+		});
+
+	});
+
+		// browse for a local file
+		$('#file').change(function(evt) {
+			var reader = new FileReader();
+
+			reader.onload = function(evt) {
+				var content = evt.target.result;
+				//console.log(content);
+				$('#preview').prop('src', content);
+			};
+
+			reader.readAsDataURL($('#file').prop('files')[0]);
+		});
+
+		// paste an image
+		$('body').on('paste', function(e) {
+			var reader = new FileReader();
+
+			reader.onload = function(evt) {
+				var content = evt.target.result;
+				//console.log(content);
+				$('#preview').prop('src', content);
+			};
+
+			// loop through the clipboard to see if there's an image
+			_.each(e.originalEvent.clipboardData.items, function(item) {
+				if (item.type.startsWith('image/')) {
+					reader.readAsDataURL(item.getAsFile());
+				}
+			});
+
+		});
+
+		$('#upload').click(function(evt) {
+			evt.preventDefault();
 
 			var urlParams = new URLSearchParams(window.location.search);
-            var testId = urlParams.get('log');
-		
-			$.ajax({
-				type: 'GET',
-				url: '/log/' + encodeURIComponent(testId) + '/images',
-				success: function(data) {
-				    _.each(data, function(item) {
-				    	   // check to see if it's an "upload required" or an existing image
-				    	   if (item.upload) {
-				    		   console.log('Upload required: ' + item._id);
-				    	   } else if (item.img) {
-				    		   console.log('Existing image: ' + item._id);
-				    	   } else {
-				    		   // show an error?
-				    		   console.log('Well that is weird ' + item._id);
-				    	   }
-				    });
-				}
-			});
-	
-			// browse for a local file
-			$('#file').change(function(evt) {
-				var reader = new FileReader();
-	
-				reader.onload = function(evt) {
-					var content = evt.target.result;
-					//console.log(content);
-					$('#preview').prop('src', content);
-				};
-	
-				reader.readAsDataURL($('#file').prop('files')[0]);
-			});
-			
-			// paste an image
-			$('body').on('paste', function(e) {
-			    var reader = new FileReader();
-	             
-                reader.onload = function(evt) {
-                    var content = evt.target.result;
-                    //console.log(content);
-                    $('#preview').prop('src', content);
-                };
+			var testId = urlParams.get('log');
+			var placeholder = urlParams.get('placeholder');
 
-                // loop through the clipboard to see if there's an image
-                _.each(e.originalEvent.clipboardData.items, function(item) {
-                    if (item.type.startsWith('image/')) {
-                        reader.readAsDataURL(item.getAsFile());
-                    }
-                });
-	                
-			});
-			
-			$('#upload').click(function(evt) {
-				evt.preventDefault();
-				
-				var urlParams = new URLSearchParams(window.location.search);
-				var testId = urlParams.get('log');
-				var placeholder = urlParams.get('placeholder');
-	
-				if (placeholder) {
-					var url = "/log/" + encodeURIComponent(testId) + '/imgfile/' + encodeURIComponent(placeholder);
-				} else {
-					var url = "/log/" + encodeURIComponent(testId) + '/imgfile'
+			if (placeholder) {
+				var url = "/log/" + encodeURIComponent(testId) + '/imgfile/' + encodeURIComponent(placeholder);
+			} else {
+				var url = "/log/" + encodeURIComponent(testId) + '/imgfile'
+			}
+
+			$.ajax({
+				type: 'POST',
+				url: url,
+				data: $('#preview').prop('src'),
+				contentType: false,
+				processData: false,
+				success: function(data) {
+					$('#preview').prop('src', '');
+					$('#success a').prop('href', 'log-detail.html?log=' + encodeURIComponent(testId));
+					$('#success').show();
 				}
+			});
+
+		});
+
 	
-				$.ajax({
-					type: 'POST',
-					url: url,
-					data: $('#preview').prop('src'),
-					contentType: false,
-					processData: false,
-					success: function(data) {
-						$('#preview').prop('src', '');
-						$('#success a').prop('href', 'log-detail.html?log=' + encodeURIComponent(testId));
-						$('#success').show();
+	function loadImagesForLog(testId) {
+		return $.ajax({
+			type: 'GET',
+			url: '/log/' + encodeURIComponent(testId) + '/images',
+			success: function(data) {
+				_.each(data, function(item) {
+					// check to see if it's an "upload required" or an existing image
+					if (item.upload) {
+						console.log('Upload required: ' + item._id);
+						$('.logContent').append(FAPI_UI.logTemplates.PENDING({item: item}));
+					} else if (item.img) {
+						console.log('Existing image: ' + item._id);
+						$('.logContent').append(FAPI_UI.logTemplates.EXISTING({item: item}));
+					} else {
+						FAPI_UI.showError({
+							error: 'Unhandled image entry from logs: ' + item._id
+						});
 					}
 				});
-	
-			});
-	
+				
+				// add the "add more" block
+				$('.logContent').append(FAPI_UI.logTemplates.ADDITIONAL({}));
+				
+			}, 
+			error: function(jqxhr, status, error) {
+				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+					error: error
+				});
+			}
 		});
-	</script>
+
+	}
+</script>
 </head>
 <body>
 
 	<div class="pageHeader container-fluid">
 		<div class="row-fluid">
 			<div class="col-md-8">
-				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
+				<a href="index.html"><img src="/images/FinTechLabs.io.png" alt=""></a>
 			</div>
 			<div id="userInfoDiv" class="col-md-4 text-right"></div>
 		</div>
@@ -156,7 +184,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="text-center">
-						<img src="/images/spinner.gif" width="100px" height="30px" />
+						<img src="/images/spinner.gif" width="100px" height="30px" alt="" />
 					</div>
 					<div>
 						<span id="loadingMessage"></span>
@@ -167,13 +195,15 @@
 	</div>
 
 
-	<div class="container-fluid">
+	<div class="logContent container-fluid">
+	
+	<!-- 
 		<div>
 			<h1>Upload image to the log</h1>
 			<div class="content">
 
-				<form>
-					<img id="preview" /> <input type="file" id="file">
+				<form action="">
+					<img id="preview" src="" alt="" /> <input type="file" id="file">
 					<button class="btn btn-default" type="submit" id="upload">Upload</button>
 				</form>
 
@@ -185,6 +215,7 @@
 				Image uploaded! <a class="btn btn-info">Return to the logs.</a>
 			</p>
 		</div>
+	 -->
 	</div>
 
 	<!-- Templates -->
@@ -199,7 +230,48 @@
             </form>
         </div>
     </script>
+    
+    <!-- Pending Image Uploader -->
+	<script type="text/html" id="pendingImageUploader">
+		<div class="row">
+			<div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
+				<div class="row">
+					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span> IMAGE REQUIRED</div></div>
+					<div class="col-md-11">
+						-- upload controls here pls --
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
 
+	<!-- Existing Image Entry -->
+	<script type="text/html" id="existingImage">
+		<div class="row">
+			<div class="col-md-12 logItem">
+				<div class="row">
+					<div class="col-md-1"><div class="bg-success testStatusResultBlock"><span class="glyphicon glyphicon-ok-sign"></span> IMAGE UPLOADED</div></div>
+					<div class="col-md-11">
+						-- image  view here pls --
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<!-- Additional Image Uploader -->
+	<script type="text/html" id="additionalImageUploader">
+		<div class="row">
+			<div class="col-md-12 logItem">
+				<div class="row">
+					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span> UPLOAD ADDITIONAL IMAGES</div></div>
+					<div class="col-md-11">
+						-- upload controls here pls --
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
 
 	<footer class="pageFooter">
 		<span class="muted">FintechLabs.io conformance suite</span>
