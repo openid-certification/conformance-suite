@@ -235,6 +235,37 @@
 
 				});
 				
+				// wire up paste support
+				$('body').on('paste', function(e) {
+					
+					var reader = new FileReader();
+
+					reader.onload = function(evt) {
+						var content = evt.target.result;
+						
+						// find the first image preview in the document -- this will either be the top placeholder or the "add an additional image" block if there are no placeholders
+						// note that "existing image" viewers don't have the "imagePasteTarget" class on them and therefore don't show up in this query
+						
+						var target = $('.imagePasteTarget').first();
+						
+						target.prop('src', content);
+						
+						$('.uploadBtn', target.parents('.logItem'))
+							.prop('disabled', false)
+							.removeClass('btn-default')
+							.addClass('btn-success');
+
+					};
+
+					// loop through the clipboard to see if there's an image; when found, send to the reader which triggers the 'onload' function above
+					_.each(e.originalEvent.clipboardData.items, function(item) {
+						if (item.type.startsWith('image/')) {
+							reader.readAsDataURL(item.getAsFile());
+						}
+					});
+
+				});
+				
 			}, 
 			error: function(jqxhr, status, error) {
 				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -309,7 +340,7 @@
 					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
 					<div class="col-md-3">
 						<!-- image preview -->
-						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview" />
+						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
 					</div>
 					<div class="col-md-8">
 						<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
@@ -348,7 +379,7 @@
 					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
 					<div class="col-md-3">
 						<!-- image preview -->
-						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview" />
+						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
 					</div>
 					<div class="col-md-8">
 						<!-- test details and form controls -->
