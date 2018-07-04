@@ -157,7 +157,11 @@ public class ImageAPI {
 		
 		Query search = Query.query(criteria);
 		
-		List<DBObject> images = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+		List<DBObject> images = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject())
+			.sort(BasicDBObjectBuilder.start()
+				.add("time", 1)
+				.get())
+			.toArray();
 		
 		return new ResponseEntity<>(images, HttpStatus.OK);
 		
