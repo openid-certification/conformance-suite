@@ -51,7 +51,6 @@ var FAPI_UI = {
 	loadImageUploadTemplates: function() {
 		this.logTemplates.PENDING = _.template($('#pendingImageUploader').html());
 		this.logTemplates.EXISTING = _.template($('#existingImage').html());
-		this.logTemplates.ADDITIONAL = _.template($('#additionalImageUploader').html());
 		this.logTemplates.SOURCE = _.template($("#logDetailTemplate_Source").html());
 		this.logTemplates.MESSAGE = _.template($("#logDetailTemplate_Message").html());
 	},

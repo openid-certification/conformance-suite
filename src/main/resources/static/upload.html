@@ -117,21 +117,17 @@
 				_.each(data, function(item) {
 					// check to see if it's an "upload required" or an existing image
 					if (item.upload) {
-						console.log('Upload required: ' + item._id);
-						$('.logContent').append(FAPI_UI.logTemplates.PENDING({item: item}));
+						//console.log('Upload required: ' + item._id);
+						$('#imageBlocks').append(FAPI_UI.logTemplates.PENDING({item: item}));
 					} else if (item.img) {
-						console.log('Existing image: ' + item._id);
-						$('.logContent').append(FAPI_UI.logTemplates.EXISTING({item: item}));
+						//console.log('Existing image: ' + item._id);
+						$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: item}));
 					} else {
 						FAPI_UI.showError({
 							error: 'Unhandled image entry from logs: ' + item._id
 						});
 					}
 				});
-				
-				// add the "add more" block
-				$('.logContent').append(FAPI_UI.logTemplates.ADDITIONAL({}));
-				
 				
 				// wire up the buttons on all the image uploaders
 				$('[data-upload-id]').each(function() {
@@ -157,12 +153,8 @@
 						reader.readAsDataURL($(this).prop('files')[0]);
 					});
 					
-					$('.uploadBtn').click(function(evt) {
+					$('.uploadBtn', el).click(function(evt) {
 						evt.preventDefault();
-
-						var urlParams = new URLSearchParams(window.location.search);
-						var testId = urlParams.get('log');
-						var placeholder = urlParams.get('placeholder');
 
 						var url = "/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
 
@@ -187,6 +179,61 @@
 				});
 				
 				// wire up the buttons on the "add a new image" panel
+				$('#additionalUploader [type="file"]').change(function(evt) {
+					var reader = new FileReader();
+
+					reader.onload = function(evt) {
+						// once it's loaded from the file, preview it and enable the upload button
+						
+						var content = evt.target.result;
+						$('#additionalUploader .imagePreview').prop('src', content);
+						
+						$('#additionalUploader .uploadBtn')
+							.prop('disabled', false)
+							.removeClass('btn-default')
+							.addClass('btn-success');
+						
+					};
+
+					// this reads the file data and triggers the 'onload' function above
+					reader.readAsDataURL($(this).prop('files')[0]);
+				});
+				
+				$('#additionalUploader .uploadBtn').click(function(evt) {
+					evt.preventDefault();
+
+					var desc = $('#additionalUploader #uploadDescription').val();
+					
+					var url = "/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
+
+					$.ajax({
+						type: 'POST',
+						url: url,
+						data: $('#additionalUploader .imagePreview').prop('src'),
+						contentType: false,
+						processData: false,
+						success: function(data) {
+							// on a successful upload, append the new log entry to the display
+							$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: data}));
+							
+							// reset the form
+							$('#additionalUploader .uploadBtn')
+								.prop('disabled', true)
+								.removeClass('btn-success')
+								.addClass('btn-default');
+							
+							$('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
+							
+							$('#additionalUploader [type="file"]').val('');
+						}, 
+						error: function(jqxhr, status, error) {
+							FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+								error: error
+							});
+						}
+					});
+
+				});
 				
 			}, 
 			error: function(jqxhr, status, error) {
@@ -252,26 +299,32 @@
 
 
 	<div class="logContent container-fluid">
+		<div id="imageBlocks">
+		
+		</div>
 
-		<!-- 
-		<div>
-			<h1>Upload image to the log</h1>
-			<div class="content">
+		<div class="row">
+			<div class="col-md-12 logItem" id="additionalUploader">
+				<div class="row">
+					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+					<div class="col-md-3">
+						<!-- image preview -->
+						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview" />
+					</div>
+					<div class="col-md-8">
+						<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
 
-				<form action="">
-					<img id="preview" src="" alt="" /> <input type="file" id="file">
-					<button class="btn btn-default" type="submit" id="upload">Upload</button>
-				</form>
-
+						<input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
+						<label class="btn btn-default">
+							<span class="glyphicon glyphicon-camera"></span> Select File</input>
+    							<input type="file" hidden>
+						</label>					
+						<button class="btn btn-default uploadBtn" disabled>Upload</button>
+					</div>
+				</div>
 			</div>
 		</div>
 
-		<div class="collapse" id="success">
-			<p class="info">
-				Image uploaded! <a class="btn btn-info">Return to the logs.</a>
-			</p>
-		</div>
-	 -->
 	</div>
 
 	<!-- Templates -->
@@ -334,31 +387,6 @@
 						<% if (item.msg) { %>
 							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
 						<% } %>
-					</div>
-				</div>
-			</div>
-		</div>
-	</script>
-
-	<!-- Additional Image Uploader -->
-	<script type="text/html" id="additionalImageUploader">
-		<div class="row">
-			<div class="col-md-12 logItem">
-				<div class="row">
-					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
-					<div class="col-md-3">
-						<!-- image preview -->
-						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview" />
-					</div>
-					<div class="col-md-8">
-						<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
-
-						<input type="text" class="form-control" placeholder="Description" />
-						<label class="btn btn-default">
-							<span class="glyphicon glyphicon-camera"></span> Select File</input>
-    							<input type="file" hidden>
-						</label>					
-						<button class="btn btn-default">Upload</button>
 					</div>
 				</div>
 			</div>
