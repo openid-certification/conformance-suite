@@ -103,7 +103,7 @@ public class ImageAPI {
 	}
 
 	@PostMapping(path = "/log/{id}/images/{placeholder}")
-	public ResponseEntity<Object> uploadImageToExitingLogEntry(@RequestBody String encoded,
+	public ResponseEntity<Object> uploadImageToExistingLogEntry(@RequestBody String encoded,
 		@PathVariable(name = "id") String testId,
 		@PathVariable(name = "placeholder") String placeholder) throws IOException {
 
