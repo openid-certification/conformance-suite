@@ -47,7 +47,7 @@ public class DummyUserFilter extends GenericFilterBean {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		logger.debug("In Dummy Filter doFilter()");
+		//logger.debug("In Dummy Filter doFilter()");
 		if (devmode) {
 			UserInfo info = new DefaultUserInfo();
 			info.setEmail("DEVMODE@developer.com");

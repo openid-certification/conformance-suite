@@ -4,8 +4,10 @@ import java.util.Map;
 
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
@@ -13,11 +15,22 @@ import com.google.common.collect.ImmutableMap;
 
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade {
-	@Override
-	public OIDCAuthenticationToken getAuthenticationToken() {
+
+	@Value("${oauth.introspection_url}")
+	private String introspectionUrl;
+	
+	private OIDCAuthenticationToken getOIDC() {
 		Authentication a = SecurityContextHolder.getContext().getAuthentication();
 		if (a instanceof OIDCAuthenticationToken) {
 			return (OIDCAuthenticationToken) a;
+		}
+		return null;
+	}
+	
+	private OAuth2Authentication getOAuth() {
+		Authentication a = SecurityContextHolder.getContext().getAuthentication();
+		if (a instanceof OAuth2Authentication) {
+			return (OAuth2Authentication) a;
 		}
 		return null;
 	}
@@ -41,21 +54,25 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	@Override
 	public ImmutableMap<String, String> getPrincipal() {
-		OIDCAuthenticationToken token = getAuthenticationToken();
+		OIDCAuthenticationToken token = getOIDC();
+		OAuth2Authentication auth = getOAuth();
 		if (token != null) {
 			return (ImmutableMap<String, String>) token.getPrincipal();
+		} else if (auth != null) {
+			return ImmutableMap.of("sub", auth.getOAuth2Request().getClientId(), "iss", introspectionUrl);
 		}
 		return null;
 	}
 
 	@Override
 	public String getDisplayName() {
-		OIDCAuthenticationToken token = getAuthenticationToken();
+		OIDCAuthenticationToken token = getOIDC();
+		OAuth2Authentication auth = getOAuth();
 		if (token != null) {
 			Map<String, String> principal = getPrincipal();
 			if (principal != null) {
 				String displayName = principal.toString();
-				UserInfo userInfo = token.getUserInfo();
+				UserInfo userInfo = getUserInfo();
 				if (userInfo != null) {
 					if (!Strings.isNullOrEmpty(userInfo.getEmail())) {
 						displayName = userInfo.getEmail();
@@ -68,7 +85,21 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 				}
 				return displayName;
 			}
+		} else if (auth != null) {
+			return auth.getName();
 		}
 		return "";
+	}
+
+	@Override
+	public UserInfo getUserInfo() {
+		OIDCAuthenticationToken token = getOIDC();
+		
+		if (token != null) {
+			return token.getUserInfo();
+		} else {
+			return null;
+		}
+		
 	}
 }

@@ -89,13 +89,12 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	public TestModule getRunningTestById(String testId) {
 		expireOldTests();
 		// Put in null check to handle non-userfacing interactions.
-		if (authenticationFacade.getAuthenticationToken() == null ||
-			authenticationFacade.isAdmin()) {
+		if (authenticationFacade.isAdmin()) {
 			return runningTests.get(testId);
 		} else {
 			TestModule test = runningTests.get(testId);
 			if (test != null &&
-				test.getOwner().equals((ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal())) {
+				test.getOwner().equals(authenticationFacade.getPrincipal())) {
 				return test;
 			}
 			return null;
@@ -109,14 +108,13 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	public Set<String> getAllRunningTestIds() {
 		expireOldTests();
 		// Put in null check to handle non-userfacing interactions.
-		if (authenticationFacade.getAuthenticationToken() == null ||
-			authenticationFacade.isAdmin()) {
+		if (authenticationFacade.isAdmin()) {
 			return runningTests.entrySet().stream()
 				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
 				.map(e -> e.getValue().getId())
 				.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
 		} else {
-			ImmutableMap<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			return runningTests.entrySet().stream()
 				.filter(map -> map.getValue().getOwner().equals(owner))
 				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first

@@ -23,8 +23,13 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.token.TokenService;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurer;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.google.common.collect.ImmutableMap;
@@ -187,23 +192,22 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.anyRequest()
 					.authenticated()
 				.and()
-				.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
+					.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.exceptionHandling()
-				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/currentuser"))
-				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/runner/**"))
-				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/log/**"))
-				.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/info/**"))
-				.defaultAuthenticationEntryPointFor(authenticationEntryPoint(),new AntPathRequestMatcher("/**")) // Default to this if not the others.
-				//.authenticationEntryPoint(authenticationEntryPoint())
+					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/currentuser"))
+					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/runner/**"))
+					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/log/**"))
+					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/info/**"))
+					.defaultAuthenticationEntryPointFor(authenticationEntryPoint(), new AntPathRequestMatcher("/**")) // Default to this if not the others.
 				.and()
-				.logout()
-				.logoutSuccessUrl("/login.html")
-				.permitAll();
+					.logout()
+					.logoutSuccessUrl("/login.html")
+					.permitAll();
 
-		if(devmode) {
+		if (devmode) {
 			logger.warn("\n***\n* Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
 			http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);
 		}
-	}
-
+	}    
+    
 }

@@ -425,7 +425,7 @@ public class TestRunner {
 			Class<? extends TestModule> testModuleClass = holder.c;
 
 			@SuppressWarnings("unchecked")
-			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
+			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getPrincipal();
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
