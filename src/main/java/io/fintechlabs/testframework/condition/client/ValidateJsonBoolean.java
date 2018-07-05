@@ -20,14 +20,14 @@ public class ValidateJsonBoolean extends AbstractCondition {
 
 		if (parameterValue == null) {
 			errorMessage = environmentVariableText + "Should be '" + requiredValue + "'. Is currently NULL";
-		}
-
-		if (parameterValue.isJsonPrimitive()) {
-			if (parameterValue.getAsBoolean() != requiredValue) {
-				errorMessage = environmentVariable + " must be: " + requiredValue;
-			}
 		} else {
-			errorMessage = environmentVariable + ": incorrect type. Should be JsonPrimitive and boolean.";
+			if (parameterValue.isJsonPrimitive()) {
+				if (parameterValue.getAsBoolean() != requiredValue) {
+					errorMessage = environmentVariable + " must be: " + requiredValue;
+				}
+			} else {
+				errorMessage = environmentVariable + ": incorrect type. Should be JsonPrimitive and boolean.";
+			}
 		}
 
 		if (errorMessage != null) {
