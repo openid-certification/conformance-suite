@@ -31,6 +31,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -101,18 +102,25 @@ public class TestRunner {
 	private Map<String, List<Future>> taskFutures = new HashMap<>();
 	private FutureWatcher futureWatcher;
 
-	// TODO: Move this stuff to it's own file?
+	// TODO: Move this stuff to its own file?
 	private class BackgroundTask implements Callable {
 		private String testId;
 		private Callable myCallable;
+		private Authentication savedAuthentication;
 
 		public BackgroundTask(String testId, Callable callable) {
 			this.testId = testId;
 			this.myCallable = callable;
+			// save the authentication context for use when we run it later
+			savedAuthentication = authenticationFacade.getContextAuthentication();
+			logger.info("THREAD (BackgroundTask<init>): " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 		}
 
 		@Override
 		public Object call() throws TestFailureException {
+			// restore the authentication context that was in place when this was created
+			authenticationFacade.setLocalAuthentication(savedAuthentication);
+			logger.info("THREAD (BackgroundTask<call>): " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 			Object returnObj = null;
 			try {
 				returnObj = myCallable.call();
@@ -160,6 +168,7 @@ public class TestRunner {
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
 
+						logger.info("THREAD (FutureWatcher<run>): " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// there's an exception, stop the test
@@ -190,6 +199,7 @@ public class TestRunner {
 		} else {
 			futures = new ArrayList<Future>();
 		}
+		logger.info("THREAD (TestRunner<runInBackground>: " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
 		taskFutures.put(testId, futures);
 	}
