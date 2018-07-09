@@ -24,8 +24,11 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.locks.Lock;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
@@ -64,7 +67,8 @@ public class BrowserControl {
 					"optional": true,
 					"commands": [
 						["click","id","remember-not"],
-						["click","name","authorize"]
+						["click","name","authorize"],
+						["wait", "contains", "localhost", 10] // wait for up to 10 seconds for the URL to contain 'localhost' via a javascript location change, etc.
 					]
 				},
 	            {
@@ -357,7 +361,41 @@ public class BrowserControl {
 					
 					entryBox.sendKeys(value);
 					logger.debug("\t\tEntered text: " + value);
+
 					return;
+
+				} else if (commandString.equalsIgnoreCase("wait")) {
+					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
+					// 	 'wait' will wait for the URL to match a regex, or for it to contain a string, OR
+					//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
+
+					int timeoutSeconds = command.get(3).getAsInt();
+					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds);
+					try {
+						if (elementType.equalsIgnoreCase("contains")){
+							waiting.until(ExpectedConditions.urlContains(target));
+						} else if (elementType.equalsIgnoreCase("match")) {
+							waiting.until(ExpectedConditions.urlMatches(target));
+						} else {
+							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
+						}
+
+						eventLog.log("WebRunner", args(
+							"msg", "Waiting",
+							"url", driver.getCurrentUrl(),
+							"browser", commandString,
+							"task", taskName,
+							"element_type", elementType,
+							"target", target,
+							"result", ConditionResult.SUCCESS
+						));
+
+						logger.debug("\t\tDone waiting: " + commandString);
+						return;
+
+					} catch (TimeoutException timeoutException) {
+						throw new TestFailureException(testId, "Timed out waiting: " + commandString);
+					}
 				}
 			}
 			throw new TestFailureException(testId, "Invalid Command: " + commandString);
@@ -390,13 +428,14 @@ public class BrowserControl {
 		
 	}
 
+	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
+
 	/**
-	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited. 
-	 * The driver doesn't normally have this functionality.
+	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
 	 */
 	private class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
 
-		public ResponseCodeHtmlUnitDriver() { super(false); }
+		public ResponseCodeHtmlUnitDriver() { super(true); }
 
 		public int getResponseCode() {
 			return this.lastPage().getWebResponse().getStatusCode();
