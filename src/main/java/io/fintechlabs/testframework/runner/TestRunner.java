@@ -259,6 +259,16 @@ public class TestRunner {
 		// record that this test was started
 		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId);
 
+		// Belts and braces safe way to get the value of any description we may have.
+		String description = "";
+		if (config.has("description") && config.get("description").isJsonPrimitive()) {
+			try {
+				description = config.get("description").getAsString();
+			} catch (Exception ex) {
+				description = "";
+			}
+		}
+		
 		// log the test creation event in the event log
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(),
 			EventLog.args("msg", "Test instance " + id + " created",
@@ -267,6 +277,7 @@ public class TestRunner {
 				"config", config,
 				"alias", alias,
 				"planId", planId,
+				"description", description,
 				"testName", testName));
 
 		runInBackground(id, () -> {
