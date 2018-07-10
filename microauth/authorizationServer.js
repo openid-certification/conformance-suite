@@ -26,19 +26,15 @@ var authServer = {
 // client information
 var clients = [
 	{
-		"client_id": "oauth-client-1",
-		"client_secret": "oauth-client-secret-1",
-		"redirect_uris": ["http://localhost:9000/callback"],
-		"scope": "foo bar",
-		"logo_uri": "https://images.manning.com/720/960/resize/book/e/14336f9-6493-46dc-938c-11a34c9d20ac/Richer-OAuth2-HI.png",
-		"client_name": "OAuth in Action Exercise Client"
+		"client_id": process.env.client_id ? process.env.client_id : "oauth-client-1",
+		"client_secret": process.env.client_secret ? process.env.client_secret : "oauth-client-secret-1"
 	}
 ];
 
 var sharedTokenSecret = "shared token secret!";
 
 var preplacedToken = {
-	value: "3esdcfghjko9i8u7yt6ghjkoi98u7y6gh",
+	value: randomstring.generate(),
 	sub: 'AUTOMATED-TEST',
 	user_id: 'automated-test',
 	scope: ['fapi-test-suite']
@@ -46,8 +42,8 @@ var preplacedToken = {
 
 var protectedResources = [
 	{
-		"resource_id": "protected-resource-1",
-		"resource_secret": "protected-resource-secret-1"
+		"resource_id": process.env.resource_id ? process.env.resource_id : "protected-resource-1",
+		"resource_secret": process.env.resource_secret ? process.env.resource_secret : "protected-resource-secret-1"
 	}
 ];
 
@@ -180,7 +176,7 @@ var buildUrl = function(base, options, hash) {
 	return url.format(newUrl);
 };
 
-var server = app.listen(9001, 'localhost', function () {
+var server = app.listen(9001, '0.0.0.0', function () {
   var host = server.address().address;
   var port = server.address().port;
 
