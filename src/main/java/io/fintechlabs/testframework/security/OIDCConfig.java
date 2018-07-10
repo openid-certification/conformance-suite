@@ -18,19 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.token.TokenService;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurer;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -73,7 +69,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	private String admin_domain;
 	@Value("${oidc.admin.issuer}")
 	private String admin_iss;
-
+	
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(googleClientId);
@@ -185,29 +181,33 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
+		
+		// @formatter:off
+
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/test/**", "/jwks**")
+					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/test/**", "/jwks**", "/logout.html")
 					.permitAll()
 				.anyRequest()
 					.authenticated()
 				.and()
 					.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.exceptionHandling()
-					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/currentuser"))
-					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/runner/**"))
-					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/log/**"))
-					.defaultAuthenticationEntryPointFor(new RestAuthenticationEntryPoint(), new AntPathRequestMatcher("/info/**"))
-					.defaultAuthenticationEntryPointFor(authenticationEntryPoint(), new AntPathRequestMatcher("/**")) // Default to this if not the others.
+					.authenticationEntryPoint(authenticationEntryPoint())
+				.and()
+					.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
 				.and()
 					.logout()
-					.logoutSuccessUrl("/login.html")
-					.permitAll();
+					.logoutSuccessUrl("/login.html");
+
+		// @formatter:off
+
 
 		if (devmode) {
-			logger.warn("\n***\n* Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
+			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
 			http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);
 		}
-	}    
-    
+	}
+
+   
 }

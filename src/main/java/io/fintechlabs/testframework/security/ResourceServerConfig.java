@@ -14,6 +14,8 @@
 
 package io.fintechlabs.testframework.security;
 
+import javax.servlet.Filter;
+
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService;
@@ -24,17 +26,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.google.common.collect.Lists;
 
 @Configuration
-@EnableResourceServer
-public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+@Order(1)
+public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
 	// Config for the OAuth introspection filters
 	@Value("${oauth.introspection_url}")
@@ -44,25 +51,56 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 	@Value("${oauth.resource_secret}")
 	private String resourceSecret;
 	
-	/* (non-Javadoc)
-	 * @see org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter#configure(org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer)
-	 */
 	@Override
-	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-		resources.tokenServices(tokenServices());
+	protected void configure(HttpSecurity http) throws Exception {
+		
+		// @formatter:off
+
+		http
+			.requestMatchers()
+				.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**")
+			.and()
+				.csrf().disable()
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
+			.and()
+				.authorizeRequests()
+					.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**")
+					.authenticated()
+			.and()
+				.addFilterBefore(oauth2Filter(), AbstractPreAuthenticatedProcessingFilter.class)
+			.exceptionHandling()
+				.authenticationEntryPoint(restAuthenticationEntryPoint());
+
+		// @formatter:off
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter#configure(org.springframework.security.config.annotation.web.builders.HttpSecurity)
+	/**
+	 * @return
 	 */
-	@Override
-	public void configure(HttpSecurity http) throws Exception {
+	@Bean
+	public Filter oauth2Filter() {
+		
+		OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
+		filter.setAuthenticationManager(oauthAuthenticationManager());
+		filter.setAuthenticationEntryPoint(restAuthenticationEntryPoint());
+		filter.setStateless(false);
+		
+		return filter;
+	}
 
-		http.authorizeRequests()
-			.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**", "/test/**")
-			.authenticated();
+	/**
+	 * @return
+	 */
+	@Bean
+	public AuthenticationManager oauthAuthenticationManager() {
+		OAuth2AuthenticationManager oAuth2AuthenticationManager = new OAuth2AuthenticationManager();
+		
+		oAuth2AuthenticationManager.setTokenServices(tokenServices());
+		
+		return oAuth2AuthenticationManager;
 		
 	}
+	
 	@Bean
 	@Primary
 	public ResourceServerTokenServices tokenServices() {
@@ -75,9 +113,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 		return tokenService;
 	}
 
-	/**
-	 * @return
-	 */
 	@Bean
 	public IntrospectionAuthorityGranter introspectionAuthorityGranter() {
 		SimpleIntrospectionAuthorityGranter authorityGranter = new SimpleIntrospectionAuthorityGranter();
@@ -88,9 +123,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 		return authorityGranter;
 	}
 
-	/**
-	 * @return
-	 */
 	@Bean
 	public IntrospectionConfigurationService introspectionConfiguration() {
 		StaticIntrospectionConfigurationService config = new StaticIntrospectionConfigurationService();
@@ -103,9 +135,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 		return config;
 	}
 
-	/**
-	 * @return
-	 */
 	@Bean
 	public RegisteredClient getResource() {
 		RegisteredClient resource = new RegisteredClient();
@@ -116,6 +145,11 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
 		return resource;
 
-	}	
+	}
+	
+	@Bean
+	public RestAuthenticationEntryPoint restAuthenticationEntryPoint() {
+		return new RestAuthenticationEntryPoint();
+	}
 
 }
