@@ -74,10 +74,6 @@ public class DBTestPlanService implements TestPlanService {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(planId);
 		criteria.and("modules.testModule").is(testName);
-		
-		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
-		}
 
 		Query query = new Query(criteria);
 

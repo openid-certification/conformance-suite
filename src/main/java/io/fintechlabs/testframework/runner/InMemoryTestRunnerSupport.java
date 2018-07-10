@@ -88,11 +88,12 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	@Override
 	public TestModule getRunningTestById(String testId) {
 		expireOldTests();
-		// Put in null check to handle non-userfacing interactions.
-		if (authenticationFacade.isAdmin()) {
-			return runningTests.get(testId);
+
+		if (authenticationFacade.getPrincipal() == null || 	// if the user's not logged in at all (it's a back-channel or Selenium call)
+			authenticationFacade.isAdmin()) { 				// of if they're admin
+			return runningTests.get(testId); 				// just send the results
 		} else {
-			TestModule test = runningTests.get(testId);
+			TestModule test = runningTests.get(testId);		// otherwise make sure only the current user can get the test information
 			if (test != null &&
 				test.getOwner().equals(authenticationFacade.getPrincipal())) {
 				return test;
@@ -107,8 +108,9 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	@Override
 	public Set<String> getAllRunningTestIds() {
 		expireOldTests();
-		// Put in null check to handle non-userfacing interactions.
-		if (authenticationFacade.isAdmin()) {
+
+		if (authenticationFacade.getPrincipal() == null || 	// if the user's not logged in at all (it's a back-channel or Selenium call)
+			authenticationFacade.isAdmin()) { 				// of if they're admin
 			return runningTests.entrySet().stream()
 				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
 				.map(e -> e.getValue().getId())

@@ -356,6 +356,7 @@ public class BrowserControl {
 						
 					driver.findElement(getSelector(elementType, target)).click();
 					
+					logger.debug("Clicked: " + target + " (" + elementType + ")");
 					return;
 				} else if (commandString.equalsIgnoreCase("text")) {
 					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
@@ -376,8 +377,7 @@ public class BrowserControl {
 					WebElement entryBox = driver.findElement(getSelector(elementType, target));
 					
 					entryBox.sendKeys(value);
-					logger.debug("\t\tEntered text: " + value);
-
+					logger.debug("\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
 					return;
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
