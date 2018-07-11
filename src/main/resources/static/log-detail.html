@@ -400,7 +400,7 @@
 	<!-- BrowserControl -->
 	<script type="text/template" id="logDetailTemplate_Browser">
             <fieldset>
-                <legend>Interaction Required:</legend>
+                <legend>Browser Interaction:</legend>
                 <dl class="dl-horizontal">
                     <% _.each(browser.urls, function(val) { %>
                         <dt><button class="btn btn-primary visitBtn" data-url="<%- val %>">Visit <span class="glyphicon glyphicon-share-alt"></span></button></dt>
@@ -410,6 +410,25 @@
                         <dt><button class="btn" disabled >Visited <span class="glyphicon glyphicon-share-alt"></span></button></dt>
                         <dd class="wrapLongStrings"><i><%- val %></i></dd>
                     <% }); %>
+					<% _.each(browser.runners, function(val) { %>
+						<dt>Selenium Instance</dt>
+						<dd class="well">
+							<dl class="dl-horizontal">
+								<dt>Starting Url</dt>
+								<dd class="wrapLongStrings"><i><%- val.url %></i></dd>
+								<dt>Current Url</dt>
+								<dd class="wrapLongStrings"><i><%- val.currentUrl %></i></dd>
+								<dt>Current Task</dt>
+								<dd class="wrapLongStrings"><i><%- val.currentTask %></i></dd>
+								<dt>Current Command</dt>
+								<dd class="wrapLongStrings"><i><%- val.currentCommand %></i></dd>
+								<dt>Last Response Code</dt>
+								<dd class="wrapLongStrings"><i><%- val.lastResponseCode %></i></dd>
+								<dt>Last Exception</dt>
+								<dd class="wrapLongStrings"><i><%- val.lastException %></i></dd>
+							</dl>
+						</dd>
+					<% }); %>
                 </dl>
             </fieldset>
         </script>

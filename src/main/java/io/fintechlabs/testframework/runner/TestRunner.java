@@ -382,6 +382,7 @@ public class TestRunner {
 				map.put("id", testId);
 				map.put("urls", browser.getUrls());
 				map.put("visited", browser.getVisited());
+				map.put("runners", browser.getWebRunners());
 
 				return new ResponseEntity<>(map, HttpStatus.OK);
 			} else {
@@ -497,6 +498,7 @@ public class TestRunner {
 			Map<String, Object> bmap = new HashMap<>();
 			bmap.put("urls", browser.getUrls());
 			bmap.put("visited", browser.getVisited());
+			bmap.put("runners", browser.getWebRunners());
 			map.put("browser", bmap);
 		}
 		return map;
