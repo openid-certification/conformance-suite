@@ -179,11 +179,9 @@ public class BrowserControl {
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
-			logger.info("THREAD (WebRunner<init>): " + Thread.currentThread().getId());
 		}
 
 		public void run() {
-			logger.info("THREAD (WebRunner<run>): " + Thread.currentThread().getId());
 			try {
 				logger.info("Sending BrowserControl to: " + url);
 				

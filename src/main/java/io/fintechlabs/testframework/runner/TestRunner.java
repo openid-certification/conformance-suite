@@ -113,14 +113,12 @@ public class TestRunner {
 			this.myCallable = callable;
 			// save the authentication context for use when we run it later
 			savedAuthentication = authenticationFacade.getContextAuthentication();
-			logger.info("THREAD (BackgroundTask<init>): " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 		}
 
 		@Override
 		public Object call() throws TestFailureException {
 			// restore the authentication context that was in place when this was created
 			authenticationFacade.setLocalAuthentication(savedAuthentication);
-			logger.info("THREAD (BackgroundTask<call>): " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 			Object returnObj = null;
 			try {
 				returnObj = myCallable.call();
@@ -168,7 +166,6 @@ public class TestRunner {
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
 
-						logger.info("THREAD (FutureWatcher<run>): " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// there's an exception, stop the test
@@ -199,7 +196,6 @@ public class TestRunner {
 		} else {
 			futures = new ArrayList<Future>();
 		}
-		logger.info("THREAD (TestRunner<runInBackground>: " + Thread.currentThread().getId() + " :: " + authenticationFacade.getPrincipal());
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
 		taskFutures.put(testId, futures);
 	}
