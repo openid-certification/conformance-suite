@@ -30,7 +30,7 @@
             <div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
                 <h1 class="text-center">Please wait...</h1>
                 <h2 class="text-center">Processing response from authorization server<sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="The server should have returned its results as part of a URI fragment. This data normally stays in the browser and needs to be explicitly sent to the test framework for further processing." data-placement="right"></span></sup></h2>
-                <p id="complete" class="bg-info collapse">Submission complete, returning you to <a href="">the test results page.</a></p>
+                <p id="complete" class="bg-info collapse">The response has been sent to the server for processing. You may return to <a href="">the test results page.</a></p>
             </div>
         </div>
     </div>
@@ -43,25 +43,26 @@
         <span class="muted">FintechLabs.io conformance suite</span>
     </footer>
 
-    <script type="text/javascript"  th:inline="javascript">
-	    $(function() {
+	<script type="text/javascript" th:inline="javascript">
+		$(function() {
 	
-	        var hash = window.location.hash;
+			var hash = window.location.hash;
 	        
-	        var returnUrl = [[${returnUrl}]];
+			var returnUrl = [[${returnUrl}]];
 	        
-	        $.post({
-	            url: [[${implicitSubmitUrl}]],
-	            data: hash,
-	            contentType: "text/plain", // this will be parsed on the server side, no need to wrap it
-	        }).always(function () {
-	        		$('#complete a').attr('href', returnUrl);
-	        		$('#complete').show();
-	        		window.location.href = returnUrl;
-	        });
+			$.post({
+				url: [[${implicitSubmitUrl}]],
+				data: hash,
+				contentType: "text/plain", // this will be parsed on the server side, no need to wrap it
+			}).always(function () {
+				$('#complete a').attr('href', returnUrl); // provide the link only after the page is rendered.
+				$('#complete').show();
+				// add a hidden tag so that Selenium can detect we're done processing
+				$('#complete').append('<span id="submission_complete" class="hidden"></span>');
+			});
 	        
 	            
-	    });
+		});
     </script>
 
 
