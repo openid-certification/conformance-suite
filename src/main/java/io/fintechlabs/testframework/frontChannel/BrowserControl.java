@@ -335,7 +335,7 @@ public class BrowserControl {
 						"task", taskName,
 						"element_type", elementType,
 						"target", target,
-						"result", ConditionResult.SUCCESS
+						"result", ConditionResult.INFO
 					));
 						
 					driver.findElement(getSelector(elementType, target)).click();
@@ -354,7 +354,7 @@ public class BrowserControl {
 						"element_type", elementType,
 						"target", target,
 						"value", value,
-						"result", ConditionResult.SUCCESS
+						"result", ConditionResult.INFO
 						));
 					
 					WebElement entryBox = driver.findElement(getSelector(elementType, target));
@@ -370,7 +370,19 @@ public class BrowserControl {
 					//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
 
 					int timeoutSeconds = command.get(3).getAsInt();
-					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds);
+
+					eventLog.log("WebRunner", args(
+						"msg", "Waiting",
+						"url", driver.getCurrentUrl(),
+						"browser", commandString,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"seconds", timeoutSeconds,
+						"result", ConditionResult.INFO
+					));
+
+					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100); // hook to wait for this condition, check every 100 milliseconds until the max seconds
 					try {
 						if (elementType.equalsIgnoreCase("contains")){
 							waiting.until(ExpectedConditions.urlContains(target));
@@ -379,16 +391,6 @@ public class BrowserControl {
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
-
-						eventLog.log("WebRunner", args(
-							"msg", "Waiting",
-							"url", driver.getCurrentUrl(),
-							"browser", commandString,
-							"task", taskName,
-							"element_type", elementType,
-							"target", target,
-							"result", ConditionResult.SUCCESS
-						));
 
 						logger.debug("\t\tDone waiting: " + commandString);
 						return;
