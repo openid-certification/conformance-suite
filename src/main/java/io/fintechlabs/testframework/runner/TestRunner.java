@@ -260,7 +260,7 @@ public class TestRunner {
 		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId);
 
 		// Belts and braces safe way to get the value of any description we may have.
-		String description = "";
+		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
 			try {
 				description = config.get("description").getAsString();
