@@ -98,7 +98,7 @@ public class DBTestInfoService implements TestInfoService {
 			.add("testName", testName)
 			.add("started", started.toString())
 			.add("config", config)
-			.add("description", config.get("description").getAsString())
+			.add("description", description)
 			.add("alias", alias)
 			.add("owner", owner)
 			.add("planId", planId)
