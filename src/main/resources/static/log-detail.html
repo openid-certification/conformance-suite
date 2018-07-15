@@ -156,7 +156,7 @@
 
                 <div class="col-md-2"> <!-- controls -->
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Repeat Test</button>
-                    <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Image</button>
+                    <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Images <span class="badge" id="uploadCount"></span></button>
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
@@ -217,6 +217,13 @@
                         <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
                       <% } %>
 
+					  <% if (item.upload) { %>
+						<span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>
+					  <% } %>
+
+					  <% if (item.img) { %>
+						<span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
+					  <% } %>
                     </div>
 
                     <div class="col-md-8">
@@ -235,14 +242,6 @@
 
                 </div>
 
-                <% if (item.upload) { %>
-                <div class="row"><!-- image upload (if necessary) -->
-                    <div class="col-md-10 col-md-offset-2">
-                            <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
-                    </div>
-                </div>
-                <% } %>
-
                 <div class="row"><!-- more button / requirements / message -->
                     <div class="col-md-1 moreButtonContainer">
 
@@ -256,8 +255,20 @@
 
                     <div class="col-md-10">
                         <% if (item.msg) { %>
-                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+							<div class="row">
+								<div class="col-md-12">
+        		        		            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+								</div>
+							</div>
                         <% } %>
+		                <% if (item.upload) { %>
+	        			        <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
+    	            			    		<div class="col-md-12">
+    	                     		   <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+    		                			</div>
+							</div>
+						<% } %>
+
                     </div>
 
                 </div>
@@ -301,7 +312,7 @@
 
 	<!-- Upload -->
 	<script type="text/template" id="logDetailTemplate_Upload">
-            <span class="label label-warning">IMAGE REQUIRED</span><a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>&placeholder=<%- encodeURIComponent(item.upload) %>">Attach image...</a>
+            <a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>">Attach image to log file...</a>
         </script>
 
 	<!-- Result -->
@@ -358,7 +369,7 @@
                     <dd class="wrapLongStrings">
 
             <% if (key == 'img') { %>
-                <img src="<%- value %>">
+                <img src="<%- value %>" class="img-responsive center-block imagePreview">
             <% } else if (key == 'stacktrace') { %>
                 <ul>
                     <% _.each(value, function(v) { %>
@@ -552,7 +563,19 @@
 				    	   results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
 				    });
 				    $('#testResultSummary').html(results);
-				},
+                    // count up any "image required" items
+
+                    var uploadCount = $('[data-image-required]').length;
+                    if (uploadCount) {
+                        $('#uploadCount').html(uploadCount);
+                        $('#uploadBtn').addClass('btn-info');
+                        $('#uploadBtn').removeClass('btn-default');
+                    } else {
+                        $('#uploadCount').html('');
+                        $('#uploadBtn').removeClass('btn-info');
+                        $('#uploadBtn').addClass('btn-default');
+                    }
+                 },
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 						error: error

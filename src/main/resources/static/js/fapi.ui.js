@@ -48,6 +48,13 @@ var FAPI_UI = {
 		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
 	},
 	
+	loadImageUploadTemplates: function() {
+		this.logTemplates.PENDING = _.template($('#pendingImageUploader').html());
+		this.logTemplates.EXISTING = _.template($('#existingImage').html());
+		this.logTemplates.SOURCE = _.template($("#logDetailTemplate_Source").html());
+		this.logTemplates.MESSAGE = _.template($("#logDetailTemplate_Message").html());
+	},
+	
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http"],
 
 	availableTests : {},
