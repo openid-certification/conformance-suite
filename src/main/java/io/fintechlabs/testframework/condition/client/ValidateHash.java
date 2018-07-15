@@ -82,7 +82,7 @@ public abstract class ValidateHash extends AbstractCondition {
 
 		String expectedHash = Base64URL.encode(halfDigest).toString();
 		if (!hash.equals(expectedHash)) {
-			throw error("Invalid " + hashName + " in token", args("expected", expectedHash, "actual", hash));
+			throw error("Invalid " + hashName + " in token", args("expected hash", expectedHash, "id_token hash", hash, "unhashed value", baseString));
 		}
 
 		logSuccess("State hash validated successfully", args(hashName, hash));
