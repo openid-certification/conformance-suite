@@ -21,18 +21,16 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckDiscEndpointClaimsSupported extends ValidateJsonArray {
-	
+
 	private static final String environmentVariable = "claims_supported";
-	private static final String environmentVariableText = "Claims Supported Supported";
-	  
+
 	private static final String[] SET_VALUES = new String[] { "openbanking_intent_id" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
-	
-	
+
+
 	private static final String errorMessageWhenNull = "Endpoint Claims Supported: Not Found";
-	private static final String errorMessageNonArray = "Expect Json Array of " + environmentVariableText;
 	private static final String errorMessageNotEnough = "The server does not support enough of the required claims.";
-  
+
 
 	public CheckDiscEndpointClaimsSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -44,10 +42,10 @@ public class CheckDiscEndpointClaimsSupported extends ValidateJsonArray {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText, SET_VALUES, minimumMatchesRequired, 
-				errorMessageWhenNull, errorMessageNonArray, errorMessageNotEnough);
-	}	
+
+		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
+				errorMessageWhenNull, errorMessageNotEnough);
+	}
 
 
 }

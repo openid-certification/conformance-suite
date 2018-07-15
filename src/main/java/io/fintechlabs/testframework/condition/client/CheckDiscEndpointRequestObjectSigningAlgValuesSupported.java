@@ -21,16 +21,14 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckDiscEndpointRequestObjectSigningAlgValuesSupported extends ValidateJsonArray {
-	
+
 	private static final String environmentVariable = "request_object_signing_alg_values_supported";
-  private static final String environmentVariableText = "Endpoint Request Object Signing Alg Values Supported";
-  
+
 	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
-  
+
 	private static final String errorMessageWhenNull = "Endpoint Request Object Signing Alg Values: Not Found";
-	private static final String errorMessageNonArray = "Expect Json Array of " + environmentVariableText;
 	private static final String errorMessageNotEnough = "No matching value from server";
-  
+
 
 	public CheckDiscEndpointRequestObjectSigningAlgValuesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -42,9 +40,9 @@ public class CheckDiscEndpointRequestObjectSigningAlgValuesSupported extends Val
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText, SET_VALUES, 1, 
-				errorMessageWhenNull, errorMessageNonArray, errorMessageNotEnough);
-	}	
-	
+
+		return validate(env, environmentVariable, SET_VALUES, 1,
+				errorMessageWhenNull, errorMessageNotEnough);
+	}
+
 }

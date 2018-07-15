@@ -33,18 +33,16 @@ import io.fintechlabs.testframework.testmodule.Environment;
 import net.minidev.json.JSONArray;
 
 public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
-	
+
 	private static final String environmentVariable = "grant_types_supported";
-	private static final String environmentVariableText = "Grant Types Supported";
-	  
+
 	private static final String[] SET_VALUES = new String[] { "authorization_code", "client_credentials" };
 	private static final int minimumMatchesRequired = 2;
-	
-	
-	private static final String errorMessageWhenNull = "Endpoint Grant Types Supported: Not Found";
-	private static final String errorMessageNonArray = "Expect Json Array of " + environmentVariableText;
+
+
+	private static final String errorMessageWhenNull = "Grant Types Supported: Not Found";
 	private static final String errorMessageNotEnough = "The server does not support enough of the required grant types.";
-  
+
 
 	public CheckDiscEndpointGrantTypesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -56,12 +54,12 @@ public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText, SET_VALUES, minimumMatchesRequired, 
-				errorMessageWhenNull, errorMessageNonArray, errorMessageNotEnough);
+
+		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
+				errorMessageWhenNull, errorMessageNotEnough);
 
 	}
-	
+
 
 
 }

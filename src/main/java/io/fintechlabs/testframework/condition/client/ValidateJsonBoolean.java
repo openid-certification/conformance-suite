@@ -12,7 +12,7 @@ public class ValidateJsonBoolean extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	public Environment validate(Environment env, String environmentVariable, String environmentVariableText,
+	public Environment validate(Environment env, String environmentVariable,
 			Boolean defaultValue, Boolean requiredValue) {
 
 		JsonElement parameterValue = env.findElement("server", environmentVariable);
@@ -20,7 +20,7 @@ public class ValidateJsonBoolean extends AbstractCondition {
 
 		if (parameterValue == null) {
 			if (defaultValue != requiredValue) {
-				errorMessage = environmentVariableText + "should be '" + requiredValue + "', but is absent and the default value is '"+defaultValue+"'.";
+				errorMessage = "'" + environmentVariable + "' should be '" + requiredValue + "', but is absent and the default value is '"+defaultValue+"'.";
 			}
 		} else {
 			if (parameterValue.isJsonPrimitive()) {
@@ -36,7 +36,7 @@ public class ValidateJsonBoolean extends AbstractCondition {
 			throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected", requiredValue, "actual", parameterValue));
 		}
 
-		logSuccess(environmentVariableText, args(environmentVariable, parameterValue));
+		logSuccess(environmentVariable, args(environmentVariable, parameterValue));
 
 		return env;
 	}

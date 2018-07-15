@@ -13,9 +13,9 @@ public class ValidateJsonArray extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	public Environment validate(Environment env, String environmentVariable, String environmentVariableText,
+	public Environment validate(Environment env, String environmentVariable,
 			String[] setValues, Integer minimumMatchesRequired, String errorMessageWhenNull,
-			String errorMessageNonArray, String errorMessageNotEnough) {
+			String errorMessageNotEnough) {
 
 		JsonElement serverValues = env.findElement("server", environmentVariable);
 		String errorMessage = null;
@@ -26,7 +26,8 @@ public class ValidateJsonArray extends AbstractCondition {
 		} else {
 
 			if (!serverValues.isJsonArray()) {
-				errorMessage = errorMessageNonArray;
+				errorMessage = "'" + environmentVariable + "' should be an array";
+				;
 			} else {
 
 				int viableSize = setValues.length;
@@ -53,7 +54,7 @@ public class ValidateJsonArray extends AbstractCondition {
 			throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected value", stringArrayToString(setValues), "actual value", serverValues));
 		}
 
-		logSuccess(environmentVariableText, args("actual", serverValues));
+		logSuccess(environmentVariable, args("actual", serverValues));
 
 		return env;
 	}

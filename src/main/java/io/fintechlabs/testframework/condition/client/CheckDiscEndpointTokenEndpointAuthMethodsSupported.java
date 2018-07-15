@@ -21,16 +21,14 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckDiscEndpointTokenEndpointAuthMethodsSupported extends ValidateJsonArray {
-	
+
 	private static final String environmentVariable = "token_endpoint_auth_methods_supported";
-	private static final String environmentVariableText = "Endpoint Auth Methods Supported";
-  
+
 	private static final String[] SET_VALUES = new String[] { "client_secret_basic", "client_secret_post", "private_key_jwt", "client_secret_jwt" };
-  
+
 	private static final String errorMessageWhenNull = "Endpoint Auth Method Supported Values: Not Found";
-	private static final String errorMessageNonArray = "Expect Json Array of " + environmentVariableText;
 	private static final String errorMessageNotEnough = "No matching value from server";
-  
+
 
 	public CheckDiscEndpointTokenEndpointAuthMethodsSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -42,9 +40,9 @@ public class CheckDiscEndpointTokenEndpointAuthMethodsSupported extends Validate
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText, SET_VALUES, 1, 
-				errorMessageWhenNull, errorMessageNonArray, errorMessageNotEnough);
+
+		return validate(env, environmentVariable, SET_VALUES, 1,
+				errorMessageWhenNull, errorMessageNotEnough);
 	}
 
 }

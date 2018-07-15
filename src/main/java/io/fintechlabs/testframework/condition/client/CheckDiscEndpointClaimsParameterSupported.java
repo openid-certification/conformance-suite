@@ -23,7 +23,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointClaimsParameterSupported extends ValidateJsonBoolean {
 
 	private static final String environmentVariable = "claims_parameter_supported";
-	private static final String environmentVariableText = "Discovery Endpoint Claims Parameter Supported ";
 	private static final boolean defaultValue = false;
 	private static final boolean requiredValue = true;
 
@@ -38,7 +37,7 @@ public class CheckDiscEndpointClaimsParameterSupported extends ValidateJsonBoole
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, environmentVariableText, defaultValue, requiredValue);
+		return validate(env, environmentVariable, defaultValue, requiredValue);
 
 	}
 
