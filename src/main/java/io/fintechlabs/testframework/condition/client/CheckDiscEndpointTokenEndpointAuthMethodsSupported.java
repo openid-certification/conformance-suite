@@ -24,7 +24,7 @@ public class CheckDiscEndpointTokenEndpointAuthMethodsSupported extends Validate
 
 	private static final String environmentVariable = "token_endpoint_auth_methods_supported";
 
-	private static final String[] SET_VALUES = new String[] { "client_secret_basic", "client_secret_post", "private_key_jwt", "client_secret_jwt" };
+	private static final String[] SET_VALUES = new String[] { "client_secret_basic", "client_secret_post", "private_key_jwt", "client_secret_jwt", "tls_client_auth" };
 
 	private static final String errorMessageWhenNull = "Endpoint Auth Method Supported Values: Not Found";
 	private static final String errorMessageNotEnough = "No matching value from server";
