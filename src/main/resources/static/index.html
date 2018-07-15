@@ -197,7 +197,7 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">jwks</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's private signing key in JSON Web Key Set format"></textarea>
+										<textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {"></textarea>
 									</div>
 								</div>
 							</div>
@@ -218,7 +218,7 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls.cert</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+										<textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension"></textarea>
 									</div>
 								</div>
 
@@ -318,14 +318,14 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrlAccountRequests</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountRequests" placeholder="Base URL to use in resource account request server tests"></input>
+										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountRequests" placeholder="Base URL to use in resource account request server tests (optional, use if endpoints split across servers)"></input>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrlAccountsResource</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountsResource" placeholder="Base URL to use in resource accounts server tests"></input>
+										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountsResource" placeholder="Base URL to use in resource accounts server tests (optional, use if endpoints split across servers)"></input>
 									</div>
 								</div>
 
