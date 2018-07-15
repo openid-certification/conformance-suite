@@ -52,9 +52,9 @@ public class ValidateJsonArray extends AbstractCondition {
 
 		if (errorMessage != null) {
 			if (minimumMatchesRequired == 1) {
-				throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected at least one of", stringArrayToString(setValues), "actual value", serverValues));
+				throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected_at_least_one_of", stringArrayToString(setValues), "actual_value", serverValues));
 			}
-			throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected value", stringArrayToString(setValues), "actual value", serverValues));
+			throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected_value", stringArrayToString(setValues), "actual_value", serverValues));
 		}
 
 		logSuccess(environmentVariable + " is valid", args("actual", serverValues));
