@@ -96,6 +96,7 @@ public class BrowserControl {
 
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
+	private List<WebRunner> runners = new ArrayList<>();
 
 	private TestInstanceEventLog eventLog;
 
@@ -132,6 +133,9 @@ public class BrowserControl {
 				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern));
 				taskExecutor.submit(wr, "web runner ran");
 				logger.debug("WebRunner submitted to task executor for: " + url);
+				
+				runners.add(wr);
+				
 				return;
 			}
 		}
@@ -159,6 +163,9 @@ public class BrowserControl {
 		private String url;
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray tasks;
+		private String currentTask;
+		private String currentCommand;
+		private String lastException;
 
 		/**
 		 * @param url
@@ -214,6 +221,8 @@ public class BrowserControl {
 					
 					String taskName = currentTask.get("task").getAsString();
 					
+					this.currentTask = taskName;
+					
 					logger.debug("Performing: " + taskName);
 					logger.debug("WebRunner current url:" + driver.getCurrentUrl());
 					// check if current URL matches the 'matcher' for the task
@@ -261,6 +270,8 @@ public class BrowserControl {
 							// execute all of the commands in this task
 							for (int j = 0; j < commands.size(); j++) {
 								doCommand(commands.get(j).getAsJsonArray(), taskName);
+								// clear the current command once it's done
+								this.currentCommand = null;
 							}
 						}
 
@@ -299,10 +310,13 @@ public class BrowserControl {
 				}
 				logger.debug("Completed Browser Commands");
 				// if we've successfully completed the command set, consider this URL visited
+				runners.remove(this);
 				urlVisited(url);
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
 				eventLog.log("WebRunner", args("msg", e.getMessage(), "result", ConditionResult.FAILURE));
+				// note that this leaves us in the current list of runners for the executing test
+				this.lastException = e.getMessage();
 				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
 			}
 		}
@@ -321,6 +335,8 @@ public class BrowserControl {
 			String commandString = command.get(0).getAsString();
 			if (!Strings.isNullOrEmpty(commandString)) {
 				
+				this.currentCommand = commandString;
+				
 				// selectors common to all elements
 				String elementType = command.get(1).getAsString();
 				String target = command.get(2).getAsString();
@@ -335,7 +351,7 @@ public class BrowserControl {
 						"task", taskName,
 						"element_type", elementType,
 						"target", target,
-						"result", ConditionResult.SUCCESS
+						"result", ConditionResult.INFO
 					));
 						
 					driver.findElement(getSelector(elementType, target)).click();
@@ -354,7 +370,7 @@ public class BrowserControl {
 						"element_type", elementType,
 						"target", target,
 						"value", value,
-						"result", ConditionResult.SUCCESS
+						"result", ConditionResult.INFO
 						));
 					
 					WebElement entryBox = driver.findElement(getSelector(elementType, target));
@@ -370,7 +386,19 @@ public class BrowserControl {
 					//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
 
 					int timeoutSeconds = command.get(3).getAsInt();
-					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds);
+
+					eventLog.log("WebRunner", args(
+						"msg", "Waiting",
+						"url", driver.getCurrentUrl(),
+						"browser", commandString,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"seconds", timeoutSeconds,
+						"result", ConditionResult.INFO
+					));
+
+					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100); // hook to wait for this condition, check every 100 milliseconds until the max seconds
 					try {
 						if (elementType.equalsIgnoreCase("contains")){
 							waiting.until(ExpectedConditions.urlContains(target));
@@ -380,25 +408,22 @@ public class BrowserControl {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
 
-						eventLog.log("WebRunner", args(
-							"msg", "Waiting",
-							"url", driver.getCurrentUrl(),
-							"browser", commandString,
-							"task", taskName,
-							"element_type", elementType,
-							"target", target,
-							"result", ConditionResult.SUCCESS
-						));
-
 						logger.debug("\t\tDone waiting: " + commandString);
 						return;
 
 					} catch (TimeoutException timeoutException) {
+						this.lastException = timeoutException.getMessage();
 						throw new TestFailureException(testId, "Timed out waiting: " + commandString);
 					}
+				} else {
+					this.lastException = "Invalid Command " + commandString;
+					throw new TestFailureException(testId, "Invalid Command: " + commandString);
 				}
+			} else {
+				// can't have a blank command
+				this.lastException = "Invalid Command " + commandString;
+				throw new TestFailureException(testId, "Invalid Command: " + commandString);
 			}
-			throw new TestFailureException(testId, "Invalid Command: " + commandString);
 		}
 
 		/**
@@ -423,6 +448,7 @@ public class BrowserControl {
 			} else if (type.equalsIgnoreCase("class")) {
 				return By.className(value);
 			}
+			this.lastException = "Invalid Command Selector: Type: " + type + " Value: " + value;
 			throw new TestFailureException(testId, "Invalid Command Selector: Type: " + type + " Value: " + value);
 		}
 		
@@ -463,6 +489,24 @@ public class BrowserControl {
 	 */
 	public List<String> getVisited() {
 		return visited;
+	}
+	
+	public List<JsonObject> getWebRunners() {
+		List<JsonObject> out = new ArrayList<>();
+		
+		for (WebRunner wr : runners) {
+			JsonObject o = new JsonObject();
+			o.addProperty("url", wr.url);
+			o.addProperty("currentUrl", wr.driver.getCurrentUrl());
+			o.addProperty("currentTask", wr.currentTask);
+			o.addProperty("currentCommand", wr.currentCommand);
+			o.addProperty("lastResponseCode", wr.driver.getResponseCode());
+			o.addProperty("lastException", wr.lastException);
+			
+			out.add(o);
+		}
+		
+		return out;
 	}
 
 }
