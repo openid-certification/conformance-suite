@@ -7,31 +7,33 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateJsonBoolean extends AbstractCondition {
-	
+
 	public ValidateJsonBoolean(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
+
 	public Environment validate(Environment env, String environmentVariable, String environmentVariableText,
-			Boolean requiredValue) {
+			Boolean defaultValue, Boolean requiredValue) {
 
 		JsonElement parameterValue = env.findElement("server", environmentVariable);
 		String errorMessage = null;
 
 		if (parameterValue == null) {
-			errorMessage = environmentVariableText + "Should be '" + requiredValue + "'. Is currently NULL";
+			if (defaultValue != requiredValue) {
+				errorMessage = environmentVariableText + "should be '" + requiredValue + "', but is absent and the default value is '"+defaultValue+"'.";
+			}
 		} else {
 			if (parameterValue.isJsonPrimitive()) {
 				if (parameterValue.getAsBoolean() != requiredValue) {
 					errorMessage = environmentVariable + " must be: " + requiredValue;
 				}
 			} else {
-				errorMessage = environmentVariable + ": incorrect type. Should be JsonPrimitive and boolean.";
+				errorMessage = environmentVariable + ": incorrect type, must be a boolean.";
 			}
 		}
 
 		if (errorMessage != null) {
-			throw error(errorMessage, args("expected", requiredValue, "actual", parameterValue));
+			throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected", requiredValue, "actual", parameterValue));
 		}
 
 		logSuccess(environmentVariableText, args(environmentVariable, parameterValue));
