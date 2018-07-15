@@ -28,35 +28,31 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 
 public class ExtractExpiresInFromTokenEndpointResponse extends AbstractCondition {
-	
+
 	public ExtractExpiresInFromTokenEndpointResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
+
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")
 	@PostEnvironment(required = "expires_in")
 	public Environment evaluate(Environment env) {
-		
 		JsonObject tokenEndpoint = env.get("token_endpoint_response");
-		if (tokenEndpoint == null) {
-			throw error("Couldn't find token_endpoint for expires_in analysis.");
-		}
-		
+
 		JsonElement expiresInValue = tokenEndpoint.get("expires_in");
 		if (expiresInValue == null) {
-			log("expires_in: UNDEFINED.", tokenEndpoint);
+			log("Couldn't find 'expires_in'", tokenEndpoint);
 			return env;
 		}
-		
+
 		/* Create our cut down JsonObject with just a single value in it */
-		JsonObject value = new JsonObject(); 
+		JsonObject value = new JsonObject();
 		value.add("expires_in", expiresInValue);
 		env.put("expires_in", value);
-		
-		logSuccess("expires_in: DEFINED", value);
+
+		logSuccess("Extracted 'expires_in'", value);
 
 		return env;
-		
+
 	}
 }
