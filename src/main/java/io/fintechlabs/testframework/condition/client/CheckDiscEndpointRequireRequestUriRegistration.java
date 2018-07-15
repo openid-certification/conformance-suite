@@ -27,9 +27,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointRequireRequestUriRegistration extends ValidateJsonBoolean {
 
 	private static final String environmentVariable = "require_request_uri_registration";
-	private static final String environmentVariableText = "Endpoint Require Request URL Registration Supported ";
-	private static final boolean requiredValue = false; 
-  
+	private static final boolean requiredValue = false;
+	private static final boolean defaultValue = false;
+
 	public CheckDiscEndpointRequireRequestUriRegistration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -40,8 +40,8 @@ public class CheckDiscEndpointRequireRequestUriRegistration extends ValidateJson
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText, requiredValue);
+
+		return validate(env, environmentVariable, defaultValue, requiredValue);
 
 	}
 

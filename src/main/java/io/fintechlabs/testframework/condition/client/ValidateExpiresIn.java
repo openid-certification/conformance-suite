@@ -48,7 +48,7 @@ public class ValidateExpiresIn extends AbstractCondition {
 			throw error("expires_in, is not a primitive!");
 		}
 		
-		logSuccess("expires_in, passes all validation",expiresIn);
+		logSuccess("expires_in passed all validation checks",expiresIn);
 		return env;
 
 	}

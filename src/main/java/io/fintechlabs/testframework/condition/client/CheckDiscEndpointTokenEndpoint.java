@@ -23,10 +23,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
 // author: ddrysdale
 
 public class CheckDiscEndpointTokenEndpoint extends ValidateJsonUri {
-	
+
 	private static final String environmentVariable = "token_endpoint";
-	private static final String environmentVariableText = "Endpoint Token Endpoint ";
-	
+
 	public CheckDiscEndpointTokenEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -37,8 +36,8 @@ public class CheckDiscEndpointTokenEndpoint extends ValidateJsonUri {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText);
+
+		return validate(env, environmentVariable);
 
 	}
 }

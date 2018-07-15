@@ -23,10 +23,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
 // author: ddrysdale
 
 public class CheckDiscEndpointRegistrationEndpoint extends ValidateJsonUri {
-	
+
 	private static final String environmentVariable = "registration_endpoint";
-	private static final String environmentVariableText = "Endpoint Registration Endpoint ";
-	
+
 	public CheckDiscEndpointRegistrationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -38,7 +37,7 @@ public class CheckDiscEndpointRegistrationEndpoint extends ValidateJsonUri {
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, environmentVariableText);
+		return validate(env, environmentVariable);
 
 	}
 }

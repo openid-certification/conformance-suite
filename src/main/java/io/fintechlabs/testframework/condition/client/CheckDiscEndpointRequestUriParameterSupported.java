@@ -23,9 +23,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointRequestUriParameterSupported extends ValidateJsonBoolean {
 
 	private static final String environmentVariable = "request_uri_parameter_supported";
-	private static final String environmentVariableText = "Endpoint Request URI Parameter Supported ";
-	private static final boolean requiredValue = false; 
-  
+	private static final boolean defaultValue = true;
+	private static final boolean requiredValue = false;
+
 	public CheckDiscEndpointRequestUriParameterSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -36,9 +36,9 @@ public class CheckDiscEndpointRequestUriParameterSupported extends ValidateJsonB
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, environmentVariableText, requiredValue);
-		
+
+		return validate(env, environmentVariable, defaultValue, requiredValue);
+
 	}
 
 }

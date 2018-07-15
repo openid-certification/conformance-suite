@@ -20,10 +20,10 @@ public class ValidateJsonUri extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	public Environment validate(Environment env, String environmentVariable, String environmentVariableText) {
+	public Environment validate(Environment env, String environmentVariable) {
 
-		final String errorMessageWhenNull = environmentVariableText + "URL: Not Found";
-		final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariableText;
+		final String errorMessageWhenNull = "'"+environmentVariable + "' not found (should be a URL)";
+		final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariable;
 
 		JsonElement serverValue = env.findElement("server", environmentVariable);
 		String errorMessage = null;
@@ -49,7 +49,7 @@ public class ValidateJsonUri extends AbstractCondition {
 			throw error(errorMessage, args("Protocol Expected:", requiredProtocol, "actual", serverValue));
 		}
 
-		logSuccess(environmentVariableText, args("actual", serverValue));
+		logSuccess(environmentVariable + " is valid", args("actual", serverValue));
 
 		return env;
 	}

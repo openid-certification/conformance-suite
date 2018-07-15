@@ -26,6 +26,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "OB: code id_token with private key and matls Test Plan",
 	profile = "OB",
 	testModuleNames = {
+		"ob-discovery-end-point-verification",
 		"ob-code-id-token-with-private-key-and-matls",
 		"ob-ensure-matls-required-code-id-token-with-private-key-and-matls",
 		"ob-ensure-matching-key-in-authorization-request-code-id-token-with-private-key-and-matls",
