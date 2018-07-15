@@ -50,7 +50,7 @@ public class ValidateJsonArray extends AbstractCondition {
 		}
 
 		if (errorMessage != null) {
-			throw error(errorMessage, args("expected", stringArrayToString(setValues), "actual", serverValues));
+			throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected value", stringArrayToString(setValues), "actual value", serverValues));
 		}
 
 		logSuccess(environmentVariableText, args("actual", serverValues));
