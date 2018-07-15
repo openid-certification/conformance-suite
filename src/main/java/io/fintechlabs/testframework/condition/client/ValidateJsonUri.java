@@ -49,7 +49,7 @@ public class ValidateJsonUri extends AbstractCondition {
 			throw error(errorMessage, args("Protocol Expected:", requiredProtocol, "actual", serverValue));
 		}
 
-		logSuccess(environmentVariable, args("actual", serverValue));
+		logSuccess(environmentVariable + " is valid", args("actual", serverValue));
 
 		return env;
 	}

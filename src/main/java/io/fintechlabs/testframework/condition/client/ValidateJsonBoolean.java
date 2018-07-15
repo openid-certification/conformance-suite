@@ -36,7 +36,7 @@ public class ValidateJsonBoolean extends AbstractCondition {
 			throw error(errorMessage, args("discovery metadata key", environmentVariable, "expected", requiredValue, "actual", parameterValue));
 		}
 
-		logSuccess(environmentVariable, args(environmentVariable, parameterValue));
+		logSuccess(environmentVariable + " has correct value", args(environmentVariable, parameterValue));
 
 		return env;
 	}
