@@ -20,12 +20,13 @@ public abstract class AbstractOBUserRejectsAuthenticationCode extends AbstractOB
 
 	@Override
 	protected void createAuthorizationRequest() {
+		
+		env.putString("requested_state_length", "128");
 
 		super.createAuthorizationRequest();
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 	}
-	
 	
 	@Override
 	protected Object onAuthorizationCallbackResponse() {

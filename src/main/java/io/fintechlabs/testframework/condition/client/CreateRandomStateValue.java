@@ -41,7 +41,18 @@ public class CreateRandomStateValue extends AbstractCondition {
 	@Override
 	@PostEnvironment(strings = "state")
 	public Environment evaluate(Environment env) {
-		String state = RandomStringUtils.randomAlphanumeric(10);
+		
+		Integer stateLengthToUse = 10;
+		
+		// Pick up a state_length from the environment, if we have one.
+		try {
+			stateLengthToUse = Integer.parseInt(env.getString("requested_state_length"));
+			log("Changed State Length to be requested_state_length:" + stateLengthToUse.toString());
+		} catch ( NumberFormatException ex) {
+			// Do nothing here, as we don't care. We have a basic length
+		}
+		
+		String state = RandomStringUtils.randomAlphanumeric(stateLengthToUse);
 		env.putString("state", state);
 
 		log("Created state value", args("state", state));
