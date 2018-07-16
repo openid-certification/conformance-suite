@@ -21,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "ob-user-rejects-authentication-code-with-secret-basic-and-matls",
-	displayName = "OB: user rejects authentication ( code with client_secret_basic authentication and MATLS )",
+	displayName = "OB: user rejects authentication (code with client_secret_basic authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -32,8 +32,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"client2.client_id",
-		"client2.jwks",
 		"resource.resourceUrl",
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",

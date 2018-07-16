@@ -17,7 +17,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "ob-user-rejects-authentication-code-id-token-with-mtls",
-	displayName = "OB: user rejects authentication ( code id_token with MTLS authentication )",
+	displayName = "OB: user rejects authentication (code id_token with MTLS authentication)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -27,8 +27,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"client2.client_id",
-		"client2.jwks",
 		"resource.resourceUrl",
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
