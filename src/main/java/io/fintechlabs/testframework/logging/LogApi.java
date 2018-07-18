@@ -211,7 +211,7 @@ public class LogApi {
 		criteria.and("testId").is(id);
 		
 		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
+			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
 		}
 		
 		if (since != null) {

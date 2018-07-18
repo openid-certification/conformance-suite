@@ -78,7 +78,6 @@ public class DBTestPlanService implements TestPlanService {
 		if (authenticationFacade.getAuthenticationToken() != null &&
 			!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
-			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Query query = new Query(criteria);

@@ -130,7 +130,6 @@ public class DBTestInfoService implements TestInfoService {
 		if (authenticationFacade.getAuthenticationToken() != null &&
 			!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
-			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Query query = new Query(criteria);
@@ -152,14 +151,10 @@ public class DBTestInfoService implements TestInfoService {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
 
-		//Query query = Query.query(
-		//		Criteria.where("_id").is(id));
-
 		// if there is a user logged in who isn't an admin, limit the search
 		if (authenticationFacade.getAuthenticationToken() != null &&
 			!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
-			//query.addCriteria(Criteria.where("owner").is(authenticationFacade.getPrincipal()));
 		}
 
 		Query query = new Query(criteria);
