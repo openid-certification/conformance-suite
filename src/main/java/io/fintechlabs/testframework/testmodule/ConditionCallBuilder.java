@@ -30,14 +30,16 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
  */
 public class ConditionCallBuilder {
 
+	private static final String[] EMPTY_ARRAY = new String[0];
+	
 	private Class<? extends Condition> conditionClass = null;
-	private String[] requirements = null;
+	private String[] requirements = EMPTY_ARRAY;
 	private ConditionResult onFail = ConditionResult.FAILURE;
 	private ConditionResult onSkip = ConditionResult.INFO;
 	private boolean stopOnFailure = true;
-	private String[] skipIfRequired = null;
-	private String[] skipIfStringsRequired = null;
-
+	private String[] skipIfRequired = EMPTY_ARRAY;
+	private String[] skipIfStringsRequired = EMPTY_ARRAY;
+	
 	private Map<String, String> mapKeys = new HashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
 	
