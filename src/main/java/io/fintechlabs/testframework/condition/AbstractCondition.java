@@ -47,7 +47,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import com.google.common.base.Strings;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.config.Registry;
@@ -61,6 +60,7 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -427,7 +427,7 @@ public abstract class AbstractCondition implements Condition {
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log));
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.get("mutual_tls_authentication")));
 
 		return restTemplate;
 	}

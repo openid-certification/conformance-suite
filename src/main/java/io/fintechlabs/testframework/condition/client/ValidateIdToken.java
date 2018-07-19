@@ -47,14 +47,14 @@ public class ValidateIdToken extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = { "id_token", "server" }, strings = "client_id")
+	@PreEnvironment(required = { "id_token", "server", "client" } )
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObj("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 
-		String clientId = env.getString("client_id"); // to check the audience
+		String clientId = env.getString("client", "client_id"); // to check the audience
 		String issuer = env.getString("server", "issuer"); // to validate the issuer
 		Instant now = Instant.now(); // to check timestamps
 

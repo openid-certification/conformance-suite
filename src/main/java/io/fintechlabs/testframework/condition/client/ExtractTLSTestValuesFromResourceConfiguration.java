@@ -14,21 +14,33 @@
 
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.common.base.Strings;
+import java.net.MalformedURLException;
 
-import io.fintechlabs.testframework.condition.AbstractSetTLSTestHost;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.condition.util.TLSTestValueExtractor;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class SetTLSTestHostToRegistrationEndpoint extends AbstractSetTLSTestHost {
+/**
+ * @author jricher
+ *
+ */
+public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
+	 * @param conditionResultOnFailure
+	 * @param requirements
 	 */
-	public SetTLSTestHostToRegistrationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractTLSTestValuesFromResourceConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -36,17 +48,28 @@ public class SetTLSTestHostToRegistrationEndpoint extends AbstractSetTLSTestHost
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "server")
-	@PostEnvironment(required = "tls")
+	@PreEnvironment(required = "resource")
+	@PostEnvironment(required = "resource_endpoint_tls")
 	public Environment evaluate(Environment env) {
 
-		String endpointUrl = env.getString("server", "registration_endpoint");
-
-		if (Strings.isNullOrEmpty(endpointUrl)) {
-			throw error("Registration endpoint not found in server configuration");
+		try {
+			String resourceEndpoint = env.getString("resource", "resourceUrl");
+			if (Strings.isNullOrEmpty(resourceEndpoint)) {
+				throw error("Resource endpoint not found");
+			}
+	
+			JsonObject resourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(resourceEndpoint);
+			
+			env.put("resource_endpoint_tls", resourceEndpointTls);
+			
+			logSuccess("Extracted TLS information from resource endpoint", args(
+					"resource_endpoint", resourceEndpointTls
+				));
+			
+			return env;
+		} catch (MalformedURLException e) {
+			throw error("URL not properly formed", e);
 		}
-
-		return setTLSTestHost(env, endpointUrl);
 	}
 
 }

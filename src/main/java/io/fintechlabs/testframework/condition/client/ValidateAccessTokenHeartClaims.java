@@ -45,7 +45,7 @@ public class ValidateAccessTokenHeartClaims extends AbstractCondition {
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
-	@PreEnvironment(required = {"access_token_jwt", "server"}, strings = "client_id")
+	@PreEnvironment(required = {"access_token_jwt", "server", "client"})
 	@Override
 	public Environment evaluate(Environment env) {
 
@@ -66,7 +66,7 @@ public class ValidateAccessTokenHeartClaims extends AbstractCondition {
 			throw error("Missing required claims in access token", args("expected", required, "actual", claimsFound));
 		}
 
-		String clientId = env.getString("client_id");
+		String clientId = env.getString("client", "client_id");
 		String azp = env.getString("access_token_jwt", "claims.azp");
 		if (!clientId.equals(azp)) {
 			throw error("azp claim was not client id", args("expected", clientId, "actual", azp));

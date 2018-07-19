@@ -14,7 +14,6 @@
 
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Enumeration;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,11 +32,9 @@ import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredenti
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
-import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
-import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;

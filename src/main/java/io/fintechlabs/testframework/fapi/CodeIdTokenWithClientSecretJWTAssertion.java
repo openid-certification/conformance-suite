@@ -33,13 +33,11 @@ import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEn
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
@@ -68,11 +66,11 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GenerateJWKsFromClientSecret;
 import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
@@ -107,28 +105,32 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "code-id-token-with-private-key",
-	displayName = "code id_token (private key authentication)",
+	testName = "code-id-token-with-client-secret-jwt",
+	displayName = "code id_token (client secret jwt authentication)",
 	profile = "FAPI",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
-		"client.jwks",
+		"client.client_secret",
+		"client.client_secret_jwt_alg",
+		"client.client_secret_jwt_kid",
 		"client2.client_id",
-		"client2.jwks",
+		"client2.client_secret",
 		"client2.scope",
+		"client2.client_secret_jwt_alg",
+		"client2.client_secret_jwt_kid",
 		"resource.resourceUrl"
 	}
 )
-public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
+public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule {
 
-	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPrivateKey.class);
+	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithClientSecretJWTAssertion.class);
 
 	/**
 	 * @param name
 	 */
-	public CodeIdTokenWithPrivateKey(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public CodeIdTokenWithClientSecretJWTAssertion(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
 
@@ -161,15 +163,15 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
 
-		// get the second client and second JWKs Key
+		// get the second client and second Key
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
 		eventLog.startBlock("Loading second client key");
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();
@@ -290,9 +292,6 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		skipIfMissing(new String[] { "callback_query_params" }, new String[] {}, ConditionResult.INFO,
-				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
-		
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);

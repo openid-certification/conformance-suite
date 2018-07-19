@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.logging;
 
 import java.util.Map;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 /**
@@ -66,6 +67,33 @@ public class TestInstanceEventLog {
 	 */
 	public void log(String source, Map<String, Object> map) {
 		eventLog.log(testId, source, owner, map);
+	}
+
+	
+	public String startBlock() {
+		return startBlock(null);
+	}
+	
+	/**
+	 * @return
+	 * @see io.fintechlabs.testframework.logging.EventLog#startBlock()
+	 */
+	public String startBlock(String message) {
+		String blockId = eventLog.startBlock();
+
+		if (!Strings.isNullOrEmpty(message)) {
+			log("-START-BLOCK-", EventLog.args("msg", message, "startBlock", true));
+		}
+		
+		return blockId;
+	}
+
+	/**
+	 * @return
+	 * @see io.fintechlabs.testframework.logging.EventLog#endBlock()
+	 */
+	public String endBlock() {
+		return eventLog.endBlock();
 	}
 
 }

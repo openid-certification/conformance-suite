@@ -31,6 +31,8 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 	private long nowSeconds;
 
 	private String clientId;
+	
+	private JsonObject client;
 
 	private JsonObject server;
 
@@ -50,7 +52,9 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		nowSeconds = now.getTime() / 1000;
 		long issuedAt = nowSeconds - 10; // pretend this came from a distant server
 
-		clientId = "https://jwt-rp.example.net";
+		clientId = "abc-client-id";
+		
+		client = new JsonParser().parse("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
 
 		server = new JsonParser().parse("{"
 			+ "\"issuer\":\"https://jwt-idp.example.com\""
@@ -59,7 +63,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims = new JsonParser().parse("{"
 			+ "\"iss\":\"https://jwt-idp.example.com\","
 			+ "\"sub\":\"mailto:mike@example.com\","
-			+ "\"aud\":\"https://jwt-rp.example.net\""
+			+ "\"aud\":\"" + clientId + "\""
 			+ "}").getAsJsonObject();
 		claims.addProperty("exp", issuedAt + 300);
 		claims.addProperty("nbf", issuedAt);
@@ -81,13 +85,13 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_id");
+		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("server", "issuer");
 		verify(env, atLeastOnce()).findElement("id_token", "claims.iss");
 		verify(env, atLeastOnce()).findElement("id_token", "claims.aud");
@@ -116,7 +120,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingServerConfig() {
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		addIdToken(env, claims);
 
 		cond.evaluate(env);
@@ -129,7 +133,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingIdToken() {
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 
 		cond.evaluate(env);
@@ -144,7 +148,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 
 		claims.remove("iss");
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -161,7 +165,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims.remove("iss");
 		claims.addProperty("iss", "invalid");
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -177,7 +181,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 
 		claims.remove("aud");
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -194,7 +198,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims.remove("aud");
 		claims.addProperty("aud", "invalid");
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -214,7 +218,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		aud.add(clientId);
 		claims.add("aud", aud);
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -234,7 +238,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		aud.add("https://wheel.example.com");
 		claims.add("aud", aud);
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -250,7 +254,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 
 		claims.remove("exp");
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -267,7 +271,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims.remove("exp");
 		claims.addProperty("exp", nowSeconds - (60 * 60)); // one hour in the past is not ok
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -284,7 +288,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims.remove("exp");
 		claims.addProperty("exp", nowSeconds - (3 * 60)); // 3 minutes out should be fine still
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -300,7 +304,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 
 		claims.remove("iat");
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -317,7 +321,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims.remove("iat");
 		claims.addProperty("iat", nowSeconds + 3600);
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 
@@ -334,7 +338,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		claims.remove("iat");
 		claims.addProperty("iat", nowSeconds + (3 * 60)); // 3 minutes out should be fine still
 
-		env.putString("client_id", clientId);
+		env.put("client", client);
 		env.put("server", server);
 		addIdToken(env, claims);
 

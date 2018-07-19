@@ -21,17 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.google.common.base.Strings;
-import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
-import io.fintechlabs.testframework.condition.client.ValidateIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
@@ -51,6 +43,7 @@ import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourc
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
+import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
@@ -72,25 +65,27 @@ import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromToken
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
+import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpoint;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpointToAccountRequests;
-import io.fintechlabs.testframework.condition.client.SetTLSTestHostToResourceEndpointToAccountsResource;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -148,10 +143,30 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
 		call(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
 
+		// extract second client
+		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		call(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.FAILURE);
+
+		// get the second client's JWKs
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		
+		// validate the secondary MTLS keys
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		env.unmapKey("mutual_tls_authentication");
+
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		
+		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
+		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 
-		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+		//callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -277,7 +292,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			requestAuthorizationCode();
 
-			callAndStopOnFailure(SetTLSTestHostToResourceEndpointToAccountRequests.class);
+			eventLog.startBlock("Accounts request endpoint TLS test");
+			env.mapKey("tls", "accounts_request_endpoint_tls");
 			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
@@ -285,13 +301,15 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 
 
-			callAndStopOnFailure(SetTLSTestHostToResourceEndpointToAccountsResource.class);
+			eventLog.startBlock("Accounts resource endpoint TLS test");
+			env.mapKey("tls", "accounts_resource_endpoint_tls");
 			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-			
+			env.unmapKey("tls");
+			eventLog.endBlock();
 			
 			requestProtectedResource();
 
@@ -309,8 +327,11 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			whichClient = 2;
 
-			callAndStopOnFailure(GetStaticClient2Configuration.class);
-
+			eventLog.startBlock("Second client");
+			env.mapKey("client", "client2");
+			env.mapKey("client_jwks", "client_jwks2");
+			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+			
 			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
 
 			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0)
@@ -326,7 +347,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			}
 			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
 
-			exposeEnvString("client_id");
+			//exposeEnvString("client_id");
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
@@ -335,7 +356,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 			performAuthorizationFlow();
-
+			
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} else {
 
@@ -349,15 +370,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			// Switch back to client 1
 
-			callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-			exposeEnvString("client_id");
-
-			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
-
-			call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
-			call(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
+			env.unmapKey("client");
+			env.unmapKey("client_jwks");
+			env.unmapKey("mutual_tls_authentication");
+			eventLog.endBlock();
 
 			// Try client 2's access token with client 1's keys
 
@@ -411,6 +427,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		// verify the access token against a protected resource
 
+		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+		
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);

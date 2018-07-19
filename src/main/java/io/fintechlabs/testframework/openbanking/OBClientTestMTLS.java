@@ -50,9 +50,7 @@ import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthori
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
-import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;

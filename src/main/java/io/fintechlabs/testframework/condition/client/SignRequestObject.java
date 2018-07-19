@@ -72,7 +72,7 @@ public class SignRequestObject extends AbstractCondition {
 		}
 
 		if (!requestObjectClaims.has("iss")) {
-			String clientId = env.getString("client_id");
+			String clientId = env.getString("client", "client_id");
 			if (clientId != null) {
 				requestObjectClaims.addProperty("iss", clientId);
 			} else {

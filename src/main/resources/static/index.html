@@ -200,6 +200,12 @@
 										<textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {"></textarea>
 									</div>
 								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_secret_jwt_alg</div>
+                                    <div class="col-md-10">
+                                        <input type="text" class="config-form-element" data-json-target="client.client_secret_jwt_alg" placeholder="algorithm for client_secret_jwt authentication, defaults to HS256"></input>
+                                    </div>
+                                </div>
 							</div>
 							
 							<div class="config-form-container">
@@ -263,6 +269,12 @@
 										<textarea class="config-form-element" data-json-target="client2.jwks" placeholder="Client's set of keys in JSON Web Key Set format"></textarea>
 									</div>
 								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_secret_jwt_alg</div>
+                                    <div class="col-md-10">
+                                        <input type="text" class="config-form-element" data-json-target="client2.client_secret_jwt_alg" placeholder="algorithm for client_secret_jwt authentication, defaults to HS256"></input>
+                                    </div>
+                                </div>
 							</div>
 
 							<div class="config-form-container">

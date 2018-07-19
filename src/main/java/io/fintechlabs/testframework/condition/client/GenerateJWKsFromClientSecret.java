@@ -48,30 +48,35 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "client_id", required = "client")
-	@PostEnvironment(required = "server_jwks")
+	@PreEnvironment(required = "client")
+	@PostEnvironment(required = "client_jwks")
 	public Environment evaluate(Environment env) {
-		String clientId = env.getString("client_id");
+		String clientId = env.getString("client", "client_id");
 		String clientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientSecret)) {
 			throw error("Couldn't find client secret");
 		}
-
+		
+		String alg = env.getString("client", "client_secret_jwt_alg");
+		if (Strings.isNullOrEmpty(alg)) {
+			alg = JWSAlgorithm.HS256.getName();
+		}
+		
 		// generate a JWK Set for the client's secret
-		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes())
-			.algorithm(JWSAlgorithm.HS256) // TODO make this configurable
-			.keyID(clientId) // TODO make this configurable
+		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes()) 
+			.algorithm(JWSAlgorithm.parse(alg))
 			.keyUse(KeyUse.SIGNATURE)
+			// no key ID
 			.build();
 
 		JWKSet jwks = new JWKSet(jwk);
 
 		JsonObject reparsed = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 
-		env.put("server_jwks", reparsed);
+		env.put("client_jwks", reparsed);
 
-		logSuccess("Generated JWK Set from symmetric key", args("server_jwks", reparsed));
+		logSuccess("Generated JWK Set from symmetric key", args("client_jwks", reparsed));
 
 		return env;
 

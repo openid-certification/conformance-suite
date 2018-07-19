@@ -14,9 +14,12 @@
 
 package io.fintechlabs.testframework.logging;
 
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Map;
+import java.util.Random;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
@@ -41,9 +45,15 @@ public class DBEventLog implements EventLog {
 	private static final Logger log = LoggerFactory.getLogger(DBEventLog.class);
 
 	public static final String COLLECTION = "EVENT_LOG";
+	
+	// a block identifier for a log entry
+	private String blockId = null;
+	
+	// random number generator
+	private Random random = new SecureRandom();
 
 	@Autowired
-	TestInfoService testInfoService;
+	private TestInfoService testInfoService;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -60,6 +70,7 @@ public class DBEventLog implements EventLog {
 			.add("src", source)
 			.add("testOwner", owner)
 			.add("time", new Date().getTime())
+			.add("blockId", blockId)
 			.add("msg", msg);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
@@ -77,6 +88,7 @@ public class DBEventLog implements EventLog {
 		dbObject.put("src", source);
 		dbObject.put("testOwner", owner);
 		dbObject.put("time", new Date().getTime());
+		dbObject.put("blockId", blockId);
 
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
@@ -92,9 +104,30 @@ public class DBEventLog implements EventLog {
 			.add("testId", testId)
 			.add("src", source)
 			.add("testOwner", owner)
-			.add("time", new Date().getTime());
+			.add("time", new Date().getTime())
+			.add("blockId", blockId);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
 
+	@Override
+	public String startBlock() {
+		// create a random six-character hex string that we can use as a CSS color code in the logs
+		blockId = Strings.padStart(
+			Integer.toHexString(
+				random.nextInt(256 * 256 * 256))
+			, 6, '0');
+		
+		
+		
+		return blockId;
+	}
+	
+	@Override
+	public String endBlock() {
+		String oldBlock = blockId;
+		blockId = null;
+		return oldBlock;
+	}
+	
 }
