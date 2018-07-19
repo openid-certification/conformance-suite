@@ -74,11 +74,6 @@ public class DBTestPlanService implements TestPlanService {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(planId);
 		criteria.and("modules.testModule").is(testName);
-		
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
-		}
 
 		Query query = new Query(criteria);
 
@@ -96,11 +91,7 @@ public class DBTestPlanService implements TestPlanService {
 	@Override
 	public void createTestPlan(String id, String planName, JsonObject config, String[] testModules) {
 
-		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
-		ImmutableMap<String, String> owner = null;
-		if (token != null) {
-			owner = (ImmutableMap<String, String>) token.getPrincipal();
-		}
+		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 			.add("_id", id)
@@ -134,8 +125,7 @@ public class DBTestPlanService implements TestPlanService {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
 		
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
+		if (!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
@@ -158,8 +148,7 @@ public class DBTestPlanService implements TestPlanService {
 		
 		Criteria criteria = new Criteria();
 		
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
+		if (!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 

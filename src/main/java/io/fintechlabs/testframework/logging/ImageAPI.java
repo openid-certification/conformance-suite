@@ -214,8 +214,7 @@ public class ImageAPI {
 	// Create a Criteria with or without the security constraints as needed
 	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints) {
 		Criteria criteria = new Criteria();
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
+		if (!authenticationFacade.isAdmin()) {
 			criteria = criteria.andOperator(
 				findTestId,
 				additionalConstraints,

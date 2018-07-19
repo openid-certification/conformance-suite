@@ -13,3 +13,5 @@ bin
 nb-configuration.xml
 data
 *.pyc
+package-lock.json
+microauth/node_modules

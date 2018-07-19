@@ -90,11 +90,8 @@ public class DBTestInfoService implements TestInfoService {
 	 */
 	@Override
 	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId) {
-		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
-		ImmutableMap<String, String> owner = null;
-		if (token != null) {
-			owner = (ImmutableMap<String, String>) token.getPrincipal();
-		}
+		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 			.add("_id", id)
 			.add("testId", id)
@@ -122,15 +119,6 @@ public class DBTestInfoService implements TestInfoService {
 
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
-		// find the existing entity
-		//Query query = Query.query(
-		//		Criteria.where("_id").is(id));
-
-		// if there is a user logged in who isn't an admin, limit the search
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
-		}
 
 		Query query = new Query(criteria);
 
@@ -150,12 +138,6 @@ public class DBTestInfoService implements TestInfoService {
 		// find the existing entity
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
-
-		// if there is a user logged in who isn't an admin, limit the search
-		if (authenticationFacade.getAuthenticationToken() != null &&
-			!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
-		}
 
 		Query query = new Query(criteria);
 

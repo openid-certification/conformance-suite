@@ -29,10 +29,9 @@ public class UserInfoUIController {
 	public ResponseEntity<Object> getCurrentUserInfo() {
 		Map<String, Object> map = new HashMap<>();
 
-		OIDCAuthenticationToken token = authenticationFacade.getAuthenticationToken();
 		Map<String, String> principal = authenticationFacade.getPrincipal();
 		String displayName = authenticationFacade.getDisplayName();
-		UserInfo userInfo = token.getUserInfo();
+		UserInfo userInfo = authenticationFacade.getUserInfo();
 		map.put("iss", principal.get("iss"));
 		map.put("sub", principal.get("sub"));
 		map.put("principal", principal.toString());

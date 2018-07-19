@@ -31,6 +31,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -101,18 +102,23 @@ public class TestRunner {
 	private Map<String, List<Future>> taskFutures = new HashMap<>();
 	private FutureWatcher futureWatcher;
 
-	// TODO: Move this stuff to it's own file?
+	// TODO: Move this stuff to its own file?
 	private class BackgroundTask implements Callable {
 		private String testId;
 		private Callable myCallable;
+		private Authentication savedAuthentication;
 
 		public BackgroundTask(String testId, Callable callable) {
 			this.testId = testId;
 			this.myCallable = callable;
+			// save the authentication context for use when we run it later
+			savedAuthentication = authenticationFacade.getContextAuthentication();
 		}
 
 		@Override
 		public Object call() throws TestFailureException {
+			// restore the authentication context that was in place when this was created
+			authenticationFacade.setLocalAuthentication(savedAuthentication);
 			Object returnObj = null;
 			try {
 				returnObj = myCallable.call();
@@ -425,7 +431,7 @@ public class TestRunner {
 			Class<? extends TestModule> testModuleClass = holder.c;
 
 			@SuppressWarnings("unchecked")
-			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getAuthenticationToken().getPrincipal();
+			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getPrincipal();
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 

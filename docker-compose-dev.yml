@@ -15,15 +15,28 @@ services:
      - ./httpd/ssl-cert-snakeoil.key:/etc/ssl/private/ssl-cert-snakeoil.key
     depends_on:
      - server
+  microauth:
+    build:
+      context: ./microauth
+    volumes:
+      - ./microauth/authorizationServer.js:/server/authorizationServer.js
+    ports:
+      - "9001:9001"
+    command: node ./authorizationServer.js
   server:
     image: openjdk:9-jre-slim
     ports:
      - "9999:9999"
     volumes:
      - ./target/:/server/
-    command: java -Xdebug -Xrunjdwp:transport=dt_socket,address=*:9999,server=y,suspend=n -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true
+    command: > 
+      java 
+      -Xdebug -Xrunjdwp:transport=dt_socket,address=*:9999,server=y,suspend=n 
+      -jar /server/fapi-test-suite.jar 
+      --fintechlabs.devmode=true
     links:
      - mongodb:mongodb
+     - microauth:microauth
     depends_on: 
      - mongodb
     
