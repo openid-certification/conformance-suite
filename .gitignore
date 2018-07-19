@@ -12,4 +12,4 @@ bin
 .springBeans
 nb-configuration.xml
 data
-
+*.pyc
