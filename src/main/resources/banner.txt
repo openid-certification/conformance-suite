@@ -1,7 +1,7 @@
 ===---
 
   ❨⪕❩ Fintech Labs
-  
+
   Conformance Test Suite
-  
+
 ===---
