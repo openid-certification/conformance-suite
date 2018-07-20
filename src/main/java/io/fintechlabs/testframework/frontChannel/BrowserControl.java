@@ -114,7 +114,7 @@ public class BrowserControl {
 		for (int bc = 0; bc < browserCommands.size(); bc++) {
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
 			String urlMatcher = current.get("match").getAsString();
-			logger.debug("Found URL MATHCER: " + urlMatcher);
+			logger.debug("Found URL MATCHER: " + urlMatcher);
 			tasksForUrls.put(urlMatcher, current.getAsJsonArray("tasks"));
 		}
 
