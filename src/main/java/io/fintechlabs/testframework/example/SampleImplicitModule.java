@@ -77,7 +77,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 	public static Logger logger = LoggerFactory.getLogger(SampleImplicitModule.class);
 
 	/**
-	 * 
+	 *
 	 */
 	public SampleImplicitModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -217,13 +217,13 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
-		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+		call(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 
 		call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
 		call(CheckForRefreshTokenValue.class);
 
-		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 
 		fireTestFinished();
 		stop();
