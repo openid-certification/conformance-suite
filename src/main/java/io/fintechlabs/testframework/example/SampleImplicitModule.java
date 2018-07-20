@@ -64,7 +64,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  */
 @PublishTestModule(
 	testName = "sample-implicit-test",
-	displayName = "Sample Implicit Client Test",
+	displayName = "Sample Implicit AS Test",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
