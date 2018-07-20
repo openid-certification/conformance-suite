@@ -16,6 +16,20 @@ class Conformance(object):
         self.api_url_base = api_url_base
         self.requests_session = requests_session
 
+    def authorise(self):
+        self.auth_server = "http://localhost:9001/"
+        api_url = '{0}token'.format(self.auth_server)
+        payload = {'grant_type': 'client_credentials'}
+        response = self.requests_session.post(api_url, data=payload, auth=('oauth-client-1', 'oauth-client-secret-1'))
+        if response.status_code != 200:
+            raise Exception(" {} authorisation failed - HTTP {:d} {}".format(self.auth_server, response.status_code, response.content))
+        token_response = json.loads(response.content.decode('utf-8'))
+        print(token_response)
+        api_token = token_response['access_token']
+        headers = {'Content-Type': 'application/json',
+                   'Authorization': 'Bearer {0}'.format(api_token)}
+        self.requests_session.headers = headers
+
     def create_test_plan(self, name, configuration):
         api_url = '{0}plan'.format(self.api_url_base)
         payload = {'planName': name}

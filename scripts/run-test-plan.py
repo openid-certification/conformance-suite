@@ -23,13 +23,9 @@ requests_session = requests.Session()
 requests_session.verify = False  # FIXME enable for live system
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-# headers = {'Content-Type': 'application/json',
-#           'Authorization': 'Bearer {0}'.format(api_token)} # FIXME: need token for live system
-
-headers = {'Content-Type': 'application/json'}
-requests_session.headers = headers
 
 conformance = Conformance(api_url_base, requests_session)
+conformance.authorise()
 
 test_plan = 'ob-code-id-token-with-private-key-and-matls-test-plan'
 #test_plan = 'ob-code-with-private-key-and-matls-test-plan'
