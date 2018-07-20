@@ -7,29 +7,45 @@ from __future__ import division
 from __future__ import print_function
 
 import traceback
+import os
+import sys
 
 import requests
 
 from conformance import Conformance
 
-# api_token = 'your_token_goes_here'
-
-api_url_base = 'https://localhost.emobix.co.uk/'
-# FIXME: need authentication before we can do this
-# api_url_base = 'https://fintechlabs-fapi-conformance-suite-staging.fintechlabs.io/'
-
-
 requests_session = requests.Session()
-requests_session.verify = False  # FIXME enable for live system
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-conformance = Conformance(api_url_base, requests_session)
-conformance.authorise()
+if 'CONFORMANCE_SERVER' in os.environ:
+    api_url_base = os.environ['CONFORMANCE_SERVER']
+    auth_server = os.environ['CONFORMANCE_AUTH_SERVER']
+    client_id = os.environ['CONFORMANCE_CLIENT_ID']
+    client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
+else:
+    # local development settings
+    api_url_base = 'https://localhost:8443/'
+    auth_server = 'http://localhost:9001/'
+    client_id = 'oauth-client-1'
+    client_secret = 'oauth-client-secret-1'
 
-test_plan = 'ob-code-id-token-with-private-key-and-matls-test-plan'
-#test_plan = 'ob-code-with-private-key-and-matls-test-plan'
-with file('config.json') as f:
+    # disable https certificate validation
+    requests_session.verify = False
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+conformance = Conformance(api_url_base, auth_server, requests_session)
+conformance.authorise(client_id, client_secret)
+
+if len(sys.argv) != 3:
+    print("Syntax: run-test-plan.py <test-plan-name> <configuration-file>")
+    sys.exit(0)
+
+test_plan = sys.argv[1]
+config_file = sys.argv[2]
+
+print("Running plan '{}' with configuration file '{}'", test_plan, config_file)
+
+with file(config_file) as f:
     json_config = f.read()
 
 test_plan_info = conformance.create_test_plan(test_plan, json_config)
