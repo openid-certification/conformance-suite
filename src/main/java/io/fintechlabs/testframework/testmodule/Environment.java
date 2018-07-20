@@ -96,6 +96,21 @@ public class Environment {
 		return store.put(getEffectiveKey(key), value);
 	}
 
+	
+	/**
+	 * 
+	 * @param key
+	 * @param value
+	 * @return a copy of the stored object
+	 * Stores an integer ( wrapped in a JsonObject ) into the env. Top level.
+	 */
+	
+	public JsonObject putInteger(String key, Integer value) {
+		JsonObject valueToStore = new JsonObject(); 
+		valueToStore.addProperty(key, value);
+		return store.put(key, valueToStore);
+	}
+	
 	/**
 	 * Store a single string as a value
 	 *
