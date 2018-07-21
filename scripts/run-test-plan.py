@@ -45,7 +45,7 @@ config_file = sys.argv[2]
 
 print("Running plan '{}' with configuration file '{}'", test_plan, config_file)
 
-with file(config_file) as f:
+with open(config_file) as f:
     json_config = f.read()
 
 test_plan_info = conformance.create_test_plan(test_plan, json_config)
