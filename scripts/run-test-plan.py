@@ -64,12 +64,13 @@ for module in plan_modules:
         test_ids[module] = module_id
         print('Created test module, new id: {}'.format(module_id))
 
-        conformance.wait_for_state(module_id, "CONFIGURED")
+        state = conformance.wait_for_state(module_id, ["CONFIGURED", "FINISHED"])
 
-        print('Starting test')
-        x = conformance.start_test(module_id)
+        if state == "CONFIGURED":
+            print('Starting test')
+            x = conformance.start_test(module_id)
 
-        conformance.wait_for_state(module_id, "FINISHED")
+            conformance.wait_for_state(module_id, ["FINISHED"])
 
     except Exception as e:
         print('Test {} failed to run to completion:'.format(module))

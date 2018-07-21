@@ -72,20 +72,20 @@ class Conformance(object):
             raise Exception("start_test failed - HTTP {:d} {}".format(response.status_code, response.content))
         return json.loads(response.content.decode('utf-8'))
 
-    def wait_for_state(self, module_id, required_state):
+    def wait_for_state(self, module_id, required_states):
         timeout_at = time.time() + 30
         while True:
             if time.time() > timeout_at:
-                raise Exception("Timed out waiting for test module {} to move to state {}".
-                                format(module_id, required_state))
+                raise Exception("Timed out waiting for test module {} to be in one of states: {}".
+                                format(module_id, required_states))
 
             info = self.get_module_info(module_id)
 
             status = info['status']
             print("module id {} status is {}", module_id, status)
-            if status == required_state:
-                return
+            if status in required_states:
+                return status
             if status == 'INTERRUPTED':
-                raise Exception("Test module {} has moved to INTERRUPTED".format(module_id, required_state))
+                raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
 
             time.sleep(2)
