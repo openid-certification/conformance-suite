@@ -12,15 +12,14 @@ import time
 
 
 class Conformance(object):
-    def __init__(self, api_url_base, auth_server, requests_session):
+    def __init__(self, api_url_base, token_endpoint, requests_session):
         self.api_url_base = api_url_base
         self.requests_session = requests_session
-        self.auth_server = auth_server
+        self.token_endpoint = token_endpoint
 
     def authorise(self, client_id, client_secret):
-        api_url = '{0}token'.format(self.auth_server)
         payload = {'grant_type': 'client_credentials'}
-        response = self.requests_session.post(api_url, data=payload, auth=(client_id, client_secret))
+        response = self.requests_session.post(self.token_endpoint, data=payload, auth=(client_id, client_secret))
         if response.status_code != 200:
             raise Exception(" {} authorisation failed - HTTP {:d} {}".format(self.auth_server, response.status_code, response.content))
         token_response = json.loads(response.content.decode('utf-8'))

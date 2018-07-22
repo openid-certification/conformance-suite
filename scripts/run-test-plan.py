@@ -18,13 +18,13 @@ requests_session = requests.Session()
 
 if 'CONFORMANCE_SERVER' in os.environ:
     api_url_base = os.environ['CONFORMANCE_SERVER']
-    auth_server = os.environ['CONFORMANCE_AUTH_SERVER']
+    token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
     client_id = os.environ['CONFORMANCE_CLIENT_ID']
     client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
 else:
     # local development settings
     api_url_base = 'https://localhost:8443/'
-    auth_server = 'http://localhost:9001/'
+    token_endpoint = 'http://localhost:9001/token'
     client_id = 'oauth-client-1'
     client_secret = 'oauth-client-secret-1'
 
@@ -33,7 +33,7 @@ else:
     import urllib3
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-conformance = Conformance(api_url_base, auth_server, requests_session)
+conformance = Conformance(api_url_base, token_endpoint, requests_session)
 conformance.authorise(client_id, client_secret)
 
 if len(sys.argv) != 3:
