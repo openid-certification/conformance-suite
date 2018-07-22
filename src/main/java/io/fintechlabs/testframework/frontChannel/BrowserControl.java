@@ -16,6 +16,7 @@ package io.fintechlabs.testframework.frontChannel;
 
 import static io.fintechlabs.testframework.logging.EventLog.args;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.locks.Lock;
 
+import com.gargoylesoftware.htmlunit.DefaultPageCreator;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.WebWindow;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -456,6 +462,17 @@ public class BrowserControl {
 
 	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
 
+	private class BrowserControlPageCreator extends DefaultPageCreator {
+		// this is necessary because:
+		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
+		// returns:
+		// Content-Type: */*;charset=utf-8
+		// so we need to override this so it's treated as html, which is how browsers treat it
+		public Page createPage(final WebResponse webResponse, final WebWindow webWindow) throws IOException {
+			return createHtmlPage(webResponse, webWindow);
+		}
+	}
+
 	/**
 	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
 	 */
@@ -473,6 +490,10 @@ public class BrowserControl {
 			return responseCodeString;
 		}
 
+		protected WebClient modifyWebClient(WebClient client) {
+			client.setPageCreator(new BrowserControlPageCreator());
+			return client;
+		}
 	}
 
 	/**
