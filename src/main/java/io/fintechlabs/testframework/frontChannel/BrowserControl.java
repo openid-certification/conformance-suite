@@ -206,7 +206,9 @@ public class BrowserControl {
 					"msg", "Scripted browser HTTP response",
 					"http", "response",
 					"response_status_code", driver.getResponseCode(),
-					"response_status_text", driver.getStatus()
+					"response_status_text", driver.getStatus(),
+					"response_content_type", driver.getResponseContentType(),
+					"response_content", driver.getResponseContent()
 				));
 				
 				
@@ -320,7 +322,8 @@ public class BrowserControl {
 				urlVisited(url);
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
-				eventLog.log("WebRunner", args("msg", e.getMessage(), "result", ConditionResult.FAILURE));
+				eventLog.log("WebRunner", args("msg", e.getMessage(), "pageSource", driver.getPageSource(),
+					"contentType", driver.getResponseContentType(), "result", ConditionResult.FAILURE));
 				// note that this leaves us in the current list of runners for the executing test
 				this.lastException = e.getMessage();
 				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
@@ -484,6 +487,14 @@ public class BrowserControl {
 			return this.lastPage().getWebResponse().getStatusCode();
 		}
 
+		public String getResponseContent() {
+			return this.lastPage().getWebResponse().getContentAsString();
+		}
+
+		public String getResponseContentType() {
+			return this.lastPage().getWebResponse().getContentType();
+		}
+
 		public String getStatus() {
 			String responseCodeString = this.lastPage().getWebResponse().getStatusCode() + "-" +
 				this.lastPage().getWebResponse().getStatusMessage();
@@ -522,6 +533,8 @@ public class BrowserControl {
 			o.addProperty("currentTask", wr.currentTask);
 			o.addProperty("currentCommand", wr.currentCommand);
 			o.addProperty("lastResponseCode", wr.driver.getResponseCode());
+			o.addProperty("lastResponseContentType", wr.driver.getResponseContentType());
+			o.addProperty("lastResponseContent", wr.driver.getResponseContent());
 			o.addProperty("lastException", wr.lastException);
 			
 			out.add(o);
