@@ -170,7 +170,7 @@ public class BrowserControl {
 		/**
 		 * @param url
 		 *            url to go to
-		 * @param commands
+		 * @param tasks
 		 *            {@link JsonArray} of commands to perform once we get to the page
 		 */
 		private WebRunner(String url, JsonArray tasks) {
