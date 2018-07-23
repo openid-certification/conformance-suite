@@ -256,18 +256,19 @@ public class TestRunner {
 			url = baseUrl + TestDispatcher.TEST_PATH + id;
 		}
 
-		// record that this test was started
-		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId);
-
-		// Belts and braces safe way to get the value of any description we may have.
+		// Belt and braces safe way to get the value of any description we may have.
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
 			try {
 				description = config.get("description").getAsString();
 			} catch (Exception ex) {
-				description = "";
+				description = null;
 			}
 		}
+		
+		// record that this test was started
+		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description);
+
 		
 		// log the test creation event in the event log
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(),
