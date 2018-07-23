@@ -117,8 +117,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	public IntrospectionAuthorityGranter introspectionAuthorityGranter() {
 		SimpleIntrospectionAuthorityGranter authorityGranter = new SimpleIntrospectionAuthorityGranter();
 
-		// TODO: right now if you get a token you're an admin :shrug:
-		authorityGranter.setAuthorities(Lists.newArrayList(GoogleHostedDomainAdminAuthoritiesMapper.ROLE_ADMIN));
+		// Default authorities, so access via oauth will map to a normal user (no admin permissions)
 
 		return authorityGranter;
 	}

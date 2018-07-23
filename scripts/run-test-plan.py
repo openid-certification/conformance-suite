@@ -7,33 +7,45 @@ from __future__ import division
 from __future__ import print_function
 
 import traceback
+import os
+import sys
 
 import requests
 
 from conformance import Conformance
 
-# api_token = 'your_token_goes_here'
-
-api_url_base = 'https://localhost.emobix.co.uk/'
-# FIXME: need authentication before we can do this
-# api_url_base = 'https://fintechlabs-fapi-conformance-suite-staging.fintechlabs.io/'
-
-
 requests_session = requests.Session()
-requests_session.verify = False  # FIXME enable for live system
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-# headers = {'Content-Type': 'application/json',
-#           'Authorization': 'Bearer {0}'.format(api_token)} # FIXME: need token for live system
 
-headers = {'Content-Type': 'application/json'}
-requests_session.headers = headers
+if 'CONFORMANCE_SERVER' in os.environ:
+    api_url_base = os.environ['CONFORMANCE_SERVER']
+    token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
+    client_id = os.environ['CONFORMANCE_CLIENT_ID']
+    client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
+else:
+    # local development settings
+    api_url_base = 'https://localhost:8443/'
+    token_endpoint = 'http://localhost:9001/token'
+    client_id = 'oauth-client-1'
+    client_secret = 'oauth-client-secret-1'
 
-conformance = Conformance(api_url_base, requests_session)
+    # disable https certificate validation
+    requests_session.verify = False
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-test_plan = 'ob-code-id-token-with-private-key-and-matls-test-plan'
-#test_plan = 'ob-code-with-private-key-and-matls-test-plan'
-with file('config.json') as f:
+conformance = Conformance(api_url_base, token_endpoint, requests_session)
+conformance.authorise(client_id, client_secret)
+
+if len(sys.argv) != 3:
+    print("Syntax: run-test-plan.py <test-plan-name> <configuration-file>")
+    sys.exit(0)
+
+test_plan = sys.argv[1]
+config_file = sys.argv[2]
+
+print("Running plan '{}' with configuration file '{}'", test_plan, config_file)
+
+with open(config_file) as f:
     json_config = f.read()
 
 test_plan_info = conformance.create_test_plan(test_plan, json_config)
@@ -43,6 +55,7 @@ plan_modules = test_plan_info['modules']
 test_ids = {}
 
 print('Created test plan, new id: {}'.format(plan_id))
+print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
 print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
 for module in plan_modules:
     try:
@@ -51,13 +64,15 @@ for module in plan_modules:
         module_id = test_module_info['id']
         test_ids[module] = module_id
         print('Created test module, new id: {}'.format(module_id))
+        print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
-        conformance.wait_for_state(module_id, "CONFIGURED")
+        state = conformance.wait_for_state(module_id, ["CONFIGURED", "FINISHED"])
 
-        print('Starting test')
-        x = conformance.start_test(module_id)
+        if state == "CONFIGURED":
+            print('Starting test')
+            x = conformance.start_test(module_id)
 
-        conformance.wait_for_state(module_id, "FINISHED")
+            conformance.wait_for_state(module_id, ["FINISHED"])
 
     except Exception as e:
         print('Test {} failed to run to completion:'.format(module))
@@ -80,5 +95,6 @@ for module, module_id in test_ids.items():
     print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING'.
           format(module, module_id, info['status'], info['result'], len(logs), counts['FAILURE'], counts['WARNING']))
 
+print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 if len(test_ids) != len(plan_modules):
     print("** NOT ALL TESTS WERE RUN **")
