@@ -215,10 +215,6 @@ public class BrowserControl {
 
 				int responseCode = driver.getResponseCode();
 
-				if (responseCode != 200) {
-					throw new TestFailureException(testId, "WebRunner initial GET failed with " + driver.getStatus());
-				}
-
 				for (int i = 0; i < this.tasks.size(); i++) {
 					boolean skip = false;
 
@@ -289,32 +285,16 @@ public class BrowserControl {
 						responseCode = driver.getResponseCode();
 						logger.debug("\tResponse Code: " + responseCode);
 
-						if (responseCode == 200) {
-							eventLog.log("WebRunner", args(
-								"msg", "Completed processing of webpage",
-								"match", expectedUrlMatcher,
-								"url", driver.getCurrentUrl(),
-								"browser", "complete",
-								"task", taskName,
-								"result", ConditionResult.SUCCESS,
-								"response_status_code", driver.getResponseCode(),
-								"response_status_text", driver.getStatus()
-							));
-
-						} else {
-							eventLog.log("WebRunner", args(
-								"msg", "Failure processing of webpage",
-								"match", expectedUrlMatcher,
-								"url", driver.getCurrentUrl(),
-								"browser", "failure",
-								"task", taskName,
-								"result", ConditionResult.FAILURE,
-								"response_status_code", driver.getResponseCode(),
-								"response_status_text", driver.getStatus()
-							));
-
-							throw new TestFailureException(testId, "WebRunner Response Failure: '" + driver.getStatus());
-						}
+						eventLog.log("WebRunner", args(
+							"msg", "Completed processing of webpage",
+							"match", expectedUrlMatcher,
+							"url", driver.getCurrentUrl(),
+							"browser", "complete",
+							"task", taskName,
+							"result", ConditionResult.INFO,
+							"response_status_code", driver.getResponseCode(),
+							"response_status_text", driver.getStatus()
+						));
 					} // if we don't run the commands, just go straight to the next one
 				}
 				logger.debug("Completed Browser Commands");
