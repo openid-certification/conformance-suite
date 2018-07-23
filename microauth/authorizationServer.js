@@ -1,14 +1,9 @@
 var express = require("express");
-var url = require("url");
 var bodyParser = require('body-parser');
 var randomstring = require("randomstring");
-var cons = require('consolidate');
 var querystring = require('querystring');
-var qs = require("qs");
 var __ = require('underscore');
 __.string = require('underscore.string');
-var base64url = require('base64url');
-var jose = require('jsrsasign');
 
 var app = express();
 
@@ -19,8 +14,7 @@ app.set('json spaces', 4);
 
 // authorization server information
 var authServer = {
-	authorizationEndpoint: 'http://localhost:9001/authorize',
-	tokenEndpoint: 'http://localhost:9001/token'
+	iss: 'http://localhost:9001/',
 };
 
 // client information
@@ -31,14 +25,12 @@ var clients = [
 	}
 ];
 
-var sharedTokenSecret = "shared token secret!";
-
 var preplacedToken = {
 	value: randomstring.generate(),
 	sub: 'AUTOMATED-TEST',
 	user_id: 'automated-test',
 	scope: ['fapi-test-suite']
-}
+};
 
 var protectedResources = [
 	{
@@ -48,16 +40,16 @@ var protectedResources = [
 ];
 
 var getClient = function(clientId) {
-	return __.find(clients, function(client) { return client.client_id == clientId; });
+	return __.find(clients, function(client) { return client.client_id === clientId; });
 };
 
 var getProtectedResource = function(resourceId) {
-	return __.find(protectedResources, function(resource) { return resource.resource_id == resourceId; });
+	return __.find(protectedResources, function(resource) { return resource.resource_id === resourceId; });
 };
 
 
 app.post("/token", function(req, res){
-	
+
 	var auth = req.headers['authorization'];
 	if (auth) {
 		// check the auth header
@@ -65,7 +57,7 @@ app.post("/token", function(req, res){
 		var clientId = querystring.unescape(clientCredentials[0]);
 		var clientSecret = querystring.unescape(clientCredentials[1]);
 	}
-	
+
 	// otherwise, check the post body
 	if (req.body.client_id) {
 		if (clientId) {
@@ -74,39 +66,38 @@ app.post("/token", function(req, res){
 			res.status(401).json({error: 'invalid_client'});
 			return;
 		}
-		
+
 		var clientId = req.body.client_id;
 		var clientSecret = req.body.client_secret;
 	}
-	
+
 	var client = getClient(clientId);
 	if (!client) {
 		console.log('Unknown client %s', clientId);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}
-	
-	if (client.client_secret != clientSecret) {
+
+	if (client.client_secret !== clientSecret) {
 		console.log('Mismatched client secret, expected %s got %s', client.client_secret, clientSecret);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}
-	
-	if (req.body.grant_type == 'client_credentials') {
+
+	if (req.body.grant_type === 'client_credentials') {
 		var scope = preplacedToken.scope;
 
 		var access_token = preplacedToken.value;
-		
-		var token_response = { access_token: access_token, token_type: 'Bearer', scope: scope.join(' ') };
-		
+
+		var token_response = {access_token: access_token, token_type: 'Bearer', scope: scope.join(' ')};
+
 		console.log('Issuing access token %s', access_token);
 		res.status(200).json(token_response);
-		return;	
-		
-	} else {
-		console.log('Unknown grant type %s', req.body.grant_type);
-		res.status(400).json({error: 'unsupported_grant_type'});
+		return;
 	}
+
+	console.log('Unknown grant type %s', req.body.grant_type);
+	res.status(400).json({error: 'unsupported_grant_type'});
 });
 
 app.post('/introspect', function(req, res) {
@@ -127,19 +118,19 @@ app.post('/introspect', function(req, res) {
 		res.status(401).end();
 		return;
 	}
-	
-	if (resource.resource_secret != resourceSecret) {
+
+	if (resource.resource_secret !== resourceSecret) {
 		console.log('Mismatched secret, expected %s got %s', resource.resource_secret, resourceSecret);
 		res.status(401).end();
 		return;
 	}
-	
+
 	var inToken = req.body.token;
 	console.log('Introspecting token %s', inToken);
-	
-	if (inToken == preplacedToken.value) {
+
+	if (inToken === preplacedToken.value) {
 		console.log("We found a matching token: %s", inToken);
-		
+
 		var introspectionResponse = {};
 		introspectionResponse.active = true;
 		introspectionResponse.iss = authServer.iss;
@@ -149,32 +140,14 @@ app.post('/introspect', function(req, res) {
 
 		res.status(200).json(introspectionResponse);
 		return;
-	} else {
-		console.log('No matching token was found.');
-
-		var introspectionResponse = {};
-		introspectionResponse.active = false;
-		res.status(200).json(introspectionResponse);
-		return;
 	}
-	
+
+	console.log('No matching token was found.');
+
+	var introspectionResponse = {};
+	introspectionResponse.active = false;
+	res.status(200).json(introspectionResponse);
 });
-
-var buildUrl = function(base, options, hash) {
-	var newUrl = url.parse(base, true);
-	delete newUrl.search;
-	if (!newUrl.query) {
-		newUrl.query = {};
-	}
-	__.each(options, function(value, key, list) {
-		newUrl.query[key] = value;
-	});
-	if (hash) {
-		newUrl.hash = hash;
-	}
-	
-	return url.format(newUrl);
-};
 
 var server = app.listen(9001, '0.0.0.0', function () {
   var host = server.address().address;
@@ -182,4 +155,3 @@ var server = app.listen(9001, '0.0.0.0', function () {
 
   console.log('MicrOAuth Authorization Server is listening at http://%s:%s', host, port);
 });
- 
