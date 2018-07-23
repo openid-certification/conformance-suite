@@ -9,4 +9,5 @@ ENTRYPOINT java \
   -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
   -D"oidc.google.clientid=${OIDC_GOOGLE_CLIENTID}" \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
-  -jar /server/fapi-test-suite.jar
+  -D"oauth.introspection_url=http://${MICROAUTH_HOST}:9001/introspect" \
+ -jar /server/fapi-test-suite.jar
