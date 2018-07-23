@@ -55,6 +55,7 @@ plan_modules = test_plan_info['modules']
 test_ids = {}
 
 print('Created test plan, new id: {}'.format(plan_id))
+print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
 print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
 for module in plan_modules:
     try:
@@ -63,6 +64,7 @@ for module in plan_modules:
         module_id = test_module_info['id']
         test_ids[module] = module_id
         print('Created test module, new id: {}'.format(module_id))
+        print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
         state = conformance.wait_for_state(module_id, ["CONFIGURED", "FINISHED"])
 
@@ -93,5 +95,6 @@ for module, module_id in test_ids.items():
     print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING'.
           format(module, module_id, info['status'], info['result'], len(logs), counts['FAILURE'], counts['WARNING']))
 
+print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 if len(test_ids) != len(plan_modules):
     print("** NOT ALL TESTS WERE RUN **")
