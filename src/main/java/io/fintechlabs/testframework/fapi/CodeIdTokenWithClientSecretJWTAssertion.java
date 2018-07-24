@@ -105,9 +105,9 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "code-id-token-with-client-secret-jwt",
-	displayName = "code id_token (client secret jwt authentication)",
-	profile = "FAPI",
+	testName = "fapi-r-code-id-token-with-client-secret-jwt",
+	displayName = "FAPI-R: code id_token (client secret jwt authentication)",
+	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -105,9 +105,9 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "code-id-token-with-mtls",
-	displayName = "code id_token (MTLS authentication)",
-	profile = "FAPI",
+	testName = "fapi-r-code-id-token-with-mtls",
+	displayName = "FAPI-R: code id_token (MTLS authentication)",
+	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

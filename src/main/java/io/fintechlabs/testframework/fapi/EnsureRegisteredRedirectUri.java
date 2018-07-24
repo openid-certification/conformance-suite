@@ -43,14 +43,14 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by
- * 
+ *
  * @author jricher
  *
  */
 @PublishTestModule(
-	testName = "ensure-redirect-uri-is-registered",
-	displayName = "Ensure redirect URI is registered",
-	profile = "FAPI",
+	testName = "fapi-r-ensure-redirect-uri-is-registered",
+	displayName = "FAPI-R: Ensure redirect URI is registered",
+	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

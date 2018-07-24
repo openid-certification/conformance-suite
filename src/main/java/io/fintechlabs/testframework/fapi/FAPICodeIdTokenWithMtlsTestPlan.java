@@ -22,15 +22,13 @@ import io.fintechlabs.testframework.plan.TestPlan;
  *
  */
 @PublishTestPlan (
-	testPlanName = "fapi-code-id-token-with-mtls-test-plan",
-	displayName = "FAPI: code id_token with mtls Test Plan",
-	profile = "FAPI",
+	testPlanName = "fapi-r-code-id-token-with-mtls-test-plan",
+	displayName = "FAPI-R: code id_token with mtls Test Plan",
+	profile = "FAPI-R",
 	testModuleNames = {
-		"code-id-token-with-mtls",
-		"ensure-redirect-uri-in-authorization-request",
-		"ensure-redirect-uri-is-registered",
-		"ensure-request-object-signature-algorithm-is-not-null",
-		"reject-code-flow-test"
+		"fapi-r-code-id-token-with-mtls",
+		"fapi-r-ensure-redirect-uri-in-authorization-request",
+		"fapi-r-ensure-redirect-uri-is-registered"
 	}
 )
 public class FAPICodeIdTokenWithMtlsTestPlan implements TestPlan {
