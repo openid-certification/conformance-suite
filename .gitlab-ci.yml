@@ -64,6 +64,18 @@ build:
   only:
     - branches
 
+build_microauth:
+  stage: build
+  image: docker:git
+  services:
+    - docker:dind
+  script:
+    - install_build_dependencies
+    - docker build -t "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG" microauth/
+    - echo "$GCLOUD_SERVICE_KEY" | base64 -d > ${HOME}/gcloud-service-key.json
+    - ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+    - ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
+
 test:
   stage: test
   image: gliderlabs/herokuish:latest
