@@ -58,13 +58,13 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
 		http
 			.requestMatchers()
-				.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**")
+				.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**", "/plan/**")
 			.and()
 				.csrf().disable()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
 			.and()
 				.authorizeRequests()
-					.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**")
+					.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**", "/plan/**")
 					.authenticated()
 			.and()
 				.addFilterBefore(oauth2Filter(), AbstractPreAuthenticatedProcessingFilter.class)
