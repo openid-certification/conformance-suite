@@ -166,7 +166,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 
-		//callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
