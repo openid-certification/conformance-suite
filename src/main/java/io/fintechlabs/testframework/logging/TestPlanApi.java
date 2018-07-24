@@ -75,7 +75,12 @@ public class TestPlanApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		
-		planService.createTestPlan(id, planName, config, holder.a.testModuleNames());
+		String description = null;
+		if (config.has("description") && config.get("description").isJsonPrimitive()) {
+			description = config.get("description").getAsString();
+		}
+
+		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames());
 		
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);

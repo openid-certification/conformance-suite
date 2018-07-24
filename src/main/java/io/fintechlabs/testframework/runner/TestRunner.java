@@ -256,16 +256,11 @@ public class TestRunner {
 			url = baseUrl + TestDispatcher.TEST_PATH + id;
 		}
 
-		// Belt and braces safe way to get the value of any description we may have.
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
-			try {
-				description = config.get("description").getAsString();
-			} catch (Exception ex) {
-				description = null;
-			}
+			description = config.get("description").getAsString();
 		}
-		
+
 		// record that this test was started
 		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description);
 

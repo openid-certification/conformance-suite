@@ -39,7 +39,7 @@ public interface TestPlanService {
 	 * @param owner
 	 * @param testModules
 	 */
-	void createTestPlan(String id, String planName, JsonObject config, String[] testModules);
+	void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules);
 
 	/**
 	 * @param id
