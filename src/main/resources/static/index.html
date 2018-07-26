@@ -136,6 +136,15 @@
 								</div>
 							</div>
 
+							<div class="config-form-container">
+								<h3 class="config-form-container-header">Description</h3>
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">description</div>
+									<div class="col-md-10">
+										<input type="text" class="config-form-element" data-json-target="description" placeholder="Freeform text to help you identify this test run (optional)"></input>
+									</div>
+								</div>
+							</div>
 
 							<div class="config-form-container">
 								<h3 class="config-form-container-header">Server</h3>
@@ -738,6 +747,7 @@
             }
 
 			fieldsToShow.push('alias'); // always show the alias field
+			fieldsToShow.push('description'); // Always show the description field
 
 			// show/hide all the appropriate fields on the page
 			$('.config-form-element-container').each(function() {

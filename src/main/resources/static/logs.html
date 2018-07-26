@@ -70,6 +70,7 @@
                         <th>Instance ID</th>
                         <th>Config</th>
                         <th>Name</th>
+                        <th>Description</th>
                         <th>Started</th>
                         <th>Plan ID</th>
                         <th>Status</th>
@@ -85,6 +86,7 @@
                         <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><a class="btn btn-default btn-block" href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted"><%- test.testId %></code></a></td>
                         <td class="configColumn" data-search="<%- JSON.stringify(test.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
                         <td><%- test.testName %></td>
+                        <td><%- test.description %></td>
                         <td data-order="<%- test.started %>"><%- new Date(test.started).toLocaleString() %></td>
                         <% if (test.planId) { %>
                         <td data-order=<%- test.planId %>" data-search="<%- test.planId %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- encodeURIComponent(test.planId) %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- test.planId %></code></a></td>
@@ -224,7 +226,7 @@
 					});
 
 					$('#logsListing').DataTable({
-						order: [[3, "desc"]], // sort by the "date" column, descending, by default
+						order: [[4, "desc"]], // sort by the "date" column, descending, by default
 						columnDefs: [{
 							targets: 1,
 							orderable: false

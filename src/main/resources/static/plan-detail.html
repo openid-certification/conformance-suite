@@ -134,6 +134,11 @@
                     </div>
 
                     <div class="row">
+                        <div class="col-md-1">Description:</div>
+                        <div class="col-md-11"><%- plan.description %></div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-1">Started:</div>
                         <div class="col-md-11"><%- plan.started %></div>
                     </div>
@@ -222,7 +227,7 @@
 			   data: {},
 			   success: function(data) {
 				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({plan: data}));
-
+				   
 				   // wire up configuration button
                    $('#showConfigBtn').click(function(evt) {
                        evt.preventDefault();

@@ -89,7 +89,7 @@ public class DBTestInfoService implements TestInfoService {
 	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
 	 */
 	@Override
-	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId) {
+	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId, String description) {
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
@@ -98,6 +98,7 @@ public class DBTestInfoService implements TestInfoService {
 			.add("testName", testName)
 			.add("started", started.toString())
 			.add("config", config)
+			.add("description", description)
 			.add("alias", alias)
 			.add("owner", owner)
 			.add("planId", planId)

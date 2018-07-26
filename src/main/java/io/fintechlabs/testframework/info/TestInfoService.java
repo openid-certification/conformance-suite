@@ -37,7 +37,7 @@ public interface TestInfoService {
 	 * @param config
 	 * @param alias
 	 */
-	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId);
+	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description);
 
 	/**
 	 * Update the result of a test in the database

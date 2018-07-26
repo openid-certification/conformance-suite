@@ -70,6 +70,7 @@
                         <th>Instance ID</th>
                         <th>Config</th>
                         <th>Name</th>
+                        <th>Description</th>
                         <th>Started</th>
                         <th>Modules</th>
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
@@ -83,6 +84,7 @@
                         <td data-order="<%- plan._id %>" data-search="<%- plan._id %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- plan._id %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- plan._id %></code></a></td>
                         <td class="configColumn" data-search="<%- JSON.stringify(plan.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
                         <td><%- plan.planName %></td>
+                        <td><%- plan.description %></td>
                         <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>
                         <td data-search="<%- _.pluck(plan.modules, 'testModule') %>"><%- _.pluck(plan.modules, 'testModule').join(', ') %></td>
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
@@ -216,7 +218,7 @@
 					});
 
 					$('#plansListing').DataTable({
-						order: [[3, "desc"]], // sort by the "date" column, descending, by default
+						order: [[4, "desc"]], // sort by the "date" column, descending, by default
 						columnDefs: [{
 							// disable sorting on the "view config" button
 							targets: 1,

@@ -89,7 +89,7 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, io.fintechlabs.testframework.plan.TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, JsonObject config, String[] testModules) {
+	public void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
@@ -99,6 +99,7 @@ public class DBTestPlanService implements TestPlanService {
 			.add("config", config)
 			.add("started", Instant.now().toString())
 			.add("owner", owner)
+			.add("description", description)
 			.add("version", version);
 		
 		List<DBObject> moduleStructure = new ArrayList<>();
