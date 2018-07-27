@@ -80,20 +80,39 @@ for module in plan_modules:
 
 print("\n\nScript complete - results:\n")
 
+warnings_overall = []
+failures_overall = []
 for module, module_id in test_ids.items():
     info = conformance.get_module_info(module_id)
 
     logs = conformance.get_test_log(module_id)
     counts = {'WARNING': 0, 'FAILURE': 0}
-    for l in logs:
-        if 'result' not in l:
+    failures = []
+    warnings = []
+    for log_entry in logs:
+        if 'result' not in log_entry:
             continue
-        lresult = l['result']
-        if lresult not in counts:
-            counts[lresult] = 0
-        counts[lresult] += 1
+        log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
+        if log_result in counts:
+            counts[log_result] += 1
+            if log_result == 'FAILURE':
+                failures.append(log_entry['src'])
+            if log_result == 'WARNING':
+                warnings.append(log_entry['src'])
+
     print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING'.
-          format(module, module_id, info['status'], info['result'], len(logs), counts['FAILURE'], counts['WARNING']))
+          format(module, module_id, info['status'], info['result'], len(logs),
+                 counts['FAILURE'], counts['WARNING']))
+    if len(failures) > 0:
+        print("Failures: {}".format(', '.join(failures)))
+    if len(warnings) > 0:
+        print("Warnings: {}".format(', '.join(warnings)))
+    failures_overall.extend(failures)
+    warnings_overall.extend(warnings)
+
+
+print('\nOverall totals: run {:d} test modules, {:d} failures, {:d} warnings\n'.format(
+    len(test_ids), len(failures_overall), len(warnings_overall)))
 
 print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 if len(test_ids) != len(plan_modules):
