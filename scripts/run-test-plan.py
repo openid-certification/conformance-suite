@@ -82,7 +82,12 @@ print("\n\nScript complete - results:\n")
 
 warnings_overall = []
 failures_overall = []
-for module, module_id in test_ids.items():
+for module in plan_modules:
+    if module not in test_ids:
+        print('Test {} did not run'.format(module))
+        continue
+    module_id = test_ids[module]
+
     info = conformance.get_module_info(module_id)
 
     logs = conformance.get_test_log(module_id)
