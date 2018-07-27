@@ -41,9 +41,9 @@ public class Environment {
 	 */
 	private ReentrantLock lock = new ReentrantLock(true); // set with fairness policy to get up control to the longest waiting thread
 
-	private static final String STRING_VALUES = "_STRING_VALUES";
+	private static final String NATIVE_VALUES = "_NATIVE_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
-		ImmutableMap.of(STRING_VALUES, new JsonObject())); // make sure we start with a place to put the string values
+		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to put the string values
 	
 	private Map<String, String> keyMap = new HashMap<>();
 
@@ -83,9 +83,23 @@ public class Environment {
 	 * @return
 	 */
 	public String getString(String key) {
-		return getString(STRING_VALUES, key);
+		return getString(NATIVE_VALUES, key);
 	}
 
+	/**
+	 * Look up a single integer entry
+	 */
+	public Integer getInteger(String key) {
+		return getInteger(NATIVE_VALUES, key);
+	}
+	
+	/**
+	 * Look up a single Long entry
+	 */
+	public Long getLong(String key) {
+		return getLong(NATIVE_VALUES, key);
+	}
+	
 	/**
 	 * @param key
 	 * @param value
@@ -96,6 +110,33 @@ public class Environment {
 		return store.put(getEffectiveKey(key), value);
 	}
 
+	
+	/**
+	 * Store a single Long as a value
+	 *
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public JsonObject putLong(String key, Long value) {
+		JsonObject o = get(NATIVE_VALUES);
+		o.addProperty(key, value);
+		return o;
+	}
+
+	/**
+	 * Stores a single Integer as a value
+	 * 
+	 * @param key
+	 * @param value
+	 * @return a copy of the stored object
+	 */
+	public JsonObject putInteger(String key, Integer value) {
+		JsonObject o = get(NATIVE_VALUES);
+		o.addProperty(key, value);
+		return o;
+	}
+	
 	/**
 	 * Store a single string as a value
 	 *
@@ -104,7 +145,7 @@ public class Environment {
 	 * @return
 	 */
 	public JsonObject putString(String key, String value) {
-		JsonObject o = get(STRING_VALUES);
+		JsonObject o = get(NATIVE_VALUES);
 		o.addProperty(key, value);
 		return o;
 	}
