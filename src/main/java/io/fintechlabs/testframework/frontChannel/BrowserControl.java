@@ -15,6 +15,7 @@
 package io.fintechlabs.testframework.frontChannel;
 
 import static io.fintechlabs.testframework.logging.EventLog.args;
+import static io.fintechlabs.testframework.logging.EventLog.ex;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -322,8 +323,10 @@ public class BrowserControl {
 				urlVisited(url);
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
-				eventLog.log("WebRunner", args("msg", e.getMessage(), "pageSource", driver.getPageSource(),
-					"contentType", driver.getResponseContentType(), "result", ConditionResult.FAILURE));
+				eventLog.log("WebRunner",
+					ex(e,
+						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
+							"content_type", driver.getResponseContentType(), "result", ConditionResult.FAILURE)));
 				// note that this leaves us in the current list of runners for the executing test
 				this.lastException = e.getMessage();
 				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
