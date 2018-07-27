@@ -47,9 +47,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "ensure-request-object-signature-algorithm-is-not-null",
-	displayName = "Ensure request object signature algorithm is not null",
-	profile = "FAPI",
+	testName = "fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
+	displayName = "FAPI-RW: Ensure request object signature algorithm is not null",
+	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

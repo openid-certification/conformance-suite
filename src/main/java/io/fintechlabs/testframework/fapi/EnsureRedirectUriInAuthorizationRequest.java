@@ -42,9 +42,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "ensure-redirect-uri-in-authorization-request",
-	displayName = "Ensure redirect URI in authorization request",
-	profile = "FAPI",
+	testName = "fapi-r-ensure-redirect-uri-in-authorization-request",
+	displayName = "FAPI-R: Ensure redirect URI in authorization request",
+	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

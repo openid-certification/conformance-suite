@@ -95,9 +95,9 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "code-id-with-pkce",
-	displayName = "code id_token (Public Client with PKCE/S256)",
-	profile = "FAPI",
+	testName = "fapi-r-code-id-with-pkce",
+	displayName = "FAPI-R: code id_token (Public Client with PKCE/S256)",
+	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

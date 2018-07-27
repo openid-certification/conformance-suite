@@ -29,17 +29,15 @@ public class GenerateResourceEndpointRequestHeaders extends AbstractCondition {
 
 		Date loginDate = new Date(); // User just logged in
 
-		/*
 		String institutionId = env.getString("resource", "institution_id");
 		if (Strings.isNullOrEmpty(institutionId)) {
 			throw error("Institution ID not found in resource configuration");
 		}
-		*/
 
 		JsonObject headers = new JsonObject();
 
 		headers.addProperty("x-fapi-auth-date", DateUtils.formatDate(loginDate));
-		//headers.addProperty("x-fapi-financial-id", institutionId);
+		headers.addProperty("x-fapi-financial-id", institutionId);
 
 		env.put("resource_endpoint_request_headers", headers);
 

@@ -115,7 +115,7 @@ public class SignRequestObject extends AbstractCondition {
 
 				Algorithm alg = jwk.getAlgorithm();
 				if (alg == null) {
-					throw error("No algorithm specified for key", args("jwk", jwk.toJSONString()));
+					throw error("key should contain an 'alg' entry", args("jwk", jwk.toJSONString()));
 				}
 
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);

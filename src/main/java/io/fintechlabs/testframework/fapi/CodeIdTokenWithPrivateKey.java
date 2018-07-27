@@ -107,9 +107,9 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "code-id-token-with-private-key",
-	displayName = "code id_token (private key authentication)",
-	profile = "FAPI",
+	testName = "fapi-r-code-id-token-with-private-key",
+	displayName = "FAPI-R: code id_token (private key authentication)",
+	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

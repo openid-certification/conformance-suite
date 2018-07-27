@@ -52,9 +52,9 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "reject-code-flow-test",
-	displayName = "Reject the code flow",
-	profile = "FAPI",
+	testName = "fapi-rw-reject-code-flow-test",
+	displayName = "FAPI-RW: Reject the code flow",
+	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
