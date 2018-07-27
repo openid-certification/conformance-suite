@@ -9,6 +9,7 @@ from __future__ import print_function
 import traceback
 import os
 import sys
+import time
 
 import requests
 
@@ -52,12 +53,17 @@ test_plan_info = conformance.create_test_plan(test_plan, json_config)
 
 plan_id = test_plan_info['id']
 plan_modules = test_plan_info['modules']
-test_ids = {}
+test_ids = {}  # key is module name
+test_time_taken = {}  # key is module_id
+overall_start_time = time.time()
+
 
 print('Created test plan, new id: {}'.format(plan_id))
 print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
 print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
 for module in plan_modules:
+    test_start_time = time.time()
+
     try:
         print('Running test module: {}'.format(module))
         test_module_info = conformance.create_test(plan_id, module, json_config)
@@ -73,6 +79,7 @@ for module in plan_modules:
             x = conformance.start_test(module_id)
 
             conformance.wait_for_state(module_id, ["FINISHED"])
+        test_time_taken[module_id] = time.time() - test_start_time
 
     except Exception as e:
         print('Test {} failed to run to completion:'.format(module))
@@ -105,9 +112,13 @@ for module in plan_modules:
             if log_result == 'WARNING':
                 warnings.append(log_entry['src'])
 
-    print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING'.
+    if module_id in test_time_taken:
+        test_time = test_time_taken[module_id]
+    else:
+        test_time = -1
+    print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
           format(module, module_id, info['status'], info['result'], len(logs),
-                 counts['FAILURE'], counts['WARNING']))
+                 counts['FAILURE'], counts['WARNING'], test_time))
     if len(failures) > 0:
         print("Failures: {}".format(', '.join(failures)))
     if len(warnings) > 0:
@@ -116,8 +127,8 @@ for module in plan_modules:
     warnings_overall.extend(warnings)
 
 
-print('\nOverall totals: run {:d} test modules, {:d} failures, {:d} warnings\n'.format(
-    len(test_ids), len(failures_overall), len(warnings_overall)))
+print('\nOverall totals: ran {:d} test modules, {:d} failures, {:d} warnings, {:.1f} seconds\n'.format(
+    len(test_ids), len(failures_overall), len(warnings_overall), time.time()-overall_start_time))
 
 print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 if len(test_ids) != len(plan_modules):
