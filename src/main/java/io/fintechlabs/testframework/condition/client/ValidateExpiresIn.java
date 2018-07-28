@@ -29,25 +29,25 @@ public class ValidateExpiresIn extends AbstractCondition {
 	public ValidateExpiresIn(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
+
 	@Override
 	@PreEnvironment(strings = {}, required = "expires_in")
 	public Environment evaluate(Environment env) {
 
 		JsonObject expiresIn = env.get("expires_in");
-		JsonElement je = expiresIn.get("expires_in"); 
+		JsonElement je = expiresIn.get("expires_in");
 		try {
 			JsonPrimitive jp = je.getAsJsonPrimitive();
 			if (!jp.isNumber()) {
 				logFailure(expiresIn);
 				throw error("expires_in, is not a Number!");
 			}
-			
+
 		} catch (IllegalStateException ex) {
 			logFailure(expiresIn);
 			throw error("expires_in, is not a primitive!");
 		}
-		
+
 		logSuccess("expires_in passed all validation checks",expiresIn);
 		return env;
 

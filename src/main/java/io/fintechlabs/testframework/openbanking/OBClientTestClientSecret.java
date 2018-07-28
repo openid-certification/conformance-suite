@@ -243,11 +243,11 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		call(ExtractClientCredentialsFromFormPost.class);
 
 		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
-		
+
 		//call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		call(AuthenticateClientWithClientSecret.class);
-		
+
 		//call(EnsureMatchingClientCertificate.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
@@ -338,7 +338,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 	/**
 	 * OpenBanking account request API
-	 * 
+	 *
 	 * @param requestParts
 	 * @return
 	 */

@@ -29,13 +29,13 @@ var FAPI_UI = {
 		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
 		this.logTemplates.SUMMARY = _.template($('#logDetailTemplate_ResultsSummary').html());
 	},
-	
+
 	loadLogListTemplates: function() {
 		this.logTemplates.LOG_LISTING = _.template($("#logsListingTemplate").html());
 		this.logTemplates.LOG_LISTING_HEADER = _.template($("#logsListingHeader").html());
 		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
 	},
-	
+
 	loadPlanTemplates: function() {
 		this.logTemplates.PLAN_START = _.template($('#planTemplate_PlanStart').html());
 		this.logTemplates.OWNER = _.template($('#planTemplate_Owner').html());
@@ -47,40 +47,40 @@ var FAPI_UI = {
 		this.logTemplates.PLAN_LISTING_HEADER = _.template($("#plansListingHeader").html());
 		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
 	},
-	
+
 	loadImageUploadTemplates: function() {
 		this.logTemplates.PENDING = _.template($('#pendingImageUploader').html());
 		this.logTemplates.EXISTING = _.template($('#existingImage').html());
 		this.logTemplates.SOURCE = _.template($("#logDetailTemplate_Source").html());
 		this.logTemplates.MESSAGE = _.template($("#logDetailTemplate_Message").html());
 	},
-	
+
 	visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
 
 	availableTests : {},
-	
+
 	availablePlans : {},
-	
+
 	running: false,
-	
+
 	status: 'unknown',
-	
+
 	latestTestEntry: undefined,
-	
+
 	reloadPause: 100,
-	
+
 	maxReloadPause: 5000, // cap at ~5s
-	
+
 	resetReloadPause : function() {
 		FAPI_UI.reloadPause = 100; // start at 100ms on reset
 	},
-	
+
 	incrementReloadPause : function() {
-		if (FAPI_UI.reloadPause < FAPI_UI.maxReloadPause) { 
+		if (FAPI_UI.reloadPause < FAPI_UI.maxReloadPause) {
 			FAPI_UI.reloadPause += Math.floor(FAPI_UI.reloadPause / 4); // increment by 25%
 		}
 	},
-	
+
     getUserInfoDiv : function( divToReplace ) {
 		if (!('USER_INFO' in this.logTemplates)) {
 			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());
@@ -112,7 +112,7 @@ var FAPI_UI = {
 				return "";
 		}
 	},
-	
+
 	getResultHelp : function(value) {
 		switch (value ? value.toLowerCase() : undefined) {
 			case "passed":
@@ -125,10 +125,10 @@ var FAPI_UI = {
 				return "The test requires manual review";
 			default:
 				return "";
-				
+
 		}
 	},
-	
+
 	/**
 	 * Takes in a JSON object representing the error from the server and shows an error display
 	 */
@@ -142,27 +142,27 @@ var FAPI_UI = {
 		} else {
 			$('#errorMessage').html('Error from server.');
 		}
-		
+
 		FAPI_UI.hideBusy(); // only one modal at a time
 		$('#errorModal').modal('show');
 	},
-	
+
 	hideError : function() {
 		$('#errorModal').modal('hide');
 	},
-	
+
 	showBusy : function(label, message) {
 		if (!label) {
 			label = "Loading...";
 		}
-		
+
 		$('#loadingLabel').html(_.escape(label));
 		$('#loadingMessage').html(_.escape(message));
-		
+
 		FAPI_UI.hideError(); // only one modal at a time
 		$('#loadingModal').modal('show');
 	},
-	
+
 	hideBusy : function() {
 		$('#loadingModal').modal('hide');
 	},
@@ -207,5 +207,3 @@ var FAPI_UI = {
 	testJSON : {}
 
 };
-
-

@@ -62,7 +62,7 @@ public class SignRequestObject_UnitTest {
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 
 		requestObjectClaims = new JsonParser().parse(
-				"  {\n" + 
+				"  {\n" +
 				"   \"iss\": \"s6BhdRkqt3\",\n" +
 				"   \"aud\": \"https://server.example.com\",\n" +
 				"   \"response_type\": \"code id_token\",\n" +
@@ -107,7 +107,7 @@ public class SignRequestObject_UnitTest {
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.SignRequestObject#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * 
+	 *
 	 * @throws JOSEException,
 	 *             ParseException
 	 */

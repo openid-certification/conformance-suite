@@ -51,11 +51,11 @@ public class CheckServerConfiguration extends AbstractCondition {
 		}
 
 		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer");
-		
+
 		for (String key : lookFor) {
 			ensureString(in, key);
 		}
-		
+
 		logSuccess("Found required server configuration keys", args("keys", lookFor));
 
 		return in;

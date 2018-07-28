@@ -154,7 +154,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
-		
+
 		// validate the secondary MTLS keys
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
@@ -162,7 +162,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		
+
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 
@@ -224,7 +224,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		call(ExtractExpiresInFromTokenEndpointResponse.class);
 		skipIfMissing(new String[] { "expires_in" }, new String[] {}, ConditionResult.INFO,
 				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
@@ -310,7 +310,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 			env.unmapKey("tls");
 			eventLog.endBlock();
-			
+
 			requestProtectedResource();
 
 			call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
@@ -331,7 +331,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-			
+
 			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
 
 			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0)
@@ -356,7 +356,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 			performAuthorizationFlow();
-			
+
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} else {
 
@@ -397,7 +397,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		call(ExtractExpiresInFromTokenEndpointResponse.class);
 		skipIfMissing(new String[] { "expires_in" }, new String[] {}, ConditionResult.INFO,
 				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
@@ -428,7 +428,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		// verify the access token against a protected resource
 
 		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
-		
+
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);

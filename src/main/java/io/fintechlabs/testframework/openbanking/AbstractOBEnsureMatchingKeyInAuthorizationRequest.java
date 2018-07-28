@@ -26,7 +26,7 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 
 		eventLog.startBlock("Second client's keys");
 		env.mapKey("client_jwks", "client_jwks2");
-		
+
 		createAuthorizationRedirect();
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
@@ -37,9 +37,9 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 
 		eventLog.endBlock();
 		env.unmapKey("client_jwks");
-		
+
 		browser.goToUrl(redirectTo);
-		
+
 		setStatus(Status.WAITING);
 	}
 

@@ -50,10 +50,10 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	private String resourceId;
 	@Value("${oauth.resource_secret}")
 	private String resourceSecret;
-	
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		
+
 		// @formatter:off
 
 		http
@@ -79,12 +79,12 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	 */
 	@Bean
 	public Filter oauth2Filter() {
-		
+
 		OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
 		filter.setAuthenticationManager(oauthAuthenticationManager());
 		filter.setAuthenticationEntryPoint(restAuthenticationEntryPoint());
 		filter.setStateless(false);
-		
+
 		return filter;
 	}
 
@@ -94,13 +94,13 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public AuthenticationManager oauthAuthenticationManager() {
 		OAuth2AuthenticationManager oAuth2AuthenticationManager = new OAuth2AuthenticationManager();
-		
+
 		oAuth2AuthenticationManager.setTokenServices(tokenServices());
-		
+
 		return oAuth2AuthenticationManager;
-		
+
 	}
-	
+
 	@Bean
 	@Primary
 	public ResourceServerTokenServices tokenServices() {
@@ -145,7 +145,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 		return resource;
 
 	}
-	
+
 	@Bean
 	public RestAuthenticationEntryPoint restAuthenticationEntryPoint() {
 		return new RestAuthenticationEntryPoint();

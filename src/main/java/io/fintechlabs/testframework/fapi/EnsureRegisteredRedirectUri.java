@@ -73,7 +73,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 
-		// create a random redirect URI 
+		// create a random redirect URI
 		callAndStopOnFailure(CreateBadRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -147,7 +147,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		logIncomingHttpRequest(path, requestParts);
-		
+
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 

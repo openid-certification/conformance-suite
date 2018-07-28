@@ -125,7 +125,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * 
+	 *
 	 * @throws UnsupportedEncodingException
 	 */
 	@Test
@@ -159,7 +159,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * 
+	 *
 	 * @throws UnsupportedEncodingException
 	 */
 	@Test

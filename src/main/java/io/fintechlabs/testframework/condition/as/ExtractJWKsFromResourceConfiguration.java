@@ -66,9 +66,9 @@ public class ExtractJWKsFromResourceConfiguration extends AbstractCondition {
 		try {
 			JWKSet parsed = JWKSet.parse(jwks.toString());
 			JWKSet pub = parsed.toPublicJWKSet();
-			
+
 			JsonObject pubObj = (new JsonParser().parse(pub.toString())).getAsJsonObject();
-			
+
 			logSuccess("Extracted resource JWK", args("resource_jwks", jwks, "public_resource_jwks", pubObj));
 
 			env.put("resource_jwks", jwks.getAsJsonObject());
@@ -76,7 +76,7 @@ public class ExtractJWKsFromResourceConfiguration extends AbstractCondition {
 
 			return env;
 
-			
+
 		} catch (ParseException e) {
 			throw error("Invalid JWKs in resource configuration, JWKS parsing failed", e, args("resource_jwks", jwks));
 		}

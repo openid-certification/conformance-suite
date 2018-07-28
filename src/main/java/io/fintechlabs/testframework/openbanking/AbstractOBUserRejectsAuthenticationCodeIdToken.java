@@ -30,13 +30,13 @@ public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends Abs
 
 	@Override
 	protected Object onAuthorizationCallbackResponse() {
-		
+
 		callAndStopOnFailure(ValidateUserRejectsAuthorizationParametersCorrect.class, "OIDCC-3.1.2.6");
-		
+
 		setResult(Result.PASSED);
 		fireTestFinished();
-		
+
 		return redirectToLogDetailPage();
-	}	
-	
+	}
+
 }

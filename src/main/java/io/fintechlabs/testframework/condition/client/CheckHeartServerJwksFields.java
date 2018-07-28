@@ -50,11 +50,11 @@ public class CheckHeartServerJwksFields extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject jwks = env.get("server_jwks");
-		
+
 		JsonArray keys = jwks.get("keys").getAsJsonArray();
 
 		List<String> required = ImmutableList.of("kid", "alg", "kty");
-		
+
 		for (JsonElement e : keys) {
 			JsonObject key = e.getAsJsonObject();
 
@@ -64,9 +64,9 @@ public class CheckHeartServerJwksFields extends AbstractCondition {
 				}
 			}
 		}
-		
+
 		logSuccess("All keys contain required field", args("required", required));
-		
+
 		return env;
 	}
 

@@ -49,7 +49,7 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
 public class DBTestInfoService implements TestInfoService {
 
 	public static final String COLLECTION = "TEST_INFO";
-	
+
 	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
 
 	@Value("${fintechlabs.version}")
@@ -60,7 +60,7 @@ public class DBTestInfoService implements TestInfoService {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
-	
+
 	@Autowired
 	private TestPlanService testPlanService;
 
@@ -106,7 +106,7 @@ public class DBTestInfoService implements TestInfoService {
 			.add("version", version);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
-		
+
 		if (planId != null) {
 			testPlanService.updateTestPlanWithModule(planId, testName, id);
 		}

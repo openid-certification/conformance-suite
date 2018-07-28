@@ -63,7 +63,7 @@ public class ImageAPI {
 
 	@Autowired
 	private TestRunnerSupport testRunnerSupport;
-	
+
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
@@ -71,14 +71,14 @@ public class ImageAPI {
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
 		@PathVariable(name = "id") String testId,
 		@RequestParam(name = "description", required = false) String description) throws IOException {
-		
+
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
 			String entryId = testId + "-" + RandomStringUtils.randomAlphanumeric(32);
-			
+
 			// create a new entry in the database
 			BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 				.add("_id", entryId)
@@ -90,7 +90,7 @@ public class ImageAPI {
 				.add("img", encoded);
 
 			mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
-			
+
 			DBObject updated = mongoTemplate.getCollection(DBEventLog.COLLECTION).findOne(entryId);
 
 			// an image was uploaded, the test needs to be reviewed
@@ -127,21 +127,21 @@ public class ImageAPI {
 			update.set("img", encoded);
 
 			DBObject result = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
-			
+
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
-			
+
 			// check to see if all placeholders are set by searching for any remaining ones on this test
 			Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
-			
-			
+
+
 			Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
 			Query search = Query.query(postSearch);
 			List<DBObject> remainingPlaceholders = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
-			
+
 			if (remainingPlaceholders.size() == 0) {
 				// there aren't any placeholders left on this test, update its status
-				
+
 				// first, see if it's currently running; if so we update the running object
 				TestModule test = testRunnerSupport.getRunningTestById(testId);
 				if (test != null) {
@@ -152,49 +152,49 @@ public class ImageAPI {
 					testInfoService.updateTestStatus(testId, Status.FINISHED);
 				}
 			}
-			
+
 			return new ResponseEntity<>(result, HttpStatus.OK);
 
 		} else {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
-		
+
 	}
-	
+
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<Object> getAllImages(@PathVariable(name = "id") String testId) {
-		
+
 		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
-		
+
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
-			
+
 			Criteria findTestId = Criteria.where("testId").is(testId);
-			
+
 			Criteria anyImages =
 				new Criteria().orOperator(
 					Criteria.where("img").exists(true),
 					Criteria.where("upload").exists(true)
 				);
-			
+
 			// add in the security parameters
 			Criteria criteria = createCriteria(findTestId, anyImages);
-			
+
 			Query search = Query.query(criteria);
-			
+
 			List<DBObject> images = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject())
 				.sort(BasicDBObjectBuilder.start()
 					.add("time", 1)
 					.get())
 				.toArray();
-			
+
 			return new ResponseEntity<>(images, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
-		
+
 	}
 
 	/**
@@ -208,7 +208,7 @@ public class ImageAPI {
 		} else {
 			// otherwise we need to do it directly in the database
 			testInfoService.updateTestResult(testId, Result.REVIEW);
-		}		
+		}
 	}
 
 	// Create a Criteria with or without the security constraints as needed

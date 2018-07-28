@@ -30,7 +30,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 	private long nowSeconds;
 
 	private String resourceId;
-	
+
 	private String serverIssuer;
 
 	private JsonObject server;
@@ -54,7 +54,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 		resourceId = "resource-id-1";
 
 		serverIssuer = "https://idp.example.com/";
-		
+
 		server = new JsonParser().parse("{"
 			+ "\"issuer\":\"" + serverIssuer + "\","
 			+ "\"introspection_endpoint\":\"" + serverIssuer + "introspect\""

@@ -62,7 +62,7 @@ public class LogApi {
 
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
 	private String baseUrl;
-	
+
 	@Value("${fintechlabs.version}")
 	private String version;
 
@@ -74,7 +74,7 @@ public class LogApi {
 
 	@Autowired
 	private KeyManager keyManager;
-	
+
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -113,10 +113,10 @@ public class LogApi {
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
 		List<DBObject> results = getTestResults(id, since);
-		
+
 		return ResponseEntity.ok().body(results);
 	}
-	
+
 	@GetMapping(value = "/log/export/{id}", produces = "application/x-gtar")
 	public ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id) {
 		List<DBObject> results = getTestResults(id);
@@ -138,16 +138,16 @@ public class LogApi {
 		HttpHeaders headers = new HttpHeaders();
 
 		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".tar.bz2\"");
-	
+
 		final Map<String, Object> export = new HashMap<>();
-		
+
 		export.put("exportedAt", new Date());
 		export.put("exportedFrom", baseUrl);
 		export.put("exportedBy", authenticationFacade.getPrincipal());
 		export.put("exportedVersion", version);
 		export.put("testInfo", testInfo);
 		export.put("results", results);
-		
+
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
 			@Override
@@ -155,39 +155,39 @@ public class LogApi {
 
 				try {
 					BZip2CompressorOutputStream compressorOutputStream = new BZip2CompressorOutputStream(out);
-					
+
 					TarArchiveOutputStream archiveOutputStream = new TarArchiveOutputStream(compressorOutputStream);
-					
+
 					TarArchiveEntry testLog = new TarArchiveEntry("test-log-" + id + ".json");
 
 					Signature signature = Signature.getInstance("SHA1withRSA");
 					signature.initSign(keyManager.getSigningPrivateKey());
-					
+
 					SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
-					
+
 					String json = gson.toJson(export);
-					
+
 					testLog.setSize(json.getBytes().length);
 					archiveOutputStream.putArchiveEntry(testLog);
-					
+
 					signatureOutputStream.write(json.getBytes());
 
 					signatureOutputStream.flush();
 					signatureOutputStream.close();
-					
+
 					archiveOutputStream.closeArchiveEntry();
-					
+
 					TarArchiveEntry signatureFile = new TarArchiveEntry("test-log-" + id + ".sig");
-					
+
 					String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
 					signatureFile.setSize(encodedSignature.getBytes().length);
-					
+
 					archiveOutputStream.putArchiveEntry(signatureFile);
-					
+
 					archiveOutputStream.write(encodedSignature.getBytes());
-					
+
 					archiveOutputStream.closeArchiveEntry();
-					
+
 					archiveOutputStream.close();
 				} catch (Exception ex) {
 					throw new IOException(ex);
@@ -209,15 +209,15 @@ public class LogApi {
 	private List<DBObject> getTestResults(String id, Long since) {
 		Criteria criteria = new Criteria();
 		criteria.and("testId").is(id);
-		
+
 		if (!authenticationFacade.isAdmin()) {
 			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
 		}
-		
+
 		if (since != null) {
 			criteria.and("time").gt(since);
 		}
-		
+
 		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(criteria.getCriteriaObject())
 			.sort(BasicDBObjectBuilder.start()
 				.add("time", 1)
@@ -264,13 +264,13 @@ public class LogApi {
 			}
 		}
 
-		public void flush() 
+		public void flush()
 			throws IOException
 		{
 			target.flush();
 		}
 
-		public void close() 
+		public void close()
 			throws IOException
 		{
 			// we don't close the target stream when we're done because we might keep writing to it later

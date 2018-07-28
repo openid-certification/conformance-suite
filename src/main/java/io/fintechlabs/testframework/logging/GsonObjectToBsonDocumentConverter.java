@@ -31,16 +31,16 @@ import com.mongodb.util.JSON;
 
 /**
  * Convert JsonObjects from GSON into a BSON Document, wrapping problematic keys with a conversion as follows:
- * 
+ *
  *    "a.b": "foo"
- *   
+ *
  *  becomes:
- *  
+ *
  *    "__wrapped_key_element": {
  *      "key": "a.b",
  *      "value": "foo"
  *    }
- * 
+ *
  * @author jricher
  *
  */

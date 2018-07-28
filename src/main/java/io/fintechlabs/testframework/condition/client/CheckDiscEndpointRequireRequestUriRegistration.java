@@ -42,5 +42,3 @@ public class CheckDiscEndpointRequireRequestUriRegistration extends ValidateJson
 	}
 
 }
-
-

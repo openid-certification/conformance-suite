@@ -40,11 +40,11 @@ public class CopyAccessTokenFromASToClient_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject accessToken;
-	
+
 	private String accessTokenValue;
-	
+
 	private String tokenType;
-	
+
 	private CopyAccessTokenFromASToClient cond;
 
 	/**
@@ -57,10 +57,10 @@ public class CopyAccessTokenFromASToClient_UnitTest {
 
 		accessTokenValue = "foo1234556";
 		tokenType = "Bearer";
-		
-		accessToken = new JsonParser().parse("{\n" + 
+
+		accessToken = new JsonParser().parse("{\n" +
 				"\"type\": \"" + tokenType + "\",\n" +
-				"\"value\": \"" + accessTokenValue + "\"\n" + 
+				"\"value\": \"" + accessTokenValue + "\"\n" +
 			"}").getAsJsonObject();
 
 	}
@@ -74,9 +74,9 @@ public class CopyAccessTokenFromASToClient_UnitTest {
 		cond.evaluate(env);
 
 		JsonObject res = env.get("access_token");
-		
+
 		assertEquals(accessToken, res);
-		
+
 	}
 
 

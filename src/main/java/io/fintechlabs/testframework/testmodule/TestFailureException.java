@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.condition.ConditionError;
 public class TestFailureException extends RuntimeException {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 7168979969763096442L;
 
@@ -35,7 +35,7 @@ public class TestFailureException extends RuntimeException {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public TestFailureException(String testId, String msg) {
 		super(new ConditionError(testId, msg));

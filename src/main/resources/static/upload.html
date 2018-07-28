@@ -35,7 +35,7 @@
 		var testId = urlParams.get('log');
 
 		FAPI_UI.showBusy();
-		
+
 		$.when(FAPI_UI.loadImageUploadTemplates()) // load the templates
 		.then(function() {
 			return FAPI_UI.getUserInfoDiv('#userInfoDiv'); // then get the current user
@@ -107,7 +107,7 @@
 
 		});
 
-	
+
 	function loadImagesForLog(testId) {
 		return $.ajax({
 			type: 'GET',
@@ -127,31 +127,31 @@
 						});
 					}
 				});
-				
+
 				// wire up the buttons on all the image uploaders
 				$('[data-upload-id]').each(function() {
 					var el = $(this);
-					
+
 					$('[type="file"]', el).change(function(evt) {
 						var reader = new FileReader();
 
 						reader.onload = function(evt) {
 							// once it's loaded from the file, preview it and enable the upload button
-							
+
 							var content = evt.target.result;
 							$('.imagePreview', el).prop('src', content);
-							
+
 							$('.uploadBtn', el)
 								.prop('disabled', false)
 								.removeClass('btn-default')
 								.addClass('btn-success');
-							
+
 						};
 
 						// this reads the file data and triggers the 'onload' function above
 						reader.readAsDataURL($(this).prop('files')[0]);
 					});
-					
+
 					$('.uploadBtn', el).click(function(evt) {
 						evt.preventDefault();
 
@@ -166,7 +166,7 @@
 							success: function(data) {
 								// on a successful upload, replace the old element with a new one
 								el.replaceWith(FAPI_UI.logTemplates.EXISTING({item: data}));
-							}, 
+							},
 							error: function(jqxhr, status, error) {
 								FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 									error: error
@@ -176,33 +176,33 @@
 
 					});
 				});
-				
+
 				// wire up the buttons on the "add a new image" panel
 				$('#additionalUploader [type="file"]').change(function(evt) {
 					var reader = new FileReader();
 
 					reader.onload = function(evt) {
 						// once it's loaded from the file, preview it and enable the upload button
-						
+
 						var content = evt.target.result;
 						$('#additionalUploader .imagePreview').prop('src', content);
-						
+
 						$('#additionalUploader .uploadBtn')
 							.prop('disabled', false)
 							.removeClass('btn-default')
 							.addClass('btn-success');
-						
+
 					};
 
 					// this reads the file data and triggers the 'onload' function above
 					reader.readAsDataURL($(this).prop('files')[0]);
 				});
-				
+
 				$('#additionalUploader .uploadBtn').click(function(evt) {
 					evt.preventDefault();
 
 					var desc = $('#additionalUploader #uploadDescription').val();
-					
+
 					var url = "/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
 
 					$.ajax({
@@ -214,17 +214,17 @@
 						success: function(data) {
 							// on a successful upload, append the new log entry to the display
 							$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: data}));
-							
+
 							// reset the form
 							$('#additionalUploader .uploadBtn')
 								.prop('disabled', true)
 								.removeClass('btn-success')
 								.addClass('btn-default');
-							
+
 							$('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
-							
+
 							$('#additionalUploader [type="file"]').val('');
-						}, 
+						},
 						error: function(jqxhr, status, error) {
 							FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 								error: error
@@ -233,22 +233,22 @@
 					});
 
 				});
-				
+
 				// wire up paste support
 				$('body').on('paste', function(e) {
-					
+
 					var reader = new FileReader();
 
 					reader.onload = function(evt) {
 						var content = evt.target.result;
-						
+
 						// find the first image preview in the document -- this will either be the top placeholder or the "add an additional image" block if there are no placeholders
 						// note that "existing image" viewers don't have the "imagePasteTarget" class on them and therefore don't show up in this query
-						
+
 						var target = $('.imagePasteTarget').first();
-						
+
 						target.prop('src', content);
-						
+
 						$('.uploadBtn', target.parents('.logItem'))
 							.prop('disabled', false)
 							.removeClass('btn-default')
@@ -264,8 +264,8 @@
 					});
 
 				});
-				
-			}, 
+
+			},
 			error: function(jqxhr, status, error) {
 				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 					error: error
@@ -330,7 +330,7 @@
 
 	<div class="logContent container-fluid">
 		<div id="imageBlocks">
-		
+
 		</div>
 
 		<div class="row">
@@ -348,7 +348,7 @@
 						<label class="btn btn-default">
 							<span class="glyphicon glyphicon-camera"></span> Select File</input>
     							<input type="file" hidden>
-						</label>					
+						</label>
 						<button class="btn btn-default uploadBtn" disabled>Upload</button>
 					</div>
 				</div>
@@ -388,11 +388,11 @@
 						<% if (item.msg) { %>
 							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
 						<% } %>
-						
+
 						<label class="btn btn-default">
 							<span class="glyphicon glyphicon-camera"></span> Select File</input>
     							<input type="file" hidden>
-						</label>					
+						</label>
 						<button class="btn btn-default uploadBtn" disabled>Upload</button>
 					</div>
 				</div>

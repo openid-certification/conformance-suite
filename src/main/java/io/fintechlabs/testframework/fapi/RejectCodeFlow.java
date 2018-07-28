@@ -187,7 +187,7 @@ public class RejectCodeFlow extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		logIncomingHttpRequest(path, requestParts);
-		
+
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 
 	}

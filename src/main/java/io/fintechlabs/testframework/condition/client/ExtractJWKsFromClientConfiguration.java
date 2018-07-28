@@ -66,9 +66,9 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 		try {
 			JWKSet parsed = JWKSet.parse(jwks.toString());
 			JWKSet pub = parsed.toPublicJWKSet();
-			
+
 			JsonObject pubObj = (new JsonParser().parse(pub.toString())).getAsJsonObject();
-			
+
 			logSuccess("Extracted client JWK", args("client_jwks", jwks, "public_client_jwks", pubObj));
 
 			env.put("client_jwks", jwks.getAsJsonObject());
@@ -76,7 +76,7 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 
 			return env;
 
-			
+
 		} catch (ParseException e) {
 			throw error("Invalid JWKs in client configuration, JWKS parsing failed", e, args("client_jwks", jwks));
 		}

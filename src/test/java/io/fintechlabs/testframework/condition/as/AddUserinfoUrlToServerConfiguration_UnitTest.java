@@ -40,7 +40,7 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject server;
-	
+
 	private String baseUrl;
 
 	private AddUserinfoUrlToServerConfiguration cond;
@@ -53,11 +53,11 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 
 		cond = new AddUserinfoUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		server = new JsonParser().parse("{\n" + 
+		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();
 
 		baseUrl = "https://example.com/baseurl";
-		
+
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 		env.putString("base_url", baseUrl);
 
 		cond.evaluate(env);
-		
+
 		assertEquals(baseUrl + "/userinfo", env.getString("server", "userinfo_endpoint"));
 	}
 
@@ -78,7 +78,7 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 		env.putString("base_url", baseUrl + "/");
 
 		cond.evaluate(env);
-		
+
 		assertEquals(baseUrl + "/userinfo", env.getString("server", "userinfo_endpoint"));
 	}
 

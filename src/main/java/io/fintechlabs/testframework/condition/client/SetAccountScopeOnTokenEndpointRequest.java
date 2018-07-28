@@ -50,13 +50,13 @@ public class SetAccountScopeOnTokenEndpointRequest extends AbstractCondition {
 
 		// overwrite anyhing that's already there
 		tokenEndpointRequest.addProperty("scope", "accounts");
-		
+
 		logSuccess("Set scope paramter to accounts for OB testing", tokenEndpointRequest);
-		
+
 		env.put("token_endpoint_request_form_parameters", tokenEndpointRequest);
-		
+
 		return env;
-		
+
 	}
 
 }

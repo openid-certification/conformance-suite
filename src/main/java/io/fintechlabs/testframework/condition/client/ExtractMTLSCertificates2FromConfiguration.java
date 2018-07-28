@@ -30,7 +30,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class ExtractMTLSCertificates2FromConfiguration extends AbstractCondition {
 
 	private static final Pattern PEM_PATTERN = Pattern.compile("^-----BEGIN [^-]+-----$(.*?)^-----END [^-]+-----$", Pattern.MULTILINE | Pattern.DOTALL);
-	
+
 	/**
 	 * @param testId
 	 * @param log

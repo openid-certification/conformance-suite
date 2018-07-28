@@ -15,7 +15,7 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
 	<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
-	
+
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
@@ -29,9 +29,9 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-    
+
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-    
+
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
 </head>
@@ -95,7 +95,7 @@
                 <div class="col-md-1">
                     <!-- toggle selector for launch type, multi test by default -->
                     <input data-toggle="toggle"
-                        data-on="Single Test" data-off="Multi Test Plan" 
+                        data-on="Single Test" data-off="Multi Test Plan"
                         data-onstyle="info" data-offstyle="primary"
                         data-style="btn-block"
                         data-width="auto" data-height="auto"
@@ -216,7 +216,7 @@
                                     </div>
                                 </div>
 							</div>
-							
+
 							<div class="config-form-container">
 							     <h3 class="config-form-container-header">FAPI Client Information</h3>
 							     <div class="row config-form-element-container">
@@ -472,7 +472,7 @@
         </div>
 
     </script>
-    
+
     <!-- result/status block -->
     <script type="text/template" id="logTemplate_TestStatusAndResult">
         <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
@@ -492,7 +492,7 @@
 		$(function() {
 
             FAPI_UI.showBusy('Loading available tests...');
-			
+
 			$.when(FAPI_UI.loadHomepageTemplates()).then(function() {
 				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
 			}).then(function() {
@@ -534,7 +534,7 @@
                 });
             });
 		}
-		
+
 		function loadAvailablePlans() {
 			return $.getJSON('/plan/available', function(data) {
 				FAPI_UI.availablePlans = _.indexBy(data, 'planName');
@@ -543,15 +543,15 @@
 				var groupedPlans = _.groupBy(data, 'profile');
 				// consistent ordering for plans
 				var profiles = _.keys(groupedPlans).sort();
-				
+
 				// render all the plans into the dropdown
 				_.each(profiles, function(profile) {
-					
+
 					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
 						label: profile
 					}));
 					$('#planSelect').append(optGroup);
-					
+
 					// note that we're sorting the plans within each group as well
 					_.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
 						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
@@ -560,10 +560,10 @@
 						}));
 					});
 				});
-				
+
 			});
 		}
-		
+
 		function loadIndexPage() {
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 
@@ -608,10 +608,10 @@
 					}
 				});
 			});
-			
+
 			$('#createPlanBtn').click(function(evt) {
 				var planName = $('#planSelect').val();
-				
+
 				// if the user hasn't picked anything, just bail
 				if (!planName || planName == 'select') {
 					FAPI_UI.showError({
@@ -628,7 +628,7 @@
                 }
 
                 FAPI_UI.showBusy('Creating plan...');
-                
+
                 $.ajax({
                 	   url: '/plan?planName=' + encodeURIComponent(planName),
                 	   type: 'POST',
@@ -651,7 +651,7 @@
 			// update field visibility when the selectors change
 			$('#testSelect').on('change', updateConfigFieldVisibility);
 			$('#planSelect').on('change', updateConfigFieldVisibility);
-			
+
 			// update the config visibility right now
 			updateConfigFieldVisibility();
 
@@ -678,16 +678,16 @@
 
 			// sync the JSON at least once
 			updateFormElementsFromJSON();
-			
+
 			// update the test/plan components on the toggle switch
 			$('#singleTestSelector').on('change', updateSingleTestSelector);
 			// refresh right now
 			updateSingleTestSelector();
-			
+
             FAPI_UI.hideBusy();
 
 		}
-		
+
 		function updateSingleTestSelector() {
             if ($('#singleTestSelector').is(':checked')) {
                 // single test selected
@@ -706,11 +706,11 @@
 		}
 
 		function updateConfigFieldVisibility() {
-			
+
             if ($('#singleTestSelector').is(':checked')) {
             	   // single test selected
 				var testName = $('#testSelect').val();
-	
+
 				// if the user hasn't picked anything, disable the create button
 				if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
 					//console.log("No test selected");
@@ -721,7 +721,7 @@
 					// enable the create button
 					$('#createTestBtn').prop('disabled', false);
 				}
-	
+
 				if (!fieldsToShow) {
 					// the test hasn't defined anything, set a default
 					fieldsToShow = [];
@@ -736,12 +736,12 @@
             		   $('#createPlanBtn').prop('disabled', true);
             	   } else {
             		   var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
-            		   
+
             		   // add in any fields from the associated modules
         			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
         				    fieldsToShow = _.unique(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
         			   });
-            		   
+
             		   $('#createPlanBtn').prop('disabled', false);
             	   }
             }
@@ -816,9 +816,9 @@
 					window.open('/log-detail.html?log=' + encodeURIComponent(testId));
 				});
 			}).then(function() {
-				
+
 				var _self =  $(`[data-instance-id='${testId}']`);
-				
+
 				return $.ajax({
                     type: 'GET',
                     url: '/info/' + encodeURIComponent(testId),

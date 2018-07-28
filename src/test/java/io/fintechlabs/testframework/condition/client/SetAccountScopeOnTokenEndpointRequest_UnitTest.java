@@ -41,7 +41,7 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 	private SetAccountScopeOnTokenEndpointRequest cond;
 
 	private JsonObject tokenEndpointRequest = new JsonObject();
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -49,9 +49,9 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 	public void setUp() throws Exception {
 
 		cond = new SetAccountScopeOnTokenEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
+
 		env.put("token_endpoint_request_form_parameters", tokenEndpointRequest);
-		
+
 	}
 
 	/**

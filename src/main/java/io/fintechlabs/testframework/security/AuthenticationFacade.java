@@ -12,11 +12,11 @@ public interface AuthenticationFacade {
 	ImmutableMap<String, String> getPrincipal();
 
 	String getDisplayName();
-	
+
 	UserInfo getUserInfo();
 
 	void setLocalAuthentication(Authentication a);
 
 	Authentication getContextAuthentication();
-	
+
 }

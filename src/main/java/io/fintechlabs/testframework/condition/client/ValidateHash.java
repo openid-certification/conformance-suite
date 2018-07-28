@@ -17,13 +17,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
 import com.google.common.base.Strings;
 
 public abstract class ValidateHash extends AbstractCondition {
-	
+
 	public ValidateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	public Environment validateHash(Environment env, String hashName, String envName ) {
-		
+
 		JsonObject hashJson = env.get(envName);
 		if (hashJson == null) {
 			throw error("Couldn't find " + hashName);
@@ -31,7 +31,7 @@ public abstract class ValidateHash extends AbstractCondition {
 
 		JsonElement algElement= hashJson.get("alg");
 		if (algElement == null) {
-			throw error("Could not find alg field."); 
+			throw error("Could not find alg field.");
 		}
 
 		JsonElement hashElement = hashJson.get(hashName);
@@ -39,14 +39,14 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Could not find " + hashName + " field.");
 		}
 
-		
+
 		String alg = null;
-		String hash = null; 
-		
+		String hash = null;
+
 		if (algElement.isJsonPrimitive()) {
 			alg = algElement.getAsString();
 		}
-		
+
 		if (hashElement.isJsonPrimitive()) {
 			hash = hashElement.getAsString();
 		}
@@ -54,11 +54,11 @@ public abstract class ValidateHash extends AbstractCondition {
 		if (Strings.isNullOrEmpty(alg)) {
 			throw error("Alg is null or empty. Invalid");
 		}
-		
+
 		if (Strings.isNullOrEmpty(hash)) {
 			throw error(hashName + " element is null or empty. Invalid");
 		}
-		
+
 		String baseString = getBaseStringBasedOnType(env, hashName);
 
 		MessageDigest digester;
@@ -89,11 +89,11 @@ public abstract class ValidateHash extends AbstractCondition {
 
 		return env;
 	}
-	
+
 	private String getBaseStringBasedOnType(Environment env, String hashName) {
 
 		String baseString = null;
-		
+
 		switch (hashName) {
 			case "s_hash":
 				baseString = env.getString("state");
@@ -102,9 +102,9 @@ public abstract class ValidateHash extends AbstractCondition {
 				}
 				break;
 			case "at_hash":
-				JsonObject accessToken = env.get("access_token"); 
+				JsonObject accessToken = env.get("access_token");
 				if (accessToken == null) {
-					throw error("Could not get access_token object..."); 
+					throw error("Could not get access_token object...");
 				}
 				baseString = accessToken.get("value").getAsString();
 				break;

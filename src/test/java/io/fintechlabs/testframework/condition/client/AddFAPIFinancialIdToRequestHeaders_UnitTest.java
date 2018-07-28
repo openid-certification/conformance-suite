@@ -30,9 +30,9 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private AddFAPIFinancialIdToResourceEndpointRequest cond;
-	
+
 	private JsonObject client;
-	
+
 	private String financialId;
 
 	/**
@@ -42,15 +42,15 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	public void setUp() throws Exception {
 
 		cond = new AddFAPIFinancialIdToResourceEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
-		
+
+
 		// create a random financial ID so we know it's getting copied
 		financialId = RandomStringUtils.randomAlphanumeric(30);
-		
+
 		client = new JsonObject();
 		client.addProperty("fapi_financial_id", financialId);
-		
-		
+
+
 	}
 
 	/**
@@ -59,15 +59,15 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	public void testEvaluate() {
 
 		env.put("client", client);
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject req = env.get("resource_endpoint_request_headers");
-		
+
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
 		assertEquals(financialId, req.get("x-fapi-financial-id").getAsString());
-	
+
 	}
 
 	@Test
@@ -75,15 +75,15 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		env.put("client", client);
 		env.put("resource_endpoint_request_headers",	new JsonObject());
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject req = env.get("resource_endpoint_request_headers");
-		
+
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
 		assertEquals(financialId, req.get("x-fapi-financial-id").getAsString());
-	
+
 	}
 
 	@Test
@@ -91,24 +91,24 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		env.put("client", client);
 		env.put("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject req = env.get("resource_endpoint_request_headers");
-		
+
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
 		assertEquals(financialId, req.get("x-fapi-financial-id").getAsString());
-	
+
 	}
 
-	
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noFinancialId() {
-		
+
 		env.put("client", new JsonObject());
-		
+
 		cond.evaluate(env);
-		
+
 	}
 }

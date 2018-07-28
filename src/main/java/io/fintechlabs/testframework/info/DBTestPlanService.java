@@ -51,7 +51,7 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 public class DBTestPlanService implements TestPlanService {
 
 	public static final String COLLECTION = "TEST_PLAN";
-	
+
 	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
 
 	@Value("${fintechlabs.version}")
@@ -70,7 +70,7 @@ public class DBTestPlanService implements TestPlanService {
 	 */
 	@Override
 	public void updateTestPlanWithModule(String planId, String testName, String id) {
-		
+
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(planId);
 		criteria.and("modules.testModule").is(testName);
@@ -81,8 +81,8 @@ public class DBTestPlanService implements TestPlanService {
 		update.push("modules.$.instances", id);
 
 		mongoTemplate.updateFirst(query, update, COLLECTION);
-		
-		
+
+
 	}
 
 	/* (non-Javadoc)
@@ -101,20 +101,20 @@ public class DBTestPlanService implements TestPlanService {
 			.add("owner", owner)
 			.add("description", description)
 			.add("version", version);
-		
+
 		List<DBObject> moduleStructure = new ArrayList<>();
-		
+
 		for (String module : testModules) {
 			BasicDBObjectBuilder moduleBuilder = BasicDBObjectBuilder.start()
 				.add("testModule", module)
 				.add("instances", Collections.emptyList());
-			
+
 			moduleStructure.add(moduleBuilder.get());
 		}
-		
+
 		documentBuilder.add("modules", moduleStructure);
-	
-		
+
+
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
 
@@ -125,15 +125,15 @@ public class DBTestPlanService implements TestPlanService {
 	public Map getTestPlan(String id) {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
-		
+
 		if (!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
 		Query query = new Query(criteria);
-		
+
 		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject());
-		
+
 		if (testPlan == null) {
 			return null;
 		} else {
@@ -146,19 +146,19 @@ public class DBTestPlanService implements TestPlanService {
 	 */
 	@Override
 	public List<Map> getAllPlansForCurrentUser() {
-		
+
 		Criteria criteria = new Criteria();
-		
+
 		if (!authenticationFacade.isAdmin()) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
 		Query query = new Query(criteria);
-		
+
 		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).toArray();
 
 		return results.stream().map(e -> e.toMap()).collect(Collectors.toList());
-		
+
 	}
 
 

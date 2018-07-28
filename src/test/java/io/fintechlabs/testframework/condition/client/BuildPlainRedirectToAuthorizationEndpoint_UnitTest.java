@@ -77,7 +77,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 * 
+	 *
 	 * @throws UnsupportedEncodingException
 	 */
 	@Test

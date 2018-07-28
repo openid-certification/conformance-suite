@@ -93,7 +93,7 @@ public class SampleTestModule extends AbstractTestModule {
 	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);
 
 	/**
-	 * 
+	 *
 	 */
 	public SampleTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -252,21 +252,21 @@ public class SampleTestModule extends AbstractTestModule {
 
 		/*
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-		
+
 		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
-		
+
 		call(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
-		
+
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
-		
+
 		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
-		
+
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
-		
+
 		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
-		
+
 		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
-		
+
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
 		*/
 
@@ -285,7 +285,7 @@ public class SampleTestModule extends AbstractTestModule {
 
 		/*
 		eventLog.log(getId(), getName() + " MTLS Routing", requestParts.get("headers").getAsJsonObject());
-		
+
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 		*/
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");

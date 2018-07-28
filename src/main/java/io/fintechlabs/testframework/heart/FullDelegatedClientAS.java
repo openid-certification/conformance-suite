@@ -95,7 +95,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 	public static Logger logger = LoggerFactory.getLogger(FullDelegatedClientAS.class);
 
 	/**
-	 * 
+	 *
 	 */
 	public FullDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -134,7 +134,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
-		
+
 		callAndStopOnFailure(CreateJwksUri.class);
 		exposeEnvString("jwks_uri");
 
@@ -247,13 +247,13 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-		
+
 		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-		
+
 		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-		
+
 		call(CheckForScopesInTokenResponse.class);
 
 		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
@@ -273,7 +273,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 		/*
 		eventLog.log(getId(), getName() + " MTLS Routing", requestParts.get("headers").getAsJsonObject());
-		
+
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 		*/
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");

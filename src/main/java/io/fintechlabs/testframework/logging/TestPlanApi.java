@@ -56,7 +56,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
  */
 @Controller
 public class TestPlanApi {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(TestPlanApi.class);
 
 	private Supplier<Map<String, TestPlanHolder>> testPlanSupplier = Suppliers.memoize(this::findTestPlans);
@@ -66,22 +66,22 @@ public class TestPlanApi {
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> createTestPlan(@RequestParam("planName") String planName, @RequestBody JsonObject config, Model m) {
-		
+
 		String id = RandomStringUtils.randomAlphanumeric(13);
-		
+
 		TestPlanHolder holder = getTestPlans().get(planName);
-		
+
 		if (holder == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		
+
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
 			description = config.get("description").getAsString();
 		}
 
 		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames());
-		
+
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
 		map.put("id", id);
@@ -89,19 +89,19 @@ public class TestPlanApi {
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
 	}
-	
+
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getTestPlansForCurrentUser() {
 
 		List<Map> allPlans = planService.getAllPlansForCurrentUser();
-		
+
 		return new ResponseEntity<>(allPlans, HttpStatus.OK);
-		
+
 	}
-	
+
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getTestPlan(@PathVariable("id") String id) {
-		
+
 		Map testPlan = planService.getTestPlan(id);
 
 		if (testPlan != null) {
@@ -109,28 +109,28 @@ public class TestPlanApi {
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		
+
 	}
-	
+
 	@GetMapping(value = "plan/info/{planName}")
 	public ResponseEntity<Object> getTestPlanInfo(@PathVariable("planName") String planName) {
 		TestPlanHolder holder = getTestPlans().get(planName);
-		
+
 		if (holder != null) {
-			
+
 				Map map = ImmutableMap.of(
 					"planName", holder.a.testPlanName(),
 					"displayName", holder.a.displayName(),
 					"profile", holder.a.profile(),
 					"moduleNames", holder.a.testModuleNames(),
 					"configurationFields", holder.a.configurationFields());
-			
+
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
+
 	@GetMapping(value = "plan/available")
 	public ResponseEntity<Object> getAvailableTestPlans() {
 		Set<Map<String, ?>> available = getTestPlans()
@@ -142,17 +142,17 @@ public class TestPlanApi {
 				"moduleNames", e.a.testModuleNames(),
 				"configurationFields", e.a.configurationFields()))
 			.collect(Collectors.toSet());
-		
+
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
 
 	private Map<String, TestPlanHolder> getTestPlans() {
 		return testPlanSupplier.get();
 	}
-	
+
 	private Map<String, TestPlanHolder> findTestPlans() {
 		Map<String, TestPlanHolder> testPlans = new HashMap<>();
-		
+
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestPlan.class));
 		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
@@ -168,9 +168,9 @@ public class TestPlanApi {
 		}
 
 		return testPlans;
-		
+
 	}
-	
+
 	private class TestPlanHolder {
 		public Class<? extends TestPlan> c;
 		public PublishTestPlan a;

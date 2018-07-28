@@ -69,7 +69,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	private String admin_domain;
 	@Value("${oidc.admin.issuer}")
 	private String admin_iss;
-	
+
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(googleClientId);
@@ -181,7 +181,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		
+
 		// @formatter:off
 
 		http.csrf().disable()
@@ -209,5 +209,5 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		}
 	}
 
-   
+
 }

@@ -4,30 +4,30 @@
 <head>
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
-	
+
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<meta charset="UTF-8">
 	<title>FintechLabs: Test Detail</title>
-	
+
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	
+
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
-	
+
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
     <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
-	
+
 	<script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
 
@@ -117,7 +117,7 @@
 
             <div class="well well-sm container-fluid" data-instance-id="<%- test.testId %>">
               <div class="row-fluid" id="logHeader"> <!-- main header -->
-        
+
                 <div class="col-md-2" id="testStatusAndResult"><!-- status and results block -->
 
                 </div>
@@ -135,12 +135,12 @@
                         <div class="col-md-1">Created:</div>
                         <div class="col-md-11"><%- new Date(test.started) %></div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-1">Description:</div>
                         <div class="col-md-11"><%- test.description %></div>
                     </div>
-                    
+
                     <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <div class="row">
                         <div class="col-md-1">Test Owner:</div>
@@ -207,11 +207,11 @@
 	<!-- Log detail element -->
 	<script type="text/template" id="logDetailTemplate">
           <div class="row">
-            <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem"<% 
+            <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem"<%
                 if (item.blockId && item.startBlock) {
-                    %> style="border-left: 3px solid #<%- item.blockId %>; border-top: 3px solid #<%- item.blockId %>;"<% 
-                } else if (item.blockId) { 
-                    %> style="border-left: 3px solid #<%- item.blockId %>"<% 
+                    %> style="border-left: 3px solid #<%- item.blockId %>; border-top: 3px solid #<%- item.blockId %>;"<%
+                } else if (item.blockId) {
+                    %> style="border-left: 3px solid #<%- item.blockId %>"<%
                 } %>>
 
                 <div class="row"><!-- time / result & http / source / owner -->
@@ -224,7 +224,7 @@
                     </div>
 
                     <div class="col-md-1 labelCollection">
-                      <% if (item.result) { %> 
+                      <% if (item.result) { %>
                       <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
                       <% } %>
 
@@ -248,8 +248,8 @@
                     </div>
 
                     <div class="col-md-2">
-                        <% if (item.testOwner 
-                                && (item.testOwner.iss != FAPI_UI.currentUser.iss 
+                        <% if (item.testOwner
+                                && (item.testOwner.iss != FAPI_UI.currentUser.iss
                                     || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
                             <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
                         <% } %>
@@ -350,7 +350,7 @@
 	<!-- More Button -->
 	<script type="text/template" id="logDetailTemplate_MoreButton">
             <button class="btn btn-default btn-xs moreBtn" data-activated="false">
-                <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>  
+                <span class="badge"><%- _.size(more) %></span> More <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
             </button>
         </script>
 
@@ -391,7 +391,7 @@
                         <li><%- v %></li>
                     <% }); %>
                 </ul>
-            <% } else if (jwtRe.exec(value)) { // it's a JWT 
+            <% } else if (jwtRe.exec(value)) { // it's a JWT
                 var jwt = jwtRe.exec(value);
             %>
                     <span class="jwtHeader"><%- jwt[1] %></span><b>.</b><span class="jwtPayload"><%- jwt[2] %></span><b>.</b><span class="jwtSignature"><%- jwt[3] %><%
@@ -525,14 +525,14 @@
 						// we didn't get new data, slow down
 						FAPI_UI.incrementReloadPause();
 					}
-					
+
 					$.each(data, function(i, item) {
 
 					    var existing = $(`[data-item-entry-id='${item._id}']`);
-						
+
 					    // check to see if we've seen it before
 					    if (existing.length == 0) {
-					    	
+
 	                        // render the base element
 	                        var el = $(FAPI_UI.logTemplates.LOG_DETAIL({
 	                            item: item
@@ -572,25 +572,25 @@
 	                                    $(this).data('activated', true);
 	                                }
 	                            });
-	                            
+
 	                            // prettyprint any raw JSON values
 	                            PR.prettyPrint();
 	                        }
-	                        
+
 	                        // write down the "last" log entry we've seen so far so we don't have to re-fetch it at all; if it does happen we can ignore it
                             FAPI_UI.latestTestEntry = _.max([FAPI_UI.latestTestEntry, item.time]);
-                            
+
 					    } else {
 					    	   // skipping an existing element
 					    	   //console.log('Skipping existing: ' + item._id);
 					    }
-					    
+
 					});
-					
+
 				    // total the amounts for display
 				    var allResults = $('[data-entry-result]').map(function() { return $(this).data('entryResult'); }).get();
 				    var resultTotals = _.countBy(allResults, _.identity());
-				    
+
 				    var possibleResults = ['success', 'failure', 'warning', 'review', 'interrupted', 'info'];
 				    var results = '';
 				    _.each(possibleResults, function(result) {
@@ -627,23 +627,23 @@
 				url: '/info/' + encodeURIComponent(testId),
 				data: {},
 				success: function(data) {
-					
+
 					// save the status for the 'active' panel later
 					if (data.status) {
 						if (FAPI_UI.status != data.status.toLowerCase()) {
-						    FAPI_UI.resetReloadPause(); // the status changed, might want to pay more attention							
+						    FAPI_UI.resetReloadPause(); // the status changed, might want to pay more attention
 							FAPI_UI.status = data.status.toLowerCase();
 						}
 					}
-					
+
 					// see if we've already rendered this
 					var existing = $(`#logDetail .header [data-instance-id='${testId}']`);
-					
+
 					if (existing.length == 0) {
 	                    $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({
 	                        test: data
 	                    }));
-	                    
+
 	                    $('#logDetail .header [data-toggle="tooltip"]').tooltip({
 	                        container: 'body'
 	                    });
@@ -690,7 +690,7 @@
 	                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
 	                        $('#configModal').modal('show');
 	                    });
-	                    
+
                         $('#stopBtn').click(function(evt) {
                             evt.preventDefault();
                             FAPI_UI.showBusy('Stopping test...');
@@ -740,18 +740,18 @@
 	                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId));
 	                        });
 	                        $('#planBtn').show();
-	                        
+
 	                        $.ajax({
 	                            url: '/plan/' + encodeURIComponent(data.planId),
 	                            type: 'GET',
 	                            success: function(planData) {
-	                                
+
 	                                var modules = _.pluck(planData.modules, 'testModule');
 	                                var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
-	                                
+
 	                                if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {
 	                                    // there's a "next" module we can run in this test plan
-	                                    
+
 	                                    var nextModule = modules[thisModuleIndex + 1];
 
 	                                    $('#nextPlanBtn').click(function(evt) {
@@ -778,10 +778,10 @@
 	                                            }
 	                                        });
 	                                    });
-	                                    
+
 	                                    $('#nextPlanBtn').show();
 	                                }
-	                                
+
 	                            },
 	                            error: function(jqxhr, status, error) {
 	                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -791,7 +791,7 @@
 	                                stopReloader();
 	                            }
 	                        })
-	                        
+
 	                    }
 					}
 
@@ -810,7 +810,7 @@
 		}
 
 		function getActive(testId) {
-			
+
 			// try to load up the active test information if it's available, otherwise cut out some controls
 			return $.ajax({
 				type: 'GET',
@@ -821,7 +821,7 @@
 
 					// if it's an active test, keep it updated unless we figure out otherwise
                     FAPI_UI.running = true;
-                    
+
 					// found an active test, light up the buttons appropriately
 					if (FAPI_UI.status) {
 						if (FAPI_UI.status == 'finished' || FAPI_UI.status == 'interrupted') {
@@ -849,7 +849,7 @@
 								$('#startBtn').hide();
 							}
 						}
-						
+
 					}
 
 					// display the exported data
@@ -895,21 +895,21 @@
 
 						});
 					}
-					
+
 					// if there's a final test error, display it
 					if (data.error) {
 						$('#runningTestError').html(FAPI_UI.logTemplates.FINAL_ERROR({
 							error: data.error
 						}));
 						$('#runningTestError').show();
-						
+
 						$('#stacktraceBtn').click(function(event) {
 							event.preventDefault();
 							$('#stacktraceBtn').hide();
 							$('#stacktrace').show();
 						});
 					}
-					
+
 				},
 				error: function(jqxhr, status, error) {
 					// test isn't currently in the runner, can't start or stop it
@@ -937,7 +937,7 @@
 	            }, FAPI_UI.reloadPause);
 			}
 		}
-		
+
 		// delay stopping the reloader for a little bit to get any last minute additions to the logs
         function stopReloader() {
 			setTimeout(function() {
@@ -960,7 +960,7 @@
                 return getActive(testId);
             });
 		}
-		
+
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var testId = urlParams.get('log');

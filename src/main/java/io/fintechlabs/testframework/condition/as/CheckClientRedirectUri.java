@@ -54,37 +54,37 @@ public class CheckClientRedirectUri extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonElement ru = env.findElement("client", "redirect_uris");
-		
+
 		if (ru == null) {
 			throw error("Redirect URIs list was null");
 		}
-		
+
 		JsonArray redirectUris = ru.getAsJsonArray();
-		
+
 		if (redirectUris.size() == 0) {
 			throw error("Redirect URIs list was empty");
 		}
-		
+
 		Map<String, String> schemes = new HashMap<>();
 		Map<String, String> otherSchemes = new HashMap<>();
-		
+
 		for (JsonElement el : redirectUris) {
 			String redirectUri = el.getAsString();
-			
+
 			try {
-				
+
 				URI uri = new URI(redirectUri);
-				
+
 				if (uri.getScheme().equals("http")) {
 					// make sure that it's a "localhost" URL
 					InetAddress addr = InetAddress.getByName(uri.getHost());
-					
+
 					if (!addr.isLoopbackAddress()) {
 						throw error("Address given was not a loopback (localhost) address", args("scheme", uri.getScheme(), "host", uri.getHost()));
 					}
-					
+
 					schemes.put(uri.getScheme(), uri.getHost());
-					
+
 				} else if (uri.getScheme().equals("https")) {
 					// any remote host URL is fine
 					schemes.put(uri.getScheme(), uri.getHost());
@@ -96,11 +96,11 @@ public class CheckClientRedirectUri extends AbstractCondition {
 				throw error("Couldn't parse key as URI", e, args("uri", redirectUri));
 			}
 		}
-		
+
 		logSuccess("All redirect URIs have appropriate scheme and host combinations", args("http", schemes, "non-http", otherSchemes));
 
 		return env;
 	}
 
-	
+
 }

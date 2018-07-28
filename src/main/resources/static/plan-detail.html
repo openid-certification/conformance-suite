@@ -4,29 +4,29 @@
 <head>
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
-	
+
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<meta charset="UTF-8">
 	<title>FintechLabs: Test Plan</title>
-	
+
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	
+
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 	<link rel="stylesheet" type="text/css" href="css/layout.css">
-	
+
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
 
     <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
-	
+
 	<script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
 
@@ -114,15 +114,15 @@
             </form>
         </div>
     </script>
-    
+
     <!-- Main plan -->
     <script type="text/template" id="planTemplate_PlanStart">
 
         <div class="well well-sm container-fluid">
             <div class="row-fluid" id="planHeader"> <!-- main header -->
-                
+
                 <div class="col-md-10">
-    
+
                     <div class="row">
                         <div class="col-md-1">Plan Name:</div>
                         <div class="col-md-11"><%- plan.planName %></div>
@@ -185,7 +185,7 @@
                 </div>
             </div>
             <% }); %>
-        </div> 
+        </div>
 
     </script>
 
@@ -218,23 +218,23 @@
 	</div>
 
 	<script type="text/javascript">
-    
+
 	   function getPlan(planId) {
-		   
+
 		   return $.ajax({
 			   type: 'GET',
 			   url: '/plan/' + encodeURIComponent(planId),
 			   data: {},
 			   success: function(data) {
 				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({plan: data}));
-				   
+
 				   // wire up configuration button
                    $('#showConfigBtn').click(function(evt) {
                        evt.preventDefault();
                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
                        $('#configModal').modal('show');
                    });
-				   
+
 				   $('[data-module]').click(function(evt) {
 					   var module = $(this).data('module');
                        evt.preventDefault();
@@ -256,12 +256,12 @@
                                });
                            }
                        });
-					   
+
 				   });
-				   
+
 				   $('[data-instance-id]').each(function() {
                       var _self = $(this);
-	                      
+
 					  var testId = _self.data('instanceId');
 
 					  if (testId) {
@@ -296,10 +296,10 @@
 						  // render an "UNKNOWN" field
                           $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: {}}));
 					  }
-					  
-					  
+
+
 				   });
-				   
+
 			   },
                error: function(jqxhr, status, error) {
                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -307,10 +307,10 @@
                    });
                }
 		   })
-		   
+
 	   }
-	
-	
+
+
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var planId = urlParams.get('plan');

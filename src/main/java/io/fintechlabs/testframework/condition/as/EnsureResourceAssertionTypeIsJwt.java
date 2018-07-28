@@ -43,16 +43,16 @@ public class EnsureResourceAssertionTypeIsJwt extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String assertionType = env.getString("resource_assertion", "assertion_type");
-		
+
 		String expected = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-		
+
 		if (expected.equals(assertionType)) {
 			logSuccess("Found JWT assertion type");
 			return env;
 		} else {
 			throw error("Assertion type was not JWT", args("expected", expected, "actual", assertionType));
 		}
-		
+
 	}
 
 }

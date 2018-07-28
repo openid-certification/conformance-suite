@@ -35,108 +35,108 @@ import static org.junit.Assert.assertTrue;
 public class Environment_UnitTest {
 
 	private Environment env;
-	
-	
+
+
 	private JsonObject testObject;
-	
+
 	private JsonObject altObject;
-	
+
 	private String testKey;
-	
+
 	private String notFoundKey;
-	
+
 	private String altKey;
-	
+
 	private String mappedKey;
-	
+
 	private String path;
-	
+
 	private String intPath;
-	
+
 	private String longPath;
-	
+
 	private String pathNotFound;
-	
+
 	private String testStringKey;
-	
+
 	private String testStringValue;
-	
+
 	private String altStringValue;
-	
+
 	private JsonArray subArray;
-	
+
 	private JsonObject subObject;
-	
-	
+
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
+
 		env = new Environment();
-		
+
 		testKey = "test";
-		
+
 		notFoundKey = "not_found";
-		
+
 		altKey = "alt";
-		
+
 		mappedKey = "mapped";
-		
-		testObject = new JsonParser().parse("{\n" + 
-			"	\"long\": 123465478745287987,\n" + 
-			"	\"string\": \"value\",\n" + 
-			"	\"array\": [1, 2, \"a\", \"b\"],\n" + 
-			"	\"object\": {\n" + 
+
+		testObject = new JsonParser().parse("{\n" +
+			"	\"long\": 123465478745287987,\n" +
+			"	\"string\": \"value\",\n" +
+			"	\"array\": [1, 2, \"a\", \"b\"],\n" +
+			"	\"object\": {\n" +
 			"		\"int\": 1234,\n" +
-			"		\"foo\": \"bar\",\n" + 
-			"		\"baz\": {\n" + 
-			"			\"qux\": \"batman\"\n" + 
-			"		}\n" + 
-			"	}\n" + 
+			"		\"foo\": \"bar\",\n" +
+			"		\"baz\": {\n" +
+			"			\"qux\": \"batman\"\n" +
+			"		}\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
-		
+
 		subArray = new JsonParser().parse("[1, 2, \"a\", \"b\"]").getAsJsonArray();
-		
-		subObject = new JsonParser().parse("{\n" + 
+
+		subObject = new JsonParser().parse("{\n" +
 			"		\"int\": 1234,\n" +
-			"		\"foo\": \"bar\",\n" + 
-			"		\"baz\": {\n" + 
-			"			\"qux\": \"batman\"\n" + 
-			"		}\n" + 
+			"		\"foo\": \"bar\",\n" +
+			"		\"baz\": {\n" +
+			"			\"qux\": \"batman\"\n" +
+			"		}\n" +
 			"	}\n").getAsJsonObject();
-		
+
 		path = "object.baz.qux";
-		
+
 		longPath = "long";
-		
+
 		intPath = "object.int";
-		
+
 		pathNotFound = "apple.banana.republic";
-		
-		altObject = new JsonParser().parse("{\n" + 
-			"	\"number\": 9876,\n" + 
-			"	\"thing\": \"evaluation\",\n" + 
-			"	\"list\": [10, 20, \"z\", \"w\"],\n" + 
-			"	\"box\": {\n" + 
-			"		\"bat\": \"man\",\n" + 
-			"		\"man\": {\n" + 
-			"			\"batman\": \"yes\"\n" + 
-			"		}\n" + 
-			"	}\n" + 
+
+		altObject = new JsonParser().parse("{\n" +
+			"	\"number\": 9876,\n" +
+			"	\"thing\": \"evaluation\",\n" +
+			"	\"list\": [10, 20, \"z\", \"w\"],\n" +
+			"	\"box\": {\n" +
+			"		\"bat\": \"man\",\n" +
+			"		\"man\": {\n" +
+			"			\"batman\": \"yes\"\n" +
+			"		}\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
-		
-		
+
+
 		testStringKey = "test_string";
-		
+
 		testStringValue = "Test String Value";
-		
+
 		altStringValue = "Alternative String Value";
-		
+
 		env.put(testKey, testObject);
 		env.putString(testStringKey, testStringValue);
-		
+
 	}
 
 	/**
@@ -147,7 +147,7 @@ public class Environment_UnitTest {
 
 		assertTrue(env.containsObj(testKey));
 		assertFalse(env.containsObj(notFoundKey));
-		
+
 	}
 
 	/**
@@ -155,13 +155,13 @@ public class Environment_UnitTest {
 	 */
 	@Test
 	public void testGet() {
-		
+
 		JsonObject testGet = env.get(testKey);
-		
+
 		assertEquals(testObject, testGet);
-		
+
 		JsonObject notFoundGet = env.get(notFoundKey);
-		
+
 		assertNull(notFoundGet);
 	}
 
@@ -175,13 +175,13 @@ public class Environment_UnitTest {
 		env.put(altKey, altObject);
 
 		env.remove(testKey);
-		
+
 		assertFalse(env.containsObj(testKey));
 		assertNull(env.get(testKey));
-		
+
 		// make sure other object is not altered
 		assertEquals(altObject, env.get(altKey));
-	
+
 	}
 
 	/**
@@ -191,11 +191,11 @@ public class Environment_UnitTest {
 	public void testGetStringString() {
 
 		String stringGet = env.getString(testStringKey);
-		
+
 		assertEquals(testStringValue, stringGet);
-		
+
 		String notFoundGet = env.getString(notFoundKey);
-		
+
 		assertNull(notFoundGet);
 
 	}
@@ -208,12 +208,12 @@ public class Environment_UnitTest {
 
 		assertFalse(env.containsObj(altKey));
 		assertNull(env.get(altKey));
-		
+
 		env.put(altKey, altObject);
-		
+
 		assertTrue(env.containsObj(altKey));
 		assertEquals(altObject, env.get(altKey));
-		
+
 	}
 
 	/**
@@ -223,11 +223,11 @@ public class Environment_UnitTest {
 	public void testPutString() {
 
 		assertNull(env.getString(altKey));
-		
+
 		env.putString(altKey, altStringValue);
-		
+
 		assertEquals(altStringValue, env.getString(altKey));
-	
+
 	}
 
 	/**
@@ -237,15 +237,15 @@ public class Environment_UnitTest {
 	public void testGetString_fromObject() {
 
 		String testGet = env.getString(testKey, path);
-		
+
 		assertEquals("batman", testGet);
-		
+
 		String testNotFound = env.getString(testKey, pathNotFound);
-		
+
 		assertNull(testNotFound);
-		
+
 		String testObjectNotFound = env.getString(notFoundKey, path);
-		
+
 		assertNull(testObjectNotFound);
 
 	}
@@ -256,12 +256,12 @@ public class Environment_UnitTest {
 	@Test
 	public void testGetInteger() {
 		int expected = 1234;
-		
+
 		Integer actual = env.getInteger(testKey, intPath);
-		
+
 		assertNotNull(actual);
 		assertEquals(expected, actual.intValue());
-		
+
 		assertNull(env.getInteger(testKey, pathNotFound));
 	}
 
@@ -271,12 +271,12 @@ public class Environment_UnitTest {
 	@Test
 	public void testGetLong() {
 		long expected = 123465478745287987L;
-		
+
 		Long actual = env.getLong(testKey, longPath);
-		
+
 		assertNotNull(actual);
 		assertEquals(expected, actual.longValue());
-		
+
 		assertNull(env.getLong(testKey, pathNotFound));
 	}
 
@@ -289,12 +289,12 @@ public class Environment_UnitTest {
 		JsonElement arrayElement = env.findElement(testKey, "array");
 		JsonElement objElement = env.findElement(testKey, "object");
 		JsonElement notFound = env.findElement(testKey, notFoundKey);
-		
+
 		assertEquals(subArray, arrayElement);
 		assertEquals(subObject, objElement);
-		
+
 		assertNull(notFound);
-	
+
 	}
 
 	/**
@@ -305,15 +305,15 @@ public class Environment_UnitTest {
 		assertEquals(mappedKey, env.getEffectiveKey(mappedKey));
 		assertFalse(env.isKeyShadowed(testKey));
 		assertFalse(env.isKeyMapped(mappedKey));
-		
+
 		env.mapKey(mappedKey, testKey);
-		
+
 		assertEquals(testKey, env.getEffectiveKey(mappedKey));
 		assertTrue(env.isKeyShadowed(testKey));
 		assertTrue(env.isKeyMapped(mappedKey));
-		
+
 		env.unmapKey(mappedKey);
-		
+
 		assertEquals(mappedKey, env.getEffectiveKey(mappedKey));
 		assertFalse(env.isKeyShadowed(testKey));
 		assertFalse(env.isKeyMapped(mappedKey));
@@ -327,30 +327,30 @@ public class Environment_UnitTest {
 	public void testMappedObjects() {
 		assertNull(env.get(mappedKey));
 		assertFalse(env.containsObj(mappedKey));
-		
+
 		env.mapKey(mappedKey, testKey);
-		
+
 		assertEquals(testObject, env.get(mappedKey));
 		assertTrue(env.containsObj(mappedKey));
-		
+
 		env.unmapKey(mappedKey);
-		
+
 		assertNull(env.get(mappedKey));
 		assertFalse(env.containsObj(mappedKey));
 	}
-	
+
 	@Test
 	public void testShadowedObjects() {
 		env.put(altKey, altObject);
-		
+
 		assertEquals(altObject, env.get(altKey));
-		
+
 		env.mapKey(altKey, testKey);
-		
+
 		assertEquals(testObject, env.get(altKey));
-		
+
 		env.unmapKey(altKey);
-		
+
 		assertEquals(altObject, env.get(altKey));
 	}
 

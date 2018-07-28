@@ -103,7 +103,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 	public static Logger logger = LoggerFactory.getLogger(DirectAccessClientAS.class);
 
 	/**
-	 * 
+	 *
 	 */
 	public DirectAccessClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -137,7 +137,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
-		
+
 		callAndStopOnFailure(CreateJwksUri.class);
 		exposeEnvString("jwks_uri");
 
@@ -169,13 +169,13 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-		
+
 		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-		
+
 		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-		
+
 		call(CheckForScopesInTokenResponse.class);
 
 		callAndStopOnFailure(EnsureNoRefreshToken.class);

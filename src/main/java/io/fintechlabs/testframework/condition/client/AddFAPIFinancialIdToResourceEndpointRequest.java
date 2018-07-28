@@ -52,19 +52,19 @@ public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractConditi
 		if (Strings.isNullOrEmpty(financialId)) {
 			throw error("Couldn't find financial ID");
 		}
-		
+
 		// get the previous headers if they exist
 		JsonObject headers = env.get("resource_endpoint_request_headers");
 		if (headers == null) {
 			headers = new JsonObject();
 		}
-		
+
 		headers.addProperty("x-fapi-financial-id", financialId);
-		
+
 		env.put("resource_endpoint_request_headers", headers);
-		
+
 		return env;
-		
+
 	}
 
 }

@@ -38,7 +38,7 @@ public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 
 	private static final String[] SET_VALUES = new String[] { "authorization_code", "client_credentials" };
 	private static final int minimumMatchesRequired = 2;
-	
+
 	private static final String errorMessageNotEnough = "The server does not support enough of the required grant types.";
 
 
@@ -52,8 +52,8 @@ public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired, 
+
+		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
 				errorMessageNotEnough);
 
 	}
@@ -61,11 +61,3 @@ public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 
 
 }
-
-
-
-
-
-
-
-

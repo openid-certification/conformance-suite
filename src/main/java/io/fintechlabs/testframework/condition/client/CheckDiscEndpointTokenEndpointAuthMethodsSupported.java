@@ -39,8 +39,8 @@ public class CheckDiscEndpointTokenEndpointAuthMethodsSupported extends Validate
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, SET_VALUES, 1, 
+
+		return validate(env, environmentVariable, SET_VALUES, 1,
 				errorMessageNotEnough);
 	}
 

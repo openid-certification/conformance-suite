@@ -41,7 +41,7 @@ public class CreateRandomStateValue extends AbstractCondition {
 	@Override
 	@PostEnvironment(strings = "state")
 	public Environment evaluate(Environment env) {
-		
+
 		Integer stateLength = env.getInteger("requested_state_length");
 
 		if (stateLength == null) {

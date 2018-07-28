@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 
 /**
  * A wrapper around an EventLog that remebers the test ID and Owner information so the caller doesn't need to
- * 
+ *
  * @author jricher
  *
  */
@@ -69,11 +69,11 @@ public class TestInstanceEventLog {
 		eventLog.log(testId, source, owner, map);
 	}
 
-	
+
 	public String startBlock() {
 		return startBlock(null);
 	}
-	
+
 	/**
 	 * @return
 	 * @see io.fintechlabs.testframework.logging.EventLog#startBlock()
@@ -84,7 +84,7 @@ public class TestInstanceEventLog {
 		if (!Strings.isNullOrEmpty(message)) {
 			log("-START-BLOCK-", EventLog.args("msg", message, "startBlock", true));
 		}
-		
+
 		return blockId;
 	}
 

@@ -17,8 +17,8 @@ public class CheckForAuthorizationEndpointErrorInQueryForHybridFLow extends Abst
 	public CheckForAuthorizationEndpointErrorInQueryForHybridFLow(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
-	
+
+
 	@Override
 	@PreEnvironment(required = "callback_query_params")
 	public Environment evaluate(Environment in) {

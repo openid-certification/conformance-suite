@@ -27,7 +27,5 @@ services:
     links:
      - mongodb:mongodb
      - microauth:microauth
-    depends_on: 
+    depends_on:
      - mongodb
-    
-

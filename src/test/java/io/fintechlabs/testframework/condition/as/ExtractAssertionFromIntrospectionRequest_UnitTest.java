@@ -42,9 +42,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject request;
-	
+
 	private JsonObject header;
-	
+
 	private JsonObject payload;
 
 	private ExtractAssertionFromIntrospectionRequest cond;
@@ -53,7 +53,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 
 	private String assertion;
 
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -63,7 +63,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 		cond = new ExtractAssertionFromIntrospectionRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		assertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-		
+
 		assertion = "eyJraWQiOiJyZXNvdXJjZS1rZXkiLCJhbGciOiJSUzI1NiIsInR"
 			+ "5cCI6IkpXVCJ9.eyJzdWIiOiJwcm90ZWN0ZWQtcmVzb3VyY2UtMSIsImlzcyI6InByb3Rl"
 			+ "Y3RlZC1yZXNvdXJjZS0xIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6ODQ0My90ZXN0L2"
@@ -75,21 +75,21 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			+ "Yt9Q2Uvk_tG1AsZA8IZdfZQCLZ4jCPHWWytcKM0w1Ygv625bQkwJKv-zZ5zaOi9855gdt5"
 			+ "t1LuwDQfmswGdQ4U_8LjJUXaEIQ-ZFXvMlcI5HQ";
 
-		header = new JsonParser().parse("{\n" + 
-			"  \"kid\": \"resource-key\",\n" + 
-			"  \"alg\": \"RS256\",\n" + 
-			"  \"typ\": \"JWT\"\n" + 
+		header = new JsonParser().parse("{\n" +
+			"  \"kid\": \"resource-key\",\n" +
+			"  \"alg\": \"RS256\",\n" +
+			"  \"typ\": \"JWT\"\n" +
 			"}").getAsJsonObject();
 
-		payload = new JsonParser().parse("{\n" + 
-			"  \"sub\": \"protected-resource-1\",\n" + 
-			"  \"iss\": \"protected-resource-1\",\n" + 
-			"  \"aud\": \"https://localhost:8443/test/a/rs-test/\",\n" + 
-			"  \"exp\": 1526682516,\n" + 
-			"  \"iat\": 1526682216,\n" + 
-			"  \"jti\": \"yhb1kr3M6wXRW1wseRMaEiSIKKlz3ks2\"\n" + 
+		payload = new JsonParser().parse("{\n" +
+			"  \"sub\": \"protected-resource-1\",\n" +
+			"  \"iss\": \"protected-resource-1\",\n" +
+			"  \"aud\": \"https://localhost:8443/test/a/rs-test/\",\n" +
+			"  \"exp\": 1526682516,\n" +
+			"  \"iat\": 1526682216,\n" +
+			"  \"jti\": \"yhb1kr3M6wXRW1wseRMaEiSIKKlz3ks2\"\n" +
 			"}").getAsJsonObject();
-		
+
 	}
 
 	/**
@@ -98,11 +98,11 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion\": \"" + assertion + "\",\n" + 
-			"		\"client_assertion_type\": \"" + assertionType +"\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion\": \"" + assertion + "\",\n" +
+			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		env.put("introspection_request", request);
@@ -110,7 +110,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 		cond.evaluate(env);
 
 		JsonObject res = env.get("resource_assertion");
-		
+
 		assertNotNull(res);
 		assertEquals(assertion, res.get("assertion").getAsString());
 		assertEquals(assertionType, res.get("assertion_type").getAsString());
@@ -124,9 +124,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -136,7 +136,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_paramMissing() {
 
-		request = new JsonParser().parse("{\n" + 
+		request = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -145,10 +145,10 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_assertionMissing() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion_type\": \"" + assertionType +"\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -157,11 +157,11 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_assertionEmpty() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion\": \"\",\n" + 
-			"		\"client_assertion_type\": \"" + assertionType +"\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion\": \"\",\n" +
+			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -170,10 +170,10 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_typeMissing() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion\": \"" + assertion + "\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion\": \"" + assertion + "\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -183,11 +183,11 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_typeEmpty() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion\": \"" + assertion + "\",\n" + 
-			"		\"client_assertion_type\": \"\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion\": \"" + assertion + "\",\n" +
+			"		\"client_assertion_type\": \"\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -197,11 +197,11 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_assertionMalformed() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion\": \"abcdef\",\n" + 
-			"		\"client_assertion_type\": \"" + assertionType +"\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion\": \"abcdef\",\n" +
+			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);
@@ -211,11 +211,11 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongType() {
 
-		request = new JsonParser().parse("{\n" + 
-			"	\"params\": {\n" + 
-			"		\"client_assertion\": \"" + assertion + "\",\n" + 
-			"		\"client_assertion_type\": \"batman\"\n" + 
-			"	}\n" + 
+		request = new JsonParser().parse("{\n" +
+			"	\"params\": {\n" +
+			"		\"client_assertion\": \"" + assertion + "\",\n" +
+			"		\"client_assertion_type\": \"batman\"\n" +
+			"	}\n" +
 			"}").getAsJsonObject();
 
 		cond.evaluate(env);

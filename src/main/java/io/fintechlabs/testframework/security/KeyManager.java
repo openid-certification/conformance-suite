@@ -35,10 +35,10 @@ import com.nimbusds.jose.jwk.RSAKey;
  */
 public class KeyManager {
 
-	
+
 	@Value("${fintechlabs.jwks}")
 	private String jwksString;
-	
+
 	@Value("${fintechlabs.signingKey}")
 	private String signingKeyId;
 
@@ -49,23 +49,23 @@ public class KeyManager {
 		// parse the string as a JWK Set
 		try {
 			jwkSet = JWKSet.parse(jwksString);
-			
+
 			// make sure the jwkSet has a key with the indicated ID
 			JWK jwk = jwkSet.getKeyByKeyId(signingKeyId);
-			
+
 			if (jwk == null) {
 				throw new IllegalStateException("Couldn't find the signing key " + signingKeyId);
 			}
-			
+
 		} catch (ParseException e) {
 			throw new IllegalStateException("Error trying to build a JWK Set", e);
 		}
 	}
-	
+
 	public PrivateKey getSigningPrivateKey() {
 		JWK signingKey = jwkSet.getKeyByKeyId(signingKeyId);
 		KeyType keyType = signingKey.getKeyType();
-		
+
 		try {
 			if (keyType.equals(KeyType.RSA)) {
 				return ((RSAKey)signingKey).toPrivateKey();
@@ -87,5 +87,5 @@ public class KeyManager {
 	public JWKSet getPublicKeys() {
 		return jwkSet.toPublicJWKSet();
 	}
-	
+
 }

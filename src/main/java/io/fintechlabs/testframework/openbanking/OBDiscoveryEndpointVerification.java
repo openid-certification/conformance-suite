@@ -66,12 +66,12 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 	public OBDiscoveryEndpointVerification(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
 	}
-	
+
 	@Override
 	public void start() {
-		
+
 		setStatus(Status.RUNNING);
-		
+
 		call(CheckDiscEndpointDiscoveryUrl.class,ConditionResult.FAILURE);
 		call(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointClaimsSupported.class, ConditionResult.FAILURE);
@@ -91,9 +91,9 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		skipIfMissing(new String[] { "registration_endpoint" }, new String[] {}, ConditionResult.INFO,
 				CheckDiscEndpointRegistrationEndpoint.class, ConditionResult.FAILURE, "NO_URL");
 		call(CheckDiscEndpointJwksUri.class, ConditionResult.FAILURE);
-		
+
 		fireTestFinished();
-		
+
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
-	
+
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session,
 			JsonObject requestParts) {
@@ -119,7 +119,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 		start();
-		
+
 	}
-	
+
 }
