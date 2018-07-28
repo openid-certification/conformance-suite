@@ -147,7 +147,8 @@ public abstract class AbstractTestModule implements TestModule {
 			.skipIfRequired(required)
 			.skipIfStringsRequired(strings)
 			.onSkip(onSkip)
-			.onFail(ConditionResult.INFO));
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure());
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
@@ -157,7 +158,8 @@ public abstract class AbstractTestModule implements TestModule {
 			.skipIfStringsRequired(strings)
 			.onSkip(onSkip)
 			.requirements(requirements)
-			.onFail(ConditionResult.WARNING));
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure());
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
@@ -167,7 +169,8 @@ public abstract class AbstractTestModule implements TestModule {
 			.skipIfStringsRequired(strings)
 			.onSkip(onSkip)
 			.requirements(requirements)
-			.onFail(onFail));
+			.onFail(onFail)
+			.dontStopOnFailure());
 	}
 
 	/**
