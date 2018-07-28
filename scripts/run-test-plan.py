@@ -89,6 +89,8 @@ print("\n\nScript complete - results:\n")
 
 warnings_overall = []
 failures_overall = []
+incomplete = 0
+successful_conditions = 0
 for module in plan_modules:
     if module not in test_ids:
         print('Test {} did not run'.format(module))
@@ -98,9 +100,13 @@ for module in plan_modules:
     info = conformance.get_module_info(module_id)
 
     logs = conformance.get_test_log(module_id)
-    counts = {'WARNING': 0, 'FAILURE': 0}
+    counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
     failures = []
     warnings = []
+
+    if info['status'] != 'FINISHED':
+        incomplete += 1
+
     for log_entry in logs:
         if 'result' not in log_entry:
             continue
@@ -116,20 +122,23 @@ for module in plan_modules:
         test_time = test_time_taken[module_id]
     else:
         test_time = -1
-    print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
+    print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
           format(module, module_id, info['status'], info['result'], len(logs),
-                 counts['FAILURE'], counts['WARNING'], test_time))
+                 counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
     if len(failures) > 0:
         print("Failures: {}".format(', '.join(failures)))
     if len(warnings) > 0:
         print("Warnings: {}".format(', '.join(warnings)))
     failures_overall.extend(failures)
     warnings_overall.extend(warnings)
+    successful_conditions += counts['SUCCESS']
 
 
-print('\nOverall totals: ran {:d} test modules, {:d} failures, {:d} warnings, {:.1f} seconds\n'.format(
-    len(test_ids), len(failures_overall), len(warnings_overall), time.time()-overall_start_time))
+print('\nOverall totals: ran {:d} test modules, {:d} successes, {:d} failures, {:d} warnings, {:.1f} seconds\n'.format(
+    len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), time.time()-overall_start_time))
 
 print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 if len(test_ids) != len(plan_modules):
     print("** NOT ALL TESTS WERE RUN **")
+if incomplete != 0:
+    print("** {:d} TESTS DID NOT RUN TO COMPLETION **".format(incomplete))
