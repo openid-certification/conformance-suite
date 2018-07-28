@@ -93,15 +93,20 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass) {
-		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE);
+		call(condition(conditionClass)
+			.onFail(ConditionResult.FAILURE));
 	}
 
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
-		callAndStopOnFailure(conditionClass, ConditionResult.FAILURE, requirements);
+		call(condition(conditionClass)
+			.onFail(ConditionResult.FAILURE)
+			.requirements(requirements));
 	}
 
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
-		callConditionInternal(conditionClass, requirements, onFail, null, true, null, null);
+		call(condition(conditionClass)
+			.requirements(requirements)
+			.onFail(onFail));
 	}
 
 	private void logException(Exception e) {
@@ -116,30 +121,56 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 
 	protected void call(Class<? extends Condition> conditionClass) {
-		call(conditionClass, ConditionResult.INFO);
+		call(condition(conditionClass)
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure());
 	}
 
 	protected void call(Class<? extends Condition> conditionClass, String... requirements) {
-		call(conditionClass, ConditionResult.WARNING, requirements);
+		call(condition(conditionClass)
+			.onFail(ConditionResult.WARNING)
+			.requirements(requirements)
+			.dontStopOnFailure());
 	}
 
 	protected void call(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
-		callConditionInternal(conditionClass, requirements, onFail, null, false, null, null);
+		call(condition(conditionClass)
+			.requirements(requirements)
+			.onFail(onFail)
+			.dontStopOnFailure());
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass) {
-		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.INFO);
+
+		call(condition(conditionClass)
+			.skipIfRequired(required)
+			.skipIfStringsRequired(strings)
+			.onSkip(onSkip)
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure());
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, String... requirements) {
-		skipIfMissing(required, strings, onSkip, conditionClass, ConditionResult.WARNING, requirements);
+		call(condition(conditionClass)
+			.skipIfRequired(required)
+			.skipIfStringsRequired(strings)
+			.onSkip(onSkip)
+			.requirements(requirements)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure());
 	}
 
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
-		callConditionInternal(conditionClass, requirements, onFail, onSkip, false, required, strings);
+		call(condition(conditionClass)
+			.skipIfRequired(required)
+			.skipIfStringsRequired(strings)
+			.onSkip(onSkip)
+			.requirements(requirements)
+			.onFail(onFail)
+			.dontStopOnFailure());
 	}
 
 	/**
@@ -328,6 +359,39 @@ public abstract class AbstractTestModule implements TestModule {
 
 	}
 
+	protected ConditionCallBuilder condition(Class<? extends Condition> conditionClass) {
+		return new ConditionCallBuilder(conditionClass);
+	}
+
+	/**
+	 * Call the condition as specified in the builder, including mapping or unmapping any 
+	 * environment keys first.
+	 * 
+	 * @param builder
+	 */
+	protected void call(ConditionCallBuilder builder) {
+		
+		if (!builder.getMapKeys().isEmpty()) {
+			for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
+				env.mapKey(e.getKey(), e.getValue());
+			}
+		}
+		
+		if (!builder.getUnmapKeys().isEmpty()) {
+			for (String e : builder.getUnmapKeys()) {
+				env.unmapKey(e);
+			}
+		}
+		
+		callConditionInternal(builder.getConditionClass(), 
+			builder.getRequirements(), 
+			builder.getOnFail(), 
+			builder.getOnSkip(), 
+			builder.isStopOnFailure(), 
+			builder.getSkipIfRequired(), 
+			builder.getSkipIfStringsRequired());
+	}
+	
 	@Override
 	public String getId() {
 		return id;
