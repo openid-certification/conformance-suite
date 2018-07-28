@@ -39,3 +39,9 @@ services:
      - microauth:microauth
     depends_on:
      - mongodb
+    logging:
+      # limit logs retained on host
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "5"

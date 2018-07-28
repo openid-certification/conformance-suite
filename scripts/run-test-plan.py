@@ -9,6 +9,7 @@ from __future__ import print_function
 import traceback
 import os
 import sys
+import time
 
 import requests
 
@@ -52,12 +53,17 @@ test_plan_info = conformance.create_test_plan(test_plan, json_config)
 
 plan_id = test_plan_info['id']
 plan_modules = test_plan_info['modules']
-test_ids = {}
+test_ids = {}  # key is module name
+test_time_taken = {}  # key is module_id
+overall_start_time = time.time()
+
 
 print('Created test plan, new id: {}'.format(plan_id))
 print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
 print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
 for module in plan_modules:
+    test_start_time = time.time()
+
     try:
         print('Running test module: {}'.format(module))
         test_module_info = conformance.create_test(plan_id, module, json_config)
@@ -73,6 +79,7 @@ for module in plan_modules:
             x = conformance.start_test(module_id)
 
             conformance.wait_for_state(module_id, ["FINISHED"])
+        test_time_taken[module_id] = time.time() - test_start_time
 
     except Exception as e:
         print('Test {} failed to run to completion:'.format(module))
@@ -80,21 +87,58 @@ for module in plan_modules:
 
 print("\n\nScript complete - results:\n")
 
-for module, module_id in test_ids.items():
+warnings_overall = []
+failures_overall = []
+incomplete = 0
+successful_conditions = 0
+for module in plan_modules:
+    if module not in test_ids:
+        print('Test {} did not run'.format(module))
+        continue
+    module_id = test_ids[module]
+
     info = conformance.get_module_info(module_id)
 
     logs = conformance.get_test_log(module_id)
-    counts = {'WARNING': 0, 'FAILURE': 0}
-    for l in logs:
-        if 'result' not in l:
+    counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
+    failures = []
+    warnings = []
+
+    if info['status'] != 'FINISHED':
+        incomplete += 1
+
+    for log_entry in logs:
+        if 'result' not in log_entry:
             continue
-        lresult = l['result']
-        if lresult not in counts:
-            counts[lresult] = 0
-        counts[lresult] += 1
-    print('Test {} {} {} - result {}. {:d} log entries - {:d} FAILURE, {:d} WARNING'.
-          format(module, module_id, info['status'], info['result'], len(logs), counts['FAILURE'], counts['WARNING']))
+        log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
+        if log_result in counts:
+            counts[log_result] += 1
+            if log_result == 'FAILURE':
+                failures.append(log_entry['src'])
+            if log_result == 'WARNING':
+                warnings.append(log_entry['src'])
+
+    if module_id in test_time_taken:
+        test_time = test_time_taken[module_id]
+    else:
+        test_time = -1
+    print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
+          format(module, module_id, info['status'], info['result'], len(logs),
+                 counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
+    if len(failures) > 0:
+        print("Failures: {}".format(', '.join(failures)))
+    if len(warnings) > 0:
+        print("Warnings: {}".format(', '.join(warnings)))
+    failures_overall.extend(failures)
+    warnings_overall.extend(warnings)
+    successful_conditions += counts['SUCCESS']
+
+
+print('\nOverall totals: ran {:d} test modules, {:d} successes, {:d} failures, {:d} warnings, {:.1f} seconds\n'.format(
+    len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), time.time()-overall_start_time))
 
 print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 if len(test_ids) != len(plan_modules):
     print("** NOT ALL TESTS WERE RUN **")
+if incomplete != 0:
+    print("** {:d} TESTS DID NOT RUN TO COMPLETION **".format(incomplete))
