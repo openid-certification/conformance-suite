@@ -25,8 +25,7 @@ public class CheckDiscEndpointResponseTypesSupported extends ValidateJsonArray {
 	private static final String environmentVariable = "response_types_supported";
 
 	private static final String[] SET_VALUES = new String[] { "code", "code id_token", "code token", "code id_token token" };
-
-	private static final String errorMessageWhenNull = "Response Types Supported: Not Found";
+	
 	private static final String errorMessageNotEnough = "No matching value from server";
 
 	public CheckDiscEndpointResponseTypesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
@@ -39,10 +38,10 @@ public class CheckDiscEndpointResponseTypesSupported extends ValidateJsonArray {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-
-		return validate(env, environmentVariable, SET_VALUES, 1,
-				errorMessageWhenNull, errorMessageNotEnough);
-
+		
+		return validate(env, environmentVariable, SET_VALUES, 1, 
+				errorMessageNotEnough);
+	
 	}
 
 

@@ -26,7 +26,6 @@ public class CheckDiscEndpointUserinfoSigningAlgValuesSupported extends Validate
 
 	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
 
-	private static final String errorMessageWhenNull = "User Info Signing Alg Values: Not Found";
 	private static final String errorMessageNotEnough = "No matching value from server";
 
 
@@ -40,9 +39,9 @@ public class CheckDiscEndpointUserinfoSigningAlgValuesSupported extends Validate
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-
-		return validate(env, environmentVariable, SET_VALUES, 1,
-				errorMessageWhenNull, errorMessageNotEnough);
+		
+		return validate(env, environmentVariable, SET_VALUES, 1, 
+				errorMessageNotEnough);
 
 	}
 

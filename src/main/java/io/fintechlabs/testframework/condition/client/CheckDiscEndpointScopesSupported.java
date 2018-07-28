@@ -27,8 +27,6 @@ public class CheckDiscEndpointScopesSupported extends ValidateJsonArray {
 	private static final String[] SET_VALUES = new String[] { "openid", "accounts", "payments" };
 	private static final int minimumMatchesRequired = 3;
 
-
-	private static final String errorMessageWhenNull = "Endpoint Scopes Supported: Not Found";
 	private static final String errorMessageNotEnough = "The server does not support enough of the required scopes";
 
 
@@ -42,10 +40,10 @@ public class CheckDiscEndpointScopesSupported extends ValidateJsonArray {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-
-		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
-				errorMessageWhenNull, errorMessageNotEnough);
-
+	
+		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired, 
+				errorMessageNotEnough);		
+		
 	}
 
 }

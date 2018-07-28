@@ -28,6 +28,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsSupported;
+import io.fintechlabs.testframework.condition.client.CheckDiscEndpointDiscoveryUrl;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointJwksUri;
@@ -71,6 +72,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		
 		setStatus(Status.RUNNING);
 		
+		call(CheckDiscEndpointDiscoveryUrl.class,ConditionResult.FAILURE);
 		call(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointClaimsSupported.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointGrantTypesSupported.class, ConditionResult.FAILURE);
