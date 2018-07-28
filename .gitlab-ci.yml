@@ -76,6 +76,13 @@ build_microauth:
     - ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
     - ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
 
+check-trailing-whitespace:
+  stage: build
+  image: docker:git
+  script:
+    - apk -q add --no-cache --update python
+    - ./scripts/checkwhitespace.py
+
 test:
   stage: test
   image: gliderlabs/herokuish:latest
@@ -100,7 +107,6 @@ codequality:
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
-  allow_failure: true
   services:
     - docker:dind
   script:
