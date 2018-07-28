@@ -23,8 +23,8 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointRequestParameterSupported extends ValidateJsonBoolean {
 
 	private static final String environmentVariable = "request_parameter_supported";
-	private static final boolean defaultValue = false;
 	private static final boolean requiredValue = true;
+	private static final boolean defaultValue = false;
 
 	public CheckDiscEndpointRequestParameterSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);

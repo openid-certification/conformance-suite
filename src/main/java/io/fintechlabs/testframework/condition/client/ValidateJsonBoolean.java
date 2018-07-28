@@ -12,15 +12,14 @@ public class ValidateJsonBoolean extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	public Environment validate(Environment env, String environmentVariable,
-			Boolean defaultValue, Boolean requiredValue) {
+	public Environment validate(Environment env, String environmentVariable,Boolean defaultValue, Boolean requiredValue) {
 
 		JsonElement parameterValue = env.findElement("server", environmentVariable);
 		String errorMessage = null;
 
 		if (parameterValue == null) {
 			if (defaultValue != requiredValue) {
-				errorMessage = "'" + environmentVariable + "' should be '" + requiredValue + "', but is absent and the default value is '"+defaultValue+"'.";
+				errorMessage = "'" + environmentVariable + "' should be '" + requiredValue + "', but is absent and the default value is '" + defaultValue + "'.";
 			}
 		} else {
 			if (parameterValue.isJsonPrimitive()) {

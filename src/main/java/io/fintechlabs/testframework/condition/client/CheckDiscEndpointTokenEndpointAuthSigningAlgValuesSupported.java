@@ -25,8 +25,7 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 	private static final String environmentVariable = "token_endpoint_auth_signing_alg_values_supported";
 
 	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
-
-	private static final String errorMessageWhenNull =  "'" + environmentVariable + "' not found";
+  
 	private static final String errorMessageNotEnough = "No matching value from server";
 
 
@@ -40,8 +39,8 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-
-		return validate(env, environmentVariable, SET_VALUES, 1,
-				errorMessageWhenNull, errorMessageNotEnough);
+		
+		return validate(env, environmentVariable, SET_VALUES, 1, 
+				errorMessageNotEnough);
 	}
 }
