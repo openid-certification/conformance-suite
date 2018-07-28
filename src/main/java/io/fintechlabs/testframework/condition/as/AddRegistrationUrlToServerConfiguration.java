@@ -52,11 +52,11 @@ public class AddRegistrationUrlToServerConfiguration extends AbstractCondition {
 		if (!baseUrl.endsWith("/")) {
 			baseUrl = baseUrl + "/";
 		}
-		
+
 		JsonObject server = env.get("server");
-		
+
 		server.addProperty("registration_endpoint", baseUrl + "register");
-		
+
 		return env;
 	}
 

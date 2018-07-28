@@ -30,4 +30,3 @@ rm -r $TMPDIR
 echo Created archive
 
 ls -l $TARGET
-

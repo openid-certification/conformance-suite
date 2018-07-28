@@ -41,7 +41,7 @@ public class CreateRandomCodeVerifier_UnitTest {
 		cond.evaluate(env);
 
 		String res1 = env.getString("code_verifier");
-		
+
 		assertThat(res1).isNotNull();
 		assertThat(res1).isNotEmpty();
 
@@ -49,7 +49,7 @@ public class CreateRandomCodeVerifier_UnitTest {
 		cond.evaluate(env);
 
 		String res2 = env.getString("code_verifier");
-		
+
 		assertThat(res2).isNotEmpty();
 		assertThat(res1).isNotEqualTo(res2);
 	}

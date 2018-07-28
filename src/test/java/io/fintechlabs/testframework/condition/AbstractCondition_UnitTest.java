@@ -55,7 +55,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 /**
  * This tests the behavior of the various utility methods in the
  * abstract superclass used by most conditions.
- * 
+ *
  * @author jricher
  *
  */
@@ -1035,7 +1035,7 @@ public class AbstractCondition_UnitTest {
 
 	/*
 	 * Tests for the error() methods. These all call logFailure and throw a ConditionError with certain parameters.
-	 * 
+	 *
 	 * These test for the non-optional conditions with no requirements. Since all the error functions call
 	 * logFailure, the only differences in output in those conditions should be within logFailure, which is tested
 	 * separately above.
@@ -1372,7 +1372,7 @@ public class AbstractCondition_UnitTest {
 
 	/**
 	 * This subclass exposes the utility methods used by Condition classes so that we can test them here.
-	 * 
+	 *
 	 * @author jricher
 	 *
 	 */
@@ -1645,7 +1645,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(String message, Throwable cause) {
 			// TODO Auto-generated method stub
 			return super.error(message, cause);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1655,7 +1655,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(String message) {
 			// TODO Auto-generated method stub
 			return super.error(message);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1665,7 +1665,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(Throwable cause) {
 			// TODO Auto-generated method stub
 			return super.error(cause);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1675,7 +1675,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(String message, Throwable cause, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			return super.error(message, cause, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1685,7 +1685,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(String message, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			return super.error(message, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1695,7 +1695,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(Throwable cause, Map<String, Object> map) {
 			// TODO Auto-generated method stub
 			return super.error(cause, map);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1705,7 +1705,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(String message, Throwable cause, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.error(message, cause, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1715,7 +1715,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(String message, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.error(message, in);
-			
+
 		}
 
 		/* (non-Javadoc)
@@ -1725,7 +1725,7 @@ public class AbstractCondition_UnitTest {
 		protected ConditionError error(Throwable cause, JsonObject in) {
 			// TODO Auto-generated method stub
 			return super.error(cause, in);
-			
+
 		}
 
 	}

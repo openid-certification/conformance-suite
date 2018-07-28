@@ -26,7 +26,7 @@ public class CheckDiscEndpointJwksUri extends ValidateJsonUri {
 
 	private static final String environmentVariable = "jwks_uri";
 	private static final String requiredHostName = "keystore.openbanking.org.uk";
-	
+
 	public CheckDiscEndpointJwksUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}

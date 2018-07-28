@@ -58,45 +58,45 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 			if (Strings.isNullOrEmpty(authorizationEndpoint)) {
 				throw error("Authorization endpoint not found");
 			}
-			
+
 			JsonObject authorizationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(authorizationEndpoint);
 			env.put("authorization_endpoint_tls", authorizationEndpointTls);
-			
+
 			String tokenEndpoint = env.getString("server", "token_endpoint");
 			if (Strings.isNullOrEmpty(tokenEndpoint)) {
 				throw error("Token endpoint not found");
 			}
-			
+
 			JsonObject tokenEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(tokenEndpoint);
 			env.put("token_endpoint_tls", tokenEndpointTls);
-			
+
 			String userInfoEndpoint = env.getString("server", "userinfo_endpoint");
 			JsonObject userInfoEndpointTls = null;
 			if (!Strings.isNullOrEmpty(userInfoEndpoint)) {
 				userInfoEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(userInfoEndpoint);
 				env.put("userinfo_endpoint_tls", userInfoEndpointTls);
 			}
-			
+
 			String registrationEndpoint = env.getString("server", "registration_endpoint");
 			JsonObject registrationEndpointTls = null;
 			if (!Strings.isNullOrEmpty(registrationEndpoint)) {
 				registrationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(registrationEndpoint);
 				env.put("registration_endpoint_tls", registrationEndpointTls);
 			}
-			
+
 			logSuccess("Extracted TLS information from authorization server configuration", args(
 					"authorization_endpoint", authorizationEndpointTls,
 					"token_endpoint", tokenEndpointTls,
 					"userinfo_endpoint", userInfoEndpointTls,
 					"registration_endpoint", registrationEndpointTls
 				));
-	
+
 			return env;
 		} catch (MalformedURLException e) {
 			throw error("URL not properly formed", e);
 		}
-			
+
 	}
 
-	
+
 }

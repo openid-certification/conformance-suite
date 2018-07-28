@@ -52,11 +52,11 @@ public class AddUserinfoUrlToServerConfiguration extends AbstractCondition {
 		if (!baseUrl.endsWith("/")) {
 			baseUrl = baseUrl + "/";
 		}
-		
+
 		JsonObject server = env.get("server");
-		
+
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo");
-		
+
 		return env;
 	}
 

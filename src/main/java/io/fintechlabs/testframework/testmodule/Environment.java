@@ -44,7 +44,7 @@ public class Environment {
 	private static final String NATIVE_VALUES = "_NATIVE_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
 		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to put the string values
-	
+
 	private Map<String, String> keyMap = new HashMap<>();
 
 	/**
@@ -92,14 +92,14 @@ public class Environment {
 	public Integer getInteger(String key) {
 		return getInteger(NATIVE_VALUES, key);
 	}
-	
+
 	/**
 	 * Look up a single Long entry
 	 */
 	public Long getLong(String key) {
 		return getLong(NATIVE_VALUES, key);
 	}
-	
+
 	/**
 	 * @param key
 	 * @param value
@@ -110,7 +110,7 @@ public class Environment {
 		return store.put(getEffectiveKey(key), value);
 	}
 
-	
+
 	/**
 	 * Store a single Long as a value
 	 *
@@ -126,7 +126,7 @@ public class Environment {
 
 	/**
 	 * Stores a single Integer as a value
-	 * 
+	 *
 	 * @param key
 	 * @param value
 	 * @return a copy of the stored object
@@ -136,7 +136,7 @@ public class Environment {
 		o.addProperty(key, value);
 		return o;
 	}
-	
+
 	/**
 	 * Store a single string as a value
 	 *
@@ -262,13 +262,13 @@ public class Environment {
 	public ReentrantLock getLock() {
 		return lock;
 	}
-	
+
 	/**
 	 * If the key is mapped to another value, get the underlying value. Otherwise return the input key.
 	 *
 	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
 	 * exist in the environment, its value will not be found.
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -279,21 +279,21 @@ public class Environment {
 			return key;
 		}
 	}
-	
+
 	/**
 	 * Add a mapping from one key value to another. When things are looked up by "from" it will look for "to" in the storage.
-	 * 
+	 *
 	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
 	 * exist in the environment, its value will not be found.
-	 * 
+	 *
 	 * For example, if the environment contains:
-	 * 
+	 *
 	 * 	foo => bar,
 	 *  baz => qux
-	 * 
+	 *
 	 * And the key "baz" is mapped over "foo" using mapKey(baz, foo), then calling get(baz)
 	 * will return "bar" and not "qux".
-	 * 
+	 *
 	 * @param from
 	 * @param to
 	 * @return the previously mapped "to" or "null" if not mapped
@@ -301,44 +301,44 @@ public class Environment {
 	public String mapKey(String from, String to) {
 		return keyMap.put(from, to);
 	}
-	
+
 	/**
 	 * Remove a mapped key
-	 * 
+	 *
 	 * @param key
 	 * @return the previously mapped key or "null" if not mapped
 	 */
 	public String unmapKey(String key) {
 		return keyMap.remove(key);
 	}
-	
+
 	/**
 	 * Test if a given key is mapped by another value. If this is true, then the value represented by this key
-	 * is available through the mapped key as well. 
-	 * 
+	 * is available through the mapped key as well.
+	 *
 	 * For example, if the environment contains:
-	 * 
+	 *
 	 * 	foo => bar
-	 * 
+	 *
 	 * And the key "baz" is mapped over "foo", then isKeyShadowed(foo) will return true.
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
 	public boolean isKeyShadowed(String key) {
 		return keyMap.containsValue(key);
 	}
-	
+
 	/**
 	 * Test if a given key is mapped to another value. If this is true, then calling "get" with this key
-	 * will return the mapped value and not any unmapped values for this key which may also exist in the 
-	 * environment. 
-	 * 
+	 * will return the mapped value and not any unmapped values for this key which may also exist in the
+	 * environment.
+	 *
 	 * For example, if the environment contains:
-	 * 
+	 *
 	 * 	foo => bar,
 	 *  baz => qux
-	 * 
+	 *
 	 * And the key "baz" is mapped over "foo", then isKeyMapped(baz) will return true, and calling get(baz)
 	 * will return "bar" and not "qux".
 	 *

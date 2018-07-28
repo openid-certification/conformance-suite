@@ -31,7 +31,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 	private long nowSeconds;
 
 	private String clientId;
-	
+
 	private JsonObject client;
 
 	private JsonObject server;
@@ -53,7 +53,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		long issuedAt = nowSeconds - 10; // pretend this came from a distant server
 
 		clientId = "abc-client-id";
-		
+
 		client = new JsonParser().parse("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
 
 		server = new JsonParser().parse("{"

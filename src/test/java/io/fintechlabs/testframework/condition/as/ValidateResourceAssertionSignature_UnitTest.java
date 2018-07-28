@@ -43,7 +43,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 		cond = new ValidateResourceAssertionSignature("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodAssertion = new JsonParser().parse("{"
-			+ "\"assertion\":" 
+			+ "\"assertion\":"
 			+ "eyJraWQiOiJyZXNvdXJjZS1rZXkiLCJhbGciOiJSUzI1NiIsInR"
 			+ "5cCI6IkpXVCJ9.eyJzdWIiOiJwcm90ZWN0ZWQtcmVzb3VyY2UtMSIsImlzcyI6InByb3Rl"
 			+ "Y3RlZC1yZXNvdXJjZS0xIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6ODQ0My90ZXN0L2"
@@ -64,24 +64,24 @@ public class ValidateResourceAssertionSignature_UnitTest {
 
 		goodResourceJwks = new JsonParser().parse("{"
 			+ "\"keys\":["
-			+ "{\n" + 
-			"  \"kty\": \"RSA\",\n" + 
-			"  \"e\": \"AQAB\",\n" + 
-			"  \"use\": \"sig\",\n" + 
-			"  \"kid\": \"resource-key\",\n" + 
-			"  \"alg\": \"RS256\",\n" + 
-			"  \"n\": \"lhKkoXeMB2YWXk79EXAuJSOp5rMP3f8O_R1SjziMDg9b-SgcVYzfthvgub9Ri8s97-rZWO-i_IV5ZbOOHkX55Br1Yf_eW4r-YpC455OmD-QrAmSNILfGip7Lqf-NtgCzwsLF2dSnWCA5w7s6B8H1dRn6zFr33Cx_5Lvj6kdnncf0hdX9mGG80a7QuJxEYEB3vVtZupCgfB4tPV9NAzk3mEQc8qXJRVrHKe-nkKctwsWPeWZ-jht5X8LAYQtDOUAET4-9Hx7h8YeTnjE5t5_re1RLnTqa4kegMKuSh1PulVcRErD68VL8BthvoeADXnSq7BCR2SZlSdOpN6-NtXxGhQ\"\n" + 
+			+ "{\n" +
+			"  \"kty\": \"RSA\",\n" +
+			"  \"e\": \"AQAB\",\n" +
+			"  \"use\": \"sig\",\n" +
+			"  \"kid\": \"resource-key\",\n" +
+			"  \"alg\": \"RS256\",\n" +
+			"  \"n\": \"lhKkoXeMB2YWXk79EXAuJSOp5rMP3f8O_R1SjziMDg9b-SgcVYzfthvgub9Ri8s97-rZWO-i_IV5ZbOOHkX55Br1Yf_eW4r-YpC455OmD-QrAmSNILfGip7Lqf-NtgCzwsLF2dSnWCA5w7s6B8H1dRn6zFr33Cx_5Lvj6kdnncf0hdX9mGG80a7QuJxEYEB3vVtZupCgfB4tPV9NAzk3mEQc8qXJRVrHKe-nkKctwsWPeWZ-jht5X8LAYQtDOUAET4-9Hx7h8YeTnjE5t5_re1RLnTqa4kegMKuSh1PulVcRErD68VL8BthvoeADXnSq7BCR2SZlSdOpN6-NtXxGhQ\"\n" +
 			"}"
 			+ "]}").getAsJsonObject();
 
 		wrongResourceJwks = new JsonParser().parse("{"
 			+ "\"keys\":["
-			+ "{\n" + 
-			"  \"alg\": \"RS256\",\n" + 
-			"  \"e\": \"AQAB\",\n" + 
-			"  \"n\": \"p8eP5gL1H_H9UNzCuQS-vNRVz3NWxZTHYk1tG9VpkfFjWNKG3MFTNZJ1l5g_COMm2_2i_YhQNH8MJ_nQ4exKMXrWJB4tyVZohovUxfw-eLgu1XQ8oYcVYW8ym6Um-BkqwwWL6CXZ70X81YyIMrnsGTyTV6M8gBPun8g2L8KbDbXR1lDfOOWiZ2ss1CRLrmNM-GRp3Gj-ECG7_3Nx9n_s5to2ZtwJ1GS1maGjrSZ9GRAYLrHhndrL_8ie_9DS2T-ML7QNQtNkg2RvLv4f0dpjRYI23djxVtAylYK4oiT_uEMgSkc4dxwKwGuBxSO0g9JOobgfy0--FUHHYtRi0dOFZw\",\n" + 
-			"  \"kty\": \"RSA\",\n" + 
-			"  \"kid\": \"authserver\"\n" + 
+			+ "{\n" +
+			"  \"alg\": \"RS256\",\n" +
+			"  \"e\": \"AQAB\",\n" +
+			"  \"n\": \"p8eP5gL1H_H9UNzCuQS-vNRVz3NWxZTHYk1tG9VpkfFjWNKG3MFTNZJ1l5g_COMm2_2i_YhQNH8MJ_nQ4exKMXrWJB4tyVZohovUxfw-eLgu1XQ8oYcVYW8ym6Um-BkqwwWL6CXZ70X81YyIMrnsGTyTV6M8gBPun8g2L8KbDbXR1lDfOOWiZ2ss1CRLrmNM-GRp3Gj-ECG7_3Nx9n_s5to2ZtwJ1GS1maGjrSZ9GRAYLrHhndrL_8ie_9DS2T-ML7QNQtNkg2RvLv4f0dpjRYI23djxVtAylYK4oiT_uEMgSkc4dxwKwGuBxSO0g9JOobgfy0--FUHHYtRi0dOFZw\",\n" +
+			"  \"kty\": \"RSA\",\n" +
+			"  \"kid\": \"authserver\"\n" +
 			"}"
 			+ "]}").getAsJsonObject();
 

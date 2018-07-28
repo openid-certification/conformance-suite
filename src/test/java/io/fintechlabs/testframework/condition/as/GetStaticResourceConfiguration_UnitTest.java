@@ -40,9 +40,9 @@ public class GetStaticResourceConfiguration_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject resource;
-	
+
 	private String resourceId;
-	
+
 	private GetStaticResourceConfiguration cond;
 
 	private JsonObject config;
@@ -56,9 +56,9 @@ public class GetStaticResourceConfiguration_UnitTest {
 		cond = new GetStaticResourceConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		resourceId = "resource123455";
-		
-		resource = new JsonParser().parse("{\n" + 
-			"  \"resource_id\": \"" + resourceId + "\"\n" + 
+
+		resource = new JsonParser().parse("{\n" +
+			"  \"resource_id\": \"" + resourceId + "\"\n" +
 			"}").getAsJsonObject();
 
 		config = new JsonObject();
@@ -69,9 +69,9 @@ public class GetStaticResourceConfiguration_UnitTest {
 	public void testEvaluate() {
 
 		env.put("config", config);
-		
+
 		cond.evaluate(env);
-		
+
 		assertEquals(resource, env.get("resource"));
 		assertEquals(resourceId, env.getString("resource_id"));
 	}

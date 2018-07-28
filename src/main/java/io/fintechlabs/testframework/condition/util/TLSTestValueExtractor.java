@@ -22,7 +22,7 @@ import com.google.gson.JsonObject;
 /**
  * Extracts the host and port of a given URL string (including the default port if none is
  * specified) into a JSON object, for use with TLS testing.
- * 
+ *
  * @author jricher
  *
  */
@@ -33,7 +33,7 @@ public class TLSTestValueExtractor {
 		JsonObject tls = new JsonObject();
 		tls.addProperty("testHost", url.getHost());
 		tls.addProperty("testPort", url.getPort() > 0 ? url.getPort() : url.getDefaultPort());
-		
+
 		return tls;
 	}
 

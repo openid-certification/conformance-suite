@@ -45,10 +45,10 @@ public class DBEventLog implements EventLog {
 	private static final Logger log = LoggerFactory.getLogger(DBEventLog.class);
 
 	public static final String COLLECTION = "EVENT_LOG";
-	
+
 	// a block identifier for a log entry
 	private String blockId = null;
-	
+
 	// random number generator
 	private Random random = new SecureRandom();
 
@@ -117,17 +117,17 @@ public class DBEventLog implements EventLog {
 			Integer.toHexString(
 				random.nextInt(256 * 256 * 256))
 			, 6, '0');
-		
-		
-		
+
+
+
 		return blockId;
 	}
-	
+
 	@Override
 	public String endBlock() {
 		String oldBlock = blockId;
 		blockId = null;
 		return oldBlock;
 	}
-	
+
 }

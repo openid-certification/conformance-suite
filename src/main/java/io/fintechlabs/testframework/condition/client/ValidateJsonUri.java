@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * 
+ *
  * @author ddrysdale
  *
  */
@@ -23,25 +23,25 @@ public class ValidateJsonUri extends AbstractCondition {
 
 	private JsonElement ServerValue = null;
 	private URL extractedUrl = null;
-	
+
 	public ValidateJsonUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure,
 			String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
+
 	/***
-	 * 
+	 *
 	 * @param env
 	 * @param environmentVariable
 	 * @return JsonElement
 	 * @throws error
-	 * 
+	 *
 	 * Get and cache the "server" environment JsonElement
-	 * 
+	 *
 	 */
-	
+
 	private JsonElement getServerValueOrDie(Environment env, String environmentVariable) {
-		
+
 		if ( ServerValue != null) {
 			return ServerValue;
 		} else {
@@ -57,11 +57,11 @@ public class ValidateJsonUri extends AbstractCondition {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param serverValue
 	 * @param environmentVariable
-	 * @return URL from the environment 
-	 * 
+	 * @return URL from the environment
+	 *
 	 * Get and cache the URL from the Environment variable.
 	 */
 	private URL extractURLOrDie(JsonElement serverValue, String environmentVariable) {
@@ -83,55 +83,55 @@ public class ValidateJsonUri extends AbstractCondition {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param env
 	 * @param environmentVariable
 	 * @throws error
 	 * @return A copy of the Environment
-	 * 
+	 *
 	 * Validates a specific environment variable URL's protocol
 	 */
 	public Environment validate(Environment env, String environmentVariable) {
-		
+
 		final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariable;
-		
+
 		JsonElement server = getServerValueOrDie(env, environmentVariable);
 		URL theURL = extractURLOrDie(server, environmentVariable);
-		
+
 		if (!theURL.getProtocol().equals(requiredProtocol)) {
 			throw error(errorMessageNotRequiredProtocol, args("required", requiredProtocol, "actual", server));
 		}
-		
+
 		logSuccess(environmentVariable, args("actual", server));
 
 		return env;
 	}
-	
+
 	/***
-	 * 
+	 *
 	 * @param env
 	 * @param environmentVariable
 	 * @param requiredHostName
 	 * @throws error
 	 * @return A copy of the Environment
-	 * 
+	 *
 	 * Validates the host part of the requested URL. Then validates the protocol.
-	 * 
+	 *
 	 */
 	public Environment validateWithHost(Environment env, String environmentVariable, String requiredHostName) {
-		
-		JsonElement server = getServerValueOrDie(env, environmentVariable); 
-		URL theURL = extractURLOrDie(server, environmentVariable); 
-		
+
+		JsonElement server = getServerValueOrDie(env, environmentVariable);
+		URL theURL = extractURLOrDie(server, environmentVariable);
+
 		if (!theURL.getHost().equals(requiredHostName)) {
-			throw error("Invalid Host Name", args("Expected", requiredHostName, "Actual", theURL.getHost())); 
+			throw error("Invalid Host Name", args("Expected", requiredHostName, "Actual", theURL.getHost()));
 		} else {
 			log("Host Name Passed", args("Required", requiredHostName, "Actual", theURL.getHost()));
 		}
 
 		// Validate the base stuff.
-		return validate(env, environmentVariable); 
-		
+		return validate(env, environmentVariable);
+
 	}
 
 	@Override

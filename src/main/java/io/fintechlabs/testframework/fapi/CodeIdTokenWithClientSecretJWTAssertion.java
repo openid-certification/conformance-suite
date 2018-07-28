@@ -155,7 +155,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-		
+
 		callAndStopOnFailure(FetchServerKeys.class);
 
 		// Set up the client configuration
@@ -206,7 +206,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		
+
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
@@ -220,7 +220,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		
+
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
@@ -257,7 +257,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
 	 */
@@ -270,7 +270,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			
+
 			if (env.isKeyMapped("client")) {
 				// we're doing the second client
 				return handleSecondClientImplicitSubmission(requestParts);
@@ -278,7 +278,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 				// we're doing the first client
 				return handleImplicitSubmission(requestParts);
 			}
-			
+
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -342,17 +342,17 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-		
+
 		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		
+
 		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");		
-		
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
 
 		// call the token endpoint and complete the flow
 
@@ -399,9 +399,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		exposeEnvString("fapi_interaction_id");
-		
+
 		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
-		
+
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-1-6.2.2-6");
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
@@ -415,7 +415,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
-		
+
 		// get token for second client
 		eventLog.startBlock("Second client");
 		env.mapKey("client", "client2");
@@ -450,9 +450,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		return redirectToLogDetailPage();
 
 	}
-	
+
 	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
-		
+
 		// process the callback
 		setStatus(Status.RUNNING);
 
@@ -475,7 +475,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
-		
+
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
@@ -492,12 +492,12 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		env.mapKey("client_jwks", "client_jwks2");
 
 		callAndStopOnFailure(CallTokenEndpointExpectingError.class);
-		
+
 		// put everything back where we found it
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();
-		
+
 		fireTestFinished();
 		stop();
 

@@ -80,15 +80,15 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		env.putString("fapi_interaction_id", interactionId);
 		env.put("resource_endpoint_request_headers",	new JsonObject());
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject req = env.get("resource_endpoint_request_headers");
-		
+
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-interaction-id"));
 		assertEquals(interactionId, req.get("x-fapi-interaction-id").getAsString());
-	
+
 	}
 
 	@Test
@@ -96,15 +96,15 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		env.putString("fapi_interaction_id", interactionId);
 		env.put("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-interaction-id\":\"foo-bar\"}").getAsJsonObject());
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject req = env.get("resource_endpoint_request_headers");
-		
+
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-interaction-id"));
 		assertEquals(interactionId, req.get("x-fapi-interaction-id").getAsString());
-	
+
 	}
 
 }

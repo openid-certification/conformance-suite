@@ -48,7 +48,7 @@ public class CopyAccessTokenFromASToClient extends AbstractCondition {
 
 		String accessTokenString = env.getString("access_token");
 		String tokenType = env.getString("token_type");
-		
+
 		JsonObject o = new JsonObject();
 		o.addProperty("value", accessTokenString);
 		o.addProperty("type", tokenType);
@@ -59,8 +59,8 @@ public class CopyAccessTokenFromASToClient extends AbstractCondition {
 
 		return env;
 
-		
-		
+
+
 	}
 
 }

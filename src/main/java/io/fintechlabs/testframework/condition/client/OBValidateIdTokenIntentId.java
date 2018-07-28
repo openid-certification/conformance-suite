@@ -17,8 +17,8 @@ public class OBValidateIdTokenIntentId extends AbstractCondition {
 	public OBValidateIdTokenIntentId(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
-	
+
+
 	@Override
 	@PreEnvironment(required = { "id_token" }, strings = "account_request_id")
 	public Environment evaluate(Environment env) {
@@ -26,17 +26,17 @@ public class OBValidateIdTokenIntentId extends AbstractCondition {
 		if (!env.containsObj("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
-		
+
 		String obIntentId = env.getString("id_token", "claims.openbanking_intent_id");
-		
+
 		if (obIntentId == null) {
 			throw error("Missing openbanking_intent_id");
 		}
-		
+
 		if (!env.getString("account_request_id").equals(obIntentId)) {
 			throw error("Mismatch: openbanking_intent_id(server):" + obIntentId + ". Expected:" + env.getString("account_request_id"));
-		} 
-		
+		}
+
 		logSuccess("openbanking_intent_id passed all validation checks");
 		return env;
 	}

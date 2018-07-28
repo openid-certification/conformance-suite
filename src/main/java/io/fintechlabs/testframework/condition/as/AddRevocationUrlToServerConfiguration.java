@@ -52,11 +52,11 @@ public class AddRevocationUrlToServerConfiguration extends AbstractCondition {
 		if (!baseUrl.endsWith("/")) {
 			baseUrl = baseUrl + "/";
 		}
-		
+
 		JsonObject server = env.get("server");
-		
+
 		server.addProperty("revocation_endpoint", baseUrl + "revoke");
-		
+
 		return env;
 	}
 

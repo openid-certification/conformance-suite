@@ -33,7 +33,7 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 	private JsonObject badResponse;
 
 	private ExtractExpiresInFromTokenEndpointResponse cond;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -68,7 +68,7 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 				+ "}").getAsJsonObject();
 
 	}
-	
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
@@ -81,7 +81,7 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 
 		assertThat(env.get("expires_in")).isNotNull();
 	}
-	
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
@@ -93,6 +93,6 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 		cond.evaluate(env);
 
 	}
-	
-	
+
+
 }

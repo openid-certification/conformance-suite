@@ -53,31 +53,31 @@ public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCon
 	@PostEnvironment(required = {"accounts_resource_endpoint_tls", "accounts_request_endpoint_tls"})
 	public Environment evaluate(Environment env) {
 		try {
-			
+
 			String accountsResourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 			if (Strings.isNullOrEmpty(accountsResourceEndpoint)) {
 				throw error("Accounts resource endpoint not found");
 			}
-	
+
 			JsonObject accountsResourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(accountsResourceEndpoint);
-			
+
 			env.put("accounts_resource_endpoint_tls", accountsResourceEndpointTls);
-			
+
 			String accountsRequestEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNT_REQUESTS);
 			if (Strings.isNullOrEmpty(accountsRequestEndpoint)) {
 				throw error("Accounts resource endpoint not found");
 			}
-	
+
 			JsonObject accountsRequestEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(accountsRequestEndpoint);
-			
+
 			env.put("accounts_request_endpoint_tls", accountsRequestEndpointTls);
-			
-			
+
+
 			logSuccess("Extracted TLS information from resource endpoint", args(
 					"accounts_resource_endpoint", accountsResourceEndpointTls,
 					"accounts_request_endpoint", accountsRequestEndpointTls
 				));
-			
+
 			return env;
 		} catch (MalformedURLException e) {
 			throw error("URL not properly formed", e);

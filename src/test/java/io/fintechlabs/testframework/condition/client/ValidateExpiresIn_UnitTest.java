@@ -23,20 +23,20 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ValidateExpiresIn_UnitTest {
-	
+
 	@Spy
 	private Environment env = new Environment();
 
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private JsonObject goodInteger;   
-	private JsonObject badStringNumeric; 
+	private JsonObject goodInteger;
+	private JsonObject badStringNumeric;
 	private JsonObject badNonPrimitive;
 	private JsonObject badStringAlpha;
-	
+
 	private ValidateExpiresIn cond;
-	
+
 	/*
 	 * @throws java.lang.Exception
 	 */
@@ -49,53 +49,53 @@ public class ValidateExpiresIn_UnitTest {
 		badStringNumeric = new JsonParser().parse("{\"expires_in\":\"3600\"}").getAsJsonObject();
 		badNonPrimitive = new JsonParser().parse("{\"expires_in\":[1,2,3]}").getAsJsonObject();
 		badStringAlpha = new JsonParser().parse("{\"expires_in\":\"fish\"}").getAsJsonObject();
-		
+
 	}
-	
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateExpiresIn#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void ValidateExpiresIn_GoodInteger() {
-		
+
 		env.put("expires_in", goodInteger);
-		
+
 		cond.evaluate(env);
 	}
-	
-	
+
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateExpiresIn#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test (expected = ConditionError.class)
 	public void ValidateExpiresIn_BadStringNumeric() {
-		
+
 		env.put("expires_in", badStringNumeric);
-		
+
 		cond.evaluate(env);
 	}
-	
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateExpiresIn#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test (expected = ConditionError.class)
 	public void ValidateExpiresIn_BadNonPrimitive() {
-		
+
 		env.put("expires_in", badNonPrimitive);
-		
+
 		cond.evaluate(env);
-	}	
-	
+	}
+
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateExpiresIn#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test (expected = ConditionError.class)
 	public void ValidateExpiresIn_BadStringAlpha() {
-		
+
 		env.put("expires_in", badStringAlpha);
-		
+
 		cond.evaluate(env);
 	}
-	
-	
+
+
 }

@@ -63,10 +63,10 @@ public class ApplicationConfig {
 			new GsonPrimitiveToBsonValueConverter(),
 			new GsonObjectToBsonDocumentConverter()));
 	}
-	
+
 	@Bean
 	public KeyManager keyManager() {
 		return new KeyManager();
 	}
-	
+
 }

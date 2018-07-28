@@ -84,10 +84,10 @@ public class BrowserControl {
 			]
 		}
 	 ]
-	
+
 	 Each "Task" should be things that happen on a single page. In the above example, the first task logs in and ends
 	 with clicking the submit button on the login page, resulting in a new page to get loaded. (The result of logging in).
-	
+
 	 The second task clicks the "Do not remember this choice" radio button, and then clicks the authorize button which
 	 then should trigger the redirect from the server.
 	 */
@@ -139,9 +139,9 @@ public class BrowserControl {
 				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern));
 				taskExecutor.submit(wr, "web runner ran");
 				logger.debug("WebRunner submitted to task executor for: " + url);
-				
+
 				runners.add(wr);
-				
+
 				return;
 			}
 		}
@@ -190,7 +190,7 @@ public class BrowserControl {
 		public void run() {
 			try {
 				logger.info("Sending BrowserControl to: " + url);
-				
+
 				eventLog.log("WebRunner", args(
 					"msg", "Scripted browser HTTP request",
 					"http", "request",
@@ -201,7 +201,7 @@ public class BrowserControl {
 
 				// do the actual HTTP GET
 				driver.get(url);
-				
+
 				eventLog.log("WebRunner", args(
 					"msg", "Scripted browser HTTP response",
 					"http", "response",
@@ -210,27 +210,27 @@ public class BrowserControl {
 					"response_content_type", driver.getResponseContentType(),
 					"response_content", driver.getResponseContent()
 				));
-				
-				
+
+
 				int responseCode = driver.getResponseCode();
-				
+
 				if (responseCode != 200) {
 					throw new TestFailureException(testId, "WebRunner initial GET failed with " + driver.getStatus());
 				}
 
 				for (int i = 0; i < this.tasks.size(); i++) {
 					boolean skip = false;
-					
+
 					JsonObject currentTask = this.tasks.get(i).getAsJsonObject();
-					
+
 					if (currentTask.get("task") == null) {
 						throw new TestFailureException(testId, "Invalid Task Definition: no 'task' property");
 					}
-					
+
 					String taskName = currentTask.get("task").getAsString();
-					
+
 					this.currentTask = taskName;
-					
+
 					logger.debug("Performing: " + taskName);
 					logger.debug("WebRunner current url:" + driver.getCurrentUrl());
 					// check if current URL matches the 'matcher' for the task
@@ -252,7 +252,7 @@ public class BrowserControl {
 									"task", taskName,
 									"commands", currentTask.get("commands")
 								));
-								
+
 								skip = true; // we're going to skip this command
 							} else {
 								eventLog.log("WebRunner", args(
@@ -263,7 +263,7 @@ public class BrowserControl {
 									"task", taskName,
 									"commands", currentTask.get("commands")
 								));
-								
+
 								throw new TestFailureException(testId, "WebRunner unexpected url for task: " + currentTask.get("task").getAsString());
 							}
 						}
@@ -274,7 +274,7 @@ public class BrowserControl {
 					if (!skip) {
 						JsonArray commands = currentTask.getAsJsonArray("commands");
 						if (commands != null) { // we can have zero commands to just do a check that currentUrl is what we expect
-							
+
 							// execute all of the commands in this task
 							for (int j = 0; j < commands.size(); j++) {
 								doCommand(commands.get(j).getAsJsonArray(), taskName);
@@ -299,7 +299,7 @@ public class BrowserControl {
 								"response_status_code", driver.getResponseCode(),
 								"response_status_text", driver.getStatus()
 							));
-							
+
 						} else {
 							eventLog.log("WebRunner", args(
 								"msg", "Failure processing of webpage",
@@ -311,7 +311,7 @@ public class BrowserControl {
 								"response_status_code", driver.getResponseCode(),
 								"response_status_text", driver.getStatus()
 							));
-							
+
 							throw new TestFailureException(testId, "WebRunner Response Failure: '" + driver.getStatus());
 						}
 					} // if we don't run the commands, just go straight to the next one
@@ -343,13 +343,13 @@ public class BrowserControl {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
 			String commandString = command.get(0).getAsString();
 			if (!Strings.isNullOrEmpty(commandString)) {
-				
+
 				this.currentCommand = commandString;
-				
+
 				// selectors common to all elements
 				String elementType = command.get(1).getAsString();
 				String target = command.get(2).getAsString();
-				
+
 				if (commandString.equalsIgnoreCase("click")) {
 					// ["click", "id" or "name", "id_or_name"]
 
@@ -362,16 +362,16 @@ public class BrowserControl {
 						"target", target,
 						"result", ConditionResult.INFO
 					));
-						
+
 					driver.findElement(getSelector(elementType, target)).click();
-					
+
 					logger.debug("Clicked: " + target + " (" + elementType + ")");
 					return;
 				} else if (commandString.equalsIgnoreCase("text")) {
 					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
-					
+
 					String value = command.get(3).getAsString();
-					
+
 					eventLog.log("WebRunner", args(
 						"msg", "Entering text",
 						"url", driver.getCurrentUrl(),
@@ -382,9 +382,9 @@ public class BrowserControl {
 						"value", value,
 						"result", ConditionResult.INFO
 						));
-					
+
 					WebElement entryBox = driver.findElement(getSelector(elementType, target));
-					
+
 					entryBox.sendKeys(value);
 					logger.debug("\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
 					return;
@@ -460,7 +460,7 @@ public class BrowserControl {
 			this.lastException = "Invalid Command Selector: Type: " + type + " Value: " + value;
 			throw new TestFailureException(testId, "Invalid Command Selector: Type: " + type + " Value: " + value);
 		}
-		
+
 	}
 
 	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
@@ -522,10 +522,10 @@ public class BrowserControl {
 	public List<String> getVisited() {
 		return visited;
 	}
-	
+
 	public List<JsonObject> getWebRunners() {
 		List<JsonObject> out = new ArrayList<>();
-		
+
 		for (WebRunner wr : runners) {
 			JsonObject o = new JsonObject();
 			o.addProperty("url", wr.url);
@@ -536,10 +536,10 @@ public class BrowserControl {
 			o.addProperty("lastResponseContentType", wr.driver.getResponseContentType());
 			o.addProperty("lastResponseContent", wr.driver.getResponseContent());
 			o.addProperty("lastException", wr.lastException);
-			
+
 			out.add(o);
 		}
-		
+
 		return out;
 	}
 

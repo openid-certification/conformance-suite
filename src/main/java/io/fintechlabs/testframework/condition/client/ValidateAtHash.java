@@ -17,5 +17,5 @@ public class ValidateAtHash extends ValidateHash {
 		return super.validateHash(env,"at_hash","at_hash");
 	}
 
-	
+
 }

@@ -52,14 +52,14 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		String accessToken = env.getString("access_token", "value");
-		
+
 		if (Strings.isNullOrEmpty(accessToken)) {
 			throw error("Access token is missing");
 		}
-		
+
 		try {
 			JWT jwt = JWTParser.parse(accessToken);
-			
+
 			// Note: we need to round-trip this to get to GSON objects because the JWT library uses a different parser
 			JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
 			JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
@@ -68,13 +68,13 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 			o.addProperty("value", accessToken); // save the original string to allow for crypto operations
 			o.add("header", header);
 			o.add("claims", claims);
-			
+
 			env.put("access_token_jwt", o);
-			
+
 			logSuccess("Extracted access token as a JWT", o);
-			
+
 			return env;
-			
+
 		} catch (ParseException e) {
 			throw error("Couldn't parse access token as a JWT", e, args("access_token", accessToken));
 		}

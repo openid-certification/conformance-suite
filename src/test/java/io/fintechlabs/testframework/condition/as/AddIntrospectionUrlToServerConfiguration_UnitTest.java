@@ -40,7 +40,7 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject server;
-	
+
 	private String baseUrl;
 
 	private AddIntrospectionUrlToServerConfiguration cond;
@@ -53,11 +53,11 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 
 		cond = new AddIntrospectionUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		server = new JsonParser().parse("{\n" + 
+		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();
 
 		baseUrl = "https://example.com/baseurl";
-		
+
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 		env.putString("base_url", baseUrl);
 
 		cond.evaluate(env);
-		
+
 		assertEquals(baseUrl + "/introspect", env.getString("server", "introspection_endpoint"));
 	}
 
@@ -78,7 +78,7 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 		env.putString("base_url", baseUrl + "/");
 
 		cond.evaluate(env);
-		
+
 		assertEquals(baseUrl + "/introspect", env.getString("server", "introspection_endpoint"));
 	}
 

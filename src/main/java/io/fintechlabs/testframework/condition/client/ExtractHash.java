@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public abstract class ExtractHash extends AbstractCondition {
 
-	
+
 	/**
 	 * @param testId
 	 * @param log
@@ -38,9 +38,9 @@ public abstract class ExtractHash extends AbstractCondition {
 	public ExtractHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
-	
+
 	public Environment extractHash(Environment env, String hashName, String envName) {
-		
+
 		env.remove(envName);
 
 		if (!env.containsObj("id_token")) {
@@ -65,7 +65,7 @@ public abstract class ExtractHash extends AbstractCondition {
 		env.put(envName, outData);
 
 		logSuccess("Extracted " + hashName + " from ID Token", outData);
-		
+
 		return env;
 	}
 

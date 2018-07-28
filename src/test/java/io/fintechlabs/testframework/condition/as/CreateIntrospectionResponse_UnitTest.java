@@ -46,17 +46,17 @@ public class CreateIntrospectionResponse_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject resource;
-	
+
 	private JsonObject introspectionRequest;
-	
+
 	private JsonObject introspectionRequestBadToken;
 
 	private String accessTokenValue;
-	
+
 	private String clientId;
-	
+
 	private String scope;
-	
+
 	private CreateIntrospectionResponse cond;
 
 	/**
@@ -70,27 +70,27 @@ public class CreateIntrospectionResponse_UnitTest {
 		accessTokenValue = "foo1234556";
 
 		clientId = "client087234";
-		
+
 		scope = "foo bar baz";
-		
-		resource = new JsonParser().parse("{\n" + 
-			"  \"scope\": \"" + scope + "\"\n" + 
+
+		resource = new JsonParser().parse("{\n" +
+			"  \"scope\": \"" + scope + "\"\n" +
 			"}").getAsJsonObject();
 
-		introspectionRequest = new JsonParser().parse("{\n" + 
-			"  \"params\":\n" + 
-			"  {\n" + 
-			"	\"token\": \"" + accessTokenValue + "\"\n" + 
-			"  }\n" + 
+		introspectionRequest = new JsonParser().parse("{\n" +
+			"  \"params\":\n" +
+			"  {\n" +
+			"	\"token\": \"" + accessTokenValue + "\"\n" +
+			"  }\n" +
 			"}").getAsJsonObject();
-		
-		introspectionRequestBadToken = new JsonParser().parse("{\n" + 
-			"  \"params\":\n" + 
-			"  {\n" + 
-			"	\"token\": \"" + RandomStringUtils.randomAlphanumeric(10) + "\"\n" + 
-			"  }\n" + 
+
+		introspectionRequestBadToken = new JsonParser().parse("{\n" +
+			"  \"params\":\n" +
+			"  {\n" +
+			"	\"token\": \"" + RandomStringUtils.randomAlphanumeric(10) + "\"\n" +
+			"  }\n" +
 			"}").getAsJsonObject();
-		
+
 	}
 
 	@Test
@@ -100,11 +100,11 @@ public class CreateIntrospectionResponse_UnitTest {
 		env.put("resource", resource);
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject res = env.get("introspection_response");
-		
+
 		assertNotNull(res);
 		assertTrue(res.has("active"));
 		assertTrue(res.has("scope"));
@@ -114,28 +114,28 @@ public class CreateIntrospectionResponse_UnitTest {
 		assertTrue(res.get("active").getAsBoolean());
 		assertEquals(scope, res.get("scope").getAsString());
 		assertEquals(clientId, res.get("client_id").getAsString());
-		
+
 		Instant exp = Instant.ofEpochSecond(res.get("exp").getAsLong());
 		Instant now = Instant.now();
-		
+
 		// give a little bit of leeway
 		assertTrue(exp.isAfter(now.minusSeconds(1)));
-		
+
 	}
 
 
 	@Test
 	public void testEvaluate_badToken() {
-		
+
 		env.put("introspection_request", introspectionRequestBadToken);
 		env.put("resource", resource);
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
-		
+
 		cond.evaluate(env);
-		
+
 		JsonObject res = env.get("introspection_response");
-		
+
 		assertNotNull(res);
 		assertTrue(res.has("active"));
 		assertFalse(res.has("scope"));
@@ -143,7 +143,7 @@ public class CreateIntrospectionResponse_UnitTest {
 		assertFalse(res.has("exp"));
 
 		assertFalse(res.get("active").getAsBoolean());
-		
+
 	}
-	
+
 }

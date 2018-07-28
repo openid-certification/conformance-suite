@@ -33,7 +33,7 @@ public class ValidateIdToken_UnitTest {
 	private long nowSeconds;
 
 	private JsonObject client;
-	
+
 	private String clientId;
 
 	private JsonObject server;
@@ -55,7 +55,7 @@ public class ValidateIdToken_UnitTest {
 		long issuedAt = nowSeconds - 10; // pretend this came from a distant server
 
 		clientId = "abc-client-id";
-		
+
 		client = new JsonParser().parse("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
 
 		server = new JsonParser().parse("{"

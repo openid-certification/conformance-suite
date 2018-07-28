@@ -40,7 +40,7 @@ public class CreateRandomNonceValue_UnitTest {
 		cond.evaluate(env);
 
 		String res1 = env.getString("nonce");
-		
+
 		assertThat(res1).isNotNull();
 		assertThat(res1).isNotEmpty();
 
@@ -48,7 +48,7 @@ public class CreateRandomNonceValue_UnitTest {
 		cond.evaluate(env);
 
 		String res2 = env.getString("nonce");
-		
+
 		assertThat(res2).isNotEmpty();
 		assertThat(res1).isNotEqualTo(res2);
 	}

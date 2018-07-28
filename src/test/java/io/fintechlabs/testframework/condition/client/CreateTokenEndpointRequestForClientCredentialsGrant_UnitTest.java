@@ -40,9 +40,9 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private CreateTokenEndpointRequestForClientCredentialsGrant cond;
-	
+
 	private JsonObject clientWithScope;
-	
+
 	private JsonObject clientWithoutScope;
 
 	/**
@@ -52,10 +52,10 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	public void setUp() throws Exception {
 
 		cond = new CreateTokenEndpointRequestForClientCredentialsGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
-		
+
 		clientWithScope = new JsonParser().parse("{\"scope\": \"foo bar\"}").getAsJsonObject();
 		clientWithoutScope = new JsonParser().parse("{}").getAsJsonObject();
-		
+
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	public void testEvaluate_withScope() {
 
 		env.put("client", clientWithScope);
-		
+
 		cond.evaluate(env);
 
 		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
@@ -81,14 +81,14 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	public void testEvaluate_withoutScope() {
 
 		env.put("client", clientWithoutScope);
-		
+
 		cond.evaluate(env);
 
 		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
-		
+
 		assertThat(parameters.has("scope")).isFalse();
 	}
 }

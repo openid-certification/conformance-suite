@@ -73,7 +73,7 @@ public class TestDispatcher {
 	/**
 	 * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
 	 * This requests may or may not be user-facing so we don't assume anything about the response.
-	 * 
+	 *
 	 * @param req
 	 * @param res
 	 * @param session
@@ -166,7 +166,7 @@ public class TestDispatcher {
 				test.stop();
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
 			}
-			
+
 			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
 				// ConditionError will get handled by the logging system, no need to display with stacktrace
@@ -210,7 +210,7 @@ public class TestDispatcher {
 
 	/**
 	 * utility function to convert an incoming multi-value map to a JSonObject for storage
-	 * 
+	 *
 	 * @param params
 	 * @return
 	 */

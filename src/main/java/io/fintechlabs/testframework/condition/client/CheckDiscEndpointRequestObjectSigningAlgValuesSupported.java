@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointRequestObjectSigningAlgValuesSupported extends ValidateJsonArray {
 
 	private static final String environmentVariable = "request_object_signing_alg_values_supported";
-  
+
 	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
@@ -39,9 +39,9 @@ public class CheckDiscEndpointRequestObjectSigningAlgValuesSupported extends Val
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		
-		return validate(env, environmentVariable, SET_VALUES, 1, 
+
+		return validate(env, environmentVariable, SET_VALUES, 1,
 				errorMessageNotEnough);
-	}	
-	
+	}
+
 }

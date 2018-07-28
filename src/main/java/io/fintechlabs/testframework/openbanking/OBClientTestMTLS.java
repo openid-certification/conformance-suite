@@ -261,11 +261,11 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
-		
+
 		callAndStopOnFailure(EnsureMatchingClientCertificate.class);
 
 		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
-		
+
 		call(ExtractClientCredentialsFromFormPost.class);
 
 		call(AuthenticateClientWithClientSecret.class);

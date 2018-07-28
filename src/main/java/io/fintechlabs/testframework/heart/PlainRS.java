@@ -85,7 +85,7 @@ public class PlainRS extends AbstractTestModule {
 	public static Logger logger = LoggerFactory.getLogger(PlainRS.class);
 
 	/**
-	 * 
+	 *
 	 */
 	public PlainRS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -102,10 +102,10 @@ public class PlainRS extends AbstractTestModule {
 		call(DisallowTLS11.class, "HEART-OAuth2-6");
 
 		callAndStopOnFailure(GenerateServerConfiguration.class, "HEART-OAuth2-3.1.5");
-		
+
 		callAndStopOnFailure(AddIntrospectionUrlToServerConfiguration.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(AddRevocationUrlToServerConfiguration.class, "HEART-OAuth2-3.1.5");
-		
+
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
@@ -126,12 +126,12 @@ public class PlainRS extends AbstractTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromResourceConfiguration.class, "HEART-OAuth2-2.1.5");
-		
+
 		exposeEnvString("resource_id");
-		
+
 		// get the client's ID
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		
+
 		exposeEnvString("client_id");
 
 		setStatus(Status.CONFIGURED);
@@ -158,9 +158,9 @@ public class PlainRS extends AbstractTestModule {
 
 		// create an access token for the client to use
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		
+
 		exposeEnvString("access_token");
-		
+
 		callAndStopOnFailure(CopyAccessTokenFromASToClient.class);
 
 		setStatus(Status.WAITING);
@@ -197,21 +197,21 @@ public class PlainRS extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		env.put("introspection_request", requestParts);
-		
+
 		callAndStopOnFailure(ExtractAssertionFromIntrospectionRequest.class);
-		
+
 		callAndStopOnFailure(EnsureResourceAssertionTypeIsJwt.class);
-		
+
 		callAndStopOnFailure(ValidateResourceAssertionClaims.class);
-		
+
 		callAndStopOnFailure(ValidateResourceAssertionSignature.class);
 
 		callAndStopOnFailure(CreateIntrospectionResponse.class);
 
 		setStatus(Status.WAITING);
-		
+
 		return new ResponseEntity<>(env.get("introspection_response"), HttpStatus.OK);
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -222,7 +222,7 @@ public class PlainRS extends AbstractTestModule {
 
 		/*
 		eventLog.log(getId(), getName() + " MTLS Routing", requestParts.get("headers").getAsJsonObject());
-		
+
 		return new ModelAndView("complete", ImmutableMap.of("test", this));
 		*/
 		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");

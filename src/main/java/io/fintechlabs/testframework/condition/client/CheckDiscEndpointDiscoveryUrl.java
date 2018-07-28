@@ -31,17 +31,17 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 
 	private final String requiredProtocol = "https";
-	
+
 	private final String environmentBaseObject = "config";
 	private final String environmentVariable = "server.discoveryUrl";
-	
-	
+
+
 	private final String errorMessageNotJsonPrimitive = "Specified value is not a Json primative";
 	private final String errorMessageInvalidURL = "Invalid URL. Unable to parse.";
 	private final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariable;
 
-	
-	
+
+
 	public CheckDiscEndpointDiscoveryUrl(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -52,8 +52,8 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
-	
-		JsonElement configUrl = env.findElement(environmentBaseObject, environmentVariable); 
+
+		JsonElement configUrl = env.findElement(environmentBaseObject, environmentVariable);
 		if ( configUrl == null ) {
 			logFailure("Unable to find Discovery URL", args("No discoveryUrl", env.get("config")));
 		} else  {
@@ -65,9 +65,9 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 					if ( !extractedUrl.getProtocol().equals(requiredProtocol)) {
 						throw error(errorMessageNotRequiredProtocol, args("actual", extractedUrl.getProtocol(), "expected",requiredProtocol));
 					}
-					
+
 					logSuccess("discoveryUrl", args("actual",configUrl));
-					
+
 				} catch (MalformedURLException invalidURL) {
 					throw error(errorMessageInvalidURL,args("Failure", configUrl));
 				}

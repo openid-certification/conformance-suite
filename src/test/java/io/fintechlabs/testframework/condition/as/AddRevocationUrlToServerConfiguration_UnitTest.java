@@ -40,7 +40,7 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject server;
-	
+
 	private String baseUrl;
 
 	private AddRevocationUrlToServerConfiguration cond;
@@ -53,11 +53,11 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 
 		cond = new AddRevocationUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		server = new JsonParser().parse("{\n" + 
+		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();
 
 		baseUrl = "https://example.com/baseurl";
-		
+
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 		env.putString("base_url", baseUrl);
 
 		cond.evaluate(env);
-		
+
 		assertEquals(baseUrl + "/revoke", env.getString("server", "revocation_endpoint"));
 	}
 
@@ -78,7 +78,7 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 		env.putString("base_url", baseUrl + "/");
 
 		cond.evaluate(env);
-		
+
 		assertEquals(baseUrl + "/revoke", env.getString("server", "revocation_endpoint"));
 	}
 

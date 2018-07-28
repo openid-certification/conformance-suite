@@ -77,7 +77,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 			throw error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
-		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);		
+		String resourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
 			throw error("Resource endpoint not found");
 		}

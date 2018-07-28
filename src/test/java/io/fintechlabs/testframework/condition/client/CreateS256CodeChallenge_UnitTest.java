@@ -43,18 +43,18 @@ public class CreateS256CodeChallenge_UnitTest {
 	public void testMissing() {
 		cond.evaluate(env);
 	}
-	
+
 	@Test
 	public void testEvaluate() throws NoSuchAlgorithmException {
 
 		String codeVerifier = "code verifier!";
-		
+
 		env.putString("code_verifier", codeVerifier);
-		
+
 		cond.evaluate(env);
 
 		assertThat(env.getString("code_challenge_method")).isEqualTo("S256");
-		
+
 		String res = env.getString("code_challenge");
 
 		assertThat(res).isNotEmpty();
@@ -64,8 +64,8 @@ public class CreateS256CodeChallenge_UnitTest {
 		md.update(bytes, 0, bytes.length);
 		byte[] digest = md.digest();
 		String challenge = Base64.encodeBase64URLSafeString(digest);
-		
+
 		assertThat(res).isEqualTo(challenge);
-		
+
 	}
 }

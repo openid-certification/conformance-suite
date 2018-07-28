@@ -57,14 +57,14 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 		if (Strings.isNullOrEmpty(clientSecret)) {
 			throw error("Couldn't find client secret");
 		}
-		
+
 		String alg = env.getString("client", "client_secret_jwt_alg");
 		if (Strings.isNullOrEmpty(alg)) {
 			alg = JWSAlgorithm.HS256.getName();
 		}
-		
+
 		// generate a JWK Set for the client's secret
-		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes()) 
+		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes())
 			.algorithm(JWSAlgorithm.parse(alg))
 			.keyUse(KeyUse.SIGNATURE)
 			// no key ID

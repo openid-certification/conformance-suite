@@ -44,7 +44,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 
 		authorizationEndpointRequest = new JsonParser().parse(
-				"  {\n" + 
+				"  {\n" +
 				"   \"iss\": \"s6BhdRkqt3\",\n" +
 				"   \"aud\": \"https://server.example.com\",\n" +
 				"   \"response_type\": \"code id_token\",\n" +

@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * Check if there was an error from the authorization endpoint. If so, log the error and quit. If not, pass.
- * 
+ *
  * @author jricher
  *
  */

@@ -264,7 +264,7 @@ public class TestRunner {
 		// record that this test was started
 		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description);
 
-		
+
 		// log the test creation event in the event log
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(),
 			EventLog.args("msg", "Test instance " + id + " created",

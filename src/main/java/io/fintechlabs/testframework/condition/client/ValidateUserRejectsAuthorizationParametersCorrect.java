@@ -46,7 +46,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect extends AbstractC
 							args("Expected", stateSystem, "Actual", stateCallback));
 				} else {
 					requiredParameterCount++;
-					
+
 					// Now, count the optional parameters
 					if (callbackParams.has("error_description")) {
 						optionalParameterCount++;
@@ -54,7 +54,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect extends AbstractC
 					if (callbackParams.has("error_uri")) {
 						optionalParameterCount++;
 					}
-					
+
 					// Check the number of keys we've found, and can accept, against the total.
 					if (callbackParams.keySet().size() - requiredParameterCount - optionalParameterCount == 0) {
 						logSuccess("All error parameters correct", callbackParams);

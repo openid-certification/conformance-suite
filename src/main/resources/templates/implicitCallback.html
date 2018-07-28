@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>FintechLabs: Processing Implicit Callback</title>
-    
+
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    
+
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="/css/layout.css">
-    
-    
+
+
 
 </head>
 <body>
@@ -45,11 +45,11 @@
 
 	<script type="text/javascript" th:inline="javascript">
 		$(function() {
-	
+
 			var hash = window.location.hash;
-	        
+
 			var returnUrl = [[${returnUrl}]];
-	        
+
 			$.post({
 				url: [[${implicitSubmitUrl}]],
 				data: hash,
@@ -60,8 +60,8 @@
 				// add a hidden tag so that Selenium can detect we're done processing
 				$('#complete').append('<span id="submission_complete" class="hidden"></span>');
 			});
-	        
-	            
+
+
 		});
     </script>
 

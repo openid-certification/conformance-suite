@@ -141,7 +141,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		callAndStopOnFailure(FetchServerKeys.class);
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-		
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
@@ -176,7 +176,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		
+
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
@@ -190,7 +190,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		
+
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
@@ -337,14 +337,14 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		call(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 
 		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
-		
+
 		// verify the access token against a protected resource
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		exposeEnvString("fapi_interaction_id");
-		
+
 		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
-		
+
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
@@ -358,7 +358,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
-		
+
 		fireTestFinished();
 		stop();
 

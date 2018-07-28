@@ -154,9 +154,9 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		for (Map.Entry<String, TestModule> entry : new HashSet<>(runningTests.entrySet())) {
 			// if the test has been finished or interrupted, we check to see if it's timed out yet
 			if ((entry.getValue().getStatus().equals(Status.FINISHED)
-				|| entry.getValue().getStatus().equals(Status.INTERRUPTED)) 
+				|| entry.getValue().getStatus().equals(Status.INTERRUPTED))
 					&& entry.getValue().getStatusUpdated().plus(getClosedTestTimeout()).isBefore(Instant.now())) {
-				
+
 				removeRunningTest(entry.getKey());
 
 			}

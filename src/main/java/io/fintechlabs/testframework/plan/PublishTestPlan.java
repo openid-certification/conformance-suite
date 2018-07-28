@@ -41,5 +41,5 @@ public @interface PublishTestPlan {
 	 * of this plan.
 	 */
 	String[] testModuleNames() default {};
-	
+
 }

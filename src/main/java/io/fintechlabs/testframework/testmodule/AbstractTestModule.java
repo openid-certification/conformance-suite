@@ -364,34 +364,34 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	/**
-	 * Call the condition as specified in the builder, including mapping or unmapping any 
+	 * Call the condition as specified in the builder, including mapping or unmapping any
 	 * environment keys first.
-	 * 
+	 *
 	 * @param builder
 	 */
 	protected void call(ConditionCallBuilder builder) {
-		
+
 		if (!builder.getMapKeys().isEmpty()) {
 			for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
 				env.mapKey(e.getKey(), e.getValue());
 			}
 		}
-		
+
 		if (!builder.getUnmapKeys().isEmpty()) {
 			for (String e : builder.getUnmapKeys()) {
 				env.unmapKey(e);
 			}
 		}
-		
-		callConditionInternal(builder.getConditionClass(), 
-			builder.getRequirements(), 
-			builder.getOnFail(), 
-			builder.getOnSkip(), 
-			builder.isStopOnFailure(), 
-			builder.getSkipIfRequired(), 
+
+		callConditionInternal(builder.getConditionClass(),
+			builder.getRequirements(),
+			builder.getOnFail(),
+			builder.getOnSkip(),
+			builder.isStopOnFailure(),
+			builder.getSkipIfRequired(),
 			builder.getSkipIfStringsRequired());
 	}
-	
+
 	@Override
 	public String getId() {
 		return id;
@@ -435,7 +435,7 @@ public abstract class AbstractTestModule implements TestModule {
 	public void fireTestReviewNeeded() {
 		setResult(Result.REVIEW);
 	}
-	
+
 	@Override
 	public void fireTestSuccess() {
 		setResult(Result.PASSED);

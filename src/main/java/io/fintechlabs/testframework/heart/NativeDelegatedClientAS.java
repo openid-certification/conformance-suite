@@ -92,7 +92,7 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 	public static Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
 
 	/**
-	 * 
+	 *
 	 */
 	public NativeDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
 		super(id, owner, eventLog, browser, testInfo);
@@ -210,7 +210,7 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		
+
 		// handle PKCE
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
@@ -222,13 +222,13 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		
+
 		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-		
+
 		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-		
+
 		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-		
+
 		call(CheckForScopesInTokenResponse.class);
 
 		call(CheckForRefreshTokenValue.class);

@@ -57,15 +57,15 @@ public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondi
 			if (Strings.isNullOrEmpty(resourceEndpoint)) {
 				throw error("Resource endpoint not found");
 			}
-	
+
 			JsonObject resourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(resourceEndpoint);
-			
+
 			env.put("resource_endpoint_tls", resourceEndpointTls);
-			
+
 			logSuccess("Extracted TLS information from resource endpoint", args(
 					"resource_endpoint", resourceEndpointTls
 				));
-			
+
 			return env;
 		} catch (MalformedURLException e) {
 			throw error("URL not properly formed", e);

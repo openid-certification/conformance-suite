@@ -18,5 +18,5 @@ public class ValidateCHash extends ValidateHash {
 		return super.validateHash(env,"c_hash","c_hash");
 	}
 
-	
+
 }

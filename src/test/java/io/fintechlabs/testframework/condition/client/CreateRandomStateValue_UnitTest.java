@@ -41,7 +41,7 @@ public class CreateRandomStateValue_UnitTest {
 		cond.evaluate(env);
 
 		String res1 = env.getString("state");
-		
+
 		assertThat(res1).isNotNull();
 		assertThat(res1).isNotEmpty();
 
@@ -49,7 +49,7 @@ public class CreateRandomStateValue_UnitTest {
 		cond.evaluate(env);
 
 		String res2 = env.getString("state");
-		
+
 		assertThat(res2).isNotEmpty();
 		assertThat(res1).isNotEqualTo(res2);
 	}

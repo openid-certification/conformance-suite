@@ -36,7 +36,7 @@ import com.mongodb.DBObject;
 public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 
 	/**
-	 * 
+	 *
 	 */
 	public CollapsingGsonHttpMessageConverter() {
 		super();
@@ -49,7 +49,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 	@Override
 	public boolean canRead(Class<?> clazz, MediaType mediaType) {
 		if (JsonElement.class.isAssignableFrom(clazz)) {
-			// if we are converting to a JsonElement, of some type, then go ahead 
+			// if we are converting to a JsonElement, of some type, then go ahead
 			return canRead(mediaType);
 		} else {
 			// otherwise, don't do it
@@ -59,7 +59,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 
 	/**
 	 * Special GSON converter that looks for and collapses __wrapped_key_element fields
-	 * 
+	 *
 	 * @return
 	 */
 	public static Gson getDbObjectCollapsingGson() {
@@ -95,7 +95,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 								converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
 							} else if (key.equals("_class")) {
 								// skip all class elements
-								
+
 							} else {
 								converted.put(key, convertStructureToField(dbo.get(key)));
 							}

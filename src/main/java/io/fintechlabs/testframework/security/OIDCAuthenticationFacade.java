@@ -19,26 +19,26 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	// used for the OAuth layer's issuer
 	@Value("${oauth.introspection_url}")
 	private String introspectionUrl;
-	
+
 	// this gets set by the test runners and used later on
 	private ThreadLocal<Authentication> localAuthentication = new ThreadLocal<>();
-	
-	@Override 
+
+	@Override
 	public void setLocalAuthentication(Authentication a) {
 		localAuthentication.set(a);
 	}
-	
+
 	@Override
 	public Authentication getContextAuthentication() {
 		return SecurityContextHolder.getContext().getAuthentication();
 	}
-	
+
 	/**
 	 * If the security context has an Authentication object, return it.
-	 * 
+	 *
 	 * If not, return anything saved in the thread-local localAuthentication since
-	 * we might be running in a background task. 
-	 * 
+	 * we might be running in a background task.
+	 *
 	 * @return
 	 */
 	private Authentication getAuthentication() {
@@ -49,7 +49,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 			return localAuthentication.get();
 		}
 	}
-	
+
 	private OIDCAuthenticationToken getOIDC() {
 		Authentication a = getAuthentication();
 		if (a instanceof OIDCAuthenticationToken) {
@@ -57,7 +57,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		}
 		return null;
 	}
-	
+
 	private OAuth2Authentication getOAuth() {
 		Authentication a = getAuthentication();
 		if (a instanceof OAuth2Authentication) {
@@ -126,12 +126,12 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	@Override
 	public UserInfo getUserInfo() {
 		OIDCAuthenticationToken token = getOIDC();
-		
+
 		if (token != null) {
 			return token.getUserInfo();
 		} else {
 			return null;
 		}
-		
+
 	}
 }

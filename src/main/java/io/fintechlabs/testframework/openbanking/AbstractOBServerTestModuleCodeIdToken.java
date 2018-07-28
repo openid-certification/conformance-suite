@@ -106,7 +106,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		skipIfMissing(new String[] { "callback_query_params" }, new String[] {}, ConditionResult.INFO,
 				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
-		
+
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);
@@ -165,21 +165,21 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-		
+
 		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		
+
 		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");		
-		
-		
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+
 
 		return super.performPostAuthorizationFlow();
-		
+
 	}
 
 }

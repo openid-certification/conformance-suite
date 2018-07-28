@@ -40,10 +40,10 @@ public class CheckDiscEndpointScopesSupported extends ValidateJsonArray {
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-	
-		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired, 
-				errorMessageNotEnough);		
-		
+
+		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
+				errorMessageNotEnough);
+
 	}
 
 }

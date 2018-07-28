@@ -22,7 +22,7 @@ public class UserInfoUIController {
 
 	/**
 	 * Provide a JSON result that represents the currently logged in user.
-	 * 
+	 *
 	 * @return
 	 */
 	@RequestMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)

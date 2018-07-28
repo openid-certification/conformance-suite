@@ -24,14 +24,14 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 
 /**
  * Utility class to collect the methods related to a Condition call.
- * 
+ *
  * @author jricher
  *
  */
 public class ConditionCallBuilder {
 
 	private static final String[] EMPTY_ARRAY = new String[0];
-	
+
 	private Class<? extends Condition> conditionClass = null;
 	private String[] requirements = EMPTY_ARRAY;
 	private ConditionResult onFail = ConditionResult.FAILURE;
@@ -39,10 +39,10 @@ public class ConditionCallBuilder {
 	private boolean stopOnFailure = true;
 	private String[] skipIfRequired = EMPTY_ARRAY;
 	private String[] skipIfStringsRequired = EMPTY_ARRAY;
-	
+
 	private Map<String, String> mapKeys = new HashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
-	
+
 	public ConditionCallBuilder(Class<? extends Condition> conditionClass) {
 		this.conditionClass = conditionClass;
 	}
@@ -95,19 +95,19 @@ public class ConditionCallBuilder {
 		return this;
 	}
 
-	
+
 	public ConditionCallBuilder mapKey(String from, String to) {
 		mapKeys.put(from, to);
 		return this;
 	}
-	
+
 	public ConditionCallBuilder unmapKey(String key) {
 		unmapKeys.add(key);
 		return this;
 	}
-	
+
 	// getters
-	
+
 	/**
 	 * @return the conditionClass
 	 */
@@ -172,5 +172,5 @@ public class ConditionCallBuilder {
 		return unmapKeys;
 	}
 
-	
+
 }

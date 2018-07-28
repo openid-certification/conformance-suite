@@ -40,7 +40,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject resourceAssertion;
-	
+
 	private String assertionType;
 
 	private EnsureResourceAssertionTypeIsJwt cond;
@@ -59,7 +59,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 				"\"assertion_type\": \"" + assertionType + "\"" +
 			"}").getAsJsonObject();
 
-		
+
 	}
 
 	@Test
@@ -73,33 +73,33 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 	public void testEvaluate_noAssertionType() {
 
 		resourceAssertion.remove("assertion_type");
-		
+
 		env.put("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
-		
+
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_blankAssertionType() {
 
 		resourceAssertion.addProperty("assertion_type", "");
-		
+
 		env.put("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
-		
+
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_nullAssertionType() {
 
 		resourceAssertion.add("assertion_type", JsonNull.INSTANCE);
-		
+
 		env.put("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
-		
+
 	}
 
 }

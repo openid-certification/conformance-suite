@@ -443,7 +443,7 @@ public abstract class AbstractCondition implements Condition {
 		int proxyPort = Integer.parseInt(System.getProperty("https.proxyPort", "0"));
 		Socket socket;
 		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
-			
+
 			log("Creating socket through system HTTP proxy", args(
 					"proxy_host", proxyHost,
 					"proxy_port", proxyPort,
@@ -451,7 +451,7 @@ public abstract class AbstractCondition implements Condition {
 					"target_port", targetPort,
 					"result", ConditionResult.WARNING
 				));
-			
+
 			Proxy proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
 			socket = new Socket(proxy);
 			socket.connect(new InetSocketAddress(targetHost, targetPort));
@@ -460,7 +460,7 @@ public abstract class AbstractCondition implements Condition {
 		}
 		return socket;
 	}
-	
+
 	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
 

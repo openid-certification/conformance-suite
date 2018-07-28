@@ -9,7 +9,7 @@ services:
       context: ./server
     links:
      - mongodb:mongodb
-    depends_on: 
+    depends_on:
      - mongodb
   httpd:
     build:

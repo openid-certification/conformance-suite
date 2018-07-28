@@ -54,32 +54,32 @@ public class ExtractAssertionFromIntrospectionRequest extends AbstractCondition 
 
 		String assertion = env.getString("introspection_request", "params.client_assertion");
 		String assertionType = env.getString("introspection_request", "params.client_assertion_type");
-		
+
 		if (Strings.isNullOrEmpty(assertion) || Strings.isNullOrEmpty(assertionType)) {
 			throw error("Couldn't find assertion or assertion type in request");
 		}
-		
+
 		try {
 			JWT parsed = JWTParser.parse(assertion);
-			
+
 			JsonParser parser = new JsonParser();
-			
+
 			JsonObject o = new JsonObject();
-			
+
 			o.addProperty("assertion", assertion);
 			o.addProperty("assertion_type", assertionType);
 			o.add("assertion_header", parser.parse(parsed.getHeader().toString()));
 			o.add("assertion_payload", parser.parse(parsed.getJWTClaimsSet().toString()));
-			
+
 			env.put("resource_assertion", o);
-			
+
 			logSuccess("Extracted assertion from resource server", o);
-			
+
 			return env;
 		} catch (ParseException e) {
 			throw error("Couldn't parse client assertion", e);
 		}
-		
+
 	}
 
 }
