@@ -184,14 +184,11 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		logIncomingHttpRequest(path, requestParts);
-
 		// dispatch based on the path
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
 		} else {
-			throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
+			throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
 		}
 
 	}
@@ -237,16 +234,6 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		stop();
 
 		return redirectToLogDetailPage();
-
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 
 	}
 

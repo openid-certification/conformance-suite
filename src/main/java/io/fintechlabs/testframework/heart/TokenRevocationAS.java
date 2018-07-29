@@ -133,13 +133,11 @@ public class TokenRevocationAS extends AbstractTestModule {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		logIncomingHttpRequest(path, requestParts);
-
 		// dispatch based on the path
 		if (path.equals("jwks")) {
 			return handleJwks(requestParts);
 		} else {
-			throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
+			throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
 		}
 	}
 
@@ -150,11 +148,5 @@ public class TokenRevocationAS extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
-	}
-
-
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
 	}
 }
