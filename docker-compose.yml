@@ -20,10 +20,11 @@ services:
       - "9001:9001"
     command: node ./authorizationServer.js
   server:
-    image: openjdk:9-jre-slim
+    build:
+      context: ./server-dev
     volumes:
      - ./target/:/server/
-    command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true
+    command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true --fintechlabs.startredir=true
     links:
      - mongodb:mongodb
      - microauth:microauth
