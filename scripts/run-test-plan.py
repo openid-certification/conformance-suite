@@ -106,6 +106,8 @@ for module in plan_modules:
 
     if info['status'] != 'FINISHED':
         incomplete += 1
+    if 'result' not in info:
+        info['result'] = 'UNKNOWN'
 
     for log_entry in logs:
         if 'result' not in log_entry:
