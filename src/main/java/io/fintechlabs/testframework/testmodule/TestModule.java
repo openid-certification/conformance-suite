@@ -134,7 +134,7 @@ public interface TestModule {
 	BrowserControl getBrowser();
 
 	/**
-	 * @param restOfPath
+	 * @param path
 	 * @param req
 	 * @param res
 	 * @param session

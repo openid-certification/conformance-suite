@@ -131,20 +131,4 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		fireTestFinished();
 		stop();
 	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		logIncomingHttpRequest(path, requestParts);
-
-		// dispatch based on the path
-		// since we're only doing the registration, nothing should come back on the callback
-
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-
-	}
-
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-	}
 }

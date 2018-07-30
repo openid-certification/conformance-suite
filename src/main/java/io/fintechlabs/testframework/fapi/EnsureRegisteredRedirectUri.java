@@ -129,26 +129,4 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		setStatus(Status.WAITING);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		logIncomingHttpRequest(path, requestParts);
-
-		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
-
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		logIncomingHttpRequest(path, requestParts);
-
-		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
-	}
-
 }

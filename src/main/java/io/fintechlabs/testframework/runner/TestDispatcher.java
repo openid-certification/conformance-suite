@@ -144,6 +144,7 @@ public class TestDispatcher {
 
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
+			logIncomingHttpRequest(test, restOfPath, requestParts);
 			if (path.startsWith(TEST_PATH)) {
 				return test.handleHttp(restOfPath, req, res, session, requestParts);
 			} else if (path.startsWith(TEST_MTLS_PATH)) {
@@ -154,6 +155,18 @@ public class TestDispatcher {
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
+	}
+
+	protected void logIncomingHttpRequest(TestModule test, String path, JsonObject requestParts) {
+		eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
+			"msg", "Incoming HTTP request to test instance " + test.getId(),
+			"http", "incoming",
+			"incoming_path", path,
+			"incoming_params", requestParts.get("params"),
+			"incoming_method", requestParts.get("method"),
+			"incoming_headers", requestParts.get("headers"),
+			"incoming_body", requestParts.get("body"),
+			"incoming_body_json", requestParts.get("body_json")));
 	}
 
 	// handle errors thrown by running tests

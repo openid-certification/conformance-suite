@@ -38,9 +38,6 @@ public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTes
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		logIncomingHttpRequest(path, requestParts);
-
 		// dispatch based on the path
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);

@@ -97,20 +97,6 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 	}
 
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session,
-			JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-	}
-
-
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session,
-			JsonObject requestParts) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		// TODO Auto-generated method stub
 		env.putString("base_url", baseUrl);

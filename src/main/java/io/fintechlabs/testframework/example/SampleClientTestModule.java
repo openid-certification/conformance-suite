@@ -299,12 +299,4 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response on a call we weren't expecting");
-	}
-
 }

@@ -39,6 +39,10 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 /**
  * @author jricher
  *
@@ -684,18 +688,6 @@ public abstract class AbstractTestModule implements TestModule {
 		this.finalError = finalError;
 	}
 
-	protected void logIncomingHttpRequest(String path, JsonObject requestParts) {
-		eventLog.log(getName(), args(
-			"msg", "Incoming HTTP request to test instance " + getId(),
-			"http", "incoming",
-			"incoming_path", path,
-			"incoming_params", requestParts.get("params"),
-			"incoming_method", requestParts.get("method"),
-			"incoming_headers", requestParts.get("headers"),
-			"incoming_body", requestParts.get("body"),
-			"incoming_body_json", requestParts.get("body_json")));
-	}
-
 	protected RedirectView redirectToLogDetailPage() {
 		return new RedirectView("/log-detail.html?log=" + getId());
 	}
@@ -721,6 +713,16 @@ public abstract class AbstractTestModule implements TestModule {
 
 	public void acquireLock() {
 		env.getLock().lock();
+	}
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+	}
+
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
 	}
 
 }

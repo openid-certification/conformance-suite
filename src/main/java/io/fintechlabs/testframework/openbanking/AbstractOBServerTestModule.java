@@ -444,24 +444,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		call(EnsureResourceResponseContentTypeIsJsonUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
-	@Override
-	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		throw new TestFailureException(getId(), "Unexpected HTTP call: " + path);
-	}
-
 	protected void logClientSecretWarning() {
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("msg", "client_secret_basic and client_secret_post are not recommended client authentication methods");
