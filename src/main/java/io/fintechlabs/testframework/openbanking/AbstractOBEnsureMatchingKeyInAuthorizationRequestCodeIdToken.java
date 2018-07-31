@@ -21,4 +21,9 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequestCodeIdTok
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
+	@Override
+	protected void performTokenEndpointIdTokenExtraction() {
+		performTokenEndpointIdTokenExtractionCodeIdToken();
+	}
+
 }

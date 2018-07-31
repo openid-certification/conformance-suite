@@ -21,4 +21,9 @@ public abstract class AbstractOBEnsureRegisteredRedirectUriCode extends Abstract
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 	}
 
+	@Override
+	protected void performTokenEndpointIdTokenExtraction() {
+		performTokenEndpointIdTokenExtractionCode();
+	}
+
 }

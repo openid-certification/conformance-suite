@@ -62,13 +62,16 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
@@ -83,9 +86,12 @@ import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderFo
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.condition.client.ValidateAtHash;
+import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -421,6 +427,38 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
+
+		performTokenEndpointIdTokenExtraction();
+		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+
+		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
+		 * determined by the Extract*Hash condition
+		 */
+		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO ,
+			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+	}
+
+	protected abstract void performTokenEndpointIdTokenExtraction();
+
+	protected void performTokenEndpointIdTokenExtractionCode() {
+		/* code flow, so the only id_token is from the token endpoint, so
+		 * c_hash is optional but s_hash is required
+		 */
+		call(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+	}
+
+	protected void performTokenEndpointIdTokenExtractionCodeIdToken() {
+		/* code id_token flow - we already had an id_token from the authorisation endpoint,
+		 * so c_hash and s_hash are optional.
+		 */
+		call(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+		call(ExtractSHash.class, ConditionResult.INFO, "FAPI-2-5.2.2-4");
 	}
 
 	protected void requestProtectedResource() {
