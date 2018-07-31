@@ -224,6 +224,7 @@ public abstract class AbstractTestModule implements TestModule {
 							"mapped", env.isKeyMapped(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
+						updateResultFromConditionFailure(onSkip);
 						return;
 					}
 				}
@@ -238,6 +239,7 @@ public abstract class AbstractTestModule implements TestModule {
 							"result", onSkip
 						// TODO: log the environment here?
 						));
+						updateResultFromConditionFailure(onSkip);
 						return;
 					}
 				}
