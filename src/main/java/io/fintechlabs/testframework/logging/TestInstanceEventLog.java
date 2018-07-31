@@ -93,6 +93,7 @@ public class TestInstanceEventLog {
 	 * @see io.fintechlabs.testframework.logging.EventLog#endBlock()
 	 */
 	public String endBlock() {
+		log("-END-BLOCK", EventLog.args("msg","", "endBlock", true));
 		return eventLog.endBlock();
 	}
 

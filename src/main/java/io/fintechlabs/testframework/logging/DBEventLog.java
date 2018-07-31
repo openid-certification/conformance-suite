@@ -34,6 +34,7 @@ import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 import io.fintechlabs.testframework.info.TestInfoService;
+import scala.collection.mutable.Stack;
 
 /**
  * @author jricher
@@ -47,7 +48,17 @@ public class DBEventLog implements EventLog {
 	public static final String COLLECTION = "EVENT_LOG";
 
 	// a block identifier for a log entry
-	private String blockId = null;
+	private Stack<String> blockIdStack = new Stack<String>();
+
+	private String getBlockId() {
+		String stackedBlockId = null;
+		if ( blockIdStack.size() > 0 ) {
+			stackedBlockId = blockIdStack.head();
+		}
+		return stackedBlockId;
+	}
+
+
 
 	// random number generator
 	private Random random = new SecureRandom();
@@ -70,7 +81,7 @@ public class DBEventLog implements EventLog {
 			.add("src", source)
 			.add("testOwner", owner)
 			.add("time", new Date().getTime())
-			.add("blockId", blockId)
+			.add("blockId", getBlockId())
 			.add("msg", msg);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
@@ -88,7 +99,7 @@ public class DBEventLog implements EventLog {
 		dbObject.put("src", source);
 		dbObject.put("testOwner", owner);
 		dbObject.put("time", new Date().getTime());
-		dbObject.put("blockId", blockId);
+		dbObject.put("blockId", getBlockId());
 
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
@@ -105,7 +116,7 @@ public class DBEventLog implements EventLog {
 			.add("src", source)
 			.add("testOwner", owner)
 			.add("time", new Date().getTime())
-			.add("blockId", blockId);
+			.add("blockId", getBlockId());
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 	}
@@ -113,20 +124,25 @@ public class DBEventLog implements EventLog {
 	@Override
 	public String startBlock() {
 		// create a random six-character hex string that we can use as a CSS color code in the logs
-		blockId = Strings.padStart(
+		String blockId = Strings.padStart(
 			Integer.toHexString(
 				random.nextInt(256 * 256 * 256))
 			, 6, '0');
 
+		blockIdStack.push(blockId);
 
-
-		return blockId;
+		return getBlockId();
 	}
 
 	@Override
 	public String endBlock() {
-		String oldBlock = blockId;
-		blockId = null;
+
+		String oldBlock = null;
+
+		if ( blockIdStack.size() > 0 ) {
+			oldBlock = blockIdStack.pop();
+		}
+
 		return oldBlock;
 	}
 

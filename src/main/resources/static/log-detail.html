@@ -210,6 +210,8 @@
             <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem"<%
                 if (item.blockId && item.startBlock) {
                     %> style="border-left: 3px solid #<%- item.blockId %>; border-top: 3px solid #<%- item.blockId %>;"<%
+                } else if (item.blockId && item.endBlock) {
+                	%> style="border-left: 3px solid #<%- item.blockId %>; border-bottom: 3px solid #<%- item.blockId %>;"<%
                 } else if (item.blockId) {
                     %> style="border-left: 3px solid #<%- item.blockId %>"<%
                 } %>>
