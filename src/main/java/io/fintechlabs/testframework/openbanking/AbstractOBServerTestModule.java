@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.client.AddIatExpToRequestObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -263,6 +264,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	protected void createAuthorizationRedirect() {
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		if (whichClient == 2) {
+			callAndStopOnFailure(AddIatExpToRequestObject.class);
+		}
 
 		callAndStopOnFailure(SignRequestObject.class);
 
