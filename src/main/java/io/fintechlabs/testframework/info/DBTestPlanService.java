@@ -183,12 +183,9 @@ public class DBTestPlanService implements TestPlanService {
 			if (override.has(moduleName)) {
 				// Move all the overridden elements up into the configuration
 				JsonObject overrides = override.getAsJsonObject(moduleName);
-				Iterator var2 = overrides.entrySet().iterator();
-				while(var2.hasNext()) {
-					Map.Entry<String, JsonElement> entry = (Map.Entry)var2.next();
-					config.add((String)entry.getKey(), (JsonElement)entry.getValue());
+				for (Map.Entry<String, JsonElement> entry : overrides.entrySet()) {
+					config.add(entry.getKey(), entry.getValue());
 				}
-
 			}
 		}
 
