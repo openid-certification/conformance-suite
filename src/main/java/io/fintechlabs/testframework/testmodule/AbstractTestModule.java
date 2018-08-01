@@ -429,15 +429,32 @@ public abstract class AbstractTestModule implements TestModule {
 
 	@Override
 	public void fireTestFinished() {
-		setStatus(Status.FINISHED);
+		
+		// this happens in the background so that we can check the state of the browser controller
+		
+		getTestExecutionManager().runInBackground(() -> {
 
-		if (getResult() == Result.UNKNOWN) {
-			fireTestSuccess();
-		}
+			
+			// wait for web runners to wrap up first
 
-		eventLog.log(getName(), args(
-			"msg", "Finished",
-			"result", getResult()));
+			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
+			while (browser.getWebRunners().size() > 0
+				&& Instant.now().isBefore(timeout)) {
+				Thread.sleep(100); // sleep before we check again
+			}
+			
+			setStatus(Status.FINISHED);
+
+			if (getResult() == Result.UNKNOWN) {
+				fireTestSuccess();
+			}
+
+			eventLog.log(getName(), args(
+				"msg", "Finished",
+				"result", getResult()));
+			
+			return "done";
+		});
 	}
 
 	@Override
