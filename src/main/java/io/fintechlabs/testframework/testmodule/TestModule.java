@@ -25,6 +25,7 @@ import javax.servlet.http.HttpSession;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 /**
  *
@@ -133,6 +134,11 @@ public interface TestModule {
 	 */
 	BrowserControl getBrowser();
 
+	/**
+	 * @return the associated execution manager
+	 */
+	TestExecutionManager getTestExecutionManager();
+	
 	/**
 	 * @param path
 	 * @param req

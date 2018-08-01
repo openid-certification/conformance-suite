@@ -38,6 +38,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,6 +62,7 @@ public abstract class AbstractTestModule implements TestModule {
 	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
 	protected TestInstanceEventLog eventLog;
 	protected BrowserControl browser;
+	protected TestExecutionManager executionManager;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
@@ -74,13 +76,14 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
 		this.browser.setLock(env.getLock());
 		this.testInfo = testInfo;
+		this.executionManager = executionManager;
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
@@ -725,6 +728,11 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+	}
+
+	@Override
+	public TestExecutionManager getTestExecutionManager() {
+		return executionManager;
 	}
 
 }
