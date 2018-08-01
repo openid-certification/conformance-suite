@@ -21,4 +21,8 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNoneCo
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
+	@Override
+	protected void performTokenEndpointIdTokenExtraction() {
+		performTokenEndpointIdTokenExtractionCodeIdToken();
+	}
 }

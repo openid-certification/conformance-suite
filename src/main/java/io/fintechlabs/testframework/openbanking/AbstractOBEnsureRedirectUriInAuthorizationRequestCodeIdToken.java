@@ -21,4 +21,9 @@ public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequestCodeIdTok
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
+	@Override
+	protected void performTokenEndpointIdTokenExtraction() {
+		performTokenEndpointIdTokenExtractionCodeIdToken();
+	}
+
 }
