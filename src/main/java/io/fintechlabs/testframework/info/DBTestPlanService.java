@@ -17,12 +17,14 @@ package io.fintechlabs.testframework.info;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -174,6 +176,21 @@ public class DBTestPlanService implements TestPlanService {
 		String json = gson.toJson(dbConfig);
 
 		JsonObject config = new JsonParser().parse(json).getAsJsonObject();
+
+		if (config.has("override")) {
+			JsonObject override = config.getAsJsonObject("override");
+			config.remove("override");
+			if (override.has(moduleName)) {
+				// Move all the overridden elements up into the configuration
+				JsonObject overrides = override.getAsJsonObject(moduleName);
+				Iterator var2 = overrides.entrySet().iterator();
+				while(var2.hasNext()) {
+					Map.Entry<String, JsonElement> entry = (Map.Entry)var2.next();
+					config.add((String)entry.getKey(), (JsonElement)entry.getValue());
+				}
+
+			}
+		}
 
 		return config;
 	}
