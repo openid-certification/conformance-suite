@@ -227,13 +227,20 @@ public class TestRunner {
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
 		if (!Strings.isNullOrEmpty(planId)) {
+			if (testConfig != null) {
+				// user should not supply a configuration when creating a test from a test plan
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
 			// if the test is part of a plan, the configuration comes from the plan
 			config = planService.getModuleConfig(planId, testName);
+			if (config == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
 		} else {
 			config = testConfig;
-		}
-		if (config == null) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			if (config == null) {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
 		}
 
 		TestModule test = createTestModule(testName, id, config);

@@ -667,7 +667,8 @@
 	                            url: '/runner/?test=' + encodeURIComponent(data.testName) + (data.planId ? '&plan=' + encodeURIComponent(data.planId) : ''),
 	                            type: 'POST',
 	                            contentType: 'application/json',
-	                            data: data.planId ? "" : JSON.stringify(data.config),
+								// pass config if necessary, which it isn't if the test is part of a plan
+	                            data: data.planId ? undefined : JSON.stringify(data.config),
 	                            success: function(data, status) {
 	                                // we need to switch to the new window now
 	                                var newUrl = window.location.href.replace(testId, data.id);
