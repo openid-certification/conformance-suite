@@ -52,6 +52,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 		// additional ciphers are allowed on the authorization endpoint
 
 		eventLog.startBlock("Token Endpoint TLS test");
@@ -60,6 +61,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
@@ -67,6 +69,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");

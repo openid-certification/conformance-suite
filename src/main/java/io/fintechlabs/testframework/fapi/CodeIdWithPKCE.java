@@ -169,6 +169,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
@@ -176,6 +177,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
@@ -183,6 +185,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");
@@ -190,6 +193,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
@@ -197,8 +201,8 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-
 		eventLog.endBlock();
+
 		env.unmapKey("tls");
 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);

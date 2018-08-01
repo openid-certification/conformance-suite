@@ -304,6 +304,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+			eventLog.endBlock();
 
 
 			eventLog.startBlock("Accounts resource endpoint TLS test");

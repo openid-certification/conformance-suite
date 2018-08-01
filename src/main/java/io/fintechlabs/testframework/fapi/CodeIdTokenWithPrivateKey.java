@@ -197,6 +197,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
@@ -204,6 +205,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
@@ -211,6 +213,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");
@@ -218,6 +221,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
@@ -225,8 +229,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-
 		eventLog.endBlock();
+
 		env.unmapKey("tls");
 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
@@ -416,7 +420,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 
 		// get token for second client
-		eventLog.startBlock("Second client");
+		eventLog.log("Second client", env.get("client2"));
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 
