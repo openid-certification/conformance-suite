@@ -258,6 +258,12 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
+		if ( whichClient == 2 ) {
+			env.putInteger("requested_state_length", 128);
+		} else {
+			env.putInteger("requested_state_length", null);
+		}
+
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
 		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
