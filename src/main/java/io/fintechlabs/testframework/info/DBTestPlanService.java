@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
@@ -149,6 +151,23 @@ public class DBTestPlanService implements TestPlanService {
 	@Override
 	public JsonObject getModuleConfig(String planId, String moduleName) {
 		Map testPlan = getTestPlan(planId);
+
+		BasicDBList modules = (BasicDBList) testPlan.get("modules");
+
+		boolean found = false;
+
+		for (Object o : modules)
+		{
+			BasicDBObject module = (BasicDBObject) o;
+			if (module.containsValue(moduleName)) {
+				found = true;
+			}
+		}
+
+		if (!found) {
+			// the user has asked to create a module that isn't part of the plan
+			return null;
+		}
 
 		DBObject dbConfig = (DBObject) testPlan.get("config");
 
