@@ -225,7 +225,7 @@ public class SampleImplicitModule extends AbstractTestModule {
 		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 
 		fireTestFinished();
-		stop();
+		//stop();
 
 		return redirectToLogDetailPage();
 
