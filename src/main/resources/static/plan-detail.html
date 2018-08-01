@@ -245,7 +245,6 @@
                            url: '/runner/?test=' + encodeURIComponent(module) + '&plan=' + encodeURIComponent(planId),
                            type: 'POST',
                            contentType: 'application/json',
-                           data: JSON.stringify(data.config),
                            success: function(testData, status) {
                                // we need to switch to the new window now
                                window.location.assign('/log-detail.html?log=' + encodeURIComponent(testData.id));

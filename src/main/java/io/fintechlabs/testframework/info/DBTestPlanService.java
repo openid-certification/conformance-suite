@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +65,8 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
 	/**
 	 * @param planId
@@ -139,6 +144,19 @@ public class DBTestPlanService implements TestPlanService {
 		} else {
 			return testPlan.toMap();
 		}
+	}
+
+	@Override
+	public JsonObject getModuleConfig(String planId, String moduleName) {
+		Map testPlan = getTestPlan(planId);
+
+		DBObject dbConfig = (DBObject) testPlan.get("config");
+
+		String json = gson.toJson(dbConfig);
+
+		JsonObject config = new JsonParser().parse(json).getAsJsonObject();
+
+		return config;
 	}
 
 	/* (non-Javadoc)
