@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractCondition {
+public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
 
 	public AddAccountRequestIdToAuthorizationEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -36,45 +36,7 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest extends AbstractC
 	@PreEnvironment(strings = "account_request_id", required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-
-		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
-
-		JsonObject claims;
-		if (authorizationEndpointRequest.has("claims")) {
-			JsonElement claimsElement = authorizationEndpointRequest.get("claims");
-			if (claimsElement.isJsonObject()) {
-				claims = claimsElement.getAsJsonObject();
-			} else {
-				throw error("Invalid claims in request", args("authorization_endpoint_request", authorizationEndpointRequest));
-			}
-		} else {
-			claims = new JsonObject();
-			authorizationEndpointRequest.add("claims", claims);
-		}
-
-		JsonObject claimsIdToken;
-		if (claims.has("id_token")) {
-			JsonElement idTokenElement = claims.get("id_token");
-			if (idTokenElement.isJsonObject()) {
-				claimsIdToken = idTokenElement.getAsJsonObject();
-			} else {
-				throw error("Invalid id_token in request claims", args("authorization_endpoint_request", authorizationEndpointRequest));
-			}
-		} else {
-			claimsIdToken = new JsonObject();
-			claims.add("id_token", claimsIdToken);
-		}
-
-		JsonObject intentId = new JsonObject();
-		intentId.addProperty("value", env.getString("account_request_id"));
-		intentId.addProperty("essential", true);
-		claimsIdToken.add("openbanking_intent_id", intentId);
-
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
-
-		logSuccess("Added account request ID to request", args("authorization_endpoint_request", authorizationEndpointRequest));
-
-		return env;
+		return addClaim(env, "openbanking_intent_id", env.getString("account_request_id"), true);
 	}
 
 }
