@@ -162,14 +162,16 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
-		fireTestFinished();
-		fireTestSuccess();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+			
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
+			fireTestFinished();
+			fireTestSuccess();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

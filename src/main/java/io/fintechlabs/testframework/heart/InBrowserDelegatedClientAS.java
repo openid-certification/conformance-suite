@@ -219,47 +219,49 @@ public class InBrowserDelegatedClientAS extends AbstractTestModule {
 	 */
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		JsonElement body = requestParts.get("body");
-
-		if (body != null) {
-			String hash = body.getAsString();
-
-			logger.info("Hash: " + hash);
-
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
-
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
-
-		callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
-
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
-
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-
-		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-
-		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-
-		call(CheckForScopesInTokenResponse.class);
-
-		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.3");
-
-		fireTestFinished();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+			
+			JsonElement body = requestParts.get("body");
+			
+			if (body != null) {
+				String hash = body.getAsString();
+				
+				logger.info("Hash: " + hash);
+				
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
+				
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
+			
+			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
+			
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
+			
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
+			
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			
+			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+			
+			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+			
+			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+			
+			call(CheckForScopesInTokenResponse.class);
+			
+			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.3");
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

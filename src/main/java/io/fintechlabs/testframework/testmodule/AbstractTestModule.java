@@ -442,13 +442,18 @@ public abstract class AbstractTestModule implements TestModule {
 				&& Instant.now().isBefore(timeout)) {
 				Thread.sleep(100); // sleep before we check again
 			}
-			
-			setStatus(Status.FINISHED);
+
+			// if we weren't interrupted already, then we're finished
+			if (!getStatus().equals(Status.INTERRUPTED)) {
+				setStatus(Status.FINISHED);
+			}
 
 			if (getResult() == Result.UNKNOWN) {
 				fireTestSuccess();
 			}
 
+			stop();
+			
 			eventLog.log(getName(), args(
 				"msg", "Finished",
 				"result", getResult()));
@@ -486,9 +491,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	protected void setResult(Result result) {
 		this.result = result;
-		if (testInfo != null) {
-			testInfo.updateTestResult(getId(), getResult());
-		}
+		testInfo.updateTestResult(getId(), getResult());
 	}
 
 	protected void updateResultFromConditionFailure(ConditionResult onFail) {
@@ -665,19 +668,15 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public void stop() {
 
-		String logResult;
-
 		if (!getStatus().equals(Status.FINISHED)) {
 			setStatus(Status.INTERRUPTED);
-			logResult = "INTERRUPTED";
 			eventLog.log(getName(), args(
 				"msg", "Test was interrupted before it could complete",
-				"result", logResult));
+				"result", Status.INTERRUPTED.toString()));
 		} else {
-			logResult = getResult().toString();
 			eventLog.log(getName(), args(
 				"msg", "Test was stopped",
-				"result", logResult));
+				"result", getResult().toString()));
 		}
 
 		logFinalEnv();

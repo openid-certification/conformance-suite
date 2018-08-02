@@ -197,42 +197,44 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		// handle PKCE
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
-
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-
-		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-
-		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-
-		call(CheckForScopesInTokenResponse.class);
-
-		call(CheckForRefreshTokenValue.class);
-
-		fireTestFinished();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+			
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
+			
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			
+			// handle PKCE
+			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+			callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
+			
+			callAndStopOnFailure(CallTokenEndpoint.class);
+			
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
+			
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			
+			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+			
+			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+			
+			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+			
+			call(CheckForScopesInTokenResponse.class);
+			
+			call(CheckForRefreshTokenValue.class);
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

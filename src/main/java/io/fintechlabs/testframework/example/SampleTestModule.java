@@ -205,50 +205,51 @@ public class SampleTestModule extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
-		//require(CreateClientAuthenticationAssertionClaims.class);
-
-		//require(SignClientAuthenticationAssertion.class);
-
-		//require(AddClientAssertionToTokenEndpointRequest.class);
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
-
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
-
-		call(ValidateSHash.class, "FAPI-2-5.2.2-4");
-
-		call(CheckForRefreshTokenValue.class);
-
-		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
-
-		// verify the access token against a protected resource
-
-		/*
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+			
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
+			
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			
+			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+			//require(CreateClientAuthenticationAssertionClaims.class);
+			
+			//require(SignClientAuthenticationAssertion.class);
+			
+			//require(AddClientAssertionToTokenEndpointRequest.class);
+			
+			callAndStopOnFailure(CallTokenEndpoint.class);
+			
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			
+			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+			
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			
+			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+			
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+			
+			callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+			
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+			
+			call(ValidateSHash.class, "FAPI-2-5.2.2-4");
+			
+			call(CheckForRefreshTokenValue.class);
+			
+			callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+			
+			// verify the access token against a protected resource
+			
+			/*
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
@@ -266,10 +267,11 @@ public class SampleTestModule extends AbstractTestModule {
 		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
 
 		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
-		*/
-
-		fireTestFinished();
-		stop();
+			 */
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

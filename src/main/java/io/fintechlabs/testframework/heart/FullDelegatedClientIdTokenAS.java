@@ -183,57 +183,59 @@ public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		// authenticate using a signed assertion
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		// The following is for the Access Token
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
-
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-
-		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-
-		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-
-		call(CheckForScopesInTokenResponse.class);
-
-		// The following is for the ID token HEART 3.1.3.6, 3.1.3.7
-
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "HEART-OIDC-3.1");
-
-		//callAndStopOnFailure(ValidateIdToken.class);
-		call(ValidateIdTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");
-
-		call(VerifyIdTokenExpHeart.class, ConditionResult.WARNING, "HEART-OIDC-3.1");
-
-
-		// The following is for RefreshToken
-		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
-
-		fireTestFinished();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+			
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
+			
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			
+			// authenticate using a signed assertion
+			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
+			callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
+			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
+			
+			callAndStopOnFailure(CallTokenEndpoint.class);
+			
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			
+			// The following is for the Access Token
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
+			
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			
+			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+			
+			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+			
+			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+			
+			call(CheckForScopesInTokenResponse.class);
+			
+			// The following is for the ID token HEART 3.1.3.6, 3.1.3.7
+			
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
+			
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "HEART-OIDC-3.1");
+			
+			//callAndStopOnFailure(ValidateIdToken.class);
+			call(ValidateIdTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");
+			
+			call(VerifyIdTokenExpHeart.class, ConditionResult.WARNING, "HEART-OIDC-3.1");
+			
+			
+			// The following is for RefreshToken
+			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

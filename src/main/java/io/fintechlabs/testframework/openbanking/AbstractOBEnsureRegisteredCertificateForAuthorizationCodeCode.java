@@ -20,22 +20,24 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 	@Override
 	protected Object performPostAuthorizationFlow() {
 
-		createAuthorizationCodeRequest();
-
-		// Check that a call to the token endpoint succeeds normally
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		// Now try with the wrong certificate
-
-		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
-
-		fireTestFinished();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			createAuthorizationCodeRequest();
+			
+			// Check that a call to the token endpoint succeeds normally
+			
+			callAndStopOnFailure(CallTokenEndpoint.class);
+			
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			
+			// Now try with the wrong certificate
+			
+			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+			
+			callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 	}

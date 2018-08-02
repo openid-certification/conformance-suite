@@ -191,7 +191,6 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		// at this point we can assume the test is fully done
 		fireTestFinished();
-		stop();
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 

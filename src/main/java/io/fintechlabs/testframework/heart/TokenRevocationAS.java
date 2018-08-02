@@ -129,7 +129,6 @@ public class TokenRevocationAS extends AbstractTestModule {
 		callAndStopOnFailure(CallProtectedResourceWithInactiveBearerToken.class);
 
 		fireTestFinished();
-		stop();
 	}
 
 	@Override

@@ -189,43 +189,47 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 */
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		JsonElement body = requestParts.get("body");
-
-		if (body != null) {
-			String hash = body.getAsString();
-
-			logger.info("Hash: " + hash);
-
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
-
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
-
-		callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
-
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-
-		call(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
-
-		call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-
-		call(CheckForRefreshTokenValue.class);
-
-		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
-
-		fireTestFinished();
-		//stop();
+		getTestExecutionManager().runInBackground(() -> {
+			
+			// process the callback
+			setStatus(Status.RUNNING);
+	
+			JsonElement body = requestParts.get("body");
+	
+			if (body != null) {
+				String hash = body.getAsString();
+	
+				logger.info("Hash: " + hash);
+	
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
+	
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
+	
+			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
+	
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+	
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
+	
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+	
+			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+	
+			call(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+	
+			call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+	
+			call(CheckForRefreshTokenValue.class);
+	
+			call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+	
+			fireTestFinished();
+			
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

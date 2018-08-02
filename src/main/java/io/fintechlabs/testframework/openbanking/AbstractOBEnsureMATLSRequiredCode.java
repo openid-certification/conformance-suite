@@ -95,7 +95,6 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
 
 		fireTestFinished();
-		stop();
 
 		return redirectToLogDetailPage();
 	}

@@ -165,14 +165,16 @@ public class RejectCodeFlow extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint.class);
-
-		fireTestFinished();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+			
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint.class);
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

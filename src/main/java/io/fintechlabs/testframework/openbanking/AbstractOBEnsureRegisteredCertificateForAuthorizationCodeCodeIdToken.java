@@ -33,49 +33,51 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 	@Override
 	protected Object performPostAuthorizationFlow() {
 
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
-
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
-
-		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
-
-		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
-
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-
-		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-
-		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		createAuthorizationCodeRequest();
-
-		// Check that a call to the token endpoint succeeds normally
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		// Now try with the wrong certificate
-
-		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
-
-		fireTestFinished();
-		stop();
+		getTestExecutionManager().runInBackground(() -> {
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+			
+			callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+			
+			callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+			
+			callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
+			
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+			
+			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
+			
+			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			
+			skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			
+			call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			
+			skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			
+			call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+			
+			skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			
+			createAuthorizationCodeRequest();
+			
+			// Check that a call to the token endpoint succeeds normally
+			
+			callAndStopOnFailure(CallTokenEndpoint.class);
+			
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			
+			// Now try with the wrong certificate
+			
+			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+			
+			callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
+			
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 	}

@@ -182,7 +182,6 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		callAndStopOnFailure(EnsureNoRefreshToken.class);
 
 		fireTestFinished();
-		stop();
 	}
 
 	/* (non-Javadoc)

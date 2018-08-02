@@ -312,101 +312,106 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		if (whichClient == 1) {
 
-			// call the token endpoint and complete the flow
+			getTestExecutionManager().runInBackground(() -> {
+				// call the token endpoint and complete the flow
+				
+				createAuthorizationCodeRequest();
+				
+				requestAuthorizationCode();
+				
+				eventLog.startBlock("Accounts request endpoint TLS test");
+				env.mapKey("tls", "accounts_request_endpoint_tls");
+				call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				
+				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+				
+				
+				eventLog.startBlock("Accounts resource endpoint TLS test");
+				env.mapKey("tls", "accounts_resource_endpoint_tls");
+				call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				
+				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+				env.unmapKey("tls");
+				eventLog.endBlock();
+				
+				requestProtectedResource();
+				
+				call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
+				
+				callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+				
+				callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+				
+				callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+				
+				call(CallAccountsEndpointWithBearerToken.class, ConditionResult.FAILURE, "RFC7231-5.3.2");
+				
+				// Try the second client
+				
+				whichClient = 2;
+				
+				eventLog.startBlock("Second client");
+				env.mapKey("client", "client2");
+				env.mapKey("client_jwks", "client_jwks2");
+				env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+				
+				Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
+				
+				if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0)
+				{
+					/* Temporary change to allow banks to disable tests until they have had a chance to register new
+					 * clients with the new redirect uris.
+					 */
+					call(RedirectQueryTestDisabled.class, ConditionResult.FAILURE, "RFC6749-3.1.2");
+				}
+				else
+				{
+					callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+				}
+				callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
+				
+				//exposeEnvString("client_id");
+				
+				callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+				callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+				
+				callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+				callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+				
+				performAuthorizationFlow();
+				return "done";
+			});
 
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			eventLog.startBlock("Accounts request endpoint TLS test");
-			env.mapKey("tls", "accounts_request_endpoint_tls");
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-
-
-			eventLog.startBlock("Accounts resource endpoint TLS test");
-			env.mapKey("tls", "accounts_resource_endpoint_tls");
-			call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-			call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-			call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-
-			call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-			env.unmapKey("tls");
-			eventLog.endBlock();
-
-			requestProtectedResource();
-
-			call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
-
-			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-			call(CallAccountsEndpointWithBearerToken.class, ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-			// Try the second client
-
-			whichClient = 2;
-
-			eventLog.startBlock("Second client");
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-
-			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0)
-			{
-				/* Temporary change to allow banks to disable tests until they have had a chance to register new
-				 * clients with the new redirect uris.
-				 */
-				call(RedirectQueryTestDisabled.class, ConditionResult.FAILURE, "RFC6749-3.1.2");
-			}
-			else
-			{
-				callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
-			}
-			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-
-			//exposeEnvString("client_id");
-
-			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-			callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
-
-			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
-
-			performAuthorizationFlow();
-
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			return redirectToLogDetailPage();
 		} else {
 
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			requestProtectedResource();
-
-			// Switch back to client 1
-
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			env.unmapKey("mutual_tls_authentication");
-			eventLog.endBlock();
-
-			// Try client 2's access token with client 1's keys
-
-			callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
-
-			fireTestFinished();
-			stop();
+			getTestExecutionManager().runInBackground(() -> {
+				// call the token endpoint and complete the flow
+				
+				createAuthorizationCodeRequest();
+				
+				requestAuthorizationCode();
+				
+				requestProtectedResource();
+				
+				// Switch back to client 1
+				
+				env.unmapKey("client");
+				env.unmapKey("client_jwks");
+				env.unmapKey("mutual_tls_authentication");
+				eventLog.endBlock();
+				
+				// Try client 2's access token with client 1's keys
+				
+				callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
+				
+				fireTestFinished();
+				return "done";
+			});
 
 			return redirectToLogDetailPage();
 		}

@@ -130,6 +130,5 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndStopOnFailure(EnsureCodeResponseTypeInClient.class);
 
 		fireTestFinished();
-		stop();
 	}
 }
