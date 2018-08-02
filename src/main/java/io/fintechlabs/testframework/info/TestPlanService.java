@@ -48,6 +48,14 @@ public interface TestPlanService {
 	Map getTestPlan(String id);
 
 	/**
+	 * Returns the configuration to be used for a module of a given name
+	 * @param planId
+	 * @param moduleName
+	 * @return
+	 */
+	JsonObject getModuleConfig(String planId, String moduleName);
+
+	/**
 	 * @return
 	 */
 	List<Map> getAllPlansForCurrentUser();

@@ -20,6 +20,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Strings;
+import io.fintechlabs.testframework.info.TestPlanService;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +97,9 @@ public class TestRunner {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	@Autowired
+	private TestPlanService planService;
 
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
@@ -215,9 +221,27 @@ public class TestRunner {
 	}
 
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestParam(name = "plan", required = false) String planId, @RequestBody JsonObject config, Model m) {
+	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestParam(name = "plan", required = false) String planId, @RequestBody(required = false) JsonObject testConfig, Model m) {
+		final JsonObject config;
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
+
+		if (!Strings.isNullOrEmpty(planId)) {
+			if (testConfig != null) {
+				// user should not supply a configuration when creating a test from a test plan
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+			// if the test is part of a plan, the configuration comes from the plan
+			config = planService.getModuleConfig(planId, testName);
+			if (config == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+		} else {
+			config = testConfig;
+			if (config == null) {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+		}
 
 		TestModule test = createTestModule(testName, id, config);
 

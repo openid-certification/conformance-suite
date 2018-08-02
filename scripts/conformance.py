@@ -39,10 +39,19 @@ class Conformance(object):
             raise Exception("create_test_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return json.loads(response.content.decode('utf-8'))
 
-    def create_test(self, plan_id, test_name, configuration):
+    def create_test(self, test_name, configuration):
+        api_url = '{0}runner'.format(self.api_url_base)
+        payload = {'test': test_name}
+        response = self.requests_session.post(api_url, params=payload, data=configuration)
+
+        if response.status_code != 201:
+            raise Exception("create_test failed - HTTP {:d} {}".format(response.status_code, response.content))
+        return json.loads(response.content.decode('utf-8'))
+
+    def create_test_from_plan(self, plan_id, test_name):
         api_url = '{0}runner'.format(self.api_url_base)
         payload = {'test': test_name, 'plan': plan_id}
-        response = self.requests_session.post(api_url, params=payload, data=configuration)
+        response = self.requests_session.post(api_url, params=payload)
 
         if response.status_code != 201:
             raise Exception("create_test failed - HTTP {:d} {}".format(response.status_code, response.content))

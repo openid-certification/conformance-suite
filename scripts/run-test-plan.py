@@ -66,7 +66,7 @@ for module in plan_modules:
 
     try:
         print('Running test module: {}'.format(module))
-        test_module_info = conformance.create_test(plan_id, module, json_config)
+        test_module_info = conformance.create_test_from_plan(plan_id, module)
         module_id = test_module_info['id']
         test_ids[module] = module_id
         print('Created test module, new id: {}'.format(module_id))

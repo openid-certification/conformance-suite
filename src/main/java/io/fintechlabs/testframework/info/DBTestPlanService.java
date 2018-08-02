@@ -17,11 +17,18 @@ package io.fintechlabs.testframework.info;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +69,8 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
 	/**
 	 * @param planId
@@ -139,6 +148,48 @@ public class DBTestPlanService implements TestPlanService {
 		} else {
 			return testPlan.toMap();
 		}
+	}
+
+	@Override
+	public JsonObject getModuleConfig(String planId, String moduleName) {
+		Map testPlan = getTestPlan(planId);
+
+		BasicDBList modules = (BasicDBList) testPlan.get("modules");
+
+		boolean found = false;
+
+		for (Object o : modules)
+		{
+			BasicDBObject module = (BasicDBObject) o;
+			if (module.containsValue(moduleName)) {
+				found = true;
+			}
+		}
+
+		if (!found) {
+			// the user has asked to create a module that isn't part of the plan
+			return null;
+		}
+
+		DBObject dbConfig = (DBObject) testPlan.get("config");
+
+		String json = gson.toJson(dbConfig);
+
+		JsonObject config = new JsonParser().parse(json).getAsJsonObject();
+
+		if (config.has("override")) {
+			JsonObject override = config.getAsJsonObject("override");
+			config.remove("override");
+			if (override.has(moduleName)) {
+				// Move all the overridden elements up into the configuration
+				JsonObject overrides = override.getAsJsonObject(moduleName);
+				for (Map.Entry<String, JsonElement> entry : overrides.entrySet()) {
+					config.add(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+
+		return config;
 	}
 
 	/* (non-Javadoc)
