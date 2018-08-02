@@ -16,8 +16,16 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
@@ -61,7 +69,6 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
-import io.fintechlabs.testframework.testmodule.TestModule.Result;
 
 /**
  *
@@ -131,7 +138,7 @@ public class TestRunner {
 						TestFailureException testFailureException = (TestFailureException) e.getCause();
 
 						String testId = testFailureException.getTestId();
-						
+
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
 
@@ -149,12 +156,12 @@ public class TestRunner {
 									}
 								}
 							}
-							
+
 							// set the final exception flag only if this wasn't a normal condition error
 							if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
 								test.setFinalError(testFailureException);
 							}
-							
+
 							test.fireTestFailure();
 						}
 
@@ -168,7 +175,7 @@ public class TestRunner {
 			}
 		}
 	}
-	
+
 	public TestRunner() {
 		executorService.submit(futureWatcher);
 	}
@@ -429,7 +436,7 @@ public class TestRunner {
 			Class<? extends TestModule> testModuleClass = holder.c;
 
 			@SuppressWarnings("unchecked")
-			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getPrincipal();
+			Map<String, String> owner = authenticationFacade.getPrincipal();
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 

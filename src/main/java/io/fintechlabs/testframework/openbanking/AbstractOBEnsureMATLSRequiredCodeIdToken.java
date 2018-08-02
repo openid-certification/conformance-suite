@@ -88,13 +88,13 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 		getTestExecutionManager().runInBackground(() -> {
 			// call the token endpoint and expect an error, since this request does not
 			// meet any of the OB requirements for client authentication
-			
+
 			createAuthorizationCodeRequest();
-			
+
 			callAndStopOnFailure(RemoveMTLSCertificates.class);
-			
+
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
-			
+
 			fireTestFinished();
 			return "done";
 		});

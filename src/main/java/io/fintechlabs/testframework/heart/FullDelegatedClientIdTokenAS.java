@@ -14,10 +14,61 @@
 
 package io.fintechlabs.testframework.heart;
 
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import com.google.gson.JsonObject;
+
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.*;
-import io.fintechlabs.testframework.condition.common.*;
+import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
+import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
+import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
+import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.client.CreateJwksUri;
+import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
+import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
+import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
+import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ParseAccessTokenAsJwt;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.condition.client.ValidateAccessTokenHeartClaims;
+import io.fintechlabs.testframework.condition.client.ValidateAccessTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenHeartClaims;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.VerifyIdTokenExpHeart;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
+import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
+import io.fintechlabs.testframework.condition.common.DisallowTLS10;
+import io.fintechlabs.testframework.condition.common.DisallowTLS11;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -26,15 +77,6 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.util.Map;
 
 /**
  * @author jricher
@@ -186,53 +228,53 @@ public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
 		getTestExecutionManager().runInBackground(() -> {
 			// process the callback
 			setStatus(Status.RUNNING);
-			
+
 			env.put("callback_params", requestParts.get("params").getAsJsonObject());
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-			
+
 			callAndStopOnFailure(CheckMatchingStateParameter.class);
-			
+
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-			
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-			
+
 			// authenticate using a signed assertion
 			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
 			callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
-			
+
 			callAndStopOnFailure(CallTokenEndpoint.class);
-			
+
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-			
+
 			// The following is for the Access Token
 			callAndStopOnFailure(CheckForAccessTokenValue.class);
-			
+
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-			
+
 			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-			
+
 			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-			
+
 			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-			
+
 			call(CheckForScopesInTokenResponse.class);
-			
+
 			// The following is for the ID token HEART 3.1.3.6, 3.1.3.7
-			
+
 			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
-			
+
 			callAndStopOnFailure(ValidateIdTokenSignature.class, "HEART-OIDC-3.1");
-			
+
 			//callAndStopOnFailure(ValidateIdToken.class);
 			call(ValidateIdTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");
-			
+
 			call(VerifyIdTokenExpHeart.class, ConditionResult.WARNING, "HEART-OIDC-3.1");
-			
-			
+
+
 			// The following is for RefreshToken
 			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
-			
+
 			fireTestFinished();
 			return "done";
 		});

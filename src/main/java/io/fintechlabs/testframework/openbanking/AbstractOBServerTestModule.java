@@ -17,20 +17,13 @@ package io.fintechlabs.testframework.openbanking;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.condition.client.AddIatExpToRequestObject;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddIatExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -105,7 +98,6 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
@@ -314,53 +306,53 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			getTestExecutionManager().runInBackground(() -> {
 				// call the token endpoint and complete the flow
-				
+
 				createAuthorizationCodeRequest();
-				
+
 				requestAuthorizationCode();
-				
+
 				eventLog.startBlock("Accounts request endpoint TLS test");
 				env.mapKey("tls", "accounts_request_endpoint_tls");
 				call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 				call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 				call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-				
+
 				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
-				
-				
+
+
 				eventLog.startBlock("Accounts resource endpoint TLS test");
 				env.mapKey("tls", "accounts_resource_endpoint_tls");
 				call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 				call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 				call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-				
+
 				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
 				env.unmapKey("tls");
 				eventLog.endBlock();
-				
+
 				requestProtectedResource();
-				
+
 				call(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
-				
+
 				callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-				
+
 				callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
-				
+
 				callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-				
+
 				call(CallAccountsEndpointWithBearerToken.class, ConditionResult.FAILURE, "RFC7231-5.3.2");
-				
+
 				// Try the second client
-				
+
 				whichClient = 2;
-				
+
 				eventLog.startBlock("Second client");
 				env.mapKey("client", "client2");
 				env.mapKey("client_jwks", "client_jwks2");
 				env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-				
+
 				Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-				
+
 				if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0)
 				{
 					/* Temporary change to allow banks to disable tests until they have had a chance to register new
@@ -373,15 +365,15 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 					callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
 				}
 				callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-				
+
 				//exposeEnvString("client_id");
-				
+
 				callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 				callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
-				
+
 				callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 				callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
-				
+
 				performAuthorizationFlow();
 				return "done";
 			});
@@ -391,24 +383,24 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			getTestExecutionManager().runInBackground(() -> {
 				// call the token endpoint and complete the flow
-				
+
 				createAuthorizationCodeRequest();
-				
+
 				requestAuthorizationCode();
-				
+
 				requestProtectedResource();
-				
+
 				// Switch back to client 1
-				
+
 				env.unmapKey("client");
 				env.unmapKey("client_jwks");
 				env.unmapKey("mutual_tls_authentication");
 				eventLog.endBlock();
-				
+
 				// Try client 2's access token with client 1's keys
-				
+
 				callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
-				
+
 				fireTestFinished();
 				return "done";
 			});

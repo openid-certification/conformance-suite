@@ -33,7 +33,6 @@ import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEn
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
@@ -457,49 +456,49 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		getTestExecutionManager().runInBackground(() -> {
 			// process the callback
 			setStatus(Status.RUNNING);
-			
+
 			JsonElement body = requestParts.get("body");
-			
+
 			if (body != null) {
 				String hash = body.getAsString();
-				
+
 				logger.info("Hash: " + hash);
-				
+
 				env.putString("implicit_hash", hash);
 			} else {
 				logger.warn("No hash submitted");
-				
+
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
-			
+
 			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-			
+
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-			
+
 			// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
-			
+
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-			
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-			
+
 			// use the code with the first client's credentials
 			env.unmapKey("client");
 			env.unmapKey("client_jwks");
 			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-			
+
 			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-			
+
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
-			
+
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
-			
+
 			// put everything back where we found it
 			env.unmapKey("client");
 			env.unmapKey("client_jwks");
 			eventLog.endBlock();
-			
+
 			fireTestFinished();
 			return "done";
 		});

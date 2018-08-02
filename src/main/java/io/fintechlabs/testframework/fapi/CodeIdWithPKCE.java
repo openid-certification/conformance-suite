@@ -280,85 +280,85 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 		getTestExecutionManager().runInBackground(() -> {
 			// process the callback
 			setStatus(Status.RUNNING);
-			
+
 			JsonElement body = requestParts.get("body");
-			
+
 			if (body != null) {
 				String hash = body.getAsString();
-				
+
 				logger.info("Hash: " + hash);
-				
+
 				env.putString("implicit_hash", hash);
 			} else {
 				logger.warn("No hash submitted");
-				
+
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
-			
+
 			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
-			
+
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-			
+
 			callAndStopOnFailure(CheckMatchingStateParameter.class);
-			
+
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-			
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-			
+
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-			
+
 			callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class);
-			
+
 			callAndStopOnFailure(CallTokenEndpoint.class);
-			
+
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-			
+
 			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
-			
+
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-			
+
 			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
-			
+
 			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
-			
+
 			callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
-			
+
 			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
-			
+
 			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
-			
+
 			call(ExtractSHash.class);
-			
+
 			skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-			
+
 			call(CheckForRefreshTokenValue.class);
-			
+
 			call(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
-			
+
 			call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
-			
+
 			// verify the access token against a protected resource
-			
+
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 			exposeEnvString("fapi_interaction_id");
-			
+
 			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
-			
+
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-			
+
 			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
-			
+
 			callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
-			
+
 			callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
-			
+
 			call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
-			
+
 			callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
-			
+
 			callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
-			
+
 			fireTestFinished();
 			return "done";
 		});

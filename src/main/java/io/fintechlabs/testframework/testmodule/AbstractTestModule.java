@@ -20,6 +20,10 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.view.RedirectView;
@@ -39,10 +43,6 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * @author jricher
@@ -429,12 +429,12 @@ public abstract class AbstractTestModule implements TestModule {
 
 	@Override
 	public void fireTestFinished() {
-		
+
 		// this happens in the background so that we can check the state of the browser controller
-		
+
 		getTestExecutionManager().runInBackground(() -> {
 
-			
+
 			// wait for web runners to wrap up first
 
 			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
@@ -453,11 +453,11 @@ public abstract class AbstractTestModule implements TestModule {
 			}
 
 			stop();
-			
+
 			eventLog.log(getName(), args(
 				"msg", "Finished",
 				"result", getResult()));
-			
+
 			return "done";
 		});
 	}
@@ -698,6 +698,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @return the finalError
 	 */
+	@Override
 	public TestFailureException getFinalError() {
 		return finalError;
 	}
@@ -705,6 +706,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param finalError the finalError to set
 	 */
+	@Override
 	public void setFinalError(TestFailureException finalError) {
 		this.finalError = finalError;
 	}

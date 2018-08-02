@@ -168,10 +168,10 @@ public class RejectCodeFlow extends AbstractTestModule {
 		getTestExecutionManager().runInBackground(() -> {
 			// process the callback
 			setStatus(Status.RUNNING);
-			
+
 			env.put("callback_params", requestParts.get("params").getAsJsonObject());
 			callAndStopOnFailure(EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint.class);
-			
+
 			fireTestFinished();
 			return "done";
 		});

@@ -36,14 +36,14 @@ public class TestExecutionManager {
 		private String testId;
 		private Callable myCallable;
 		private Authentication savedAuthentication;
-	
+
 		public BackgroundTask(String testId, Callable callable) {
 			this.testId = testId;
 			this.myCallable = callable;
 			// save the authentication context for use when we run it later
 			savedAuthentication = authenticationFacade.getContextAuthentication();
 		}
-	
+
 		@Override
 		public Object call() throws TestFailureException {
 			// restore the authentication context that was in place when this was created
@@ -61,11 +61,11 @@ public class TestExecutionManager {
 	}
 
 	private String testId;
-	
+
 	private List<Future> futures = new ArrayList<>();
-	
+
 	private ExecutorCompletionService executorCompletionService;
-	
+
 	private AuthenticationFacade authenticationFacade;
 
 	public TestExecutionManager(String testId, ExecutorCompletionService executorCompletionService, AuthenticationFacade authenticationFacade) {
@@ -73,7 +73,7 @@ public class TestExecutionManager {
 		this.executorCompletionService = executorCompletionService;
 		this.authenticationFacade = authenticationFacade;
 	}
-	
+
 	/**
 	 * @return the testId
 	 */
@@ -87,10 +87,10 @@ public class TestExecutionManager {
 	public List<Future> getFutures() {
 		return futures;
 	}
-	
+
 	public void runInBackground(Callable callable) {
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
 	}
 
-	
+
 }

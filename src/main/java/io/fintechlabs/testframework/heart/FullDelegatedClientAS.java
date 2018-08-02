@@ -224,39 +224,39 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		getTestExecutionManager().runInBackground(() -> {
 			// process the callback
 			setStatus(Status.RUNNING);
-			
+
 			env.put("callback_params", requestParts.get("params").getAsJsonObject());
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-			
+
 			callAndStopOnFailure(CheckMatchingStateParameter.class);
-			
+
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-			
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-			
+
 			// authenticate using a signed assertion
 			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
 			callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
-			
+
 			callAndStopOnFailure(CallTokenEndpoint.class);
-			
+
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-			
+
 			callAndStopOnFailure(CheckForAccessTokenValue.class);
-			
+
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-			
+
 			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-			
+
 			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-			
+
 			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-			
+
 			call(CheckForScopesInTokenResponse.class);
-			
+
 			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
-			
+
 			fireTestFinished();
 			return "done";
 		});

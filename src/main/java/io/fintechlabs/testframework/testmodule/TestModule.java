@@ -15,8 +15,6 @@ package io.fintechlabs.testframework.testmodule;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -138,7 +136,7 @@ public interface TestModule {
 	 * @return the associated execution manager
 	 */
 	TestExecutionManager getTestExecutionManager();
-	
+
 	/**
 	 * @param path
 	 * @param req
