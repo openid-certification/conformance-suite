@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.locks.Lock;
+import java.util.regex.Pattern;
 
 import com.gargoylesoftware.htmlunit.DefaultPageCreator;
 import com.gargoylesoftware.htmlunit.Page;
@@ -215,10 +216,6 @@ public class BrowserControl {
 
 				int responseCode = driver.getResponseCode();
 
-				if (responseCode != 200) {
-					throw new TestFailureException(testId, "WebRunner initial GET failed with " + driver.getStatus());
-				}
-
 				for (int i = 0; i < this.tasks.size(); i++) {
 					boolean skip = false;
 
@@ -289,32 +286,16 @@ public class BrowserControl {
 						responseCode = driver.getResponseCode();
 						logger.debug("\tResponse Code: " + responseCode);
 
-						if (responseCode == 200) {
-							eventLog.log("WebRunner", args(
-								"msg", "Completed processing of webpage",
-								"match", expectedUrlMatcher,
-								"url", driver.getCurrentUrl(),
-								"browser", "complete",
-								"task", taskName,
-								"result", ConditionResult.SUCCESS,
-								"response_status_code", driver.getResponseCode(),
-								"response_status_text", driver.getStatus()
-							));
-
-						} else {
-							eventLog.log("WebRunner", args(
-								"msg", "Failure processing of webpage",
-								"match", expectedUrlMatcher,
-								"url", driver.getCurrentUrl(),
-								"browser", "failure",
-								"task", taskName,
-								"result", ConditionResult.FAILURE,
-								"response_status_code", driver.getResponseCode(),
-								"response_status_text", driver.getStatus()
-							));
-
-							throw new TestFailureException(testId, "WebRunner Response Failure: '" + driver.getStatus());
-						}
+						eventLog.log("WebRunner", args(
+							"msg", "Completed processing of webpage",
+							"match", expectedUrlMatcher,
+							"url", driver.getCurrentUrl(),
+							"browser", "complete",
+							"task", taskName,
+							"result", ConditionResult.INFO,
+							"response_status_code", driver.getResponseCode(),
+							"response_status_text", driver.getStatus()
+						));
 					} // if we don't run the commands, just go straight to the next one
 				}
 				logger.debug("Completed Browser Commands");
@@ -396,8 +377,10 @@ public class BrowserControl {
 					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
 					// 	 'wait' will wait for the URL to match a regex, or for it to contain a string, OR
 					//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
+					// if waiting for an element, the next parameter can be a regexp to be matched
 
 					int timeoutSeconds = command.get(3).getAsInt();
+					String regexp = command.size() >= 5 ? command.get(4).getAsString() : null;
 
 					eventLog.log("WebRunner", args(
 						"msg", "Waiting",
@@ -407,7 +390,8 @@ public class BrowserControl {
 						"element_type", elementType,
 						"target", target,
 						"seconds", timeoutSeconds,
-						"result", ConditionResult.INFO
+						"result", ConditionResult.INFO,
+						"regexp", regexp
 					));
 
 					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100); // hook to wait for this condition, check every 100 milliseconds until the max seconds
@@ -415,7 +399,10 @@ public class BrowserControl {
 						if (elementType.equalsIgnoreCase("contains")){
 							waiting.until(ExpectedConditions.urlContains(target));
 						} else if (elementType.equalsIgnoreCase("match")) {
-							waiting.until(ExpectedConditions.urlMatches(target));
+							waiting.until(ExpectedConditions.urlMatches(target)); // NB this takes a regexp
+						} else if (!Strings.isNullOrEmpty(regexp)) {
+							Pattern pattern = Pattern.compile(regexp);
+							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
