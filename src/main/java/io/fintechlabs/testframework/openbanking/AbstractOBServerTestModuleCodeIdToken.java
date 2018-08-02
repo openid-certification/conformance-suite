@@ -135,7 +135,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
-		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
+		performProfileIdTokenValidation();
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
 

@@ -31,6 +31,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-r-ensure-redirect-uri-is-registered"
 	}
 )
-public class FAPICodeIdTokenWithMtlsTestPlan implements TestPlan {
+public class FAPI_R_CodeIdTokenWithMtlsTestPlan implements TestPlan {
 
 }

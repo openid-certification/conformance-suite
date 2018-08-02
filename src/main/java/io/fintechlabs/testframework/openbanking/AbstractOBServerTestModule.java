@@ -199,11 +199,15 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		performAuthorizationFlow();
 	}
 
-	protected void performAuthorizationFlow() {
-
+	protected void performPreAuthorizationSteps() {
+		/* get an openbanking intent id */
 		requestClientCredentialsGrant();
 
 		createAccountRequest();
+	}
+
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 
@@ -256,7 +260,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+		performProfileAuthorizationEndpointSetup();
 
 		if ( whichClient == 2 ) {
 			env.putInteger("requested_state_length", 128);
@@ -271,6 +275,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CreateRandomNonceValue.class);
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+	}
+
+	protected void performProfileAuthorizationEndpointSetup() {
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -433,7 +441,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
-		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
+		performProfileIdTokenValidation();
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
@@ -452,6 +460,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
 			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
+	}
+
+	protected void performProfileIdTokenValidation() {
+		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
 	}
 
 	protected abstract void performTokenEndpointIdTokenExtraction();
