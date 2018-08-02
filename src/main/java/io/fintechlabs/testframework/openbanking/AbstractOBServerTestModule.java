@@ -96,6 +96,7 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -140,6 +141,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		call(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-2-8.6");
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
@@ -154,6 +156,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		call(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-2-8.6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 
@@ -379,6 +382,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 				callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 				callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+				call(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-2-8.6");
 
 				callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 				callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
