@@ -33,7 +33,8 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -79,6 +80,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
@@ -86,7 +88,7 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 		exposeEnvString("client_id");
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 
 		setStatus(Status.CONFIGURED);
 

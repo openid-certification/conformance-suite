@@ -14,16 +14,13 @@
 
 package io.fintechlabs.testframework.condition.common;
 
-import com.google.gson.JsonElement;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class CheckForKeyIdInJWKs extends AbstractCondition {
+public class CheckForKeyIdInClientJWKs extends AbstractCheckForKeyIdinJWKs {
 
-	public CheckForKeyIdInJWKs(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public CheckForKeyIdInClientJWKs(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -31,27 +28,10 @@ public class CheckForKeyIdInJWKs extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "server_jwks")
+	@PreEnvironment(required = "client_jwks")
 	public Environment evaluate(Environment env) {
 
-		JsonElement keys = env.findElement("server_jwks", "keys");
-		if (keys == null || !keys.isJsonArray()) {
-			throw error("keys array not found in JWKs");
-		}
-
-		for (JsonElement key : keys.getAsJsonArray()) {
-			if (!key.isJsonObject()) {
-				throw error("invalid key in JWKs", args("key", key));
-			}
-
-			if (!key.getAsJsonObject().has("kid")) {
-				throw error("kid not found in key", args("key", key));
-			}
-		}
-
-		logSuccess("All keys contain kids");
-
-		return env;
+		return checkForKeyIdInJWKs(env, "client_jwks");
 	}
 
 }

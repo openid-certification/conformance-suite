@@ -87,7 +87,8 @@ import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
-import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
@@ -127,6 +128,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 
 		whichClient = 1;
 
@@ -137,7 +139,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
-		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		call(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
@@ -151,7 +153,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 
@@ -371,7 +373,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 				//exposeEnvString("client_id");
 
 				callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-				callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+				callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 
 				callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 				callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
