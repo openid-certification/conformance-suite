@@ -129,7 +129,7 @@ public class CallTokenEndpointExpectingError extends AbstractCondition {
 					JsonObject response = jsonRoot.getAsJsonObject();
 
 					if (response.has("error") && !Strings.isNullOrEmpty(response.get("error").getAsString())) {
-						logSuccess("Found error in token endpoint error response", env.get("token_endpoint_response"));
+						logSuccess("Found error in token endpoint error response", response);
 						return env;
 					} else {
 						throw error("No error from token endpoint", response);

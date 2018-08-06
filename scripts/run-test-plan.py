@@ -44,7 +44,7 @@ if len(sys.argv) != 3:
 test_plan = sys.argv[1]
 config_file = sys.argv[2]
 
-print("Running plan '{}' with configuration file '{}'", test_plan, config_file)
+print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
 
 with open(config_file) as f:
     json_config = f.read()

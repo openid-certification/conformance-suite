@@ -33,9 +33,21 @@ extensions_to_check = [
     'sh'
 ]
 
+config_ignore = [
+    '.idea/'
+]
+
 extensions_no_tabs = [
     'py'
 ]
+
+
+def ignore_filename(fname):
+    for pattern in config_ignore:
+        if fname.startswith(pattern):
+            return True
+    return False
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--fix", help="automatically fix errors", action="store_true")
@@ -55,7 +67,12 @@ for f in files.split('\n'):
 
     if extension not in extensions_to_check:
         if args.verbose:
-            print("Skipping '{}': not in extensions_to_check".format(extension))
+            print("Skipping '{}': not in extensions_to_check".format(f))
+        continue
+
+    if ignore_filename(f):
+        if args.verbose:
+            print("Skipping '{}': listed in config_ignore".format(f))
         continue
 
     if args.verbose:
