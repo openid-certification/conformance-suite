@@ -303,8 +303,10 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	protected Object performPostAuthorizationFlow() {
 
 		if (whichClient == 1) {
+			setStatus(Status.WAITING);
 
 			getTestExecutionManager().runInBackground(() -> {
+				setStatus(Status.RUNNING);
 				// call the token endpoint and complete the flow
 
 				createAuthorizationCodeRequest();
@@ -380,8 +382,11 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			return redirectToLogDetailPage();
 		} else {
+			setStatus(Status.WAITING);
 
 			getTestExecutionManager().runInBackground(() -> {
+				setStatus(Status.RUNNING);
+
 				// call the token endpoint and complete the flow
 
 				createAuthorizationCodeRequest();
@@ -400,6 +405,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 				// Try client 2's access token with client 1's keys
 
 				callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
+
+				setStatus(Status.WAITING);
 
 				fireTestFinished();
 				return "done";

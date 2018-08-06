@@ -19,8 +19,10 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 	@Override
 	protected Object performPostAuthorizationFlow() {
+		setStatus(Status.WAITING);
 
 		getTestExecutionManager().runInBackground(() -> {
+			setStatus(Status.RUNNING);
 			createAuthorizationCodeRequest();
 
 			// Check that a call to the token endpoint succeeds normally

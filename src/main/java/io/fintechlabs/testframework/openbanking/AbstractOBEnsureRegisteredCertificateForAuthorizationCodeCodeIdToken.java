@@ -32,8 +32,10 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 	@Override
 	protected Object performPostAuthorizationFlow() {
+		setStatus(Status.WAITING);
 
 		getTestExecutionManager().runInBackground(() -> {
+			setStatus(Status.RUNNING);
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
 
 			callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");

@@ -84,8 +84,10 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 
 	@Override
 	protected Object performPostAuthorizationFlow() {
+		setStatus(Status.WAITING);
 
 		getTestExecutionManager().runInBackground(() -> {
+			setStatus(Status.RUNNING);
 			// call the token endpoint and expect an error, since this request does not
 			// meet any of the OB requirements for client authentication
 
