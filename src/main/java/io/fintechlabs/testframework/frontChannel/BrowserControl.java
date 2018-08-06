@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+import io.fintechlabs.testframework.condition.FillImagePlaceholderError;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -299,6 +300,9 @@ public class BrowserControl {
 				return "web runner exited";
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
+				if (e.getClass() == FillImagePlaceholderError.class) {
+					throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
+				}
 				eventLog.log("WebRunner",
 					ex(e,
 						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
@@ -411,7 +415,7 @@ public class BrowserControl {
 							Pattern pattern = Pattern.compile(regexp);
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 							if (updateImagePlaceHolder) {
-								// FIXME: do something
+								throw new FillImagePlaceholderError(testId, "placeholder criteria met");
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));

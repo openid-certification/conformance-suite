@@ -192,6 +192,11 @@ public interface TestModule {
 	void fireTestFinished();
 
 	/**
+	 * Mark the test as finished as the result of filling a placeholder
+	 */
+	void fireTestPlaceholderFilled();
+
+	/**
 	 * Mark the test as having completed its setup.
 	 */
 	void fireSetupDone();

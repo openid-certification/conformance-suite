@@ -17,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +29,9 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.mongodb.DBObject;
+import io.fintechlabs.testframework.condition.FillImagePlaceholderError;
+import io.fintechlabs.testframework.logging.DBEventLog;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +40,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -95,6 +104,9 @@ public class TestRunner {
 	private TestRunnerSupport support;
 
 	@Autowired
+	private MongoTemplate mongoTemplate; // FIXME: remove when below ImageAPI.java refactoring FIXME fixed
+
+	@Autowired
 	private EventLog eventLog;
 
 	@Autowired
@@ -144,7 +156,10 @@ public class TestRunner {
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// there's an exception, stop the test
-							test.stop();
+							if (!e.getMessage().equals("io.fintechlabs.testframework.testmodule.TestFailureException: io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
+								// FIXME: above test can be removed when ImageAPI.java fixmes in test runner are fixed
+								test.stop();
+							}
 
 							// Clean up other tasks for this test id
 							TestExecutionManager executionManager = test.getTestExecutionManager();
@@ -157,11 +172,14 @@ public class TestRunner {
 							}
 
 							// set the final exception flag only if this wasn't a normal condition error
-							if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
-								test.setFinalError(testFailureException);
-							}
+							if (!e.getMessage().equals("io.fintechlabs.testframework.testmodule.TestFailureException: io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
+								// FIXME: above test can be removed when ImageAPI.java fixmes in test runner are fixed
+								if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
+									test.setFinalError(testFailureException);
+								}
 
-							test.fireTestFailure();
+								test.fireTestFailure();
+							}
 						}
 
 					} else {
@@ -515,12 +533,123 @@ public class TestRunner {
 		return map;
 	}
 
+	// FIXME - this code is taken from ImageAPI.java and needs to be refactored into a service
+	// Create a Criteria with or without the security constraints as needed
+	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints) {
+		Criteria criteria = new Criteria();
+		if (false && !authenticationFacade.isAdmin()) {
+			criteria = criteria.andOperator(
+				findTestId,
+				additionalConstraints,
+				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
+			);
+		} else {
+			criteria = criteria.andOperator(
+				findTestId,
+				additionalConstraints
+			);
+		}
+		return criteria;
+	}
+
+	private DBObject fillPlaceholder(String testId, String placeholder, Update update) {
+		Criteria findTestId = Criteria.where("testId").is(testId);
+
+		// add the placeholder condition
+		Criteria placeholderExists = Criteria.where("upload").is(placeholder);
+
+		// if we're not admin, make sure we also own the log
+		Criteria criteria = createCriteria(findTestId, placeholderExists);
+
+		Query query = Query.query(criteria);
+
+		update.unset("upload");
+
+		return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
+	}
+
+	public void markImageAsSatisfiedByBrowserControl(String testId, String regexp) {
+		List<DBObject> remainingPlaceholders = getRemainingPlaceholders(testId);
+
+		if (remainingPlaceholders.size() == 1) {
+			String placeholder = (String) remainingPlaceholders.get(0).get("upload");
+			Update update = new Update();
+			update.set("updated_by", "browsercontrol");
+			update.set("satisfied_regexp", regexp);
+
+			DBObject result = fillPlaceholder(testId, placeholder, update);
+			// FIXME not sure what to do with result
+
+			lastPlaceholderFilled(testId);
+		} else {
+			// FIXME throw error
+		}
+	}
+
+	private List<DBObject> getRemainingPlaceholders(String testId) {
+		Criteria findTestId = Criteria.where("testId").is(testId);
+
+		// check to see if all placeholders are set by searching for any remaining ones on this test
+		Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
+
+		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
+		Query search = Query.query(postSearch);
+		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+	}
+
+	// call if there aren't any placeholders left on the test, to update the status to FINISHED
+	private void lastPlaceholderFilled(String testId) {
+
+		// first, see if it's currently running; if so we update the running object
+		TestModule test = support.getRunningTestById(testId);
+		if (test != null) {
+			test.fireTestPlaceholderFilled();
+		} else {
+			// otherwise we need to do it directly in the database
+			testInfo.updateTestStatus(testId, TestModule.Status.FINISHED);
+		}
+	}
+	// FIXME End of code lifted from ImageAPI.java
+
+	// FIXME: this code needs to be properly integrated with browsercontrol
+	@ExceptionHandler(FillImagePlaceholderError.class)
+	public ResponseEntity<Object> fillImagePlaceholderError(FillImagePlaceholderError error) {
+		try {
+			TestModule test = support.getRunningTestById(error.getTestId());
+			if (test != null) {
+				markImageAsSatisfiedByBrowserControl(error.getTestId(), error.getMessage());
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisified by browser automation");
+			}
+
+		} catch (Exception e) {
+			logger.error("Something terrible happened when handling an fillImagePlaceholderError, I give up", e);
+		}
+		JsonObject obj = new JsonObject();
+		obj.addProperty("error", error.getMessage());
+		obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
+		obj.addProperty("testId", error.getTestId());
+		return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	// end of FIXME: this code needs to be properly integrated with browsercontrol
+
+
 	// handle errors thrown by running tests
 	@ExceptionHandler(TestFailureException.class)
 	public ResponseEntity<Object> conditionFailure(TestFailureException error) {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
+				// FIXME: this code needs to be properly integrated with browsercontrol
+				if (error.getMessage().equals("io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
+					markImageAsSatisfiedByBrowserControl(error.getTestId(), error.getMessage());
+					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisfied by browser automation");
+					JsonObject obj = new JsonObject();
+					obj.addProperty("error", error.getMessage());
+					obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
+					obj.addProperty("testId", error.getTestId());
+					return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+				// end of FIXME: this code needs to be properly integrated with browsercontrol
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
