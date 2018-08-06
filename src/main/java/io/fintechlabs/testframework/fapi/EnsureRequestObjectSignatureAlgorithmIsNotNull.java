@@ -16,10 +16,6 @@ package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -45,7 +41,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
@@ -131,9 +126,9 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }

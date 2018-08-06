@@ -36,9 +36,9 @@ public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends 
 
 		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }

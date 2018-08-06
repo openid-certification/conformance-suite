@@ -255,9 +255,9 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -438,9 +438,10 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
+			setStatus(Status.WAITING);
+
 			browser.goToUrl(redirectTo);
 
-			setStatus(Status.WAITING);
 			return "done";
 		});
 

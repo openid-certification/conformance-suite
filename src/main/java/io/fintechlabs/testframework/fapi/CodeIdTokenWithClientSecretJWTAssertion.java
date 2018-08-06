@@ -254,9 +254,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -444,9 +444,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-			browser.goToUrl(redirectTo);
-
 			setStatus(Status.WAITING);
+
+			browser.goToUrl(redirectTo);
 
 			return "done";
 		});

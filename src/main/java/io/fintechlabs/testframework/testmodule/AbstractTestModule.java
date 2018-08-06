@@ -81,7 +81,6 @@ public abstract class AbstractTestModule implements TestModule {
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
-		this.browser.setLock(env.getLock());
 		this.testInfo = testInfo;
 		this.executionManager = executionManager;
 
@@ -430,7 +429,10 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public void fireTestFinished() {
 
-		// this happens in the background so that we can check the state of the browser controller
+		// first we set our test to WAITING to release the lock (note that this happens in the calling thread) and prepare for finalization
+		setStatus(Status.WAITING);
+
+		// then this happens in the background so that we can check the state of the browser controller
 
 		getTestExecutionManager().runInBackground(() -> {
 
@@ -526,8 +528,9 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void setStatus(Status status) {
 		logger.error("setStatus("+getStatus().toString()+"): current status = "+status.toString());
 
-		if (status == getStatus())
+		if (status == getStatus()) {
 			return;
+		}
 
 		switch (getStatus()) {
 			case CREATED:
@@ -657,6 +660,11 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	@Override
 	public void stop() {
+
+		if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
+			// can't stop what's already stopped
+			return;
+		}
 
 		if (!getStatus().equals(Status.FINISHED)) {
 			setStatus(Status.INTERRUPTED);

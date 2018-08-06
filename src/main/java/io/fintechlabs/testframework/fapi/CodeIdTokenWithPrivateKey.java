@@ -251,9 +251,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -442,9 +442,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 
 		return redirectToLogDetailPage();
 

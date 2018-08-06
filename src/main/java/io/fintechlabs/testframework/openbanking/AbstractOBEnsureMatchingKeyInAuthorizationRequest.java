@@ -39,9 +39,9 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		eventLog.endBlock();
 		env.unmapKey("client_jwks");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }

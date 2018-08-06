@@ -16,10 +16,6 @@ package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -40,7 +36,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by
@@ -125,9 +120,9 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }

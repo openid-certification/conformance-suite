@@ -46,9 +46,9 @@ public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBSe
 
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }

@@ -28,9 +28,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Strings;
-import io.fintechlabs.testframework.info.TestPlanService;
-import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -63,6 +61,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
@@ -440,8 +439,8 @@ public class TestRunner {
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
-			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executorCompletionService);
 			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade);
+			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager);
 
 			// call the constructor
 			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class, TestExecutionManager.class)

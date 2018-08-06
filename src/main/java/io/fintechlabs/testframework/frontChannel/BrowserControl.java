@@ -22,15 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
-import com.gargoylesoftware.htmlunit.DefaultPageCreator;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.WebWindow;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -42,12 +36,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.PatternMatchUtils;
 
+import com.gargoylesoftware.htmlunit.DefaultPageCreator;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.WebWindow;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
@@ -98,8 +98,7 @@ public class BrowserControl {
 
 	private String testId;
 
-	private ExecutorCompletionService taskExecutor;
-	private Lock lock;
+	private TestExecutionManager executionManager;
 	private Map<String, JsonArray> tasksForUrls = new HashMap<>();
 
 	private List<String> urls = new ArrayList<>();
@@ -108,9 +107,10 @@ public class BrowserControl {
 
 	private TestInstanceEventLog eventLog;
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, ExecutorCompletionService executorCompletionService) {
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager) {
 		this.testId = testId;
 		this.eventLog = eventLog;
+		this.executionManager = executionManager;
 
 		// loop through the commands to find the various URL matchers to use
 		JsonArray browserCommands = config.getAsJsonArray("browser");
@@ -126,7 +126,6 @@ public class BrowserControl {
 			tasksForUrls.put(urlMatcher, current.getAsJsonArray("tasks"));
 		}
 
-		this.taskExecutor = executorCompletionService;
 	}
 
 	public void goToUrl(String url) {
@@ -135,11 +134,8 @@ public class BrowserControl {
 			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
 			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
 			if (PatternMatchUtils.simpleMatch(urlPattern, url)) {
-				// Wait till we can grab the lock before starting... then release the lock immediately
-				lock.lock(); // we're only using this to make sure the test is ready to accept connections before starting
-				lock.unlock();
 				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern));
-				taskExecutor.submit(wr, "web runner ran");
+				executionManager.runInBackground(wr);
 				logger.debug("WebRunner submitted to task executor for: " + url);
 
 				runners.add(wr);
@@ -159,15 +155,11 @@ public class BrowserControl {
 		visited.add(url);
 	}
 
-	public void setLock(Lock lock) {
-		this.lock = lock;
-	}
-
 	/**
 	 * Private Runnable class that acts as the browser and allows goToUrl to return before the page gets hit.
 	 * This gets handed to a {@link TaskExecutor} which manages the thread it gets run on
 	 */
-	private class WebRunner implements Runnable {
+	private class WebRunner implements Callable {
 		private String url;
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray tasks;
@@ -189,7 +181,8 @@ public class BrowserControl {
 			this.driver = new ResponseCodeHtmlUnitDriver();
 		}
 
-		public void run() {
+		@Override
+		public String call() {
 			try {
 				logger.info("Sending BrowserControl to: " + url);
 
@@ -302,6 +295,8 @@ public class BrowserControl {
 				// if we've successfully completed the command set, consider this URL visited
 				runners.remove(this);
 				urlVisited(url);
+
+				return "web runner exited";
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
 				eventLog.log("WebRunner",
@@ -461,6 +456,7 @@ public class BrowserControl {
 		// returns:
 		// Content-Type: */*;charset=utf-8
 		// so we need to override this so it's treated as html, which is how browsers treat it
+		@Override
 		public Page createPage(final WebResponse webResponse, final WebWindow webWindow) throws IOException {
 			return createHtmlPage(webResponse, webWindow);
 		}
@@ -491,6 +487,7 @@ public class BrowserControl {
 			return responseCodeString;
 		}
 
+		@Override
 		protected WebClient modifyWebClient(WebClient client) {
 			client.setPageCreator(new BrowserControlPageCreator());
 			return client;

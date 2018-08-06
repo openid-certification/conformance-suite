@@ -165,8 +165,9 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 
 		callAndStopOnFailure(ExpectRejectPlainCodeChallengeMethodErrorPage.class);
 
-		browser.goToUrl(redirectTo);
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)

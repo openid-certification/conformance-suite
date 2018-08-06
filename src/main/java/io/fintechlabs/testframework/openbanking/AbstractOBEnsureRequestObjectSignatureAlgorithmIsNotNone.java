@@ -34,9 +34,9 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	@Override

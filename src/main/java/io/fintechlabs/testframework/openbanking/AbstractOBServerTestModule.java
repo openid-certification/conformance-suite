@@ -56,8 +56,8 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
@@ -79,14 +79,14 @@ import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
+import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
@@ -212,9 +212,9 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	protected void requestClientCredentialsGrant() {

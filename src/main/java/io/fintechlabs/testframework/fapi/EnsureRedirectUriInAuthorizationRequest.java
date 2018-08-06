@@ -16,10 +16,6 @@ package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -40,7 +36,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-r-ensure-redirect-uri-in-authorization-request",
@@ -121,9 +116,9 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }

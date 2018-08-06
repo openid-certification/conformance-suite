@@ -134,9 +134,9 @@ public class RejectCodeFlow extends AbstractTestModule {
 
 		callAndStopOnFailure(ExpectGrantTypeErrorPage.class, "FAPI-2-5.2.2-2");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
