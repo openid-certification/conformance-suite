@@ -68,6 +68,7 @@ import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFrom
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -126,6 +127,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
