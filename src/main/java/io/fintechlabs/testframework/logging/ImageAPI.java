@@ -112,45 +112,18 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			Criteria findTestId = Criteria.where("testId").is(testId);
-
-			// add the placeholder condition
-			Criteria placeholderExists = Criteria.where("upload").is(placeholder);
-
-			// if we're not admin, make sure we also own the log
-			Criteria criteria = createCriteria(findTestId, placeholderExists);
-
-			Query query = Query.query(criteria);
-
 			Update update = new Update();
-			update.unset("upload");
 			update.set("img", encoded);
 
-			DBObject result = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
+			DBObject result = fillPlaceholder(testId, placeholder, update);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 
-			// check to see if all placeholders are set by searching for any remaining ones on this test
-			Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
-
-
-			Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
-			Query search = Query.query(postSearch);
-			List<DBObject> remainingPlaceholders = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+			List<DBObject> remainingPlaceholders = getRemainingPlaceholders(testId);
 
 			if (remainingPlaceholders.size() == 0) {
-				// there aren't any placeholders left on this test, update its status
-
-				// first, see if it's currently running; if so we update the running object
-				TestModule test = testRunnerSupport.getRunningTestById(testId);
-				if (test != null) {
-					test.fireTestFinished();		// set our current status to finished
-												// and stop the running test
-				} else {
-					// otherwise we need to do it directly in the database
-					testInfoService.updateTestStatus(testId, Status.FINISHED);
-				}
+				lastPlaceholderFilled(testId);
 			}
 
 			return new ResponseEntity<>(result, HttpStatus.OK);
@@ -159,6 +132,47 @@ public class ImageAPI {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
+	}
+
+	private DBObject fillPlaceholder(String testId, String placeholder, Update update) {
+		Criteria findTestId = Criteria.where("testId").is(testId);
+
+		// add the placeholder condition
+		Criteria placeholderExists = Criteria.where("upload").is(placeholder);
+
+		// if we're not admin, make sure we also own the log
+		Criteria criteria = createCriteria(findTestId, placeholderExists);
+
+		Query query = Query.query(criteria);
+
+		update.unset("upload");
+
+		return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
+	}
+
+	private List<DBObject> getRemainingPlaceholders(String testId) {
+		Criteria findTestId = Criteria.where("testId").is(testId);
+
+		// check to see if all placeholders are set by searching for any remaining ones on this test
+		Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
+
+		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
+		Query search = Query.query(postSearch);
+		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+	}
+
+	// call if there aren't any placeholders left on the test, to update the status to FINISHED
+	private void lastPlaceholderFilled(String testId) {
+
+		// first, see if it's currently running; if so we update the running object
+		TestModule test = testRunnerSupport.getRunningTestById(testId);
+		if (test != null) {
+			test.fireTestFinished();		// set our current status to finished
+											// and stop the running test
+        } else {
+            // otherwise we need to do it directly in the database
+            testInfoService.updateTestStatus(testId, Status.FINISHED);
+        }
 	}
 
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+import io.fintechlabs.testframework.condition.FillImagePlaceholderError;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -299,6 +300,9 @@ public class BrowserControl {
 				return "web runner exited";
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
+				if (e.getClass() == FillImagePlaceholderError.class) {
+					throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
+				}
 				eventLog.log("WebRunner",
 					ex(e,
 						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
@@ -373,9 +377,20 @@ public class BrowserControl {
 					// 	 'wait' will wait for the URL to match a regex, or for it to contain a string, OR
 					//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
 					// if waiting for an element, the next parameter can be a regexp to be matched
+					// and the final parameter can be 'update-image-placeholder' to mark an image placeholder as satisfied
 
 					int timeoutSeconds = command.get(3).getAsInt();
 					String regexp = command.size() >= 5 ? command.get(4).getAsString() : null;
+					String action = command.size() >= 6 ? command.get(5).getAsString() : null;
+					boolean updateImagePlaceHolder = false;
+					if (!Strings.isNullOrEmpty(action)) {
+						if (action.equals("update-image-placeholder")) {
+							updateImagePlaceHolder = true;
+						} else {
+							this.lastException = "Invalid action: " + action;
+							throw new TestFailureException(testId, "Invalid action: " + action);
+						}
+					}
 
 					eventLog.log("WebRunner", args(
 						"msg", "Waiting",
@@ -386,7 +401,8 @@ public class BrowserControl {
 						"target", target,
 						"seconds", timeoutSeconds,
 						"result", ConditionResult.INFO,
-						"regexp", regexp
+						"regexp", regexp,
+						"action", action
 					));
 
 					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100); // hook to wait for this condition, check every 100 milliseconds until the max seconds
@@ -398,6 +414,9 @@ public class BrowserControl {
 						} else if (!Strings.isNullOrEmpty(regexp)) {
 							Pattern pattern = Pattern.compile(regexp);
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
+							if (updateImagePlaceHolder) {
+								throw new FillImagePlaceholderError(testId, "placeholder criteria met");
+							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}

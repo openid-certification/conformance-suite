@@ -465,6 +465,20 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	@Override
+	public void fireTestPlaceholderFilled() {
+		// if we weren't interrupted already, then we're finished
+		if (!getStatus().equals(Status.INTERRUPTED)) {
+			setStatus(Status.FINISHED);
+		}
+
+		if (getResult() == Result.UNKNOWN || getResult() == Result.REVIEW) {
+			fireTestSuccess();
+		}
+
+		stop();
+	}
+
+	@Override
 	public void fireTestReviewNeeded() {
 		setResult(Result.REVIEW);
 	}

@@ -177,7 +177,7 @@ public class TestDispatcher {
 			if (test != null) {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
+				eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), EventLog.ex(error));
 			}
 
 			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
