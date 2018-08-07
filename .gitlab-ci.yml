@@ -103,17 +103,17 @@ test:
   only:
     - branches
 
-codequality:
-  image: docker:latest
-  variables:
-    DOCKER_DRIVER: overlay2
-  services:
-    - docker:dind
-  script:
-    - setup_docker
-    - codeclimate
-  artifacts:
-    paths: [codeclimate.json]
+#codequality:
+#  image: docker:latest
+#  variables:
+#    DOCKER_DRIVER: overlay2
+#  services:
+#    - docker:dind
+#  script:
+#    - setup_docker
+#    - codeclimate
+#  artifacts:
+#    paths: [codeclimate.json]
 
 review:
   stage: review
