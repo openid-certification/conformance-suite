@@ -23,7 +23,6 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
@@ -53,6 +52,7 @@ import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitU
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -79,8 +79,8 @@ public class SampleImplicitModule extends AbstractTestModule {
 	/**
 	 *
 	 */
-	public SampleImplicitModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public SampleImplicitModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -140,9 +140,9 @@ public class SampleImplicitModule extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -188,43 +188,47 @@ public class SampleImplicitModule extends AbstractTestModule {
 	 */
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
+		getTestExecutionManager().runInBackground(() -> {
 
-		JsonElement body = requestParts.get("body");
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		if (body != null) {
-			String hash = body.getAsString();
+			JsonElement body = requestParts.get("body");
 
-			logger.info("Hash: " + hash);
+			if (body != null) {
+				String hash = body.getAsString();
 
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
+				logger.info("Hash: " + hash);
 
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
 
-		callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		call(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
-		call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+			call(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 
-		call(CheckForRefreshTokenValue.class);
+			call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
-		call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+			call(CheckForRefreshTokenValue.class);
 
-		fireTestFinished();
-		stop();
+			call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+
+			fireTestFinished();
+
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

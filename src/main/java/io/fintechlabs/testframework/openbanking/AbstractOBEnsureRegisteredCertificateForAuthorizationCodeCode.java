@@ -9,32 +9,37 @@ import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2Fro
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCode extends AbstractOBServerTestModuleCode {
 
-	public AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCode(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCode(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	@Override
 	protected Object performPostAuthorizationFlow() {
+		setStatus(Status.WAITING);
 
-		createAuthorizationCodeRequest();
+		getTestExecutionManager().runInBackground(() -> {
+			setStatus(Status.RUNNING);
+			createAuthorizationCodeRequest();
 
-		// Check that a call to the token endpoint succeeds normally
+			// Check that a call to the token endpoint succeeds normally
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+			callAndStopOnFailure(CallTokenEndpoint.class);
 
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		// Now try with the wrong certificate
+			// Now try with the wrong certificate
 
-		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
+			callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
 
-		fireTestFinished();
-		stop();
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 	}

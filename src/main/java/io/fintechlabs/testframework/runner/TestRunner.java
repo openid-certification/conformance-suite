@@ -16,13 +16,18 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Strings;
-import io.fintechlabs.testframework.info.TestPlanService;
-import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +39,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -56,13 +61,13 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
-import io.fintechlabs.testframework.testmodule.TestModule.Result;
 
 /**
  *
@@ -105,37 +110,7 @@ public class TestRunner {
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
-	private Map<String, List<Future>> taskFutures = new HashMap<>();
-	private FutureWatcher futureWatcher;
-
-	// TODO: Move this stuff to its own file?
-	private class BackgroundTask implements Callable {
-		private String testId;
-		private Callable myCallable;
-		private Authentication savedAuthentication;
-
-		public BackgroundTask(String testId, Callable callable) {
-			this.testId = testId;
-			this.myCallable = callable;
-			// save the authentication context for use when we run it later
-			savedAuthentication = authenticationFacade.getContextAuthentication();
-		}
-
-		@Override
-		public Object call() throws TestFailureException {
-			// restore the authentication context that was in place when this was created
-			authenticationFacade.setLocalAuthentication(savedAuthentication);
-			Object returnObj = null;
-			try {
-				returnObj = myCallable.call();
-			} catch (TestFailureException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new TestFailureException(testId, e.getMessage());
-			}
-			return returnObj;
-		}
-	}
+	private FutureWatcher futureWatcher = new FutureWatcher();
 
 	private class FutureWatcher implements Runnable {
 		private boolean running = false;
@@ -161,13 +136,7 @@ public class TestRunner {
 						// This should always be the case for our BackgroundTasks
 						TestFailureException testFailureException = (TestFailureException) e.getCause();
 
-						// Clean up other tasks for this test id
 						String testId = testFailureException.getTestId();
-						for (Future f : taskFutures.get(testId)) {
-							if (!f.isDone()) {
-								f.cancel(true); // True allows the task to be interrupted.
-							}
-						}
 
 						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 						conditionFailure(testFailureException);
@@ -176,7 +145,22 @@ public class TestRunner {
 						if (test != null) {
 							// there's an exception, stop the test
 							test.stop();
-							test.setFinalError(testFailureException);
+
+							// Clean up other tasks for this test id
+							TestExecutionManager executionManager = test.getTestExecutionManager();
+							if (executionManager != null) {
+								for (Future f : executionManager.getFutures()) {
+									if (!f.isDone()) {
+										f.cancel(true); // True allows the task to be interrupted.
+									}
+								}
+							}
+
+							// set the final exception flag only if this wasn't a normal condition error
+							if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
+								test.setFinalError(testFailureException);
+							}
+
 							test.fireTestFailure();
 						}
 
@@ -191,19 +175,8 @@ public class TestRunner {
 		}
 	}
 
-	private void runInBackground(String testId, Callable callable) {
-		if (futureWatcher == null) {
-			futureWatcher = new FutureWatcher();
-			executorService.submit(futureWatcher);
-		}
-		List<Future> futures;
-		if (taskFutures.containsKey(testId)) {
-			futures = taskFutures.remove(testId);
-		} else {
-			futures = new ArrayList<Future>();
-		}
-		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
-		taskFutures.put(testId, futures);
+	public TestRunner() {
+		executorService.submit(futureWatcher);
 	}
 
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -300,7 +273,7 @@ public class TestRunner {
 				"description", description,
 				"testName", testName));
 
-		runInBackground(id, () -> {
+		test.getTestExecutionManager().runInBackground(() -> {
 			test.configure(config, url);
 			return "done";
 		});
@@ -347,7 +320,7 @@ public class TestRunner {
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
-			runInBackground(test.getId(), () -> {
+			test.getTestExecutionManager().runInBackground(() -> {
 				test.start();
 				return "started";
 			});
@@ -385,7 +358,7 @@ public class TestRunner {
 		if (test != null) {
 
 			// stop the test
-			runInBackground(test.getId(), () -> {
+			test.getTestExecutionManager().runInBackground(() -> {
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
 				test.stop();
 				return "stopped";
@@ -462,15 +435,16 @@ public class TestRunner {
 			Class<? extends TestModule> testModuleClass = holder.c;
 
 			@SuppressWarnings("unchecked")
-			Map<String, String> owner = (ImmutableMap<String, String>) authenticationFacade.getPrincipal();
+			Map<String, String> owner = authenticationFacade.getPrincipal();
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
-			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executorCompletionService);
+			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade);
+			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager);
 
 			// call the constructor
-			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class)
-				.newInstance(id, owner, wrappedEventLog, browser, testInfo);
+			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class, TestExecutionManager.class)
+				.newInstance(id, owner, wrappedEventLog, browser, testInfo, executionManager);
 			return module;
 
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {

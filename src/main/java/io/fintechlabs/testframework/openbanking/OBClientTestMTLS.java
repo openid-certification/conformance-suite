@@ -60,6 +60,7 @@ import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -82,8 +83,8 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public OBClientTestMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public OBClientTestMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -206,7 +207,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		// at this point we can assume the test is fully done
 		fireTestFinished();
-		stop();
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 

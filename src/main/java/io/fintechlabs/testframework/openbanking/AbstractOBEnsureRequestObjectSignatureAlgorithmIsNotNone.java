@@ -9,11 +9,12 @@ import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithN
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractOBServerTestModule {
 
-	public AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	@Override
@@ -33,9 +34,9 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	@Override

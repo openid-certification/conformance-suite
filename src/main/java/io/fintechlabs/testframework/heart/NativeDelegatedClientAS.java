@@ -66,6 +66,7 @@ import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -94,8 +95,8 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 	/**
 	 *
 	 */
-	public NativeDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public NativeDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -174,9 +175,9 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -196,42 +197,44 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		// handle PKCE
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
+			// handle PKCE
+			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+			callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+			callAndStopOnFailure(CallTokenEndpoint.class);
 
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
 
-		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
 
-		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
 
-		call(CheckForScopesInTokenResponse.class);
+			call(CheckForScopesInTokenResponse.class);
 
-		call(CheckForRefreshTokenValue.class);
+			call(CheckForRefreshTokenValue.class);
 
-		fireTestFinished();
-		stop();
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

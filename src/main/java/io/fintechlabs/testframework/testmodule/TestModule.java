@@ -15,8 +15,6 @@ package io.fintechlabs.testframework.testmodule;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 /**
  *
@@ -132,6 +131,11 @@ public interface TestModule {
 	 * @return the associated browser control module
 	 */
 	BrowserControl getBrowser();
+
+	/**
+	 * @return the associated execution manager
+	 */
+	TestExecutionManager getTestExecutionManager();
 
 	/**
 	 * @param path

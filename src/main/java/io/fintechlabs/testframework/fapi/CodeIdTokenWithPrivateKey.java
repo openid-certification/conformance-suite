@@ -33,7 +33,6 @@ import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEn
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
@@ -97,6 +96,7 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -128,8 +128,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	/**
 	 * @param name
 	 */
-	public CodeIdTokenWithPrivateKey(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public CodeIdTokenWithPrivateKey(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -251,9 +251,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -442,9 +442,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 
 		return redirectToLogDetailPage();
 
@@ -452,53 +452,56 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
 
-		JsonElement body = requestParts.get("body");
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		if (body != null) {
-			String hash = body.getAsString();
+			JsonElement body = requestParts.get("body");
 
-			logger.info("Hash: " + hash);
+			if (body != null) {
+				String hash = body.getAsString();
 
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
+				logger.info("Hash: " + hash);
 
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
 
-		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-		// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
 
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		// use the code with the first client's credentials
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+			// use the code with the first client's credentials
+			env.unmapKey("client");
+			env.unmapKey("client_jwks");
+			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
+			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class);
+			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+			env.mapKey("client", "client2");
+			env.mapKey("client_jwks", "client_jwks2");
 
-		// put everything back where we found it
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		eventLog.endBlock();
+			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
 
-		fireTestFinished();
-		stop();
+			// put everything back where we found it
+			env.unmapKey("client");
+			env.unmapKey("client_jwks");
+			eventLog.endBlock();
+
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

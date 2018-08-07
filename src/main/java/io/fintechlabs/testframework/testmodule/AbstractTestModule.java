@@ -20,6 +20,10 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.view.RedirectView;
@@ -38,10 +42,7 @@ import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 /**
  * @author jricher
@@ -61,6 +62,7 @@ public abstract class AbstractTestModule implements TestModule {
 	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
 	protected TestInstanceEventLog eventLog;
 	protected BrowserControl browser;
+	protected TestExecutionManager executionManager;
 	protected Map<String, String> exposed = new HashMap<>(); // exposes runtime values to outside modules
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
@@ -74,13 +76,13 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param name
 	 */
-	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
+	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
-		this.browser.setLock(env.getLock());
 		this.testInfo = testInfo;
+		this.executionManager = executionManager;
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
@@ -426,15 +428,40 @@ public abstract class AbstractTestModule implements TestModule {
 
 	@Override
 	public void fireTestFinished() {
-		setStatus(Status.FINISHED);
 
-		if (getResult() == Result.UNKNOWN) {
-			fireTestSuccess();
-		}
+		// first we set our test to WAITING to release the lock (note that this happens in the calling thread) and prepare for finalization
+		setStatus(Status.WAITING);
 
-		eventLog.log(getName(), args(
-			"msg", "Finished",
-			"result", getResult()));
+		// then this happens in the background so that we can check the state of the browser controller
+
+		getTestExecutionManager().runInBackground(() -> {
+
+
+			// wait for web runners to wrap up first
+
+			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
+			while (browser.getWebRunners().size() > 0
+				&& Instant.now().isBefore(timeout)) {
+				Thread.sleep(100); // sleep before we check again
+			}
+
+			// if we weren't interrupted already, then we're finished
+			if (!getStatus().equals(Status.INTERRUPTED)) {
+				setStatus(Status.FINISHED);
+			}
+
+			if (getResult() == Result.UNKNOWN) {
+				fireTestSuccess();
+			}
+
+			stop();
+
+			eventLog.log(getName(), args(
+				"msg", "Finished",
+				"result", getResult()));
+
+			return "done";
+		});
 	}
 
 	@Override
@@ -466,9 +493,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 */
 	protected void setResult(Result result) {
 		this.result = result;
-		if (testInfo != null) {
-			testInfo.updateTestResult(getId(), getResult());
-		}
+		testInfo.updateTestResult(getId(), getResult());
 	}
 
 	protected void updateResultFromConditionFailure(ConditionResult onFail) {
@@ -501,6 +526,11 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Any state can go to "UNKNOWN"
 	 */
 	protected void setStatus(Status status) {
+		logger.error("setStatus("+getStatus().toString()+"): current status = "+status.toString());
+
+		if (status == getStatus()) {
+			return;
+		}
 
 		switch (getStatus()) {
 			case CREATED:
@@ -508,12 +538,9 @@ public abstract class AbstractTestModule implements TestModule {
 					case CONFIGURED:
 					case INTERRUPTED:
 					case FINISHED:
-					case UNKNOWN:
-					case CREATED:
-						clearLock();
 						break;
 					default:
-						clearLock();
+						clearLockIfHeld();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
@@ -525,8 +552,6 @@ public abstract class AbstractTestModule implements TestModule {
 					case INTERRUPTED:
 					case FINISHED:
 					case WAITING:
-					case UNKNOWN:
-						clearLock();
 						break;
 					default:
 						clearLock();
@@ -536,13 +561,14 @@ public abstract class AbstractTestModule implements TestModule {
 			case RUNNING:  // We should have the lock when we're running
 				switch (status) {
 					case INTERRUPTED:
+						clearLockIfHeld();
+						break;
 					case FINISHED:
 					case WAITING:
-					case UNKNOWN:
 						clearLock();
 						break;
 					default:
-						clearLock();
+						clearLockIfHeld();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
@@ -553,36 +579,22 @@ public abstract class AbstractTestModule implements TestModule {
 						break;
 					case INTERRUPTED:
 					case FINISHED:
-					case UNKNOWN:
 						break;
 					default:
-						clearLock();
+						clearLockIfHeld();
 						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 				}
 				break;
 			case INTERRUPTED:
-				switch (status) {
-					case INTERRUPTED:
-						clearLock();
-						break;
-					default:
-						clearLock();
-						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
-				}
-				break;
+				clearLockIfHeld();
+				throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 			case FINISHED:
-				switch (status) {
-					case FINISHED:
-						clearLock();
-						break;
-					default:
-						clearLock();
-						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
-				}
+				clearLockIfHeld();
+				throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 			case UNKNOWN:
 			default:
-				clearLock();
-				break;
+				clearLockIfHeld();
+				throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
 		}
 
 		this.status = status;
@@ -592,11 +604,15 @@ public abstract class AbstractTestModule implements TestModule {
 		this.statusUpdated = Instant.now();
 	}
 
+	private void clearLock(){
+		env.getLock().unlock();
+	}
+
 	/**
 	 * Helper to check if we have the lock, and if we do, unlock it.
 	 */
-	private void clearLock(){
-		if(env.getLock().isHeldByCurrentThread()){
+	private void clearLockIfHeld(){
+		if(env.getLock().isHeldByCurrentThread()) {
 			env.getLock().unlock();
 		}
 	}
@@ -645,19 +661,20 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public void stop() {
 
-		String logResult;
+		if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
+			// can't stop what's already stopped
+			return;
+		}
 
 		if (!getStatus().equals(Status.FINISHED)) {
 			setStatus(Status.INTERRUPTED);
-			logResult = "INTERRUPTED";
 			eventLog.log(getName(), args(
 				"msg", "Test was interrupted before it could complete",
-				"result", logResult));
+				"result", Status.INTERRUPTED.toString()));
 		} else {
-			logResult = getResult().toString();
 			eventLog.log(getName(), args(
 				"msg", "Test was stopped",
-				"result", logResult));
+				"result", getResult().toString()));
 		}
 
 		logFinalEnv();
@@ -679,6 +696,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @return the finalError
 	 */
+	@Override
 	public TestFailureException getFinalError() {
 		return finalError;
 	}
@@ -686,6 +704,7 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * @param finalError the finalError to set
 	 */
+	@Override
 	public void setFinalError(TestFailureException finalError) {
 		this.finalError = finalError;
 	}
@@ -725,6 +744,11 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+	}
+
+	@Override
+	public TestExecutionManager getTestExecutionManager() {
+		return executionManager;
 	}
 
 }

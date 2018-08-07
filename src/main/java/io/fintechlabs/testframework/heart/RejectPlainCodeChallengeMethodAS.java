@@ -14,24 +14,49 @@
 
 package io.fintechlabs.testframework.heart;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.*;
-import io.fintechlabs.testframework.condition.common.*;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
+import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreatePlainCodeChallenge;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
+import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
+import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
+import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.EnsureAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.client.ExpectRejectPlainCodeChallengeMethodErrorPage;
+import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
+import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
+import io.fintechlabs.testframework.condition.common.DisallowTLS10;
+import io.fintechlabs.testframework.condition.common.DisallowTLS11;
+import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
+import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
  * @author jricher
@@ -58,8 +83,8 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 	/**
 	 *
 	 */
-	public RejectPlainCodeChallengeMethodAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public RejectPlainCodeChallengeMethodAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -140,8 +165,9 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 
 		callAndStopOnFailure(ExpectRejectPlainCodeChallengeMethodErrorPage.class);
 
-		browser.goToUrl(redirectTo);
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -161,14 +187,16 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 	@UserFacing
 	private Object handleCallback(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
-		fireTestFinished();
-		fireTestSuccess();
-		stop();
+			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
+			fireTestFinished();
+			fireTestSuccess();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

@@ -32,7 +32,6 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
@@ -44,10 +43,8 @@ import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpoint
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -66,6 +63,7 @@ import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -95,8 +93,8 @@ public class InBrowserDelegatedClientAS extends AbstractTestModule {
 	/**
 	 *
 	 */
-	public InBrowserDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public InBrowserDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -170,9 +168,9 @@ public class InBrowserDelegatedClientAS extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -218,47 +216,49 @@ public class InBrowserDelegatedClientAS extends AbstractTestModule {
 	 */
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		JsonElement body = requestParts.get("body");
+			JsonElement body = requestParts.get("body");
 
-		if (body != null) {
-			String hash = body.getAsString();
+			if (body != null) {
+				String hash = body.getAsString();
 
-			logger.info("Hash: " + hash);
+				logger.info("Hash: " + hash);
 
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
 
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
 
-		callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
+			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
 
-		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
 
-		call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
 
-		call(CheckForScopesInTokenResponse.class);
+			call(CheckForScopesInTokenResponse.class);
 
-		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.3");
+			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.3");
 
-		fireTestFinished();
-		stop();
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

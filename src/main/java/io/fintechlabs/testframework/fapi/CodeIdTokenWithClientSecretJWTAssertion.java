@@ -95,6 +95,7 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -130,8 +131,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 	/**
 	 * @param name
 	 */
-	public CodeIdTokenWithClientSecretJWTAssertion(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public CodeIdTokenWithClientSecretJWTAssertion(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -253,9 +254,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 	/* (non-Javadoc)
@@ -303,147 +304,152 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
+		getTestExecutionManager().runInBackground(() -> {
 
-		JsonElement body = requestParts.get("body");
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		if (body != null) {
-			String hash = body.getAsString();
+			JsonElement body = requestParts.get("body");
 
-			logger.info("Hash: " + hash);
+			if (body != null) {
+				String hash = body.getAsString();
 
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
+				logger.info("Hash: " + hash);
 
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
 
-		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		// check the ID token from the hybrid response
+			callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+			// check the ID token from the hybrid response
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+			callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
 
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
 
-		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+
+			skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 
-		// call the token endpoint and complete the flow
+			// call the token endpoint and complete the flow
 
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+			callAndStopOnFailure(CallTokenEndpoint.class);
 
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
-			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		call(CheckForRefreshTokenValue.class);
+			call(CheckForRefreshTokenValue.class);
 
-		call(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+			call(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 
-		call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+			call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 
-		// verify the access token against a protected resource
+			// verify the access token against a protected resource
 
-		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-		exposeEnvString("fapi_interaction_id");
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+			exposeEnvString("fapi_interaction_id");
 
-		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
 
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-1-6.2.2-6");
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-1-6.2.2-6");
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
+			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
 
-		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+			callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
 
-		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+			callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
 
-		call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
+			call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
-		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
+			callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 
-		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+			callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
 
-		// get token for second client
-		eventLog.startBlock("Second client");
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
+			// get token for second client
+			eventLog.startBlock("Second client");
+			env.mapKey("client", "client2");
+			env.mapKey("client_jwks", "client_jwks2");
 
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(CreateRandomStateValue.class);
+			exposeEnvString("state");
+			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(CreateRandomNonceValue.class);
+			exposeEnvString("nonce");
+			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		callAndStopOnFailure(SignRequestObject.class);
+			callAndStopOnFailure(SignRequestObject.class);
 
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+			String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
-		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
+			eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
 
-		browser.goToUrl(redirectTo);
+			setStatus(Status.WAITING);
 
-		setStatus(Status.WAITING);
+			browser.goToUrl(redirectTo);
+
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 
@@ -451,53 +457,55 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
 
-		// process the callback
-		setStatus(Status.RUNNING);
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
 
-		JsonElement body = requestParts.get("body");
+			JsonElement body = requestParts.get("body");
 
-		if (body != null) {
-			String hash = body.getAsString();
+			if (body != null) {
+				String hash = body.getAsString();
 
-			logger.info("Hash: " + hash);
+				logger.info("Hash: " + hash);
 
-			env.putString("implicit_hash", hash);
-		} else {
-			logger.warn("No hash submitted");
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
 
-			env.putString("implicit_hash", ""); // Clear any old value
-		}
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
 
-		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
+			// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
 
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		// use the code with the first client's credentials
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+			// use the code with the first client's credentials
+			env.unmapKey("client");
+			env.unmapKey("client_jwks");
+			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
+			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+			env.mapKey("client", "client2");
+			env.mapKey("client_jwks", "client_jwks2");
 
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class);
+			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
 
-		// put everything back where we found it
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		eventLog.endBlock();
+			// put everything back where we found it
+			env.unmapKey("client");
+			env.unmapKey("client_jwks");
+			eventLog.endBlock();
 
-		fireTestFinished();
-		stop();
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 

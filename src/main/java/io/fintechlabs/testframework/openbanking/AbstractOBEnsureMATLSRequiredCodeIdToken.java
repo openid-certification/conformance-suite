@@ -29,13 +29,14 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
 
 	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequiredCodeIdToken.class);
 
-	public AbstractOBEnsureMATLSRequiredCodeIdToken(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public AbstractOBEnsureMATLSRequiredCodeIdToken(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -83,18 +84,22 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 
 	@Override
 	protected Object performPostAuthorizationFlow() {
+		setStatus(Status.WAITING);
 
-		// call the token endpoint and expect an error, since this request does not
-		// meet any of the OB requirements for client authentication
+		getTestExecutionManager().runInBackground(() -> {
+			setStatus(Status.RUNNING);
+			// call the token endpoint and expect an error, since this request does not
+			// meet any of the OB requirements for client authentication
 
-		createAuthorizationCodeRequest();
+			createAuthorizationCodeRequest();
 
-		callAndStopOnFailure(RemoveMTLSCertificates.class);
+			callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
+			callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
 
-		fireTestFinished();
-		stop();
+			fireTestFinished();
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 	}

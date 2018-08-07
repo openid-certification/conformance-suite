@@ -146,7 +146,7 @@ public class ImageAPI {
 				TestModule test = testRunnerSupport.getRunningTestById(testId);
 				if (test != null) {
 					test.fireTestFinished();		// set our current status to finished
-					test.stop();					// stop the running test
+												// and stop the running test
 				} else {
 					// otherwise we need to do it directly in the database
 					testInfoService.updateTestStatus(testId, Status.FINISHED);

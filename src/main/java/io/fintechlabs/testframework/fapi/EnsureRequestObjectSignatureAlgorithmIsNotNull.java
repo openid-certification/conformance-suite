@@ -16,10 +16,6 @@ package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -42,9 +38,9 @@ import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
@@ -59,8 +55,8 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 )
 public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTestModule {
 
-	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo) {
-		super(id, owner, eventLog, browser, testInfo);
+	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
 	/* (non-Javadoc)
@@ -130,9 +126,9 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
-		browser.goToUrl(redirectTo);
-
 		setStatus(Status.WAITING);
+
+		browser.goToUrl(redirectTo);
 	}
 
 }
