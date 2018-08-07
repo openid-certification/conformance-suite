@@ -29,44 +29,25 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
-import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
-import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
-import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateJwksUri;
-import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
-import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
-import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
-import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ParseAccessTokenAsJwt;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenHeartClaims;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenSignature;
-import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -79,8 +60,6 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
@@ -132,7 +111,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		// fetch or load the server's keys as needed
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);

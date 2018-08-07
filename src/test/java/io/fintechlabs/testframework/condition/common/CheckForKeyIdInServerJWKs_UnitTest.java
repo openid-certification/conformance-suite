@@ -29,7 +29,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CheckForKeyIdInJWKs_UnitTest {
+public class CheckForKeyIdInServerJWKs_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -37,7 +37,7 @@ public class CheckForKeyIdInJWKs_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckForKeyIdInJWKs cond;
+	private CheckForKeyIdInServerJWKs cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -45,11 +45,11 @@ public class CheckForKeyIdInJWKs_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckForKeyIdInJWKs("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForKeyIdInServerJWKs("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link CheckForKeyIdInServerJWKs#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -74,7 +74,7 @@ public class CheckForKeyIdInJWKs_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link CheckForKeyIdInServerJWKs#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeyId() {

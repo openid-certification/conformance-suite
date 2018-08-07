@@ -43,7 +43,7 @@ import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import io.fintechlabs.testframework.condition.common.CheckForKeyIdInJWKs;
+import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -114,7 +114,7 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 		// fetch or load the server's keys as needed
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInJWKs.class, "OIDCC-10.1");
+		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
