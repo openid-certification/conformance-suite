@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 
 /**
  * @author jricher
@@ -127,6 +128,8 @@ public interface EventLog {
 			.collect(Collectors.toList());
 
 		event.put("stacktrace", stack);
+		event.put("result", ConditionResult.FAILURE);
+		event.put("msg", "unexpected exception caught");
 
 		return event;
 	}
