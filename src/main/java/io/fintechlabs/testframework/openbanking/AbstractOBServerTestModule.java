@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpoint
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -327,6 +328,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 				call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 				call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+				eventLog.endBlock();
 
 
 				eventLog.startBlock("Accounts resource endpoint TLS test");
@@ -404,17 +406,32 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 				requestProtectedResource();
 
 				// Switch back to client 1
-
+				eventLog.startBlock("Try Client1 Crypto Keys with Client2 token");
 				env.unmapKey("client");
 				env.unmapKey("client_jwks");
 				env.unmapKey("mutual_tls_authentication");
-				eventLog.endBlock();
 
 				// Try client 2's access token with client 1's keys
 
 				callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
 
 				setStatus(Status.WAITING);
+				eventLog.endBlock();
+
+				eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
+				// Re-map to Client 2 keys
+				env.mapKey("client", "client2");
+				env.mapKey("client_jwks", "client_jwks2");
+				env.mapKey("mutual_tls_authentication","mutual_tls_authentication2");
+
+				// Check access_token still works
+				call(CallAccountsEndpointWithBearerToken.class, ConditionResult.FAILURE, "RFC7231-5.3.2");
+
+				call(CallTokenEndpointExpectingError.class, ConditionResult.WARNING, "FAPI-1-5.2.2-13");
+
+				// The AS 'SHOULD' have revoked the access token; try it again".
+				call(CallAccountsEndpointWithBearerTokenExpectingError.class, ConditionResult.WARNING, "OAUTH2-4.1.2");
+				eventLog.endBlock();
 
 				fireTestFinished();
 				return "done";
