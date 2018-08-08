@@ -43,7 +43,6 @@ public class OBUserRejectsAuthenticationCodeWithSecretPostAndMATLS extends Abstr
 
 	public OBUserRejectsAuthenticationCodeWithSecretPostAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
-		logClientSecretWarning();
 	}
 
 	@Override
@@ -51,6 +50,7 @@ public class OBUserRejectsAuthenticationCodeWithSecretPostAndMATLS extends Abstr
 
 		super.onConfigure(config, baseUrl);
 
+		logClientSecretWarning();
 		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 	}
 
