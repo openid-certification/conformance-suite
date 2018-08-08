@@ -111,9 +111,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
-
-		// this test can auto-start
-		start();
 	}
 
 	/* (non-Javadoc)
