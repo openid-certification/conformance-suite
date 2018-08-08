@@ -653,13 +653,18 @@ public class TestRunner {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
-			}
-			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
-				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-				// ConditionError will get handled by the logging system, no need to display with stacktrace
-				test.setFinalError(error);
-			}
 
+				// Any form of exception from a test counts as a failure
+				test.fireTestFailure();
+
+				if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+					// ConditionError will get handled by the logging system, no need to display with stacktrace
+					test.setFinalError(error);
+				}
+			} else {
+				logger.error("Caught an error from a test, but the test isn't running: " + error.getMessage());
+			}
 		} catch (Exception e) {
 			logger.error("Something terrible happened when handling an error, I give up", e);
 		}
