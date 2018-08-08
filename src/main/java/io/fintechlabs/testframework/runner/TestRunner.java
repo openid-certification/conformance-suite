@@ -534,7 +534,7 @@ public class TestRunner {
 	}
 
 	public void markImageAsSatisfiedByBrowserControl(String testId, String regexp) {
-		List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId);
+		List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, true);
 
 		if (remainingPlaceholders.size() == 1) {
 			String placeholder = (String) remainingPlaceholders.get(0).get("upload");
@@ -542,10 +542,10 @@ public class TestRunner {
 			update.set("updated_by", "browsercontrol");
 			update.set("satisfied_regexp", regexp);
 
-			DBObject result = imageService.fillPlaceholder(testId, placeholder, update);
+			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, true);
 			// FIXME not sure what to do with result
 
-			imageService.lastPlaceholderFilled(testId);
+			imageService.lastPlaceholderFilled(testId, true);
 		} else {
 			// FIXME throw error
 		}

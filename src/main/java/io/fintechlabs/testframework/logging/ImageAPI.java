@@ -114,15 +114,15 @@ public class ImageAPI {
 			Update update = new Update();
 			update.set("img", encoded);
 
-			DBObject result = imageService.fillPlaceholder(testId, placeholder, update);
+			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, false);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 
-			List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId);
+			List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, false);
 
 			if (remainingPlaceholders.size() == 0) {
-				imageService.lastPlaceholderFilled(testId);
+				imageService.lastPlaceholderFilled(testId, false);
 			}
 
 			return new ResponseEntity<>(result, HttpStatus.OK);
@@ -143,7 +143,7 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			List<DBObject> images = imageService.getAllImagesForTestId(testId);
+			List<DBObject> images = imageService.getAllImagesForTestId(testId, false);
 
 			return new ResponseEntity<>(images, HttpStatus.OK);
 		} else {

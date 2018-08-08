@@ -55,32 +55,32 @@ public class DBImageService implements ImageService {
 	private TestRunnerSupport testRunnerSupport;
 
 	// Create a Criteria with or without the security constraints as needed
-	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints) {
+	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints, boolean assumeAdmin) {
 		Criteria criteria = new Criteria();
-		if (!authenticationFacade.isAdmin()) {
+		if (assumeAdmin || authenticationFacade.isAdmin()) {
 			criteria = criteria.andOperator(
 				findTestId,
-				additionalConstraints,
-				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
+				additionalConstraints
 			);
 		} else {
 			criteria = criteria.andOperator(
 				findTestId,
-				additionalConstraints
+				additionalConstraints,
+				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
 			);
 		}
 		return criteria;
 	}
 
 	@Override
-	public DBObject fillPlaceholder(String testId, String placeholder, Update update) {
+	public DBObject fillPlaceholder(String testId, String placeholder, Update update, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// add the placeholder condition
 		Criteria placeholderExists = Criteria.where("upload").is(placeholder);
 
 		// if we're not admin, make sure we also own the log
-		Criteria criteria = createCriteria(findTestId, placeholderExists);
+		Criteria criteria = createCriteria(findTestId, placeholderExists, assumeAdmin);
 
 		Query query = Query.query(criteria);
 
@@ -90,20 +90,20 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public List<DBObject> getRemainingPlaceholders(String testId) {
+	public List<DBObject> getRemainingPlaceholders(String testId, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// check to see if all placeholders are set by searching for any remaining ones on this test
 		Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
 
-		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
+		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders, assumeAdmin);
 		Query search = Query.query(postSearch);
 		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
 	}
 
 	// call if there aren't any placeholders left on the test, to update the status to FINISHED
 	@Override
-	public void lastPlaceholderFilled(String testId) {
+	public void lastPlaceholderFilled(String testId, boolean assumeAdmin) {
 		// FIXME: only move to finished if we're currently in waiting
 
 		// first, see if it's currently running; if so we update the running object
@@ -118,7 +118,7 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public List<DBObject> getAllImagesForTestId(String testId) {
+	public List<DBObject> getAllImagesForTestId(String testId, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		Criteria anyImages =
@@ -128,7 +128,7 @@ public class DBImageService implements ImageService {
 			);
 
 		// add in the security parameters
-		Criteria criteria = createCriteria(findTestId, anyImages);
+		Criteria criteria = createCriteria(findTestId, anyImages, assumeAdmin);
 
 		Query search = Query.query(criteria);
 
