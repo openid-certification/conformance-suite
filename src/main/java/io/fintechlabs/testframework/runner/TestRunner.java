@@ -293,6 +293,9 @@ public class TestRunner {
 
 		test.getTestExecutionManager().runInBackground(() -> {
 			test.configure(config, url);
+
+			/* automatically start all tests */
+			test.start();
 			return "done";
 		});
 		// logger.info("Status of " + testName + ": " + test.getId() + ": " + test.getStatus());

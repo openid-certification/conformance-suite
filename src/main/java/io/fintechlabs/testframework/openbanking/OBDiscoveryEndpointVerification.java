@@ -99,14 +99,11 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
-		// TODO Auto-generated method stub
 		env.putString("base_url", baseUrl);
 		env.put("config", config);
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
-		start();
-
 	}
 
 }
