@@ -34,7 +34,6 @@ public abstract class AbstractOBUserRejectsAuthenticationCode extends AbstractOB
 
 		callAndStopOnFailure(ValidateUserRejectsAuthorizationParametersCorrect.class, "OIDCC-3.1.2.6");
 
-		setResult(Result.PASSED);
 		fireTestFinished();
 
 		return redirectToLogDetailPage();
