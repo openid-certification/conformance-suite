@@ -149,31 +149,30 @@ public class TestRunner {
 						TestFailureException testFailureException = (TestFailureException) e.getCause();
 
 						String testId = testFailureException.getTestId();
-
-						// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
-						conditionFailure(testFailureException);
-
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
-							// there's an exception, stop the test
-							if (!e.getMessage().equals("io.fintechlabs.testframework.testmodule.TestFailureException: io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
-								// FIXME: above test can be removed when ImageAPI.java fixmes in test runner are fixed
-								test.stop();
-							}
+							// FIXME: need to at least stop this being a string comparison
+							if (testFailureException.getMessage().equals("io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
+								markImageAsSatisfiedByBrowserControl(testFailureException.getTestId(), testFailureException.getMessage());
+								eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisfied by browser automation");
+							} else {
+								// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
+								conditionFailure(testFailureException);
 
-							// Clean up other tasks for this test id
-							TestExecutionManager executionManager = test.getTestExecutionManager();
-							if (executionManager != null) {
-								for (Future f : executionManager.getFutures()) {
-									if (!f.isDone()) {
-										f.cancel(true); // True allows the task to be interrupted.
+								// there's an exception, stop the test
+								test.stop();
+
+								// Clean up other tasks for this test id
+								TestExecutionManager executionManager = test.getTestExecutionManager();
+								if (executionManager != null) {
+									for (Future f : executionManager.getFutures()) {
+										if (!f.isDone()) {
+											f.cancel(true); // True allows the task to be interrupted.
+										}
 									}
 								}
-							}
 
-							// set the final exception flag only if this wasn't a normal condition error
-							if (!e.getMessage().equals("io.fintechlabs.testframework.testmodule.TestFailureException: io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
-								// FIXME: above test can be removed when ImageAPI.java fixmes in test runner are fixed
+								// set the final exception flag only if this wasn't a normal condition error
 								if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
 									test.setFinalError(testFailureException);
 								}
@@ -181,7 +180,6 @@ public class TestRunner {
 								test.fireTestFailure();
 							}
 						}
-
 					} else {
 						// TODO: Better handling if we get something we wern't expecting?
 						logger.error("Execution failure", e);
@@ -551,46 +549,12 @@ public class TestRunner {
 		}
 	}
 
-
-	// FIXME: this code needs to be properly integrated with browsercontrol
-	@ExceptionHandler(FillImagePlaceholderError.class)
-	public ResponseEntity<Object> fillImagePlaceholderError(FillImagePlaceholderError error) {
-		try {
-			TestModule test = support.getRunningTestById(error.getTestId());
-			if (test != null) {
-				markImageAsSatisfiedByBrowserControl(error.getTestId(), error.getMessage());
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisified by browser automation");
-			}
-
-		} catch (Exception e) {
-			logger.error("Something terrible happened when handling an fillImagePlaceholderError, I give up", e);
-		}
-		JsonObject obj = new JsonObject();
-		obj.addProperty("error", error.getMessage());
-		obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
-		obj.addProperty("testId", error.getTestId());
-		return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-	// end of FIXME: this code needs to be properly integrated with browsercontrol
-
-
 	// handle errors thrown by running tests
 	@ExceptionHandler(TestFailureException.class)
 	public ResponseEntity<Object> conditionFailure(TestFailureException error) {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
-				// FIXME: this code needs to be properly integrated with browsercontrol
-				if (error.getMessage().equals("io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
-					markImageAsSatisfiedByBrowserControl(error.getTestId(), error.getMessage());
-					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisfied by browser automation");
-					JsonObject obj = new JsonObject();
-					obj.addProperty("error", error.getMessage());
-					obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
-					obj.addProperty("testId", error.getTestId());
-					return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
-				}
-				// end of FIXME: this code needs to be properly integrated with browsercontrol
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
