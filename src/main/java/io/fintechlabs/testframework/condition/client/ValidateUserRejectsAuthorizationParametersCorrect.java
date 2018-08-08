@@ -57,9 +57,9 @@ public class ValidateUserRejectsAuthorizationParametersCorrect extends AbstractC
 
 					// Check the number of keys we've found, and can accept, against the total.
 					if (callbackParams.keySet().size() - requiredParameterCount - optionalParameterCount == 0) {
-						logSuccess("All error parameters correct", callbackParams);
+						logSuccess("error response includes only expected parameters", callbackParams);
 					} else {
-						throw error("Incorrect number of error parameters returned", callbackParams);
+						throw error("error response includes unexpected parameters", callbackParams);
 					}
 				}
 			} else {

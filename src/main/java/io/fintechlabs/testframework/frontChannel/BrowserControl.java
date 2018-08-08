@@ -185,6 +185,7 @@ public class BrowserControl {
 		@Override
 		public String call() {
 			try {
+				boolean updatePlaceholder = false;
 				logger.info("Sending BrowserControl to: " + url);
 
 				eventLog.log("WebRunner", args(
@@ -269,7 +270,10 @@ public class BrowserControl {
 
 							// execute all of the commands in this task
 							for (int j = 0; j < commands.size(); j++) {
-								doCommand(commands.get(j).getAsJsonArray(), taskName);
+								boolean result = doCommand(commands.get(j).getAsJsonArray(), taskName);
+								if (result) {
+									updatePlaceholder = true;
+								}
 								// clear the current command once it's done
 								this.currentCommand = null;
 							}
@@ -297,6 +301,10 @@ public class BrowserControl {
 				runners.remove(this);
 				urlVisited(url);
 
+				if (updatePlaceholder) {
+					throw new FillImagePlaceholderError(testId, "placeholder criteria met");
+				}
+
 				return "web runner exited";
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
@@ -322,7 +330,7 @@ public class BrowserControl {
 		 *             if an invalid command is specified
 		 * @param command
 		 */
-		private void doCommand(JsonArray command, String taskName) {
+		private boolean doCommand(JsonArray command, String taskName) {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
 			String commandString = command.get(0).getAsString();
 			if (!Strings.isNullOrEmpty(commandString)) {
@@ -349,7 +357,7 @@ public class BrowserControl {
 					driver.findElement(getSelector(elementType, target)).click();
 
 					logger.debug("Clicked: " + target + " (" + elementType + ")");
-					return;
+					return false;
 				} else if (commandString.equalsIgnoreCase("text")) {
 					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
 
@@ -370,7 +378,7 @@ public class BrowserControl {
 
 					entryBox.sendKeys(value);
 					logger.debug("\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
-					return;
+					return false;
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
 					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
@@ -415,14 +423,14 @@ public class BrowserControl {
 							Pattern pattern = Pattern.compile(regexp);
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 							if (updateImagePlaceHolder) {
-								throw new FillImagePlaceholderError(testId, "placeholder criteria met");
+								return true;
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
 
 						logger.debug("\t\tDone waiting: " + commandString);
-						return;
+						return false;
 
 					} catch (TimeoutException timeoutException) {
 						this.lastException = timeoutException.getMessage();
