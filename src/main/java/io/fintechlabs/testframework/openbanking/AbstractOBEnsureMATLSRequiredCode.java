@@ -92,7 +92,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCode extends AbstractOBServer
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2");
+		call(CallTokenEndpointExpectingError.class, ConditionResult.FAILURE, "OB-5.2.2");
 
 		fireTestFinished();
 
