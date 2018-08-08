@@ -23,13 +23,14 @@ public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTes
 
 	public AbstractOBServerTestModuleCode(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
-		logCodeFlowWarning();
 	}
 
 	@Override
 	protected void createAuthorizationRequest() {
 
 		super.createAuthorizationRequest();
+
+		logCodeFlowWarning();
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 	}
@@ -64,11 +65,12 @@ public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTes
 	}
 
 	protected void logCodeFlowWarning() {
-		HashMap<String, Object> map = new HashMap<>();
-		map.put("msg", "Risks have been identified with \"code\" flow that can be mitigated with hybrid (code id_token) flow");
-		map.put("result", ConditionResult.WARNING);
-		map.put("requirements", Sets.newHashSet("OB-3.4"));
-		eventLog.log(getName(), map);
+		eventLog.log(getName(), args(
+			"msg", "Risks have been identified with \"code\" flow that can be mitigated with hybrid (code id_token) flow",
+			"result", ConditionResult.WARNING,
+			"requirements", Sets.newHashSet("OB-3.4")
+		));
+		updateResultFromConditionFailure(ConditionResult.WARNING);
 	}
 
 }

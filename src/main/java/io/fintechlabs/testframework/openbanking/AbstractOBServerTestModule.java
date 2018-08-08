@@ -516,11 +516,12 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	}
 
 	protected void logClientSecretWarning() {
-		HashMap<String, Object> map = new HashMap<>();
-		map.put("msg", "client_secret_basic and client_secret_post are not recommended client authentication methods");
-		map.put("result", ConditionResult.WARNING);
-		map.put("requirements", Sets.newHashSet("OB-5.2.2-7.2"));
-		eventLog.log(getName(), map);
+		eventLog.log(getName(), args(
+			"msg", "client_secret_basic and client_secret_post are not recommended client authentication methods",
+			"result", ConditionResult.WARNING,
+			"requirements", Sets.newHashSet("OB-5.2.2-7.2")
+		));
+		updateResultFromConditionFailure(ConditionResult.WARNING);
 	}
 
 }

@@ -1,6 +1,9 @@
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -32,7 +35,8 @@ public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends Abs
 	@Override
 	protected Object onAuthorizationCallbackResponse() {
 
-		callAndStopOnFailure(ValidateUserRejectsAuthorizationParametersCorrect.class, "OIDCC-3.1.2.6");
+		call(ValidateUserRejectsAuthorizationParametersCorrect.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		call(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 
 		fireTestFinished();
 

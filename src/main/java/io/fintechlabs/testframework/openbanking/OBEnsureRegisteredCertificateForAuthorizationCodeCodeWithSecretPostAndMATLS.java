@@ -60,7 +60,6 @@ public class OBEnsureRegisteredCertificateForAuthorizationCodeCodeWithSecretPost
 
 	public OBEnsureRegisteredCertificateForAuthorizationCodeCodeWithSecretPostAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
-		logClientSecretWarning();
 	}
 
 	@Override
@@ -68,6 +67,7 @@ public class OBEnsureRegisteredCertificateForAuthorizationCodeCodeWithSecretPost
 
 		super.onConfigure(config, baseUrl);
 
+		logClientSecretWarning();
 		callAndStopOnFailure(EnsureMinimumClientSecretEntropy.class, "RFC6819-5.1.4.2-2");
 	}
 
