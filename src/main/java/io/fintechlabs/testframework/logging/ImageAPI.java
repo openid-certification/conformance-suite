@@ -18,12 +18,10 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import io.fintechlabs.testframework.info.ImageService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,14 +37,12 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
 
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jricher
@@ -66,6 +62,9 @@ public class ImageAPI {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	@Autowired
+	private ImageService imageService;
 
 	@PostMapping(path = "/log/{id}/images")
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
@@ -115,15 +114,15 @@ public class ImageAPI {
 			Update update = new Update();
 			update.set("img", encoded);
 
-			DBObject result = fillPlaceholder(testId, placeholder, update);
+			DBObject result = imageService.fillPlaceholder(testId, placeholder, update);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 
-			List<DBObject> remainingPlaceholders = getRemainingPlaceholders(testId);
+			List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId);
 
 			if (remainingPlaceholders.size() == 0) {
-				lastPlaceholderFilled(testId);
+				imageService.lastPlaceholderFilled(testId);
 			}
 
 			return new ResponseEntity<>(result, HttpStatus.OK);
@@ -132,47 +131,6 @@ public class ImageAPI {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
-	}
-
-	private DBObject fillPlaceholder(String testId, String placeholder, Update update) {
-		Criteria findTestId = Criteria.where("testId").is(testId);
-
-		// add the placeholder condition
-		Criteria placeholderExists = Criteria.where("upload").is(placeholder);
-
-		// if we're not admin, make sure we also own the log
-		Criteria criteria = createCriteria(findTestId, placeholderExists);
-
-		Query query = Query.query(criteria);
-
-		update.unset("upload");
-
-		return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
-	}
-
-	private List<DBObject> getRemainingPlaceholders(String testId) {
-		Criteria findTestId = Criteria.where("testId").is(testId);
-
-		// check to see if all placeholders are set by searching for any remaining ones on this test
-		Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
-
-		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
-		Query search = Query.query(postSearch);
-		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
-	}
-
-	// call if there aren't any placeholders left on the test, to update the status to FINISHED
-	private void lastPlaceholderFilled(String testId) {
-
-		// first, see if it's currently running; if so we update the running object
-		TestModule test = testRunnerSupport.getRunningTestById(testId);
-		if (test != null) {
-			test.fireTestFinished();		// set our current status to finished
-											// and stop the running test
-        } else {
-            // otherwise we need to do it directly in the database
-            testInfoService.updateTestStatus(testId, Status.FINISHED);
-        }
 	}
 
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -185,24 +143,7 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			Criteria findTestId = Criteria.where("testId").is(testId);
-
-			Criteria anyImages =
-				new Criteria().orOperator(
-					Criteria.where("img").exists(true),
-					Criteria.where("upload").exists(true)
-				);
-
-			// add in the security parameters
-			Criteria criteria = createCriteria(findTestId, anyImages);
-
-			Query search = Query.query(criteria);
-
-			List<DBObject> images = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject())
-				.sort(BasicDBObjectBuilder.start()
-					.add("time", 1)
-					.get())
-				.toArray();
+			List<DBObject> images = imageService.getAllImagesForTestId(testId);
 
 			return new ResponseEntity<>(images, HttpStatus.OK);
 		} else {
@@ -223,24 +164,6 @@ public class ImageAPI {
 			// otherwise we need to do it directly in the database
 			testInfoService.updateTestResult(testId, Result.REVIEW);
 		}
-	}
-
-	// Create a Criteria with or without the security constraints as needed
-	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints) {
-		Criteria criteria = new Criteria();
-		if (!authenticationFacade.isAdmin()) {
-			criteria = criteria.andOperator(
-				findTestId,
-				additionalConstraints,
-				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
-			);
-		} else {
-			criteria = criteria.andOperator(
-				findTestId,
-				additionalConstraints
-			);
-		}
-		return criteria;
 	}
 
 }

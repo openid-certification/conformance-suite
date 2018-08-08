@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 import com.mongodb.DBObject;
 import io.fintechlabs.testframework.condition.FillImagePlaceholderError;
-import io.fintechlabs.testframework.logging.DBEventLog;
+import io.fintechlabs.testframework.info.ImageService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +40,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -117,6 +114,9 @@ public class TestRunner {
 
 	@Autowired
 	private TestPlanService planService;
+
+	@Autowired
+	private ImageService imageService;
 
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
@@ -533,43 +533,8 @@ public class TestRunner {
 		return map;
 	}
 
-	// FIXME - this code is taken from ImageAPI.java and needs to be refactored into a service
-	// Create a Criteria with or without the security constraints as needed
-	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints) {
-		Criteria criteria = new Criteria();
-		if (false && !authenticationFacade.isAdmin()) {
-			criteria = criteria.andOperator(
-				findTestId,
-				additionalConstraints,
-				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
-			);
-		} else {
-			criteria = criteria.andOperator(
-				findTestId,
-				additionalConstraints
-			);
-		}
-		return criteria;
-	}
-
-	private DBObject fillPlaceholder(String testId, String placeholder, Update update) {
-		Criteria findTestId = Criteria.where("testId").is(testId);
-
-		// add the placeholder condition
-		Criteria placeholderExists = Criteria.where("upload").is(placeholder);
-
-		// if we're not admin, make sure we also own the log
-		Criteria criteria = createCriteria(findTestId, placeholderExists);
-
-		Query query = Query.query(criteria);
-
-		update.unset("upload");
-
-		return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
-	}
-
 	public void markImageAsSatisfiedByBrowserControl(String testId, String regexp) {
-		List<DBObject> remainingPlaceholders = getRemainingPlaceholders(testId);
+		List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId);
 
 		if (remainingPlaceholders.size() == 1) {
 			String placeholder = (String) remainingPlaceholders.get(0).get("upload");
@@ -577,39 +542,15 @@ public class TestRunner {
 			update.set("updated_by", "browsercontrol");
 			update.set("satisfied_regexp", regexp);
 
-			DBObject result = fillPlaceholder(testId, placeholder, update);
+			DBObject result = imageService.fillPlaceholder(testId, placeholder, update);
 			// FIXME not sure what to do with result
 
-			lastPlaceholderFilled(testId);
+			imageService.lastPlaceholderFilled(testId);
 		} else {
 			// FIXME throw error
 		}
 	}
 
-	private List<DBObject> getRemainingPlaceholders(String testId) {
-		Criteria findTestId = Criteria.where("testId").is(testId);
-
-		// check to see if all placeholders are set by searching for any remaining ones on this test
-		Criteria noMorePlaceholders = Criteria.where("upload").exists(true);
-
-		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders);
-		Query search = Query.query(postSearch);
-		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
-	}
-
-	// call if there aren't any placeholders left on the test, to update the status to FINISHED
-	private void lastPlaceholderFilled(String testId) {
-
-		// first, see if it's currently running; if so we update the running object
-		TestModule test = support.getRunningTestById(testId);
-		if (test != null) {
-			test.fireTestPlaceholderFilled();
-		} else {
-			// otherwise we need to do it directly in the database
-			testInfo.updateTestStatus(testId, TestModule.Status.FINISHED);
-		}
-	}
-	// FIXME End of code lifted from ImageAPI.java
 
 	// FIXME: this code needs to be properly integrated with browsercontrol
 	@ExceptionHandler(FillImagePlaceholderError.class)
