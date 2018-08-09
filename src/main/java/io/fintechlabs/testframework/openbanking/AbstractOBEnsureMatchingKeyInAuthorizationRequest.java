@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
-import io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect;
+import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -78,7 +78,7 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
 		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(ValidateUserRejectsAuthorizationParametersCorrect.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6"); // FIXME: rename this
+		call(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		call(ExpectInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
 

@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
-import io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect;
+import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -83,7 +83,7 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 		env.put("callback_params", requestParts.get("params").getAsJsonObject());
 		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(ValidateUserRejectsAuthorizationParametersCorrect.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		call(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		call(ExpectInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 
 		// as we got an answer from the browser, we could mark the image placeholder as satisfied, but that's hard

@@ -13,15 +13,11 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 
 
-public class ValidateUserRejectsAuthorizationParametersCorrect extends AbstractCondition {
+public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param optional
-	 */
-	public ValidateUserRejectsAuthorizationParametersCorrect(String testId, TestInstanceEventLog log,
-			ConditionResult conditionResultOnFailure, String... requirements) {
+	public ValidateErrorResponseFromAuthorizationEndpoint(String testId, TestInstanceEventLog log,
+														  ConditionResult conditionResultOnFailure,
+														  String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

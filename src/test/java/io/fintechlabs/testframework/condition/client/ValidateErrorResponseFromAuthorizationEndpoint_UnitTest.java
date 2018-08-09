@@ -33,14 +33,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
+public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	@Mock
 	private TestInstanceEventLog eventLog;
-	private ValidateUserRejectsAuthorizationParametersCorrect cond;
+	private ValidateErrorResponseFromAuthorizationEndpoint cond;
 
 	private String errorNoneNoOptionalFields = "{\"error\":\"access_denied\",\"state\":\"oObb8SUBuC\"}";
 	private String errorNoneAllOptionalFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\"}";
@@ -57,7 +57,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateUserRejectsAuthorizationParametersCorrect("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateErrorResponseFromAuthorizationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 
@@ -73,7 +73,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrorNoOptionalFieldsGoodState() {
@@ -83,7 +83,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrorAllOptionalFieldsGoodState() {
@@ -93,7 +93,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noErrorNoOptionalFieldsWrongState() {
@@ -103,7 +103,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noErrorAllOptionalFieldsWrongState() {
@@ -113,7 +113,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorMissing() {
@@ -122,7 +122,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_stateMissing() {
@@ -131,7 +131,7 @@ public class ValidateUserRejectsAuthorizationParametersCorrect_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorTooManyFields() {

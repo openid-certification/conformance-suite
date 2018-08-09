@@ -5,7 +5,7 @@ import java.util.Map;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import io.fintechlabs.testframework.condition.client.ValidateUserRejectsAuthorizationParametersCorrect;
+import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -35,7 +35,7 @@ public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends Abs
 	@Override
 	protected Object onAuthorizationCallbackResponse() {
 
-		call(ValidateUserRejectsAuthorizationParametersCorrect.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		call(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		call(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 
 		fireTestFinished();
