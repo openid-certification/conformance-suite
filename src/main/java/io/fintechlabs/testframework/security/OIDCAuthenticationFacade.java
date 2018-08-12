@@ -88,7 +88,10 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		OIDCAuthenticationToken token = getOIDC();
 		OAuth2Authentication auth = getOAuth();
 		if (token != null) {
-			return (ImmutableMap<String, String>) token.getPrincipal();
+			@SuppressWarnings("unchecked")
+			ImmutableMap<String, String> prinicipal = (ImmutableMap<String, String>) token.getPrincipal();
+
+			return prinicipal;
 		} else if (auth != null) {
 			// TODO: we might be able to build this off of other properties instead
 			return ImmutableMap.of("sub", auth.getOAuth2Request().getClientId(), "iss", introspectionUrl);

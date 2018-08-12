@@ -157,6 +157,7 @@ public class TestPlanApi {
 		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestPlan.class));
 		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
 			try {
+				@SuppressWarnings("unchecked")
 				Class<? extends TestPlan> c = (Class<? extends TestPlan>) Class.forName(bd.getBeanClassName());
 				PublishTestPlan a = c.getDeclaredAnnotation(PublishTestPlan.class);
 

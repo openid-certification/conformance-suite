@@ -88,6 +88,7 @@ public class TestExecutionManager {
 		return futures;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void runInBackground(Callable callable) {
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
 	}
