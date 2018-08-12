@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>io.fintechlabs</groupId>
-	<artifactId>conformance-test</artifactId>
+	<artifactId>fapi-conformance-suite</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
