@@ -16,6 +16,8 @@
 
 package io.fintechlabs.testframework.condition.client;
 
+import java.util.Arrays;
+
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -40,7 +42,7 @@ public class CheckDiscEndpointIdTokenSigningAlgValuesSupported extends ValidateJ
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, SET_VALUES, 1,
+		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), 1,
 				errorMessageNotEnough);
 	}
 

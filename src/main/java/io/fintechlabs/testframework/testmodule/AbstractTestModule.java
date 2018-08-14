@@ -216,7 +216,7 @@ public abstract class AbstractTestModule implements TestModule {
 			// create a new condition object from the class above
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
-				.newInstance(id, eventLog, onFail, requirements);
+				.newInstance(id, eventLog, onFail, requirements.toArray(new String[] {}));
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 
 			logger.info((stopOnFailure ? ">>" : "}}") + " Calling Condition " + conditionClass.getSimpleName());

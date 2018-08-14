@@ -124,9 +124,9 @@ public class ValidateJsonUri extends AbstractCondition {
 		URL theURL = extractURLOrDie(server, environmentVariable);
 
 		if (!theURL.getHost().equals(requiredHostName)) {
-			throw error("Invalid Host Name", args("Expected", requiredHostName, "Actual", theURL.getHost()));
+			throw error("Invalid Host Name", args("expected", requiredHostName, "actual", theURL.getHost()));
 		} else {
-			log("Host Name Passed", args("Required", requiredHostName, "Actual", theURL.getHost()));
+			logSuccess("Host Name Passed", args("required", requiredHostName, "actual", theURL.getHost()));
 		}
 
 		// Validate the base stuff.
