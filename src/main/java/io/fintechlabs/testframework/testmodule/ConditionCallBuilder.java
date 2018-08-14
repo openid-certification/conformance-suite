@@ -83,7 +83,11 @@ public class ConditionCallBuilder {
 	 * @param skipIfRequired the skipIfRequired to set
 	 */
 	public ConditionCallBuilder skipIfRequired(String... skipIfRequired) {
-		this.skipIfRequired = skipIfRequired;
+		if (skipIfRequired == null) {
+			this.skipIfRequired = EMPTY_ARRAY;
+		} else {
+			this.skipIfRequired = skipIfRequired;
+		}
 		return this;
 	}
 
@@ -91,7 +95,11 @@ public class ConditionCallBuilder {
 	 * @param skipIfStringsRequired the skipIfStringsRequired to set
 	 */
 	public ConditionCallBuilder skipIfStringsRequired(String... skipIfStringsRequired) {
-		this.skipIfStringsRequired = skipIfStringsRequired;
+		if (skipIfStringsRequired == null) {
+			this.skipIfStringsRequired = EMPTY_ARRAY;
+		} else {
+			this.skipIfStringsRequired = skipIfStringsRequired;
+		}
 		return this;
 	}
 
