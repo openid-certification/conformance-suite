@@ -235,7 +235,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		call(ExtractExpiresInFromTokenEndpointResponse.class);
-		skipIfMissing(new String[] { "expires_in" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "expires_in" }, null, ConditionResult.INFO,
 				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
 	}
 
@@ -434,7 +434,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		call(ExtractExpiresInFromTokenEndpointResponse.class);
-		skipIfMissing(new String[] { "expires_in" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "expires_in" }, null, ConditionResult.INFO,
 				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
 
 		call(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-15");
@@ -463,11 +463,11 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
 		 * determined by the Extract*Hash condition
 		 */
-		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO ,
+		skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO ,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "state_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
-		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
 			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 	}

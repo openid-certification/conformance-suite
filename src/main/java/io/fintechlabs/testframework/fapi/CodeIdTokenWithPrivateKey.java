@@ -288,7 +288,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		skipIfMissing(new String[] { "callback_query_params" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "callback_query_params" }, null, ConditionResult.INFO,
 				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
@@ -339,17 +339,17 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "state_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[] { "c_hash" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[] { "at_hash" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
 			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 
@@ -385,7 +385,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "state_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		call(CheckForRefreshTokenValue.class);
