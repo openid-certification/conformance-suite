@@ -15,9 +15,13 @@
 package io.fintechlabs.testframework.testmodule;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -30,15 +34,14 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
  */
 public class ConditionCallBuilder {
 
-	private static final String[] EMPTY_ARRAY = new String[0];
-
 	private Class<? extends Condition> conditionClass = null;
-	private String[] requirements = EMPTY_ARRAY;
+	private List<String> requirements = new ArrayList<>();
 	private ConditionResult onFail = ConditionResult.FAILURE;
 	private ConditionResult onSkip = ConditionResult.INFO;
 	private boolean stopOnFailure = true;
-	private String[] skipIfObjectsRequired = EMPTY_ARRAY;
-	private String[] skipIfStringsRequired = EMPTY_ARRAY;
+	private List<String> skipIfObjectsRequired = new ArrayList<>();
+	private List<String> skipIfStringsRequired = new ArrayList<>();
+	private List<Pair<String, String>> skipIfElementsRequired = new ArrayList<>();
 
 	private Map<String, String> mapKeys = new HashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
@@ -47,11 +50,16 @@ public class ConditionCallBuilder {
 		this.conditionClass = conditionClass;
 	}
 
+	public ConditionCallBuilder requirement(String requirement) {
+		this.requirements.add(requirement);
+		return this;
+	}
+
 	/**
 	 * @param requirements the requirements to set
 	 */
 	public ConditionCallBuilder requirements(String... requirements) {
-		this.requirements = requirements;
+		Collections.addAll(this.requirements, requirements);
 		return this;
 	}
 
@@ -79,15 +87,23 @@ public class ConditionCallBuilder {
 		return this;
 	}
 
+	public ConditionCallBuilder skipIfObjectRequired(String skipIfRequired) {
+		this.skipIfObjectsRequired.add(skipIfRequired);
+		return this;
+	}
+
 	/**
 	 * @param skipIfObjectsRequired the skipIfObjectsRequired to set
 	 */
 	public ConditionCallBuilder skipIfObjectsRequired(String... skipIfRequired) {
-		if (skipIfRequired == null) {
-			this.skipIfObjectsRequired = EMPTY_ARRAY;
-		} else {
-			this.skipIfObjectsRequired = skipIfRequired;
+		if (skipIfRequired != null) {
+			Collections.addAll(this.skipIfObjectsRequired, skipIfRequired);
 		}
+		return this;
+	}
+
+	public ConditionCallBuilder skipIfStringRequired(String skipIfStringRequired) {
+		this.skipIfStringsRequired.add(skipIfStringRequired);
 		return this;
 	}
 
@@ -95,10 +111,15 @@ public class ConditionCallBuilder {
 	 * @param skipIfStringsRequired the skipIfStringsRequired to set
 	 */
 	public ConditionCallBuilder skipIfStringsRequired(String... skipIfStringsRequired) {
-		if (skipIfStringsRequired == null) {
-			this.skipIfStringsRequired = EMPTY_ARRAY;
-		} else {
-			this.skipIfStringsRequired = skipIfStringsRequired;
+		if (skipIfStringsRequired != null) {
+			Collections.addAll(this.skipIfStringsRequired, skipIfStringsRequired);
+		}
+		return this;
+	}
+
+	public ConditionCallBuilder skipIfElementRequired(String objId, String path) {
+		if (objId != null && path != null) {
+			this.skipIfElementsRequired.add(new ImmutablePair<>(objId, path));
 		}
 		return this;
 	}
@@ -126,7 +147,7 @@ public class ConditionCallBuilder {
 	/**
 	 * @return the requirements
 	 */
-	public String[] getRequirements() {
+	public List<String> getRequirements() {
 		return requirements;
 	}
 
@@ -154,17 +175,20 @@ public class ConditionCallBuilder {
 	/**
 	 * @return the skipIfObjectsRequired
 	 */
-	public String[] getSkipIfObjectsRequired() {
+	public List<String> getSkipIfObjectsRequired() {
 		return skipIfObjectsRequired;
 	}
 
 	/**
 	 * @return the skipIfStringsRequired
 	 */
-	public String[] getSkipIfStringsRequired() {
+	public List<String> getSkipIfStringsRequired() {
 		return skipIfStringsRequired;
 	}
 
+	public List<Pair<String,String>> getSkipIfElementsRequired() {
+		return skipIfElementsRequired;
+	}
 
 	/**
 	 * @return the mapKeys
