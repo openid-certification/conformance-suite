@@ -96,7 +96,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @PublishTestModule(
-	testName = "fapi-r-code-id-with-pkce",
+	testName = "fapi-r-code-id-token-with-pkce",
 	displayName = "FAPI-R: code id_token (Public Client with PKCE/S256)",
 	profile = "FAPI-R",
 	configurationFields = {
@@ -109,14 +109,14 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"resource.resourceUrl"
 	}
 )
-public class CodeIdWithPKCE extends AbstractTestModule {
+public class CodeIdTokenWithPKCE extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(CodeIdWithPKCE.class);
+	public static Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPKCE.class);
 
 	/**
 	 *
 	 */
-	public CodeIdWithPKCE(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+	public CodeIdTokenWithPKCE(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
