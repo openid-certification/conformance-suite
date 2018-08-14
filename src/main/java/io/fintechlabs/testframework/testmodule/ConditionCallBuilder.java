@@ -37,7 +37,7 @@ public class ConditionCallBuilder {
 	private ConditionResult onFail = ConditionResult.FAILURE;
 	private ConditionResult onSkip = ConditionResult.INFO;
 	private boolean stopOnFailure = true;
-	private String[] skipIfRequired = EMPTY_ARRAY;
+	private String[] skipIfObjectsRequired = EMPTY_ARRAY;
 	private String[] skipIfStringsRequired = EMPTY_ARRAY;
 
 	private Map<String, String> mapKeys = new HashMap<>();
@@ -80,13 +80,13 @@ public class ConditionCallBuilder {
 	}
 
 	/**
-	 * @param skipIfRequired the skipIfRequired to set
+	 * @param skipIfObjectsRequired the skipIfObjectsRequired to set
 	 */
-	public ConditionCallBuilder skipIfRequired(String... skipIfRequired) {
+	public ConditionCallBuilder skipIfObjectsRequired(String... skipIfRequired) {
 		if (skipIfRequired == null) {
-			this.skipIfRequired = EMPTY_ARRAY;
+			this.skipIfObjectsRequired = EMPTY_ARRAY;
 		} else {
-			this.skipIfRequired = skipIfRequired;
+			this.skipIfObjectsRequired = skipIfRequired;
 		}
 		return this;
 	}
@@ -152,10 +152,10 @@ public class ConditionCallBuilder {
 	}
 
 	/**
-	 * @return the skipIfRequired
+	 * @return the skipIfObjectsRequired
 	 */
-	public String[] getSkipIfRequired() {
-		return skipIfRequired;
+	public String[] getSkipIfObjectsRequired() {
+		return skipIfObjectsRequired;
 	}
 
 	/**
