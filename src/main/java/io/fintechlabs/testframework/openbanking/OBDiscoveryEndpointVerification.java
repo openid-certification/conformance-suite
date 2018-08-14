@@ -89,7 +89,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		call(CheckDiscEndpointUserinfoSigningAlgValuesSupported .class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointTokenEndpoint.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointAuthorizationEndpoint.class, ConditionResult.FAILURE);
-		skipIfMissing(new String[] { "registration_endpoint" }, new String[] {}, ConditionResult.INFO,
+		skipIfMissing(new String[] { "registration_endpoint" }, null, ConditionResult.INFO,
 				CheckDiscEndpointRegistrationEndpoint.class, ConditionResult.FAILURE, "NO_URL");
 		call(CheckDiscEndpointJwksUri.class, ConditionResult.FAILURE);
 

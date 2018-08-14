@@ -329,7 +329,7 @@ public class CodeIdWithPKCE extends AbstractTestModule {
 
 			call(ExtractSHash.class);
 
-			skipIfMissing(new String[] { "state_hash" }, new String[] {}, ConditionResult.INFO,
+			skipIfMissing(new String[] { "state_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 			call(CheckForRefreshTokenValue.class);

@@ -102,7 +102,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
 
 		// IF management interface, delete the client to clean up
-		skipIfMissing(new String[] {},
+		skipIfMissing(null,
 			new String[] {"registration_client_uri", "registration_access_token"},
 			Condition.ConditionResult.INFO,
 			UnregisterDynamicallyRegisteredClient.class);
@@ -114,7 +114,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
 
 		// IF management interface, delete the client to clean up
-		skipIfMissing(new String[] {},
+		skipIfMissing(null,
 			new String[] {"registration_client_uri", "registration_access_token"},
 			Condition.ConditionResult.INFO,
 			UnregisterDynamicallyRegisteredClient.class);
