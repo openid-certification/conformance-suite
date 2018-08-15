@@ -490,6 +490,7 @@ public class TestRunner {
 		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestModule.class));
 		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
 			try {
+				@SuppressWarnings("unchecked")
 				Class<? extends TestModule> c = (Class<? extends TestModule>) Class.forName(bd.getBeanClassName());
 				PublishTestModule a = c.getDeclaredAnnotation(PublishTestModule.class);
 

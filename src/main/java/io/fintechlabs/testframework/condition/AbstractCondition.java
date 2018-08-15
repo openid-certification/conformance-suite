@@ -54,6 +54,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -401,12 +402,12 @@ public abstract class AbstractCondition implements Condition {
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(km, trustAllCerts, new java.security.SecureRandom());
 
-		builder.setSslcontext(sc);
+		builder.setSSLContext(sc);
 
 		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
 			new String[] { "TLSv1.2" },
 			null,
-			SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			NoopHostnameVerifier.INSTANCE);
 
 		builder.setSSLSocketFactory(sslConnectionSocketFactory);
 
