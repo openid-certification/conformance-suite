@@ -411,13 +411,6 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void logFinalEnv() {
-		//		Map<String, Object> finalEnv = new HashMap<>();
-		//		for (String key : env.allObjectIds()) {
-		//			finalEnv.put(key, env.get(key));
-		//		}
-		//
-		//		eventLog.log(getId(), "final_env", finalEnv);
-		//
 		logger.info("Final environment: " + env);
 	}
 

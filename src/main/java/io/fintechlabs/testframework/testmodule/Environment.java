@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minidev.json.JSONObject;
 
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
@@ -248,12 +249,26 @@ public class Environment {
 
 	}
 
+	protected JsonObject mapToJsonObject(Map<String, JsonObject> map) {
+		JsonObject o = new JsonObject();
+		for (String key : map.keySet()) {
+			o.add(key, map.get(key));
+		}
+		return o;
+	}
+	protected JsonObject stringMapToJsonObject(Map<String, String> map) {
+		JsonObject o = new JsonObject();
+		for (String key : map.keySet()) {
+			o.addProperty(key, map.get(key));
+		}
+		return o;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "Environment [store=" + store + ", keyMap=" + keyMap + "]";
+		return "Environment: { \"store\" : " + mapToJsonObject(store) + ", \"keyMap\" : " + stringMapToJsonObject(keyMap) + " }";
 	}
 
 	/**
