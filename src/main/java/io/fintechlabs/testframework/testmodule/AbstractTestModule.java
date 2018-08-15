@@ -380,18 +380,36 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Execute a set of test execution commands.
+	 *
+	 * Commands are executed in this order:
+	 *
+	 * environment strings are exposed
+	 * log blocks are started
+	 * environment keys are mapped
+	 * environment keys are unmapped
+	 * log blocks are ended
+	 *
 	 */
 	protected void call(TestExecutionBuilder builder) {
-		if (!builder.getMapKeys().isEmpty()) {
-			for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
-				env.mapKey(e.getKey(), e.getValue());
-			}
+
+		for(String e : builder.getExposeStrings()) {
+			exposeEnvString(e);
 		}
 
-		if (!builder.getUnmapKeys().isEmpty()) {
-			for (String e : builder.getUnmapKeys()) {
-				env.unmapKey(e);
-			}
+		if (!Strings.isNullOrEmpty(builder.getStartBlock())) {
+			eventLog.startBlock(builder.getStartBlock());
+		}
+
+		for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
+			env.mapKey(e.getKey(), e.getValue());
+		}
+
+		for (String e : builder.getUnmapKeys()) {
+			env.unmapKey(e);
+		}
+
+		if (builder.isEndBlock()) {
+			eventLog.endBlock();
 		}
 	}
 

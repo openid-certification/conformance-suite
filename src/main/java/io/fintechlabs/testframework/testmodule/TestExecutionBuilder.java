@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.testmodule;
 
 import java.util.ArrayList;
@@ -30,6 +16,9 @@ import java.util.Map;
 public class TestExecutionBuilder {
 	private Map<String, String> mapKeys = new LinkedHashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
+	private String startBlock = null;
+	private boolean endBlock = false;
+	private List<String> exposeStrings = new ArrayList<>();
 
 	/**
 	 * Map a key in the environment. If this is called multiple times, the keys will be mapped in the same order they
@@ -61,6 +50,39 @@ public class TestExecutionBuilder {
 	}
 
 	/**
+	 * Start a new block in the event log, with the given message. Defaults to leaving the block state unchanged.
+	 *
+	 * @param msg the message to start the log block with
+	 * @return this builder
+	 */
+	public TestExecutionBuilder startBlock(String msg) {
+		this.startBlock = msg;
+		return this;
+	}
+
+	/**
+	 * End the current block in the event log. Defaults to false (block state is unchanged).
+	 * @return
+	 */
+	public TestExecutionBuilder endBlock() {
+		this.endBlock = true;
+		return this;
+	}
+
+	/**
+	 * Expose a string from the environment.
+	 *
+	 * @param key the environment string to expose
+	 * @return this builder
+	 */
+	public TestExecutionBuilder exposeEnvironmentString(String key) {
+		exposeStrings.add(key);
+		return this;
+	}
+
+	// getters
+
+	/**
 	 * Get the set of keys to map in the Environment, in order of addition to this builder.
 	 *
 	 * @return A map of all keys to map in the environment as as "from -> to" sets.
@@ -78,6 +100,31 @@ public class TestExecutionBuilder {
 		return unmapKeys;
 	}
 
+	/**
+	 * Get the start block message. If no block is to be started, this returns null (default).
+	 *
+	 * @return the start block message, or null if no block is to be started
+	 */
+	public String getStartBlock() {
+		return startBlock;
+	}
 
+	/**
+	 * Get whether to end a block.
+	 *
+	 * @return true if the current block should be ended, false to leave the block state as-is (default).
+	 */
+	public boolean isEndBlock() {
+		return endBlock;
+	}
+
+	/**
+	 * Get the list of strings to expose from the environment. Defaults to an empty list.
+	 *
+	 * @return the list of strings to expose from the environment
+	 */
+	public List<String> getExposeStrings() {
+		return exposeStrings;
+	}
 
 }
