@@ -17,7 +17,6 @@ package io.fintechlabs.testframework.testmodule;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.base.Splitter;
@@ -25,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minidev.json.JSONObject;
 
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
