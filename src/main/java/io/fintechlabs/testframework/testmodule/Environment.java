@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.testmodule;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,8 +23,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
@@ -35,6 +38,11 @@ import com.google.gson.JsonObject;
  */
 public class Environment {
 
+	// used for serializing as a json object in "toString"
+	private static final Type MAP_STRING_STRING_TYPE = new TypeToken<Map<String, String>>() {}.getType();
+	private static final Type MAP_STRING_JSONOBJECT_TYPE = new TypeToken<Map<String, JsonObject>>() {}.getType();
+	private static final Gson gson = new Gson();
+
 	/**
 	 * Set up a lock for threading purposes
 	 */
@@ -45,6 +53,7 @@ public class Environment {
 		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to put the string values
 
 	private Map<String, String> keyMap = new HashMap<>();
+
 
 	/**
 	 * Look to see if the JSON object is in this environment
@@ -247,26 +256,13 @@ public class Environment {
 
 	}
 
-	protected JsonObject mapToJsonObject(Map<String, JsonObject> map) {
-		JsonObject o = new JsonObject();
-		for (String key : map.keySet()) {
-			o.add(key, map.get(key));
-		}
-		return o;
-	}
-	protected JsonObject stringMapToJsonObject(Map<String, String> map) {
-		JsonObject o = new JsonObject();
-		for (String key : map.keySet()) {
-			o.addProperty(key, map.get(key));
-		}
-		return o;
-	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "Environment: { \"store\" : " + mapToJsonObject(store) + ", \"keyMap\" : " + stringMapToJsonObject(keyMap) + " }";
+		return "Environment: { \"store\" : " + gson.toJson(store, MAP_STRING_JSONOBJECT_TYPE)
+			+ ", \"keyMap\" : " + gson.toJson(keyMap, MAP_STRING_STRING_TYPE) + " }";
 	}
 
 	/**

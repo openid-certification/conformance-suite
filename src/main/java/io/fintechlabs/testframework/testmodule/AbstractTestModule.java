@@ -441,6 +441,9 @@ public abstract class AbstractTestModule implements TestModule {
 			// if we weren't interrupted already, then we're finished
 			if (!getStatus().equals(Status.INTERRUPTED)) {
 				setStatus(Status.FINISHED);
+
+				// log the environment here in case "stop" doesn't get it it
+				logFinalEnv();
 			}
 
 			if (getResult() == Result.UNKNOWN) {
