@@ -437,13 +437,6 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	protected void logFinalEnv() {
-		//		Map<String, Object> finalEnv = new HashMap<>();
-		//		for (String key : env.allObjectIds()) {
-		//			finalEnv.put(key, env.get(key));
-		//		}
-		//
-		//		eventLog.log(getId(), "final_env", finalEnv);
-		//
 		logger.info("Final environment: " + env);
 	}
 
@@ -474,6 +467,9 @@ public abstract class AbstractTestModule implements TestModule {
 			// if we weren't interrupted already, then we're finished
 			if (!getStatus().equals(Status.INTERRUPTED)) {
 				setStatus(Status.FINISHED);
+
+				// log the environment here in case "stop" doesn't get it it
+				logFinalEnv();
 			}
 
 			if (getResult() == Result.UNKNOWN) {
