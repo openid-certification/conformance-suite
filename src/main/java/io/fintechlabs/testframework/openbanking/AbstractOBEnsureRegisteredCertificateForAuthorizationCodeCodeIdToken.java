@@ -50,7 +50,7 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-			skipIfMissing(new String[] { "state_hash" }, null, ConditionResult.INFO,
+			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 			call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");

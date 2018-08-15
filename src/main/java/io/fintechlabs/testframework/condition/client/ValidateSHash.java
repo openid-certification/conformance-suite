@@ -25,9 +25,9 @@ public class ValidateSHash extends ValidateHash {
 	}
 
 	@Override
-	@PreEnvironment(strings = "state", required = "state_hash")
+	@PreEnvironment(strings = "state", required = "s_hash")
 	public Environment evaluate(Environment env) {
-		return super.validateHash(env, "s_hash", "state_hash");
+		return super.validateHash(env, "s_hash", "s_hash");
 	}
 
 }

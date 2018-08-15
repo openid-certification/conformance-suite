@@ -59,7 +59,7 @@ public class ValidateSHash_UnitTest {
 
 		stateHash.addProperty("s_hash", s_hash);
 
-		env.put("state_hash", stateHash);
+		env.put("s_hash", stateHash);
 
 	}
 
@@ -86,9 +86,9 @@ public class ValidateSHash_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("state_hash", "s_hash");
+		verify(env, atLeastOnce()).getString("s_hash", "s_hash");
 		verify(env, atLeastOnce()).getString("state");
-		verify(env, atLeastOnce()).getString("state_hash", "alg");
+		verify(env, atLeastOnce()).getString("s_hash", "alg");
 	}
 
 	/**
