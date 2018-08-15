@@ -256,7 +256,7 @@ public abstract class AbstractTestModule implements TestModule {
 			if (skipIfElementsRequired != null) {
 				for (Pair<String, String> idx : skipIfElementsRequired) {
 					JsonElement el = env.findElement(idx.getLeft(), idx.getRight());
-					if (el != null) {
+					if (el == null) {
 						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
