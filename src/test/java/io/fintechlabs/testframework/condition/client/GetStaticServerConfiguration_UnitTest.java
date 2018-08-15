@@ -69,7 +69,7 @@ public class GetStaticServerConfiguration_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.get("server")).isEqualTo(server);
+		assertThat(env.getObject("server")).isEqualTo(server);
 	}
 
 	/**

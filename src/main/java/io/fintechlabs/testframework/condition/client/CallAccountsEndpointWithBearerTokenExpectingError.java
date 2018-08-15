@@ -82,7 +82,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 			throw error("Resource endpoint not found");
 		}
 
-		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)

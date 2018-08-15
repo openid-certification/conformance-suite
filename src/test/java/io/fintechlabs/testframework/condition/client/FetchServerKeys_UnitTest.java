@@ -84,7 +84,7 @@ public class FetchServerKeys_UnitTest {
 
 		hoverfly.verifyZeroRequestTo(service("good.example.com"));
 
-		assertThat(env.get("server_jwks")).isEqualTo(jwks);
+		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class FetchServerKeys_UnitTest {
 
 		hoverfly.verify(service("good.example.com").get("/jwks.json"));
 
-		assertThat(env.get("server_jwks")).isEqualTo(jwks);
+		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
 	}
 
 	/**

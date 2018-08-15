@@ -20,10 +20,10 @@ public class SetDynamicRegistrationRequestGrantTypeToImplicit extends AbstractCo
 	@PreEnvironment(required = {"dynamic_registration_request"})
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("dynamic_registration_request")){
+		if (!env.containsObject("dynamic_registration_request")){
 			throw error("No dynamic registration request object found");
 		}
-		JsonObject dynamicRegistrationRequest = env.get("dynamic_registration_request");
+		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
 		JsonArray grantTypes = new JsonArray();
 		grantTypes.add("implicit");
 		dynamicRegistrationRequest.add("grant_types",grantTypes);

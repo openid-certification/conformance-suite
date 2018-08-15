@@ -138,9 +138,9 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("authorization_endpoint_request");
+		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 		verify(env, atLeastOnce()).getString("request_object");
-		verify(env, atLeastOnce()).get("request_object_claims");
+		verify(env, atLeastOnce()).getObject("request_object_claims");
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
 
 		assertThat(env.getString("redirect_to_authorization_endpoint")).startsWith("https://server.example.com/oauth/authorize");

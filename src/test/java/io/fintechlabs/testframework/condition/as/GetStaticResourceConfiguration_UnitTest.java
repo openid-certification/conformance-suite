@@ -72,7 +72,7 @@ public class GetStaticResourceConfiguration_UnitTest {
 
 		cond.evaluate(env);
 
-		assertEquals(resource, env.get("resource"));
+		assertEquals(resource, env.getObject("resource"));
 		assertEquals(resourceId, env.getString("resource_id"));
 	}
 }

@@ -80,9 +80,9 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 
 		cond.evaluate(env);
 
-		assertThat(env.get("client_assertion_claims")).isNotNull();
+		assertThat(env.getObject("client_assertion_claims")).isNotNull();
 
-		JsonObject claims = env.get("client_assertion_claims");
+		JsonObject claims = env.getObject("client_assertion_claims");
 
 		assertThat(claims.get("iss").getAsString()).isEqualTo(clientId);
 		assertThat(claims.get("sub").getAsString()).isEqualTo(clientId);

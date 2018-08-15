@@ -46,7 +46,7 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("client")) {
+		if (!env.containsObject("client")) {
 			throw error("Couldn't find client configuration");
 		}
 

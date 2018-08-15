@@ -78,12 +78,12 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).findElement("token_endpoint_response", "id_token");
+		verify(env, atLeastOnce()).getElementFromObject("token_endpoint_response", "id_token");
 
-		assertThat(env.get("id_token")).isNotNull();
+		assertThat(env.getObject("id_token")).isNotNull();
 		assertThat(env.getString("id_token", "value")).isEqualTo(goodResponse.get("id_token").getAsString());
-		assertThat(env.findElement("id_token", "header")).isNotNull();
-		assertThat(env.findElement("id_token", "claims")).isNotNull();
+		assertThat(env.getElementFromObject("id_token", "header")).isNotNull();
+		assertThat(env.getElementFromObject("id_token", "claims")).isNotNull();
 	}
 
 	/**

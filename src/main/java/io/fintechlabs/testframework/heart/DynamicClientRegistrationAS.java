@@ -87,7 +87,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
-		expose("client_name", env.findElement("dynamic_registration_request", "client_name").getAsString());
+		expose("client_name", env.getElementFromObject("dynamic_registration_request", "client_name").getAsString());
 
 		// Run without redirect uris OAuth 2.0 Dynamic Registration section 2.
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);

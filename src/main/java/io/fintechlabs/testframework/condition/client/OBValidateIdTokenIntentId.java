@@ -23,7 +23,7 @@ public class OBValidateIdTokenIntentId extends AbstractCondition {
 	@PreEnvironment(required = { "id_token" }, strings = "account_request_id")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("id_token")) {
+		if (!env.containsObject("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 

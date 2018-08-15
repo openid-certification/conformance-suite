@@ -62,7 +62,7 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
+		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("scope").getAsString()).isEqualTo("accounts");

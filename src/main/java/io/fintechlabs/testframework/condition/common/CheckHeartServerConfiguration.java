@@ -48,7 +48,7 @@ public class CheckHeartServerConfiguration extends AbstractCondition {
 	public Environment evaluate(Environment in) {
 
 		// first make sure we've got a "server" object at all
-		if (!in.containsObj("server")) {
+		if (!in.containsObject("server")) {
 			throw error("Couldn't find a server configuration at all");
 		}
 

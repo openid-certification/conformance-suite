@@ -95,8 +95,8 @@ public class ValidateIdToken_UnitTest {
 
 		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("server", "issuer");
-		verify(env, atLeastOnce()).findElement("id_token", "claims.iss");
-		verify(env, atLeastOnce()).findElement("id_token", "claims.aud");
+		verify(env, atLeastOnce()).getElementFromObject("id_token", "claims.iss");
+		verify(env, atLeastOnce()).getElementFromObject("id_token", "claims.aud");
 		verify(env, atLeastOnce()).getLong("id_token", "claims.exp");
 		verify(env, atLeastOnce()).getLong("id_token", "claims.nbf");
 		verify(env, atLeastOnce()).getLong("id_token", "claims.iat");

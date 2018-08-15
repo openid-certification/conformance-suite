@@ -37,7 +37,7 @@ public class ExtractExpiresInFromTokenEndpointResponse extends AbstractCondition
 	@PreEnvironment(required = "token_endpoint_response")
 	@PostEnvironment(required = "expires_in")
 	public Environment evaluate(Environment env) {
-		JsonObject tokenEndpoint = env.get("token_endpoint_response");
+		JsonObject tokenEndpoint = env.getObject("token_endpoint_response");
 
 		JsonElement expiresInValue = tokenEndpoint.get("expires_in");
 		if (expiresInValue == null) {

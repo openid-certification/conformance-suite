@@ -14,7 +14,7 @@ public class ValidateJsonBoolean extends AbstractCondition {
 
 	public Environment validate(Environment env, String environmentVariable,Boolean defaultValue, Boolean requiredValue) {
 
-		JsonElement parameterValue = env.findElement("server", environmentVariable);
+		JsonElement parameterValue = env.getElementFromObject("server", environmentVariable);
 		String errorMessage = null;
 
 		if (parameterValue == null) {

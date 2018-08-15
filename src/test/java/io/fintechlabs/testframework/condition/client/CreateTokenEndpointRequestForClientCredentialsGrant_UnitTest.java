@@ -68,7 +68,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
+		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
@@ -84,7 +84,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
+		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");

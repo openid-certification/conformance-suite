@@ -46,7 +46,7 @@ public class ExtractBearerAccessTokenFromHeader extends AbstractCondition {
 	@PostEnvironment(strings = "incoming_access_token")
 	public Environment evaluate(Environment env) {
 
-		log("Incoming request headers", (JsonObject) env.findElement("incoming_request", "headers"));
+		log("Incoming request headers", (JsonObject) env.getElementFromObject("incoming_request", "headers"));
 
 		String auth = env.getString("incoming_request", "headers.authorization");
 

@@ -77,7 +77,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 
 		verify(env, atLeastOnce()).getString("config", "server.discoveryUrl");
 
-		assertThat(env.get("server")).isNotNull();
+		assertThat(env.getObject("server")).isNotNull();
 		assertThat(env.getString("server", "jwks_uri")).isEqualTo("https://good.example.com/jwks.json");
 	}
 

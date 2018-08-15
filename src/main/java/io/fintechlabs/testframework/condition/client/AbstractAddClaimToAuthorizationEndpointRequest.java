@@ -13,7 +13,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 	}
 
 	public Environment addClaim(Environment env, String claim, String value, boolean essential) {
-		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
+		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
 		JsonObject claims;
 		if (authorizationEndpointRequest.has("claims")) {

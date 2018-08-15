@@ -80,7 +80,7 @@ public class FilterUserInfoForScopes extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String scope = env.getString("scope");
-		JsonObject userInfo = env.get("user_info");
+		JsonObject userInfo = env.getObject("user_info");
 
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope));
 

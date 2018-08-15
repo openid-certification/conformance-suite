@@ -46,7 +46,7 @@ public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 	@PostEnvironment(required = "client_authentication")
 	public Environment evaluate(Environment env) {
 
-		if (env.containsObj("client_authentication")) {
+		if (env.containsObject("client_authentication")) {
 			throw error("Found existing client authentication");
 		}
 

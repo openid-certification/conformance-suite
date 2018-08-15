@@ -78,7 +78,7 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "access_token");
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "token_type");
 
-		assertThat(env.get("access_token")).isNotNull();
+		assertThat(env.getObject("access_token")).isNotNull();
 		assertThat(env.getString("access_token", "value")).isEqualTo(tokenResponse.get("access_token").getAsString());
 		assertThat(env.getString("access_token", "type")).isEqualTo(tokenResponse.get("token_type").getAsString());
 

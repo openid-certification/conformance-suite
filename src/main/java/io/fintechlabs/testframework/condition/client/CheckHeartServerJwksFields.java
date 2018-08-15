@@ -49,7 +49,7 @@ public class CheckHeartServerJwksFields extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.get("server_jwks");
+		JsonObject jwks = env.getObject("server_jwks");
 
 		JsonArray keys = jwks.get("keys").getAsJsonArray();
 

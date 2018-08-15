@@ -36,7 +36,7 @@ public class GetResourceEndpointConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "resource")
 	public Environment evaluate(Environment env) {
 
-		JsonElement resource = env.findElement("config", "resource");
+		JsonElement resource = env.getElementFromObject("config", "resource");
 		if (resource == null || !resource.isJsonObject()) {
 			throw error("Couldn't find resource endpoint object in configuration");
 		} else {

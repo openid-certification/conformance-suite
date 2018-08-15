@@ -49,10 +49,10 @@ public class ValidateAccessTokenHeartClaims extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement el = env.findElement("access_token_jwt", "claims");
+		JsonElement el = env.getElementFromObject("access_token_jwt", "claims");
 
 		if (el == null || !el.isJsonObject()) {
-			throw error("Couldn't find access token JWT claims", args("access_token_jwt", env.get("access_token_jwt")));
+			throw error("Couldn't find access token JWT claims", args("access_token_jwt", env.getObject("access_token_jwt")));
 		}
 
 		JsonObject claims = el.getAsJsonObject();

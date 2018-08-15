@@ -91,9 +91,9 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			throw error("Resource endpoint not found");
 		}
 
-		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
-		JsonObject requestObject = env.get("account_requests_endpoint_request");
+		JsonObject requestObject = env.getObject("account_requests_endpoint_request");
 		if (requestObject == null) {
 			throw error("Couldn't find request object");
 		}

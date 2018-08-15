@@ -23,7 +23,7 @@ public class ExpectInvalidRequestObjectError extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		/* request object errors are always in the query section of the url, even in hybrid flow */
-		JsonObject callbackQueryParams = env.get("callback_query_params");
+		JsonObject callbackQueryParams = env.getObject("callback_query_params");
 
 		if (!callbackQueryParams.has("error")) {
 			throw error("error parameter not found", callbackQueryParams);

@@ -65,11 +65,11 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 		methods.add("tls_client_auth");
 		methods.add("pub_key_tls_client_auth");
 
-		env.get("server").add("token_endpoint_auth_methods_supported", methods);
+		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).findElement("server", "token_endpoint_auth_methods_supported");
+		verify(env, atLeastOnce()).getElementFromObject("server", "token_endpoint_auth_methods_supported");
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 		JsonArray methods = new JsonArray();
 		methods.add("tls_client_auth");
 
-		env.get("server").add("token_endpoint_auth_methods_supported", methods);
+		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
 		cond.evaluate(env);
 	}
@@ -95,7 +95,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 		JsonArray methods = new JsonArray();
 		methods.add("pub_key_tls_client_auth");
 
-		env.get("server").add("token_endpoint_auth_methods_supported", methods);
+		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
 		cond.evaluate(env);
 	}
@@ -109,7 +109,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 		JsonArray methods = new JsonArray();
 		methods.add("client_secret_basic");
 
-		env.get("server").add("token_endpoint_auth_methods_supported", methods);
+		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
 		cond.evaluate(env);
 	}

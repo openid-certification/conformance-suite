@@ -139,7 +139,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_noError() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.put("account_requests_endpoint_request", requestObject);
 
 		cond.evaluate(env);
@@ -153,7 +153,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		verify(env, atLeastOnce()).getString("access_token", "type");
 		verify(env, atLeastOnce()).getString("resource", "resourceUrl");
 
-		assertThat(env.get("account_requests_endpoint_response")).isEqualTo(responseObject);
+		assertThat(env.getObject("account_requests_endpoint_response")).isEqualTo(responseObject);
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_badToken() {
 
 		env.put("access_token", exampleToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.put("account_requests_endpoint_request", requestObject);
 
 		cond.evaluate(env);
@@ -177,7 +177,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_badServer() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://invalid.org/");
+		env.getObject("resource").addProperty("resourceUrl", "http://invalid.org/");
 		env.put("account_requests_endpoint_request", requestObject);
 
 		cond.evaluate(env);
@@ -190,7 +190,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.put("account_requests_endpoint_request", requestObject);
 
 		cond.evaluate(env);
@@ -217,7 +217,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 	public void testEvaluate_missingRequest() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 

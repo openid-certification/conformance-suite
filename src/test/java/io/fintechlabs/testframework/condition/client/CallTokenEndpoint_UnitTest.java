@@ -105,8 +105,8 @@ public class CallTokenEndpoint_UnitTest {
 
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
 
-		assertThat(env.get("token_endpoint_response")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("token_endpoint_response").entrySet()).containsAll(goodResponse.entrySet());
+		assertThat(env.getObject("token_endpoint_response")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("token_endpoint_response").entrySet()).containsAll(goodResponse.entrySet());
 	}
 
 	/**

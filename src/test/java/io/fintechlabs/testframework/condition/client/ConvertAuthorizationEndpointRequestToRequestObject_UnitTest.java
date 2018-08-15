@@ -86,8 +86,8 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("authorization_endpoint_request");
-		assertThat(env.get("request_object_claims")).isEqualTo(authorizationEndpointRequest);
+		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
+		assertThat(env.getObject("request_object_claims")).isEqualTo(authorizationEndpointRequest);
 	}
 
 	/**

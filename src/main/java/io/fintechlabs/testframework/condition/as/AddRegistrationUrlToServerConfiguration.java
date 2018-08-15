@@ -53,7 +53,7 @@ public class AddRegistrationUrlToServerConfiguration extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
-		JsonObject server = env.get("server");
+		JsonObject server = env.getObject("server");
 
 		server.addProperty("registration_endpoint", baseUrl + "register");
 

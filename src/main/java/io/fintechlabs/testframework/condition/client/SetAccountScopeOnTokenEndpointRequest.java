@@ -46,7 +46,7 @@ public class SetAccountScopeOnTokenEndpointRequest extends AbstractCondition {
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
-		JsonObject tokenEndpointRequest = env.get("token_endpoint_request_form_parameters");
+		JsonObject tokenEndpointRequest = env.getObject("token_endpoint_request_form_parameters");
 
 		// overwrite anyhing that's already there
 		tokenEndpointRequest.addProperty("scope", "accounts");

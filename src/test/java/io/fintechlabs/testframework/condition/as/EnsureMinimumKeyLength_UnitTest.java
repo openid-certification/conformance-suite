@@ -97,7 +97,7 @@ public class EnsureMinimumKeyLength_UnitTest {
 		env.put("server_jwks", buildJwks(ecP256, rsa2048));
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 	}
 
 	@Test(expected = ConditionError.class)

@@ -43,7 +43,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "callback_params", strings = "state")
 	public Environment evaluate(Environment in) {
-		if (!in.containsObj("callback_params")) {
+		if (!in.containsObject("callback_params")) {
 			throw error("Couldn't find callback parameters");
 		}
 

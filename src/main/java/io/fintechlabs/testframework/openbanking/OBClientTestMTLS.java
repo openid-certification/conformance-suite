@@ -173,7 +173,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	 * @return
 	 */
 	private Object discoveryEndpoint() {
-		JsonObject serverConfiguration = env.get("server");
+		JsonObject serverConfiguration = env.getObject("server");
 
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
@@ -200,7 +200,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
-		JsonObject user = env.get("user_info_endpoint_response");
+		JsonObject user = env.getObject("user_info_endpoint_response");
 
 		// at this point we can assume the test is fully done
 		fireTestFinished();
@@ -235,7 +235,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	private Object jwksEndpoint() {
 
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.get("public_jwks");
+		JsonObject jwks = env.getObject("public_jwks");
 
 		setStatus(Status.WAITING);
 
@@ -295,7 +295,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 	}
 
@@ -315,7 +315,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 	}
 

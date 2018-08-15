@@ -54,11 +54,11 @@ public class AddCodeChallengeToAuthorizationEndpointRequest extends AbstractCond
 			throw error("Couldn't find code_challenge_method value");
 		}
 
-		if (!env.containsObj("authorization_endpoint_request")) {
+		if (!env.containsObject("authorization_endpoint_request")) {
 			throw error("Couldn't find authorization endpoint request");
 		}
 
-		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
+		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
 		authorizationEndpointRequest.addProperty("code_challenge", code_challenge);
 		authorizationEndpointRequest.addProperty("code_challenge_method", code_challenge_method);

@@ -53,7 +53,7 @@ public class CheckClientRedirectUri extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement ru = env.findElement("client", "redirect_uris");
+		JsonElement ru = env.getElementFromObject("client", "redirect_uris");
 
 		if (ru == null) {
 			throw error("Redirect URIs list was null");

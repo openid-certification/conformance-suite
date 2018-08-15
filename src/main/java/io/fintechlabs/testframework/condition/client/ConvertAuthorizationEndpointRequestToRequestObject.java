@@ -44,7 +44,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject extends Abstract
 	@PostEnvironment(required = "request_object_claims")
 	public Environment evaluate(Environment env) {
 
-		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
+		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
 		if (authorizationEndpointRequest == null) {
 			throw error("Couldn't find authorization endpoint request");

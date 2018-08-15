@@ -23,7 +23,7 @@ public class ExpectAccessDeniedErrorFromAuthorizationEndpoint extends AbstractCo
 	public Environment evaluate(Environment env) {
 
 		/* this error is in the fragment for code id_token and in the query in code */
-		JsonObject callbackQueryParams = env.get("callback_params");
+		JsonObject callbackQueryParams = env.getObject("callback_params");
 
 		if (!callbackQueryParams.has("error")) {
 			throw error("error parameter not found", callbackQueryParams);

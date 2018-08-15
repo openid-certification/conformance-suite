@@ -50,7 +50,7 @@ public class ValidateIdToken extends AbstractCondition {
 	@PreEnvironment(required = { "id_token", "server", "client" } )
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("id_token")) {
+		if (!env.containsObject("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 
@@ -64,7 +64,7 @@ public class ValidateIdToken extends AbstractCondition {
 			throw error("Couldn't find values to test ID token against");
 		}
 
-		JsonElement iss = env.findElement("id_token", "claims.iss");
+		JsonElement iss = env.getElementFromObject("id_token", "claims.iss");
 		if (iss == null) {
 			throw error("Missing issuer");
 		}
@@ -73,7 +73,7 @@ public class ValidateIdToken extends AbstractCondition {
 			throw error("Issuer mismatch", args("expected", issuer, "actual", env.getString("id_token", "claims.iss")));
 		}
 
-		JsonElement aud = env.findElement("id_token", "claims.aud");
+		JsonElement aud = env.getElementFromObject("id_token", "claims.aud");
 		if (aud == null) {
 			throw error("Missing audience");
 		}

@@ -94,7 +94,7 @@ public class ValidateIdTokenSignature_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
 
@@ -110,7 +110,7 @@ public class ValidateIdTokenSignature_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
 
@@ -125,7 +125,7 @@ public class ValidateIdTokenSignature_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
 
@@ -141,7 +141,7 @@ public class ValidateIdTokenSignature_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
 
@@ -157,7 +157,7 @@ public class ValidateIdTokenSignature_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
 
@@ -172,7 +172,7 @@ public class ValidateIdTokenSignature_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
-		verify(env, atLeastOnce()).get("server_jwks");
+		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
 }

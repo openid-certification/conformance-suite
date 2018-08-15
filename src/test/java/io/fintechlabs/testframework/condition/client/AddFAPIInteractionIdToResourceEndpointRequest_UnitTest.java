@@ -83,7 +83,7 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject req = env.get("resource_endpoint_request_headers");
+		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-interaction-id"));
@@ -99,7 +99,7 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject req = env.get("resource_endpoint_request_headers");
+		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-interaction-id"));

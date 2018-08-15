@@ -82,7 +82,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		// Remove the redirect URL
-		env.get("authorization_endpoint_request").remove("redirect_uri");
+		env.getObject("authorization_endpoint_request").remove("redirect_uri");
 
 		setStatus(Status.CONFIGURED);
 

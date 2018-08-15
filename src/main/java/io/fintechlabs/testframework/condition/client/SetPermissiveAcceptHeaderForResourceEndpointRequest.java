@@ -31,7 +31,7 @@ public class SetPermissiveAcceptHeaderForResourceEndpointRequest extends Abstrac
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
 		if (requestHeaders == null) {
 			requestHeaders = new JsonObject();

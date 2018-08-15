@@ -68,7 +68,7 @@ public class GetStaticClientConfiguration_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.get("client")).isEqualTo(client);
+		assertThat(env.getObject("client")).isEqualTo(client);
 		assertThat(env.getString("client_id")).isEqualTo("client");
 	}
 

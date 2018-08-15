@@ -50,11 +50,11 @@ public class AddCodeVerifierToTokenEndpointRequest extends AbstractCondition {
 			throw error("Couldn't find code_verifier value");
 		}
 
-		if (!env.containsObj("token_endpoint_request_form_parameters")) {
+		if (!env.containsObject("token_endpoint_request_form_parameters")) {
 			throw error("Couldn't find request form");
 		}
 
-		JsonObject o = env.get("token_endpoint_request_form_parameters");
+		JsonObject o = env.getObject("token_endpoint_request_form_parameters");
 
 		o.addProperty("code_verifier", code_verifier);
 

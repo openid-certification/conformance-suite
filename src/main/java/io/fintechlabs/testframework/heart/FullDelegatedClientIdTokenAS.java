@@ -206,7 +206,7 @@ public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
 	 */
 	private Object handleJwks(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.get("public_jwks");
+		JsonObject jwks = env.getObject("public_jwks");
 
 		setStatus(Status.WAITING);
 

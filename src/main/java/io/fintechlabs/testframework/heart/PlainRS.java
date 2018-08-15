@@ -208,7 +208,7 @@ public class PlainRS extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<>(env.get("introspection_response"), HttpStatus.OK);
+		return new ResponseEntity<>(env.getObject("introspection_response"), HttpStatus.OK);
 
 	}
 

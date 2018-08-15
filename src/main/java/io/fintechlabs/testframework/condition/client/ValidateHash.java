@@ -24,7 +24,7 @@ public abstract class ValidateHash extends AbstractCondition {
 
 	public Environment validateHash(Environment env, String hashName, String envName ) {
 
-		JsonObject hashJson = env.get(envName);
+		JsonObject hashJson = env.getObject(envName);
 		if (hashJson == null) {
 			throw error("Couldn't find " + hashName);
 		}
@@ -102,7 +102,7 @@ public abstract class ValidateHash extends AbstractCondition {
 				}
 				break;
 			case "at_hash":
-				JsonObject accessToken = env.get("access_token");
+				JsonObject accessToken = env.getObject("access_token");
 				if (accessToken == null) {
 					throw error("Could not get access_token object...");
 				}

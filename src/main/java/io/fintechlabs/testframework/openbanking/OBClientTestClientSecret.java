@@ -163,7 +163,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 */
 	private Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
-		JsonObject serverConfiguration = env.get("server");
+		JsonObject serverConfiguration = env.getObject("server");
 
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
@@ -191,7 +191,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
-		JsonObject user = env.get("user_info_endpoint_response");
+		JsonObject user = env.getObject("user_info_endpoint_response");
 
 		setStatus(Status.WAITING);
 
@@ -209,7 +209,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	private Object jwksEndpoint() {
 
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.get("public_jwks");
+		JsonObject jwks = env.getObject("public_jwks");
 
 		setStatus(Status.WAITING);
 
@@ -267,7 +267,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 	}
 
@@ -287,7 +287,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.get("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 	}
 
@@ -345,7 +345,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
-		JsonObject accountRequestResponse = env.get("account_request_response");
+		JsonObject accountRequestResponse = env.getObject("account_request_response");
 
 		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
 	}
@@ -368,7 +368,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		// at this point we can assume the test is fully done
 		fireTestFinished();
 
-		return new ResponseEntity<>(env.get("accounts_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<>(env.getObject("accounts_endpoint_response"), HttpStatus.OK);
 	}
 
 }

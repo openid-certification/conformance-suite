@@ -79,7 +79,7 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 	public void testEvaluate_noError() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
 
 		cond.evaluate(env);
 
@@ -101,8 +101,8 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 	public void testEvaluate_noErrorPost() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
-		env.get("resource").addProperty("resourceMethod","POST");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.getObject("resource").addProperty("resourceMethod","POST");
 
 		cond.evaluate(env);
 
@@ -124,7 +124,7 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 	public void testEvaluate_badToken() {
 
 		env.put("access_token", exampleToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
 
 		cond.evaluate(env);
 
@@ -137,7 +137,7 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 	public void testEvaluate_badServer() {
 
 		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://invalid.org/");
+		env.getObject("resource").addProperty("resourceUrl", "http://invalid.org/");
 
 		cond.evaluate(env);
 
@@ -149,7 +149,7 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
 
 		cond.evaluate(env);
 

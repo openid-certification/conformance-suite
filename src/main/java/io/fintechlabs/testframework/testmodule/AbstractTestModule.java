@@ -200,7 +200,7 @@ public abstract class AbstractTestModule implements TestModule {
 
 			// check the environment to see if we need to skip this call
 			for (String req : builder.getSkipIfObjectsMissing()) {
-				if (!env.containsObj(req)) {
+				if (!env.containsObject(req)) {
 					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find key in environment: " + req);
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required object: " + req,
@@ -227,7 +227,7 @@ public abstract class AbstractTestModule implements TestModule {
 				}
 			}
 			for (Pair<String, String> idx : builder.getSkipIfElementsMissing()) {
-				JsonElement el = env.findElement(idx.getLeft(), idx.getRight());
+				JsonElement el = env.getElementFromObject(idx.getLeft(), idx.getRight());
 				if (el == null) {
 					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
 					eventLog.log(condition.getMessage(), args(
@@ -247,7 +247,7 @@ public abstract class AbstractTestModule implements TestModule {
 			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
 			if (pre != null) {
 				for (String req : pre.required()) {
-					if (!env.containsObj(req)) {
+					if (!env.containsObject(req)) {
 						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
@@ -293,7 +293,7 @@ public abstract class AbstractTestModule implements TestModule {
 			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);
 			if (post != null) {
 				for (String req : post.required()) {
-					if (!env.containsObj(req)) {
+					if (!env.containsObject(req)) {
 						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,

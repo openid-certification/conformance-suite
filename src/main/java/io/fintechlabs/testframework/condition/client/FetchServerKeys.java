@@ -60,11 +60,11 @@ public class FetchServerKeys extends AbstractCondition {
 	@PostEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("server")) {
+		if (!env.containsObject("server")) {
 			throw error("No server configuration found");
 		}
 
-		JsonElement jwks = env.findElement("server", "jwks");
+		JsonElement jwks = env.getElementFromObject("server", "jwks");
 
 		if (jwks != null && jwks.isJsonObject()) {
 			env.put("server_jwks", jwks.getAsJsonObject());

@@ -37,7 +37,7 @@ public class AddFAPIInteractionIdToResourceEndpointRequest extends AbstractCondi
 	public Environment evaluate(Environment env) {
 
 		// get the previous headers if they exist
-		JsonObject headers = env.get("resource_endpoint_request_headers");
+		JsonObject headers = env.getObject("resource_endpoint_request_headers");
 		if (headers == null) {
 			headers = new JsonObject();
 		}

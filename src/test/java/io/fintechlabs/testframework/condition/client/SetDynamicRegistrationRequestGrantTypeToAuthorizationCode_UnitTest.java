@@ -71,7 +71,7 @@ public class SetDynamicRegistrationRequestGrantTypeToAuthorizationCode_UnitTest 
 	private void testGrantType(JsonObject dynamicRegistrationRequestObject) {
 		env.put("dynamic_registration_request", dynamicRegistrationRequestObject);
 		cond.evaluate(env);
-		assertThat(env.get("dynamic_registration_request").equals(goodGrantTypeDynamicRegistrationRequest)).isTrue();
+		assertThat(env.getObject("dynamic_registration_request").equals(goodGrantTypeDynamicRegistrationRequest)).isTrue();
 	}
 
 

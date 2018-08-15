@@ -125,8 +125,8 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		verify(env, atLeastOnce()).getString("server", "registration_endpoint");
 
-		assertThat(env.get("client")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("client").entrySet()).containsAll(goodResponse.entrySet());
+		assertThat(env.getObject("client")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("client").entrySet()).containsAll(goodResponse.entrySet());
 		assertThat(env.getString("registration_client_uri")).isEqualToIgnoringCase("https://good.example.com/register/UNIT-TEST-CLIENT-ID");
 		assertThat(env.getString("registration_access_token")).isEqualToIgnoringCase("reg.access.token");
 	}
@@ -153,8 +153,8 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		verify(env, atLeastOnce()).getString("server", "registration_endpoint");
 
-		assertThat(env.get("client")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("client").entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
+		assertThat(env.getObject("client")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("client").entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
 		assertThat(env.getString("registration_client_uri")).isNullOrEmpty();
 		assertThat(env.getString("registration_access_token")).isNullOrEmpty();
 	}

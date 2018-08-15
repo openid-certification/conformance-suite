@@ -40,12 +40,12 @@ public class GetStaticResourceConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "resource", strings = "resource_id")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("config")) {
+		if (!env.containsObject("config")) {
 			throw error("Couldn't find a configuration");
 		}
 
 		// make sure we've got a client object
-		JsonElement resource = env.findElement("config", "resource");
+		JsonElement resource = env.getElementFromObject("config", "resource");
 		if (resource == null || !resource.isJsonObject()) {
 			throw error("Definition for resource not present in supplied configuration");
 		} else {

@@ -90,7 +90,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
-		verify(env, atLeastOnce()).get("authorization_endpoint_request");
+		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 
 		assertThat(env.getString("redirect_to_authorization_endpoint")).startsWith(authorizationEndpoint);
 

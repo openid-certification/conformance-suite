@@ -82,7 +82,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.containsObj("client_certificate")).isTrue();
+		assertThat(env.containsObject("client_certificate")).isTrue();
 		assertThat(env.getString("client_certificate", "subject.dn")).isEqualTo("CN=Atlantis");
 
 	}

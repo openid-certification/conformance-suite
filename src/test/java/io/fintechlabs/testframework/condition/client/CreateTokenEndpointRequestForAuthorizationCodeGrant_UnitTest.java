@@ -50,7 +50,7 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant_UnitTest {
 		verify(env, atLeastOnce()).getString("code");
 		verify(env, atLeastOnce()).getString("redirect_uri");
 
-		assertThat(env.get("token_endpoint_request_form_parameters")).isNotNull();
+		assertThat(env.getObject("token_endpoint_request_form_parameters")).isNotNull();
 		assertThat(env.getString("token_endpoint_request_form_parameters", "grant_type")).isEqualTo("authorization_code");
 		assertThat(env.getString("token_endpoint_request_form_parameters", "code")).isEqualTo("SplxlOBeZQQYbYS6WxSbIA");
 		assertThat(env.getString("token_endpoint_request_form_parameters", "redirect_uri")).isEqualTo("https://client.example.com/cb");

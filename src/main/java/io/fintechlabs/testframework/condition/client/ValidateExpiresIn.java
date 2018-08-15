@@ -34,7 +34,7 @@ public class ValidateExpiresIn extends AbstractCondition {
 	@PreEnvironment(strings = {}, required = "expires_in")
 	public Environment evaluate(Environment env) {
 
-		JsonObject expiresIn = env.get("expires_in");
+		JsonObject expiresIn = env.getObject("expires_in");
 		JsonElement je = expiresIn.get("expires_in");
 		try {
 			JsonPrimitive jp = je.getAsJsonPrimitive();

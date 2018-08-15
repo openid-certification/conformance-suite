@@ -57,7 +57,7 @@ public class AddIatExpToRequestObject extends AbstractCondition {
 	@PreEnvironment(required = { "request_object_claims"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestObjectClaims = env.get("request_object_claims");
+		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(5 * 60);

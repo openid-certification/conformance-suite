@@ -43,7 +43,7 @@ public abstract class ExtractHash extends AbstractCondition {
 
 		env.remove(envName);
 
-		if (!env.containsObj("id_token")) {
+		if (!env.containsObject("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 

@@ -54,7 +54,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCo
 			throw error("Client secret not found in configuration");
 		}
 
-		JsonObject headers = env.get("token_endpoint_request_headers");
+		JsonObject headers = env.getObject("token_endpoint_request_headers");
 
 		if (headers == null) {
 			headers = new JsonObject();

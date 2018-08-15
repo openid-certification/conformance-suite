@@ -46,7 +46,7 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestObjectClaims = env.get("request_object_claims");
+		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
 		if (requestObjectClaims == null) {
 			throw error("Couldn't find request object claims");

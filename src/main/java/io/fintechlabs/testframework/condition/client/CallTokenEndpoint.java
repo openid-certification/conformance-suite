@@ -74,12 +74,12 @@ public class CallTokenEndpoint extends AbstractCondition {
 			throw error("Couldn't find token endpoint");
 		}
 
-		if (!env.containsObj("token_endpoint_request_form_parameters")) {
+		if (!env.containsObject("token_endpoint_request_form_parameters")) {
 			throw error("Couldn't find request form");
 		}
 
 		// build up the form
-		JsonObject formJson = env.get("token_endpoint_request_form_parameters");
+		JsonObject formJson = env.getObject("token_endpoint_request_form_parameters");
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
 		for (String key : formJson.keySet()) {
 			form.add(key, formJson.get(key).getAsString());
@@ -94,7 +94,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 
-			JsonObject headersJson = env.get("token_endpoint_request_headers");
+			JsonObject headersJson = env.getObject("token_endpoint_request_headers");
 			if (headersJson != null) {
 				for (String header : headersJson.keySet()) {
 					headers.set(header, headersJson.get(header).getAsString());

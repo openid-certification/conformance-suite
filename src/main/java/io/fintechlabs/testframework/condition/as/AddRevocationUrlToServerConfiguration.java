@@ -53,7 +53,7 @@ public class AddRevocationUrlToServerConfiguration extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
-		JsonObject server = env.get("server");
+		JsonObject server = env.getObject("server");
 
 		server.addProperty("revocation_endpoint", baseUrl + "revoke");
 

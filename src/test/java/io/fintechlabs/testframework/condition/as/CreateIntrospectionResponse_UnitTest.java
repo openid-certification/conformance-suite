@@ -103,7 +103,7 @@ public class CreateIntrospectionResponse_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject res = env.get("introspection_response");
+		JsonObject res = env.getObject("introspection_response");
 
 		assertNotNull(res);
 		assertTrue(res.has("active"));
@@ -134,7 +134,7 @@ public class CreateIntrospectionResponse_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject res = env.get("introspection_response");
+		JsonObject res = env.getObject("introspection_response");
 
 		assertNotNull(res);
 		assertTrue(res.has("active"));

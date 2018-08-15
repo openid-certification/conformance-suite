@@ -109,7 +109,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject res = env.get("resource_assertion");
+		JsonObject res = env.getObject("resource_assertion");
 
 		assertNotNull(res);
 		assertEquals(assertion, res.get("assertion").getAsString());

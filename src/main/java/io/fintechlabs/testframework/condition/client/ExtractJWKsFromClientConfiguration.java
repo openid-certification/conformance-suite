@@ -50,12 +50,12 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "client_jwks")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("client")) {
+		if (!env.containsObject("client")) {
 			throw error("Couldn't find client configuration");
 		}
 
 		// bump the client's internal JWK up to the root
-		JsonElement jwks = env.findElement("client", "jwks");
+		JsonElement jwks = env.getElementFromObject("client", "jwks");
 
 		if (jwks == null) {
 			throw error("Couldn't find JWKs in client configuration");

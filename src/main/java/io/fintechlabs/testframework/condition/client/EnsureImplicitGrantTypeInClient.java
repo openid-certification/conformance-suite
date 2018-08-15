@@ -19,7 +19,7 @@ public class EnsureImplicitGrantTypeInClient extends AbstractCondition {
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
-		JsonObject client = env.get("client");
+		JsonObject client = env.getObject("client");
 
 		if (!client.has("grant_types") || client.getAsJsonArray("grant_types").size() != 1) {
 			throw error("Missing or invalid number of grant_types found in client");

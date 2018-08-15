@@ -79,7 +79,7 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.get("expires_in")).isNotNull();
+		assertThat(env.getObject("expires_in")).isNotNull();
 	}
 
 	/**

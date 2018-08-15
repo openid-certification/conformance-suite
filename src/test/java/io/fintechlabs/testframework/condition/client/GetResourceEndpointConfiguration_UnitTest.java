@@ -71,8 +71,8 @@ public class GetResourceEndpointConfiguration_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).findElement("config", "resource");
-		assertThat(env.get("resource")).isEqualTo(resourceConfig);
+		verify(env, atLeastOnce()).getElementFromObject("config", "resource");
+		assertThat(env.getObject("resource")).isEqualTo(resourceConfig);
 	}
 
 	/**

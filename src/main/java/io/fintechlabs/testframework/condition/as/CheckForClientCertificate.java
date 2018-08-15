@@ -36,7 +36,7 @@ public class CheckForClientCertificate extends AbstractCondition {
 	// note, we don't use the @PreEnvironment check here so we can do a more direct check below
 	public Environment evaluate(Environment env) {
 
-		if (env.containsObj("client_certificate")) {
+		if (env.containsObject("client_certificate")) {
 			logSuccess("Found client certificate");
 			return env;
 		} else {

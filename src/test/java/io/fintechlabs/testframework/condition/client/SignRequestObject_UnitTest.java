@@ -119,7 +119,7 @@ public class SignRequestObject_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("request_object_claims");
+		verify(env, atLeastOnce()).getObject("request_object_claims");
 
 		String requestObjectString = env.getString("request_object");
 		assertThat(requestObjectString).isNotNull();

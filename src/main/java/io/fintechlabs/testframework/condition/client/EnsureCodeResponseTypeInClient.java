@@ -19,7 +19,7 @@ public class EnsureCodeResponseTypeInClient extends AbstractCondition {
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
-		JsonObject client = env.get("client");
+		JsonObject client = env.getObject("client");
 
 		if (!client.has("response_types") || client.getAsJsonArray("response_types").size() != 1) {
 			throw error("Missing or invalid number of response_types found in client");
