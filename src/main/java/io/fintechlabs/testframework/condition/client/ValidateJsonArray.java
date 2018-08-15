@@ -1,5 +1,7 @@
 package io.fintechlabs.testframework.condition.client;
 
+import java.util.List;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -14,7 +16,7 @@ public class ValidateJsonArray extends AbstractCondition {
 	}
 
 	public Environment validate(Environment env, String environmentVariable,
-			String[] setValues, Integer minimumMatchesRequired,
+			List<String> setValues, Integer minimumMatchesRequired,
 			String errorMessageNotEnough) {
 
 		JsonElement serverValues = env.findElement("server", environmentVariable);
@@ -29,14 +31,14 @@ public class ValidateJsonArray extends AbstractCondition {
 				errorMessage = "'" + environmentVariable + "' should be an array";
 			} else {
 
-				int viableSize = setValues.length;
+				int viableSize = setValues.size();
 				int serverSize = serverValues.getAsJsonArray().size();
 
 				JsonArray serverData = serverValues.getAsJsonArray();
 
 				for (int viableIndex = 0; viableIndex < viableSize; viableIndex++) {
 					for (int serverIndex = 0; serverIndex < serverSize; serverIndex++) {
-						if (setValues[viableIndex].equals(serverData.get(serverIndex).getAsString())) {
+						if (setValues.get(viableIndex).equals(serverData.get(serverIndex).getAsString())) {
 							foundCount++;
 							break;
 						}
@@ -51,26 +53,14 @@ public class ValidateJsonArray extends AbstractCondition {
 
 		if (errorMessage != null) {
 			if (minimumMatchesRequired == 1) {
-				throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected_at_least_one_of", stringArrayToString(setValues), "actual_value", serverValues));
+				throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected_at_least_one_of", setValues, "actual", serverValues));
 			}
-			throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected_value", stringArrayToString(setValues), "actual_value", serverValues));
+			throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected", setValues, "actual", serverValues));
 		}
 
-		logSuccess(environmentVariable, args("actual", serverValues));
+		logSuccess(environmentVariable, args("actual", serverValues, "expected", serverValues));
 
 		return env;
-	}
-
-	private String stringArrayToString(String[] array) {
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-
-		for (Object obj : array)
-			sb.append("\"" + obj.toString() + "\"" + ",");
-
-		String out = sb.substring(0, sb.length() - 1);
-		return out + "]";
 	}
 
 	@Override

@@ -18,10 +18,6 @@ package io.fintechlabs.testframework.openbanking;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -50,8 +46,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 @PublishTestModule(
 		testName = "ob-discovery-end-point-verification",
@@ -86,11 +80,24 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		call(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointTokenEndpointAuthMethodsSupported.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported .class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointUserinfoSigningAlgValuesSupported .class, ConditionResult.FAILURE);
+
+		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
+			.skipIfElementRequired("server", "userinfo_endpoint")
+			.onFail(ConditionResult.FAILURE)
+			.onSkip(ConditionResult.INFO)
+			.dontStopOnFailure()
+			);
+
 		call(CheckDiscEndpointTokenEndpoint.class, ConditionResult.FAILURE);
 		call(CheckDiscEndpointAuthorizationEndpoint.class, ConditionResult.FAILURE);
-		skipIfMissing(new String[] { "registration_endpoint" }, null, ConditionResult.INFO,
-				CheckDiscEndpointRegistrationEndpoint.class, ConditionResult.FAILURE, "NO_URL");
+
+		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
+			.skipIfElementRequired("server", "registration_endpoint")
+			.onFail(ConditionResult.FAILURE)
+			.onSkip(ConditionResult.INFO)
+			.dontStopOnFailure()
+			);
+
 		call(CheckDiscEndpointJwksUri.class, ConditionResult.FAILURE);
 
 		fireTestFinished();

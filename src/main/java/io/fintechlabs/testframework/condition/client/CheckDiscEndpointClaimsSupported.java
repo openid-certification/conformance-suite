@@ -16,6 +16,8 @@
 
 package io.fintechlabs.testframework.condition.client;
 
+import java.util.Arrays;
+
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -41,7 +43,7 @@ public class CheckDiscEndpointClaimsSupported extends ValidateJsonArray {
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
+		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), minimumMatchesRequired,
 				errorMessageNotEnough);
 	}
 

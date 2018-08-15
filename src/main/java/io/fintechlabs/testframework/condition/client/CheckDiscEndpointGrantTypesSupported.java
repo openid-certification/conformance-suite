@@ -16,21 +16,11 @@
 
 package io.fintechlabs.testframework.condition.client;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
-import net.minidev.json.JSONArray;
 
 public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 
@@ -53,7 +43,7 @@ public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, SET_VALUES, minimumMatchesRequired,
+		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), minimumMatchesRequired,
 				errorMessageNotEnough);
 
 	}

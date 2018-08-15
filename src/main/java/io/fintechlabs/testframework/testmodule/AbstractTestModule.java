@@ -18,12 +18,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.view.RedirectView;
@@ -31,6 +33,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -150,7 +153,7 @@ public abstract class AbstractTestModule implements TestModule {
 		Class<? extends Condition> conditionClass) {
 
 		call(condition(conditionClass)
-			.skipIfRequired(required)
+			.skipIfObjectsRequired(required)
 			.skipIfStringsRequired(strings)
 			.onSkip(onSkip)
 			.onFail(ConditionResult.INFO)
@@ -160,7 +163,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
-			.skipIfRequired(required)
+			.skipIfObjectsRequired(required)
 			.skipIfStringsRequired(strings)
 			.onSkip(onSkip)
 			.requirements(requirements)
@@ -171,7 +174,7 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
-			.skipIfRequired(required)
+			.skipIfObjectsRequired(required)
 			.skipIfStringsRequired(strings)
 			.onSkip(onSkip)
 			.requirements(requirements)
@@ -190,33 +193,37 @@ public abstract class AbstractTestModule implements TestModule {
 	 *            What result to log if the condition is skipped
 	 * @param stopOnFailure
 	 *            Whether to stop the test if the condition fails or keep going
-	 * @param skipIfRequired
+	 * @param skipIfObjectsRequired
 	 *            List of objects to check the environment for and skip the condition evaluation if they're not found
 	 * @param skipIfStringsRequired
 	 *            List of strings to check the environment for and skip the condition evaluation if they're not found
+	 * @param skipIfElementsRequired
+	 *            List of
 	 * @param requirements
 	 *            The list of requirements that are tied to this condition within this test module
 	 */
 	private void callConditionInternal(Class<? extends Condition> conditionClass,
-		String[] requirements,
+		List<String> requirements,
 		ConditionResult onFail,
 		ConditionResult onSkip,
 		boolean stopOnFailure,
-		String[] skipIfRequired, String[] skipIfStringsRequired) {
+		List<String> skipIfObjectsRequired,
+		List<String> skipIfStringsRequired,
+		List<Pair<String, String>> skipIfElementsRequired) {
 
 		try {
 
 			// create a new condition object from the class above
 			Condition condition = conditionClass
 				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
-				.newInstance(id, eventLog, onFail, requirements);
+				.newInstance(id, eventLog, onFail, requirements.toArray(new String[] {}));
 			Method eval = conditionClass.getMethod("evaluate", Environment.class);
 
 			logger.info((stopOnFailure ? ">>" : "}}") + " Calling Condition " + conditionClass.getSimpleName());
 
 			// check the environment to see if we need to skip anything
-			if (skipIfRequired != null) {
-				for (String req : skipIfRequired) {
+			if (skipIfObjectsRequired != null) {
+				for (String req : skipIfObjectsRequired) {
 					if (!env.containsObj(req)) {
 						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
@@ -246,6 +253,24 @@ public abstract class AbstractTestModule implements TestModule {
 					}
 				}
 			}
+			if (skipIfElementsRequired != null) {
+				for (Pair<String, String> idx : skipIfElementsRequired) {
+					JsonElement el = env.findElement(idx.getLeft(), idx.getRight());
+					if (el != null) {
+						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
+						eventLog.log(condition.getMessage(), args(
+							"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
+							"object", idx.getLeft(),
+							"path", idx.getRight(),
+							"result", onSkip
+						// TODO: log the environment here?
+						));
+						updateResultFromConditionFailure(onSkip);
+						return;
+					}
+				}
+			}
+
 
 			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
 			if (pre != null) {
@@ -256,7 +281,7 @@ public abstract class AbstractTestModule implements TestModule {
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
 							"result", onFail,
-							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
+							"mapped", env.isKeyMapped(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
 						if (stopOnFailure) {
@@ -396,8 +421,9 @@ public abstract class AbstractTestModule implements TestModule {
 			builder.getOnFail(),
 			builder.getOnSkip(),
 			builder.isStopOnFailure(),
-			builder.getSkipIfRequired(),
-			builder.getSkipIfStringsRequired());
+			builder.getSkipIfObjectsRequired(),
+			builder.getSkipIfStringsRequired(),
+			builder.getSkipIfElementsRequired());
 	}
 
 	@Override
