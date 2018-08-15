@@ -88,8 +88,8 @@ public class ExtractSHash_UnitTest {
 		verify(env, atLeastOnce()).getString("id_token", "claims.s_hash");
 		verify(env, atLeastOnce()).getString("id_token", "header.alg");
 
-		assertThat(env.getString("state_hash", "s_hash")).isEqualTo("WZRHGrsBESr8wYFZ9sx0tA");
-		assertThat(env.getString("state_hash", "alg")).isEqualTo("HS256");
+		assertThat(env.getString("s_hash", "s_hash")).isEqualTo("WZRHGrsBESr8wYFZ9sx0tA");
+		assertThat(env.getString("s_hash", "alg")).isEqualTo("HS256");
 
 	}
 

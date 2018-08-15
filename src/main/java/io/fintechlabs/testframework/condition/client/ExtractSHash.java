@@ -43,10 +43,10 @@ public class ExtractSHash extends ExtractHash {
 	 */
 	@Override
 	@PreEnvironment(required = "id_token")
-	@PostEnvironment(required = "state_hash")
+	@PostEnvironment(required = "s_hash")
 	public Environment evaluate(Environment env) {
 
-		return super.extractHash(env, "s_hash", "state_hash");
+		return super.extractHash(env, "s_hash", "s_hash");
 
 	}
 
