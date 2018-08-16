@@ -494,7 +494,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
 
-			// putObject everything back where we found it
+			// put everything back where we found it
 			env.unmapKey("client");
 			env.unmapKey("client_jwks");
 			eventLog.endBlock();

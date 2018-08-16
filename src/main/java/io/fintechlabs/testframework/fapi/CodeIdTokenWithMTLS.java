@@ -479,7 +479,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 			env.mapKey("client", "client2");
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
-			// putObject everything back where we found it
+			// put everything back where we found it
 			env.unmapKey("client");
 			env.unmapKey("mutual_tls_authentication");
 			eventLog.endBlock();

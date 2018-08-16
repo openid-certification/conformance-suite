@@ -182,9 +182,21 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	/**
-	 * Call the condition as specified in the builder.
+	 * Call the condition as specified in the builder. The ConditionCallBuilder is accessed in the following order:
 	 *
-	 * @param builder
+	 *  - condition class is instantiated
+	 *  - missing objects are checked
+	 *  - missing strings are checked
+	 *  - missing elements are checked
+	 *  - pre-environment objects are checked
+	 *  - pre-environment strings are checked
+	 *  - condition is evaluated
+	 *  - if failed, either throw a test exception or just log the failure
+	 *  - if not failed:
+	 *  	- post-environment objects are checked
+	 *  	- post-environment strings are checked
+	 *
+	 * @param builder the fully configured condition call builder
 	 */
 	protected void call(ConditionCallBuilder builder) {
 
@@ -381,13 +393,13 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * Execute a set of test execution commands.
 	 *
-	 * Commands are executed in this order:
+	 * Commands in the builder are executed in the following order:
 	 *
-	 * environment strings are exposed
-	 * log blocks are started
-	 * environment keys are mapped
-	 * environment keys are unmapped
-	 * log blocks are ended
+	 *  - environment strings are exposed
+	 *  - log blocks are started
+	 *  - environment keys are mapped
+	 *  - environment keys are unmapped
+	 *  - log blocks are ended
 	 *
 	 */
 	protected void call(TestExecutionBuilder builder) {

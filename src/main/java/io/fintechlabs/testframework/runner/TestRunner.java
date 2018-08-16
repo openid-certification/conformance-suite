@@ -29,9 +29,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.mongodb.DBObject;
-import io.fintechlabs.testframework.condition.FillImagePlaceholderError;
-import io.fintechlabs.testframework.info.ImageService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +59,12 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -101,7 +100,7 @@ public class TestRunner {
 	private TestRunnerSupport support;
 
 	@Autowired
-	private MongoTemplate mongoTemplate; // FIXME: removeObject when below ImageAPI.java refactoring FIXME fixed
+	private MongoTemplate mongoTemplate; // FIXME: remove when below ImageAPI.java refactoring FIXME fixed
 
 	@Autowired
 	private EventLog eventLog;

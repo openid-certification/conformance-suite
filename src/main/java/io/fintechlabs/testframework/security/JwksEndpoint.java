@@ -40,7 +40,7 @@ public class JwksEndpoint {
 	@GetMapping(value = "/jwks", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	public Object getJwkSet() {
-		JsonObject jwks = new JsonParser().parse(keyManager.getPublicKeys().toString()).getAsJsonObject(); // putObject it into a GSON object
+		JsonObject jwks = new JsonParser().parse(keyManager.getPublicKeys().toString()).getAsJsonObject(); // put it into a GSON object
 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
