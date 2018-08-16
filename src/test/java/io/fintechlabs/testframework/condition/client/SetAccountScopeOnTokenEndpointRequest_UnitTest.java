@@ -50,7 +50,7 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 
 		cond = new SetAccountScopeOnTokenEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("token_endpoint_request_form_parameters", tokenEndpointRequest);
+		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 
 	}
 

@@ -71,8 +71,8 @@ public class ExtractJWKsFromResourceConfiguration extends AbstractCondition {
 
 			logSuccess("Extracted resource JWK", args("resource_jwks", jwks, "public_resource_jwks", pubObj));
 
-			env.put("resource_jwks", jwks.getAsJsonObject());
-			env.put("resource_public_jwks", pubObj.getAsJsonObject());
+			env.putObject("resource_jwks", jwks.getAsJsonObject());
+			env.putObject("resource_public_jwks", pubObj.getAsJsonObject());
 
 			return env;
 

@@ -58,7 +58,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	public void testEvaluate_withState_statePresent() {
 
 		env.putString("state", "xyz");
-		env.put("callback_params", paramsWithState);
+		env.putObject("callback_params", paramsWithState);
 
 		cond.evaluate(env);
 
@@ -72,7 +72,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	@Test
 	public void testEvaluate_withoutState_stateAbsent() {
 
-		env.put("callback_params", paramsWithoutState);
+		env.putObject("callback_params", paramsWithoutState);
 
 		cond.evaluate(env);
 
@@ -87,7 +87,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	public void testEvaluate_withState_stateMissing() {
 
 		env.putString("state", "xyz");
-		env.put("callback_params", paramsWithoutState);
+		env.putObject("callback_params", paramsWithoutState);
 
 		cond.evaluate(env);
 	}
@@ -99,7 +99,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	public void testEvaluate_withState_stateMismatch() {
 
 		env.putString("state", "abc");
-		env.put("callback_params", paramsWithState);
+		env.putObject("callback_params", paramsWithState);
 
 		cond.evaluate(env);
 	}
@@ -110,7 +110,7 @@ public class CheckMatchingStateParameter_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_withoutState_present() {
 
-		env.put("callback_params", paramsWithState);
+		env.putObject("callback_params", paramsWithState);
 
 		cond.evaluate(env);
 	}

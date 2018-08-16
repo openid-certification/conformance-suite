@@ -52,7 +52,7 @@ public class SetAuthorizationEndpointRequestResponseTypeToToken extends Abstract
 
 		authorizationEndpointRequest.addProperty("response_type", "token");
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Added response_type parameter to request", authorizationEndpointRequest);
 

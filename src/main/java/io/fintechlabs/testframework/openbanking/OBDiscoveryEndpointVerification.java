@@ -107,7 +107,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

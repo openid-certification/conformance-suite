@@ -61,7 +61,7 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 			o.add("claims", claims);
 
 			// save the parsed ID token
-			env.put("id_token", o);
+			env.putObject("id_token", o);
 
 			logSuccess("Found and parsed the ID Token", o);
 

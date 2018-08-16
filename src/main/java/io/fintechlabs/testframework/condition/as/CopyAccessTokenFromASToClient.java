@@ -53,7 +53,7 @@ public class CopyAccessTokenFromASToClient extends AbstractCondition {
 		o.addProperty("value", accessTokenString);
 		o.addProperty("type", tokenType);
 
-		env.put("access_token", o);
+		env.putObject("access_token", o);
 
 		logSuccess("Copied the access token", o);
 

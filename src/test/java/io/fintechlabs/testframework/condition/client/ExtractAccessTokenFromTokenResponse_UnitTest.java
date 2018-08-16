@@ -71,7 +71,7 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("token_endpoint_response", tokenResponse);
+		env.putObject("token_endpoint_response", tokenResponse);
 
 		cond.evaluate(env);
 
@@ -90,7 +90,7 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		env.put("token_endpoint_response", new JsonObject());
+		env.putObject("token_endpoint_response", new JsonObject());
 
 		cond.evaluate(env);
 

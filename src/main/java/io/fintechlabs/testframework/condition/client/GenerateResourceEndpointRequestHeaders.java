@@ -39,7 +39,7 @@ public class GenerateResourceEndpointRequestHeaders extends AbstractCondition {
 		headers.addProperty("x-fapi-auth-date", DateUtils.formatDate(loginDate));
 		headers.addProperty("x-fapi-financial-id", institutionId);
 
-		env.put("resource_endpoint_request_headers", headers);
+		env.putObject("resource_endpoint_request_headers", headers);
 
 		logSuccess("Generated headers", args("resource_endpoint_request_headers", headers));
 

@@ -55,7 +55,7 @@ public class CreateOpenBankingAccountRequestResponse extends AbstractOpenBanking
 
 		logSuccess("Created account request response object", args("account_request_response", response));
 
-		env.put("account_request_response", response);
+		env.putObject("account_request_response", response);
 
 		return env;
 

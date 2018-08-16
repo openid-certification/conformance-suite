@@ -53,7 +53,7 @@ public class SetAccountScopeOnTokenEndpointRequest extends AbstractCondition {
 
 		logSuccess("Set scope paramter to accounts for OB testing", tokenEndpointRequest);
 
-		env.put("token_endpoint_request_form_parameters", tokenEndpointRequest);
+		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 
 		return env;
 

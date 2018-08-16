@@ -108,7 +108,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
@@ -225,7 +225,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 			// process the callback
 			setStatus(Status.RUNNING);
 
-			env.put("callback_params", requestParts.get("params").getAsJsonObject());
+			env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 			callAndStopOnFailure(CheckMatchingStateParameter.class);

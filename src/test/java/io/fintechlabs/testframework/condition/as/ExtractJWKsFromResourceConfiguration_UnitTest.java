@@ -92,7 +92,7 @@ public class ExtractJWKsFromResourceConfiguration_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("resource", resource);
+		env.putObject("resource", resource);
 
 		cond.evaluate(env);
 

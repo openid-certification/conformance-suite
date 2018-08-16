@@ -53,7 +53,7 @@ public class AddFormBasedClientSecretAuthenticationParameters extends AbstractCo
 		o.addProperty("client_id", env.getString("client", "client_id"));
 		o.addProperty("client_secret", env.getString("client", "client_secret"));
 
-		env.put("token_endpoint_request_form_parameters", o);
+		env.putObject("token_endpoint_request_form_parameters", o);
 
 		log(o);
 

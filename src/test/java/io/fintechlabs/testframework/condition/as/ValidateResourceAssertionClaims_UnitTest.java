@@ -71,14 +71,14 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		env.putString("resource_id", resourceId);
 		env.putString("issuer", serverIssuer);
-		env.put("server", server);
+		env.putObject("server", server);
 	}
 
 	private void addAssertion(Environment env, JsonObject claims) {
 
 		JsonObject assertion = new JsonObject();
 		assertion.add("assertion_payload", claims);
-		env.put("resource_assertion", assertion);
+		env.putObject("resource_assertion", assertion);
 
 	}
 

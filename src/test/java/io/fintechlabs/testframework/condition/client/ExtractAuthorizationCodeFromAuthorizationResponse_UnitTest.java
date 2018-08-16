@@ -59,7 +59,7 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("callback_params", callbackParams);
+		env.putObject("callback_params", callbackParams);
 
 		cond.evaluate(env);
 
@@ -74,7 +74,7 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		env.put("callback_params", callbackParamsWithoutCode);
+		env.putObject("callback_params", callbackParamsWithoutCode);
 
 		cond.evaluate(env);
 	}

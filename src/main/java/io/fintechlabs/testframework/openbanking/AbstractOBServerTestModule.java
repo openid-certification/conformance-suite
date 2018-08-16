@@ -14,7 +14,6 @@
 
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.Sets;
@@ -115,7 +114,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	@Override
 	public final void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 

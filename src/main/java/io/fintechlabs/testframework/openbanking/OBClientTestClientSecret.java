@@ -96,7 +96,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		exposeEnvString("discoveryUrl");
@@ -180,7 +180,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("incoming_request", requestParts);
+		env.putObject("incoming_request", requestParts);
 
 		call(ExtractBearerAccessTokenFromHeader.class);
 		call(ExtractBearerAccessTokenFromParams.class);
@@ -227,7 +227,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("token_endpoint_request", requestParts);
+		env.putObject("token_endpoint_request", requestParts);
 
 		call(ExtractClientCredentialsFromFormPost.class);
 
@@ -303,7 +303,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
@@ -333,7 +333,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	 */
 	private Object accountRequestsEndpoint(JsonObject requestParts) {
 
-		env.put("incoming_request", requestParts);
+		env.putObject("incoming_request", requestParts);
 
 		call(ExtractBearerAccessTokenFromHeader.class);
 		call(ExtractBearerAccessTokenFromParams.class);
@@ -353,7 +353,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	private Object accountsEndpoint(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		env.put("incoming_request", requestParts);
+		env.putObject("incoming_request", requestParts);
 
 		call(ExtractBearerAccessTokenFromHeader.class);
 		call(ExtractBearerAccessTokenFromParams.class);

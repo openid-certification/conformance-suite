@@ -134,7 +134,7 @@ public class Environment_UnitTest {
 
 		altStringValue = "Alternative String Value";
 
-		env.put(testKey, testObject);
+		env.putObject(testKey, testObject);
 		env.putString(testStringKey, testStringValue);
 
 	}
@@ -166,15 +166,15 @@ public class Environment_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#remove(java.lang.String)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#removeObject(java.lang.String)}.
 	 */
 	@Test
 	public void testRemove() {
 
 		// add a secondary object
-		env.put(altKey, altObject);
+		env.putObject(altKey, altObject);
 
-		env.remove(testKey);
+		env.removeObject(testKey);
 
 		assertFalse(env.containsObject(testKey));
 		assertNull(env.getObject(testKey));
@@ -201,7 +201,7 @@ public class Environment_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#put(java.lang.String, com.google.gson.JsonObject)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#putObject(java.lang.String, com.google.gson.JsonObject)}.
 	 */
 	@Test
 	public void testPut() {
@@ -209,7 +209,7 @@ public class Environment_UnitTest {
 		assertFalse(env.containsObject(altKey));
 		assertNull(env.getObject(altKey));
 
-		env.put(altKey, altObject);
+		env.putObject(altKey, altObject);
 
 		assertTrue(env.containsObject(altKey));
 		assertEquals(altObject, env.getObject(altKey));
@@ -341,7 +341,7 @@ public class Environment_UnitTest {
 
 	@Test
 	public void testShadowedObjects() {
-		env.put(altKey, altObject);
+		env.putObject(altKey, altObject);
 
 		assertEquals(altObject, env.getObject(altKey));
 

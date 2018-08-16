@@ -95,7 +95,7 @@ public class PlainRS extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
@@ -194,7 +194,7 @@ public class PlainRS extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("introspection_request", requestParts);
+		env.putObject("introspection_request", requestParts);
 
 		callAndStopOnFailure(ExtractAssertionFromIntrospectionRequest.class);
 

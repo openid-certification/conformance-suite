@@ -66,7 +66,7 @@ public class CheckMatchingCallbackParameters_UnitTest {
 	public void testEvaluate_noSuffix() {
 
 		env.putString("redirect_uri", uriWithoutSuffix);
-		env.put("callback_query_params", new JsonObject());
+		env.putObject("callback_query_params", new JsonObject());
 
 		cond.evaluate(env);
 
@@ -80,7 +80,7 @@ public class CheckMatchingCallbackParameters_UnitTest {
 	public void testEvaluate_withSuffix_noError() {
 
 		env.putString("redirect_uri", uriWithSuffix);
-		env.put("callback_query_params", goodParams);
+		env.putObject("callback_query_params", goodParams);
 
 		cond.evaluate(env);
 
@@ -96,7 +96,7 @@ public class CheckMatchingCallbackParameters_UnitTest {
 	public void testEvaluate_withSuffix_badParams() {
 
 		env.putString("redirect_uri", uriWithSuffix);
-		env.put("callback_params", badParams);
+		env.putObject("callback_params", badParams);
 
 		cond.evaluate(env);
 	}

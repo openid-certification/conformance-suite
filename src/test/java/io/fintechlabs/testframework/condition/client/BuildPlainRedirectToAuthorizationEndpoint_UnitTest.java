@@ -71,8 +71,8 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 		authorizationEndpointRequest.addProperty("state", state);
 		authorizationEndpointRequest.addProperty("response_type", responseType);
 
-		env.put("server", server);
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("server", server);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 	}
 
 	/**

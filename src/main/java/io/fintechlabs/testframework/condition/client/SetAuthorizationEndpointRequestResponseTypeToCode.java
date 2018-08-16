@@ -52,7 +52,7 @@ public class SetAuthorizationEndpointRequestResponseTypeToCode extends AbstractC
 
 		authorizationEndpointRequest.addProperty("response_type", "code");
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Added response_type parameter to request", authorizationEndpointRequest);
 

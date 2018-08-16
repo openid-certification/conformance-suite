@@ -55,7 +55,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Content-Type", "application/json; charset=UTF-8");
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 
@@ -70,7 +70,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Content-Type", "application/json; charset=Shift_JIS");
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 	}
@@ -83,7 +83,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Content-Type", "application/json");
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 	}
@@ -96,7 +96,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Content-Type", "text/json; charset=UTF-8");
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 	}
@@ -108,7 +108,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 	public void testEvaluate_missingContentType() {
 
 		JsonObject headers = new JsonObject();
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 	}

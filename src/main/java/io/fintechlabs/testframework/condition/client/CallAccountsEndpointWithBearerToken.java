@@ -113,7 +113,7 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 			}
 
 			env.putString("resource_endpoint_response", responseBody);
-			env.put("resource_endpoint_response_headers", responseHeaders);
+			env.putObject("resource_endpoint_response_headers", responseHeaders);
 
 			logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders));
 

@@ -112,9 +112,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://good.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 
 		cond.evaluate(env);
@@ -140,9 +140,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://noregapi.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 
 		cond.evaluate(env);
@@ -165,7 +165,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noServerRegistraitonEndpoint(){
 		JsonObject server = new JsonParser().parse("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
-		env.put("server",server);
+		env.putObject("server",server);
 		cond.evaluate(env);
 	}
 
@@ -178,9 +178,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://error.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 		cond.evaluate(env);
 	}
@@ -193,9 +193,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://bad.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 		cond.evaluate(env);
 	}
@@ -208,9 +208,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://empty.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 		cond.evaluate(env);
 	}

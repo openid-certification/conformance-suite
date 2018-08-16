@@ -40,7 +40,7 @@ public class GetResourceEndpointConfiguration extends AbstractCondition {
 		if (resource == null || !resource.isJsonObject()) {
 			throw error("Couldn't find resource endpoint object in configuration");
 		} else {
-			env.put("resource", resource.getAsJsonObject());
+			env.putObject("resource", resource.getAsJsonObject());
 
 			logSuccess("Found a resource endpoint object", resource.getAsJsonObject());
 			return env;

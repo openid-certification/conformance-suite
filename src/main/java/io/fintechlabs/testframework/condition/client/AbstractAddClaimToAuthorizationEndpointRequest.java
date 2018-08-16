@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -46,7 +45,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 		claimBody.addProperty("essential", essential);
 		claimsIdToken.add(claim, claimBody);
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Added "+claim+" claim to request", args("authorization_endpoint_request", authorizationEndpointRequest));
 

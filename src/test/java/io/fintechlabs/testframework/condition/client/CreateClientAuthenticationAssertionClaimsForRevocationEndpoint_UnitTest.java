@@ -75,8 +75,8 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 	@Test
 	public void testEvaluate() {
 
-		env.put("client", client);
-		env.put("server", server);
+		env.putObject("client", client);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -100,7 +100,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingClient() {
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 	}
@@ -108,7 +108,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingServer() {
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}

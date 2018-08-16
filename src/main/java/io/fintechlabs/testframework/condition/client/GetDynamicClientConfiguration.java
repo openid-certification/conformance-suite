@@ -35,10 +35,10 @@ public class GetDynamicClientConfiguration extends AbstractCondition {
 		if (dynamicClientRegistrationTemplate == null || !dynamicClientRegistrationTemplate.isJsonObject()) {
 			throw error("Definition for client not present in supplied configuration");
 		} else {
-			// we've got a client object, put it in the environment
-			in.put("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
+			// we've got a client object, putObject it in the environment
+			in.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
 
-			// pull out the client name and put it in the root environment for easy access (if there is one)
+			// pull out the client name and putObject it in the root environment for easy access (if there is one)
 			String clientName = in.getString("dynamic_client_registration_template", "client_name");
 			if (!Strings.isNullOrEmpty(clientName)) {
 				in.putString("client_name", in.getString("dynamic_client_registration_template", "client_name"));

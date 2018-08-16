@@ -27,7 +27,7 @@ public class RemoveMTLSCertificates extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		env.remove("mutual_tls_authentication");
+		env.removeObject("mutual_tls_authentication");
 
 		logSuccess("Removed mutual TLS authentication credentials");
 

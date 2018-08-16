@@ -93,7 +93,7 @@ public class ExtractJWKsFromClientConfiguration_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 

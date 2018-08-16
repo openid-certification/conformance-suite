@@ -64,7 +64,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Test
 	public void testEvaluate_withScope() {
 
-		env.put("client", clientWithScope);
+		env.putObject("client", clientWithScope);
 
 		cond.evaluate(env);
 
@@ -80,7 +80,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Test
 	public void testEvaluate_withoutScope() {
 
-		env.put("client", clientWithoutScope);
+		env.putObject("client", clientWithoutScope);
 
 		cond.evaluate(env);
 

@@ -35,7 +35,7 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest extends Abstract
 
 		if (requestHeaders == null) {
 			requestHeaders = new JsonObject();
-			env.put("resource_endpoint_request_headers", requestHeaders);
+			env.putObject("resource_endpoint_request_headers", requestHeaders);
 		}
 
 		requestHeaders.addProperty(HttpHeaders.ACCEPT, "application/json");

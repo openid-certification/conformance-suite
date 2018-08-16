@@ -237,7 +237,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			+ "\"ca\":\"" + caString + "\""
 			+ "}").getAsJsonObject();
 
-		env.put("mutual_tls_authentication", config);
+		env.putObject("mutual_tls_authentication", config);
 
 		cond.evaluate(env);
 
@@ -256,7 +256,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			+ "\"cert\":\"" + cert + "\""
 			+ "}").getAsJsonObject();
 
-		env.put("mutual_tls_authentication", config);
+		env.putObject("mutual_tls_authentication", config);
 
 		cond.evaluate(env);
 	}
@@ -269,7 +269,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			+ "\"key\":\"bad key value\""
 			+ "}").getAsJsonObject();
 
-		env.put("mutual_tls_authentication", config);
+		env.putObject("mutual_tls_authentication", config);
 
 		cond.evaluate(env);
 	}
@@ -281,7 +281,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			+ "\"key\":\"" + key + "\""
 			+ "}").getAsJsonObject();
 
-		env.put("mutual_tls_authentication", config);
+		env.putObject("mutual_tls_authentication", config);
 
 		cond.evaluate(env);
 	}
@@ -294,7 +294,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			+ "\"key\":\"" + key + "\""
 			+ "}").getAsJsonObject();
 
-		env.put("mutual_tls_authentication", config);
+		env.putObject("mutual_tls_authentication", config);
 
 		cond.evaluate(env);
 	}

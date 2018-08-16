@@ -50,7 +50,7 @@ public class LoadUserInfo extends AbstractCondition {
 		user.addProperty("email", "user@example.com");
 		user.addProperty("email_verified", false);
 
-		env.put("user_info", user);
+		env.putObject("user_info", user);
 
 		logSuccess("Added user information", args("user_info", user));
 

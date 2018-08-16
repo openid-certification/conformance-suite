@@ -70,7 +70,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		JsonArray keys = new JsonArray();
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
-		env.put("server_jwks",server_jwks);
+		env.putObject("server_jwks",server_jwks);
 		cond.evaluate(env);
 	}
 
@@ -84,7 +84,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyA);
 		keys.add(keyB);
 		server_jwks.add("keys", keys);
-		env.put("server_jwks",server_jwks);
+		env.putObject("server_jwks",server_jwks);
 		cond.evaluate(env);
 	}
 
@@ -98,7 +98,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keyA.remove("kid");
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
-		env.put("server_jwks",server_jwks);
+		env.putObject("server_jwks",server_jwks);
 		cond.evaluate(env);
 	}
 
@@ -112,7 +112,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keyA.remove("alg");
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
-		env.put("server_jwks",server_jwks);
+		env.putObject("server_jwks",server_jwks);
 		cond.evaluate(env);
 	}
 
@@ -127,7 +127,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keyB.remove("alg");
 		keys.add(keyB);
 		server_jwks.add("keys", keys);
-		env.put("server_jwks",server_jwks);
+		env.putObject("server_jwks",server_jwks);
 		cond.evaluate(env);
 	}
 
@@ -142,7 +142,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keyA.remove("kty");
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
-		env.put("server_jwks",server_jwks);
+		env.putObject("server_jwks",server_jwks);
 		cond.evaluate(env);
 	}
 }

@@ -79,7 +79,7 @@ public class CreateIntrospectionResponse extends AbstractCondition {
 			res.addProperty("exp", exp.getEpochSecond());
 
 
-			env.put("introspection_response", res);
+			env.putObject("introspection_response", res);
 
 			logSuccess("Created introspection response", res);
 
@@ -91,7 +91,7 @@ public class CreateIntrospectionResponse extends AbstractCondition {
 
 			logFailure("Introspected token not found.", args("expected", accessToken, "actual", introspectedToken, "introspection_response", res));
 
-			env.put("introspection_response", res);
+			env.putObject("introspection_response", res);
 
 			return env;
 

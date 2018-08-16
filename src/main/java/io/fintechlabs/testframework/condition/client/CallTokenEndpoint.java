@@ -126,7 +126,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 
 					logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
 
-					env.put("token_endpoint_response", jsonRoot.getAsJsonObject());
+					env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
 
 					return env;
 				} catch (JsonParseException e) {

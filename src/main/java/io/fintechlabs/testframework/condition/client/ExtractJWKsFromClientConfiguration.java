@@ -71,8 +71,8 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 
 			logSuccess("Extracted client JWK", args("client_jwks", jwks, "public_client_jwks", pubObj));
 
-			env.put("client_jwks", jwks.getAsJsonObject());
-			env.put("client_public_jwks", pubObj.getAsJsonObject());
+			env.putObject("client_jwks", jwks.getAsJsonObject());
+			env.putObject("client_public_jwks", pubObj.getAsJsonObject());
 
 			return env;
 

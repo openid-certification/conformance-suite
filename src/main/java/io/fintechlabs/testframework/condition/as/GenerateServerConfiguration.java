@@ -66,7 +66,7 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		server.addProperty("jwks_uri", baseUrl + "jwks");
 
 		// add this as the server configuration
-		env.put("server", server);
+		env.putObject("server", server);
 
 		env.putString("issuer", baseUrl);
 		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");

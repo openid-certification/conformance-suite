@@ -93,8 +93,8 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("resource_assertion", goodAssertion);
-		env.put("resource_public_jwks", goodResourceJwks);
+		env.putObject("resource_assertion", goodAssertion);
+		env.putObject("resource_public_jwks", goodResourceJwks);
 
 		cond.evaluate(env);
 
@@ -106,8 +106,8 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
-		env.put("resource_assertion", badAssertion);
-		env.put("resource_public_jwks", goodResourceJwks);
+		env.putObject("resource_assertion", badAssertion);
+		env.putObject("resource_public_jwks", goodResourceJwks);
 
 		cond.evaluate(env);
 
@@ -119,7 +119,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.put("resource_public_jwks", goodResourceJwks);
+		env.putObject("resource_public_jwks", goodResourceJwks);
 
 		cond.evaluate(env);
 
@@ -131,8 +131,8 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongKeys() {
 
-		env.put("resource_assertion", goodAssertion);
-		env.put("resource_public_jwks", wrongResourceJwks);
+		env.putObject("resource_assertion", goodAssertion);
+		env.putObject("resource_public_jwks", wrongResourceJwks);
 
 		cond.evaluate(env);
 
@@ -144,7 +144,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badKeys() {
 
-		env.put("resource_assertion", goodAssertion);
+		env.putObject("resource_assertion", goodAssertion);
 		env.putString("resource_public_jwks", "this is not a key set");
 
 		cond.evaluate(env);
@@ -157,7 +157,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeys() {
 
-		env.put("resource_assertion", goodAssertion);
+		env.putObject("resource_assertion", goodAssertion);
 
 		cond.evaluate(env);
 

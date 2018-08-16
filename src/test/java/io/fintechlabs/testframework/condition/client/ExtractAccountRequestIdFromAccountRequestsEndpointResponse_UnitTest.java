@@ -93,7 +93,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("account_requests_endpoint_response", endpointResponse);
+		env.putObject("account_requests_endpoint_response", endpointResponse);
 
 		cond.evaluate(env);
 
@@ -109,7 +109,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		env.put("account_requests_endpoint_response", new JsonObject());
+		env.putObject("account_requests_endpoint_response", new JsonObject());
 
 		cond.evaluate(env);
 

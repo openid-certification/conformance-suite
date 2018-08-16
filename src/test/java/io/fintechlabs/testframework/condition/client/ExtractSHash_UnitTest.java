@@ -70,7 +70,7 @@ public class ExtractSHash_UnitTest {
 		idToken.add("header", header);
 		idToken.add("claims", claims);
 
-		env.put("id_token", idToken);
+		env.putObject("id_token", idToken);
 
 	}
 

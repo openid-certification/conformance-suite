@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,8 +57,8 @@ public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTes
 
 		setStatus(Status.RUNNING);
 
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		return onAuthorizationCallbackResponse();
 	}

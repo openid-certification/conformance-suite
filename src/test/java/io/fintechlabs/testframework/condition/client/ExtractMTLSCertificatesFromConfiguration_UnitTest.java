@@ -301,7 +301,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 
@@ -322,7 +322,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			+ "\"ca\":\"" + caPEM + "\""
 			+ "}}").getAsJsonObject();
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 
@@ -341,7 +341,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			+ "\"cert\":\"" + cert + "\""
 			+ "}}").getAsJsonObject();
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -354,7 +354,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			+ "\"key\":\"bad key value\""
 			+ "}}").getAsJsonObject();
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -366,7 +366,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -379,7 +379,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}

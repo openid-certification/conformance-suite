@@ -71,7 +71,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint exte
 
 		logSuccess("Created client assertion claims", claims);
 
-		env.put("client_assertion_claims", claims);
+		env.putObject("client_assertion_claims", claims);
 
 		return env;
 

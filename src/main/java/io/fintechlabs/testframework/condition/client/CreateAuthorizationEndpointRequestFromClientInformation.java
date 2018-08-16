@@ -74,7 +74,7 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 			log("Leaving off 'scope' parameter from authorization request");
 		}
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Created authorization endpoint request", authorizationEndpointRequest);
 

@@ -64,7 +64,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 	@Test
 	public void testEvaluate() {
-		env.put("resource_assertion", resourceAssertion);
+		env.putObject("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
 	}
@@ -74,7 +74,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 		resourceAssertion.remove("assertion_type");
 
-		env.put("resource_assertion", resourceAssertion);
+		env.putObject("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
 
@@ -85,7 +85,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 		resourceAssertion.addProperty("assertion_type", "");
 
-		env.put("resource_assertion", resourceAssertion);
+		env.putObject("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
 
@@ -96,7 +96,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 		resourceAssertion.add("assertion_type", JsonNull.INSTANCE);
 
-		env.put("resource_assertion", resourceAssertion);
+		env.putObject("resource_assertion", resourceAssertion);
 
 		cond.evaluate(env);
 

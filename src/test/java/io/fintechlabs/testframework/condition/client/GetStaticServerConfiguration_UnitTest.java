@@ -65,7 +65,7 @@ public class GetStaticServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("config", goodConfig);
+		env.putObject("config", goodConfig);
 
 		cond.evaluate(env);
 
@@ -78,7 +78,7 @@ public class GetStaticServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_serverNotObject() {
 
-		env.put("config", badConfig_notObject);
+		env.putObject("config", badConfig_notObject);
 
 		cond.evaluate(env);
 	}
@@ -89,7 +89,7 @@ public class GetStaticServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_serverMissing() {
 
-		env.put("config", badConfig_serverMissing);
+		env.putObject("config", badConfig_serverMissing);
 
 		cond.evaluate(env);
 	}

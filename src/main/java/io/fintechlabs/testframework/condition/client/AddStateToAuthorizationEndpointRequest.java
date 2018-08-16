@@ -58,7 +58,7 @@ public class AddStateToAuthorizationEndpointRequest extends AbstractCondition {
 
 		authorizationEndpointRequest.addProperty("state", state);
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Added state parameter to request", authorizationEndpointRequest);
 

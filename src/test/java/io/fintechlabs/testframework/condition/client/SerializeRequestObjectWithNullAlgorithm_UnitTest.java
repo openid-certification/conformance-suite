@@ -90,7 +90,7 @@ public class SerializeRequestObjectWithNullAlgorithm_UnitTest {
 	@Test
 	public void testEvaluate_valuesPresent() throws JOSEException, ParseException {
 
-		env.put("request_object_claims", requestObjectClaims);
+		env.putObject("request_object_claims", requestObjectClaims);
 
 		cond.evaluate(env);
 

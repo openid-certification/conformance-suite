@@ -67,7 +67,7 @@ public class CheckIfAccountRequestsEndpointResponseError_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("account_requests_endpoint_response", successParams);
+		env.putObject("account_requests_endpoint_response", successParams);
 
 		cond.evaluate(env);
 
@@ -80,7 +80,7 @@ public class CheckIfAccountRequestsEndpointResponseError_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_error() {
 
-		env.put("account_requests_endpoint_response", errorParams);
+		env.putObject("account_requests_endpoint_response", errorParams);
 
 		cond.evaluate(env);
 

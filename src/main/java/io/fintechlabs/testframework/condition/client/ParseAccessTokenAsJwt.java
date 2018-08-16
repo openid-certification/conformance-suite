@@ -69,7 +69,7 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 			o.add("header", header);
 			o.add("claims", claims);
 
-			env.put("access_token_jwt", o);
+			env.putObject("access_token_jwt", o);
 
 			logSuccess("Extracted access token as a JWT", o);
 

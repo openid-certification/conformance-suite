@@ -86,7 +86,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 					logSuccess("Parsed registration endpoint response", jsonRoot.getAsJsonObject());
 
-					env.put("client", jsonRoot.getAsJsonObject());
+					env.putObject("client", jsonRoot.getAsJsonObject());
 
 					if (jsonRoot.getAsJsonObject().has("registration_client_uri") &&
 						jsonRoot.getAsJsonObject().has("registration_access_token")) {

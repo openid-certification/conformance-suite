@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -48,7 +47,7 @@ public class ExtractExpiresInFromTokenEndpointResponse extends AbstractCondition
 		/* Create our cut down JsonObject with just a single value in it */
 		JsonObject value = new JsonObject();
 		value.add("expires_in", expiresInValue);
-		env.put("expires_in", value);
+		env.putObject("expires_in", value);
 
 		logSuccess("Extracted 'expires_in'", value);
 

@@ -22,7 +22,6 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
-import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -81,7 +80,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		setStatus(Status.RUNNING);
 
-		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 

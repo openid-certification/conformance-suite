@@ -58,7 +58,7 @@ public class AddCodeVerifierToTokenEndpointRequest extends AbstractCondition {
 
 		o.addProperty("code_verifier", code_verifier);
 
-		env.put("token_endpoint_request_form_parameters", o);
+		env.putObject("token_endpoint_request_form_parameters", o);
 
 		log(o);
 

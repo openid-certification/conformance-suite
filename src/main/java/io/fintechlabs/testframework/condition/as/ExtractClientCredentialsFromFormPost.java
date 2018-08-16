@@ -62,7 +62,7 @@ public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 		clientAuthentication.addProperty("client_secret", clientSecret);
 		clientAuthentication.addProperty("method", "client_secret_post");
 
-		env.put("client_authentication", clientAuthentication);
+		env.putObject("client_authentication", clientAuthentication);
 
 		logSuccess("Extracted client authentication", clientAuthentication);
 

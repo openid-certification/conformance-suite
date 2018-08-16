@@ -27,7 +27,7 @@ public class SetDynamicRegistrationRequestGrantTypeToImplicit extends AbstractCo
 		JsonArray grantTypes = new JsonArray();
 		grantTypes.add("implicit");
 		dynamicRegistrationRequest.add("grant_types",grantTypes);
-		env.put("dynamic_registration_request", dynamicRegistrationRequest);
+		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
 
 		return env;
 	}

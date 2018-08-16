@@ -27,7 +27,7 @@ public class SetDynamicRegistrationRequestGrantTypeToAuthorizationCode extends A
 		JsonArray grantTypes = new JsonArray();
 		grantTypes.add("authorization_code");
 		dynamicRegistrationRequest.add("grant_types",grantTypes);
-		env.put("dynamic_registration_request", dynamicRegistrationRequest);
+		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
 
 		return env;
 	}

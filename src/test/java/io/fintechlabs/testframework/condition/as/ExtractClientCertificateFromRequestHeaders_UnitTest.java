@@ -78,7 +78,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("token_endpoint_request", tokenEndpointRequest);
+		env.putObject("token_endpoint_request", tokenEndpointRequest);
 
 		cond.evaluate(env);
 

@@ -67,7 +67,7 @@ public class FetchServerKeys extends AbstractCondition {
 		JsonElement jwks = env.getElementFromObject("server", "jwks");
 
 		if (jwks != null && jwks.isJsonObject()) {
-			env.put("server_jwks", jwks.getAsJsonObject());
+			env.putObject("server_jwks", jwks.getAsJsonObject());
 			logSuccess("Found static server JWKS", args("server_jwks", jwks));
 			return env;
 		} else {
@@ -92,7 +92,7 @@ public class FetchServerKeys extends AbstractCondition {
 
 					// since it parsed, we store it as a JSON object to grab it later on
 					JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
-					env.put("server_jwks", jwkSet);
+					env.putObject("server_jwks", jwkSet);
 
 					logSuccess("Parsed server JWK", args("server_jwks", jwkSet));
 					return env;

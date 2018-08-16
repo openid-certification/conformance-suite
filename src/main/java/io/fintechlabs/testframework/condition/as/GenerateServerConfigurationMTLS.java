@@ -73,7 +73,7 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo"); // TODO: should this be pulled into an optional mix-in?
 
 		// add this as the server configuration
-		env.put("server", server);
+		env.putObject("server", server);
 
 		env.putString("issuer", baseUrl);
 		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");

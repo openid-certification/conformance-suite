@@ -105,7 +105,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 					logSuccess("Successfully parsed server configuration", serverConfig);
 
-					env.put("server", serverConfig);
+					env.putObject("server", serverConfig);
 
 					return env;
 				} catch (JsonSyntaxException e) {

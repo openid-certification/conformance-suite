@@ -48,8 +48,8 @@ public class GetStaticClient2Configuration extends AbstractCondition {
 		if (client == null || !client.isJsonObject()) {
 			throw error("Definition for client2 not present in supplied configuration");
 		} else {
-			// we've got a client object, put it in the environment
-			env.put("client2", client.getAsJsonObject());
+			// we've got a client object, putObject it in the environment
+			env.putObject("client2", client.getAsJsonObject());
 
 			logSuccess("Found a static second client object", client.getAsJsonObject());
 			return env;

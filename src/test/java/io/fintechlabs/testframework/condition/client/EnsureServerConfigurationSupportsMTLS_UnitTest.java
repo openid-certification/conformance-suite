@@ -51,7 +51,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 
 		cond = new EnsureServerConfigurationSupportsMTLS("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("server", new JsonObject());
+		env.putObject("server", new JsonObject());
 	}
 
 	/**

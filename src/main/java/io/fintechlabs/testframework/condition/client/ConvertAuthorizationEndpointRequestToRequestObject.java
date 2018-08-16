@@ -55,7 +55,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject extends Abstract
 			requestObjectClaims.add(entry.getKey(), entry.getValue());
 		}
 
-		env.put("request_object_claims", requestObjectClaims);
+		env.putObject("request_object_claims", requestObjectClaims);
 
 		logSuccess("Created request object claims", args("request_object_claims", requestObjectClaims));
 

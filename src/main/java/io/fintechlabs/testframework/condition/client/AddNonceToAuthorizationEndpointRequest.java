@@ -58,7 +58,7 @@ public class AddNonceToAuthorizationEndpointRequest extends AbstractCondition {
 
 		authorizationEndpointRequest.addProperty("nonce", nonce);
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Added nonce parameter to request", authorizationEndpointRequest);
 

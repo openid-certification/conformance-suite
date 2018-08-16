@@ -53,7 +53,7 @@ public class AddClientAssertionToRevocationEndpointRequest extends AbstractCondi
 		o.addProperty("client_assertion", env.getString("client_assertion"));
 		o.addProperty("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
 
-		env.put("revocation_endpoint_request_form_parameters", o);
+		env.putObject("revocation_endpoint_request_form_parameters", o);
 
 		log("Added client assertion", o);
 

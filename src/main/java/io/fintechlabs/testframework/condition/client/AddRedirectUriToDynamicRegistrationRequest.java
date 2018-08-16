@@ -38,7 +38,7 @@ public class AddRedirectUriToDynamicRegistrationRequest extends AbstractConditio
 		redirectUris.add(redirectUri);
 		dynamicRegistrationRequest.add("redirect_uris", redirectUris);
 
-		env.put("dynamic_registration_request", dynamicRegistrationRequest);
+		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
 
 		return env;
 	}

@@ -146,8 +146,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 						responseHeaders.addProperty(entry.getKey(), entry.getValue());
 					}
 
-					env.put("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
-					env.put("resource_endpoint_response_headers", responseHeaders);
+					env.putObject("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
+					env.putObject("resource_endpoint_response_headers", responseHeaders);
 
 					logSuccess("Parsed account requests endpoint response", args("body", jsonString, "headers", responseHeaders));
 

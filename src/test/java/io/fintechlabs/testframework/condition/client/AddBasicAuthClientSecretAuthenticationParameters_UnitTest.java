@@ -65,7 +65,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 
 		expectedAuth = "Basic czZCaGRSa3F0Mzo3RmpmcDBaQnIxS3REUmJuZlZkbUl3";
 
-		env.put("client", client);
+		env.putObject("client", client);
 	}
 
 	/**

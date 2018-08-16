@@ -15,30 +15,11 @@
 package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-import java.text.ParseException;
 import java.time.Instant;
 
 /**
@@ -65,7 +46,7 @@ public class AddIatExpToRequestObject extends AbstractCondition {
 		requestObjectClaims.addProperty("iat", iat.getEpochSecond());
 		requestObjectClaims.addProperty("exp", exp.getEpochSecond());
 
-		env.put("request_object_claims", requestObjectClaims);
+		env.putObject("request_object_claims", requestObjectClaims);
 
 		logSuccess("Added exp & iat to request object claims", args(
 			"iat", requestObjectClaims.getAsJsonPrimitive("iat"),

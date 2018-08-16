@@ -53,7 +53,7 @@ public class AddClientIdToTokenEndpointRequest extends AbstractCondition {
 
 		o.addProperty("client_id", env.getString("client", "client_id"));
 
-		env.put("token_endpoint_request_form_parameters", o);
+		env.putObject("token_endpoint_request_form_parameters", o);
 
 		log(o);
 

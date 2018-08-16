@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -51,7 +50,7 @@ public class AddRedirectUriToDynamicRegistrationRequest_UnitTest {
 	@Test
 	public void testEvaluate_noErrors(){
 		env.putString("redirect_uri","https://example.org/redirect");
-		env.put("dynamic_registration_request", dynamicRegistrationRequest);
+		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
 		cond.evaluate(env);
 		assertThat(env.getObject("dynamic_registration_request").equals(goodDynamicRegistrationRequest)).isTrue();
 	}

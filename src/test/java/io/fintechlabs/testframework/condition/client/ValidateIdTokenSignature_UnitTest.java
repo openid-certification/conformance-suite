@@ -88,8 +88,8 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("id_token", goodIdToken);
-		env.put("server_jwks", goodServerJwks);
+		env.putObject("id_token", goodIdToken);
+		env.putObject("server_jwks", goodServerJwks);
 
 		cond.evaluate(env);
 
@@ -104,8 +104,8 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
-		env.put("id_token", badIdToken);
-		env.put("server_jwks", goodServerJwks);
+		env.putObject("id_token", badIdToken);
+		env.putObject("server_jwks", goodServerJwks);
 
 		cond.evaluate(env);
 
@@ -120,7 +120,7 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.put("server_jwks", goodServerJwks);
+		env.putObject("server_jwks", goodServerJwks);
 
 		cond.evaluate(env);
 
@@ -135,8 +135,8 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongKeys() {
 
-		env.put("id_token", goodIdToken);
-		env.put("server_jwks", wrongServerJwks);
+		env.putObject("id_token", goodIdToken);
+		env.putObject("server_jwks", wrongServerJwks);
 
 		cond.evaluate(env);
 
@@ -151,7 +151,7 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badKeys() {
 
-		env.put("id_token", goodIdToken);
+		env.putObject("id_token", goodIdToken);
 		env.putString("server_jwks", "this is not a key set");
 
 		cond.evaluate(env);
@@ -167,7 +167,7 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeys() {
 
-		env.put("id_token", goodIdToken);
+		env.putObject("id_token", goodIdToken);
 
 		cond.evaluate(env);
 

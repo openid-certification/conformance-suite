@@ -101,7 +101,7 @@ public class TestRunner {
 	private TestRunnerSupport support;
 
 	@Autowired
-	private MongoTemplate mongoTemplate; // FIXME: remove when below ImageAPI.java refactoring FIXME fixed
+	private MongoTemplate mongoTemplate; // FIXME: removeObject when below ImageAPI.java refactoring FIXME fixed
 
 	@Autowired
 	private EventLog eventLog;

@@ -131,7 +131,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 
@@ -149,7 +149,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingAuthorizationEndpoint() {
 
-		env.put("server", badConfigWithoutAuthorizationEndpoint);
+		env.putObject("server", badConfigWithoutAuthorizationEndpoint);
 
 		cond.evaluate(env);
 	}
@@ -161,7 +161,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	public void testEvaluate_badAuthorizationEndpoint() {
 		goodConfig.remove("authorization_endpoint");
 		goodConfig.addProperty("authorization_endpoint", "ExampleApp");
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 	}
@@ -172,7 +172,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingTokenEndpoint() {
 
-		env.put("server", badConfigWithoutTokenEndpoint);
+		env.putObject("server", badConfigWithoutTokenEndpoint);
 
 		cond.evaluate(env);
 	}
@@ -185,7 +185,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 		goodConfig.remove("token_endpoint");
 		goodConfig.addProperty("token_endpoint", "ExampleApp");
 
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 	}
@@ -197,7 +197,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingIssuer() {
 
-		env.put("server", badConfigWithoutIssuer);
+		env.putObject("server", badConfigWithoutIssuer);
 
 		cond.evaluate(env);
 	}
@@ -208,7 +208,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badIssuer() {
 
-		env.put("server", badConfigWithBadIssuer);
+		env.putObject("server", badConfigWithBadIssuer);
 
 		cond.evaluate(env);
 	}
@@ -219,7 +219,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingIntrospectionEndpoint() {
 
-		env.put("server", badConfigWithoutIntrospectionEndpoint);
+		env.putObject("server", badConfigWithoutIntrospectionEndpoint);
 
 		cond.evaluate(env);
 	}
@@ -232,7 +232,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 		goodConfig.remove("introspection_endpoint");
 		goodConfig.addProperty("introspection_endpoint", "ExampleApp");
 
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 	}
@@ -243,7 +243,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingRevocationEndpoint() {
 
-		env.put("server", badConfigWithoutRevocationEndpoint);
+		env.putObject("server", badConfigWithoutRevocationEndpoint);
 
 		cond.evaluate(env);
 	}
@@ -256,7 +256,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 		goodConfig.remove("revocation_endpoint");
 		goodConfig.addProperty("revocation_endpoint", "ExampleApp");
 
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 	}
@@ -267,7 +267,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingJwksUri() {
 
-		env.put("server", badConfigWithoutJwksUri);
+		env.putObject("server", badConfigWithoutJwksUri);
 
 		cond.evaluate(env);
 	}
@@ -281,7 +281,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 		goodConfig.remove("jwks_uri");
 		goodConfig.addProperty("jwks_uri", "ExampleApp");
 
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 	}

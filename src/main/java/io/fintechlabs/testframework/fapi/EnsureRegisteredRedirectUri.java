@@ -67,7 +67,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		// create a random redirect URI
 		callAndStopOnFailure(CreateBadRedirectUri.class);

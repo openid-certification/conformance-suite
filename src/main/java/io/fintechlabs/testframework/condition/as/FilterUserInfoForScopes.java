@@ -98,7 +98,7 @@ public class FilterUserInfoForScopes extends AbstractCondition {
 			}
 		}
 
-		env.put("user_info_endpoint_response", out);
+		env.putObject("user_info_endpoint_response", out);
 
 		logSuccess("User info endpoint output", out);
 

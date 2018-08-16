@@ -42,7 +42,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noClientConfig() {
-		env.put("config", new JsonObject());
+		env.putObject("config", new JsonObject());
 
 		cond.evaluate(env);
 	}
@@ -55,7 +55,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 		JsonObject config = new JsonParser().parse("{" +
 			"\"client\":{}" +
 			"}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 
@@ -72,7 +72,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 		JsonObject config = new JsonParser().parse("{" +
 			"\"client\":{\"client_name\":\"foo\"}" +
 			"}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 

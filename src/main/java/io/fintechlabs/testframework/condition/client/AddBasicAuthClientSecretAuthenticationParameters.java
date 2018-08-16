@@ -58,7 +58,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCo
 
 		if (headers == null) {
 			headers = new JsonObject();
-			env.put("token_endpoint_request_headers", headers);
+			env.putObject("token_endpoint_request_headers", headers);
 		}
 
 		String pw = Base64.getEncoder().encodeToString((id + ":" + secret).getBytes());

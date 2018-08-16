@@ -71,7 +71,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 			+ "\"scope\":\"address phone openid email profile\""
 			+ "}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("token_endpoint_request_form_parameters", tokenEndpointRequestFormParameters);
+		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequestFormParameters);
 
 		cond.evaluate(env);
 

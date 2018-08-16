@@ -143,7 +143,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -288,7 +288,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
@@ -479,7 +479,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 			env.mapKey("client", "client2");
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
-			// put everything back where we found it
+			// putObject everything back where we found it
 			env.unmapKey("client");
 			env.unmapKey("mutual_tls_authentication");
 			eventLog.endBlock();

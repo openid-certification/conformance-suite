@@ -80,7 +80,7 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 		claims.addProperty("iat", iat.getEpochSecond());
 		claims.addProperty("exp", exp.getEpochSecond());
 
-		env.put("id_token_claims", claims);
+		env.putObject("id_token_claims", claims);
 
 		logSuccess("Created ID Token Claims", claims);
 

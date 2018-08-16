@@ -74,7 +74,7 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("token_endpoint_response", goodResponse);
+		env.putObject("token_endpoint_response", goodResponse);
 
 		cond.evaluate(env);
 
@@ -92,7 +92,7 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		env.put("token_endpoint_response", badResponse);
+		env.putObject("token_endpoint_response", badResponse);
 
 		cond.evaluate(env);
 

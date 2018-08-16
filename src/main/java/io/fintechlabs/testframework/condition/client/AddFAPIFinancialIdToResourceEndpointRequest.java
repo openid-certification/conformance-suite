@@ -61,7 +61,7 @@ public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractConditi
 
 		headers.addProperty("x-fapi-financial-id", financialId);
 
-		env.put("resource_endpoint_request_headers", headers);
+		env.putObject("resource_endpoint_request_headers", headers);
 
 		return env;
 

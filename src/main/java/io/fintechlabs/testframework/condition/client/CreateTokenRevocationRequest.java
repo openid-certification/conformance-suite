@@ -28,7 +28,7 @@ public class CreateTokenRevocationRequest extends AbstractCondition {
 		JsonObject o = new JsonObject();
 		o.addProperty("token", accessToken);
 
-		env.put("revocation_endpoint_request_form_parameters", o);
+		env.putObject("revocation_endpoint_request_form_parameters", o);
 		logSuccess(o);
 
 		return env;

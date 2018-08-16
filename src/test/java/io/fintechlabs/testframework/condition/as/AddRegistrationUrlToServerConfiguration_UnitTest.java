@@ -63,7 +63,7 @@ public class AddRegistrationUrlToServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("server", server);
+		env.putObject("server", server);
 		env.putString("base_url", baseUrl);
 
 		cond.evaluate(env);
@@ -74,7 +74,7 @@ public class AddRegistrationUrlToServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_trailingSlash() {
 
-		env.put("server", server);
+		env.putObject("server", server);
 		env.putString("base_url", baseUrl + "/");
 
 		cond.evaluate(env);

@@ -96,8 +96,8 @@ public class CreateIntrospectionResponse_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("introspection_request", introspectionRequest);
-		env.put("resource", resource);
+		env.putObject("introspection_request", introspectionRequest);
+		env.putObject("resource", resource);
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
 
@@ -127,8 +127,8 @@ public class CreateIntrospectionResponse_UnitTest {
 	@Test
 	public void testEvaluate_badToken() {
 
-		env.put("introspection_request", introspectionRequestBadToken);
-		env.put("resource", resource);
+		env.putObject("introspection_request", introspectionRequestBadToken);
+		env.putObject("resource", resource);
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
 

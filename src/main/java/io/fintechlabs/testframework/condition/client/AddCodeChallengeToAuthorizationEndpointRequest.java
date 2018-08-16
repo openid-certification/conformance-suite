@@ -63,7 +63,7 @@ public class AddCodeChallengeToAuthorizationEndpointRequest extends AbstractCond
 		authorizationEndpointRequest.addProperty("code_challenge", code_challenge);
 		authorizationEndpointRequest.addProperty("code_challenge_method", code_challenge_method);
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		logSuccess("Added code_challenge and code_challenge_method parameters to request", authorizationEndpointRequest);
 

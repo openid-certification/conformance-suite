@@ -73,7 +73,7 @@ public class CheckForSubscriberInIdToken_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("id_token", goodToken);
+		env.putObject("id_token", goodToken);
 
 		cond.evaluate(env);
 
@@ -88,7 +88,7 @@ public class CheckForSubscriberInIdToken_UnitTest {
 
 		JsonObject badToken = goodToken;
 		badToken.get("claims").getAsJsonObject().remove("sub");
-		env.put("id_token", badToken);
+		env.putObject("id_token", badToken);
 
 		cond.evaluate(env);
 	}

@@ -48,7 +48,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");

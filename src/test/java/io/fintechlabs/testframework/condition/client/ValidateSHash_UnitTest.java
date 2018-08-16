@@ -59,7 +59,7 @@ public class ValidateSHash_UnitTest {
 
 		stateHash.addProperty("s_hash", s_hash);
 
-		env.put("s_hash", stateHash);
+		env.putObject("s_hash", stateHash);
 
 	}
 

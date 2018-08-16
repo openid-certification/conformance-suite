@@ -61,8 +61,8 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 		if (server == null || !server.isJsonObject()) {
 			throw error("Couldn't find server object in configuration");
 		} else {
-			// we've got a server object, put it in the environment
-			env.put("server", server.getAsJsonObject());
+			// we've got a server object, putObject it in the environment
+			env.putObject("server", server.getAsJsonObject());
 
 			logSuccess("Found a static server object", server.getAsJsonObject());
 			return env;

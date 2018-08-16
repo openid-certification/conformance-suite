@@ -22,7 +22,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
@@ -93,7 +92,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(GenerateServerConfiguration.class);
 		callAndStopOnFailure(AddUserinfoUrlToServerConfiguration.class);
@@ -174,7 +173,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("incoming_request", requestParts);
+		env.putObject("incoming_request", requestParts);
 
 		call(ExtractBearerAccessTokenFromHeader.class);
 		call(ExtractBearerAccessTokenFromParams.class);
@@ -203,7 +202,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 	 */
 	private Object registrationEndpoint(JsonObject requestParts) {
 
-		//env.put("client_registration_request", requestParts.get("body_json"));
+		//env.putObject("client_registration_request", requestParts.get("body_json"));
 
 		// TODO Auto-generated method stub
 		return null;
@@ -238,7 +237,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("token_endpoint_request", requestParts);
+		env.putObject("token_endpoint_request", requestParts);
 
 		call(ExtractClientCredentialsFromFormPost.class);
 
@@ -275,7 +274,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.put("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 

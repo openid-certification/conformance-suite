@@ -61,7 +61,7 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", interactionId);
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 
@@ -75,7 +75,7 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", "incorrect");
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 
@@ -88,7 +88,7 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 	public void testEvaluate_missingId() {
 
 		JsonObject headers = new JsonObject();
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 

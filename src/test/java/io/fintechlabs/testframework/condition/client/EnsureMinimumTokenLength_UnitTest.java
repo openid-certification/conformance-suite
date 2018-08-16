@@ -54,7 +54,7 @@ public class EnsureMinimumTokenLength_UnitTest {
 	public void testEvaluate_entropyGood() {
 		JsonObject o = new JsonObject();
 		o.addProperty("access_token", "aQm0ukLetSUOXr1XA8RLHdeO9eFdoBGF8Sn1UhP9");
-		env.put("token_endpoint_response", o);
+		env.putObject("token_endpoint_response", o);
 
 		cond.evaluate(env);
 	}
@@ -63,7 +63,7 @@ public class EnsureMinimumTokenLength_UnitTest {
 	public void testEvaluate_entropyBad() {
 		JsonObject o = new JsonObject();
 		o.addProperty("access_token", "aQm0ukLetSUOXr1");
-		env.put("token_endpoint_response", o);
+		env.putObject("token_endpoint_response", o);
 
 		cond.evaluate(env);
 	}

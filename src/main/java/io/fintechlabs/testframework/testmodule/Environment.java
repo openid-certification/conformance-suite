@@ -72,7 +72,7 @@ public class Environment {
 	// key for storing native values directly
 	private static final String NATIVE_VALUES = "_NATIVE_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
-		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to put the string values
+		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to putObject the string values
 
 	private Map<String, String> keyMap = new HashMap<>();
 
@@ -113,9 +113,9 @@ public class Environment {
 	 *
 	 * This does not affect the native value store.
 	 *
-	 * @param key the object ID to remove, will be checked against any mapped keys
+	 * @param key the object ID to removeObject, will be checked against any mapped keys
 	 */
-	public void remove(String key) {
+	public void removeObject(String key) {
 		store.remove(getEffectiveKey(key));
 	}
 
@@ -131,9 +131,8 @@ public class Environment {
 	 * @param key the key to store the object under; this may be mapped
 	 * @param value the object to store
 	 * @return the stored object
-	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
 	 */
-	public JsonObject put(String key, JsonObject value) {
+	public JsonObject putObject(String key, JsonObject value) {
 		return store.put(getEffectiveKey(key), value);
 	}
 
@@ -365,7 +364,7 @@ public class Environment {
 	 *
 	 * Any calls to object functions using "foo" such as getObject(foo) will return { qux: 9876 }
 	 *
-	 * @param key the key to remove a mapping about, this is the "from" used in mapKey
+	 * @param key the key to removeObject a mapping about, this is the "from" used in mapKey
 	 * @return the previously mapped key or "null" if not mapped
 	 */
 	public String unmapKey(String key) {

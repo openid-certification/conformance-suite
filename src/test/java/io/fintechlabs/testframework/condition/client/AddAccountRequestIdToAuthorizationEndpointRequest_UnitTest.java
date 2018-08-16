@@ -62,7 +62,7 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("authorization_endpoint_request", new JsonObject());
+		env.putObject("authorization_endpoint_request", new JsonObject());
 		env.putString("account_request_id", requestId);
 
 		cond.evaluate(env);

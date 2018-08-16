@@ -82,7 +82,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		cond.evaluate(env);
 
