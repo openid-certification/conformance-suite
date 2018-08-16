@@ -82,12 +82,12 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("authorization_endpoint_request");
-		assertThat(env.get("request_object_claims")).isEqualTo(authorizationEndpointRequest);
+		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
+		assertThat(env.getObject("request_object_claims")).isEqualTo(authorizationEndpointRequest);
 	}
 
 	/**

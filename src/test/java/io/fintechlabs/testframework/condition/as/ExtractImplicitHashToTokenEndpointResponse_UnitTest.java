@@ -50,8 +50,8 @@ public class ExtractImplicitHashToTokenEndpointResponse_UnitTest {
 
 		verify(env, atLeastOnce()).getString("implicit_hash");
 
-		assertThat(env.get("callback_params")).isNotNull();
-		assertThat(env.get("callback_params").entrySet().size()).isEqualTo(4);
+		assertThat(env.getObject("callback_params")).isNotNull();
+		assertThat(env.getObject("callback_params").entrySet().size()).isEqualTo(4);
 		assertThat(env.getString("callback_params", "access_token")).isEqualTo("2YotnFZFEjr1zCsicMWpAA");
 		assertThat(env.getString("callback_params", "state")).isEqualTo("xyz");
 		assertThat(env.getString("callback_params", "token_type")).isEqualTo("example");

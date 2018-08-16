@@ -54,7 +54,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
 	public Environment evaluate(Environment env) {
 
-		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
+		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		if (authorizationEndpointRequest == null) {
 			throw error("Couldn't find authorization endpoint request");
 		}
@@ -64,7 +64,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 			throw error("Couldn't find request object");
 		}
 
-		JsonObject requestObjectClaims = env.get("request_object_claims");
+		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 		if (requestObjectClaims == null) {
 			throw error("Couldn't find request object claims");
 		}

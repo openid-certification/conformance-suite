@@ -16,8 +16,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import java.net.MalformedURLException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
@@ -25,7 +23,6 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.condition.util.TLSTestValueExtractor;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -60,7 +57,7 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 			}
 
 			JsonObject authorizationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(authorizationEndpoint);
-			env.put("authorization_endpoint_tls", authorizationEndpointTls);
+			env.putObject("authorization_endpoint_tls", authorizationEndpointTls);
 
 			String tokenEndpoint = env.getString("server", "token_endpoint");
 			if (Strings.isNullOrEmpty(tokenEndpoint)) {
@@ -68,20 +65,20 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 			}
 
 			JsonObject tokenEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(tokenEndpoint);
-			env.put("token_endpoint_tls", tokenEndpointTls);
+			env.putObject("token_endpoint_tls", tokenEndpointTls);
 
 			String userInfoEndpoint = env.getString("server", "userinfo_endpoint");
 			JsonObject userInfoEndpointTls = null;
 			if (!Strings.isNullOrEmpty(userInfoEndpoint)) {
 				userInfoEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(userInfoEndpoint);
-				env.put("userinfo_endpoint_tls", userInfoEndpointTls);
+				env.putObject("userinfo_endpoint_tls", userInfoEndpointTls);
 			}
 
 			String registrationEndpoint = env.getString("server", "registration_endpoint");
 			JsonObject registrationEndpointTls = null;
 			if (!Strings.isNullOrEmpty(registrationEndpoint)) {
 				registrationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(registrationEndpoint);
-				env.put("registration_endpoint_tls", registrationEndpointTls);
+				env.putObject("registration_endpoint_tls", registrationEndpointTls);
 			}
 
 			logSuccess("Extracted TLS information from authorization server configuration", args(

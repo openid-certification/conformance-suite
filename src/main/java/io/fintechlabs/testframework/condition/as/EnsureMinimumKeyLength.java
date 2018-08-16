@@ -43,7 +43,7 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 	@PreEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.get("server_jwks");
+		JsonObject jwks = env.getObject("server_jwks");
 		if (jwks == null) {
 			throw error("Couldn't find JWKs in environment");
 		}

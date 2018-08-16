@@ -41,7 +41,7 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 
 	protected Environment extractIdToken(Environment env, String key) {
 
-		JsonElement idTokenElement = env.findElement(key, "id_token");
+		JsonElement idTokenElement = env.getElementFromObject(key, "id_token");
 		if (idTokenElement == null || !idTokenElement.isJsonPrimitive()) {
 			throw error("Couldn't find an ID Token in response");
 		}
@@ -61,7 +61,7 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 			o.add("claims", claims);
 
 			// save the parsed ID token
-			env.put("id_token", o);
+			env.putObject("id_token", o);
 
 			logSuccess("Found and parsed the ID Token", o);
 

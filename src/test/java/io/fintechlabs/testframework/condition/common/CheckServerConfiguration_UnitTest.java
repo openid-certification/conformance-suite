@@ -73,7 +73,7 @@ public class CheckServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("server", goodConfig);
+		env.putObject("server", goodConfig);
 
 		cond.evaluate(env);
 
@@ -88,7 +88,7 @@ public class CheckServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingAuthorizationEndpoint() {
 
-		env.put("server", badConfigWithoutAuthorizationEndpoint);
+		env.putObject("server", badConfigWithoutAuthorizationEndpoint);
 
 		cond.evaluate(env);
 	}
@@ -99,7 +99,7 @@ public class CheckServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingTokenEndpoint() {
 
-		env.put("server", badConfigWithoutTokenEndpoint);
+		env.putObject("server", badConfigWithoutTokenEndpoint);
 
 		cond.evaluate(env);
 	}
@@ -110,7 +110,7 @@ public class CheckServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingIssuer() {
 
-		env.put("server", badConfigWithoutIssuer);
+		env.putObject("server", badConfigWithoutIssuer);
 
 		cond.evaluate(env);
 	}

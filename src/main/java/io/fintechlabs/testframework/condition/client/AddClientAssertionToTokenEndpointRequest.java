@@ -45,16 +45,16 @@ public class AddClientAssertionToTokenEndpointRequest extends AbstractCondition 
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("token_endpoint_request_form_parameters")) {
+		if (!env.containsObject("token_endpoint_request_form_parameters")) {
 			throw error("Couldn't find request form");
 		}
 
-		JsonObject o = env.get("token_endpoint_request_form_parameters");
+		JsonObject o = env.getObject("token_endpoint_request_form_parameters");
 
 		o.addProperty("client_assertion", env.getString("client_assertion"));
 		o.addProperty("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
 
-		env.put("token_endpoint_request_form_parameters", o);
+		env.putObject("token_endpoint_request_form_parameters", o);
 
 		log("Added client assertion", o);
 

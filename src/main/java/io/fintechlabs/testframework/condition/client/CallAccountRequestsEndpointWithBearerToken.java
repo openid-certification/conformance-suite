@@ -91,9 +91,9 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			throw error("Resource endpoint not found");
 		}
 
-		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
-		JsonObject requestObject = env.get("account_requests_endpoint_request");
+		JsonObject requestObject = env.getObject("account_requests_endpoint_request");
 		if (requestObject == null) {
 			throw error("Couldn't find request object");
 		}
@@ -146,8 +146,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 						responseHeaders.addProperty(entry.getKey(), entry.getValue());
 					}
 
-					env.put("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
-					env.put("resource_endpoint_response_headers", responseHeaders);
+					env.putObject("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
+					env.putObject("resource_endpoint_response_headers", responseHeaders);
 
 					logSuccess("Parsed account requests endpoint response", args("body", jsonString, "headers", responseHeaders));
 

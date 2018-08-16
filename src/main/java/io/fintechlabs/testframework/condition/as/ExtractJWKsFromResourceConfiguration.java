@@ -50,12 +50,12 @@ public class ExtractJWKsFromResourceConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "resource_jwks")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("resource")) {
+		if (!env.containsObject("resource")) {
 			throw error("Couldn't find resource configuration");
 		}
 
 		// bump the client's internal JWK up to the root
-		JsonElement jwks = env.findElement("resource", "jwks");
+		JsonElement jwks = env.getElementFromObject("resource", "jwks");
 
 		if (jwks == null) {
 			throw error("Couldn't find JWKs in resource configuration");
@@ -71,8 +71,8 @@ public class ExtractJWKsFromResourceConfiguration extends AbstractCondition {
 
 			logSuccess("Extracted resource JWK", args("resource_jwks", jwks, "public_resource_jwks", pubObj));
 
-			env.put("resource_jwks", jwks.getAsJsonObject());
-			env.put("resource_public_jwks", pubObj.getAsJsonObject());
+			env.putObject("resource_jwks", jwks.getAsJsonObject());
+			env.putObject("resource_public_jwks", pubObj.getAsJsonObject());
 
 			return env;
 

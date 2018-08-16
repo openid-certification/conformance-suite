@@ -65,9 +65,9 @@ public class CallRevocationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"revocation_endpoint\":\"https://good.example.com/revoke\""
 			+ "}").getAsJsonObject();
-		env.put("server",server);
-		env.put("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
-		env.put("revocation_endpoint_request_headers", requestHeaders);
+		env.putObject("server",server);
+		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
+		env.putObject("revocation_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 		hoverfly.verify(service("good.example.com")
@@ -81,8 +81,8 @@ public class CallRevocationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"revocation_endpoint\":\"https://good.example.com/revoke\""
 			+ "}").getAsJsonObject();
-		env.put("server",server);
-		env.put("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
+		env.putObject("server",server);
+		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 
 		cond.evaluate(env);
 		hoverfly.verify(service("good.example.com")
@@ -95,8 +95,8 @@ public class CallRevocationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"revocation_endpoint\":\"https://error.example.com/revoke\""
 			+ "}").getAsJsonObject();
-		env.put("server",server);
-		env.put("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
+		env.putObject("server",server);
+		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 
 		cond.evaluate(env);
 	}
@@ -106,8 +106,8 @@ public class CallRevocationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"not_specifiying_revocation_endpoint\":\"https://error.example.com/revoke\""
 			+ "}").getAsJsonObject();
-		env.put("server",server);
-		env.put("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
+		env.putObject("server",server);
+		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 
 		cond.evaluate(env);
 	}
@@ -117,7 +117,7 @@ public class CallRevocationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"revocation_endpoint\":\"https://error.example.com/revoke\""
 			+ "}").getAsJsonObject();
-		env.put("server",server);
+		env.putObject("server",server);
 
 		cond.evaluate(env);
 	}

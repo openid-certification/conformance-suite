@@ -62,8 +62,8 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 	@PreEnvironment(required = { "client_assertion_claims", "client_jwks" })
 	@PostEnvironment(strings = "client_assertion")
 	public Environment evaluate(Environment env) {
-		JsonObject claims = env.get("client_assertion_claims");
-		JsonObject jwks = env.get("client_jwks");
+		JsonObject claims = env.getObject("client_assertion_claims");
+		JsonObject jwks = env.getObject("client_jwks");
 
 		if (claims == null) {
 			throw error("Couldn't find claims");

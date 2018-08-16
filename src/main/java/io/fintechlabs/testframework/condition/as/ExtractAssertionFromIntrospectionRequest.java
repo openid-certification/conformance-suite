@@ -71,7 +71,7 @@ public class ExtractAssertionFromIntrospectionRequest extends AbstractCondition 
 			o.add("assertion_header", parser.parse(parsed.getHeader().toString()));
 			o.add("assertion_payload", parser.parse(parsed.getJWTClaimsSet().toString()));
 
-			env.put("resource_assertion", o);
+			env.putObject("resource_assertion", o);
 
 			logSuccess("Extracted assertion from resource server", o);
 

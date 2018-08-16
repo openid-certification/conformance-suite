@@ -2,8 +2,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Date;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -58,7 +55,7 @@ public class ValidateExpiresIn_UnitTest {
 	@Test
 	public void ValidateExpiresIn_GoodInteger() {
 
-		env.put("expires_in", goodInteger);
+		env.putObject("expires_in", goodInteger);
 
 		cond.evaluate(env);
 	}
@@ -70,7 +67,7 @@ public class ValidateExpiresIn_UnitTest {
 	@Test (expected = ConditionError.class)
 	public void ValidateExpiresIn_BadStringNumeric() {
 
-		env.put("expires_in", badStringNumeric);
+		env.putObject("expires_in", badStringNumeric);
 
 		cond.evaluate(env);
 	}
@@ -81,7 +78,7 @@ public class ValidateExpiresIn_UnitTest {
 	@Test (expected = ConditionError.class)
 	public void ValidateExpiresIn_BadNonPrimitive() {
 
-		env.put("expires_in", badNonPrimitive);
+		env.putObject("expires_in", badNonPrimitive);
 
 		cond.evaluate(env);
 	}
@@ -92,7 +89,7 @@ public class ValidateExpiresIn_UnitTest {
 	@Test (expected = ConditionError.class)
 	public void ValidateExpiresIn_BadStringAlpha() {
 
-		env.put("expires_in", badStringAlpha);
+		env.putObject("expires_in", badStringAlpha);
 
 		cond.evaluate(env);
 	}

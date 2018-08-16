@@ -45,7 +45,7 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		JsonElement supportedAuthMethods = env.findElement("server", "token_endpoint_auth_methods_supported");
+		JsonElement supportedAuthMethods = env.getElementFromObject("server", "token_endpoint_auth_methods_supported");
 
 		if (supportedAuthMethods == null) {
 			// Null implies default (only client_secret_basic)

@@ -48,7 +48,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
@@ -87,7 +87,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
-		expose("client_name", env.findElement("dynamic_registration_request", "client_name").getAsString());
+		expose("client_name", env.getElementFromObject("dynamic_registration_request", "client_name").getAsString());
 
 		// Run without redirect uris OAuth 2.0 Dynamic Registration section 2.
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);

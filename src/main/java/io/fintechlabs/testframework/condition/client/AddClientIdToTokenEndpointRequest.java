@@ -45,15 +45,15 @@ public class AddClientIdToTokenEndpointRequest extends AbstractCondition {
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("token_endpoint_request_form_parameters")) {
+		if (!env.containsObject("token_endpoint_request_form_parameters")) {
 			throw error("Couldn't find request form");
 		}
 
-		JsonObject o = env.get("token_endpoint_request_form_parameters");
+		JsonObject o = env.getObject("token_endpoint_request_form_parameters");
 
 		o.addProperty("client_id", env.getString("client", "client_id"));
 
-		env.put("token_endpoint_request_form_parameters", o);
+		env.putObject("token_endpoint_request_form_parameters", o);
 
 		log(o);
 

@@ -96,14 +96,14 @@ public class CreateIntrospectionResponse_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("introspection_request", introspectionRequest);
-		env.put("resource", resource);
+		env.putObject("introspection_request", introspectionRequest);
+		env.putObject("resource", resource);
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
 
 		cond.evaluate(env);
 
-		JsonObject res = env.get("introspection_response");
+		JsonObject res = env.getObject("introspection_response");
 
 		assertNotNull(res);
 		assertTrue(res.has("active"));
@@ -127,14 +127,14 @@ public class CreateIntrospectionResponse_UnitTest {
 	@Test
 	public void testEvaluate_badToken() {
 
-		env.put("introspection_request", introspectionRequestBadToken);
-		env.put("resource", resource);
+		env.putObject("introspection_request", introspectionRequestBadToken);
+		env.putObject("resource", resource);
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
 
 		cond.evaluate(env);
 
-		JsonObject res = env.get("introspection_response");
+		JsonObject res = env.getObject("introspection_response");
 
 		assertNotNull(res);
 		assertTrue(res.has("active"));

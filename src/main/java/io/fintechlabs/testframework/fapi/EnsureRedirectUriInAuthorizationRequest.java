@@ -59,7 +59,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		// Create a redirect URI (this will be removed from the actual request)
 		callAndStopOnFailure(CreateRedirectUri.class);
@@ -82,7 +82,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 		// Remove the redirect URL
-		env.get("authorization_endpoint_request").remove("redirect_uri");
+		env.getObject("authorization_endpoint_request").remove("redirect_uri");
 
 		setStatus(Status.CONFIGURED);
 

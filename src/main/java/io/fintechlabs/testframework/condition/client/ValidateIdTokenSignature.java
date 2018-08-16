@@ -58,16 +58,16 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 	@PreEnvironment(required = { "id_token", "server_jwks" })
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("id_token")) {
+		if (!env.containsObject("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 
-		if (!env.containsObj("server_jwks")) {
+		if (!env.containsObject("server_jwks")) {
 			throw error("Couldn't find server's public key");
 		}
 
 		String idToken = env.getString("id_token", "value");
-		JsonObject serverJwks = env.get("server_jwks"); // to validate the signature
+		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
 		try {
 			// translate stored items into nimbus objects

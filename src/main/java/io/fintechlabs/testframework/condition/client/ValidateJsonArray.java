@@ -19,7 +19,7 @@ public class ValidateJsonArray extends AbstractCondition {
 			List<String> setValues, Integer minimumMatchesRequired,
 			String errorMessageNotEnough) {
 
-		JsonElement serverValues = env.findElement("server", environmentVariable);
+		JsonElement serverValues = env.getElementFromObject("server", environmentVariable);
 		String errorMessage = null;
 		int foundCount = 0;
 

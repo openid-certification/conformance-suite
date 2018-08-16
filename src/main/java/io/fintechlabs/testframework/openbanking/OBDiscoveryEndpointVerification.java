@@ -82,7 +82,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		call(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported .class, ConditionResult.FAILURE);
 
 		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
-			.skipIfElementRequired("server", "userinfo_endpoint")
+			.skipIfElementMissing("server", "userinfo_endpoint")
 			.onFail(ConditionResult.FAILURE)
 			.onSkip(ConditionResult.INFO)
 			.dontStopOnFailure()
@@ -92,7 +92,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		call(CheckDiscEndpointAuthorizationEndpoint.class, ConditionResult.FAILURE);
 
 		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
-			.skipIfElementRequired("server", "registration_endpoint")
+			.skipIfElementMissing("server", "registration_endpoint")
 			.onFail(ConditionResult.FAILURE)
 			.onSkip(ConditionResult.INFO)
 			.dontStopOnFailure()
@@ -107,7 +107,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

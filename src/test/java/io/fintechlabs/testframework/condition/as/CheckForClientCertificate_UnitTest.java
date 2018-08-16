@@ -60,7 +60,7 @@ public class CheckForClientCertificate_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("client_certificate", certificate);
+		env.putObject("client_certificate", certificate);
 
 		cond.evaluate(env);
 

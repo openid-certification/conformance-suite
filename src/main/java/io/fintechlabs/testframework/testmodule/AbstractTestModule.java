@@ -18,7 +18,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -153,8 +152,8 @@ public abstract class AbstractTestModule implements TestModule {
 		Class<? extends Condition> conditionClass) {
 
 		call(condition(conditionClass)
-			.skipIfObjectsRequired(required)
-			.skipIfStringsRequired(strings)
+			.skipIfObjectsMissing(required)
+			.skipIfStringsMissing(strings)
 			.onSkip(onSkip)
 			.onFail(ConditionResult.INFO)
 			.dontStopOnFailure());
@@ -163,8 +162,8 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
-			.skipIfObjectsRequired(required)
-			.skipIfStringsRequired(strings)
+			.skipIfObjectsMissing(required)
+			.skipIfStringsMissing(strings)
 			.onSkip(onSkip)
 			.requirements(requirements)
 			.onFail(ConditionResult.WARNING)
@@ -174,8 +173,8 @@ public abstract class AbstractTestModule implements TestModule {
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
-			.skipIfObjectsRequired(required)
-			.skipIfStringsRequired(strings)
+			.skipIfObjectsMissing(required)
+			.skipIfStringsMissing(strings)
 			.onSkip(onSkip)
 			.requirements(requirements)
 			.onFail(onFail)
@@ -183,91 +182,76 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	/**
-	 * Internal uber-method for calling a condition
+	 * Call the condition as specified in the builder. The ConditionCallBuilder is accessed in the following order:
 	 *
-	 * @param conditionClass
-	 *            The condition to call and evaluate
-	 * @param onFail
-	 *            What result to log if the condition fails
-	 * @param onSkip
-	 *            What result to log if the condition is skipped
-	 * @param stopOnFailure
-	 *            Whether to stop the test if the condition fails or keep going
-	 * @param skipIfObjectsRequired
-	 *            List of objects to check the environment for and skip the condition evaluation if they're not found
-	 * @param skipIfStringsRequired
-	 *            List of strings to check the environment for and skip the condition evaluation if they're not found
-	 * @param skipIfElementsRequired
-	 *            List of
-	 * @param requirements
-	 *            The list of requirements that are tied to this condition within this test module
+	 *  - condition class is instantiated
+	 *  - missing objects are checked
+	 *  - missing strings are checked
+	 *  - missing elements are checked
+	 *  - pre-environment objects are checked
+	 *  - pre-environment strings are checked
+	 *  - condition is evaluated
+	 *  - if failed, either throw a test exception or just log the failure
+	 *  - if not failed:
+	 *  	- post-environment objects are checked
+	 *  	- post-environment strings are checked
+	 *
+	 * @param builder the fully configured condition call builder
 	 */
-	private void callConditionInternal(Class<? extends Condition> conditionClass,
-		List<String> requirements,
-		ConditionResult onFail,
-		ConditionResult onSkip,
-		boolean stopOnFailure,
-		List<String> skipIfObjectsRequired,
-		List<String> skipIfStringsRequired,
-		List<Pair<String, String>> skipIfElementsRequired) {
+	protected void call(ConditionCallBuilder builder) {
 
 		try {
 
 			// create a new condition object from the class above
-			Condition condition = conditionClass
+			Condition condition = builder.getConditionClass()
 				.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
-				.newInstance(id, eventLog, onFail, requirements.toArray(new String[] {}));
-			Method eval = conditionClass.getMethod("evaluate", Environment.class);
+				.newInstance(id, eventLog, builder.getOnFail(), builder.getRequirements());
+			Method eval = builder.getConditionClass().getMethod("evaluate", Environment.class);
 
-			logger.info((stopOnFailure ? ">>" : "}}") + " Calling Condition " + conditionClass.getSimpleName());
+			logger.info((builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
 
-			// check the environment to see if we need to skip anything
-			if (skipIfObjectsRequired != null) {
-				for (String req : skipIfObjectsRequired) {
-					if (!env.containsObj(req)) {
-						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find key in environment: " + req);
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Skipped evaluation due to missing required object: " + req,
-							"expected", req,
-							"result", onSkip,
-							"mapped", env.isKeyMapped(req) ? env.getEffectiveKey(req) : null
-						// TODO: log the environment here?
-						));
-						updateResultFromConditionFailure(onSkip);
-						return;
-					}
+			// check the environment to see if we need to skip this call
+			for (String req : builder.getSkipIfObjectsMissing()) {
+				if (!env.containsObject(req)) {
+					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find key in environment: " + req);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation due to missing required object: " + req,
+						"expected", req,
+						"result", builder.getOnSkip(),
+						"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
+					// TODO: log the environment here?
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
 				}
 			}
-			if (skipIfStringsRequired != null) {
-				for (String s : skipIfStringsRequired) {
-					if (Strings.isNullOrEmpty(env.getString(s))) {
-						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find string in environment: " + s);
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Skipped evaluation due to missing required string: " + s,
-							"expected", s,
-							"result", onSkip
-						// TODO: log the environment here?
-						));
-						updateResultFromConditionFailure(onSkip);
-						return;
-					}
+			for (String s : builder.getSkipIfStringsMissing()) {
+				if (Strings.isNullOrEmpty(env.getString(s))) {
+					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find string in environment: " + s);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation due to missing required string: " + s,
+						"expected", s,
+						"result", builder.getOnSkip()
+					// TODO: log the environment here?
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
 				}
 			}
-			if (skipIfElementsRequired != null) {
-				for (Pair<String, String> idx : skipIfElementsRequired) {
-					JsonElement el = env.findElement(idx.getLeft(), idx.getRight());
-					if (el == null) {
-						logger.info("[skip] Test condition " + conditionClass.getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
-							"object", idx.getLeft(),
-							"path", idx.getRight(),
-							"result", onSkip
-						// TODO: log the environment here?
-						));
-						updateResultFromConditionFailure(onSkip);
-						return;
-					}
+			for (Pair<String, String> idx : builder.getSkipIfElementsMissing()) {
+				JsonElement el = env.getElementFromObject(idx.getLeft(), idx.getRight());
+				if (el == null) {
+					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
+						"object", idx.getLeft(),
+						"path", idx.getRight(),
+						"mapped", env.isKeyShadowed(idx.getLeft()) ? env.getEffectiveKey(idx.getLeft()) : null,
+						"result", builder.getOnSkip()
+					// TODO: log the environment here?
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
 				}
 			}
 
@@ -275,20 +259,20 @@ public abstract class AbstractTestModule implements TestModule {
 			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
 			if (pre != null) {
 				for (String req : pre.required()) {
-					if (!env.containsObj(req)) {
-						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+					if (!env.containsObject(req)) {
+						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
-							"result", onFail,
-							"mapped", env.isKeyMapped(req) ? env.getEffectiveKey(req) : null
+							"result", builder.getOnFail(),
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
-						if (stopOnFailure) {
+						if (builder.isStopOnFailure()) {
 							fireTestFailure();
 							throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
 						} else {
-							updateResultFromConditionFailure(onFail);
+							updateResultFromConditionFailure(builder.getOnFail());
 							return;
 						}
 
@@ -296,18 +280,18 @@ public abstract class AbstractTestModule implements TestModule {
 				}
 				for (String s : pre.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
-						logger.info("[pre] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
 							"expected", s,
-							"result", onFail
+							"result", builder.getOnFail()
 						// TODO: log the environment here?
 						));
-						if (stopOnFailure) {
+						if (builder.isStopOnFailure()) {
 							fireTestFailure();
 							throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
 						} else {
-							updateResultFromConditionFailure(onFail);
+							updateResultFromConditionFailure(builder.getOnFail());
 							return;
 						}
 					}
@@ -321,38 +305,38 @@ public abstract class AbstractTestModule implements TestModule {
 			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);
 			if (post != null) {
 				for (String req : post.required()) {
-					if (!env.containsObj(req)) {
-						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find key in environment: " + req);
+					if (!env.containsObject(req)) {
+						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
-							"result", onFail,
+							"result", builder.getOnFail(),
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
-						if (stopOnFailure) {
+						if (builder.isStopOnFailure()) {
 							fireTestFailure();
 							throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
 						} else {
-							updateResultFromConditionFailure(onFail);
+							updateResultFromConditionFailure(builder.getOnFail());
 							return;
 						}
 					}
 				}
 				for (String s : post.strings()) {
 					if (Strings.isNullOrEmpty(env.getString(s))) {
-						logger.info("[post] Test condition " + conditionClass.getSimpleName() + " failure, couldn't find string in environment: " + s);
+						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
 							"expected", s,
-							"result", onFail
+							"result", builder.getOnFail()
 						// TODO: log the environment here?
 						));
-						if (stopOnFailure) {
+						if (builder.isStopOnFailure()) {
 							fireTestFailure();
 							throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
 						} else {
-							updateResultFromConditionFailure(onFail);
+							updateResultFromConditionFailure(builder.getOnFail());
 							return;
 						}
 					}
@@ -360,70 +344,85 @@ public abstract class AbstractTestModule implements TestModule {
 			}
 
 		} catch (ConditionError error) {
-			if (stopOnFailure) {
-				logger.info("Test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
+			if (builder.isStopOnFailure()) {
+				logger.info("Test condition " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 				fireTestFailure();
 				throw new TestFailureException(error);
 			} else {
-				logger.info("Ignoring optional test condition " + conditionClass.getSimpleName() + " failure: " + error.getMessage());
-				updateResultFromConditionFailure(onFail);
+				logger.info("Ignoring optional test condition " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+				updateResultFromConditionFailure(builder.getOnFail());
 			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
-			if (stopOnFailure) {
+			if (builder.isStopOnFailure()) {
 				logger.error("Couldn't create required condition object", e);
 				fireTestFailure();
-				throw new TestFailureException(getId(), "Couldn't create required condition: " + conditionClass.getSimpleName());
+				throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
 			} else {
 				logger.error("Couldn't create optional condition object", e);
-				updateResultFromConditionFailure(onFail);
+				updateResultFromConditionFailure(builder.getOnFail());
 			}
 		} catch (Exception e) {
 			logException(e);
-			if (stopOnFailure) {
+			if (builder.isStopOnFailure()) {
 				logger.error("Generic error from underlying test framework", e);
 				fireTestFailure();
 				throw new TestFailureException(getId(), e.getMessage());
 			} else {
 				logger.error("Generic error from underlying test framework", e);
-				updateResultFromConditionFailure(onFail);
+				updateResultFromConditionFailure(builder.getOnFail());
 			}
 		}
 
 	}
 
+	/**
+	 * Create a new condition call builder, which can be passed to call()
+	 */
 	protected ConditionCallBuilder condition(Class<? extends Condition> conditionClass) {
 		return new ConditionCallBuilder(conditionClass);
 	}
 
 	/**
-	 * Call the condition as specified in the builder, including mapping or unmapping any
-	 * environment keys first.
-	 *
-	 * @param builder
+	 * Create a new test execution builder, which can be passed to call()
 	 */
-	protected void call(ConditionCallBuilder builder) {
+	protected TestExecutionBuilder exec() {
+		return new TestExecutionBuilder();
+	}
 
-		if (!builder.getMapKeys().isEmpty()) {
-			for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
-				env.mapKey(e.getKey(), e.getValue());
-			}
+	/**
+	 * Execute a set of test execution commands.
+	 *
+	 * Commands in the builder are executed in the following order:
+	 *
+	 *  - environment strings are exposed
+	 *  - log blocks are started
+	 *  - environment keys are mapped
+	 *  - environment keys are unmapped
+	 *  - log blocks are ended
+	 *
+	 */
+	protected void call(TestExecutionBuilder builder) {
+
+		for(String e : builder.getExposeStrings()) {
+			exposeEnvString(e);
 		}
 
-		if (!builder.getUnmapKeys().isEmpty()) {
-			for (String e : builder.getUnmapKeys()) {
-				env.unmapKey(e);
-			}
+		if (!Strings.isNullOrEmpty(builder.getStartBlock())) {
+			eventLog.startBlock(builder.getStartBlock());
 		}
 
-		callConditionInternal(builder.getConditionClass(),
-			builder.getRequirements(),
-			builder.getOnFail(),
-			builder.getOnSkip(),
-			builder.isStopOnFailure(),
-			builder.getSkipIfObjectsRequired(),
-			builder.getSkipIfStringsRequired(),
-			builder.getSkipIfElementsRequired());
+		for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
+			env.mapKey(e.getKey(), e.getValue());
+		}
+
+		for (String e : builder.getUnmapKeys()) {
+			env.unmapKey(e);
+		}
+
+		if (builder.isEndBlock()) {
+			eventLog.endBlock();
+		}
 	}
 
 	@Override

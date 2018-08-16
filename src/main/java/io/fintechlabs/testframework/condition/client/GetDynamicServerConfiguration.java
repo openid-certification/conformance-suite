@@ -58,7 +58,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("config")) {
+		if (!env.containsObject("config")) {
 			throw error("Couldn't find a configuration");
 		}
 
@@ -105,7 +105,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 					logSuccess("Successfully parsed server configuration", serverConfig);
 
-					env.put("server", serverConfig);
+					env.putObject("server", serverConfig);
 
 					return env;
 				} catch (JsonSyntaxException e) {

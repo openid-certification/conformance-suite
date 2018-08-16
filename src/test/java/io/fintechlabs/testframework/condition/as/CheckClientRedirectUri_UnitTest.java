@@ -65,7 +65,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[\"http://localhost/foo\"]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -78,7 +78,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[\"http://127.0.0.1/foo\"]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -91,7 +91,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[\"http://::::1/foo\"]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -104,7 +104,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[\"https://example.com/foo\"]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -117,7 +117,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[\"nonhttp:/callback\"]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -130,7 +130,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[\"http://example.com/foo\"]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -150,7 +150,7 @@ public class CheckClientRedirectUri_UnitTest {
 			+ "[]\n" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}
@@ -160,7 +160,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		client = new JsonParser().parse("{}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 	}

@@ -91,10 +91,10 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 
@@ -105,8 +105,8 @@ public class CallTokenEndpoint_UnitTest {
 
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
 
-		assertThat(env.get("token_endpoint_response")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("token_endpoint_response").entrySet()).containsAll(goodResponse.entrySet());
+		assertThat(env.getObject("token_endpoint_response")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("token_endpoint_response").entrySet()).containsAll(goodResponse.entrySet());
 	}
 
 	/**
@@ -120,9 +120,9 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 
 		cond.evaluate(env);
 
@@ -137,10 +137,10 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://nonexisting.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 
@@ -155,10 +155,10 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://error.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 
@@ -173,10 +173,10 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://bad.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 
@@ -191,10 +191,10 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://empty.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 
@@ -209,7 +209,7 @@ public class CallTokenEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -221,8 +221,8 @@ public class CallTokenEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_configMissing() {
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 		cond.evaluate(env);
 

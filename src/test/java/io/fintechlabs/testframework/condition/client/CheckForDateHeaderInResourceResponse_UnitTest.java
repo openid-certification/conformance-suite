@@ -58,7 +58,7 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Date", DateUtils.formatDate(new Date()));
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 
@@ -75,7 +75,7 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Date", "Sun, 06 Nov 1994 08:49:37 GMT"); // Example from RFC 7231
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 
@@ -90,7 +90,7 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Date", "this is not a date");
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 	}
@@ -102,7 +102,7 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 	public void testEvaluate_missingDate() {
 
 		JsonObject headers = new JsonObject();
-		env.put("resource_endpoint_response_headers", headers);
+		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.evaluate(env);
 	}

@@ -45,7 +45,7 @@ public class ValidateJsonUri extends AbstractCondition {
 		if ( ServerValue != null) {
 			return ServerValue;
 		} else {
-			JsonElement serverValue = env.findElement("server", environmentVariable);
+			JsonElement serverValue = env.getElementFromObject("server", environmentVariable);
 
 			if (serverValue == null) {
 				throw error(environmentVariable + ": URL not found");

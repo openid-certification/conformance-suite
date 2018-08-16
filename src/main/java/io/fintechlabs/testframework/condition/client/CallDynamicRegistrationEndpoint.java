@@ -48,11 +48,11 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 			throw error("Couldn't find registration endpoint");
 		}
 
-		if (!env.containsObj("dynamic_registration_request")){
+		if (!env.containsObject("dynamic_registration_request")){
 			throw error("Couldn't find dynamic registration request");
 		}
 
-		JsonObject requestObj = env.get("dynamic_registration_request");
+		JsonObject requestObj = env.getObject("dynamic_registration_request");
 
 		try {
 
@@ -86,7 +86,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 					logSuccess("Parsed registration endpoint response", jsonRoot.getAsJsonObject());
 
-					env.put("client", jsonRoot.getAsJsonObject());
+					env.putObject("client", jsonRoot.getAsJsonObject());
 
 					if (jsonRoot.getAsJsonObject().has("registration_client_uri") &&
 						jsonRoot.getAsJsonObject().has("registration_access_token")) {

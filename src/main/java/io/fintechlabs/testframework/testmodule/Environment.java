@@ -31,7 +31,28 @@ import com.google.gson.reflect.TypeToken;
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
  *
- * This object stores JSON indexed by strings. Furthermore, the JSON can be indexed by foo.bar.baz selectors.
+ * The Environment stores JSON objects indexed by strings. Items in the JSON objects themselves can be indexed by foo.bar.baz path
+ * selectors using the getString(String, String) and getElement(String, String) functions.
+ *
+ * Object keys can be mapped, such that one key shadows another stored object. For example, if the store originally looks like:
+ *
+ *   foo: { bar: 1234 },
+ *   baz: { qux: 9876 }
+ *
+ * Calls to getObject(foo) will return { bar : 1234 }
+ *
+ * If the key "baz" is mapped over the key "foo" with mapKey(foo, baz), this points all references to the key "foo" to use the
+ * existing "baz" object the store effectively looks like:
+ *
+ *   <hidden foo>: { bar: 1234 },
+ *   foo <mapped over baz>: { qux: 9876 }
+ *
+ * Any calls to object functions using "foo" such as getObject(foo) will return { qux: 9876 }. Any calls to "baz" will still reference { qux: 9876 }.
+ * The original object of "foo" { bar: 1234 } is effectively unreachable until "foo" is unmapped.
+ *
+ * Native values (strings, integers, longs) can be stored and accessed through special accessor functions. These values are
+ * stored internally in a dedicated JSON object alongside all other objects. A native value and a JSON object can be stored using
+ * the same key, but the two of these are unrelated to each other. Native value keys are never be mapped.
  *
  * @author jricher
  *
@@ -48,118 +69,79 @@ public class Environment {
 	 */
 	private ReentrantLock lock = new ReentrantLock(true); // set with fairness policy to get up control to the longest waiting thread
 
+	// key for storing native values directly
 	private static final String NATIVE_VALUES = "_NATIVE_VALUES";
 	private Map<String, JsonObject> store = Maps.newHashMap(
-		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to put the string values
+		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to putObject the string values
 
 	private Map<String, String> keyMap = new HashMap<>();
 
 
 	/**
-	 * Look to see if the JSON object is in this environment
+	 * Check to see if there is an object in the Environment referenced by the given key. If
+	 * the key has been mapped to another key, the mapped key is dereferenced first and the
+	 * mapped key is used for the check instead. Any object shadowed by the mapped key reimains
+	 * untouched.
 	 *
-	 * @param objId
-	 * @return
-	 * @see java.util.Map#containsKey(java.lang.Object)
+	 * This does not check the native value store.
+	 *
+	 * @param key the object ID to search for, will be checked against any mapped keys
+	 * @return true if the store contains an object with this key, false otherwise
 	 */
-	public boolean containsObj(String objId) {
-		return store.containsKey(getEffectiveKey(objId));
+	public boolean containsObject(String key) {
+		return store.containsKey(getEffectiveKey(key));
 	}
 
 	/**
-	 * @param key
-	 * @return
-	 * @see java.util.Map#get(java.lang.Object)
+	 * Get a JSON object from the Environment store, if one exists under this key. If the
+	 * key has been mapped to another key, the mapped key is dereferenced first and the mapped
+	 * key is used for the fetch instead. Any object shadowed by the mapped key remains untouched.
+	 *
+	 * This does not check the native value store.
+	 *
+	 * @param key the object ID to fetch, will be checked against any mapped keys
+	 * @return the stored object if it exists, null if it does not
 	 */
-	public JsonObject get(String key) {
+	public JsonObject getObject(String key) {
 		return store.get(getEffectiveKey(key));
 	}
 
 	/**
-	 * Remove a JSON object from this environment
+	 * Remove a JSON object from this environment, if it exists. If the key has been mapped to
+	 * another key, the mapped key is dereferenced first and the mapped key is used for the
+	 * removal instead. Any object shadowed by the mapped key remains untouched.
 	 *
-	 * @param key
+	 * This does not affect the native value store.
+	 *
+	 * @param key the object ID to removeObject, will be checked against any mapped keys
 	 */
-	public void remove(String key) {
+	public void removeObject(String key) {
 		store.remove(getEffectiveKey(key));
 	}
 
+
 	/**
-	 * Look up a single-string entry
+	 * Put an object into the Environment, overwriting an existing object if one is there.
+	 * If the key has been mapped to another key, the mapped key is dereferenced first and
+	 * mapped key is used for the insertion. Any object shadowed by the mapped key remains
+	 * untouched.
 	 *
-	 * @param key
-	 * @return
+	 * This does not affect the native value store.
+	 *
+	 * @param key the key to store the object under; this may be mapped
+	 * @param value the object to store
+	 * @return the stored object
 	 */
-	public String getString(String key) {
-		return getString(NATIVE_VALUES, key);
-	}
-
-	/**
-	 * Look up a single integer entry
-	 */
-	public Integer getInteger(String key) {
-		return getInteger(NATIVE_VALUES, key);
-	}
-
-	/**
-	 * Look up a single Long entry
-	 */
-	public Long getLong(String key) {
-		return getLong(NATIVE_VALUES, key);
-	}
-
-	/**
-	 * @param key
-	 * @param value
-	 * @return
-	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
-	 */
-	public JsonObject put(String key, JsonObject value) {
+	public JsonObject putObject(String key, JsonObject value) {
 		return store.put(getEffectiveKey(key), value);
 	}
 
-
 	/**
-	 * Store a single Long as a value
+	 * Get a sub-element from a JSON object within the environment, if that object exists. Any
+	 * JSON element can be returned from this function, including objects, arrays, literals, and
+	 * JSON nulls.
 	 *
-	 * @param key
-	 * @param value
-	 * @return
-	 */
-	public JsonObject putLong(String key, Long value) {
-		JsonObject o = get(NATIVE_VALUES);
-		o.addProperty(key, value);
-		return o;
-	}
-
-	/**
-	 * Stores a single Integer as a value
-	 *
-	 * @param key
-	 * @param value
-	 * @return a copy of the stored object
-	 */
-	public JsonObject putInteger(String key, Integer value) {
-		JsonObject o = get(NATIVE_VALUES);
-		o.addProperty(key, value);
-		return o;
-	}
-
-	/**
-	 * Store a single string as a value
-	 *
-	 * @param key
-	 * @param value
-	 * @return
-	 */
-	public JsonObject putString(String key, String value) {
-		JsonObject o = get(NATIVE_VALUES);
-		o.addProperty(key, value);
-		return o;
-	}
-
-	/**
-	 * Search the environment for a key with lookup values separated by ".", so "foo.bar.baz" is found in:
+	 * The path elements are separated by ".", so with the following object:
 	 *
 	 * {
 	 *  foo: {
@@ -169,60 +151,20 @@ public class Environment {
 	 *  }
 	 * }
 	 *
-	 * @param path
+	 * The path "foo.bar.baz" is the string literal "value", while the path "foo.bar" is the
+	 * object { baz: "value" }.
+	 *
+	 * If the object identified by the key is not found, null is returned. If the object
+	 * does not contain any element represented by the path, null is returned.
+	 *
+	 * @param key the object identifier to look up, may be mapped; see getObject(String)
+	 * @param path the path within the object to search; in dot-separated notation
+	 * @returns the element within the object if found, null if the object is not found, or null if no element is found at the given path within the object
 	 */
-	public String getString(String objId, String path) {
-		JsonElement e = findElement(objId, path);
+	public JsonElement getElementFromObject(String key, String path) {
 
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				return e.getAsString();
-			} else {
-				// it wasn't a primitive
-				return null;
-			}
-		} else {
-			// we didn't find it
-			return null;
-		}
-	}
-
-	public Integer getInteger(String objId, String path) {
-		JsonElement e = findElement(objId, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				return e.getAsInt();
-			} else {
-				// it wasn't a primitive
-				return null;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	public Long getLong(String objId, String path) {
-		JsonElement e = findElement(objId, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				return e.getAsLong();
-			} else {
-				// it wasn't a primitive
-				return null;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	public JsonElement findElement(String objId, String path) {
-
-		//
-		// TODO: memoize this lookup for efficiency
-		//
-
-		// start at the top
-		JsonElement e = get(objId);
+		// get the object we're looking for and recursively start our walk here
+		JsonElement e = getObject(key);
 
 		if (e == null) {
 			return null;
@@ -256,8 +198,92 @@ public class Environment {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	/**
+	 * Gets a sub-element from a named object at the given path and returns it as a native String,
+	 * if it is stored as one.
+	 *
+	 * This does not access the native values store.
+	 *
+	 * See getElementFromObject(String, String)
+	 *
+	 * @param key the object identifier to look up, may be mapped; see getObject(String)
+	 * @param path the path within the object to search; in dot-separated notation
+	 * @returns the value within the object if found, null if the object is not found,
+	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 */
+	public String getString(String key, String path) {
+		JsonElement e = getElementFromObject(key, path);
+
+		if (e != null) {
+			if (e.isJsonPrimitive()) {
+				return e.getAsString();
+			} else {
+				// it wasn't a primitive
+				return null;
+			}
+		} else {
+			// we didn't find it
+			return null;
+		}
+	}
+
+	/**
+	 * Gets a sub-element from a named object at the given path and returns it as a native Integer,
+	 * if it is stored as one.
+	 *
+	 * This does not access the native values store.
+	 *
+	 * See getElementFromObject(String, String)
+	 *
+	 * @param key the object identifier to look up, may be mapped; see getObject(String)
+	 * @param path the path within the object to search; in dot-separated notation
+	 * @returns the value within the object if found, null if the object is not found,
+	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 */
+	public Integer getInteger(String key, String path) {
+		JsonElement e = getElementFromObject(key, path);
+		if (e != null) {
+			if (e.isJsonPrimitive()) {
+				return e.getAsInt();
+			} else {
+				// it wasn't a primitive
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Gets a sub-element from a named object at the given path and returns it as a native Long,
+	 * if it is stored as one.
+	 *
+	 * This does not access the native values store.
+	 *
+	 * See getElementFromObject(String, String)
+	 *
+	 * @param key the object identifier to look up, may be mapped; see getObject(String)
+	 * @param path the path within the object to search; in dot-separated notation
+	 * @returns the value within the object if found, null if the object is not found,
+	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 */
+	public Long getLong(String key, String path) {
+		JsonElement e = getElementFromObject(key, path);
+		if (e != null) {
+			if (e.isJsonPrimitive()) {
+				return e.getAsLong();
+			} else {
+				// it wasn't a primitive
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+
+	/*
+	 * prints out the environment as a mostly-json-formatted string
 	 */
 	@Override
 	public String toString() {
@@ -266,6 +292,8 @@ public class Environment {
 	}
 
 	/**
+	 * Get the lock used for synchronization of a running test instance.
+	 *
 	 * @return the lock
 	 */
 	public ReentrantLock getLock() {
@@ -273,7 +301,7 @@ public class Environment {
 	}
 
 	/**
-	 * If the key is mapped to another value, get the underlying value. Otherwise return the input key.
+	 * If the key is mapped to another value, get the underlying value. Otherwise return the input key itself.
 	 *
 	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
 	 * exist in the environment, its value will not be found.
@@ -290,21 +318,29 @@ public class Environment {
 	}
 
 	/**
-	 * Add a mapping from one key value to another. When things are looked up by "from" it will look for "to" in the storage.
+	 * Add a mapping from one key value to another. When things are looked up by "from" it will look for "to" in the storage instead.
 	 *
 	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
 	 * exist in the environment, its value will not be found.
 	 *
-	 * For example, if the environment contains:
+	 * For example, if the store originally looks like:
 	 *
-	 * 	foo => bar,
-	 *  baz => qux
+	 *   foo: { bar: 1234 },
+	 *   baz: { qux: 9876 }
 	 *
-	 * And the key "baz" is mapped over "foo" using mapKey(baz, foo), then calling get(baz)
-	 * will return "bar" and not "qux".
+	 * Calls to getObject(foo) will return { bar : 1234 }
 	 *
-	 * @param from
-	 * @param to
+	 * If the key "baz" is mapped over the key "foo" with mapKey(foo, baz), this points all references to the key "foo" to use the
+	 * existing "baz" object the store effectively looks like:
+	 *
+	 *   <hidden foo>: { bar: 1234 },
+	 *   foo <mapped over baz>: { qux: 9876 }
+	 *
+	 * Any calls to object functions using "foo" such as getObject(foo) will return { qux: 9876 }. Any calls to objects functions using
+	 * "baz" will still access the original object for "baz", such as getObject(baz) will return { qux: 9876 }.
+	 *
+	 * @param from the key to map over "to", which will be used by outside calls until it is unmapped
+	 * @param to the key that "from" is mapped on top of; this key is shadowed by "from"
 	 * @return the previously mapped "to" or "null" if not mapped
 	 */
 	public String mapKey(String from, String to) {
@@ -312,9 +348,23 @@ public class Environment {
 	}
 
 	/**
-	 * Remove a mapped key
+	 * Remove a mapped key. This restores the default behavior.
 	 *
-	 * @param key
+	 * For example, if the store originally looks like:
+	 *
+	 *   <hidden foo>: { bar: 1234 },
+	 *   foo <mapped over baz>: { qux: 9876 }
+	 *
+	 * Calls to getObject(foo) will return { qux: 9876 }
+	 *
+	 * If the key "foo" unmapped, the store will look like:
+	 *
+	 *   foo: { bar: 1234 },
+	 *   baz: { qux: 9876 }
+	 *
+	 * Any calls to object functions using "foo" such as getObject(foo) will return { qux: 9876 }
+	 *
+	 * @param key the key to removeObject a mapping about, this is the "from" used in mapKey
 	 * @return the previously mapped key or "null" if not mapped
 	 */
 	public String unmapKey(String key) {
@@ -322,38 +372,113 @@ public class Environment {
 	}
 
 	/**
-	 * Test if a given key is mapped by another value. If this is true, then the value represented by this key
-	 * is available through the mapped key as well.
+	 * Test if a key has had another key mapped over it. Note that calling an access function on a shadowed key will
+	 * return the same object as an unshadowed key.
 	 *
 	 * For example, if the environment contains:
 	 *
-	 * 	foo => bar
+	 *   <hidden foo>: { bar: 1234 },
+	 *   foo <mapped over baz>: { qux: 9876 }
 	 *
-	 * And the key "baz" is mapped over "foo", then isKeyShadowed(foo) will return true.
+	 * Then isKeyShadowed(baz) will return true. Note that isKeyShadowed(foo) will return false in this specific example, though
+	 * it could itself be shadowed by something else.
 	 *
-	 * @param key
-	 * @return
+	 * @param key the key to check if it's being shadowed by another key; corresponds to the "to" value in mapKey(String, String)
+	 * @return true if the key is shadowed by another, false otherwise
 	 */
 	public boolean isKeyShadowed(String key) {
 		return keyMap.containsValue(key);
 	}
 
 	/**
-	 * Test if a given key is mapped to another value. If this is true, then calling "get" with this key
-	 * will return the mapped value and not any unmapped values for this key which may also exist in the
-	 * environment.
+	 * Test if a given key is mapped to another value. Calling an access function with a mapped key
+	 * will return the value of the target of the map and not any original values for this key which may also
+	 * exist in the environment.
 	 *
 	 * For example, if the environment contains:
 	 *
-	 * 	foo => bar,
-	 *  baz => qux
+	 *   <hidden foo>: { bar: 1234 },
+	 *   foo <mapped over baz>: { qux: 9876 }
 	 *
-	 * And the key "baz" is mapped over "foo", then isKeyMapped(baz) will return true, and calling get(baz)
-	 * will return "bar" and not "qux".
+	 * Then isKeyMapped(foo) returns true. Note that isKeyMapped(baz) will return false in this specific example, though it
+	 * could itself be mapped to something else.
 	 *
+	 * @param key the key to check if it's being mapped to another key; corresponds to the "from" value in mapKey(String, String)
+	 * @return true if the key is mapped to another key, false otherwise
 	 */
 	public boolean isKeyMapped(String key) {
 		return keyMap.containsKey(key);
 	}
+
+
+	//
+	// Native value accessor functions
+	//
+
+
+	/**
+	 * Retrieve a String from the native value store.
+	 *
+	 * @param key the ID of the value to search for; this is not mapped
+	 * @return the value if it's found, null otherwise
+	 */
+	public String getString(String key) {
+		return getString(NATIVE_VALUES, key);
+	}
+
+	/**
+	 * Retrieve an Integer from the native value store.
+	 *
+	 * @param key the ID of the value to search for; this is not mapped
+	 * @return the value if it's found, null otherwise
+	 */
+	public Integer getInteger(String key) {
+		return getInteger(NATIVE_VALUES, key);
+	}
+
+	/**
+	 * Retrieve a Long from the native value store.
+	 *
+	 * @param key the ID of the value to search for; this is not mapped
+	 * @return the value if it's found, null otherwise
+	 */
+	public Long getLong(String key) {
+		return getLong(NATIVE_VALUES, key);
+	}
+
+	/**
+	 * Put a Long into the native value store.
+	 *
+	 * @param key the key by which the value can be retrieved from the native value store
+	 * @param value the value to store
+	 */
+	public void putLong(String key, Long value) {
+		JsonObject o = getObject(NATIVE_VALUES);
+		o.addProperty(key, value);
+	}
+
+	/**
+	 * Put an Integer into the native value store.
+	 *
+	 * @param key the key by which the value can be retrieved from the native value store
+	 * @param value the value to store
+	 */
+	public void putInteger(String key, Integer value) {
+		JsonObject o = getObject(NATIVE_VALUES);
+		o.addProperty(key, value);
+	}
+
+	/**
+	 * Put a String into the native objects store.
+	 *
+	 * @param key the key by which the value can be retrieved from the native value store
+	 * @param value the value to store
+	 */
+	public void putString(String key, String value) {
+		JsonObject o = getObject(NATIVE_VALUES);
+		o.addProperty(key, value);
+	}
+
+
 
 }

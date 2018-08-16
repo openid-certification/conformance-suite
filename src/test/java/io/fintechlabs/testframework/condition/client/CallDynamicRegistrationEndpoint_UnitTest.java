@@ -112,9 +112,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://good.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 
 		cond.evaluate(env);
@@ -125,8 +125,8 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		verify(env, atLeastOnce()).getString("server", "registration_endpoint");
 
-		assertThat(env.get("client")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("client").entrySet()).containsAll(goodResponse.entrySet());
+		assertThat(env.getObject("client")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("client").entrySet()).containsAll(goodResponse.entrySet());
 		assertThat(env.getString("registration_client_uri")).isEqualToIgnoringCase("https://good.example.com/register/UNIT-TEST-CLIENT-ID");
 		assertThat(env.getString("registration_access_token")).isEqualToIgnoringCase("reg.access.token");
 	}
@@ -140,9 +140,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://noregapi.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 
 		cond.evaluate(env);
@@ -153,8 +153,8 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		verify(env, atLeastOnce()).getString("server", "registration_endpoint");
 
-		assertThat(env.get("client")).isInstanceOf(JsonObject.class);
-		assertThat(env.get("client").entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
+		assertThat(env.getObject("client")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("client").entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
 		assertThat(env.getString("registration_client_uri")).isNullOrEmpty();
 		assertThat(env.getString("registration_access_token")).isNullOrEmpty();
 	}
@@ -165,7 +165,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noServerRegistraitonEndpoint(){
 		JsonObject server = new JsonParser().parse("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
-		env.put("server",server);
+		env.putObject("server",server);
 		cond.evaluate(env);
 	}
 
@@ -178,9 +178,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://error.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 		cond.evaluate(env);
 	}
@@ -193,9 +193,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://bad.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 		cond.evaluate(env);
 	}
@@ -208,9 +208,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"registration_endpoint\":\"https://empty.example.com/registration\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
-		env.put("dynamic_registration_request", requestParameters);
+		env.putObject("dynamic_registration_request", requestParameters);
 
 		cond.evaluate(env);
 	}

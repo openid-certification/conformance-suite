@@ -53,9 +53,9 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
-		JsonElement configUrl = env.findElement(environmentBaseObject, environmentVariable);
+		JsonElement configUrl = env.getElementFromObject(environmentBaseObject, environmentVariable);
 		if ( configUrl == null ) {
-			logFailure("Unable to find Discovery URL", args("No discoveryUrl", env.get("config")));
+			logFailure("Unable to find Discovery URL", args("No discoveryUrl", env.getObject("config")));
 		} else  {
 			if (!configUrl.isJsonPrimitive()) {
 				throw error(errorMessageNotJsonPrimitive, args("Failure", configUrl));

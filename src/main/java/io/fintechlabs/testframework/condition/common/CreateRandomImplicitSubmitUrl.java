@@ -62,7 +62,7 @@ public class CreateRandomImplicitSubmitUrl extends AbstractCondition {
 		o.addProperty("path", path);
 		o.addProperty("fullUrl", baseUrl + "/" + path);
 
-		env.put("implicit_submit", o);
+		env.putObject("implicit_submit", o);
 
 		logSuccess("Created random implicit submission URL",
 			args("implicit_submit", o));

@@ -55,7 +55,7 @@ public class EnsureTLS12_UnitTest {
 			+ "\"testPort\":443"
 			+ "}").getAsJsonObject();
 
-		env.put("tls", tls);
+		env.putObject("tls", tls);
 
 		cond.evaluate(env);
 
@@ -74,7 +74,7 @@ public class EnsureTLS12_UnitTest {
 			+ "\"testPort\":80"
 			+ "}").getAsJsonObject();
 
-		env.put("tls", tls);
+		env.putObject("tls", tls);
 
 		cond.evaluate(env);
 	}
@@ -89,7 +89,7 @@ public class EnsureTLS12_UnitTest {
 			+ "\"testPort\":443"
 			+ "}").getAsJsonObject();
 
-		env.put("tls", tls);
+		env.putObject("tls", tls);
 
 		cond.evaluate(env);
 	}
@@ -104,7 +104,7 @@ public class EnsureTLS12_UnitTest {
 			+ "\"testHost\":\"example.com\""
 			+ "}").getAsJsonObject();
 
-		env.put("tls", tls);
+		env.putObject("tls", tls);
 
 		cond.evaluate(env);
 	}

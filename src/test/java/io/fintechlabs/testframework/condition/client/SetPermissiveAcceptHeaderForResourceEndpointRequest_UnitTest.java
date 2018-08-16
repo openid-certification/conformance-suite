@@ -70,7 +70,7 @@ public class SetPermissiveAcceptHeaderForResourceEndpointRequest_UnitTest {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Accept", "something else");
-		env.put("resource_endpoint_request_headers", headers);
+		env.putObject("resource_endpoint_request_headers", headers);
 
 		cond.evaluate(env);
 

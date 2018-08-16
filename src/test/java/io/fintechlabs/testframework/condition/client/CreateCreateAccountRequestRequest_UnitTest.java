@@ -58,7 +58,7 @@ public class CreateCreateAccountRequestRequest_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonElement permissions = env.findElement("account_requests_endpoint_request", "Data.Permissions");
+		JsonElement permissions = env.getElementFromObject("account_requests_endpoint_request", "Data.Permissions");
 		assertThat(permissions).isNotNull();
 		assertThat(permissions.isJsonArray()).isTrue();
 		assertThat(permissions.getAsJsonArray().contains(new JsonPrimitive("ReadAccountsBasic"))).isTrue();

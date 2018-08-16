@@ -79,7 +79,7 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 
 		cond = new CallAccountsEndpointWithBearerToken("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("resource", new JsonObject());
+		env.putObject("resource", new JsonObject());
 	}
 
 	/**
@@ -88,8 +88,8 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.putObject("access_token", bearerToken);
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 
@@ -110,8 +110,8 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
-		env.put("access_token", exampleToken);
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.putObject("access_token", exampleToken);
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 
@@ -123,8 +123,8 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badServer() {
 
-		env.put("access_token", bearerToken);
-		env.get("resource").addProperty("resourceUrl", "http://invalid.org/");
+		env.putObject("access_token", bearerToken);
+		env.getObject("resource").addProperty("resourceUrl", "http://invalid.org/");
 
 		cond.evaluate(env);
 
@@ -136,7 +136,7 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.get("resource").addProperty("resourceUrl", "http://example.com/");
+		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 
 		cond.evaluate(env);
 
@@ -148,7 +148,7 @@ public class CallAccountsEndpointWithBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingUrl() {
 
-		env.put("access_token", bearerToken);
+		env.putObject("access_token", bearerToken);
 
 		cond.evaluate(env);
 

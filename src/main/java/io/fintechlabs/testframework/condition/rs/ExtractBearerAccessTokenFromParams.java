@@ -46,7 +46,7 @@ public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
 	@PostEnvironment(strings = "incoming_access_token")
 	public Environment evaluate(Environment env) {
 
-		log("Incoming request params", (JsonObject) env.findElement("incoming_request", "params"));
+		log("Incoming request params", (JsonObject) env.getElementFromObject("incoming_request", "params"));
 
 		String incoming = env.getString("incoming_request", "params.access_token");
 

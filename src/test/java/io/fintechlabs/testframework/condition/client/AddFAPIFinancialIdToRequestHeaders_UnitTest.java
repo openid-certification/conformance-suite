@@ -58,11 +58,11 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 
-		JsonObject req = env.get("resource_endpoint_request_headers");
+		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
@@ -73,12 +73,12 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate_existingHeaders() {
 
-		env.put("client", client);
-		env.put("resource_endpoint_request_headers",	new JsonObject());
+		env.putObject("client", client);
+		env.putObject("resource_endpoint_request_headers",	new JsonObject());
 
 		cond.evaluate(env);
 
-		JsonObject req = env.get("resource_endpoint_request_headers");
+		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
@@ -89,12 +89,12 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate_existingHeadersOverwrite() {
 
-		env.put("client", client);
-		env.put("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
+		env.putObject("client", client);
+		env.putObject("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
 
 		cond.evaluate(env);
 
-		JsonObject req = env.get("resource_endpoint_request_headers");
+		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
@@ -106,7 +106,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noFinancialId() {
 
-		env.put("client", new JsonObject());
+		env.putObject("client", new JsonObject());
 
 		cond.evaluate(env);
 

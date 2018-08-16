@@ -79,7 +79,7 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 			throw error("Resource endpoint not found");
 		}
 
-		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
@@ -113,7 +113,7 @@ public class CallAccountsEndpointWithBearerToken extends AbstractCondition {
 			}
 
 			env.putString("resource_endpoint_response", responseBody);
-			env.put("resource_endpoint_response_headers", responseHeaders);
+			env.putObject("resource_endpoint_response_headers", responseHeaders);
 
 			logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders));
 

@@ -93,11 +93,11 @@ public class ExtractJWKsFromClientConfiguration_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 		cond.evaluate(env);
 
-		assertEquals(jwks, env.get("client_jwks"));
-		assertEquals(publicJwks, env.get("public_client_jwks"));
+		assertEquals(jwks, env.getObject("client_jwks"));
+		assertEquals(publicJwks, env.getObject("public_client_jwks"));
 	}
 }

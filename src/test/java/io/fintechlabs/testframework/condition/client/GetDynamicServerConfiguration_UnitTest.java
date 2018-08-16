@@ -69,7 +69,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "\"server\":{"
 			+ "\"discoveryUrl\":\"https://good.example.com/.well-known/openid-configuration\""
 			+ "}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 
@@ -77,7 +77,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 
 		verify(env, atLeastOnce()).getString("config", "server.discoveryUrl");
 
-		assertThat(env.get("server")).isNotNull();
+		assertThat(env.getObject("server")).isNotNull();
 		assertThat(env.getString("server", "jwks_uri")).isEqualTo("https://good.example.com/jwks.json");
 	}
 
@@ -91,7 +91,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://good.example.com\""
 			+ "}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -107,7 +107,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "\"discoveryUrl\":\"https://good.example.com/not-here\","
 			+ "\"issuer\":\"https://good.example.com\""
 			+ "}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -122,7 +122,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://nonexisting.example.com\""
 			+ "}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -137,7 +137,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://bad.example.com\""
 			+ "}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -152,7 +152,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://empty.example.com\""
 			+ "}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}
@@ -164,7 +164,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	public void testEvaluate_missingUrls() {
 
 		JsonObject config = new JsonParser().parse("{\"server\":{}}").getAsJsonObject();
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 	}

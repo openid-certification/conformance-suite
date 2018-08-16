@@ -59,16 +59,16 @@ public class ValidateAccessTokenSignature extends AbstractCondition {
 	@PreEnvironment(required = { "access_token_jwt", "server_jwks" })
 	@Override
 	public Environment evaluate(Environment env) {
-		if (!env.containsObj("access_token_jwt")) {
+		if (!env.containsObject("access_token_jwt")) {
 			throw error("Couldn't find parsed access token");
 		}
 
-		if (!env.containsObj("server_jwks")) {
+		if (!env.containsObject("server_jwks")) {
 			throw error("Couldn't find server's public key");
 		}
 
 		String accessToken = env.getString("access_token_jwt", "value");
-		JsonObject serverJwks = env.get("server_jwks"); // to validate the signature
+		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
 		try {
 			// translate stored items into nimbus objects

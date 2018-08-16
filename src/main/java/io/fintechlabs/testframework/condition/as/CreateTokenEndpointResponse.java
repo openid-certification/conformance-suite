@@ -73,7 +73,7 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 			tokenEndpointResponse.addProperty("scope", scope);
 		}
 
-		env.put("token_endpoint_response", tokenEndpointResponse);
+		env.putObject("token_endpoint_response", tokenEndpointResponse);
 
 		logSuccess("Created token endpoint response", tokenEndpointResponse);
 

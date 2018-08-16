@@ -134,53 +134,53 @@ public class Environment_UnitTest {
 
 		altStringValue = "Alternative String Value";
 
-		env.put(testKey, testObject);
+		env.putObject(testKey, testObject);
 		env.putString(testStringKey, testStringValue);
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#containsObj(java.lang.String)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#containsObject(java.lang.String)}.
 	 */
 	@Test
 	public void testContainsObj() {
 
-		assertTrue(env.containsObj(testKey));
-		assertFalse(env.containsObj(notFoundKey));
+		assertTrue(env.containsObject(testKey));
+		assertFalse(env.containsObject(notFoundKey));
 
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#get(java.lang.String)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#getObject(java.lang.String)}.
 	 */
 	@Test
 	public void testGet() {
 
-		JsonObject testGet = env.get(testKey);
+		JsonObject testGet = env.getObject(testKey);
 
 		assertEquals(testObject, testGet);
 
-		JsonObject notFoundGet = env.get(notFoundKey);
+		JsonObject notFoundGet = env.getObject(notFoundKey);
 
 		assertNull(notFoundGet);
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#remove(java.lang.String)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#removeObject(java.lang.String)}.
 	 */
 	@Test
 	public void testRemove() {
 
 		// add a secondary object
-		env.put(altKey, altObject);
+		env.putObject(altKey, altObject);
 
-		env.remove(testKey);
+		env.removeObject(testKey);
 
-		assertFalse(env.containsObj(testKey));
-		assertNull(env.get(testKey));
+		assertFalse(env.containsObject(testKey));
+		assertNull(env.getObject(testKey));
 
 		// make sure other object is not altered
-		assertEquals(altObject, env.get(altKey));
+		assertEquals(altObject, env.getObject(altKey));
 
 	}
 
@@ -201,18 +201,18 @@ public class Environment_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#put(java.lang.String, com.google.gson.JsonObject)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#putObject(java.lang.String, com.google.gson.JsonObject)}.
 	 */
 	@Test
 	public void testPut() {
 
-		assertFalse(env.containsObj(altKey));
-		assertNull(env.get(altKey));
+		assertFalse(env.containsObject(altKey));
+		assertNull(env.getObject(altKey));
 
-		env.put(altKey, altObject);
+		env.putObject(altKey, altObject);
 
-		assertTrue(env.containsObj(altKey));
-		assertEquals(altObject, env.get(altKey));
+		assertTrue(env.containsObject(altKey));
+		assertEquals(altObject, env.getObject(altKey));
 
 	}
 
@@ -281,14 +281,14 @@ public class Environment_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#findElement(java.lang.String, java.lang.String)}.
+	 * Test method for {@link io.fintechlabs.testframework.testmodule.Environment#getElementFromObject(java.lang.String, java.lang.String)}.
 	 */
 	@Test
 	public void testFindElement() {
 
-		JsonElement arrayElement = env.findElement(testKey, "array");
-		JsonElement objElement = env.findElement(testKey, "object");
-		JsonElement notFound = env.findElement(testKey, notFoundKey);
+		JsonElement arrayElement = env.getElementFromObject(testKey, "array");
+		JsonElement objElement = env.getElementFromObject(testKey, "object");
+		JsonElement notFound = env.getElementFromObject(testKey, notFoundKey);
 
 		assertEquals(subArray, arrayElement);
 		assertEquals(subObject, objElement);
@@ -325,33 +325,33 @@ public class Environment_UnitTest {
 	 */
 	@Test
 	public void testMappedObjects() {
-		assertNull(env.get(mappedKey));
-		assertFalse(env.containsObj(mappedKey));
+		assertNull(env.getObject(mappedKey));
+		assertFalse(env.containsObject(mappedKey));
 
 		env.mapKey(mappedKey, testKey);
 
-		assertEquals(testObject, env.get(mappedKey));
-		assertTrue(env.containsObj(mappedKey));
+		assertEquals(testObject, env.getObject(mappedKey));
+		assertTrue(env.containsObject(mappedKey));
 
 		env.unmapKey(mappedKey);
 
-		assertNull(env.get(mappedKey));
-		assertFalse(env.containsObj(mappedKey));
+		assertNull(env.getObject(mappedKey));
+		assertFalse(env.containsObject(mappedKey));
 	}
 
 	@Test
 	public void testShadowedObjects() {
-		env.put(altKey, altObject);
+		env.putObject(altKey, altObject);
 
-		assertEquals(altObject, env.get(altKey));
+		assertEquals(altObject, env.getObject(altKey));
 
 		env.mapKey(altKey, testKey);
 
-		assertEquals(testObject, env.get(altKey));
+		assertEquals(testObject, env.getObject(altKey));
 
 		env.unmapKey(altKey);
 
-		assertEquals(altObject, env.get(altKey));
+		assertEquals(altObject, env.getObject(altKey));
 	}
 
 }

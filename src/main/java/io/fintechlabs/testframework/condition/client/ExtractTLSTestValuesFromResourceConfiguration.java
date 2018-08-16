@@ -16,8 +16,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import java.net.MalformedURLException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
@@ -60,7 +58,7 @@ public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondi
 
 			JsonObject resourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(resourceEndpoint);
 
-			env.put("resource_endpoint_tls", resourceEndpointTls);
+			env.putObject("resource_endpoint_tls", resourceEndpointTls);
 
 			logSuccess("Extracted TLS information from resource endpoint", args(
 					"resource_endpoint", resourceEndpointTls

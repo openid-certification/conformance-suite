@@ -54,7 +54,7 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 			"\"grant_types\":[\"authorization_code\"]," +
 			"\"response_types\":[\"code\"]}").getAsJsonObject();
 
-		env.put("client", goodRespone);
+		env.putObject("client", goodRespone);
 		cond.evaluate(env);
 	}
 
@@ -77,7 +77,7 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 			"\"grant_types\":[\"implicit\"]," +
 			"\"response_types\":[\"code\"]}").getAsJsonObject();
 
-		env.put("client", goodRespone);
+		env.putObject("client", goodRespone);
 		cond.evaluate(env);
 	}
 
@@ -99,7 +99,7 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 			"\"scope\":\"openid email profile\"," +
 			"\"response_types\":[\"code\"]}").getAsJsonObject();
 
-		env.put("client", goodRespone);
+		env.putObject("client", goodRespone);
 		cond.evaluate(env);
 	}
 
@@ -122,7 +122,7 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 			"\"grant_types\":[\"authorization_code\",\"implicit\"]," +
 			"\"response_types\":[\"code\"]}").getAsJsonObject();
 
-		env.put("client", goodRespone);
+		env.putObject("client", goodRespone);
 		cond.evaluate(env);
 	}
 
@@ -145,7 +145,7 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 			"\"grant_types\":[]," +
 			"\"response_types\":[\"code\"]}").getAsJsonObject();
 
-		env.put("client", goodRespone);
+		env.putObject("client", goodRespone);
 		cond.evaluate(env);
 	}
 }

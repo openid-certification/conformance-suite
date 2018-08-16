@@ -350,7 +350,7 @@ public abstract class AbstractCondition implements Condition {
 		KeyManager[] km = null;
 
 		// initialize MTLS if it's available
-		if (env.containsObj("mutual_tls_authentication")) {
+		if (env.containsObject("mutual_tls_authentication")) {
 
 			// TODO: move this to an extractor?
 			String clientCert = env.getString("mutual_tls_authentication", "cert");
@@ -428,7 +428,7 @@ public abstract class AbstractCondition implements Condition {
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.get("mutual_tls_authentication")));
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
 
 		return restTemplate;
 	}

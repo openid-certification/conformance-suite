@@ -82,9 +82,9 @@ public class CallProtectedResourceWithBearerToken extends AbstractCondition {
 				responseHeaders.addProperty(entry.getKey(), entry.getValue());
 			}
 
-			env.put("resource_endpoint_response_code", responseCode);
+			env.putObject("resource_endpoint_response_code", responseCode);
 			env.putString("resource_endpoint_response", responseBody);
-			env.put("resource_endpoint_response_headers", responseHeaders);
+			env.putObject("resource_endpoint_response_headers", responseHeaders);
 
 			logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
 			return env;

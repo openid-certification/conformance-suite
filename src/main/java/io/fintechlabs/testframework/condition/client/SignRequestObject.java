@@ -60,8 +60,8 @@ public class SignRequestObject extends AbstractCondition {
 	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestObjectClaims = env.get("request_object_claims");
-		JsonObject jwks = env.get("client_jwks");
+		JsonObject requestObjectClaims = env.getObject("request_object_claims");
+		JsonObject jwks = env.getObject("client_jwks");
 
 		if (requestObjectClaims == null) {
 			throw error("Couldn't find request object claims");

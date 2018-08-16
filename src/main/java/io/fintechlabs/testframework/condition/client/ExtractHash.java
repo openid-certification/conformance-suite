@@ -18,7 +18,6 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
@@ -41,9 +40,9 @@ public abstract class ExtractHash extends AbstractCondition {
 
 	public Environment extractHash(Environment env, String hashName, String envName) {
 
-		env.remove(envName);
+		env.removeObject(envName);
 
-		if (!env.containsObj("id_token")) {
+		if (!env.containsObject("id_token")) {
 			throw error("Couldn't find parsed ID token");
 		}
 
@@ -62,7 +61,7 @@ public abstract class ExtractHash extends AbstractCondition {
 		outData.addProperty(hashName, hash);
 		outData.addProperty("alg", alg);
 
-		env.put(envName, outData);
+		env.putObject(envName, outData);
 
 		logSuccess("Extracted " + hashName + " from ID Token", outData);
 

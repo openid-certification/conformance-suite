@@ -54,14 +54,14 @@ public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractConditi
 		}
 
 		// get the previous headers if they exist
-		JsonObject headers = env.get("resource_endpoint_request_headers");
+		JsonObject headers = env.getObject("resource_endpoint_request_headers");
 		if (headers == null) {
 			headers = new JsonObject();
 		}
 
 		headers.addProperty("x-fapi-financial-id", financialId);
 
-		env.put("resource_endpoint_request_headers", headers);
+		env.putObject("resource_endpoint_request_headers", headers);
 
 		return env;
 

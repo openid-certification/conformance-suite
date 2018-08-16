@@ -49,7 +49,7 @@ public class AddClientAssertionToTokenEndpointRequest_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("token_endpoint_request_form_parameters", new JsonObject());
+		env.putObject("token_endpoint_request_form_parameters", new JsonObject());
 		env.putString("client_assertion", clientAssertion);
 
 		cond.evaluate(env);

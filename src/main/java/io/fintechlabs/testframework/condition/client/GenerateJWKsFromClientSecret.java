@@ -74,7 +74,7 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 
 		JsonObject reparsed = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 
-		env.put("client_jwks", reparsed);
+		env.putObject("client_jwks", reparsed);
 
 		logSuccess("Generated JWK Set from symmetric key", args("client_jwks", reparsed));
 

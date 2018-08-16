@@ -95,7 +95,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
@@ -179,7 +179,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 
 	private Object handleJwks(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.get("public_jwks");
+		JsonObject jwks = env.getObject("public_jwks");
 
 		setStatus(Status.WAITING);
 

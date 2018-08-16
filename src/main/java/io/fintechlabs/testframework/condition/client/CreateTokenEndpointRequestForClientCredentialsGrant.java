@@ -48,7 +48,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant extends Abstrac
 			log("Leaving off 'scope' parameter from token request");
 		}
 
-		env.put("token_endpoint_request_form_parameters", o);
+		env.putObject("token_endpoint_request_form_parameters", o);
 
 		logSuccess(o);
 

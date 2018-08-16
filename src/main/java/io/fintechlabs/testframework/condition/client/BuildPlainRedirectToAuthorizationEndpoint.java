@@ -47,11 +47,11 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("authorization_endpoint_request")) {
+		if (!env.containsObject("authorization_endpoint_request")) {
 			throw error("Couldn't find authorization endpoint request");
 		}
 
-		JsonObject authorizationEndpointRequest = env.get("authorization_endpoint_request");
+		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
 		String authorizationEndpoint = env.getString("server", "authorization_endpoint");
 

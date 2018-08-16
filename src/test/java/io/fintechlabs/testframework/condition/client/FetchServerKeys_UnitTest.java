@@ -78,13 +78,13 @@ public class FetchServerKeys_UnitTest {
 		JsonObject server = new JsonObject();
 		server.add("jwks", jwks);
 		server.addProperty("jwks_uri", "https://good.example.com/jwks.json");
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
 		hoverfly.verifyZeroRequestTo(service("good.example.com"));
 
-		assertThat(env.get("server_jwks")).isEqualTo(jwks);
+		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
 	}
 
 	/**
@@ -97,13 +97,13 @@ public class FetchServerKeys_UnitTest {
 
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://good.example.com/jwks.json");
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
 		hoverfly.verify(service("good.example.com").get("/jwks.json"));
 
-		assertThat(env.get("server_jwks")).isEqualTo(jwks);
+		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class FetchServerKeys_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingUri() {
 
-		env.put("server", new JsonObject());
+		env.putObject("server", new JsonObject());
 
 		cond.evaluate(env);
 	}
@@ -134,7 +134,7 @@ public class FetchServerKeys_UnitTest {
 
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://nonexisting.example.com/jwks.json");
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 	}
@@ -147,7 +147,7 @@ public class FetchServerKeys_UnitTest {
 
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://bad.example.com/jwks.json");
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 	}

@@ -51,7 +51,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
-		env.put("id_token",idToken);
+		env.putObject("id_token",idToken);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
-		env.put("id_token",idToken);
+		env.putObject("id_token",idToken);
 		cond.evaluate(env);
 	}
 
@@ -123,7 +123,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
-		env.put("id_token",idToken);
+		env.putObject("id_token",idToken);
 		cond.evaluate(env);
 	}
 
@@ -146,7 +146,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
-		env.put("id_token",idToken);
+		env.putObject("id_token",idToken);
 		cond.evaluate(env);
 	}
 

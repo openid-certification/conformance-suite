@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
+
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
@@ -27,16 +28,16 @@ public class GetDynamicClientConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "dynamic_client_registration_template")
 	public Environment evaluate(Environment in) {
 
-		if (!in.containsObj("config")) {
+		if (!in.containsObject("config")) {
 			throw error("Couldn't find a configuration");
 		}
 
-		JsonElement dynamicClientRegistrationTemplate = in.findElement("config", "client");
+		JsonElement dynamicClientRegistrationTemplate = in.getElementFromObject("config", "client");
 		if (dynamicClientRegistrationTemplate == null || !dynamicClientRegistrationTemplate.isJsonObject()) {
 			throw error("Definition for client not present in supplied configuration");
 		} else {
 			// we've got a client object, put it in the environment
-			in.put("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
+			in.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
 
 			// pull out the client name and put it in the root environment for easy access (if there is one)
 			String clientName = in.getString("dynamic_client_registration_template", "client_name");

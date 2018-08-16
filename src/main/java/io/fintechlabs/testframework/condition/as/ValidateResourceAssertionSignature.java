@@ -60,16 +60,16 @@ public class ValidateResourceAssertionSignature extends AbstractCondition {
 	@PreEnvironment(required = {"resource_assertion", "resource_public_jwks"})
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObj("resource_assertion")) {
+		if (!env.containsObject("resource_assertion")) {
 			throw error("Couldn't find assertion");
 		}
 
-		if (!env.containsObj("resource_public_jwks")) {
+		if (!env.containsObject("resource_public_jwks")) {
 			throw error("Couldn't find resource's public key");
 		}
 
 		String assertion = env.getString("resource_assertion", "assertion");
-		JsonObject serverJwks = env.get("resource_public_jwks"); // to validate the signature
+		JsonObject serverJwks = env.getObject("resource_public_jwks"); // to validate the signature
 
 		try {
 			// translate stored items into nimbus objects

@@ -53,7 +53,7 @@ public class AddIntrospectionUrlToServerConfiguration extends AbstractCondition 
 			baseUrl = baseUrl + "/";
 		}
 
-		JsonObject server = env.get("server");
+		JsonObject server = env.getObject("server");
 
 		server.addProperty("introspection_endpoint", baseUrl + "introspect");
 

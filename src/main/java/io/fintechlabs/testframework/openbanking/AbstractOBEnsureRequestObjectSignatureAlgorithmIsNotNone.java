@@ -80,8 +80,8 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 		 * - It must have the correct state we supplied
 		 */
 
-		env.put("callback_params", requestParts.get("params").getAsJsonObject());
-		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		call(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		call(ExpectInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");

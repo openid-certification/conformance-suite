@@ -39,7 +39,7 @@ public class CheckIfAccountRequestsEndpointResponseError extends AbstractConditi
 	public Environment evaluate(Environment env) {
 
 		if (!Strings.isNullOrEmpty(env.getString("account_requests_endpoint_response", "error"))) {
-			throw error("Account requests endpoint error response", env.get("account_requests_endpoint_response"));
+			throw error("Account requests endpoint error response", env.getObject("account_requests_endpoint_response"));
 		} else {
 			logSuccess("No error from account requests endpoint");
 			return env;

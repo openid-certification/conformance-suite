@@ -20,7 +20,6 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.condition.util.PEMFormatter;
@@ -82,7 +81,7 @@ public class ExtractMTLSCertificates2FromConfiguration extends AbstractCondition
 			mtls.addProperty("ca", caString);
 		}
 
-		env.put("mutual_tls_authentication2", mtls);
+		env.putObject("mutual_tls_authentication2", mtls);
 
 		logSuccess("Mutual TLS authentication credentials loaded", mtls);
 

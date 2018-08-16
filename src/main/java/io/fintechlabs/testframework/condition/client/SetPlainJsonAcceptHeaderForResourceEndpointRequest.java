@@ -31,11 +31,11 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest extends Abstract
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestHeaders = env.get("resource_endpoint_request_headers");
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
 		if (requestHeaders == null) {
 			requestHeaders = new JsonObject();
-			env.put("resource_endpoint_request_headers", requestHeaders);
+			env.putObject("resource_endpoint_request_headers", requestHeaders);
 		}
 
 		requestHeaders.addProperty(HttpHeaders.ACCEPT, "application/json");

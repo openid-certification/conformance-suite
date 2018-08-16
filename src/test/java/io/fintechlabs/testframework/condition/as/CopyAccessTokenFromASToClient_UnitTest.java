@@ -73,7 +73,7 @@ public class CopyAccessTokenFromASToClient_UnitTest {
 
 		cond.evaluate(env);
 
-		JsonObject res = env.get("access_token");
+		JsonObject res = env.getObject("access_token");
 
 		assertEquals(accessToken, res);
 

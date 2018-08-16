@@ -52,7 +52,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 			"\"client_id\":\"CN=example.org\"" +
 			"}").getAsJsonObject();
 
-		env.put("client", client);
+		env.putObject("client", client);
 
 	}
 
@@ -62,7 +62,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.put("client_certificate", new JsonParser().parse("{\"subject\":{\"dn\":\"CN=example.org\"}}").getAsJsonObject());
+		env.putObject("client_certificate", new JsonParser().parse("{\"subject\":{\"dn\":\"CN=example.org\"}}").getAsJsonObject());
 
 		cond.evaluate(env);
 
@@ -74,7 +74,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongName() {
 
-		env.put("client_certificate", new JsonParser().parse("{\"subject\":{\"dn\":\"CN=invalid.org\"}}").getAsJsonObject());
+		env.putObject("client_certificate", new JsonParser().parse("{\"subject\":{\"dn\":\"CN=invalid.org\"}}").getAsJsonObject());
 
 		cond.evaluate(env);
 

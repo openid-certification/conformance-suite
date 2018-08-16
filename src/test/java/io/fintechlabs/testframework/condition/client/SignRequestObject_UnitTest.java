@@ -114,12 +114,12 @@ public class SignRequestObject_UnitTest {
 	@Test
 	public void testEvaluate_valuesPresent() throws JOSEException, ParseException {
 
-		env.put("client_jwks", jwks);
-		env.put("request_object_claims", requestObjectClaims);
+		env.putObject("client_jwks", jwks);
+		env.putObject("request_object_claims", requestObjectClaims);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("request_object_claims");
+		verify(env, atLeastOnce()).getObject("request_object_claims");
 
 		String requestObjectString = env.getString("request_object");
 		assertThat(requestObjectString).isNotNull();
@@ -158,7 +158,7 @@ public class SignRequestObject_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_jwksMissing() {
 
-		env.put("request_object_claims", requestObjectClaims);
+		env.putObject("request_object_claims", requestObjectClaims);
 
 		cond.evaluate(env);
 
@@ -170,7 +170,7 @@ public class SignRequestObject_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_claimsMissing() {
 
-		env.put("client_jwks", jwks);
+		env.putObject("client_jwks", jwks);
 
 		cond.evaluate(env);
 

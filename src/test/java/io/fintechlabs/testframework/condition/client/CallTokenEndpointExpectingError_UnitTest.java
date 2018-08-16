@@ -87,8 +87,8 @@ public class CallTokenEndpointExpectingError_UnitTest {
 
 		cond = new CallTokenEndpointExpectingError("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		env.put("token_endpoint_request_form_parameters", requestParameters);
-		env.put("token_endpoint_request_headers", requestHeaders);
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", requestHeaders);
 
 	}
 
@@ -101,7 +101,7 @@ public class CallTokenEndpointExpectingError_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -122,7 +122,7 @@ public class CallTokenEndpointExpectingError_UnitTest {
 		JsonObject server = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://bad.example.com/token\""
 			+ "}").getAsJsonObject();
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 	}

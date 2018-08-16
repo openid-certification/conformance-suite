@@ -66,7 +66,7 @@ public class SetTLSTestHostFromConfig_UnitTest {
 
 		JsonObject config = new JsonObject();
 		config.add("tls", tlsConfig);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 

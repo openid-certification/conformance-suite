@@ -42,12 +42,12 @@ public class EnsureAuthorizationEndpointError extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "callback_params")
 	public Environment evaluate(Environment in) {
-		if (!in.containsObj("callback_params")) {
+		if (!in.containsObject("callback_params")) {
 			throw error("Couldn't find callback parameters");
 		}
 
 		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
-			logSuccess("Error from the authorization endpoint", in.get("callback_params"));
+			logSuccess("Error from the authorization endpoint", in.getObject("callback_params"));
 			return in;
 		} else {
 			throw error("No error from authorization endpoint");

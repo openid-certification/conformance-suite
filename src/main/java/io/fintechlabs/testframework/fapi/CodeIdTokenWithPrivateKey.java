@@ -138,7 +138,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
-		env.put("config", config);
+		env.putObject("config", config);
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -284,7 +284,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		env.put("callback_query_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 

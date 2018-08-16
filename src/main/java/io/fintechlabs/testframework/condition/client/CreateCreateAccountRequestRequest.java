@@ -47,7 +47,7 @@ public class CreateCreateAccountRequestRequest extends AbstractCondition {
 		o.add("Data", data);
 		o.add("Risk", new JsonObject());
 
-		env.put("account_requests_endpoint_request", o);
+		env.putObject("account_requests_endpoint_request", o);
 
 		logSuccess(args("account_requests_endpoint_request", o));
 

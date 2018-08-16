@@ -64,8 +64,8 @@ public class SignIdToken extends AbstractCondition {
 	@PostEnvironment(strings = "id_token")
 	public Environment evaluate(Environment env) {
 
-		JsonObject claims = env.get("id_token_claims");
-		JsonObject jwks = env.get("server_jwks");
+		JsonObject claims = env.getObject("id_token_claims");
+		JsonObject jwks = env.getObject("server_jwks");
 
 		if (claims == null) {
 			throw error("Couldn't find claims");

@@ -53,7 +53,7 @@ public class ValidateResourceAssertionClaims extends AbstractCondition {
 	@PreEnvironment(required = {"resource_assertion", "server"}, strings = {"resource_id", "issuer"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject payload = env.findElement("resource_assertion", "assertion_payload").getAsJsonObject();
+		JsonObject payload = env.getElementFromObject("resource_assertion", "assertion_payload").getAsJsonObject();
 
 		if (payload == null) {
 			throw error("Couldn't find assertion payload");
@@ -70,7 +70,7 @@ public class ValidateResourceAssertionClaims extends AbstractCondition {
 		String issuer = env.getString("issuer");
 		String introspectionEndpoint = env.getString("server", "introspection_endpoint");
 
-		JsonElement a = env.findElement("resource_assertion", "assertion_payload.aud");
+		JsonElement a = env.getElementFromObject("resource_assertion", "assertion_payload.aud");
 
 		if (a == null) {
 			throw error("Couldn't find audience");

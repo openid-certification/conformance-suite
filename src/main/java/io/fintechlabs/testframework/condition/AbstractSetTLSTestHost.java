@@ -40,8 +40,8 @@ public abstract class AbstractSetTLSTestHost extends AbstractCondition {
 		o.addProperty("testHost", host);
 		o.addProperty("testPort", port);
 
-		env.remove("tls");
-		env.put("tls", o);
+		env.removeObject("tls");
+		env.putObject("tls", o);
 
 		logSuccess("Configured TLS test host", o);
 

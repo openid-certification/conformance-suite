@@ -68,11 +68,11 @@ public class GetStaticResourceConfiguration_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.put("config", config);
+		env.putObject("config", config);
 
 		cond.evaluate(env);
 
-		assertEquals(resource, env.get("resource"));
+		assertEquals(resource, env.getObject("resource"));
 		assertEquals(resourceId, env.getString("resource_id"));
 	}
 }

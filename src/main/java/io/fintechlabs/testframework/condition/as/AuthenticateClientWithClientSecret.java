@@ -44,11 +44,11 @@ public class AuthenticateClientWithClientSecret extends AbstractCondition {
 	@PreEnvironment(required = "client_authentication")
 	@PostEnvironment(required = "client_authentication_success")
 	public Environment evaluate(Environment env) {
-		if (env.containsObj("client_authentication_success")) {
+		if (env.containsObject("client_authentication_success")) {
 			throw error("Found existing client authentication");
 		}
 
-		if (!env.containsObj("client_authentication")) {
+		if (!env.containsObject("client_authentication")) {
 			throw error("Couldn't find client authentication");
 		}
 

@@ -65,7 +65,7 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 			}
 
 			// these count as both the authorization and token responses
-			env.put("callback_params", o);
+			env.putObject("callback_params", o);
 
 			logSuccess("Extracted the hash values", o);
 

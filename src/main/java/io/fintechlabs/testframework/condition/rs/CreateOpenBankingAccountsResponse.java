@@ -73,7 +73,7 @@ public class CreateOpenBankingAccountsResponse extends AbstractOpenBankingApiRes
 
 		logSuccess("Created account response object", args("accounts_endpoint_response", response));
 
-		env.put("accounts_endpoint_response", response);
+		env.putObject("accounts_endpoint_response", response);
 
 		return env;
 

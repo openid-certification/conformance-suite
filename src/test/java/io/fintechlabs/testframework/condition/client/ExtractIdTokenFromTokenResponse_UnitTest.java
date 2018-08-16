@@ -74,16 +74,16 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.put("token_endpoint_response", goodResponse);
+		env.putObject("token_endpoint_response", goodResponse);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).findElement("token_endpoint_response", "id_token");
+		verify(env, atLeastOnce()).getElementFromObject("token_endpoint_response", "id_token");
 
-		assertThat(env.get("id_token")).isNotNull();
+		assertThat(env.getObject("id_token")).isNotNull();
 		assertThat(env.getString("id_token", "value")).isEqualTo(goodResponse.get("id_token").getAsString());
-		assertThat(env.findElement("id_token", "header")).isNotNull();
-		assertThat(env.findElement("id_token", "claims")).isNotNull();
+		assertThat(env.getElementFromObject("id_token", "header")).isNotNull();
+		assertThat(env.getElementFromObject("id_token", "claims")).isNotNull();
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		env.put("token_endpoint_response", badResponse);
+		env.putObject("token_endpoint_response", badResponse);
 
 		cond.evaluate(env);
 

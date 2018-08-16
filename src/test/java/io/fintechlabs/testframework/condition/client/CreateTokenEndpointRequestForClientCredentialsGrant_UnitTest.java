@@ -64,11 +64,11 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Test
 	public void testEvaluate_withScope() {
 
-		env.put("client", clientWithScope);
+		env.putObject("client", clientWithScope);
 
 		cond.evaluate(env);
 
-		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
+		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
@@ -80,11 +80,11 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Test
 	public void testEvaluate_withoutScope() {
 
-		env.put("client", clientWithoutScope);
+		env.putObject("client", clientWithoutScope);
 
 		cond.evaluate(env);
 
-		JsonObject parameters = env.get("token_endpoint_request_form_parameters");
+		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");

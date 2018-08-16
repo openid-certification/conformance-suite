@@ -49,7 +49,7 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends Abs
 	public Environment evaluate(Environment env) {
 
 		// Remove any certificate from a previous connection
-		env.remove("client_certificate");
+		env.removeObject("client_certificate");
 
 		String certStr = env.getString("token_endpoint_request", "headers.X-Ssl-Cert");
 		if (certStr == null) {
@@ -70,7 +70,7 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends Abs
 			subjectInfo.addProperty("dn", subject.getName());
 			certInfo.add("subject", subjectInfo);
 
-			env.put("client_certificate", certInfo);
+			env.putObject("client_certificate", certInfo);
 
 			logSuccess("Extracted client certificate", args("client_certificate", certInfo));
 

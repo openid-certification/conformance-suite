@@ -131,16 +131,16 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	@Test
 	public void testEvaluate() throws UnsupportedEncodingException {
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 		env.putString("request_object", requestObject);
-		env.put("request_object_claims", requestObjectClaims);
-		env.put("server", server);
+		env.putObject("request_object_claims", requestObjectClaims);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).get("authorization_endpoint_request");
+		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 		verify(env, atLeastOnce()).getString("request_object");
-		verify(env, atLeastOnce()).get("request_object_claims");
+		verify(env, atLeastOnce()).getObject("request_object_claims");
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
 
 		assertThat(env.getString("redirect_to_authorization_endpoint")).startsWith("https://server.example.com/oauth/authorize");
@@ -165,10 +165,10 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	@Test
 	public void testEvaluate_override() throws UnsupportedEncodingException {
 
-		env.put("authorization_endpoint_request", alternateAuthorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", alternateAuthorizationEndpointRequest);
 		env.putString("request_object", requestObject);
-		env.put("request_object_claims", requestObjectClaims);
-		env.put("server", server);
+		env.putObject("request_object_claims", requestObjectClaims);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -187,8 +187,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	public void testEvaluate_missingAuthorizationEndpointRequest() {
 
 		env.putString("request_object", requestObject);
-		env.put("request_object_claims", requestObjectClaims);
-		env.put("server", server);
+		env.putObject("request_object_claims", requestObjectClaims);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -200,9 +200,9 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingRequestObject() {
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
-		env.put("request_object_claims", requestObjectClaims);
-		env.put("server", server);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("request_object_claims", requestObjectClaims);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -214,9 +214,9 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingRequestObjectClaims() {
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 		env.putString("request_object", requestObject);
-		env.put("server", server);
+		env.putObject("server", server);
 
 		cond.evaluate(env);
 
@@ -228,9 +228,9 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingServer() {
 
-		env.put("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 		env.putString("request_object", requestObject);
-		env.put("request_object_claims", requestObjectClaims);
+		env.putObject("request_object_claims", requestObjectClaims);
 
 		cond.evaluate(env);
 

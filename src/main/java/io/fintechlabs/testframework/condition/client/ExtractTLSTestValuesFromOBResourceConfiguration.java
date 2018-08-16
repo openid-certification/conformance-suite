@@ -61,7 +61,7 @@ public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCon
 
 			JsonObject accountsResourceEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(accountsResourceEndpoint);
 
-			env.put("accounts_resource_endpoint_tls", accountsResourceEndpointTls);
+			env.putObject("accounts_resource_endpoint_tls", accountsResourceEndpointTls);
 
 			String accountsRequestEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNT_REQUESTS);
 			if (Strings.isNullOrEmpty(accountsRequestEndpoint)) {
@@ -70,7 +70,7 @@ public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCon
 
 			JsonObject accountsRequestEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(accountsRequestEndpoint);
 
-			env.put("accounts_request_endpoint_tls", accountsRequestEndpointTls);
+			env.putObject("accounts_request_endpoint_tls", accountsRequestEndpointTls);
 
 
 			logSuccess("Extracted TLS information from resource endpoint", args(
