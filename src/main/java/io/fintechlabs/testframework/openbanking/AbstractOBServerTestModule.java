@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddAcrScaClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddIatExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -83,6 +84,7 @@ import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaims;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
@@ -276,6 +278,11 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+
+		if ( whichClient == 2) {
+			call(AddAcrScaClaimToAuthorizationEndpointRequest.class);
+		}
+
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -473,6 +480,11 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	protected void performProfileIdTokenValidation() {
 		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
+
+		if ( whichClient == 2 ) {
+			call(ValidateIdTokenACRClaims.class,"OIDCC-5.5.1.1");
+		}
+
 	}
 
 	protected abstract void performTokenEndpointIdTokenExtraction();
