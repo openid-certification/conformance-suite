@@ -280,7 +280,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		if ( whichClient == 2) {
-			call(AddAcrScaClaimToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(AddAcrScaClaimToAuthorizationEndpointRequest.class);
 		}
 
 	}
@@ -482,7 +482,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
 
 		if ( whichClient == 2 ) {
-			call(ValidateIdTokenACRClaims.class,"OIDCC-5.5.1.1");
+			call(ValidateIdTokenACRClaims.class, ConditionResult.FAILURE, "OIDCC-5.5.1.1");
 		}
 
 	}
