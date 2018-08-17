@@ -36,12 +36,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -176,6 +174,7 @@ public class TestDispatcher {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
+				test.fireTestFailure();
 				test.stop();
 				eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), EventLog.ex(error));
 			}
