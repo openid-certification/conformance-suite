@@ -110,7 +110,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 

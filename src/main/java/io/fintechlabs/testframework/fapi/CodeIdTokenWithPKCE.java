@@ -216,7 +216,7 @@ public class CodeIdTokenWithPKCE extends AbstractTestModule {
 //		exposeEnvString("code_challenge_method");
 //		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 

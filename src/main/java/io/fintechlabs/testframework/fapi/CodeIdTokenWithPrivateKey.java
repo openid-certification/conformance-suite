@@ -240,7 +240,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		//callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
@@ -443,7 +443,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 //
 //		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 

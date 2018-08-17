@@ -28,7 +28,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModuleNames = {
 		"fapi-r-code-id-token-with-pkce",
 		"fapi-r-ensure-redirect-uri-in-authorization-request",
-		"fapi-r-ensure-redirect-uri-is-registered"
+		"fapi-r-ensure-redirect-uri-is-registered",
+		"fapi-r-require-pkce",
+		"fapi-r-reject-plain-pkce"
 	}
 )
 public class FAPI_R_CodeIdTokenWithPKCETestPlan implements TestPlan {

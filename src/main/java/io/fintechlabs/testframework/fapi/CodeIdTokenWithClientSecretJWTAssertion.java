@@ -248,7 +248,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 //
 //		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
@@ -444,7 +444,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 //
 //			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-			call(PKCE.createChallenge());
+			call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 			call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 

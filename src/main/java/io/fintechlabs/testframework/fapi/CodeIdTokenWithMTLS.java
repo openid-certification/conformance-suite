@@ -248,7 +248,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
@@ -437,7 +437,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-			call(PKCE.createChallenge());
+			call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 			callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 

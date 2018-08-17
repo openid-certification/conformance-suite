@@ -28,6 +28,7 @@ import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.ExpectRedirectUriMissingErrorPage;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.RemoveRedirectUriFromAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -78,12 +79,6 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		exposeEnvString("client_id");
 
-		// Create a valid authorization request
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
-
-		// Remove the redirect URL
-		env.getObject("authorization_endpoint_request").remove("redirect_uri");
-
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
@@ -96,6 +91,12 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 	public void start() {
 		setStatus(Status.RUNNING);
 
+		// Create a valid authorization request
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		// Remove the redirect URL
+		call(condition(RemoveRedirectUriFromAuthorizationEndpointRequest.class));
+
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
 		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
@@ -106,7 +107,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
-		call(PKCE.createChallenge());
+		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
