@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -247,6 +248,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
+		call(PKCE.createChallenge());
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
@@ -365,6 +368,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			callAndStopOnFailure(CallTokenEndpoint.class);
 
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
@@ -432,6 +437,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
+			call(PKCE.createChallenge());
+
 			callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 			String redirectTo = env.getString("redirect_to_authorization_endpoint");
@@ -451,13 +458,14 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
 
-
-
-
 		getTestExecutionManager().runInBackground(() -> {
+
 			// process the callback
+
 			setStatus(Status.RUNNING);
+
 			JsonElement body = requestParts.get("body");
+
 			if (body != null) {
 				String hash = body.getAsString();
 
@@ -469,25 +477,40 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
+
 			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+
 			// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
+
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			// use the code with the first client's ID
 			env.unmapKey("client");
+
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+
 			env.mapKey("client", "client2");
+
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
+
 			// put everything back where we found it
+
 			env.unmapKey("client");
 			env.unmapKey("mutual_tls_authentication");
 			eventLog.endBlock();
+
 			fireTestFinished();
+
 			return "done";
 		});
-		return redirectToLogDetailPage();
 
+		return redirectToLogDetailPage();
 	}
 
 }

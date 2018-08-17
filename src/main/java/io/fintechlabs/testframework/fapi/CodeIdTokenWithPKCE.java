@@ -30,7 +30,6 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -48,12 +47,10 @@ import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
@@ -212,12 +209,14 @@ public class CodeIdTokenWithPKCE extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(CreateRandomCodeVerifier.class);
-		exposeEnvString("code_verifier");
-		callAndStopOnFailure(CreateS256CodeChallenge.class);
-		exposeEnvString("code_challenge");
-		exposeEnvString("code_challenge_method");
-		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class);
+//		callAndStopOnFailure(CreateRandomCodeVerifier.class);
+//		exposeEnvString("code_verifier");
+//		callAndStopOnFailure(CreateS256CodeChallenge.class);
+//		exposeEnvString("code_challenge");
+//		exposeEnvString("code_challenge_method");
+//		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class);
+
+		call(PKCE.createChallenge());
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 

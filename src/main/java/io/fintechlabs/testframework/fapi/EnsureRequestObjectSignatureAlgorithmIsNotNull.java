@@ -114,6 +114,8 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
+		call(PKCE.createChallenge());
+
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);

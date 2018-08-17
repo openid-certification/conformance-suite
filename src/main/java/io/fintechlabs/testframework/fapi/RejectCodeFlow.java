@@ -124,6 +124,8 @@ public class RejectCodeFlow extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
+		call(PKCE.createChallenge());
+
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");

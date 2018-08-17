@@ -30,10 +30,11 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
@@ -47,7 +48,6 @@ import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
@@ -81,7 +81,6 @@ import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguratio
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
@@ -241,11 +240,15 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+		call(PKCE.createChallenge());
 
-		callAndStopOnFailure(SignRequestObject.class);
+		//callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		//callAndStopOnFailure(SignRequestObject.class);
+
+		//callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+
+		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
@@ -365,6 +368,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 
+		call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
@@ -432,11 +437,15 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+//		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+//
+//		callAndStopOnFailure(SignRequestObject.class);
+//
+//		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-		callAndStopOnFailure(SignRequestObject.class);
+		call(PKCE.createChallenge());
 
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
@@ -489,6 +498,9 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 
