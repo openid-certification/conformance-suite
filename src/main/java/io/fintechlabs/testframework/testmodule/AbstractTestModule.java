@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -423,6 +424,26 @@ public abstract class AbstractTestModule implements TestModule {
 		if (builder.isEndBlock()) {
 			eventLog.endBlock();
 		}
+	}
+
+	/**
+	 * Dispatch function to call a more specific subclass as needed.
+	 */
+	protected void call(TestExecutionUnit builder) {
+		if (builder instanceof ConditionCallBuilder) {
+			call((ConditionCallBuilder)builder);
+		} else if (builder instanceof TestExecutionBuilder) {
+			call((TestExecutionBuilder)builder);
+		} else {
+			throw new TestFailureException(getId(), "Unknown class passed to call() function");
+		}
+	}
+
+	/**
+	 * Call a list of execution units in order
+	 */
+	protected void call(List<TestExecutionUnit> units) {
+		units.forEach(this::call);
 	}
 
 	@Override
