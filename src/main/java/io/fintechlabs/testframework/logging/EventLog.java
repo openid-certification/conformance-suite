@@ -106,6 +106,10 @@ public interface EventLog {
 				(c1, c2) -> c1.addAll(c2));
 
 		copy.add("stacktrace", stack);
+		copy.addProperty("result", ConditionResult.FAILURE.toString());
+		if (!copy.has("msg")) {
+			copy.addProperty("msg", "unexpected exception caught");
+		}
 
 		return copy;
 	}
@@ -130,7 +134,9 @@ public interface EventLog {
 
 		event.put("stacktrace", stack);
 		event.put("result", ConditionResult.FAILURE);
-		event.put("msg", "unexpected exception caught");
+		if (!in.containsKey("msg")) {
+			event.put("msg", "unexpected exception caught");
+		}
 
 		return event;
 	}

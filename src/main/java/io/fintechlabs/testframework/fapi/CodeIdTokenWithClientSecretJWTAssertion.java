@@ -78,6 +78,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
@@ -240,8 +241,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-//		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-//
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+
 //		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 //
 //		callAndStopOnFailure(SignRequestObject.class);
@@ -436,8 +437,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 			exposeEnvString("nonce");
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-//			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-//
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+
 //			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 //
 //			callAndStopOnFailure(SignRequestObject.class);

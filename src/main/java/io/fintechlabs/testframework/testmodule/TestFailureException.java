@@ -22,6 +22,9 @@ import io.fintechlabs.testframework.condition.ConditionError;
  */
 public class TestFailureException extends RuntimeException {
 
+	// this is only used if the "cause" is not a ConditionError
+	private String testId = null;
+
 	/**
 	 *
 	 */
@@ -38,14 +41,15 @@ public class TestFailureException extends RuntimeException {
 	 *
 	 */
 	public TestFailureException(String testId, String msg) {
-		super(new ConditionError(testId, msg));
+		super(new RuntimeException(msg));
+		this.testId = testId;
 	}
 
 	public String getTestId() {
 		if (getCause() != null && getCause() instanceof ConditionError) {
 			return ((ConditionError) getCause()).getTestId();
 		} else {
-			return null;
+			return testId;
 		}
 	}
 
