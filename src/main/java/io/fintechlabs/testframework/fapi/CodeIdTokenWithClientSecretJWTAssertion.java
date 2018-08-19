@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -49,10 +50,12 @@ import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointRespons
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
@@ -249,7 +252,14 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 //
 //		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-		call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
+		call(condition(CreateRandomCodeVerifier.class));
+		call(exec().exposeEnvironmentString("code_verifier"));
+		call(condition(CreateS256CodeChallenge.class));
+		call(exec()
+			.exposeEnvironmentString("code_challenge")
+			.exposeEnvironmentString("code_challenge_method"));
+		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+			.requirement("FAPI-1-5.2.2-7"));
 
 		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
@@ -445,7 +455,14 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 //
 //			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 
-			call(PKCE.createS256ChallengeAndAddtoAuthorizationEndpointRequest());
+			call(condition(CreateRandomCodeVerifier.class));
+			call(exec().exposeEnvironmentString("code_verifier"));
+			call(condition(CreateS256CodeChallenge.class));
+			call(exec()
+				.exposeEnvironmentString("code_challenge")
+				.exposeEnvironmentString("code_challenge_method"));
+			call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+				.requirement("FAPI-1-5.2.2-7"));
 
 			call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
