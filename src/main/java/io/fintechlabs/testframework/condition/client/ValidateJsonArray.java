@@ -15,13 +15,29 @@ public class ValidateJsonArray extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
+	public long countMatchingElements(List<String> searchValues, JsonArray searchSpace ) {
+		long foundCount = 0;
+
+		int viableSize = searchValues.size();
+		int serverSize = searchSpace.size();
+
+		for (int viableIndex = 0; viableIndex < viableSize; viableIndex++) {
+			for (int serverIndex = 0; serverIndex < serverSize; serverIndex++) {
+				if (searchValues.get(viableIndex).equals(searchSpace.get(serverIndex).getAsString())) {
+					foundCount++;
+					break;
+				}
+			}
+		}
+		return foundCount;
+	}
+
 	public Environment validate(Environment env, String environmentVariable,
 			List<String> setValues, Integer minimumMatchesRequired,
 			String errorMessageNotEnough) {
 
 		JsonElement serverValues = env.getElementFromObject("server", environmentVariable);
 		String errorMessage = null;
-		int foundCount = 0;
 
 		if (serverValues == null) {
 			errorMessage = environmentVariable + ": not found";
@@ -31,21 +47,7 @@ public class ValidateJsonArray extends AbstractCondition {
 				errorMessage = "'" + environmentVariable + "' should be an array";
 			} else {
 
-				int viableSize = setValues.size();
-				int serverSize = serverValues.getAsJsonArray().size();
-
-				JsonArray serverData = serverValues.getAsJsonArray();
-
-				for (int viableIndex = 0; viableIndex < viableSize; viableIndex++) {
-					for (int serverIndex = 0; serverIndex < serverSize; serverIndex++) {
-						if (setValues.get(viableIndex).equals(serverData.get(serverIndex).getAsString())) {
-							foundCount++;
-							break;
-						}
-					}
-				}
-
-				if (foundCount < minimumMatchesRequired) {
+				if (countMatchingElements(setValues, serverValues.getAsJsonArray()) < minimumMatchesRequired) {
 					errorMessage = errorMessageNotEnough;
 				}
 			}
@@ -58,7 +60,7 @@ public class ValidateJsonArray extends AbstractCondition {
 			throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected", setValues, "actual", serverValues));
 		}
 
-		logSuccess(environmentVariable, args("actual", serverValues, "expected", serverValues));
+		logSuccess(environmentVariable, args("actual", serverValues, "expected", serverValues, "minimum matches required", minimumMatchesRequired));
 
 		return env;
 	}
