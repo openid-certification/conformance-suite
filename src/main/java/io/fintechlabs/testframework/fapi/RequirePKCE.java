@@ -25,7 +25,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-r-require-pkce",
-	displayName = "FAPI-R: Require PKCE in authorization request",
+	displayName = "FAPI-R: Require PKCE in authorization request (code id_token)",
 	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",

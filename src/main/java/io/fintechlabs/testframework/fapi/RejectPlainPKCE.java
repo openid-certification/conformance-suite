@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-r-reject-plain-pkce",
-	displayName = "FAPI-R: Reject plain PKCE in authorization request",
+	displayName = "FAPI-R: Reject plain PKCE in authorization request (code id_token)",
 	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
