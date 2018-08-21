@@ -25,13 +25,16 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -123,6 +126,15 @@ public class RejectCodeFlow extends AbstractTestModule {
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+
+		call(condition(CreateRandomCodeVerifier.class));
+		call(exec().exposeEnvironmentString("code_verifier"));
+		call(condition(CreateS256CodeChallenge.class));
+		call(exec()
+			.exposeEnvironmentString("code_challenge")
+			.exposeEnvironmentString("code_challenge_method"));
+		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+			.requirement("FAPI-1-5.2.2-7"));
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 

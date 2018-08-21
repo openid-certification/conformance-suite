@@ -1,33 +1,22 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateBadRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -45,7 +34,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
  */
 @PublishTestModule(
 	testName = "fapi-r-ensure-redirect-uri-is-registered",
-	displayName = "FAPI-R: Ensure redirect URI is registered",
+	displayName = "FAPI-R: Ensure redirect URI is registered (code id_token)",
 	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -108,7 +97,16 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+
+		call(condition(CreateRandomCodeVerifier.class));
+		call(exec().exposeEnvironmentString("code_verifier"));
+		call(condition(CreateS256CodeChallenge.class));
+		call(exec()
+			.exposeEnvironmentString("code_challenge")
+			.exposeEnvironmentString("code_challenge_method"));
+		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+			.requirement("FAPI-1-5.2.2-7"));
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 

@@ -36,15 +36,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
@@ -176,14 +175,19 @@ public class TestDispatcher {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
-				test.stop();
-				eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), EventLog.ex(error));
-			}
+				if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+					// ConditionError will get handled by the logging system, no need to display with stacktrace
+					test.setFinalError(error);
+					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), EventLog.ex(error,
+						EventLog.args(
+							"result", ConditionResult.FAILURE,
+							"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
+						));
+				}
 
-			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
-				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-				// ConditionError will get handled by the logging system, no need to display with stacktrace
-				test.setFinalError(error);
+				test.fireTestFailure();
+				test.stop();
 			}
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {

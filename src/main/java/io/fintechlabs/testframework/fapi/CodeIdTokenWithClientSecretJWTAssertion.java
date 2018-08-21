@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
@@ -30,10 +16,12 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
@@ -46,13 +34,14 @@ import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
@@ -80,7 +69,6 @@ import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguratio
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
@@ -244,11 +232,16 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+		call(condition(CreateRandomCodeVerifier.class));
+		call(exec().exposeEnvironmentString("code_verifier"));
+		call(condition(CreateS256CodeChallenge.class));
+		call(exec()
+			.exposeEnvironmentString("code_challenge")
+			.exposeEnvironmentString("code_challenge_method"));
+		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+			.requirement("FAPI-1-5.2.2-7"));
 
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
@@ -367,6 +360,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			callAndStopOnFailure(CallTokenEndpoint.class);
 
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
@@ -434,11 +429,16 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+			call(condition(CreateRandomCodeVerifier.class));
+			call(exec().exposeEnvironmentString("code_verifier"));
+			call(condition(CreateS256CodeChallenge.class));
+			call(exec()
+				.exposeEnvironmentString("code_challenge")
+				.exposeEnvironmentString("code_challenge_method"));
+			call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+				.requirement("FAPI-1-5.2.2-7"));
 
-			callAndStopOnFailure(SignRequestObject.class);
-
-			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+			call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
 			String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
@@ -493,6 +493,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 

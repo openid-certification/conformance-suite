@@ -4,20 +4,16 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
-import io.fintechlabs.testframework.condition.client.ExpectRedirectUriMissingErrorPage;
+import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.RemoveRedirectUriFromAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
@@ -28,8 +24,8 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-r-ensure-redirect-uri-in-authorization-request",
-	displayName = "FAPI-R: Ensure redirect URI in authorization request (code id_token)",
+	testName = "fapi-r-require-pkce",
+	displayName = "FAPI-R: Require PKCE in authorization request (code id_token)",
 	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -37,9 +33,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.scope"
 	}
 )
-public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule {
+public class RequirePKCE extends AbstractTestModule {
 
-	public EnsureRedirectUriInAuthorizationRequest(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+	public RequirePKCE(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
@@ -83,9 +79,6 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 		// Create a valid authorization request
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		// Remove the redirect URL
-		call(condition(RemoveRedirectUriFromAuthorizationEndpointRequest.class));
-
 		callAndStopOnFailure(CreateRandomStateValue.class);
 		exposeEnvString("state");
 		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
@@ -96,15 +89,6 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		call(condition(CreateRandomCodeVerifier.class));
-		call(exec().exposeEnvironmentString("code_verifier"));
-		call(condition(CreateS256CodeChallenge.class));
-		call(exec()
-			.exposeEnvironmentString("code_challenge")
-			.exposeEnvironmentString("code_challenge_method"));
-		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
-			.requirement("FAPI-1-5.2.2-7"));
-
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
@@ -113,7 +97,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
+		callAndStopOnFailure(ExpectPKCEError.class, "FAPI-1-5.2.2-7");
 
 		setStatus(Status.WAITING);
 

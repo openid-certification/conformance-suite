@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -99,18 +100,32 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 *
+	 * onFail is set to FAILURE
+	 *
+	 * requirements are empty
+	 *
 	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass) {
 		call(condition(conditionClass)
 			.onFail(ConditionResult.FAILURE));
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 *
+	 * onFail is set to FAILURE
+	 *
+	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
 			.onFail(ConditionResult.FAILURE)
 			.requirements(requirements));
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
 			.requirements(requirements)
@@ -126,14 +141,23 @@ public abstract class AbstractTestModule implements TestModule {
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
+	 * onFail is set to INFO
+	 *
+	 * requirements are empty
 	 */
-
 	protected void call(Class<? extends Condition> conditionClass) {
 		call(condition(conditionClass)
 			.onFail(ConditionResult.INFO)
 			.dontStopOnFailure());
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
+	 * onFail is set to WARNING
+	 *
+	 */
 	protected void call(Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
 			.onFail(ConditionResult.WARNING)
@@ -141,6 +165,10 @@ public abstract class AbstractTestModule implements TestModule {
 			.dontStopOnFailure());
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
+	 */
 	protected void call(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
 			.requirements(requirements)
@@ -148,6 +176,14 @@ public abstract class AbstractTestModule implements TestModule {
 			.dontStopOnFailure());
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment, but only if the environment contains the given
+	 * objects and strings (both can be null).
+	 *
+	 * onFail is set to INFO
+	 *
+	 * requirements are empty
+	 */
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass) {
 
@@ -159,6 +195,13 @@ public abstract class AbstractTestModule implements TestModule {
 			.dontStopOnFailure());
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment, but only if the environment contains the given
+	 * objects and strings (both can be null).
+	 *
+	 * onFail is set to WARNING
+	 *
+	 */
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
@@ -170,6 +213,11 @@ public abstract class AbstractTestModule implements TestModule {
 			.dontStopOnFailure());
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment, but only if the environment contains the given
+	 * objects and strings (both can be null).
+	 *
+	 */
 	protected void skipIfMissing(String[] required, String[] strings, ConditionResult onSkip,
 		Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
@@ -423,6 +471,26 @@ public abstract class AbstractTestModule implements TestModule {
 		if (builder.isEndBlock()) {
 			eventLog.endBlock();
 		}
+	}
+
+	/**
+	 * Dispatch function to call a more specific subclass as needed.
+	 */
+	protected void call(TestExecutionUnit builder) {
+		if (builder instanceof ConditionCallBuilder) {
+			call((ConditionCallBuilder)builder);
+		} else if (builder instanceof TestExecutionBuilder) {
+			call((TestExecutionBuilder)builder);
+		} else {
+			throw new TestFailureException(getId(), "Unknown class passed to call() function");
+		}
+	}
+
+	/**
+	 * Call a list of execution units in order
+	 */
+	protected void call(List<TestExecutionUnit> units) {
+		units.forEach(this::call);
 	}
 
 	@Override

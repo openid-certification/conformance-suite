@@ -13,7 +13,7 @@ import java.util.Map;
  * @author jricher
  *
  */
-public class TestExecutionBuilder {
+public class TestExecutionBuilder extends TestExecutionUnit {
 	private Map<String, String> mapKeys = new LinkedHashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
 	private String startBlock = null;

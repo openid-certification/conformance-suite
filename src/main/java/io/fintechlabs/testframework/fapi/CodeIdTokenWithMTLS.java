@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
@@ -30,6 +16,8 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -48,10 +36,12 @@ import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateS256CodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
@@ -247,6 +237,15 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
+		call(condition(CreateRandomCodeVerifier.class));
+		call(exec().exposeEnvironmentString("code_verifier"));
+		call(condition(CreateS256CodeChallenge.class));
+		call(exec()
+			.exposeEnvironmentString("code_challenge")
+			.exposeEnvironmentString("code_challenge_method"));
+		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+			.requirement("FAPI-1-5.2.2-7"));
+
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
@@ -365,6 +364,8 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			callAndStopOnFailure(CallTokenEndpoint.class);
 
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
@@ -432,6 +433,15 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
+			call(condition(CreateRandomCodeVerifier.class));
+			call(exec().exposeEnvironmentString("code_verifier"));
+			call(condition(CreateS256CodeChallenge.class));
+			call(exec()
+				.exposeEnvironmentString("code_challenge")
+				.exposeEnvironmentString("code_challenge_method"));
+			call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
+				.requirement("FAPI-1-5.2.2-7"));
+
 			callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
 			String redirectTo = env.getString("redirect_to_authorization_endpoint");
@@ -451,13 +461,14 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
 
-
-
-
 		getTestExecutionManager().runInBackground(() -> {
+
 			// process the callback
+
 			setStatus(Status.RUNNING);
+
 			JsonElement body = requestParts.get("body");
+
 			if (body != null) {
 				String hash = body.getAsString();
 
@@ -469,25 +480,40 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
+
 			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+
 			// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
+
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+
+			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
+
 			// use the code with the first client's ID
 			env.unmapKey("client");
+
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+
 			env.mapKey("client", "client2");
+
 			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
+
 			// put everything back where we found it
+
 			env.unmapKey("client");
 			env.unmapKey("mutual_tls_authentication");
 			eventLog.endBlock();
+
 			fireTestFinished();
+
 			return "done";
 		});
-		return redirectToLogDetailPage();
 
+		return redirectToLogDetailPage();
 	}
 
 }
