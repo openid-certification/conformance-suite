@@ -32,12 +32,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import com.google.common.collect.Lists;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @Order(1)
@@ -58,13 +57,13 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
 		http
 			.requestMatchers()
-				.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**", "/plan/**")
+				.requestMatchers(getMatcher())
 			.and()
 				.csrf().disable()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
 			.and()
 				.authorizeRequests()
-					.antMatchers("/currentuser", "/runner/**", "/log/**", "/info/**", "/plan/**")
+					.requestMatchers(getMatcher())
 					.authenticated()
 			.and()
 				.addFilterBefore(oauth2Filter(), AbstractPreAuthenticatedProcessingFilter.class)
@@ -80,12 +79,23 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public Filter oauth2Filter() {
 
-		OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
+		UrlLimitedOAuth2AuthenticationProcessingFilter filter = new UrlLimitedOAuth2AuthenticationProcessingFilter();
 		filter.setAuthenticationManager(oauthAuthenticationManager());
 		filter.setAuthenticationEntryPoint(restAuthenticationEntryPoint());
+		filter.setMatcher(getMatcher());
 		filter.setStateless(false);
 
 		return filter;
+	}
+
+	private RequestMatcher getMatcher() {
+		return new OrRequestMatcher(
+			new AntPathRequestMatcher("/currentuser"),
+			new AntPathRequestMatcher("/runner/**"),
+			new AntPathRequestMatcher("/log/**"),
+			new AntPathRequestMatcher("/info/**"),
+			new AntPathRequestMatcher("/plan/**")
+			);
 	}
 
 	/**
