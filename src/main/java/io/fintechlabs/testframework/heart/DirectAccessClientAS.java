@@ -179,7 +179,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 
 	private Object handleJwks(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.getObject("public_jwks");
+		JsonObject jwks = env.getObject("server_public_jwks");
 
 		setStatus(Status.WAITING);
 
