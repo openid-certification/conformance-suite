@@ -66,6 +66,7 @@ def run_test_plan(test_plan, config_file):
     }
 
 
+# Returns 'did_not_complete', ie. True if any test failed to run to completion
 def show_plan_results(plan_result):
     plan_id = plan_result['plan_id']
     plan_modules = plan_result['plan_modules']
@@ -128,8 +129,11 @@ def show_plan_results(plan_result):
     print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):
         print("** NOT ALL TESTS WERE RUN **")
+        return True
     if incomplete != 0:
         print("** {:d} TESTS DID NOT RUN TO COMPLETION **".format(incomplete))
+        return True
+    return False
 
 
 if __name__ == '__main__':
@@ -177,5 +181,15 @@ if __name__ == '__main__':
 
     print("\n\nScript complete - results:")
 
+    did_not_complete = False
     for result in results:
-        show_plan_results(result)
+        plan_did_not_complete = show_plan_results(result)
+        if plan_did_not_complete:
+            did_not_complete = True
+
+    if did_not_complete:
+        print("** Exiting with failure - some tests did not run to completion")
+        sys.exit(1)
+
+    print("All tests ran to completion. See above for any test condition failures.")
+    sys.exit(0)
