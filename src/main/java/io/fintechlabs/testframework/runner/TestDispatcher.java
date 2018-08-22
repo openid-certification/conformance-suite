@@ -72,13 +72,6 @@ public class TestDispatcher {
 	/**
 	 * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
 	 * This requests may or may not be user-facing so we don't assume anything about the response.
-	 *
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
 	 */
 	@RequestMapping({ TEST_PATH + "**", TEST_MTLS_PATH + "**" })
 	public Object handle(
@@ -143,14 +136,17 @@ public class TestDispatcher {
 
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
+			Object response;
 			logIncomingHttpRequest(test, restOfPath, requestParts);
 			if (path.startsWith(TEST_PATH)) {
-				return test.handleHttp(restOfPath, req, res, session, requestParts);
+				response = test.handleHttp(restOfPath, req, res, session, requestParts);
 			} else if (path.startsWith(TEST_MTLS_PATH)) {
-				return test.handleHttpMtls(restOfPath, req, res, session, requestParts);
+				response = test.handleHttpMtls(restOfPath, req, res, session, requestParts);
 			} else {
 				throw new TestFailureException(test.getId(), "Failure to route to path " + path);
 			}
+			logIncomingHttpResponse(test, restOfPath, response);
+			return response;
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -166,6 +162,26 @@ public class TestDispatcher {
 			"incoming_headers", requestParts.get("headers"),
 			"incoming_body", requestParts.get("body"),
 			"incoming_body_json", requestParts.get("body_json")));
+	}
+
+	protected void logIncomingHttpResponse(TestModule test, String path, Object response) {
+		if (response instanceof ResponseEntity) {
+			ResponseEntity responseEntity = (ResponseEntity)response;
+			eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
+				"msg", "Response to HTTP request to test instance " + test.getId(),
+				"http", "outgoing",
+				"outgoing_path", path,
+				"outgoing_status_code", responseEntity.getStatusCodeValue(),
+				"outgoing_headers", responseEntity.getHeaders(),
+				"outgoing_body", responseEntity.getBody()));
+		} else {
+			// ModelAndView or other cases; just log 'toString'
+			eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
+				"msg", "Response to HTTP request to test instance " + test.getId(),
+				"http", "outgoing",
+				"outgoing_path", path,
+				"outgoing", response.toString()));
+		}
 	}
 
 	// handle errors thrown by running tests
