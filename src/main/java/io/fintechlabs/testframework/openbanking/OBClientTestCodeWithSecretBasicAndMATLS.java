@@ -1,19 +1,6 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.openbanking;
 
+import java.util.Enumeration;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,13 +15,16 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
+import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
+import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
@@ -47,6 +37,7 @@ import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthori
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
+
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
@@ -70,8 +61,8 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
-	testName = "ob-client-test-client-secret",
-	displayName = "OB: client test (client_secret authentication alone)",
+	testName = "ob-client-test-code-with-client-secret-basic-and-matls",
+	displayName = "OB: client test (code with client_secret_basic authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.jwks",
@@ -81,12 +72,10 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.redirect_uri"
 	}
 )
-public class OBClientTestClientSecret extends AbstractTestModule {
 
-	/**
-	 * @param name
-	 */
-	public OBClientTestClientSecret(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule {
+
+	public OBClientTestCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
@@ -154,13 +143,30 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
 	 */
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		// Update the environment with the current request headers
+		JsonObject clientHeaders = new JsonObject();
+		Enumeration<String> headerNames = req.getHeaderNames();
+		while (headerNames.hasMoreElements()) {
+			String name = headerNames.nextElement();
+			clientHeaders.addProperty(name, req.getHeader(name));
+		}
+		env.putObject("client_request_headers", clientHeaders);
+
+		if (path.equals("authorize")) {
+			return authorizationEndpoint(requestParts);
+		} else if (path.equals("token")) {
+			return tokenEndpoint(requestParts);
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		}
+	}
+
 	private Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
 		JsonObject serverConfiguration = env.getObject("server");
@@ -169,13 +175,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object userinfoEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
@@ -199,13 +198,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object jwksEndpoint() {
 
 		setStatus(Status.RUNNING);
@@ -216,28 +208,23 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object tokenEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
 
 		env.putObject("token_endpoint_request", requestParts);
 
-		call(ExtractClientCredentialsFromFormPost.class);
+		call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+
+		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
+
+		call(EnsureMatchingClientCertificate.class);
 
 		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
-		//call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+		call(ExtractClientCredentialsFromFormPost.class); // FIXME: is this meant to be client secret post or basic?
 
 		call(AuthenticateClientWithClientSecret.class);
-
-		//call(EnsureMatchingClientCertificate.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
 
@@ -291,13 +278,6 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	@UserFacing
 	private Object authorizationEndpoint(JsonObject requestParts) {
 
