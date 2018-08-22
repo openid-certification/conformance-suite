@@ -151,7 +151,7 @@ public class TestRunner {
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// FIXME: need to at least stop this being a string comparison
-							if (testFailureException.getMessage().equals("io.fintechlabs.testframework.condition.ConditionError: Web Runner Exception: placeholder criteria met")) {
+							if (testFailureException.getMessage().equals("java.lang.RuntimeException: Web Runner Exception: placeholder criteria met")) {
 								markImageAsSatisfiedByBrowserControl(testFailureException.getTestId(), testFailureException.getMessage());
 								eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisfied by browser automation");
 							} else {
