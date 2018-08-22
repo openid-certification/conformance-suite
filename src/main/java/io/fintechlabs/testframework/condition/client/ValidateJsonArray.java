@@ -60,7 +60,7 @@ public class ValidateJsonArray extends AbstractCondition {
 			throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected", setValues, "actual", serverValues));
 		}
 
-		logSuccess(environmentVariable, args("actual", serverValues, "expected", serverValues, "minimum matches required", minimumMatchesRequired));
+		logSuccess(environmentVariable, args("actual", serverValues, "expected", serverValues, "minimum_matches_required", minimumMatchesRequired));
 
 		return env;
 	}
