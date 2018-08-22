@@ -107,6 +107,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
 		IntrospectingTokenService tokenService = new IntrospectingTokenService();
 		tokenService.setCacheTokens(true);
+		tokenService.setCacheNonExpiringTokens(true);
 		tokenService.setIntrospectionConfigurationService(introspectionConfiguration());
 		tokenService.setIntrospectionAuthorityGranter(introspectionAuthorityGranter());
 
