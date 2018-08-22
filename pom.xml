@@ -27,6 +27,37 @@
 		<thymeleaf-extras-springsecurity4.version>3.0.2.RELEASE</thymeleaf-extras-springsecurity4.version>
 	</properties>
 
+	<profiles>
+		<profile>
+			<id>crossCompileJava8</id>
+			<properties>
+				<java.8.bootclasspath>${env.JAVA8_HOME}/jre/lib/rt.jar${path.separator}${env.JAVA8_HOME}/jre/lib/jce.jar</java.8.bootclasspath>
+			</properties>
+			<activation>
+				<property>
+					<name>env.JAVA8_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+							<showWarnings>true</showWarnings>
+							<compilerArgs>
+								<arg>-Xlint:unchecked</arg>
+								<arg>-Werror</arg>
+								<arg>-Xbootclasspath:${java.8.bootclasspath}</arg>
+							</compilerArgs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
