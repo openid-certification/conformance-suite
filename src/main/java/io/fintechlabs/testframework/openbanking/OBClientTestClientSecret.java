@@ -209,7 +209,7 @@ public class OBClientTestClientSecret extends AbstractTestModule {
 	private Object jwksEndpoint() {
 
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.getObject("public_jwks");
+		JsonObject jwks = env.getObject("server_public_jwks");
 
 		setStatus(Status.WAITING);
 
