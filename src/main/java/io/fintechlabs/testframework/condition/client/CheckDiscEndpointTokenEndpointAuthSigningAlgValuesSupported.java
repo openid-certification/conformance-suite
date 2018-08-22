@@ -18,6 +18,9 @@ package io.fintechlabs.testframework.condition.client;
 
 import java.util.Arrays;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -42,7 +45,20 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), 1,
-				errorMessageNotEnough);
+		final String[] valuesRequired = new String[] { "private_key_jwt", "client_secret_jwt"};
+		JsonElement serverValues = env.getElementFromObject("server", "token_endpoint_auth_methods_supported");
+
+		if ( serverValues != null && serverValues.isJsonArray() ) {
+
+			if ( countMatchingElements(Arrays.asList(valuesRequired), serverValues.getAsJsonArray()) > 0 ) {
+				return validate(env, environmentVariable, Arrays.asList(SET_VALUES), 1,
+						errorMessageNotEnough);
+			}
+		}
+
+		String logMessage = "Not checking token_endpoint_auth_signing_alg_values_supported as token_endpoint_auth_methods_supported does not contain the methods (client_secret_jwt/private_key_jwt ) that require signing";
+
+		logSuccess(logMessage, args("actual", serverValues, "expected", valuesRequired));
+		return env;
 	}
 }
