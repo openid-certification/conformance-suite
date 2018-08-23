@@ -6,8 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
@@ -18,14 +16,13 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.client.EnsureEmptyImplicitHash;
 import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
@@ -52,9 +49,6 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 	}
 )
 public class RequirePKCE extends AbstractTestModule {
-
-
-	private static final Logger logger = LoggerFactory.getLogger(RequirePKCE.class);
 
 
 	public RequirePKCE(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
@@ -146,10 +140,9 @@ public class RequirePKCE extends AbstractTestModule {
 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		call(EnsureAuthorizationEndpointError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
-		skipIfMissing(new String[] { "callback_query_params" }, null, ConditionResult.INFO,
-				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
@@ -172,19 +165,12 @@ public class RequirePKCE extends AbstractTestModule {
 
 			if (body != null) {
 				String hash = body.getAsString();
-
-				logger.info("Hash: " + hash);
-
 				env.putString("implicit_hash", hash);
 			} else {
-				logger.warn("No hash submitted");
-
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
 
-			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-
-			callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
+			callAndStopOnFailure(EnsureEmptyImplicitHash.class, "OIDCC-3.3.2.6");
 
 			fireTestFinished();
 
