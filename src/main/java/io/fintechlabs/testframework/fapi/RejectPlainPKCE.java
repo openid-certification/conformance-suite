@@ -2,29 +2,47 @@ package io.fintechlabs.testframework.fapi;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreatePlainCodeChallenge;
 import io.fintechlabs.testframework.condition.client.CreateRandomCodeVerifier;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.EnsureAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
+import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "fapi-r-reject-plain-pkce",
@@ -37,6 +55,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class RejectPlainPKCE extends AbstractTestModule {
+
+
+private static final Logger logger = LoggerFactory.getLogger(RejectPlainPKCE.class);
+
 
 	public RejectPlainPKCE(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
@@ -115,5 +137,75 @@ public class RejectPlainPKCE extends AbstractTestModule {
 
 		browser.goToUrl(redirectTo);
 	}
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		// dispatch based on the path
+
+		if (path.equals("callback")) {
+			return handleCallback(requestParts);
+		} else if (path.equals(env.getString("implicit_submit", "path"))) {
+			return handleImplicitSubmission(requestParts);
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		}
+	}
+
+	@UserFacing
+	private ModelAndView handleCallback(JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+
+		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
+
+		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		skipIfMissing(new String[] { "callback_query_params" }, null, ConditionResult.INFO,
+				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+
+		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
+
+		setStatus(Status.WAITING);
+
+		return new ModelAndView("implicitCallback",
+			ImmutableMap.of(
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
+	}
+
+	private Object handleImplicitSubmission(JsonObject requestParts) {
+
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+			setStatus(Status.RUNNING);
+
+			JsonElement body = requestParts.get("body");
+
+			if (body != null) {
+				String hash = body.getAsString();
+
+				logger.info("Hash: " + hash);
+
+				env.putString("implicit_hash", hash);
+			} else {
+				logger.warn("No hash submitted");
+
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
+
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+
+			callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
+
+			fireTestFinished();
+
+			return "done";
+		});
+
+		return redirectToLogDetailPage();
+
+	}
+
+
 
 }
