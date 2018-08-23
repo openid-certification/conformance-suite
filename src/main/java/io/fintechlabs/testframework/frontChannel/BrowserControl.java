@@ -560,9 +560,13 @@ public class BrowserControl {
 
 		imageService.fillPlaceholder(testId, placeholder, update, true);
 
+		eventLog.log("BROWSER", args("msg", "Updated placeholder from scripted browser", "placeholder", placeholder));
+
 		if (imageService.getRemainingPlaceholders(testId, true).isEmpty()) {
 			// no remaining placeholders, kick the test over
 			imageService.lastPlaceholderFilled(testId, false);
+
+			eventLog.log("BROWSER", args("msg", "All placeholders filled by scripted browser"));
 		}
 	}
 
