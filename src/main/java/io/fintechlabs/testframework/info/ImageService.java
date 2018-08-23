@@ -1,9 +1,9 @@
 package io.fintechlabs.testframework.info;
 
-import com.mongodb.DBObject;
-import org.springframework.data.mongodb.core.query.Update;
-
 import java.util.List;
+import java.util.Map;
+
+import com.mongodb.DBObject;
 
 /**
  * @author jheenan
@@ -15,7 +15,7 @@ public interface ImageService {
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
 	 *                    test module itself, not via the REST API.
 	 */
-	DBObject fillPlaceholder(String testId, String placeholder, Update update, boolean assumeAdmin);
+	DBObject fillPlaceholder(String testId, String placeholder, Map<String, String> update, boolean assumeAdmin);
 
 	/**
 	 * Get unfilled placeholders

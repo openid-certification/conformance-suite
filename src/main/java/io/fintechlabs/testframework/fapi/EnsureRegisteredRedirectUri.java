@@ -114,7 +114,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
 	}
 
 }

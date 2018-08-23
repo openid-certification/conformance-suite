@@ -34,7 +34,7 @@ public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends 
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		browser.goToUrl(redirectTo, env.getString("redirect_uri_missing_error"));
 	}
 
 }

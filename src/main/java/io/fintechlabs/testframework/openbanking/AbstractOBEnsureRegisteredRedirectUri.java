@@ -44,7 +44,7 @@ public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBSe
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
 	}
 
 }

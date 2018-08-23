@@ -23,7 +23,7 @@ import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureEmptyImplicitHash;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
-import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
+import io.fintechlabs.testframework.condition.client.ExpectRejectPlainCodeChallengeMethodErrorPage;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
@@ -114,11 +114,11 @@ public class RejectPlainPKCE extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectPKCEError.class, "FAPI-1-5.2.2-7");
+		callAndStopOnFailure(ExpectRejectPlainCodeChallengeMethodErrorPage.class, "FAPI-1-5.2.2-7");
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		browser.goToUrl(redirectTo, env.getString("plain_pkce_error"));
 	}
 
 	@Override

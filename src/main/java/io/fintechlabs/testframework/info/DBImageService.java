@@ -14,13 +14,9 @@
 
 package io.fintechlabs.testframework.info;
 
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
-import io.fintechlabs.testframework.logging.DBEventLog;
-import io.fintechlabs.testframework.runner.TestRunnerSupport;
-import io.fintechlabs.testframework.security.AuthenticationFacade;
-import io.fintechlabs.testframework.testmodule.TestModule;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -30,7 +26,14 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
+
+import io.fintechlabs.testframework.logging.DBEventLog;
+import io.fintechlabs.testframework.runner.TestRunnerSupport;
+import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jheenan
@@ -73,7 +76,7 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public DBObject fillPlaceholder(String testId, String placeholder, Update update, boolean assumeAdmin) {
+	public DBObject fillPlaceholder(String testId, String placeholder, Map<String, String> update, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// add the placeholder condition
@@ -84,9 +87,14 @@ public class DBImageService implements ImageService {
 
 		Query query = Query.query(criteria);
 
-		update.unset("upload");
+		Update updateCommand = new Update();
+		for (Map.Entry<String, String> field : update.entrySet()) {
+			updateCommand.set(field.getKey(), field.getValue());
+		}
 
-		return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
+		updateCommand.unset("upload");
+
+		return mongoTemplate.findAndModify(query, updateCommand, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
 	}
 
 	@Override
@@ -104,8 +112,6 @@ public class DBImageService implements ImageService {
 	// call if there aren't any placeholders left on the test, to update the status to FINISHED
 	@Override
 	public void lastPlaceholderFilled(String testId, boolean assumeAdmin) {
-		// FIXME: only move to finished if we're currently in waiting
-
 		// first, see if it's currently running; if so we update the running object
 		TestModule test = testRunnerSupport.getRunningTestById(testId);
 		if (test != null) {

@@ -324,20 +324,24 @@ public abstract class AbstractCondition implements Condition {
 		return requirements;
 	}
 
-	protected void createUploadPlaceholder(String msg) {
+	protected String createBrowserInteractionPlaceholder(String msg) {
+		String placeholder = RandomStringUtils.randomAlphanumeric(10);
 		if (getRequirements().isEmpty()) {
-			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW));
+			log(msg, args("upload", placeholder, "result", ConditionResult.REVIEW));
 		} else {
-			log(msg, args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW, "requirements", getRequirements()));
+			log(msg, args("upload", placeholder, "result", ConditionResult.REVIEW, "requirements", getRequirements()));
 		}
+		return placeholder;
 	}
 
-	protected void createUploadPlaceholder() {
+	protected String createBrowserInteractionPlaceholder() {
+		String placeholder = RandomStringUtils.randomAlphanumeric(10);
 		if (getRequirements().isEmpty()) {
-			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW));
+			log(args("upload", placeholder, "result", ConditionResult.REVIEW));
 		} else {
-			log(args("upload", RandomStringUtils.randomAlphanumeric(10), "result", ConditionResult.REVIEW, "requirements", getRequirements()));
+			log(args("upload", placeholder, "result", ConditionResult.REVIEW, "requirements", getRequirements()));
 		}
+		return placeholder;
 	}
 
 	/*
@@ -479,7 +483,7 @@ public abstract class AbstractCondition implements Condition {
 	protected static List<X509Certificate> generateCertificateChainFromDER(byte[] chainBytes) throws CertificateException {
 		CertificateFactory factory = CertificateFactory.getInstance("X.509");
 
-		ArrayList<X509Certificate> chain = new ArrayList<X509Certificate>();
+		ArrayList<X509Certificate> chain = new ArrayList<>();
 		ByteArrayInputStream in = new ByteArrayInputStream(chainBytes);
 		while (in.available() > 0) {
 			chain.add((X509Certificate) factory.generateCertificate(in));

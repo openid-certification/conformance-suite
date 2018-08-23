@@ -98,7 +98,7 @@ public class RejectCodeFlow extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		browser.goToUrl(redirectTo, env.getString("grant_type_error"));
 	}
 
 	@Override
