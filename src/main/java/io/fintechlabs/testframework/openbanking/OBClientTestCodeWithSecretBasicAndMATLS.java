@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Enumeration;
@@ -27,6 +13,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -50,12 +37,19 @@ import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthori
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
+
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
+import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
+import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
+import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;
+import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
+import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -64,26 +58,24 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
-	testName = "ob-client-test-mtls",
-	displayName = "OB: client test (MTLS authentication with client secret)",
+	testName = "ob-client-test-code-with-client-secret-basic-and-matls",
+	displayName = "OB: client test (code with client_secret_basic authentication and MATLS)",
 	profile = "OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
 		"client.client_secret",
 		"client.scope",
-		"client.redirect_uri",
-		"client.jwks"
+		"client.redirect_uri"
 	}
 )
-public class OBClientTestMTLS extends AbstractTestModule {
 
-	/**
-	 * @param name
-	 */
-	public OBClientTestMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule {
+
+	public OBClientTestCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		super(id, owner, eventLog, browser, testInfo, executionManager);
 	}
 
@@ -109,6 +101,8 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
+		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
@@ -118,6 +112,8 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	 */
 	@Override
 	public void start() {
+		setStatus(Status.RUNNING);
+		// nothing to do here
 		setStatus(Status.WAITING);
 	}
 
@@ -127,14 +123,20 @@ public class OBClientTestMTLS extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if (path.equals("jwks")) {
+		if (path.equals("authorize")) {
+			return authorizationEndpoint(requestParts);
+		} else if (path.equals("token")) {
+			return tokenEndpoint(requestParts);
+		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
-		} else if (path.equals("register")) {
-			return registrationEndpoint(requestParts);
 		} else if (path.equals("userinfo")) {
 			return userinfoEndpoint(requestParts);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
+		} else if (path.equals("open-banking/v1.1/account-requests")) {
+			return accountRequestsEndpoint(requestParts);
+		} else if (path.equals("open-banking/v1.1/accounts")) {
+			return accountsEndpoint(requestParts);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -165,26 +167,14 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		}
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object discoveryEndpoint() {
+		setStatus(Status.RUNNING);
 		JsonObject serverConfiguration = env.getObject("server");
 
+		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object userinfoEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
@@ -202,36 +192,12 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 
-		// at this point we can assume the test is fully done
-		fireTestFinished();
+		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	private Object registrationEndpoint(JsonObject requestParts) {
-
-		//env.putObject("client_registration_request", requestParts.get("body_json"));
-
-		// TODO Auto-generated method stub
-		return null;
-
-	}
-
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object jwksEndpoint() {
 
 		setStatus(Status.RUNNING);
@@ -242,13 +208,6 @@ public class OBClientTestMTLS extends AbstractTestModule {
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object tokenEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
@@ -259,11 +218,11 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
 
-		callAndStopOnFailure(EnsureMatchingClientCertificate.class);
+		call(EnsureMatchingClientCertificate.class);
 
 		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
-		call(ExtractClientCredentialsFromFormPost.class);
+		call(ExtractClientCredentialsFromFormPost.class); // FIXME: is this meant to be client secret post or basic?
 
 		call(AuthenticateClientWithClientSecret.class);
 
@@ -319,13 +278,7 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 	}
 
-	/**
-	 * @param req
-	 * @param res
-	 * @param params
-	 * @param m
-	 * @return
-	 */
+	@UserFacing
 	private Object authorizationEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
@@ -350,6 +303,52 @@ public class OBClientTestMTLS extends AbstractTestModule {
 
 		return new RedirectView(redirectTo, false, false, false);
 
+	}
+
+	/**
+	 * OpenBanking account request API
+	 *
+	 * @param requestParts
+	 * @return
+	 */
+	private Object accountRequestsEndpoint(JsonObject requestParts) {
+
+		env.putObject("incoming_request", requestParts);
+
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
+
+		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+
+		callAndStopOnFailure(GenerateAccountRequestId.class);
+		exposeEnvString("account_request_id");
+
+		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
+
+		JsonObject accountRequestResponse = env.getObject("account_request_response");
+
+		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
+	}
+
+	private Object accountsEndpoint(JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+
+		env.putObject("incoming_request", requestParts);
+
+		call(ExtractBearerAccessTokenFromHeader.class);
+		call(ExtractBearerAccessTokenFromParams.class);
+
+		callAndStopOnFailure(RequireBearerAccessToken.class);
+
+		callAndStopOnFailure(GenerateOpenBankingAccountId.class);
+		exposeEnvString("account_id");
+
+		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
+
+		// at this point we can assume the test is fully done
+		fireTestFinished();
+
+		return new ResponseEntity<>(env.getObject("accounts_endpoint_response"), HttpStatus.OK);
 	}
 
 }
