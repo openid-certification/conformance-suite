@@ -236,7 +236,7 @@ public abstract class AbstractTestModule implements TestModule {
 				}
 			}
 			for (String s : builder.getSkipIfStringsMissing()) {
-				if (Strings.isNullOrEmpty(env.getString(s))) {
+				if (env.getString(s) == null) {
 					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find string in environment: " + s);
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required string: " + s,
@@ -283,7 +283,7 @@ public abstract class AbstractTestModule implements TestModule {
 					}
 				}
 				for (String s : pre.strings()) {
-					if (Strings.isNullOrEmpty(env.getString(s))) {
+					if (env.getString(s) == null) {
 						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
@@ -318,7 +318,7 @@ public abstract class AbstractTestModule implements TestModule {
 					}
 				}
 				for (String s : post.strings()) {
-					if (Strings.isNullOrEmpty(env.getString(s))) {
+					if (env.getString(s) == null) {
 						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
