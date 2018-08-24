@@ -42,6 +42,7 @@ stages:
   - staging
   - canary
   - production
+  - autotest
   - cleanup
 
 build:
@@ -248,6 +249,55 @@ production:
       - production
     kubernetes: active
 
+.deployment_test: &deployment_test
+  stage: autotest
+  image: python:alpine
+  script:
+    - check_kube_domain
+    - install_dependencies
+    - ensure_namespace
+    - run_test_plan
+
+deployment_test_production:
+  <<: *deployment_test
+  environment:
+    name: production
+    url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
+  only:
+    refs:
+      - production
+    kubernetes: active
+
+deployment_test_staging:
+  <<: *deployment_test
+  environment:
+    name: staging
+    url: https://$STAGING_HOST.$AUTO_DEVOPS_DOMAIN
+  only:
+    refs:
+      - master
+    kubernetes: active
+
+deployment_test_demo:
+  <<: *deployment_test
+  environment:
+    name: demo
+    url: https://$DEMO_HOST.$AUTO_DEVOPS_DOMAIN
+  only:
+    refs:
+      - demo
+    kubernetes: active
+
+deployment_test_review:
+  <<: *deployment_test
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: https://$BASE_HOST_NAME-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
+  only:
+    refs:
+      - /^dev-branch-[1-9]$/
+    kubernetes: active
+
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
@@ -414,6 +464,28 @@ production:
     fi
 
     helm delete "$name" || true
+  }
+
+  function run_test_plan() {
+    echo "Installing extra dependencies"
+    apk add -U openssh-client git
+    pip install requests
+    eval $(ssh-agent -s)
+    echo "$SSH_PRIVATE_KEY" | ssh-add -
+    cd ..
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:fintechlabs/fapi-conformance-suite-private.git
+    cd fapi-conformance-suite-private
+    kubectl -n "$KUBE_NAMESPACE" get secret microauth -o yaml > microauth-credentials
+    export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
+    export CONFORMANCE_MICROAUTH_LOCAL_PORT="9002"
+    export CONFORMANCE_MICROAUTH_REMOTE_PORT="9001"
+    export CONFORMANCE_TOKEN_ENDPOINT="http://localhost:${CONFORMANCE_MICROAUTH_LOCAL_PORT}/token"
+    export CONFORMANCE_CLIENT_ID=$(sed -n 's/client_id://p' microauth-credentials | base64 -d)
+    export CONFORMANCE_CLIENT_SECRET=$(sed -n 's/client_secret://p' microauth-credentials | base64 -d)
+    export CONFORMANCE_K8_NAMESPACE="$KUBE_NAMESPACE"
+    export CONFORMANCE_K8_APPNAME="${CI_ENVIRONMENT_SLUG}-microauth"
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ./run-tests.sh
   }
 
 before_script:
