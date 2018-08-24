@@ -18,8 +18,8 @@ import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpoint
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.EnsureAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.EnsureEmptyImplicitHash;
+import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
@@ -129,7 +129,7 @@ public class RequirePKCE extends AbstractTestModule {
 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(EnsureAuthorizationEndpointError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		call(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
 		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
