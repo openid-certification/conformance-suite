@@ -44,12 +44,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
-	/**
-	 */
-	public EnsureRegisteredRedirectUri(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
 	 */

@@ -59,7 +59,7 @@ public abstract class AbstractTestModule implements TestModule {
 	//private ExecutorService executorService = Executors.newCachedThreadPool();
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.CREATED; // current status of the test
+	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
@@ -76,10 +76,12 @@ public abstract class AbstractTestModule implements TestModule {
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
-	/**
-	 * @param name
-	 */
-	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+	protected void AbstractTestModule() {
+
+	}
+
+	@Override
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;

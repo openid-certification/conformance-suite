@@ -45,10 +45,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTestModule {
 
-	public EnsureRequestObjectSignatureAlgorithmIsNotNull(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
 	 */

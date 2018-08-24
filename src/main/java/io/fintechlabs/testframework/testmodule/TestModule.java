@@ -23,6 +23,8 @@ import javax.servlet.http.HttpSession;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 /**
@@ -205,5 +207,10 @@ public interface TestModule {
 	 * Mark the test as requiring a manual review.
 	 */
 	void fireTestReviewNeeded();
+
+	/**
+	 * Pass along the appropriate runtime services and properties to allow the test to run. It cannot be used until this is completed.
+	 */
+	void setProperties(String id, Map<String, String> owner, TestInstanceEventLog wrappedEventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager);
 
 }

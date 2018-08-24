@@ -42,10 +42,6 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOBServerTestModuleCodeIdToken.class);
 
-	public AbstractOBServerTestModuleCodeIdToken(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	protected void createAuthorizationRequest() {
 

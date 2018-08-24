@@ -10,10 +10,6 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNoneCode extends AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone {
 
-	public AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNoneCode(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	protected void createAuthorizationRequest() {
 

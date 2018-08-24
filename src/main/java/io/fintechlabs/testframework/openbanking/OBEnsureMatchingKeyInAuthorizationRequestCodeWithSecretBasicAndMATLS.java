@@ -40,10 +40,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class OBEnsureMatchingKeyInAuthorizationRequestCodeWithSecretBasicAndMATLS extends AbstractOBEnsureMatchingKeyInAuthorizationRequestCode {
 
-	public OBEnsureMatchingKeyInAuthorizationRequestCodeWithSecretBasicAndMATLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 

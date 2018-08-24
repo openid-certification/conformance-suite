@@ -42,11 +42,6 @@ public class TokenRevocationAS extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(TokenRevocationAS.class);
 
-	public TokenRevocationAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
-
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
