@@ -451,7 +451,9 @@ public class TestRunner {
 			TestModule module = testModuleClass.getDeclaredConstructor()
 				.newInstance();
 
-				module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager);
+			// pass in all the components for this test module to execute
+			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
+
 			return module;
 
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {

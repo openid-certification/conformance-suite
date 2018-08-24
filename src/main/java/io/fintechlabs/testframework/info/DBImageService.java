@@ -16,6 +16,8 @@ package io.fintechlabs.testframework.info;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,7 +78,7 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public DBObject fillPlaceholder(String testId, String placeholder, Map<String, String> update, boolean assumeAdmin) {
+	public DBObject fillPlaceholder(String testId, String placeholder, Map<String, Object> update, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// add the placeholder condition
@@ -88,7 +90,7 @@ public class DBImageService implements ImageService {
 		Query query = Query.query(criteria);
 
 		Update updateCommand = new Update();
-		for (Map.Entry<String, String> field : update.entrySet()) {
+		for (Entry<String, Object> field : update.entrySet()) {
 			updateCommand.set(field.getKey(), field.getValue());
 		}
 
@@ -98,7 +100,7 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public List<DBObject> getRemainingPlaceholders(String testId, boolean assumeAdmin) {
+	public List<String> getRemainingPlaceholders(String testId, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// check to see if all placeholders are set by searching for any remaining ones on this test
@@ -106,7 +108,15 @@ public class DBImageService implements ImageService {
 
 		Criteria postSearch = createCriteria(findTestId, noMorePlaceholders, assumeAdmin);
 		Query search = Query.query(postSearch);
-		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject()).toArray();
+
+		search.fields().include("upload");
+
+		return mongoTemplate
+				.getCollection(DBEventLog.COLLECTION)
+				.find(search.getQueryObject(), search.getFieldsObject())
+				.toArray().stream()
+					.map((obj) -> obj.get("upload").toString())
+					.collect(Collectors.toList());
 	}
 
 	// call if there aren't any placeholders left on the test, to update the status to FINISHED

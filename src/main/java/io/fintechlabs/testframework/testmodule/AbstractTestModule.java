@@ -19,6 +19,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -28,6 +29,7 @@ import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -62,18 +64,20 @@ public abstract class AbstractTestModule implements TestModule {
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
+	private ImageService imageService;
 	protected AbstractTestModule() {
 
 	}
 
 	@Override
-	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
 		this.testInfo = testInfo;
 		this.executionManager = executionManager;
+		this.imageService = imageService;
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
@@ -474,6 +478,16 @@ public abstract class AbstractTestModule implements TestModule {
 				fireTestSuccess();
 			}
 
+			// clean up any remaining placeholders here; if we call this function then we have reached a condition where we're not expecting them to be filled externally
+
+			List<String> placeholders = imageService.getRemainingPlaceholders(getId(), true);
+
+			for (String placeholder : placeholders) {
+				Map<String, Object> update = ImmutableMap.of(
+					"test_finished", true);
+				imageService.fillPlaceholder(getId(), placeholder, update, true);
+			}
+
 			stop();
 
 			eventLog.log(getName(), args(
@@ -491,6 +505,7 @@ public abstract class AbstractTestModule implements TestModule {
 			setStatus(Status.FINISHED);
 		}
 
+		// if we don't have a result yet or we are waiting for manual review, set this to a success
 		if (getResult() == Result.UNKNOWN || getResult() == Result.REVIEW) {
 			fireTestSuccess();
 		}

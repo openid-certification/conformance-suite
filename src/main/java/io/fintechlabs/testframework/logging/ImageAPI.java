@@ -111,14 +111,14 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			Map<String, String> update = ImmutableMap.of("img", encoded);
+			Map<String, Object> update = ImmutableMap.of("img", encoded);
 
 			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, false);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 
-			List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, false);
+			List<String> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, false);
 
 			if (remainingPlaceholders.size() == 0) {
 				imageService.lastPlaceholderFilled(testId, false);

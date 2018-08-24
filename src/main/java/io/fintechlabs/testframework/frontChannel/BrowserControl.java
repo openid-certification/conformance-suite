@@ -554,7 +554,7 @@ public class BrowserControl {
 	 * @param responseContentType the content type last received from the server
 	 */
 	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType) {
-		Map<String, String> update = new HashMap<>();
+		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
 

@@ -15,15 +15,15 @@ public interface ImageService {
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
 	 *                    test module itself, not via the REST API.
 	 */
-	DBObject fillPlaceholder(String testId, String placeholder, Map<String, String> update, boolean assumeAdmin);
+	DBObject fillPlaceholder(String testId, String placeholder, Map<String, Object> update, boolean assumeAdmin);
 
 	/**
-	 * Get unfilled placeholders
+	 * Get unfilled placeholder IDs
 	 *
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
 	 *                    test module itself, not via the REST API.
 	 */
-	List<DBObject> getRemainingPlaceholders(String testId, boolean assumeAdmin);
+	List<String> getRemainingPlaceholders(String testId, boolean assumeAdmin);
 
 	/**
 	 * If there aren't any placeholders left on the test, to update the status to FINISHED
