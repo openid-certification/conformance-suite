@@ -23,10 +23,6 @@ import javax.servlet.http.HttpSession;
 
 public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractOBServerTestModule {
 
-	public AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

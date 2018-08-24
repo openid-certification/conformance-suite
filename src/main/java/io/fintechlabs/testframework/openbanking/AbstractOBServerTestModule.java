@@ -106,10 +106,6 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	private int whichClient;
 
-	public AbstractOBServerTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
 	 */

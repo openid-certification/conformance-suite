@@ -53,10 +53,6 @@ import java.util.Map;
 )
 public class FAPIRWCodeIdTokenWithMTLS extends OBCodeIdTokenWithMTLS {
 
-	public FAPIRWCodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	protected void performPreAuthorizationSteps() {
 		/* none necessary; this is here to disable the OB specific steps */

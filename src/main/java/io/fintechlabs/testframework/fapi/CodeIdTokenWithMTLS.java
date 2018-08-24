@@ -120,13 +120,6 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithMTLS.class);
 
-	/**
-	 * @param name
-	 */
-	public CodeIdTokenWithMTLS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
 	 */

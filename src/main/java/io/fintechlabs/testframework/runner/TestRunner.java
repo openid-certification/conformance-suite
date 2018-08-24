@@ -461,8 +461,10 @@ public class TestRunner {
 			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager);
 
 			// call the constructor
-			TestModule module = testModuleClass.getDeclaredConstructor(String.class, Map.class, TestInstanceEventLog.class, BrowserControl.class, TestInfoService.class, TestExecutionManager.class)
-				.newInstance(id, owner, wrappedEventLog, browser, testInfo, executionManager);
+			TestModule module = testModuleClass.getDeclaredConstructor()
+				.newInstance();
+
+				module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager);
 			return module;
 
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {

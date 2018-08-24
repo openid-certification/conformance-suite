@@ -18,10 +18,6 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBUserRejectsAuthenticationCode extends AbstractOBServerTestModuleCode {
 
-	public AbstractOBUserRejectsAuthenticationCode(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	protected void createAuthorizationRequest() {
 

@@ -35,10 +35,6 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 
 	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequiredCodeIdToken.class);
 
-	public AbstractOBEnsureMATLSRequiredCodeIdToken(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
 	 */

@@ -95,13 +95,6 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(FullDelegatedClientAS.class);
 
-	/**
-	 *
-	 */
-	public FullDelegatedClientAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */

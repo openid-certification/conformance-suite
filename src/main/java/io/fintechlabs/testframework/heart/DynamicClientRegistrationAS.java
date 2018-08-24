@@ -41,10 +41,6 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(DynamicClientRegistrationAS.class);
 
-	public DynamicClientRegistrationAS(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
-		super(id, owner, eventLog, browser, testInfo, executionManager);
-	}
-
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);

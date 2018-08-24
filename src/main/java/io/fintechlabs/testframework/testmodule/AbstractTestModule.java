@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.testmodule;
 
 import java.lang.reflect.InvocationTargetException;
@@ -59,7 +45,7 @@ public abstract class AbstractTestModule implements TestModule {
 	//private ExecutorService executorService = Executors.newCachedThreadPool();
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.CREATED; // current status of the test
+	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
@@ -76,10 +62,12 @@ public abstract class AbstractTestModule implements TestModule {
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
-	/**
-	 * @param name
-	 */
-	public AbstractTestModule(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+	protected AbstractTestModule() {
+
+	}
+
+	@Override
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
@@ -628,27 +616,30 @@ public abstract class AbstractTestModule implements TestModule {
 	 *
 	 * Any state can go to "UNKNOWN"
 	 */
-	protected void setStatus(Status status) {
-		logger.error("setStatus("+getStatus().toString()+"): current status = "+status.toString());
+	protected void setStatus(Status newStatus) {
+		Status oldStatus = getStatus();
 
-		if (status == getStatus()) {
+		logger.info("setStatus("+newStatus.toString()+"): current status = "+oldStatus.toString());
+
+		if (newStatus == oldStatus) {
+			// nothing to change
 			return;
 		}
 
-		switch (getStatus()) {
+		switch (oldStatus) {
 			case CREATED:
-				switch (status) {
+				switch (newStatus) {
 					case CONFIGURED:
 					case INTERRUPTED:
 					case FINISHED:
 						break;
 					default:
 						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 				}
 				break;
 			case CONFIGURED:
-				switch (status) {
+				switch (newStatus) {
 					case RUNNING:
 						acquireLock();
 						break;
@@ -658,11 +649,11 @@ public abstract class AbstractTestModule implements TestModule {
 						break;
 					default:
 						clearLock();
-						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 				}
 				break;
 			case RUNNING:  // We should have the lock when we're running
-				switch (status) {
+				switch (newStatus) {
 					case INTERRUPTED:
 						clearLockIfHeld();
 						break;
@@ -672,11 +663,11 @@ public abstract class AbstractTestModule implements TestModule {
 						break;
 					default:
 						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 				}
 				break;
 			case WAITING:  // we shouldn't have the lock if we're waiting.
-				switch (status) {
+				switch (newStatus) {
 					case RUNNING:
 						acquireLock();  // we want to grab the lock whenever we start running
 						break;
@@ -685,27 +676,37 @@ public abstract class AbstractTestModule implements TestModule {
 						break;
 					default:
 						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 				}
 				break;
 			case INTERRUPTED:
 				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 			case FINISHED:
 				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 			case UNKNOWN:
+				// we can go from unknown to anything
+				switch (newStatus) {
+					case RUNNING:
+						acquireLock();  // we want to grab the lock whenever we start running
+						break;
+					default:
+						clearLockIfHeld();
+						break;
+				}
+				break;
 			default:
 				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + getStatus() + " -> " + status);
+				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 		}
 
-		this.status = status;
-		if (testInfo != null) {
-			testInfo.updateTestStatus(getId(), getStatus());
-		}
+		this.status = newStatus;
+		testInfo.updateTestStatus(getId(), newStatus);
+
 		this.statusUpdated = Instant.now();
 	}
+
 
 	private void clearLock(){
 		env.getLock().unlock();
