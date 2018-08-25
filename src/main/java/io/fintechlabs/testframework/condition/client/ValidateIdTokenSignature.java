@@ -33,6 +33,7 @@ import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -56,6 +57,7 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(required = { "id_token", "server_jwks" })
+	@PostEnvironment(strings = "id_token_signing_alg")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("id_token")) {
@@ -86,7 +88,9 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 				JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
 
 				if (jwt.verify(verifier)) {
-					logSuccess("ID Token signature validated", args("algorithm", key.getAlgorithm()));
+					String alg = jwt.getHeader().getAlgorithm().getName();
+					env.putString("id_token_signing_alg", alg);
+					logSuccess("ID Token signature validated", args("algorithm", alg));
 					return env;
 				} else {
 					// failed to verify with this key, moving on

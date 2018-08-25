@@ -69,6 +69,7 @@ import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -462,6 +463,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
+		call(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-2-8.6");
 
 		performTokenEndpointIdTokenExtraction();
 		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
