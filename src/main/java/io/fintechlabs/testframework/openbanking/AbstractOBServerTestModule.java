@@ -14,16 +14,15 @@
 
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAcrScaClaimToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddIatExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -98,10 +97,6 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 
 public abstract class AbstractOBServerTestModule extends AbstractTestModule {
@@ -290,8 +285,9 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		if (whichClient == 2) {
-			callAndStopOnFailure(AddIatExpToRequestObject.class);
+			callAndStopOnFailure(AddIatToRequestObject.class);
 		}
+		callAndStopOnFailure(AddExpToRequestObject.class);
 
 		callAndStopOnFailure(SignRequestObject.class);
 
