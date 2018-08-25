@@ -300,18 +300,12 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
-							"result", builder.getOnFail(),
+							"result", ConditionResult.FAILURE,
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
-						if (builder.isStopOnFailure()) {
-							fireTestFailure();
-							throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
-						} else {
-							updateResultFromConditionFailure(builder.getOnFail());
-							return;
-						}
-
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
 					}
 				}
 				for (String s : pre.strings()) {
@@ -320,16 +314,11 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
 							"expected", s,
-							"result", builder.getOnFail()
+							"result", ConditionResult.FAILURE
 						// TODO: log the environment here?
 						));
-						if (builder.isStopOnFailure()) {
-							fireTestFailure();
-							throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
-						} else {
-							updateResultFromConditionFailure(builder.getOnFail());
-							return;
-						}
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
 					}
 				}
 			}
@@ -346,17 +335,12 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
-							"result", builder.getOnFail(),
+							"result", ConditionResult.FAILURE,
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
 						// TODO: log the environment here?
 						));
-						if (builder.isStopOnFailure()) {
-							fireTestFailure();
-							throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
-						} else {
-							updateResultFromConditionFailure(builder.getOnFail());
-							return;
-						}
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
 					}
 				}
 				for (String s : post.strings()) {
@@ -365,49 +349,34 @@ public abstract class AbstractTestModule implements TestModule {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
 							"expected", s,
-							"result", builder.getOnFail()
+							"result", ConditionResult.FAILURE
 						// TODO: log the environment here?
 						));
-						if (builder.isStopOnFailure()) {
-							fireTestFailure();
-							throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
-						} else {
-							updateResultFromConditionFailure(builder.getOnFail());
-							return;
-						}
+						fireTestFailure();
+						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
 					}
 				}
 			}
 
 		} catch (ConditionError error) {
 			if (builder.isStopOnFailure()) {
-				logger.info("Test condition " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+				logger.info("stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 				fireTestFailure();
 				throw new TestFailureException(error);
 			} else {
-				logger.info("Ignoring optional test condition " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+				logger.info("Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 				updateResultFromConditionFailure(builder.getOnFail());
 			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
-			if (builder.isStopOnFailure()) {
-				logger.error("Couldn't create required condition object", e);
-				fireTestFailure();
-				throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
-			} else {
-				logger.error("Couldn't create optional condition object", e);
-				updateResultFromConditionFailure(builder.getOnFail());
-			}
+			logger.error("Couldn't create condition object", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
 		} catch (Exception e) {
 			logException(e);
-			if (builder.isStopOnFailure()) {
-				logger.error("Generic error from underlying test framework", e);
-				fireTestFailure();
-				throw new TestFailureException(getId(), e.getMessage());
-			} else {
-				logger.error("Generic error from underlying test framework", e);
-				updateResultFromConditionFailure(builder.getOnFail());
-			}
+			logger.error("Generic error from underlying test framework", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), e.getMessage());
 		}
 
 	}
