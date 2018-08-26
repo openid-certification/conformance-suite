@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import traceback
 import os
 import sys
 import time
@@ -14,6 +13,7 @@ import time
 import requests
 
 from conformance import Conformance
+
 
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
@@ -28,7 +28,6 @@ def run_test_plan(test_plan, config_file):
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
-    # plan_modules = ['ob-ensure-registered-redirect-uri-code-id-token-with-private-key-and-matls']
     for module in plan_modules:
         test_start_time = time.time()
         module_id = ''
@@ -51,7 +50,6 @@ def run_test_plan(test_plan, config_file):
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
-            # traceback.print_exc()
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
     overall_time = time.time() - overall_start_time
@@ -124,7 +122,8 @@ def show_plan_results(plan_result):
         warnings_overall.extend(warnings)
         successful_conditions += counts['SUCCESS']
     print(
-        '\nOverall totals: ran {:d} test modules. Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
+        '\nOverall totals: ran {:d} test modules. '
+        'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
         format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
     print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):

@@ -138,7 +138,7 @@ class Test(unittest.TestCase):
     def test_tab(self):
         test_good_no_tabs = "foo\nbar\n\n    cheese\ncheese\n"
         test_tab = "foo\n\tbar\n\n    \tcheese\n\tcheese\n"
-        # can't fix tabs as we don't know what tabstop width dev is using
+        # can't fix tabs as we don't know what tab stop width dev is using
         test_tab_fixed = test_tab
 
         whitespace = Whitespace(test_tab, fix=False)

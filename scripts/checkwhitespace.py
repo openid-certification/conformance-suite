@@ -42,9 +42,9 @@ extensions_no_tabs = [
 ]
 
 
-def ignore_filename(fname):
+def ignore_filename(filename):
     for pattern in config_ignore:
-        if fname.startswith(pattern):
+        if filename.startswith(pattern):
             return True
     return False
 
@@ -54,7 +54,7 @@ parser.add_argument("--fix", help="automatically fix errors", action="store_true
 parser.add_argument("--verbose", help="show verbose output", action="store_true")
 args = parser.parse_args()
 
-# only check files known to git - this neatly avoids us processing gitignored files, generated files, etc
+# only check files known to git - this neatly avoids us processing git ignored files, generated files, etc
 command = ['git', 'ls-files']
 files = subprocess.check_output(command)
 fixed = False
