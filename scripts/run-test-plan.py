@@ -91,6 +91,9 @@ def show_plan_results(plan_result):
         failures = []
         warnings = []
 
+        if module in untested_test_modules:
+            untested_test_modules.remove(module)
+
         if info['status'] != 'FINISHED':
             incomplete += 1
         if 'result' not in info:
@@ -127,10 +130,10 @@ def show_plan_results(plan_result):
         format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
     print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):
-        print("** NOT ALL TESTS WERE RUN **")
+        print("** NOT ALL TESTS FROM PLAN WERE RUN **")
         return True
     if incomplete != 0:
-        print("** {:d} TESTS DID NOT RUN TO COMPLETION **".format(incomplete))
+        print("** {:d} TEST MODULES DID NOT RUN TO COMPLETION **".format(incomplete))
         return True
     return False
 
@@ -164,6 +167,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     args = sys.argv[1:]
+    show_untested = False
+    if args[0] == '--show-untested-test-modules':
+        show_untested = True
+        args = args[1:]
     to_run = []
     while len(args) >= 2:
         to_run.append((args[0], args[1]))
@@ -172,6 +179,11 @@ if __name__ == '__main__':
     if len(args) != 0:
         print("Error: run-test-plan.py: must have even number of parameters")
         sys.exit(1)
+
+    all_test_modules_array = conformance.get_all_test_modules()
+    # convert the array into a dictionary with the testName as the key
+    all_test_modules = {m['testName']: m for m in all_test_modules_array}
+    untested_test_modules = sorted(all_test_modules.keys())
 
     results = []
     for (plan_name, config_json) in to_run:
@@ -188,6 +200,17 @@ if __name__ == '__main__':
 
     if did_not_complete:
         print("** Exiting with failure - some tests did not run to completion")
+        sys.exit(1)
+
+    # filter untested list, as we don't currently have test environments for these
+    for m in untested_test_modules[:]:
+        if all_test_modules[m]['profile'] in ['SAMPLE', 'OB', 'HEART', 'FAPI-RW']:
+            untested_test_modules.remove(m)
+
+    if show_untested and len(untested_test_modules) > 0:
+        print("** Exiting with failure - not all available modules were tested:")
+        for m in untested_test_modules:
+            print('{}: {}'.format(all_test_modules[m]['profile'], m))
         sys.exit(1)
 
     print("All tests ran to completion. See above for any test condition failures.")
