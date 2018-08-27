@@ -89,6 +89,13 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 			String requestObjectValue = requestObjectClaims.get(key).getAsString();
 			String requestParameterValue = authorizationEndpointRequest.get(key).getAsString();
 
+			if (key.equals("state")) {
+				Boolean exposeState = env.getBoolean("expose_state_in_authorization_endpoint_request");
+				if (exposeState != null && exposeState.equals(true) ) {
+					builder.queryParam("state", env.getString("state"));
+				}
+			}
+
 			if (REQUIRED_PARAMETERS.contains(key)
 				|| requestObjectValue == null
 				|| !requestParameterValue.equals(requestObjectValue)) {

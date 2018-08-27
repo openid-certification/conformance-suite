@@ -45,6 +45,8 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 	@Override
 	protected void createAuthorizationRedirect() {
 
+		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
+
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
