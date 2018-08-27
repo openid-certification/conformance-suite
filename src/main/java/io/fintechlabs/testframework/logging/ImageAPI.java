@@ -118,12 +118,6 @@ public class ImageAPI {
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 
-			List<String> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, false);
-
-			if (remainingPlaceholders.size() == 0) {
-				//imageService.lastPlaceholderFilled(testId, false);
-			}
-
 			return new ResponseEntity<>(result, HttpStatus.OK);
 
 		} else {

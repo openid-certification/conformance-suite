@@ -32,10 +32,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.logging.DBEventLog;
-import io.fintechlabs.testframework.runner.TestRunnerSupport;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
-import io.fintechlabs.testframework.testmodule.TestModule;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 /**
  * @author jheenan
@@ -52,12 +49,6 @@ public class DBImageService implements ImageService {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
-
-	@Autowired
-	private TestInfoService testInfoService;
-
-	@Autowired
-	private TestRunnerSupport testRunnerSupport;
 
 	// Create a Criteria with or without the security constraints as needed
 	private Criteria createCriteria(Criteria findTestId, Criteria additionalConstraints, boolean assumeAdmin) {
@@ -117,20 +108,6 @@ public class DBImageService implements ImageService {
 				.toArray().stream()
 					.map((obj) -> obj.get("upload").toString())
 					.collect(Collectors.toList());
-	}
-
-	// call if there aren't any placeholders left on the test, to update the status to FINISHED
-	@Override
-	public void lastPlaceholderFilled(String testId, boolean assumeAdmin) {
-		// first, see if it's currently running; if so we update the running object
-		TestModule test = testRunnerSupport.getRunningTestById(testId);
-		if (test != null) {
-			test.fireTestFinished();		// set our current status to finished
-			// and stop the running test
-		} else {
-			// otherwise we need to do it directly in the database
-			testInfoService.updateTestStatus(testId, Status.FINISHED);
-		}
 	}
 
 	@Override
