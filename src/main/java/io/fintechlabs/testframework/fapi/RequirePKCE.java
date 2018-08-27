@@ -159,7 +159,7 @@ public class RequirePKCE extends AbstractTestModule {
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
 
-			callAndStopOnFailure(EnsureEmptyImplicitHash.class, "OIDCC-3.3.2.6");
+			call(EnsureEmptyImplicitHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
 			fireTestFinished();
 
