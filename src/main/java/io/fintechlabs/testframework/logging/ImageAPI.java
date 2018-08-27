@@ -111,7 +111,7 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			Map<String, Object> update = ImmutableMap.of("img", encoded);
+			Map<String, Object> update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
 
 			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, false);
 
