@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import traceback
 import os
 import sys
 import time
@@ -14,6 +13,7 @@ import time
 import requests
 
 from conformance import Conformance
+
 
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
@@ -28,7 +28,6 @@ def run_test_plan(test_plan, config_file):
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
-    # plan_modules = ['ob-ensure-registered-redirect-uri-code-id-token-with-private-key-and-matls']
     for module in plan_modules:
         test_start_time = time.time()
         module_id = ''
@@ -51,7 +50,6 @@ def run_test_plan(test_plan, config_file):
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
-            # traceback.print_exc()
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
     overall_time = time.time() - overall_start_time
@@ -66,6 +64,68 @@ def run_test_plan(test_plan, config_file):
     }
 
 
+# from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
+def color(text, **user_styles):
+
+    styles = {
+        # styles
+        'reset': '\033[0m',
+        'bold': '\033[01m',
+        'disabled': '\033[02m',
+        'underline': '\033[04m',
+        'reverse': '\033[07m',
+        'strike_through': '\033[09m',
+        'invisible': '\033[08m',
+        # text colors
+        'fg_black': '\033[30m',
+        'fg_red': '\033[31m',
+        'fg_green': '\033[32m',
+        'fg_orange': '\033[33m',
+        'fg_blue': '\033[34m',
+        'fg_purple': '\033[35m',
+        'fg_cyan': '\033[36m',
+        'fg_light_grey': '\033[37m',
+        'fg_dark_grey': '\033[90m',
+        'fg_light_red': '\033[91m',
+        'fg_light_green': '\033[92m',
+        'fg_yellow': '\033[93m',
+        'fg_light_blue': '\033[94m',
+        'fg_pink': '\033[95m',
+        'fg_light_cyan': '\033[96m',
+        # background colors
+        'bg_black': '\033[40m',
+        'bg_red': '\033[41m',
+        'bg_green': '\033[42m',
+        'bg_orange': '\033[43m',
+        'bg_blue': '\033[44m',
+        'bg_purple': '\033[45m',
+        'bg_cyan': '\033[46m',
+        'bg_light_grey': '\033[47m'
+    }
+
+    color_text = ''
+    for style in user_styles:
+        try:
+            color_text += styles[style]
+        except KeyError:
+            return 'def color: parameter {} does not exist'.format(style)
+    color_text += text
+    return '\033[0m{}\033[0m'.format(color_text)
+
+
+def failure(text):
+    return color(text, bold=True, fg_red=True)
+
+
+def warning(text):
+    return color(text, bold=True, fg_orange=True)
+
+
+def success(text):
+    return color(text, fg_green=True)
+
+
+# Returns 'did_not_complete', ie. True if any test failed to run to completion
 def show_plan_results(plan_result):
     plan_id = plan_result['plan_id']
     plan_modules = plan_result['plan_modules']
@@ -92,6 +152,9 @@ def show_plan_results(plan_result):
         failures = []
         warnings = []
 
+        if module in untested_test_modules:
+            untested_test_modules.remove(module)
+
         if info['status'] != 'FINISHED':
             incomplete += 1
         if 'result' not in info:
@@ -112,24 +175,34 @@ def show_plan_results(plan_result):
             test_time = test_time_taken[module_id]
         else:
             test_time = -1
+        if info['result'] == 'PASSED':
+            result_coloured = success(info['result'])
+        elif info['result'] == 'WARNING':
+            result_coloured = warning(info['result'])
+        else:
+            result_coloured = failure(info['result'])
         print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
-              format(module, module_id, info['status'], info['result'], len(logs),
+              format(module, module_id, info['status'], result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
         if len(failures) > 0:
-            print("Failures: {}".format(', '.join(failures)))
+            print(failure("Failures: {}".format(', '.join(failures))))
         if len(warnings) > 0:
-            print("Warnings: {}".format(', '.join(warnings)))
+            print(warning("Warnings: {}".format(', '.join(warnings))))
         failures_overall.extend(failures)
         warnings_overall.extend(warnings)
         successful_conditions += counts['SUCCESS']
     print(
-        '\nOverall totals: ran {:d} test modules. Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
+        '\nOverall totals: ran {:d} test modules. '
+        'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
         format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
     print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):
-        print("** NOT ALL TESTS WERE RUN **")
+        print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
+        return True
     if incomplete != 0:
-        print("** {:d} TESTS DID NOT RUN TO COMPLETION **".format(incomplete))
+        print(failure("** {:d} TEST MODULES DID NOT RUN TO COMPLETION **".format(incomplete)))
+        return True
+    return False
 
 
 if __name__ == '__main__':
@@ -161,6 +234,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     args = sys.argv[1:]
+    show_untested = False
+    if args[0] == '--show-untested-test-modules':
+        show_untested = True
+        args = args[1:]
     to_run = []
     while len(args) >= 2:
         to_run.append((args[0], args[1]))
@@ -170,6 +247,11 @@ if __name__ == '__main__':
         print("Error: run-test-plan.py: must have even number of parameters")
         sys.exit(1)
 
+    all_test_modules_array = conformance.get_all_test_modules()
+    # convert the array into a dictionary with the testName as the key
+    all_test_modules = {m['testName']: m for m in all_test_modules_array}
+    untested_test_modules = sorted(all_test_modules.keys())
+
     results = []
     for (plan_name, config_json) in to_run:
         result = run_test_plan(plan_name, config_json)
@@ -177,5 +259,26 @@ if __name__ == '__main__':
 
     print("\n\nScript complete - results:")
 
+    did_not_complete = False
     for result in results:
-        show_plan_results(result)
+        plan_did_not_complete = show_plan_results(result)
+        if plan_did_not_complete:
+            did_not_complete = True
+
+    if did_not_complete:
+        print(failure("** Exiting with failure - some tests did not run to completion"))
+        sys.exit(1)
+
+    # filter untested list, as we don't currently have test environments for these
+    for m in untested_test_modules[:]:
+        if all_test_modules[m]['profile'] in ['SAMPLE', 'OB', 'HEART', 'FAPI-RW']:
+            untested_test_modules.remove(m)
+
+    if show_untested and len(untested_test_modules) > 0:
+        print(failure("** Exiting with failure - not all available modules were tested:"))
+        for m in untested_test_modules:
+            print('{}: {}'.format(all_test_modules[m]['profile'], m))
+        sys.exit(1)
+
+    print(success("All tests ran to completion. See above for any test condition failures."))
+    sys.exit(0)

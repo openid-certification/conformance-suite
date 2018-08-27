@@ -30,6 +30,15 @@ class Conformance(object):
                    'Authorization': 'Bearer {0}'.format(api_token)}
         self.requests_session.headers = headers
 
+    def get_all_test_modules(self):
+        """ Returns an array containing a dictionary per test module """
+        api_url = '{0}runner/available'.format(self.api_url_base)
+        response = self.requests_session.get(api_url)
+
+        if response.status_code != 200:
+            raise Exception("get_all_test_modules failed - HTTP {:d} {}".format(response.status_code, response.content))
+        return json.loads(response.content.decode('utf-8'))
+
     def create_test_plan(self, name, configuration):
         api_url = '{0}plan'.format(self.api_url_base)
         payload = {'planName': name}
