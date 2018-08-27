@@ -494,7 +494,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	}
 
 	protected void performProfileIdTokenValidation() {
-		callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
+		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, ConditionResult.FAILURE, "OIDCC-2");
 
 		if ( whichClient == 2 ) {
 			callAndContinueOnFailure(ValidateIdTokenACRClaims.class, ConditionResult.FAILURE, "OIDCC-5.5.1.1");
