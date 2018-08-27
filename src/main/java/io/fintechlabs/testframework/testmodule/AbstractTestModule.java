@@ -61,10 +61,10 @@ public abstract class AbstractTestModule implements TestModule {
 	private TestFailureException finalError; // final error from running the test
 
 	protected TestInfoService testInfo;
+	protected ImageService imageService;
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
-	private ImageService imageService;
 	protected AbstractTestModule() {
 
 	}
@@ -666,14 +666,18 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 
-	private void clearLock(){
+	/**
+	 * Clear the lock. We we don't have it in the current thread, throw an exception.
+	 */
+	protected void clearLock(){
 		env.getLock().unlock();
 	}
 
 	/**
-	 * Helper to check if we have the lock, and if we do, unlock it.
+	 * Helper to check if we have the lock, and if we do, unlock it. If we don't have the lock
+	 * in the current thread, do nothing.
 	 */
-	private void clearLockIfHeld(){
+	protected void clearLockIfHeld(){
 		if(env.getLock().isHeldByCurrentThread()) {
 			env.getLock().unlock();
 		}
@@ -794,7 +798,7 @@ public abstract class AbstractTestModule implements TestModule {
 		return EventLog.ex(cause, in);
 	}
 
-	public void acquireLock() {
+	protected void acquireLock() {
 		env.getLock().lock();
 	}
 
