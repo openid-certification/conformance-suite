@@ -49,7 +49,8 @@ public class ValidateIdTokenACRClaims extends AbstractCondition {
 				// Read what the server has sent us
 				JsonElement acrServerClaims = env.getElementFromObject("id_token", "claims.acr");
 				if (acrServerClaims == null || !acrServerClaims.isJsonPrimitive()) {
-					throw error("Missing or invalid acr value in id_token", args("id_token", env.getObject("id_token")));
+					throw error("Missing or invalid acr value in id_token",
+						args("id_token", env.getObject("id_token"), "expected", valuesNeeded));
 				}
 				List<String> valuesReceived = Arrays.asList(acrServerClaims.getAsString().split(" "));
 
@@ -66,7 +67,7 @@ public class ValidateIdTokenACRClaims extends AbstractCondition {
 				if (!foundEnough) {
 					throw error("acr value in id_token does not match requested value", args("required", valuesNeeded, "actual", valuesReceived));
 				} else {
-					logSuccess("acr value in id_token is as expected", args("required", valuesNeeded, "actual", valuesReceived));
+					logSuccess("acr value in id_token is as expected", args("expected", valuesNeeded, "actual", valuesReceived));
 				}
 
 			} else {
