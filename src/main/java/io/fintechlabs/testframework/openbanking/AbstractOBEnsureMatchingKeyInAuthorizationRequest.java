@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -43,6 +41,8 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		env.unmapKey("client_jwks");
 
 		setStatus(Status.WAITING);
+
+		waitForPlaceholders();
 
 		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
 	}

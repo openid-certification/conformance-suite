@@ -106,6 +106,8 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractTest
 
 		setStatus(Status.WAITING);
 
+		waitForPlaceholders();
+
 		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
 	}
 

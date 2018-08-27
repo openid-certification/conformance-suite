@@ -1,12 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import io.fintechlabs.testframework.condition.client.ExpectRedirectUriMissingErrorPage;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends AbstractOBServerTestModule {
 
@@ -33,6 +27,8 @@ public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequest extends 
 		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
 
 		setStatus(Status.WAITING);
+
+		waitForPlaceholders();
 
 		browser.goToUrl(redirectTo, env.getString("redirect_uri_missing_error"));
 	}

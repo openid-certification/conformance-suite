@@ -98,6 +98,8 @@ public class RejectCodeFlow extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
+		waitForPlaceholders();
+
 		browser.goToUrl(redirectTo, env.getString("grant_type_error"));
 	}
 

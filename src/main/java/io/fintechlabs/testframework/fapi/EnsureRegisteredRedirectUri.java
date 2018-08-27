@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
@@ -19,10 +17,6 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -113,6 +107,8 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
 
 		setStatus(Status.WAITING);
+
+		waitForPlaceholders();
 
 		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
 	}

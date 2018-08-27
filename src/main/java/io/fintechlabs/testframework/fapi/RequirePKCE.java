@@ -106,6 +106,8 @@ public class RequirePKCE extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
+		waitForPlaceholders();
+
 		browser.goToUrl(redirectTo, env.getString("pkce_error"));
 	}
 

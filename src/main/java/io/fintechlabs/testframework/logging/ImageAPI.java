@@ -121,7 +121,7 @@ public class ImageAPI {
 			List<String> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, false);
 
 			if (remainingPlaceholders.size() == 0) {
-				imageService.lastPlaceholderFilled(testId, false);
+				//imageService.lastPlaceholderFilled(testId, false);
 			}
 
 			return new ResponseEntity<>(result, HttpStatus.OK);

@@ -564,7 +564,7 @@ public class BrowserControl {
 
 		if (imageService.getRemainingPlaceholders(testId, true).isEmpty()) {
 			// no remaining placeholders, kick the test over
-			imageService.lastPlaceholderFilled(testId, false);
+			//imageService.lastPlaceholderFilled(testId, false);
 
 			eventLog.log("BROWSER", args("msg", "All placeholders filled by scripted browser"));
 		}

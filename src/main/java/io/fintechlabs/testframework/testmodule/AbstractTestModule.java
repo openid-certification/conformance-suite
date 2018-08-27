@@ -817,4 +817,43 @@ public abstract class AbstractTestModule implements TestModule {
 		return executionManager;
 	}
 
+	protected void waitForPlaceholders() {
+		// set up a listener to wait for either an error callback or an image upload
+		executionManager.runInBackground(() -> {
+	
+			Thread.sleep(10 * 1000); // wait for 10 seconds before we check the first time
+	
+			boolean cont = true;
+	
+			while (cont) {
+	
+				// grab the lock before we check anything in case something is finishing up
+				acquireLock();
+	
+				// re-fetch the placeholders every check
+				List<String> remainingPlaceholders = imageService.getRemainingPlaceholders(getId(), true);
+	
+				if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
+					// if the test is finished/interrupted, nothing for us to do, stop looking
+					cont = false;
+				} else if (remainingPlaceholders.isEmpty() && getStatus().equals(Status.WAITING)) {
+					// if the test is still waiting, but all the placeholders are gone, then we can call it finished, stop looking
+					fireTestFinished();
+					cont = false;
+				} else {
+					// otherwise (test is waiting but placeholders are still there, or test is running, etc), check again in the future
+					cont = true;
+				}
+	
+				// let go of the lock
+				clearLock();
+	
+				Thread.sleep(10 * 1000); // wait for 10 seconds before we check again
+	
+			}
+	
+			return "done";
+		});
+	}
+
 }

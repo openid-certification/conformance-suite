@@ -118,6 +118,8 @@ public class RejectPlainPKCE extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
+		waitForPlaceholders();
+
 		browser.goToUrl(redirectTo, env.getString("plain_pkce_error"));
 	}
 

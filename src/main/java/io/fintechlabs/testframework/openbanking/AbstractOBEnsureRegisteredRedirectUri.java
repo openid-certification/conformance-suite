@@ -1,15 +1,9 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.CreateBadRedirectUri;
 import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBServerTestModule {
 
@@ -43,6 +37,8 @@ public abstract class AbstractOBEnsureRegisteredRedirectUri extends AbstractOBSe
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
 
 		setStatus(Status.WAITING);
+
+		waitForPlaceholders();
 
 		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
 	}

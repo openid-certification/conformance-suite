@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -38,6 +36,8 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
 
 		setStatus(Status.WAITING);
+
+		waitForPlaceholders();
 
 		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
 	}
