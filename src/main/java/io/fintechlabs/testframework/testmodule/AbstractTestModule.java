@@ -91,19 +91,6 @@ public abstract class AbstractTestModule implements TestModule {
 	 *
 	 * onFail is set to FAILURE
 	 *
-	 * requirements are empty
-	 *
-	 */
-	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass) {
-		call(condition(conditionClass)
-			.onFail(ConditionResult.FAILURE));
-	}
-
-	/**
-	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
-	 *
-	 * onFail is set to FAILURE
-	 *
 	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
@@ -130,25 +117,12 @@ public abstract class AbstractTestModule implements TestModule {
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 *
-	 * onFail is set to INFO
-	 *
-	 * requirements are empty
-	 */
-	protected void call(Class<? extends Condition> conditionClass) {
-		call(condition(conditionClass)
-			.onFail(ConditionResult.INFO)
-			.dontStopOnFailure());
-	}
-
-	/**
-	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
-	 *
-	 * onFail is set to WARNING
+	 * onFail is set to INFO if requirements is null or empty, WARNING if requirements are specified
 	 *
 	 */
-	protected void call(Class<? extends Condition> conditionClass, String... requirements) {
+	protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
-			.onFail(ConditionResult.WARNING)
+			.onFail((requirements == null || requirements.length == 0) ? ConditionResult.INFO : ConditionResult.WARNING)
 			.requirements(requirements)
 			.dontStopOnFailure());
 	}
@@ -157,7 +131,7 @@ public abstract class AbstractTestModule implements TestModule {
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 *
 	 */
-	protected void call(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
+	protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
 			.requirements(requirements)
 			.onFail(onFail)

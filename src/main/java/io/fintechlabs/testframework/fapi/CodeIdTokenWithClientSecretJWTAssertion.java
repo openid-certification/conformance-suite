@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -80,10 +78,6 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -130,8 +124,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		call(GetDynamicServerConfiguration.class);
-		call(GetStaticServerConfiguration.class);
+		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
+		callAndContinueOnFailure(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -178,16 +172,16 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		eventLog.startBlock("Authorization endpoint TLS test");
 		env.mapKey("tls", "authorization_endpoint_tls");
-		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
-		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
@@ -205,10 +199,10 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
-		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.endBlock();
 		env.unmapKey("tls");
@@ -275,7 +269,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
@@ -325,17 +319,17 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-			call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 			skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO,
 				ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-			call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 			skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
 				ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
@@ -373,16 +367,16 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24");
 
-			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-			call(CheckForRefreshTokenValue.class);
+			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			call(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+			callAndContinueOnFailure(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 
-			call(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+			callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
 
 			// verify the access token against a protected resource
 
@@ -399,7 +393,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
 
-			call(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
+			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
 
 			callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
 

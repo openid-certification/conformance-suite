@@ -14,8 +14,6 @@
 
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +24,6 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
 
@@ -46,17 +40,17 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 
 		eventLog.startBlock("Authorization endpoint TLS test");
 		env.mapKey("tls", "authorization_endpoint_tls");
-		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 		// additional ciphers are allowed on the authorization endpoint
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
-		call(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-		call(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
@@ -91,7 +85,7 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 
 			callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-			call(CallTokenEndpointExpectingError.class, ConditionResult.FAILURE, "OB-5.2.2");
+			callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.FAILURE, "OB-5.2.2");
 
 			fireTestFinished();
 			return "done";

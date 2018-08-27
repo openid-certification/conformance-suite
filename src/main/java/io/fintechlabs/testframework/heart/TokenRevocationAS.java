@@ -3,10 +3,6 @@ package io.fintechlabs.testframework.heart;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.*;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -18,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Map;
 
 /**
  * @author srmoore
@@ -49,11 +44,11 @@ public class TokenRevocationAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
-		call(DisallowTLS10.class, "HEART-OAuth2-6");
-		call(DisallowTLS11.class, "HEART-OAuth2-6");
+		callAndContinueOnFailure(DisallowTLS10.class, "HEART-OAuth2-6");
+		callAndContinueOnFailure(DisallowTLS11.class, "HEART-OAuth2-6");
 
 		// Get the server's configuration
-		call(GetDynamicServerConfiguration.class, "HEART-OAuth2-3.1.5");
+		callAndContinueOnFailure(GetDynamicServerConfiguration.class, "HEART-OAuth2-3.1.5");
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckHeartServerConfiguration.class, "HEART-OAuth2-3.1.5");

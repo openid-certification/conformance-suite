@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
@@ -19,10 +17,6 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
 
@@ -44,17 +38,17 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
 
-			call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-			call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 			skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO,
 				ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-			call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 			skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
 				ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");

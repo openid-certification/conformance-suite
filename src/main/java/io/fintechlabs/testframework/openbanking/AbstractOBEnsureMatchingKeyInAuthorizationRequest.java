@@ -1,16 +1,10 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
@@ -74,8 +68,8 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		call(ExpectInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(ExpectInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
 
 		// as we got an answer from the browser, we could mark the image placeholder as satisfied, but that's hard

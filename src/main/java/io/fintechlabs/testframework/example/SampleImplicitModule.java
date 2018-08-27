@@ -14,8 +14,6 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -49,10 +47,6 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToToken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -210,13 +204,13 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
 
-			call(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+			callAndContinueOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
 
-			call(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+			callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
 
-			call(CheckForRefreshTokenValue.class);
+			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			call(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+			callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 
 			fireTestFinished();
 

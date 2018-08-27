@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
 import java.util.Enumeration;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,10 +50,6 @@ import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -97,7 +92,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -177,8 +172,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("incoming_request", requestParts);
 
-		call(ExtractBearerAccessTokenFromHeader.class);
-		call(ExtractBearerAccessTokenFromParams.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
@@ -210,17 +205,17 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("token_endpoint_request", requestParts);
 
-		call(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
 
-		call(EnsureMatchingClientCertificate.class);
+		callAndContinueOnFailure(EnsureMatchingClientCertificate.class);
 
-		call(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
+		callAndContinueOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
-		call(ExtractClientCredentialsFromFormPost.class); // FIXME: is this meant to be client secret post or basic?
+		callAndContinueOnFailure(ExtractClientCredentialsFromFormPost.class); // FIXME: is this meant to be client secret post or basic?
 
-		call(AuthenticateClientWithClientSecret.class);
+		callAndContinueOnFailure(AuthenticateClientWithClientSecret.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
 
@@ -311,8 +306,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("incoming_request", requestParts);
 
-		call(ExtractBearerAccessTokenFromHeader.class);
-		call(ExtractBearerAccessTokenFromParams.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
 
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
@@ -331,8 +326,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("incoming_request", requestParts);
 
-		call(ExtractBearerAccessTokenFromHeader.class);
-		call(ExtractBearerAccessTokenFromParams.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 

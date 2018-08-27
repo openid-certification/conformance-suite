@@ -140,9 +140,9 @@ public class RejectPlainPKCE extends AbstractTestModule {
 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		callAndContinueOnFailure(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
-		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
@@ -170,7 +170,7 @@ public class RejectPlainPKCE extends AbstractTestModule {
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
 
-			call(EnsureEmptyImplicitHash.class, ConditionResult.FAILURE,"OIDCC-3.3.2.6");
+			callAndContinueOnFailure(EnsureEmptyImplicitHash.class, ConditionResult.FAILURE,"OIDCC-3.3.2.6");
 
 			fireTestFinished();
 

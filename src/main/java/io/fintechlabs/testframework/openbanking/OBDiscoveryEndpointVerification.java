@@ -16,8 +16,6 @@
 
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -40,10 +38,6 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpo
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -63,19 +57,19 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		call(CheckDiscEndpointDiscoveryUrl.class,ConditionResult.FAILURE);
-		call(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointClaimsSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointGrantTypesSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointResponseTypesSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointRequestParameterSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointRequestUriParameterSupported .class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointRequireRequestUriRegistration.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointScopesSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointTokenEndpointAuthMethodsSupported.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported .class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointClaimsSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointResponseTypesSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported .class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointRequireRequestUriRegistration.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointScopesSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported .class, ConditionResult.FAILURE);
 
 		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_endpoint")
@@ -84,8 +78,8 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 			.dontStopOnFailure()
 			);
 
-		call(CheckDiscEndpointTokenEndpoint.class, ConditionResult.FAILURE);
-		call(CheckDiscEndpointAuthorizationEndpoint.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpoint.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, ConditionResult.FAILURE);
 
 		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
 			.skipIfElementMissing("server", "registration_endpoint")
@@ -94,7 +88,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 			.dontStopOnFailure()
 			);
 
-		call(CheckDiscEndpointJwksUri.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointJwksUri.class, ConditionResult.FAILURE);
 
 		fireTestFinished();
 
