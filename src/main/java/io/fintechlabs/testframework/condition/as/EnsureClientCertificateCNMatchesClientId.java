@@ -7,9 +7,9 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class EnsureMatchingClientCertificate extends AbstractCondition {
+public class EnsureClientCertificateCNMatchesClientId extends AbstractCondition {
 
-	public EnsureMatchingClientCertificate(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureClientCertificateCNMatchesClientId(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

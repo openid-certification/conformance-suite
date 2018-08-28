@@ -18,7 +18,6 @@ import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredenti
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
-import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
@@ -199,8 +198,6 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
-
-		callAndContinueOnFailure(EnsureMatchingClientCertificate.class, ConditionResult.FAILURE);
 
 		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 

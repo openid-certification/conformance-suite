@@ -38,7 +38,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureMatchingClientCertificate cond;
+	private EnsureClientCertificateCNMatchesClientId cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -46,7 +46,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureMatchingClientCertificate("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureClientCertificateCNMatchesClientId("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		JsonObject client = new JsonParser().parse("{" +
 			"\"client_id\":\"CN=example.org\"" +
@@ -57,7 +57,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.as.EnsureClientCertificateCNMatchesClientId#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -69,7 +69,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.as.EnsureClientCertificateCNMatchesClientId#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongName() {
@@ -81,7 +81,7 @@ public class EnsureMatchingClientCertificate_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link io.fintechlabs.testframework.condition.as.EnsureClientCertificateCNMatchesClientId#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingName() {
