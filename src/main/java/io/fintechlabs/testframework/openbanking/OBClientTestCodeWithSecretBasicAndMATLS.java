@@ -19,6 +19,7 @@ import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
+import io.fintechlabs.testframework.condition.as.EnsureClientTls12;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
@@ -142,8 +143,10 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
 
+		callAndContinueOnFailure(EnsureClientTls12.class, "FAPI-R-7.1-2");
+
 		if (path.equals("authorize")) {
-			return authorizationEndpoint(requestParts);
+			return authorizationEndpoint(requestParts); // FIXME should this be on the MTLS path??
 		} else if (path.equals("token")) {
 			return tokenEndpoint(requestParts);
 		} else {
