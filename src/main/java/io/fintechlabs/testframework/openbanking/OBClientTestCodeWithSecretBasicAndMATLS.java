@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Enumeration;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -23,6 +21,7 @@ import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
@@ -36,7 +35,6 @@ import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthori
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
-
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
@@ -140,14 +138,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		// Update the environment with the current request headers
-		JsonObject clientHeaders = new JsonObject();
-		Enumeration<String> headerNames = req.getHeaderNames();
-		while (headerNames.hasMoreElements()) {
-			String name = headerNames.nextElement();
-			clientHeaders.addProperty(name, req.getHeader(name));
-		}
-		env.putObject("client_request_headers", clientHeaders);
+		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
 
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestParts);
@@ -209,7 +200,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
 
-		callAndContinueOnFailure(EnsureMatchingClientCertificate.class);
+		callAndContinueOnFailure(EnsureMatchingClientCertificate.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
@@ -281,6 +272,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI-R-5.2.3-7");
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 
