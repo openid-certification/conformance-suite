@@ -39,12 +39,15 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends Abs
 
 		try {
 
+			// pre-process the cert string for the PEM parser
 			String certPem = certStr.replaceAll("\\s+(?!CERTIFICATE-----)", "\n");
 
 			CertificateFactory cf = CertificateFactory.getInstance("X.509");
 			X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certPem.getBytes()));
 
 			JsonObject certInfo = new JsonObject();
+			certInfo.addProperty("cert", certStr);
+			certInfo.addProperty("pem", certPem);
 
 			JsonObject subjectInfo = new JsonObject();
 			X500Principal subject = cert.getSubjectX500Principal();

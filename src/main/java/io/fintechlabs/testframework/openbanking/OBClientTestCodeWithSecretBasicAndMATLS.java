@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
@@ -61,7 +62,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.client_id",
 		"client.client_secret",
 		"client.scope",
-		"client.redirect_uri"
+		"client.redirect_uri",
+		"client.certificate"
 	}
 )
 
@@ -198,6 +200,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
+
+		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
 		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
