@@ -51,7 +51,7 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 		String subject = env.getString("user_info", "sub");
 		String issuer = env.getString("issuer");
 		String clientId = env.getString("client", "client_id");
-		String nonce = env.getString("authorization_endpoint_request", "nonce");
+		String nonce = env.getString("nonce");
 
 		if (Strings.isNullOrEmpty(subject)) {
 			throw error("Couldn't find subject");
