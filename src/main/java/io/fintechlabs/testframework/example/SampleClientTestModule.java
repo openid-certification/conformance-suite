@@ -14,8 +14,6 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -54,10 +52,6 @@ import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromPar
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -102,7 +96,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -168,8 +162,8 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.putObject("incoming_request", requestParts);
 
-		call(ExtractBearerAccessTokenFromHeader.class);
-		call(ExtractBearerAccessTokenFromParams.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
@@ -232,9 +226,9 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.putObject("token_endpoint_request", requestParts);
 
-		call(ExtractClientCredentialsFromFormPost.class);
+		callAndContinueOnFailure(ExtractClientCredentialsFromFormPost.class);
 
-		call(AuthenticateClientWithClientSecret.class);
+		callAndContinueOnFailure(AuthenticateClientWithClientSecret.class);
 
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
 

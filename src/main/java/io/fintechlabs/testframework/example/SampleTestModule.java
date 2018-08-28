@@ -14,8 +14,6 @@
 
 package io.fintechlabs.testframework.example;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -60,10 +58,6 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -103,9 +97,9 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "FAPI-1-7.1-1");
-		call(DisallowTLS10.class, "FAPI-1-7.1-1");
-		call(DisallowTLS11.class, "FAPI-1-7.1-1");
-		call(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
+		callAndContinueOnFailure(DisallowTLS10.class, "FAPI-1-7.1-1");
+		callAndContinueOnFailure(DisallowTLS11.class, "FAPI-1-7.1-1");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -113,7 +107,7 @@ public class SampleTestModule extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Get the server's configuration
-		call(GetDynamicServerConfiguration.class);
+		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -124,7 +118,7 @@ public class SampleTestModule extends AbstractTestModule {
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		call(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
 		//require(ExtractJWKsFromClientConfiguration.class);
 
@@ -234,9 +228,9 @@ public class SampleTestModule extends AbstractTestModule {
 
 			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
 
-			call(ValidateSHash.class, "FAPI-2-5.2.2-4");
+			callAndContinueOnFailure(ValidateSHash.class, "FAPI-2-5.2.2-4");
 
-			call(CheckForRefreshTokenValue.class);
+			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
 			callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
 

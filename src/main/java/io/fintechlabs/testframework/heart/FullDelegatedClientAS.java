@@ -14,8 +14,6 @@
 
 package io.fintechlabs.testframework.heart;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -65,10 +63,6 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -105,8 +99,8 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
 		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
-		call(DisallowTLS10.class, "HEART-OAuth2-6");
-		call(DisallowTLS11.class, "HEART-OAuth2-6");
+		callAndContinueOnFailure(DisallowTLS10.class, "HEART-OAuth2-6");
+		callAndContinueOnFailure(DisallowTLS11.class, "HEART-OAuth2-6");
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -114,7 +108,7 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 		exposeEnvString("redirect_uri");
 
 		// Get the server's configuration
-		call(GetDynamicServerConfiguration.class, "HEART-OAuth2-3.1.5");
+		callAndContinueOnFailure(GetDynamicServerConfiguration.class, "HEART-OAuth2-3.1.5");
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckHeartServerConfiguration.class, "HEART-OAuth2-3.1.5");
@@ -244,9 +238,9 @@ public class FullDelegatedClientAS extends AbstractTestModule {
 
 			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
 
-			call(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+			callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
 
-			call(CheckForScopesInTokenResponse.class);
+			callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
 
 			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
 

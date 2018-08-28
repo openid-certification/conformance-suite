@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -75,7 +73,7 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		call(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		skipIfMissing(new String[] { "callback_query_params" }, null, ConditionResult.INFO,
 				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
@@ -133,19 +131,19 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-		call(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-2-8.6");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-2-8.6");
 
-		call(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
 		skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
 
-		call(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		call(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
 			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
