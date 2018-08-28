@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.condition.client;
 
 import java.util.UUID;
@@ -36,17 +22,17 @@ public class CheckForFAPIInteractionIdInResourceResponse extends AbstractConditi
 		String interactionIdStr = env.getString("resource_endpoint_response_headers", "x-fapi-interaction-id");
 
 		if (Strings.isNullOrEmpty(interactionIdStr)) {
-			throw error("Interaction ID not found in resource endpoint response headers");
+			throw error("x-fapi-interaction-id not found in resource endpoint response headers");
 		}
 
 		try {
 			@SuppressWarnings("unused")
 			UUID interactionId = UUID.fromString(interactionIdStr);
 		} catch (IllegalArgumentException e) {
-			throw error("Invalid interaction ID - not a UUID", args("interaction_id", interactionIdStr));
+			throw error("Invalid x-fapi-interaction-id - not a UUID", args("interaction_id", interactionIdStr));
 		}
 
-		logSuccess("Found interaction ID", args("interaction_id", interactionIdStr));
+		logSuccess("Found x-fapi-interaction-id", args("interaction_id", interactionIdStr));
 
 		return env;
 	}

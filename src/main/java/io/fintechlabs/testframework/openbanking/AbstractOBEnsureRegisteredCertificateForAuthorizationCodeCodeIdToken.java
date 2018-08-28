@@ -32,7 +32,7 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 			callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
-			callAndStopOnFailure(OBValidateIdTokenIntentId.class,"OIDCC-2");
+			callAndContinueOnFailure(OBValidateIdTokenIntentId.class, ConditionResult.FAILURE,"OIDCC-2");
 
 			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
 
