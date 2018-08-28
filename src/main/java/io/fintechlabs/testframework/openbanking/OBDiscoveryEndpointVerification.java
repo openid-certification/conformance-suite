@@ -16,7 +16,6 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRegistrati
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequireRequestUriRegistration;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpoint;
@@ -50,7 +49,6 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, ConditionResult.WARNING, "OB-7.1-1");
-		callAndContinueOnFailure(CheckDiscEndpointRequireRequestUriRegistration.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, ConditionResult.FAILURE);
