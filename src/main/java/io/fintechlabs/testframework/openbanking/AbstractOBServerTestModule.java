@@ -233,7 +233,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
 		skipIfMissing(new String[] { "expires_in" }, null, ConditionResult.INFO,
-				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
+				ValidateExpiresIn.class, ConditionResult.FAILURE, "RFC6749-5.1");
 	}
 
 	protected abstract void createClientCredentialsRequest();
@@ -430,7 +430,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 				callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.WARNING, "FAPI-1-5.2.2-13");
 
 				// The AS 'SHOULD' have revoked the access token; try it again".
-				callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, ConditionResult.WARNING, "OAUTH2-4.1.2");
+				callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, ConditionResult.WARNING, "RFC6749-4.1.2");
 				eventLog.endBlock();
 
 				fireTestFinished();
@@ -455,7 +455,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
 		skipIfMissing(new String[] { "expires_in" }, null, ConditionResult.INFO,
-				ValidateExpiresIn.class, ConditionResult.FAILURE, "OAUTH2-5.1");
+				ValidateExpiresIn.class, ConditionResult.FAILURE, "RFC6749-5.1");
 
 		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-15");
 
