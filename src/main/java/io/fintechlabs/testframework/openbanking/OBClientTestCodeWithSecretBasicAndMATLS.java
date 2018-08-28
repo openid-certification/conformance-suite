@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
+import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
@@ -24,7 +25,6 @@ import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
-import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
@@ -202,13 +202,13 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndContinueOnFailure(EnsureMatchingClientCertificate.class, ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
-
-		callAndContinueOnFailure(ExtractClientCredentialsFromFormPost.class); // FIXME: is this meant to be client secret post or basic?
+		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
 		callAndContinueOnFailure(AuthenticateClientWithClientSecret.class);
 
+		// make sure the client is authenticated then clear the flag in case it's called again
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
+		callAndStopOnFailure(ClearClientAuthentication.class);
 
 		// dispatch based on grant type
 		String grantType = requestParts.get("params").getAsJsonObject().get("grant_type").getAsString();
