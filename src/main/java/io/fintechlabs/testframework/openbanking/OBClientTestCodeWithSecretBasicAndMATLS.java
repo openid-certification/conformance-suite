@@ -42,6 +42,7 @@ import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
+import io.fintechlabs.testframework.condition.rs.ClearAccessTokenFromRequest;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
@@ -198,6 +199,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		call(exec().endBlock());
 
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
@@ -351,6 +354,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		JsonObject accountRequestResponse = env.getObject("account_request_response");
 
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
 		call(exec().endBlock());
 
 		setStatus(Status.WAITING);
@@ -374,6 +379,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		exposeEnvString("account_id");
 
 		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		call(exec().endBlock());
 
