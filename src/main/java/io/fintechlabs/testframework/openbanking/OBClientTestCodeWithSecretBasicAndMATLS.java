@@ -181,6 +181,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.RUNNING);
 
+		call(exec().startBlock("Userinfo endpoint"));
+
 		env.putObject("incoming_request", requestParts);
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
@@ -193,6 +195,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
+
+		call(exec().endBlock());
 
 		setStatus(Status.WAITING);
 
@@ -213,6 +217,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	private Object tokenEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Token endpoint"));
 
 		env.putObject("token_endpoint_request", requestParts);
 
@@ -254,6 +260,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 
+		call(exec().endBlock());
+
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
@@ -274,6 +282,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
+		call(exec().endBlock());
+
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
@@ -284,6 +294,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	private Object authorizationEndpoint(JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Authorization endpoint"));
 
 		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
 
@@ -307,6 +319,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 
+		call(exec().endBlock());
+
 		return new RedirectView(redirectTo, false, false, false);
 
 	}
@@ -318,6 +332,10 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	 * @return
 	 */
 	private Object accountRequestsEndpoint(JsonObject requestParts) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Account request endpoint"));
 
 		env.putObject("incoming_request", requestParts);
 
@@ -333,11 +351,17 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		JsonObject accountRequestResponse = env.getObject("account_request_response");
 
+		call(exec().endBlock());
+
+		setStatus(Status.WAITING);
+
 		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
 	}
 
 	private Object accountsEndpoint(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Accounts endpoint"));
 
 		env.putObject("incoming_request", requestParts);
 
@@ -350,6 +374,10 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		exposeEnvString("account_id");
 
 		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
+
+		call(exec().endBlock());
+
+		setStatus(Status.WAITING);
 
 		// at this point we can assume the test is fully done
 		fireTestFinished();
