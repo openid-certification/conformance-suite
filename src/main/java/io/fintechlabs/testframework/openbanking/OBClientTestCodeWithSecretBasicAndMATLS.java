@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.as.EnsureBearerAccessTokenNotInParams;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.as.EnsureIncomingTls12;
@@ -44,7 +45,6 @@ import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEn
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
-import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;
 import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
@@ -183,8 +183,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("incoming_request", requestParts);
 
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
@@ -321,8 +321,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("incoming_request", requestParts);
 
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
@@ -341,8 +341,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("incoming_request", requestParts);
 
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
