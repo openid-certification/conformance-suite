@@ -17,12 +17,11 @@ package io.fintechlabs.testframework.logging;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import io.fintechlabs.testframework.info.ImageService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
+import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
@@ -111,19 +111,12 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			Update update = new Update();
-			update.set("img", encoded);
+			Map<String, Object> update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
 
 			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, false);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
-
-			List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, false);
-
-			if (remainingPlaceholders.size() == 0) {
-				imageService.lastPlaceholderFilled(testId, false);
-			}
 
 			return new ResponseEntity<>(result, HttpStatus.OK);
 

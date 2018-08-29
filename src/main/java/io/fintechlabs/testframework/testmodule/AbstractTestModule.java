@@ -19,6 +19,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -28,6 +29,7 @@ import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
+import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -59,6 +61,7 @@ public abstract class AbstractTestModule implements TestModule {
 	private TestFailureException finalError; // final error from running the test
 
 	protected TestInfoService testInfo;
+	protected ImageService imageService;
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
@@ -67,13 +70,14 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 	@Override
-	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager) {
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
 		this.browser = browser;
 		this.testInfo = testInfo;
 		this.executionManager = executionManager;
+		this.imageService = imageService;
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
@@ -236,7 +240,7 @@ public abstract class AbstractTestModule implements TestModule {
 				}
 			}
 			for (String s : builder.getSkipIfStringsMissing()) {
-				if (Strings.isNullOrEmpty(env.getString(s))) {
+				if (env.getString(s) == null) {
 					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find string in environment: " + s);
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required string: " + s,
@@ -283,7 +287,7 @@ public abstract class AbstractTestModule implements TestModule {
 					}
 				}
 				for (String s : pre.strings()) {
-					if (Strings.isNullOrEmpty(env.getString(s))) {
+					if (env.getString(s) == null) {
 						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
@@ -318,7 +322,7 @@ public abstract class AbstractTestModule implements TestModule {
 					}
 				}
 				for (String s : post.strings()) {
-					if (Strings.isNullOrEmpty(env.getString(s))) {
+					if (env.getString(s) == null) {
 						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
@@ -474,6 +478,16 @@ public abstract class AbstractTestModule implements TestModule {
 				fireTestSuccess();
 			}
 
+			// clean up any remaining placeholders here; if we call this function then we have reached a condition where we're not expecting them to be filled externally
+
+			List<String> placeholders = imageService.getRemainingPlaceholders(getId(), true);
+
+			for (String placeholder : placeholders) {
+				Map<String, Object> update = ImmutableMap.of(
+					"test_finished", true);
+				imageService.fillPlaceholder(getId(), placeholder, update, true);
+			}
+
 			stop();
 
 			eventLog.log(getName(), args(
@@ -491,6 +505,7 @@ public abstract class AbstractTestModule implements TestModule {
 			setStatus(Status.FINISHED);
 		}
 
+		// if we don't have a result yet or we are waiting for manual review, set this to a success
 		if (getResult() == Result.UNKNOWN || getResult() == Result.REVIEW) {
 			fireTestSuccess();
 		}
@@ -651,14 +666,18 @@ public abstract class AbstractTestModule implements TestModule {
 	}
 
 
-	private void clearLock(){
+	/**
+	 * Clear the lock. We we don't have it in the current thread, throw an exception.
+	 */
+	protected void clearLock(){
 		env.getLock().unlock();
 	}
 
 	/**
-	 * Helper to check if we have the lock, and if we do, unlock it.
+	 * Helper to check if we have the lock, and if we do, unlock it. If we don't have the lock
+	 * in the current thread, do nothing.
 	 */
-	private void clearLockIfHeld(){
+	protected void clearLockIfHeld(){
 		if(env.getLock().isHeldByCurrentThread()) {
 			env.getLock().unlock();
 		}
@@ -779,7 +798,7 @@ public abstract class AbstractTestModule implements TestModule {
 		return EventLog.ex(cause, in);
 	}
 
-	public void acquireLock() {
+	protected void acquireLock() {
 		env.getLock().lock();
 	}
 
@@ -796,6 +815,45 @@ public abstract class AbstractTestModule implements TestModule {
 	@Override
 	public TestExecutionManager getTestExecutionManager() {
 		return executionManager;
+	}
+
+	protected void waitForPlaceholders() {
+		// set up a listener to wait for either an error callback or an image upload
+		executionManager.runInBackground(() -> {
+
+			Thread.sleep(10 * 1000); // wait for 10 seconds before we check the first time
+
+			boolean cont = true;
+
+			while (cont) {
+
+				// grab the lock before we check anything in case something is finishing up
+				acquireLock();
+
+				// re-fetch the placeholders every check
+				List<String> remainingPlaceholders = imageService.getRemainingPlaceholders(getId(), true);
+
+				if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
+					// if the test is finished/interrupted, nothing for us to do, stop looking
+					cont = false;
+				} else if (remainingPlaceholders.isEmpty() && getStatus().equals(Status.WAITING)) {
+					// if the test is still waiting, but all the placeholders are gone, then we can call it finished, stop looking
+					fireTestFinished();
+					cont = false;
+				} else {
+					// otherwise (test is waiting but placeholders are still there, or test is running, etc), check again in the future
+					cont = true;
+				}
+
+				// let go of the lock
+				clearLock();
+
+				Thread.sleep(10 * 1000); // wait for 10 seconds before we check again
+
+			}
+
+			return "done";
+		});
 	}
 
 }

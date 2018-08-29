@@ -1,16 +1,17 @@
 package io.fintechlabs.testframework.openbanking;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import com.google.gson.JsonObject;
+
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends AbstractOBServerTestModule {
 
@@ -41,7 +42,9 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		waitForPlaceholders();
+
+		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override

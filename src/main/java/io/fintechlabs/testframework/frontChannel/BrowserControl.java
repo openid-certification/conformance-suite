@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
-import io.fintechlabs.testframework.condition.FillImagePlaceholderError;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -47,6 +46,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -106,12 +106,15 @@ public class BrowserControl {
 	private List<String> visited = new ArrayList<>();
 	private List<WebRunner> runners = new ArrayList<>();
 
+	private ImageService imageService;
+
 	private TestInstanceEventLog eventLog;
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager) {
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.executionManager = executionManager;
+		this.imageService = imageService;
 
 		// loop through the commands to find the various URL matchers to use
 		JsonArray browserCommands = config.getAsJsonArray("browser");
@@ -129,13 +132,33 @@ public class BrowserControl {
 
 	}
 
+	/**
+	 * Tell the front-end control that a url needs to be visited. If there is a matching
+	 * browser configuration element, this will execute automatically. If there is no
+	 * matching element, the url is made available for user interaction.
+	 *
+	 * @param url the url to be visited
+	 */
 	public void goToUrl(String url) {
+		goToUrl(url, null);
+	}
+
+	/**
+	 * Tell the front-end control that a url needs to be visited. If there is a matching
+	 * browser configuration element, this will execute automatically. If there is no
+	 * matching element, the url is made available for user interaction.
+	 *
+	 * @param url the url to be visited
+	 * @param placeholder the placeholder in the log that is expecting the results of
+	 * 	the transaction, usually as a screenshot, can be null
+	 */
+	public void goToUrl(String url, String placeholder) {
 		// use the URL to find the command set.
 		for (String urlPattern : tasksForUrls.keySet()) {
 			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
 			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
 			if (PatternMatchUtils.simpleMatch(urlPattern, url)) {
-				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern));
+				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern), placeholder);
 				executionManager.runInBackground(wr);
 				logger.debug("WebRunner submitted to task executor for: " + url);
 
@@ -149,6 +172,11 @@ public class BrowserControl {
 		urls.add(url);
 	}
 
+	/**
+	 * Tell the front end control that a url has been visited by the user externally.
+	 *
+	 * @param url the url that has been visited
+	 */
 	public void urlVisited(String url) {
 		logger.info("Browser went to: " + url);
 
@@ -167,6 +195,7 @@ public class BrowserControl {
 		private String currentTask;
 		private String currentCommand;
 		private String lastException;
+		private String placeholder;
 
 		/**
 		 * @param url
@@ -174,9 +203,10 @@ public class BrowserControl {
 		 * @param tasks
 		 *            {@link JsonArray} of commands to perform once we get to the page
 		 */
-		private WebRunner(String url, JsonArray tasks) {
+		private WebRunner(String url, JsonArray tasks, String placeholder) {
 			this.url = url;
 			this.tasks = tasks;
+			this.placeholder = placeholder;
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
@@ -185,7 +215,6 @@ public class BrowserControl {
 		@Override
 		public String call() {
 			try {
-				boolean updatePlaceholder = false;
 				logger.info("Sending BrowserControl to: " + url);
 
 				eventLog.log("WebRunner", args(
@@ -270,10 +299,7 @@ public class BrowserControl {
 
 							// execute all of the commands in this task
 							for (int j = 0; j < commands.size(); j++) {
-								boolean result = doCommand(commands.get(j).getAsJsonArray(), taskName);
-								if (result) {
-									updatePlaceholder = true;
-								}
+								doCommand(commands.get(j).getAsJsonArray(), taskName);
 								// clear the current command once it's done
 								this.currentCommand = null;
 							}
@@ -301,16 +327,9 @@ public class BrowserControl {
 				runners.remove(this);
 				urlVisited(url);
 
-				if (updatePlaceholder) {
-					throw new FillImagePlaceholderError(testId, "placeholder criteria met");
-				}
-
 				return "web runner exited";
 			} catch (Exception e) {
 				logger.error("WebRunner caught exception", e);
-				if (e.getClass() == FillImagePlaceholderError.class) {
-					throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
-				}
 				eventLog.log("WebRunner",
 					ex(e,
 						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
@@ -330,7 +349,7 @@ public class BrowserControl {
 		 *             if an invalid command is specified
 		 * @param command
 		 */
-		private boolean doCommand(JsonArray command, String taskName) {
+		private void doCommand(JsonArray command, String taskName) {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
 			String commandString = command.get(0).getAsString();
 			if (!Strings.isNullOrEmpty(commandString)) {
@@ -357,7 +376,6 @@ public class BrowserControl {
 					driver.findElement(getSelector(elementType, target)).click();
 
 					logger.debug("Clicked: " + target + " (" + elementType + ")");
-					return false;
 				} else if (commandString.equalsIgnoreCase("text")) {
 					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
 
@@ -378,7 +396,6 @@ public class BrowserControl {
 
 					entryBox.sendKeys(value);
 					logger.debug("\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
-					return false;
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
 					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
@@ -423,14 +440,14 @@ public class BrowserControl {
 							Pattern pattern = Pattern.compile(regexp);
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 							if (updateImagePlaceHolder) {
-								return true;
+								// make a snapshot of the page available to the test log
+								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType());
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
 
 						logger.debug("\t\tDone waiting: " + commandString);
-						return false;
 
 					} catch (TimeoutException timeoutException) {
 						this.lastException = timeoutException.getMessage();
@@ -530,6 +547,28 @@ public class BrowserControl {
 	}
 
 	/**
+	 * Publish the given page content to fulfill the placeholder.
+	 *
+	 * @param placeholder the placeholder to fulfill
+	 * @param pageSource the source of the page as rendered
+	 * @param responseContentType the content type last received from the server
+	 */
+	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType) {
+		Map<String, Object> update = new HashMap<>();
+		update.put("page_source", pageSource);
+		update.put("content_type", responseContentType);
+
+		imageService.fillPlaceholder(testId, placeholder, update, true);
+
+		eventLog.log("BROWSER", args("msg", "Updated placeholder from scripted browser", "placeholder", placeholder));
+
+		if (imageService.getRemainingPlaceholders(testId, true).isEmpty()) {
+			// no remaining placeholders
+			eventLog.log("BROWSER", args("msg", "All placeholders filled by scripted browser"));
+		}
+	}
+
+	/**
 	 * Get the list of URLs that have been visited.
 	 * @return
 	 */
@@ -537,6 +576,11 @@ public class BrowserControl {
 		return visited;
 	}
 
+	/**
+	 * Get the properties of any currently running webrunners.
+	 *
+	 * @return
+	 */
 	public List<JsonObject> getWebRunners() {
 		List<JsonObject> out = new ArrayList<>();
 

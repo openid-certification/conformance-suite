@@ -15,7 +15,6 @@
 package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.Matchers.eq;
 
 import java.io.IOException;
@@ -1278,7 +1277,7 @@ public class AbstractCondition_UnitTest {
 
 	@Test
 	public void testCreateUploadPlaceholder() {
-		cond.createUploadPlaceholder();
+		cond.createBrowserInteractionPlaceholder();
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
@@ -1297,7 +1296,7 @@ public class AbstractCondition_UnitTest {
 
 	@Test
 	public void testCreateUploadPlaceholder_withReqs() {
-		condReqs.createUploadPlaceholder();
+		condReqs.createBrowserInteractionPlaceholder();
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
@@ -1322,7 +1321,7 @@ public class AbstractCondition_UnitTest {
 
 	@Test
 	public void testCreateUploadPlaceholder_string() {
-		cond.createUploadPlaceholder(msg);
+		cond.createBrowserInteractionPlaceholder(msg);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
@@ -1344,7 +1343,7 @@ public class AbstractCondition_UnitTest {
 
 	@Test
 	public void testCreateUploadPlaceholder_string_withReqs() {
-		condReqs.createUploadPlaceholder(msg);
+		condReqs.createBrowserInteractionPlaceholder(msg);
 
 		verify(eventLog).log(eq(TEST_CLASS_NAME), mapCaptor.capture());
 
@@ -1572,9 +1571,9 @@ public class AbstractCondition_UnitTest {
 		 * @see io.fintechlabs.testframework.condition.AbstractCondition#createUploadPlaceholder(java.lang.String)
 		 */
 		@Override
-		protected void createUploadPlaceholder(String msg) {
+		protected String createBrowserInteractionPlaceholder(String msg) {
 			// TODO Auto-generated method stub
-			super.createUploadPlaceholder(msg);
+			return super.createBrowserInteractionPlaceholder(msg);
 
 		}
 
@@ -1582,9 +1581,9 @@ public class AbstractCondition_UnitTest {
 		 * @see io.fintechlabs.testframework.condition.AbstractCondition#createUploadPlaceholder()
 		 */
 		@Override
-		protected void createUploadPlaceholder() {
+		protected String createBrowserInteractionPlaceholder() {
 			// TODO Auto-generated method stub
-			super.createUploadPlaceholder();
+			return super.createBrowserInteractionPlaceholder();
 
 		}
 

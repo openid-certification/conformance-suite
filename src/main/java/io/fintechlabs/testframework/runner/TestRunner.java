@@ -17,7 +17,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -37,8 +36,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +56,6 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
@@ -98,9 +94,6 @@ public class TestRunner {
 
 	@Autowired
 	private TestRunnerSupport support;
-
-	@Autowired
-	private MongoTemplate mongoTemplate; // FIXME: remove when below ImageAPI.java refactoring FIXME fixed
 
 	@Autowired
 	private EventLog eventLog;
@@ -150,37 +143,31 @@ public class TestRunner {
 						String testId = testFailureException.getTestId();
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
-							// FIXME: need to at least stop this being a string comparison
-							if (testFailureException.getMessage().equals("java.lang.RuntimeException: Web Runner Exception: placeholder criteria met")) {
-								markImageAsSatisfiedByBrowserControl(testFailureException.getTestId(), testFailureException.getMessage());
-								eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "image placeholder satisfied by browser automation");
-							} else {
-								// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
-								conditionFailure(testFailureException);
+							// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
+							conditionFailure(testFailureException);
 
-								// there's an exception, stop the test
-								test.stop();
+							// there's an exception, stop the test
+							test.stop();
 
-								// Clean up other tasks for this test id
-								TestExecutionManager executionManager = test.getTestExecutionManager();
-								if (executionManager != null) {
-									for (Future f : executionManager.getFutures()) {
-										if (!f.isDone()) {
-											f.cancel(true); // True allows the task to be interrupted.
-										}
+							// Clean up other tasks for this test id
+							TestExecutionManager executionManager = test.getTestExecutionManager();
+							if (executionManager != null) {
+								for (Future f : executionManager.getFutures()) {
+									if (!f.isDone()) {
+										f.cancel(true); // True allows the task to be interrupted.
 									}
 								}
-
-								// set the final exception flag only if this wasn't a normal condition error
-								if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
-									test.setFinalError(testFailureException);
-								}
-
-								test.fireTestFailure();
 							}
+
+							// set the final exception flag only if this wasn't a normal condition error
+							if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
+								test.setFinalError(testFailureException);
+							}
+
+							test.fireTestFailure();
 						}
 					} else {
-						// TODO: Better handling if we get something we wern't expecting?
+						// TODO: Better handling if we get something we wern't expecting? But we don't have access to the test ID
 						logger.error("Execution failure", e);
 						//eventLog.log(testId, "TEST RUNNER", authenticationFacade.getPrincipal(), EventLog.ex(e));
 					}
@@ -458,13 +445,15 @@ public class TestRunner {
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
 			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade);
-			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager);
+			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
 
 			// call the constructor
 			TestModule module = testModuleClass.getDeclaredConstructor()
 				.newInstance();
 
-				module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager);
+			// pass in all the components for this test module to execute
+			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
+
 			return module;
 
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -534,24 +523,6 @@ public class TestRunner {
 			map.put("browser", bmap);
 		}
 		return map;
-	}
-
-	public void markImageAsSatisfiedByBrowserControl(String testId, String regexp) {
-		List<DBObject> remainingPlaceholders = imageService.getRemainingPlaceholders(testId, true);
-
-		if (remainingPlaceholders.size() == 1) {
-			String placeholder = (String) remainingPlaceholders.get(0).get("upload");
-			Update update = new Update();
-			update.set("updated_by", "browsercontrol");
-			update.set("satisfied_regexp", regexp);
-
-			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, true);
-			// FIXME not sure what to do with result
-
-			imageService.lastPlaceholderFilled(testId, true);
-		} else {
-			// FIXME throw error
-		}
 	}
 
 	// handle errors thrown by running tests

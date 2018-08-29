@@ -154,7 +154,9 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		waitForPlaceholders();
+
+		browser.goToUrl(redirectTo, env.getString("plain_pkce_error"));
 	}
 
 	/* (non-Javadoc)
