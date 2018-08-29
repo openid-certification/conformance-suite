@@ -65,7 +65,7 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 		JsonObject server = new JsonObject();
 
 		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrlMtls + "authorize");
+		server.addProperty("authorization_endpoint", baseUrl + "authorize");
 		server.addProperty("token_endpoint", baseUrlMtls + "token");
 		server.addProperty("jwks_uri", baseUrl + "jwks");
 
@@ -77,6 +77,8 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 
 		env.putString("issuer", baseUrl);
 		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
+
+		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl, "discoveryUrl", baseUrl + ".well-known/openid-configuration"));
 
 		return env;
 

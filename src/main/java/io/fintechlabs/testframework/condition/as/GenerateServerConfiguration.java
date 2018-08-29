@@ -71,6 +71,8 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		env.putString("issuer", baseUrl);
 		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
 
+		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl, "discoveryUrl", baseUrl + ".well-known/openid-configuration"));
+
 		return env;
 
 	}
