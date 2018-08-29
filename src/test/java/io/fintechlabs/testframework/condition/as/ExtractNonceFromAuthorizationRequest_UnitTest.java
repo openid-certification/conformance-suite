@@ -51,15 +51,23 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	private JsonObject hasNonce;
 	private JsonObject noNonce;
 	private JsonObject onlyNonce;
+	private JsonObject noParams;
 
 	@Before
 	public void setUp() throws Exception {
 
 		cond = new ExtractNonceFromAuthorizationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		hasNonce = new JsonParser().parse("{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}").getAsJsonObject();
-		noNonce = new JsonParser().parse("{\"state\": \"843192\"}").getAsJsonObject();
-		onlyNonce = new JsonParser().parse("{\"nonce\": \"" + nonce + "\"}").getAsJsonObject();
+		hasNonce = new JsonParser().parse("{\"params\": " +
+			"{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}" +
+			"}").getAsJsonObject();
+		noNonce = new JsonParser().parse("{\"params\": " +
+			"{\"state\": \"843192\"}" +
+			"}").getAsJsonObject();
+		onlyNonce = new JsonParser().parse("{\"params\": " +
+			"{\"nonce\": \"" + nonce + "\"}" +
+			"}").getAsJsonObject();
+		noParams = new JsonParser().parse("{}").getAsJsonObject();
 
 	}
 
@@ -92,6 +100,13 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	public void test_bad() {
 
 		env.putObject("authorization_endpoint_request", noNonce);
+		cond.evaluate(env);
+
+	}
+	@Test(expected = ConditionError.class)
+	public void test_missing() {
+
+		env.putObject("authorization_endpoint_request", noParams);
 		cond.evaluate(env);
 
 	}

@@ -308,11 +308,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Authorization endpoint")
-			.mapKey("authorization_endpoint_request_full", requestId));
-
-		// TODO: fix this environment object name in associated conditions
-		// copy things over for now
-		env.putObject("authorization_endpoint_request", env.getElementFromObject("authorization_endpoint_request_full", "params").getAsJsonObject());
+			.mapKey("authorization_endpoint_request", requestId));
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
@@ -334,7 +330,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 
-		call(exec().unmapKey("authorization_endpoint_request_full").endBlock());
+		call(exec().unmapKey("authorization_endpoint_request").endBlock());
 
 		return new RedirectView(redirectTo, false, false, false);
 

@@ -44,7 +44,7 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = { "user_info", "client", "authorization_endpoint_request" }, strings = "issuer")
+	@PreEnvironment(required = { "user_info", "client" }, strings = "issuer")
 	@PostEnvironment(required = "id_token_claims")
 	public Environment evaluate(Environment env) {
 

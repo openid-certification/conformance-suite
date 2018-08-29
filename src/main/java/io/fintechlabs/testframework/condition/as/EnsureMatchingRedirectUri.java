@@ -44,7 +44,7 @@ public class EnsureMatchingRedirectUri extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		// get the client ID from the configuration
 		String expected = env.getString("client", "redirect_uri");
-		String actual = env.getString("authorization_endpoint_request", "redirect_uri");
+		String actual = env.getString("authorization_endpoint_request", "params.redirect_uri");
 
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess("Redirect URI matched",

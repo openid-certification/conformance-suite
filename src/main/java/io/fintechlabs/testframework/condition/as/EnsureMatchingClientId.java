@@ -45,7 +45,7 @@ public class EnsureMatchingClientId extends AbstractCondition {
 
 		// get the client ID from the configuration
 		String expected = env.getString("client", "client_id");
-		String actual = env.getString("authorization_endpoint_request", "client_id");
+		String actual = env.getString("authorization_endpoint_request", "params.client_id");
 
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess("Client ID matched",

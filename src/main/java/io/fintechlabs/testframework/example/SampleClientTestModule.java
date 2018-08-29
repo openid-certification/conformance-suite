@@ -262,7 +262,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+		env.putObject("authorization_endpoint_request", requestParts);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 

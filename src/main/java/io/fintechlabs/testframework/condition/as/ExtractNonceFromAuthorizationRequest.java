@@ -33,7 +33,7 @@ public class ExtractNonceFromAuthorizationRequest extends AbstractCondition {
 	@PostEnvironment(strings = "nonce")
 	public Environment evaluate(Environment env) {
 
-		String nonce = env.getString("authorization_endpoint_request", "nonce");
+		String nonce = env.getString("authorization_endpoint_request", "params.nonce");
 
 		if (Strings.isNullOrEmpty(nonce)) {
 			throw error("Couldn't find 'nonce' in authorization endpoint parameters");
