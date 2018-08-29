@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
@@ -119,27 +120,33 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("client_request", requestParts.get("headers").getAsJsonObject());
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
+		call(exec().unmapKey("client_request"));
+
 		setStatus(Status.WAITING);
 
 		if (path.equals("authorize")) {
-			return authorizationEndpoint(requestParts);
+			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
-			return tokenEndpoint(requestParts);
+			return tokenEndpoint(requestId);
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
-			return userinfoEndpoint(requestParts);
+			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("open-banking/v1.1/account-requests")) {
-			return accountRequestsEndpoint(requestParts);
+			return accountRequestsEndpoint(requestId);
 		} else if (path.equals("open-banking/v1.1/accounts")) {
-			return accountsEndpoint(requestParts);
+			return accountsEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -154,17 +161,21 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("client_request", requestParts);
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
+		call(exec().unmapKey("client_request"));
+
 		setStatus(Status.WAITING);
 
-		if (path.equals("authorize")) {
-			return authorizationEndpoint(requestParts); // FIXME should this be on the MTLS path??
-		} else if (path.equals("token")) {
-			return tokenEndpoint(requestParts);
+		if (path.equals("token")) {
+			return tokenEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -178,13 +189,12 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
-	private Object userinfoEndpoint(JsonObject requestParts) {
+	private Object userinfoEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Userinfo endpoint"));
-
-		env.putObject("incoming_request", requestParts);
+		call(exec().startBlock("Userinfo endpoint")
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
@@ -197,9 +207,9 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 
-		call(exec().endBlock());
-
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
@@ -217,13 +227,12 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
-	private Object tokenEndpoint(JsonObject requestParts) {
+	private Object tokenEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Token endpoint"));
-
-		env.putObject("token_endpoint_request", requestParts);
+		call(exec().startBlock("Token endpoint")
+			.mapKey("token_endpoint_request", requestId));
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
@@ -240,21 +249,21 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(ClearClientAuthentication.class);
 
 		// dispatch based on grant type
-		String grantType = requestParts.get("params").getAsJsonObject().get("grant_type").getAsString();
+		String grantType = env.getString("token_endpoint_request", "params.grant_type");
 
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
-			return authorizationCodeGrantType(requestParts);
+			return authorizationCodeGrantType(requestId);
 		} else if (grantType.equals("client_credentials")) {
 			// we're doing the client credentials grant for initial token access
-			return clientCredentialsGrantType(requestParts);
+			return clientCredentialsGrantType(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
 		}
 
 	}
 
-	private Object clientCredentialsGrantType(JsonObject requestParts) {
+	private Object clientCredentialsGrantType(String requestId) {
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
@@ -263,7 +272,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 
-		call(exec().endBlock());
+		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		setStatus(Status.WAITING);
 
@@ -271,7 +280,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 	}
 
-	private Object authorizationCodeGrantType(JsonObject requestParts) {
+	private Object authorizationCodeGrantType(String requestId) {
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
@@ -285,7 +294,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
-		call(exec().endBlock());
+		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		setStatus(Status.WAITING);
 
@@ -294,13 +303,16 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	}
 
 	@UserFacing
-	private Object authorizationEndpoint(JsonObject requestParts) {
+	private Object authorizationEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Authorization endpoint"));
+		call(exec().startBlock("Authorization endpoint")
+			.mapKey("authorization_endpoint_request_full", requestId));
 
-		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+		// TODO: fix this environment object name in associated conditions
+		// copy things over for now
+		env.putObject("authorization_endpoint_request", env.getElementFromObject("authorization_endpoint_request_full", "params").getAsJsonObject());
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
@@ -322,7 +334,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 
-		call(exec().endBlock());
+		call(exec().unmapKey("authorization_endpoint_request_full").endBlock());
 
 		return new RedirectView(redirectTo, false, false, false);
 
@@ -331,16 +343,15 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	/**
 	 * OpenBanking account request API
 	 *
-	 * @param requestParts
+	 * @param requestId
 	 * @return
 	 */
-	private Object accountRequestsEndpoint(JsonObject requestParts) {
+	private Object accountRequestsEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Account request endpoint"));
-
-		env.putObject("incoming_request", requestParts);
+		call(exec().startBlock("Account request endpoint")
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
@@ -356,19 +367,18 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
-		call(exec().endBlock());
+		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
 	}
 
-	private Object accountsEndpoint(JsonObject requestParts) {
+	private Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Accounts endpoint"));
-
-		env.putObject("incoming_request", requestParts);
+		call(exec().startBlock("Accounts endpoint")
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
@@ -382,7 +392,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
-		call(exec().endBlock());
+		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
