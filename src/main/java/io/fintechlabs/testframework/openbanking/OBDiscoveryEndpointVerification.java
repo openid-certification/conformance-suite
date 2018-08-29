@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 // author: ddrysdale
 
 package io.fintechlabs.testframework.openbanking;
@@ -30,7 +16,6 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRegistrati
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequireRequestUriRegistration;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpoint;
@@ -63,8 +48,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported .class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointRequireRequestUriRegistration.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, ConditionResult.WARNING, "OB-7.1-1");
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, ConditionResult.FAILURE);
