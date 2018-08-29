@@ -38,11 +38,11 @@ public class EnsureIncomingTlsSecureCipher extends AbstractCondition {
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
-	@PreEnvironment(required = "client_request_headers")
+	@PreEnvironment(required = "client_request")
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String cipher = env.getString("client_request_headers", "X-Ssl-Cipher");
+		String cipher = env.getString("client_request", "headers.X-Ssl-Cipher");
 
 		if (ALLOWED_CIPHERS.contains(cipher)) {
 			logSuccess("TLS cipher is allowed", args("expected", ALLOWED_CIPHERS, "actual", cipher));

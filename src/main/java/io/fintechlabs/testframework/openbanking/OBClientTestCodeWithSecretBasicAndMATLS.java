@@ -119,7 +119,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
+		env.putObject("client_request", requestParts.get("headers").getAsJsonObject());
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
@@ -154,7 +154,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
+		env.putObject("client_request", requestParts);
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");

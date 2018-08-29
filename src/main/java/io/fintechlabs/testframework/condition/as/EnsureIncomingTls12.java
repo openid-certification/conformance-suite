@@ -27,10 +27,10 @@ public class EnsureIncomingTls12 extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "client_request_headers")
+	@PreEnvironment(required = "client_request")
 	public Environment evaluate(Environment env) {
 
-		String protocol = env.getString("client_request_headers", "X-Ssl-Protocol");
+		String protocol = env.getString("client_request", "headers.X-Ssl-Protocol");
 
 		if (Strings.isNullOrEmpty(protocol)) {
 			throw error("TLS Protocol not found");

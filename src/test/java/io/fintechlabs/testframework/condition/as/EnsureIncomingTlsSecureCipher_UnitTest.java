@@ -61,13 +61,27 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 		hasTls = new ArrayList<>();
 
-		hasTls.add(new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DHE-RSA-AES128-GCM-SHA256\"}").getAsJsonObject());
-		hasTls.add(new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}").getAsJsonObject());
-		hasTls.add(new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DHE-RSA-AES256-GCM-SHA384\"}").getAsJsonObject());
-		hasTls.add(new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES256-GCM-SHA384\"}").getAsJsonObject());
-		wrongTls = new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DUCK-TAPE-AND-A-PRAYER\"}").getAsJsonObject();
-		onlyTls = new JsonParser().parse("{\"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}").getAsJsonObject();
-		missingTls = new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\"}").getAsJsonObject();
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DHE-RSA-AES128-GCM-SHA256\"}"
+			+ "}").getAsJsonObject());
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "}").getAsJsonObject());
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DHE-RSA-AES256-GCM-SHA384\"}"
+			+ "}").getAsJsonObject());
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES256-GCM-SHA384\"}"
+			+ "}").getAsJsonObject());
+		wrongTls = new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DUCK-TAPE-AND-A-PRAYER\"}"
+			+ "}").getAsJsonObject();
+		onlyTls = new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "}").getAsJsonObject();
+		missingTls = new JsonParser().parse("{\"headers\": "
+			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\"}"
+			+ "}").getAsJsonObject();
 
 	}
 
@@ -78,18 +92,18 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 	public void testEvaluate_noError() {
 
 		for (JsonObject tls : hasTls) {
-			env.putObject("client_request_headers", tls);
+			env.putObject("client_request", tls);
 
 			cond.evaluate(env);
 
-			verify(env, atLeastOnce()).getString("client_request_headers", "X-Ssl-Cipher");
+			verify(env, atLeastOnce()).getString("client_request", "headers.X-Ssl-Cipher");
 		}
 
 	}
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrong() {
 
-		env.putObject("client_request_headers", wrongTls);
+		env.putObject("client_request", wrongTls);
 
 		cond.evaluate(env);
 
@@ -97,7 +111,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missing() {
 
-		env.putObject("client_request_headers", missingTls);
+		env.putObject("client_request", missingTls);
 
 		cond.evaluate(env);
 
@@ -105,11 +119,11 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 	@Test
 	public void testEvaluate_only() {
 
-		env.putObject("client_request_headers", onlyTls);
+		env.putObject("client_request", onlyTls);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_request_headers", "X-Ssl-Cipher");
+		verify(env, atLeastOnce()).getString("client_request", "headers.X-Ssl-Cipher");
 
 	}
 }
