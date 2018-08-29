@@ -20,6 +20,7 @@ import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.as.EnsureIncomingTls12;
+import io.fintechlabs.testframework.condition.as.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
@@ -119,7 +120,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
 
-		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-2");
+		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
 		setStatus(Status.WAITING);
 
@@ -153,7 +155,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
 
-		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-2");
+		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
 		setStatus(Status.WAITING);
 
