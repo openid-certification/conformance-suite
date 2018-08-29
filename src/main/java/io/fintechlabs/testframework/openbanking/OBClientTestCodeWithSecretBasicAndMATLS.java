@@ -19,7 +19,7 @@ import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
-import io.fintechlabs.testframework.condition.as.EnsureClientTls12;
+import io.fintechlabs.testframework.condition.as.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
@@ -115,6 +115,14 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
+
+		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
+
+		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-2");
+
+		setStatus(Status.WAITING);
+
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestParts);
 		} else if (path.equals("token")) {
@@ -141,9 +149,13 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
+
 		env.putObject("client_request_headers", requestParts.get("headers").getAsJsonObject());
 
-		callAndContinueOnFailure(EnsureClientTls12.class, "FAPI-R-7.1-2");
+		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-2");
+
+		setStatus(Status.WAITING);
 
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestParts); // FIXME should this be on the MTLS path??

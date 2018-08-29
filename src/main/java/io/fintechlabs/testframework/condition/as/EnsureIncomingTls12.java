@@ -11,7 +11,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureClientTls12 extends AbstractCondition {
+public class EnsureIncomingTls12 extends AbstractCondition {
 
 	/**
 	 * @param testId
@@ -19,7 +19,7 @@ public class EnsureClientTls12 extends AbstractCondition {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public EnsureClientTls12(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureIncomingTls12(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

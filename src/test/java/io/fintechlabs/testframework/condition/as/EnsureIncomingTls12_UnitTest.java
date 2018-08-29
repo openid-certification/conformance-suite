@@ -33,7 +33,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureClientTls12_UnitTest {
+public class EnsureIncomingTls12_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -41,7 +41,7 @@ public class EnsureClientTls12_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureClientTls12 cond;
+	private EnsureIncomingTls12 cond;
 
 	private JsonObject hasTls;
 	private JsonObject wrongTls;
@@ -54,7 +54,7 @@ public class EnsureClientTls12_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureClientTls12("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureIncomingTls12("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasTls = new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}").getAsJsonObject();
 		wrongTls = new JsonParser().parse("{\"X-Ssl-Protocol\": \"TLSv1.1\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}").getAsJsonObject();
