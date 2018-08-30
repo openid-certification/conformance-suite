@@ -22,7 +22,6 @@ public class ExtractNonceFromAuthorizationRequest extends AbstractCondition {
 	 */
 	public ExtractNonceFromAuthorizationRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
