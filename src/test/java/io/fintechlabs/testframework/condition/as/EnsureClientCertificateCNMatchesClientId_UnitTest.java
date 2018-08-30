@@ -16,7 +16,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureMatchingClientCertificate_UnitTest {
+public class EnsureClientCertificateCNMatchesClientId_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
