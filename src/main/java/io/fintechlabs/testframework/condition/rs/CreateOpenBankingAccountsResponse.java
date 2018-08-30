@@ -60,9 +60,10 @@ public class CreateOpenBankingAccountsResponse extends AbstractOpenBankingApiRes
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
 
-		logSuccess("Created account response object", args("accounts_endpoint_response", response));
+		logSuccess("Created account response object", args("accounts_endpoint_response", response, "accounts_endpoint_response_headers", headers));
 
 		env.putObject("accounts_endpoint_response", response);
+		env.putObject("accounts_endpoint_response_headers", headers);
 
 		return env;
 
