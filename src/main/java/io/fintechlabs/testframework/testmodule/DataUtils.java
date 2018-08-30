@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 
 import com.google.gson.JsonArray;
@@ -23,7 +24,8 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 public interface DataUtils {
 
 	/**
-	 * utility function to convert an incoming multi-value map to a JSonObject for storage
+	 * Utility function to convert an incoming multi-value map to a JSonObject for storage.
+	 * this will throw out any duplicated headers.
 	 */
 	public default JsonObject mapToJsonObject(MultiValueMap<String, String> params, boolean lowercase) {
 		JsonObject o = new JsonObject();
@@ -108,6 +110,14 @@ public interface DataUtils {
 		return event;
 	}
 
-
+	public default HttpHeaders headersFromJson(JsonObject headerJson) {
+		HttpHeaders headers = new HttpHeaders();
+		if (headerJson != null) {
+			for (String header : headerJson.keySet()) {
+				headers.set(header, headerJson.get(header).getAsString());
+			}
+		}
+		return headers;
+	}
 
 }

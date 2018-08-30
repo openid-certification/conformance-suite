@@ -23,7 +23,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
-import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -92,17 +91,11 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			HttpHeaders headers = new HttpHeaders();
+			HttpHeaders headers = headersFromJson(requestHeaders);
 
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
-
-			if (requestHeaders != null) {
-				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
-					headers.set(header.getKey(), header.getValue().getAsString());
-				}
-			}
 
 			HttpEntity<?> request = new HttpEntity<>(headers);
 

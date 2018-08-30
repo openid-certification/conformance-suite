@@ -1,16 +1,5 @@
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
-import org.springframework.http.*;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
@@ -20,7 +9,23 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
-import java.util.Map;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.PostEnvironment;
+import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author srmoore
@@ -76,11 +81,7 @@ public class CallProtectedResourceWithBearerToken extends AbstractCondition {
 			JsonObject responseCode = new JsonObject();
 			responseCode.addProperty("code", response.getStatusCodeValue());
 			String responseBody = response.getBody();
-			JsonObject responseHeaders = new JsonObject();
-
-			for (Map.Entry<String, String> entry : response.getHeaders().toSingleValueMap().entrySet()) {
-				responseHeaders.addProperty(entry.getKey(), entry.getValue());
-			}
+			JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
 
 			env.putObject("resource_endpoint_response_code", responseCode);
 			env.putString("resource_endpoint_response", responseBody);

@@ -10,12 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 
 import com.google.gson.JsonObject;
 
-public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
+import io.fintechlabs.testframework.testmodule.DataUtils;
+
+public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, DataUtils {
 
 	private final String source;
 	private final TestInstanceEventLog log;
@@ -62,20 +63,6 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 		o.addProperty("msg", "HTTP response");
 		o.addProperty("http", "response");
 		log.log(source, o);
-	}
-
-	/**
-	 * utility function to convert an incoming multi-value map to a JSonObject for storage
-	 *
-	 */
-	private JsonObject mapToJsonObject(MultiValueMap<String, String> params, boolean lowercase) {
-		JsonObject o = new JsonObject();
-		for (String key : params.keySet()) {
-			o.addProperty(
-				lowercase ? key.toLowerCase() : key,
-				params.getFirst(key));
-		}
-		return o;
 	}
 
 	private static final class WrappedClientHttpResponse implements ClientHttpResponse {

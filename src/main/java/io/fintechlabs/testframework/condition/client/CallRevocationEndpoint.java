@@ -1,11 +1,15 @@
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Collections;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -16,15 +20,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Collections;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author srmoore
@@ -58,18 +59,10 @@ public class CallRevocationEndpoint extends AbstractCondition {
 			RestTemplate restTemplate = createRestTemplate(env);
 
 			// extract the headers for use (below)
-			HttpHeaders headers = new HttpHeaders();
+			HttpHeaders headers = headersFromJson(env.getObject("revocation_endpoint_request_headers"));
 
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
-
-			// Not sure we need this block.
-			JsonObject headersJson = env.getObject("revocation_endpoint_request_headers");
-			if (headersJson != null) {
-				for (String header : headersJson.keySet()) {
-					headers.set(header, headersJson.get(header).getAsString());
-				}
-			}
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 
