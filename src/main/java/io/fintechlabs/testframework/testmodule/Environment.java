@@ -254,6 +254,36 @@ public class Environment {
 		}
 	}
 
+
+	/**
+	 * Gets a sub-element from a named object at the given path and returns it as a native Boolean,
+	 * if it is stored as one.
+	 *
+	 * This does not access the native values store. ( see wrapper function )
+	 *
+	 * See getElementFromObject(String, String)
+	 *
+	 * @param key the object identifier to look up, may be mapped; see getObject(String)
+	 * @param path the path within the object to search; in dot-separated notation
+	 * @returns the value within the object if found, null if the object is not found,
+	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 */
+
+	public Boolean getBoolean(String key, String path) {
+		JsonElement e = getElementFromObject(key, path);
+		if (e != null) {
+			if (e.isJsonPrimitive()) {
+				return e.getAsBoolean();
+			} else {
+				// it wasn't a primitive
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+
 	/**
 	 * Gets a sub-element from a named object at the given path and returns it as a native Long,
 	 * if it is stored as one.
@@ -437,6 +467,17 @@ public class Environment {
 	}
 
 	/**
+	 * Retrieve a Boolean from the native value store.
+	 *
+	 * @param key the ID of the value to search for; this is not mapped
+	 * @return the value if it's found, null otherwise
+	 */
+
+	public Boolean getBoolean(String key) {
+		return getBoolean(NATIVE_VALUES,key);
+	}
+
+	/**
 	 * Retrieve a Long from the native value store.
 	 *
 	 * @param key the ID of the value to search for; this is not mapped
@@ -464,6 +505,17 @@ public class Environment {
 	 * @param value the value to store
 	 */
 	public void putInteger(String key, Integer value) {
+		JsonObject o = getObject(NATIVE_VALUES);
+		o.addProperty(key, value);
+	}
+
+	/**
+	 * Put an Boolean into the native value store.
+	 *
+	 * @param key the key by which the value can be retrieved from the native value store
+	 * @param value the value to store
+	 */
+	public void putBoolean(String key, Boolean value) {
 		JsonObject o = getObject(NATIVE_VALUES);
 		o.addProperty(key, value);
 	}
