@@ -12,6 +12,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
@@ -30,6 +31,7 @@ import io.fintechlabs.testframework.condition.as.EnsureResponseTypeIsCode;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
+import io.fintechlabs.testframework.condition.as.ExtractOBIntentId;
 import io.fintechlabs.testframework.condition.as.ExtractRequestObject;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
@@ -303,6 +305,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
+		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
+
 		callAndStopOnFailure(SignIdToken.class);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
@@ -329,7 +333,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-10");
 
-		//callAndStopOnFailure(ExtractOB)
+		callAndStopOnFailure(ExtractOBIntentId.class);
 
 		callAndStopOnFailure(EnsureResponseTypeIsCode.class);
 
