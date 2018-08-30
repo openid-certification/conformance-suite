@@ -35,7 +35,7 @@ import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.as.GenerateIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.GenerateServerConfigurationMTLS;
-import io.fintechlabs.testframework.condition.as.LoadJWKs;
+import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
 import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
@@ -94,7 +94,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(LoadJWKs.class);
+		callAndStopOnFailure(LoadServerJWKs.class);
 
 		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
