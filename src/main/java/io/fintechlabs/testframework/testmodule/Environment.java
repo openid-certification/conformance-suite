@@ -479,6 +479,15 @@ public class Environment {
 		o.addProperty(key, value);
 	}
 
+	/**
+	 * Remove a value from the native objects store, if it exists.
+	 *
+	 * @param key the key by which the value is known in the native value store
+	 */
+	public void removeNativeValue(String key) {
+		JsonObject natives = getObject(NATIVE_VALUES);
+		natives.remove(key);
+	}
 
 
 }

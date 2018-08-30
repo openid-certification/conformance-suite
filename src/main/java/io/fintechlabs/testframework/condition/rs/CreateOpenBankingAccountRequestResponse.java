@@ -14,6 +14,7 @@
 
 package io.fintechlabs.testframework.condition.rs;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.PostEnvironment;
@@ -41,8 +42,8 @@ public class CreateOpenBankingAccountRequestResponse extends AbstractOpenBanking
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(strings = "account_request_id")
-	@PostEnvironment(required = "account_request_response")
+	@PreEnvironment(strings = {"account_request_id", "fapi_interaction_id"})
+	@PostEnvironment(required = {"account_request_response", "account_request_response_headers"})
 	public Environment evaluate(Environment env) {
 
 		String accountRequestId = env.getString("account_request_id");
@@ -53,9 +54,18 @@ public class CreateOpenBankingAccountRequestResponse extends AbstractOpenBanking
 
 		JsonObject response = createResponse(data);
 
-		logSuccess("Created account request response object", args("account_request_response", response));
+		String fapiInteractionId = env.getString("fapi_interaction_id");
+		if (Strings.isNullOrEmpty(fapiInteractionId)) {
+			throw error("Couldn't find FAPI Interaction ID");
+		}
+
+		JsonObject headers = new JsonObject();
+		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+
+		logSuccess("Created account request response", args("account_request_response", response, "account_request_response_headers", headers));
 
 		env.putObject("account_request_response", response);
+		env.putObject("account_request_response_headers", headers);
 
 		return env;
 

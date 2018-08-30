@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.condition.rs;
+package io.fintechlabs.testframework.condition.as;
 
 import com.google.common.base.Strings;
 
@@ -12,14 +12,15 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
+public class ExtractFapiInteractionIdHeader extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
-	 * @param optional
+	 * @param conditionResultOnFailure
+	 * @param requirements
 	 */
-	public ExtractBearerAccessTokenFromParams(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ExtractFapiInteractionIdHeader(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -28,17 +29,19 @@ public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
 	 */
 	@Override
 	@PreEnvironment(required = "incoming_request")
-	@PostEnvironment(strings = "incoming_access_token")
+	@PostEnvironment(strings = "fapi_interaction_id")
 	public Environment evaluate(Environment env) {
 
-		String incoming = env.getString("incoming_request", "params.access_token");
-
-		if (!Strings.isNullOrEmpty(incoming)) {
-			logSuccess("Found access token on incoming request", args("access_token", incoming));
-			env.putString("incoming_access_token", incoming);
-			return env;
+		String header = env.getString("incoming_request", "headers.x-fapi-interaction-id");
+		if (Strings.isNullOrEmpty(header)) {
+			throw error("Couldn't find FAPI interaction ID header");
 		} else {
-			throw error("Couldn't find access token in parameters");
+
+			env.putString("fapi_interaction_id", header);
+			logSuccess("Found a FAPI interaction ID header", args("fapi_interaction_id", header));
+
+			return env;
+
 		}
 
 	}

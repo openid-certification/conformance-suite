@@ -34,6 +34,7 @@ import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
+import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
@@ -261,13 +262,15 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+		env.putObject("authorization_endpoint_request", requestParts);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
 		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		callAndContinueOnFailure(ExtractNonceFromAuthorizationRequest.class);
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 

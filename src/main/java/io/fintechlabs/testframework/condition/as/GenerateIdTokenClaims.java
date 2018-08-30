@@ -44,14 +44,14 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = { "user_info", "client", "authorization_endpoint_request" }, strings = "issuer")
+	@PreEnvironment(required = { "user_info", "client" }, strings = "issuer")
 	@PostEnvironment(required = "id_token_claims")
 	public Environment evaluate(Environment env) {
 
 		String subject = env.getString("user_info", "sub");
 		String issuer = env.getString("issuer");
 		String clientId = env.getString("client", "client_id");
-		String nonce = env.getString("authorization_endpoint_request", "nonce");
+		String nonce = env.getString("nonce");
 
 		if (Strings.isNullOrEmpty(subject)) {
 			throw error("Couldn't find subject");

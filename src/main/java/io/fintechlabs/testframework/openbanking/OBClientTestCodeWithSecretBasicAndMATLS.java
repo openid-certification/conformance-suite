@@ -1,11 +1,10 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Enumeration;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
@@ -15,17 +14,26 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
+import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
+import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.as.EnsureBearerAccessTokenNotInParams;
+import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
-import io.fintechlabs.testframework.condition.as.EnsureMatchingClientCertificate;
+import io.fintechlabs.testframework.condition.as.EnsureIncomingTls12;
+import io.fintechlabs.testframework.condition.as.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
-import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromFormPost;
+import io.fintechlabs.testframework.condition.as.ExtractFapiDateHeader;
+import io.fintechlabs.testframework.condition.as.ExtractFapiInteractionIdHeader;
+import io.fintechlabs.testframework.condition.as.ExtractFapiIpAddressHeader;
+import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
@@ -36,14 +44,13 @@ import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthori
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
-
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
+import io.fintechlabs.testframework.condition.rs.ClearAccessTokenFromRequest;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
-import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromParams;
 import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;
 import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
 import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
@@ -64,7 +71,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.client_id",
 		"client.client_secret",
 		"client.scope",
-		"client.redirect_uri"
+		"client.redirect_uri",
+		"client.certificate"
 	}
 )
 
@@ -114,20 +122,35 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
+
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+
+		call(exec().unmapKey("client_request"));
+
+		setStatus(Status.WAITING);
+
 		if (path.equals("authorize")) {
-			return authorizationEndpoint(requestParts);
+			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
-			return tokenEndpoint(requestParts);
+			return tokenEndpoint(requestId);
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
-			return userinfoEndpoint(requestParts);
+			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("open-banking/v1.1/account-requests")) {
-			return accountRequestsEndpoint(requestParts);
+			return accountRequestsEndpoint(requestId);
 		} else if (path.equals("open-banking/v1.1/accounts")) {
-			return accountsEndpoint(requestParts);
+			return accountsEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -140,19 +163,23 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		// Update the environment with the current request headers
-		JsonObject clientHeaders = new JsonObject();
-		Enumeration<String> headerNames = req.getHeaderNames();
-		while (headerNames.hasMoreElements()) {
-			String name = headerNames.nextElement();
-			clientHeaders.addProperty(name, req.getHeader(name));
-		}
-		env.putObject("client_request_headers", clientHeaders);
+		setStatus(Status.RUNNING);
 
-		if (path.equals("authorize")) {
-			return authorizationEndpoint(requestParts);
-		} else if (path.equals("token")) {
-			return tokenEndpoint(requestParts);
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+
+		call(exec().unmapKey("client_request"));
+
+		setStatus(Status.WAITING);
+
+		if (path.equals("token")) {
+			return tokenEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -166,14 +193,15 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
-	private Object userinfoEndpoint(JsonObject requestParts) {
+	private Object userinfoEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("incoming_request", requestParts);
+		call(exec().startBlock("Userinfo endpoint")
+			.mapKey("incoming_request", requestId));
 
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
@@ -182,6 +210,10 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
@@ -199,42 +231,43 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
-	private Object tokenEndpoint(JsonObject requestParts) {
+	private Object tokenEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("token_endpoint_request", requestParts);
+		call(exec().startBlock("Token endpoint")
+			.mapKey("token_endpoint_request", requestId));
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "OB-5.2.4");
 
-		callAndContinueOnFailure(EnsureMatchingClientCertificate.class);
+		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
-		callAndContinueOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
-
-		callAndContinueOnFailure(ExtractClientCredentialsFromFormPost.class); // FIXME: is this meant to be client secret post or basic?
+		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
 		callAndContinueOnFailure(AuthenticateClientWithClientSecret.class);
 
+		// make sure the client is authenticated then clear the flag in case it's called again
 		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
+		callAndStopOnFailure(ClearClientAuthentication.class);
 
 		// dispatch based on grant type
-		String grantType = requestParts.get("params").getAsJsonObject().get("grant_type").getAsString();
+		String grantType = env.getString("token_endpoint_request", "params.grant_type");
 
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
-			return authorizationCodeGrantType(requestParts);
+			return authorizationCodeGrantType(requestId);
 		} else if (grantType.equals("client_credentials")) {
 			// we're doing the client credentials grant for initial token access
-			return clientCredentialsGrantType(requestParts);
+			return clientCredentialsGrantType(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
 		}
 
 	}
 
-	private Object clientCredentialsGrantType(JsonObject requestParts) {
+	private Object clientCredentialsGrantType(String requestId) {
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
@@ -243,13 +276,15 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 	}
 
-	private Object authorizationCodeGrantType(JsonObject requestParts) {
+	private Object authorizationCodeGrantType(String requestId) {
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
@@ -263,6 +298,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
@@ -270,17 +307,22 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	}
 
 	@UserFacing
-	private Object authorizationEndpoint(JsonObject requestParts) {
+	private Object authorizationEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("authorization_endpoint_request", requestParts.get("params").getAsJsonObject());
+		call(exec().startBlock("Authorization endpoint")
+			.mapKey("authorization_endpoint_request", requestId));
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
 		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI-R-5.2.3-7");
+
+		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI-R-5.2.3-8");
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 
@@ -292,6 +334,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 
+		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+
 		return new RedirectView(redirectTo, false, false, false);
 
 	}
@@ -299,47 +343,81 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	/**
 	 * OpenBanking account request API
 	 *
-	 * @param requestParts
+	 * @param requestId
 	 * @return
 	 */
-	private Object accountRequestsEndpoint(JsonObject requestParts) {
+	private Object accountRequestsEndpoint(String requestId) {
 
-		env.putObject("incoming_request", requestParts);
+		setStatus(Status.RUNNING);
 
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
+		call(exec().startBlock("Account request endpoint")
+			.mapKey("incoming_request", requestId));
+
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+
+		// TODO: should we clear the old headers?
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
 
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
 
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-12");
+
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
 		JsonObject accountRequestResponse = env.getObject("account_request_response");
+		JsonObject headerJson = env.getObject("account_request_response_headers");
 
-		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
-	private Object accountsEndpoint(JsonObject requestParts) {
+	private Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		env.putObject("incoming_request", requestParts);
+		call(exec().startBlock("Accounts endpoint")
+			.mapKey("incoming_request", requestId));
 
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class);
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromParams.class);
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
+
+		// TODO: should we clear the old headers?
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
 
 		callAndStopOnFailure(GenerateOpenBankingAccountId.class);
 		exposeEnvString("account_id");
 
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-12");
+
 		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
+		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
+
+		setStatus(Status.WAITING);
 
 		// at this point we can assume the test is fully done
 		fireTestFinished();
 
-		return new ResponseEntity<>(env.getObject("accounts_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 }
