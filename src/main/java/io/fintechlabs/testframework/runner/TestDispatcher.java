@@ -145,7 +145,7 @@ public class TestDispatcher {
 			} else {
 				throw new TestFailureException(test.getId(), "Failure to route to path " + path);
 			}
-			logIncomingHttpResponse(test, restOfPath, response);
+			logOutgoingHttpResponse(test, restOfPath, response);
 			return response;
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -164,7 +164,7 @@ public class TestDispatcher {
 			"incoming_body_json", requestParts.get("body_json")));
 	}
 
-	protected void logIncomingHttpResponse(TestModule test, String path, Object response) {
+	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
 		if (response instanceof ResponseEntity) {
 			ResponseEntity responseEntity = (ResponseEntity)response;
 			eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
