@@ -42,7 +42,7 @@ public class EnsureIncomingTlsSecureCipher extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String cipher = env.getString("client_request", "headers.X-Ssl-Cipher");
+		String cipher = env.getString("client_request", "headers.x-ssl-cipher");
 
 		if (ALLOWED_CIPHERS.contains(cipher)) {
 			logSuccess("TLS cipher is allowed", args("expected", ALLOWED_CIPHERS, "actual", cipher));

@@ -32,7 +32,7 @@ public class EnsureIncomingTls12 extends AbstractCondition {
 	@PreEnvironment(required = "client_request")
 	public Environment evaluate(Environment env) {
 
-		String protocol = env.getString("client_request", "headers.X-Ssl-Protocol");
+		String protocol = env.getString("client_request", "headers.x-ssl-protocol");
 
 		if (Strings.isNullOrEmpty(protocol)) {
 			throw error("TLS Protocol not found");

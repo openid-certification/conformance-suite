@@ -48,25 +48,25 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 		hasTls = new ArrayList<>();
 
 		hasTls.add(new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject());
 		hasTls.add(new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject());
 		hasTls.add(new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DHE-RSA-AES256-GCM-SHA384\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DHE-RSA-AES256-GCM-SHA384\"}"
 			+ "}").getAsJsonObject());
 		hasTls.add(new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES256-GCM-SHA384\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES256-GCM-SHA384\"}"
 			+ "}").getAsJsonObject());
 		wrongTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"DUCK-TAPE-AND-A-PRAYER\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DUCK-TAPE-AND-A-PRAYER\"}"
 			+ "}").getAsJsonObject();
 		onlyTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 		missingTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
 			+ "}").getAsJsonObject();
 
 	}
@@ -82,7 +82,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 			cond.evaluate(env);
 
-			verify(env, atLeastOnce()).getString("client_request", "headers.X-Ssl-Cipher");
+			verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-cipher");
 		}
 
 	}
@@ -109,7 +109,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_request", "headers.X-Ssl-Cipher");
+		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-cipher");
 
 	}
 }

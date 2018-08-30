@@ -117,9 +117,9 @@ public class TestDispatcher {
 
 		// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
 		JsonObject requestParts = new JsonObject();
-		requestParts.add("params", mapToJsonObject(params));
-		requestParts.add("headers", mapToJsonObject(headers));
-		requestParts.addProperty("method", req.getMethod());
+		requestParts.add("params", mapToJsonObject(params, false)); // don't change case of parameters
+		requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
+		requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 
 		if (body != null) {
 			requestParts.addProperty("body", body);
@@ -244,13 +244,13 @@ public class TestDispatcher {
 	/**
 	 * utility function to convert an incoming multi-value map to a JSonObject for storage
 	 *
-	 * @param params
-	 * @return
 	 */
-	protected JsonObject mapToJsonObject(MultiValueMap<String, String> params) {
+	private JsonObject mapToJsonObject(MultiValueMap<String, String> params, boolean lowercase) {
 		JsonObject o = new JsonObject();
 		for (String key : params.keySet()) {
-			o.addProperty(key, params.getFirst(key));
+			o.addProperty(
+				lowercase ? key.toLowerCase() : key,
+				params.getFirst(key));
 		}
 		return o;
 	}
