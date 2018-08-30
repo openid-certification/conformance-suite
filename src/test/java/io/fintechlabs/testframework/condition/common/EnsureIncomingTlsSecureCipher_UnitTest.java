@@ -1,4 +1,7 @@
-package io.fintechlabs.testframework.condition.as;
+package io.fintechlabs.testframework.condition.common;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,12 +17,14 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.as.EnsureClientCertificateCNMatchesClientId;
+import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureIncomingTls12_UnitTest {
+public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -27,9 +32,9 @@ public class EnsureIncomingTls12_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureIncomingTls12 cond;
+	private EnsureIncomingTlsSecureCipher cond;
 
-	private JsonObject hasTls;
+	private List<JsonObject> hasTls;
 	private JsonObject wrongTls;
 	private JsonObject missingTls;
 	private JsonObject onlyTls;
@@ -40,18 +45,29 @@ public class EnsureIncomingTls12_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureIncomingTls12("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureIncomingTlsSecureCipher("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		hasTls = new JsonParser().parse("{\"headers\": "
+		hasTls = new ArrayList<>();
+
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DHE-RSA-AES128-GCM-SHA256\"}"
+			+ "}").getAsJsonObject());
+		hasTls.add(new JsonParser().parse("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
-			+ "}").getAsJsonObject();
+			+ "}").getAsJsonObject());
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DHE-RSA-AES256-GCM-SHA384\"}"
+			+ "}").getAsJsonObject());
+		hasTls.add(new JsonParser().parse("{\"headers\": "
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES256-GCM-SHA384\"}"
+			+ "}").getAsJsonObject());
 		wrongTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"x-ssl-protocol\": \"TLSv1.1\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
-			+ "}").getAsJsonObject();
-		missingTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DUCK-TAPE-AND-A-PRAYER\"}"
 			+ "}").getAsJsonObject();
 		onlyTls = new JsonParser().parse("{\"headers\": "
+			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "}").getAsJsonObject();
+		missingTls = new JsonParser().parse("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
 			+ "}").getAsJsonObject();
 
@@ -63,11 +79,13 @@ public class EnsureIncomingTls12_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.putObject("client_request", hasTls);
+		for (JsonObject tls : hasTls) {
+			env.putObject("client_request", tls);
 
-		cond.evaluate(env);
+			cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
+			verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-cipher");
+		}
 
 	}
 	@Test(expected = ConditionError.class)
@@ -93,7 +111,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
+		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-cipher");
 
 	}
 }

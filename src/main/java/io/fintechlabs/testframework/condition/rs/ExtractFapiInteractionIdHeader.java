@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.condition.as;
+package io.fintechlabs.testframework.condition.rs;
 
 import com.google.common.base.Strings;
 

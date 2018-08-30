@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.condition.as;
+package io.fintechlabs.testframework.condition.rs;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.junit.Assert.assertEquals;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.rs.ExtractFapiDateHeader;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;

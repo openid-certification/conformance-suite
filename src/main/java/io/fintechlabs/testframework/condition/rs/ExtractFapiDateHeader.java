@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.condition.as;
+package io.fintechlabs.testframework.condition.rs;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
