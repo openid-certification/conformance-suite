@@ -26,6 +26,7 @@ import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
+import io.fintechlabs.testframework.condition.as.EnsureResponseTypeIsCode;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
@@ -40,6 +41,8 @@ import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthori
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
@@ -74,7 +77,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.client_secret",
 		"client.scope",
 		"client.redirect_uri",
-		"client.certificate"
+		"client.certificate",
+		"client.jwks"
 	}
 )
 
@@ -103,6 +107,9 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
+
+		// for signing request objects
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -319,6 +326,12 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
+
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-10");
+
+		//callAndStopOnFailure(ExtractOB)
+
+		callAndStopOnFailure(EnsureResponseTypeIsCode.class);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
