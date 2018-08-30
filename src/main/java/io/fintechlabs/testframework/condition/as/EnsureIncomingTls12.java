@@ -13,6 +13,8 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class EnsureIncomingTls12 extends AbstractCondition {
 
+	private static final String TLS_12 = "TLSv1.2";
+
 	/**
 	 * @param testId
 	 * @param log
@@ -36,11 +38,11 @@ public class EnsureIncomingTls12 extends AbstractCondition {
 			throw error("TLS Protocol not found");
 		}
 
-		if (protocol.equals("TLSv1.2")) {
+		if (protocol.equals(TLS_12)) {
 			logSuccess("Found TLS 1.2 connection");
 			return env;
 		} else {
-			throw error("Found disallowed TLS connection", args("expected", "TLSv1.2", "actual", "protocol"));
+			throw error("Found disallowed TLS connection", args("expected", TLS_12, "actual", protocol));
 		}
 
 	}
