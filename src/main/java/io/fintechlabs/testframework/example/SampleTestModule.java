@@ -96,10 +96,10 @@ public class SampleTestModule extends AbstractTestModule {
 		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
-		callAndStopOnFailure(EnsureTLS12.class, "FAPI-1-7.1-1");
-		callAndContinueOnFailure(DisallowTLS10.class, "FAPI-1-7.1-1");
-		callAndContinueOnFailure(DisallowTLS11.class, "FAPI-1-7.1-1");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
+		callAndStopOnFailure(EnsureTLS12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(DisallowTLS10.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(DisallowTLS11.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, "FAPI-RW-8.5-1");
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -216,23 +216,23 @@ public class SampleTestModule extends AbstractTestModule {
 
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
 
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
-			callAndContinueOnFailure(ValidateSHash.class, "FAPI-2-5.2.2-4");
+			callAndContinueOnFailure(ValidateSHash.class, "FAPI-RW-5.2.2-4");
 
 			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+			callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
 
 			// verify the access token against a protected resource
 
@@ -241,19 +241,19 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
 
-		call(DisallowInsecureCipher.class, "FAPI-2-8.5-1");
+		call(DisallowInsecureCipher.class, "FAPI-RW-8.5-1");
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-3");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-3");
 
-		call(DisallowAccessTokenInQuery.class, "FAPI-1-6.2.1-4");
+		call(DisallowAccessTokenInQuery.class, "FAPI-R-6.2.1-4");
 
-		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-1-6.2.1-11");
+		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-R-6.2.1-11");
 
-		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-1-6.2.1-12");
+		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-R-6.2.1-12");
 
-		call(EnsureMatchingFAPIInteractionId.class, "FAPI-1-6.2.1-12");
+		call(EnsureMatchingFAPIInteractionId.class, "FAPI-R-6.2.1-12");
 
-		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-1-6.2.1-9");
+		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-R-6.2.1-9");
 			 */
 
 			fireTestFinished();

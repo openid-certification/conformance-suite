@@ -93,7 +93,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 			.exposeEnvironmentString("code_challenge")
 			.exposeEnvironmentString("code_challenge_method"));
 		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
-			.requirement("FAPI-1-5.2.2-7"));
+			.requirement("FAPI-R-5.2.2-7"));
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
@@ -103,7 +103,7 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-1-5.2.2-9");
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
 
 		setStatus(Status.WAITING);
 

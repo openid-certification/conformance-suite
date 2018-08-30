@@ -33,7 +33,7 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-7.3-1");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-7.3-1");
 
 		setStatus(Status.WAITING);
 
