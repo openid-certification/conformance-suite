@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.logging;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
@@ -15,7 +14,9 @@ import org.springframework.util.StreamUtils;
 
 import com.google.gson.JsonObject;
 
-public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
+import io.fintechlabs.testframework.testmodule.DataUtils;
+
+public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, DataUtils {
 
 	private final String source;
 	private final TestInstanceEventLog log;
@@ -39,7 +40,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 		JsonObject o = new JsonObject();
 		o.addProperty("request_uri", request.getURI().toString());
 		o.addProperty("request_method", request.getMethod().toString());
-		o.add("request_headers", headersToJson(request.getHeaders()));
+		o.add("request_headers", mapToJsonObject(request.getHeaders(), true));
 		if (body != null) {
 			o.addProperty("request_body", new String(body, "UTF-8"));
 		}
@@ -55,21 +56,13 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
 		JsonObject o = new JsonObject();
 		o.addProperty("response_status_code", response.getStatusCode().toString());
 		o.addProperty("response_status_text", response.getStatusText());
-		o.add("response_headers", headersToJson(response.getHeaders()));
+		o.add("response_headers", mapToJsonObject(response.getHeaders(), true));
 		if (response.body != null) {
 			o.addProperty("response_body", new String(response.body, "UTF-8"));
 		}
 		o.addProperty("msg", "HTTP response");
 		o.addProperty("http", "response");
 		log.log(source, o);
-	}
-
-	private static JsonObject headersToJson(HttpHeaders headers) {
-		JsonObject o = new JsonObject();
-		for (Map.Entry<String, String> header : headers.toSingleValueMap().entrySet()) {
-			o.addProperty(header.getKey(), header.getValue());
-		}
-		return o;
 	}
 
 	private static final class WrappedClientHttpResponse implements ClientHttpResponse {

@@ -102,7 +102,7 @@ public class RequirePKCE extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectPKCEError.class, "FAPI-1-5.2.2-7");
+		callAndStopOnFailure(ExpectPKCEError.class, "FAPI-R-5.2.2-7");
 
 		setStatus(Status.WAITING);
 

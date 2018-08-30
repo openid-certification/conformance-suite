@@ -19,7 +19,6 @@ import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredenti
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.as.EnsureBearerAccessTokenNotInParams;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.as.EnsureIncomingTls12;
@@ -50,6 +49,7 @@ import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEn
 import io.fintechlabs.testframework.condition.rs.ClearAccessTokenFromRequest;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
+import io.fintechlabs.testframework.condition.rs.EnsureBearerAccessTokenNotInParams;
 import io.fintechlabs.testframework.condition.rs.ExtractBearerAccessTokenFromHeader;
 import io.fintechlabs.testframework.condition.rs.GenerateAccountRequestId;
 import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
@@ -94,7 +94,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(LoadJWKs.class);
 
-		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
+		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
@@ -205,7 +205,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-1-5.2.3-7");
+		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 

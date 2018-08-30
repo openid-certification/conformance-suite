@@ -1,8 +1,8 @@
 package io.fintechlabs.testframework.condition.as;
 
-import java.util.Date;
-
-import org.apache.http.client.utils.DateUtils;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import com.google.common.base.Strings;
 
@@ -41,17 +41,17 @@ public class ExtractFapiDateHeader extends AbstractCondition {
 			throw error("Couldn't find FAPI auth date header");
 		} else {
 
-			// try to parse it to make sure it's in the right format
-			Date parseDate = DateUtils.parseDate(header);
-
-			if (parseDate == null) {
-				throw error("Could not parse FAPI auth date header", args("fapi_auth_date", header));
-			} else {
+			try {
+				// try to parse it to make sure it's in the right format
+				@SuppressWarnings("unused")
+				ZonedDateTime parsedDate = ZonedDateTime.parse(header, DateTimeFormatter.RFC_1123_DATE_TIME);
 
 				env.putString("fapi_auth_date", header);
 				logSuccess("Found a FAPI auth date header", args("fapi_auth_date", header));
 
 				return env;
+			} catch (DateTimeParseException e) {
+				throw error("Could not parse FAPI auth date header", e, args("fapi_auth_date", header));
 			}
 		}
 

@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.condition.as;
+package io.fintechlabs.testframework.condition.rs;
 
 import com.google.common.base.Strings;
 
@@ -21,7 +21,6 @@ public class EnsureBearerAccessTokenNotInParams extends AbstractCondition {
 	 */
 	public EnsureBearerAccessTokenNotInParams(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -33,9 +32,9 @@ public class EnsureBearerAccessTokenNotInParams extends AbstractCondition {
 		String incoming = env.getString("incoming_request", "params.access_token");
 
 		if (!Strings.isNullOrEmpty(incoming)) {
-			throw error("Found access token on incoming request", args("access_token", incoming));
+			throw error("Client incorrectly supplied access token in query parameters or form body", args("access_token", incoming));
 		} else {
-			logSuccess("Couldn't find access token in parameters");
+			logSuccess("Client correctly did not sent access token in query parameters or form body");
 			return env;
 		}
 	}

@@ -68,16 +68,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.LoggingRequestInterceptor;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
  *
  */
-public abstract class AbstractCondition implements Condition {
+public abstract class AbstractCondition implements Condition, DataUtils {
 
 	private String testId;
 	private TestInstanceEventLog log;
@@ -490,25 +490,6 @@ public abstract class AbstractCondition implements Condition {
 		}
 
 		return chain;
-	}
-
-	/*
-	 * Convenience pass-through methods
-	 */
-	protected Map<String, Object> args(Object... a) {
-		return EventLog.args(a);
-	}
-
-	protected Map<String, Object> ex(Throwable cause) {
-		return EventLog.ex(cause);
-	}
-
-	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		return EventLog.ex(cause, in);
-	}
-
-	protected JsonObject ex(Throwable cause, JsonObject in) {
-		return EventLog.ex(cause, in);
 	}
 
 }

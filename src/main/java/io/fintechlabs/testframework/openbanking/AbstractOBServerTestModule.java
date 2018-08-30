@@ -138,7 +138,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-2-8.6");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-RW-8.6");
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
@@ -153,7 +153,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-2-8.6");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-RW-8.6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 
@@ -246,7 +246,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
@@ -323,27 +323,27 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 				eventLog.startBlock("Accounts request endpoint TLS test");
 				env.mapKey("tls", "accounts_request_endpoint_tls");
-				callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-				callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-				callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+				callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+				callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
-				callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+				callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 				eventLog.endBlock();
 
 
 				eventLog.startBlock("Accounts resource endpoint TLS test");
 				env.mapKey("tls", "accounts_resource_endpoint_tls");
-				callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-				callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
-				callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-2-8.5-2");
+				callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+				callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+				callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
-				callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-2-8.5-1");
+				callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 				env.unmapKey("tls");
 				eventLog.endBlock();
 
 				requestProtectedResource();
 
-				callAndContinueOnFailure(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-4");
+				callAndContinueOnFailure(DisallowAccessTokenInQuery.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
 
 				callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 
@@ -381,7 +381,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 				callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 				callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-				callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-2-8.6");
+				callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-RW-8.6");
 
 				callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 				callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
@@ -427,7 +427,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 				// Check access_token still works
 				callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, ConditionResult.FAILURE, "RFC7231-5.3.2");
 
-				callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.WARNING, "FAPI-1-5.2.2-13");
+				callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.WARNING, "FAPI-R-5.2.2-13");
 
 				// The AS 'SHOULD' have revoked the access token; try it again".
 				callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, ConditionResult.WARNING, "RFC6749-4.1.2");
@@ -449,7 +449,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
@@ -457,26 +457,26 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		skipIfMissing(new String[] { "expires_in" }, null, ConditionResult.INFO,
 				ValidateExpiresIn.class, ConditionResult.FAILURE, "RFC6749-5.1");
 
-		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-15");
+		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-		callAndContinueOnFailure(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+		callAndContinueOnFailure(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
-		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-1-5.2.2-16");
+		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
 		performProfileIdTokenValidation();
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-1-5.2.2-24");
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-2-8.6");
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-RW-8.6");
 
 		performTokenEndpointIdTokenExtraction();
 		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
@@ -487,7 +487,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO ,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 		skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
-			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
 			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
@@ -509,7 +509,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		 * c_hash is optional but s_hash is required
 		 */
 		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 	}
 
 	protected void performTokenEndpointIdTokenExtractionCodeIdToken() {
@@ -517,7 +517,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		 * so c_hash and s_hash are optional.
 		 */
 		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-2-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 	}
 
 	protected void requestProtectedResource() {
@@ -530,15 +530,15 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-1-6.2.1-1", "FAPI-1-6.2.1-3");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-11");
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
-		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-12");
+		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
-		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, ConditionResult.FAILURE, "FAPI-1-6.2.1-9", "FAPI-1-6.2.1-10");
+		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 	}
 
 	protected void logClientSecretWarning() {

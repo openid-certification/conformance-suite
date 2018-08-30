@@ -23,7 +23,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +46,9 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
-import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint;
+import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.Endpoint;
+import io.fintechlabs.testframework.testmodule.Environment;
 
 
 public class CallAccountRequestsEndpointWithBearerToken extends AbstractCondition {
@@ -106,18 +105,13 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			HttpHeaders headers = new HttpHeaders();
+			HttpHeaders headers = headersFromJson(requestHeaders);
 
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
 
-			if (requestHeaders != null) {
-				for (Map.Entry<String, JsonElement> header : requestHeaders.entrySet()) {
-					headers.set(header.getKey(), header.getValue().getAsString());
-				}
-			}
 
 			// Stop RestTemplate from overwriting the Accept-Charset header
 			StringHttpMessageConverter converter = new StringHttpMessageConverter();
@@ -141,10 +135,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 						throw error("Account requests endpoint did not return a JSON object");
 					}
 
-					JsonObject responseHeaders = new JsonObject();
-					for (Map.Entry<String, String> entry : response.getHeaders().toSingleValueMap().entrySet()) {
-						responseHeaders.addProperty(entry.getKey(), entry.getValue());
-					}
+					JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
 
 					env.putObject("account_requests_endpoint_response", jsonRoot.getAsJsonObject());
 					env.putObject("resource_endpoint_response_headers", responseHeaders);

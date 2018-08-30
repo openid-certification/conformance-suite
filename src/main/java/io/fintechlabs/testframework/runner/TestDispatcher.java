@@ -47,6 +47,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -56,7 +57,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
  *
  */
 @Controller
-public class TestDispatcher {
+public class TestDispatcher implements DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(TestDispatcher.class);
 
@@ -117,9 +118,9 @@ public class TestDispatcher {
 
 		// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
 		JsonObject requestParts = new JsonObject();
-		requestParts.add("params", mapToJsonObject(params));
-		requestParts.add("headers", mapToJsonObject(headers));
-		requestParts.addProperty("method", req.getMethod());
+		requestParts.add("params", mapToJsonObject(params, false)); // don't change case of parameters
+		requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
+		requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 
 		if (body != null) {
 			requestParts.addProperty("body", body);
@@ -145,7 +146,7 @@ public class TestDispatcher {
 			} else {
 				throw new TestFailureException(test.getId(), "Failure to route to path " + path);
 			}
-			logIncomingHttpResponse(test, restOfPath, response);
+			logOutgoingHttpResponse(test, restOfPath, response);
 			return response;
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -153,7 +154,7 @@ public class TestDispatcher {
 	}
 
 	protected void logIncomingHttpRequest(TestModule test, String path, JsonObject requestParts) {
-		eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
+		eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 			"msg", "Incoming HTTP request to test instance " + test.getId(),
 			"http", "incoming",
 			"incoming_path", path,
@@ -164,10 +165,10 @@ public class TestDispatcher {
 			"incoming_body_json", requestParts.get("body_json")));
 	}
 
-	protected void logIncomingHttpResponse(TestModule test, String path, Object response) {
+	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
 		if (response instanceof ResponseEntity) {
 			ResponseEntity responseEntity = (ResponseEntity)response;
-			eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
+			eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",
 				"outgoing_path", path,
@@ -176,7 +177,7 @@ public class TestDispatcher {
 				"outgoing_body", responseEntity.getBody()));
 		} else {
 			// ModelAndView or other cases; just log 'toString'
-			eventLog.log(test.getId(), test.getName(), test.getOwner(), EventLog.args(
+			eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",
 				"outgoing_path", path,
@@ -195,8 +196,8 @@ public class TestDispatcher {
 					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
 					// ConditionError will get handled by the logging system, no need to display with stacktrace
 					test.setFinalError(error);
-					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), EventLog.ex(error,
-						EventLog.args(
+					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
+						args(
 							"result", ConditionResult.FAILURE,
 							"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
 						));
@@ -241,18 +242,5 @@ public class TestDispatcher {
 		}
 	}
 
-	/**
-	 * utility function to convert an incoming multi-value map to a JSonObject for storage
-	 *
-	 * @param params
-	 * @return
-	 */
-	protected JsonObject mapToJsonObject(MultiValueMap<String, String> params) {
-		JsonObject o = new JsonObject();
-		for (String key : params.keySet()) {
-			o.addProperty(key, params.getFirst(key));
-		}
-		return o;
-	}
 
 }

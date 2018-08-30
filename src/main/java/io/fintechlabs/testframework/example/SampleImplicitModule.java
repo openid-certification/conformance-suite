@@ -202,15 +202,15 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-1-5.2.2-14");
+			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
 
-			callAndContinueOnFailure(CheckForScopesInTokenResponse.class, "FAPI-1-5.2.2-15");
+			callAndContinueOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
-			callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-1-5.2.2-24");
+			callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
 			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-1-5.2.2-16");
+			callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
 
 			fireTestFinished();
 

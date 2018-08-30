@@ -65,7 +65,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 			"-----END CERTIFICATE-----";
 
 		JsonObject sampleHeaders = new JsonObject();
-		sampleHeaders.addProperty("X-Ssl-Cert", certificate);
+		sampleHeaders.addProperty("x-ssl-cert", certificate);
 
 		tokenEndpointRequest = new JsonObject();
 		tokenEndpointRequest.add("headers", sampleHeaders);

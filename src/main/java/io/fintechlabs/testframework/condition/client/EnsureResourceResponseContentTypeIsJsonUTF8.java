@@ -37,7 +37,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractConditi
 	@PreEnvironment(required = "resource_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
 
-		String contentTypeStr = env.getString("resource_endpoint_response_headers", "Content-Type");
+		String contentTypeStr = env.getString("resource_endpoint_response_headers", "content-type");
 
 		if (!Strings.isNullOrEmpty(contentTypeStr)) {
 			try {

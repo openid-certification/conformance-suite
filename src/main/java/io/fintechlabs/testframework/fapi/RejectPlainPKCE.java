@@ -104,7 +104,7 @@ public class RejectPlainPKCE extends AbstractTestModule {
 			.exposeEnvironmentString("code_challenge")
 			.exposeEnvironmentString("code_challenge_method"));
 		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
-			.requirement("FAPI-1-5.2.2-7"));
+			.requirement("FAPI-R-5.2.2-7"));
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
@@ -114,7 +114,7 @@ public class RejectPlainPKCE extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectRejectPlainCodeChallengeMethodErrorPage.class, "FAPI-1-5.2.2-7");
+		callAndStopOnFailure(ExpectRejectPlainCodeChallengeMethodErrorPage.class, "FAPI-R-5.2.2-7");
 
 		setStatus(Status.WAITING);
 

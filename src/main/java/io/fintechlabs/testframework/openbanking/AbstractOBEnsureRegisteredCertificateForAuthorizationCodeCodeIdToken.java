@@ -26,22 +26,22 @@ public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeC
 
 		getTestExecutionManager().runInBackground(() -> {
 			setStatus(Status.RUNNING);
-			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+			callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
 			callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
 			callAndContinueOnFailure(OBValidateIdTokenIntentId.class, ConditionResult.FAILURE,"OIDCC-2");
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
+			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
-				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 

@@ -32,7 +32,7 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends Abs
 		// Remove any certificate from a previous connection
 		env.removeObject("client_certificate");
 
-		String certStr = env.getString("token_endpoint_request", "headers.X-Ssl-Cert");
+		String certStr = env.getString("token_endpoint_request", "headers.x-ssl-cert");
 		if (certStr == null) {
 			throw error("Client certificate not found");
 		}

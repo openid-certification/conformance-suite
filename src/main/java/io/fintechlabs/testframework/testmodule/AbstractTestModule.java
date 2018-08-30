@@ -14,7 +14,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Strings;
@@ -32,7 +31,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 
@@ -40,7 +38,7 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
  * @author jricher
  *
  */
-public abstract class AbstractTestModule implements TestModule {
+public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
@@ -780,25 +778,6 @@ public abstract class AbstractTestModule implements TestModule {
 		return new RedirectView("/log-detail.html?log=" + getId());
 	}
 
-	/*
-	 * Convenience pass-through methods
-	 */
-	protected Map<String, Object> args(Object... a) {
-		return EventLog.args(a);
-	}
-
-	protected Map<String, Object> ex(Throwable cause) {
-		return EventLog.ex(cause);
-	}
-
-	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		return EventLog.ex(cause, in);
-	}
-
-	protected JsonObject ex(Throwable cause, JsonObject in) {
-		return EventLog.ex(cause, in);
-	}
-
 	protected void acquireLock() {
 		env.getLock().lock();
 	}
@@ -855,14 +834,6 @@ public abstract class AbstractTestModule implements TestModule {
 
 			return "done";
 		});
-	}
-
-	protected HttpHeaders headersFromJson(JsonObject headerJson) {
-		HttpHeaders headers = new HttpHeaders();
-		for (String header : headerJson.keySet()) {
-			headers.set(header, headerJson.get(header).getAsString());
-		}
-		return headers;
 	}
 
 }

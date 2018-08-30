@@ -43,16 +43,16 @@ public class EnsureIncomingTls12_UnitTest {
 		cond = new EnsureIncomingTls12("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 		wrongTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.1\", \"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.1\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 		missingTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 		onlyTls = new JsonParser().parse("{\"headers\": "
-			+ "{\"X-Ssl-Protocol\": \"TLSv1.2\"}"
+			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
 			+ "}").getAsJsonObject();
 
 	}
@@ -67,7 +67,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_request", "headers.X-Ssl-Protocol");
+		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
 
 	}
 	@Test(expected = ConditionError.class)
@@ -93,7 +93,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("client_request", "headers.X-Ssl-Protocol");
+		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
 
 	}
 }

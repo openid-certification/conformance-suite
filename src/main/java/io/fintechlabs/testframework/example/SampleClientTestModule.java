@@ -91,7 +91,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(LoadJWKs.class);
 
-		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-1-5.2.2-5", "FAPI-1-5.2.2-6");
+		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
@@ -168,7 +168,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-1-5.2.3-7");
+		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 

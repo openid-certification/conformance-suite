@@ -120,23 +120,23 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 	 */
 	@Override
 	protected Object performPostAuthorizationFlow() {
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-2-5.2.2-3");
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-2-5.2.2-3");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
 
 		performProfileIdTokenValidation();
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-2-5.2.2-3");
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-1-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-2-8.6");
+		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-RW-8.6");
 
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 		skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
-			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-2-5.2.2-4");
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 

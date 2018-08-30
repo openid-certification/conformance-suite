@@ -100,7 +100,7 @@ class Conformance(object):
             info = self.get_module_info(module_id)
 
             status = info['status']
-            print("module id {} status is {}", module_id, status)
+            print("module id {} status is {}".format(module_id, status))
             if status in required_states:
                 return status
             if status == 'INTERRUPTED':

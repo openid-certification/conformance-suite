@@ -36,7 +36,7 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-2-5.2.2-1");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1");
 
 		eventLog.endBlock();
 		env.unmapKey("client_jwks");

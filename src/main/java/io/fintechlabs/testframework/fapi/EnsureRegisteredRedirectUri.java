@@ -94,7 +94,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 			.exposeEnvironmentString("code_challenge")
 			.exposeEnvironmentString("code_challenge_method"));
 		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
-			.requirement("FAPI-1-5.2.2-7"));
+			.requirement("FAPI-R-5.2.2-7"));
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
@@ -104,7 +104,7 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-1-5.2.2-8");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
 
 		setStatus(Status.WAITING);
 
