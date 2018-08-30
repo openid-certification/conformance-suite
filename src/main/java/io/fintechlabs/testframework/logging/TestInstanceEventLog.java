@@ -19,13 +19,15 @@ import java.util.Map;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.testmodule.DataUtils;
+
 /**
  * A wrapper around an EventLog that remebers the test ID and Owner information so the caller doesn't need to
  *
  * @author jricher
  *
  */
-public class TestInstanceEventLog {
+public class TestInstanceEventLog implements DataUtils {
 
 	private String testId;
 	private Map<String, String> owner;
@@ -82,7 +84,7 @@ public class TestInstanceEventLog {
 		String blockId = eventLog.startBlock();
 
 		if (!Strings.isNullOrEmpty(message)) {
-			log("-START-BLOCK-", EventLog.args("msg", message, "startBlock", true));
+			log("-START-BLOCK-", args("msg", message, "startBlock", true));
 		}
 
 		return blockId;

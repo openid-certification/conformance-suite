@@ -32,7 +32,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 
@@ -40,7 +39,7 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
  * @author jricher
  *
  */
-public abstract class AbstractTestModule implements TestModule {
+public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
@@ -778,25 +777,6 @@ public abstract class AbstractTestModule implements TestModule {
 
 	protected RedirectView redirectToLogDetailPage() {
 		return new RedirectView("/log-detail.html?log=" + getId());
-	}
-
-	/*
-	 * Convenience pass-through methods
-	 */
-	protected Map<String, Object> args(Object... a) {
-		return EventLog.args(a);
-	}
-
-	protected Map<String, Object> ex(Throwable cause) {
-		return EventLog.ex(cause);
-	}
-
-	protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		return EventLog.ex(cause, in);
-	}
-
-	protected JsonObject ex(Throwable cause, JsonObject in) {
-		return EventLog.ex(cause, in);
 	}
 
 	protected void acquireLock() {

@@ -66,6 +66,7 @@ import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -85,7 +86,7 @@ import io.fintechlabs.testframework.testmodule.TestModule;
  *
  */
 @Controller
-public class TestRunner {
+public class TestRunner implements DataUtils {
 
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
 	private String baseUrl;
@@ -266,7 +267,7 @@ public class TestRunner {
 
 		// log the test creation event in the event log
 		eventLog.log(id, "TEST-RUNNER", test.getOwner(),
-			EventLog.args("msg", "Test instance " + id + " created",
+			args("msg", "Test instance " + id + " created",
 				"result", ConditionResult.INFO,
 				"baseUrl", url,
 				"config", config,
@@ -307,7 +308,7 @@ public class TestRunner {
 			if (test != null) {
 				// TODO: make the override configurable to allow for conflict of re-used aliases
 
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test due to alias conflict", "alias", alias, "new_test_id", id));
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", "Stopping test due to alias conflict", "alias", alias, "new_test_id", id));
 
 				test.stop(); // stop the currently-running test
 			}
@@ -364,7 +365,7 @@ public class TestRunner {
 
 			// stop the test
 			test.getTestExecutionManager().runInBackground(() -> {
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.args("msg", "Stopping test from external request"));
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", "Stopping test from external request"));
 				test.stop();
 				return "stopped";
 			});
@@ -512,7 +513,7 @@ public class TestRunner {
 		map.put("owner", test.getOwner());
 		map.put("created", test.getCreated().toString());
 		map.put("updated", test.getStatusUpdated().toString());
-		map.put("error", EventLog.ex(test.getFinalError()));
+		map.put("error", ex(test.getFinalError()));
 
 		BrowserControl browser = test.getBrowser();
 		if (browser != null) {
@@ -533,7 +534,7 @@ public class TestRunner {
 			if (test != null) {
 				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
 				test.stop();
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), EventLog.ex(error));
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
 
 				// Any form of exception from a test counts as a failure
 				test.fireTestFailure();

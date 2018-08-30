@@ -1588,36 +1588,6 @@ public class AbstractCondition_UnitTest {
 		}
 
 		/* (non-Javadoc)
-		 * @see io.fintechlabs.testframework.condition.AbstractCondition#ex(java.lang.Throwable)
-		 */
-		@Override
-		protected Map<String, Object> ex(Throwable cause) {
-			// TODO Auto-generated method stub
-			return super.ex(cause);
-
-		}
-
-		/* (non-Javadoc)
-		 * @see io.fintechlabs.testframework.condition.AbstractCondition#ex(java.lang.Throwable, java.util.Map)
-		 */
-		@Override
-		protected Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-			// TODO Auto-generated method stub
-			return super.ex(cause, in);
-
-		}
-
-		/* (non-Javadoc)
-		 * @see io.fintechlabs.testframework.condition.AbstractCondition#ex(java.lang.Throwable, com.google.gson.JsonObject)
-		 */
-		@Override
-		protected JsonObject ex(Throwable cause, JsonObject in) {
-			// TODO Auto-generated method stub
-			return super.ex(cause, in);
-
-		}
-
-		/* (non-Javadoc)
 		 * @see io.fintechlabs.testframework.condition.AbstractCondition#createHttpClient(io.fintechlabs.testframework.testmodule.Environment)
 		 */
 		@Override

@@ -14,9 +14,6 @@
 
 package io.fintechlabs.testframework.frontChannel;
 
-import static io.fintechlabs.testframework.logging.EventLog.args;
-import static io.fintechlabs.testframework.logging.EventLog.ex;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,12 +46,13 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
  * @author srmoore
  */
-public class BrowserControl {
+public class BrowserControl implements DataUtils {
 
 	/*  EXAMPLE OF WHAT TO ADD TO CONFIG:
 	 "browser": [
