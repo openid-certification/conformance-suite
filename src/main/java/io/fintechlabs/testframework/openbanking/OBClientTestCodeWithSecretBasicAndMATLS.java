@@ -19,6 +19,7 @@ import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredenti
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.as.EnsureAuthorizationParametersMatchRequestObject;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.as.EnsureIncomingTls12;
@@ -33,6 +34,7 @@ import io.fintechlabs.testframework.condition.as.ExtractFapiDateHeader;
 import io.fintechlabs.testframework.condition.as.ExtractFapiInteractionIdHeader;
 import io.fintechlabs.testframework.condition.as.ExtractFapiIpAddressHeader;
 import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
+import io.fintechlabs.testframework.condition.as.ExtractRequestObject;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
@@ -313,6 +315,10 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		call(exec().startBlock("Authorization endpoint")
 			.mapKey("authorization_endpoint_request", requestId));
+
+		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
+
+		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
