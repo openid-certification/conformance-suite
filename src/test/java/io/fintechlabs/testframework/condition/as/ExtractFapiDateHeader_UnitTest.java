@@ -32,10 +32,18 @@ public class ExtractFapiDateHeader_UnitTest {
 	private ExtractFapiDateHeader cond;
 
 	private String date = "Tue, 11 Sep 2012 19:43:31 GMT"; // example from FAPI spec
-	private String badDate = "Xen, 48 Boo 20XX 49-83-20 YYZ";
+	private String badDate = "Tue, 31 Sep 2012 19:43:31 GMT";
+	private String oddDate = "Xen, 48 Boo 20XX 49-83-20 YYZ";
+	private String oldFormat = "Sunday, 06-Nov-94 08:49:37 GMT";
+	private String asciiFormat = "Sun Nov  6 08:49:37 1994";
+	private String badFormat = "Xenubar, 438   23Boo 20XX1 211 49-83-20 YYZ zsdff.bob";
 
 	private JsonObject goodRequest;
 	private JsonObject badRequest;
+	private JsonObject oddRequest;
+	private JsonObject oldRequest;
+	private JsonObject asciiRequest;
+	private JsonObject badFormatRequest;
 	private JsonObject missingHeader;
 	private JsonObject noHeaders;
 
@@ -49,6 +57,18 @@ public class ExtractFapiDateHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 		badRequest = new JsonParser().parse("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + badDate + "\""
+			+ "}}").getAsJsonObject();
+		oddRequest = new JsonParser().parse("{\"headers\":{"
+			+ "\"x-fapi-auth-date\": \"" + oddDate + "\""
+			+ "}}").getAsJsonObject();
+		oldRequest = new JsonParser().parse("{\"headers\":{"
+			+ "\"x-fapi-auth-date\": \"" + oldFormat + "\""
+			+ "}}").getAsJsonObject();
+		asciiRequest = new JsonParser().parse("{\"headers\":{"
+			+ "\"x-fapi-auth-date\": \"" + asciiFormat + "\""
+			+ "}}").getAsJsonObject();
+		badFormatRequest = new JsonParser().parse("{\"headers\":{"
+			+ "\"x-fapi-auth-date\": \"" + badFormat + "\""
 			+ "}}").getAsJsonObject();
 		missingHeader = new JsonParser().parse("{\"headers\":{}}").getAsJsonObject();
 		noHeaders = new JsonParser().parse("{}").getAsJsonObject();
@@ -68,6 +88,30 @@ public class ExtractFapiDateHeader_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void test_bad() {
 		env.putObject("incoming_request", badRequest);
+		cond.evaluate(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void test_odd() {
+		env.putObject("incoming_request", oddRequest);
+		cond.evaluate(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void test_old() {
+		env.putObject("incoming_request", oldRequest);
+		cond.evaluate(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void test_ascii() {
+		env.putObject("incoming_request", asciiRequest);
+		cond.evaluate(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void test_badFormat() {
+		env.putObject("incoming_request", badFormatRequest);
 		cond.evaluate(env);
 	}
 
