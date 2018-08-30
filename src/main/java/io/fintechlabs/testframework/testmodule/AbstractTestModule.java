@@ -14,6 +14,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Strings;
@@ -854,6 +855,14 @@ public abstract class AbstractTestModule implements TestModule {
 
 			return "done";
 		});
+	}
+
+	protected HttpHeaders headersFromJson(JsonObject headerJson) {
+		HttpHeaders headers = new HttpHeaders();
+		for (String header : headerJson.keySet()) {
+			headers.set(header, headerJson.get(header).getAsString());
+		}
+		return headers;
 	}
 
 }

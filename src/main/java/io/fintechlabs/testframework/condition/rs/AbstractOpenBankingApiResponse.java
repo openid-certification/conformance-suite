@@ -31,7 +31,7 @@ public abstract class AbstractOpenBankingApiResponse extends AbstractCondition {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public AbstractOpenBankingApiResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String[] requirements) {
+	protected AbstractOpenBankingApiResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String[] requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

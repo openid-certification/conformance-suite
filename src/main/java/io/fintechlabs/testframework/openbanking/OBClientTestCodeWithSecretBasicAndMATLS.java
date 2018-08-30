@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
+import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureBearerAccessTokenNotInParams;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
@@ -29,6 +30,9 @@ import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
+import io.fintechlabs.testframework.condition.as.ExtractFapiDateHeader;
+import io.fintechlabs.testframework.condition.as.ExtractFapiInteractionIdHeader;
+import io.fintechlabs.testframework.condition.as.ExtractFapiIpAddressHeader;
 import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
@@ -354,12 +358,20 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
+		// TODO: should we clear the old headers?
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-12");
 
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
 		JsonObject accountRequestResponse = env.getObject("account_request_response");
+		JsonObject headerJson = env.getObject("account_request_response_headers");
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
@@ -367,7 +379,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(accountRequestResponse, HttpStatus.OK);
+		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	private Object accountsEndpoint(String requestId) {
@@ -381,8 +393,15 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
+		// TODO: should we clear the old headers?
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+
 		callAndStopOnFailure(GenerateOpenBankingAccountId.class);
 		exposeEnvString("account_id");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-12");
 
 		callAndStopOnFailure(CreateOpenBankingAccountsResponse.class);
 
@@ -390,12 +409,15 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
+		JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
+		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
+
 		setStatus(Status.WAITING);
 
 		// at this point we can assume the test is fully done
 		fireTestFinished();
 
-		return new ResponseEntity<>(env.getObject("accounts_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 }
