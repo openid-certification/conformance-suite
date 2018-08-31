@@ -18,9 +18,10 @@ import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpoint
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
-import io.fintechlabs.testframework.condition.client.EnsureEmptyImplicitHash;
+import io.fintechlabs.testframework.condition.client.EnsureEmptyCallbackUrlQuery;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
+import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
@@ -131,10 +132,6 @@ public class RequirePKCE extends AbstractTestModule {
 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		callAndContinueOnFailure(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
-
-		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
 		setStatus(Status.WAITING);
@@ -160,8 +157,18 @@ public class RequirePKCE extends AbstractTestModule {
 			} else {
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-			callAndContinueOnFailure(EnsureEmptyImplicitHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+			// We now have callback_query_params and callback_params (containing the hash) available
+
+			// code id_token, so response should be in the hash
+			env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
+
+			callAndContinueOnFailure(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+
+			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+			callAndContinueOnFailure(EnsureEmptyCallbackUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
 			fireTestFinished();
 
