@@ -35,6 +35,7 @@ import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequestWithExpiration;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
@@ -241,7 +242,12 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	protected void createAccountRequest() {
 
-		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+		if ( whichClient == 2 ) {
+			callAndStopOnFailure(CreateCreateAccountRequestRequestWithExpiration.class);
+
+		} else {
+			callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+		}
 
 		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
 
