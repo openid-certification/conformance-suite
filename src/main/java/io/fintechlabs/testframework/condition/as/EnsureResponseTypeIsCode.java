@@ -11,9 +11,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class EnsureIncomingTls12 extends AbstractCondition {
-
-	private static final String TLS_12 = "TLSv1.2";
+public class EnsureResponseTypeIsCode extends AbstractCondition {
 
 	/**
 	 * @param testId
@@ -21,7 +19,7 @@ public class EnsureIncomingTls12 extends AbstractCondition {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public EnsureIncomingTls12(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureResponseTypeIsCode(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -29,20 +27,18 @@ public class EnsureIncomingTls12 extends AbstractCondition {
 	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "client_request")
+	@PreEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		String protocol = env.getString("client_request", "headers.x-ssl-protocol");
+		String responseType = env.getString("authorization_endpoint_request", "params.response_type");
 
-		if (Strings.isNullOrEmpty(protocol)) {
-			throw error("TLS Protocol not found");
-		}
-
-		if (protocol.equals(TLS_12)) {
-			logSuccess("Found TLS 1.2 connection");
-			return env;
+		if (Strings.isNullOrEmpty(responseType)) {
+			throw error("Could not find response type in request");
+		} else if (!responseType.equals("code")) {
+			throw error("Response type is not expected value", args("expected", "code", "actual", responseType));
 		} else {
-			throw error("Found disallowed TLS connection", args("expected", TLS_12, "actual", protocol));
+			logSuccess("Response type is expected value", args("expected", "code"));
+			return env;
 		}
 
 	}

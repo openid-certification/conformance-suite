@@ -36,7 +36,7 @@ import io.fintechlabs.testframework.condition.as.ExtractJWKsFromResourceConfigur
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.as.GenerateServerConfiguration;
 import io.fintechlabs.testframework.condition.as.GetStaticResourceConfiguration;
-import io.fintechlabs.testframework.condition.as.LoadJWKs;
+import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
 import io.fintechlabs.testframework.condition.as.ValidateResourceAssertionClaims;
 import io.fintechlabs.testframework.condition.as.ValidateResourceAssertionSignature;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
@@ -104,7 +104,7 @@ public class PlainRS extends AbstractTestModule {
 		callAndStopOnFailure(CheckHeartServerConfiguration.class, "HEART-OAuth2-3.1.5");
 
 		// load the server's keys as needed
-		callAndStopOnFailure(LoadJWKs.class);
+		callAndStopOnFailure(LoadServerJWKs.class);
 
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
