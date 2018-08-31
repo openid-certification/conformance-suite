@@ -22,18 +22,16 @@ public class EnsureInvalidRequestError extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String error = env.getString("authorization_endpoint_response", "error");
+		String expected = "invalid_request";
 
 		if (Strings.isNullOrEmpty(error)) {
 			throw error("Expected 'error' field not found");
-		} else if (!error.equals("invalid_request")) {
-			throw error("'error' field has unexpected value", args("expected", "invalid_request", "actual", error));
+		} else if (!error.equals(expected)) {
+			throw error("'error' field has unexpected value", args("expected", expected, "actual", error));
 		} else {
-			logSuccess("Authorization endpoint returned expected 'error' of 'invalid_request'", args("error", error));
+			logSuccess("Authorization endpoint returned expected 'error' of '"+expected+"'", args("error", error));
 
 			return env;
 		}
-
 	}
-
-
 }
