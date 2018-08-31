@@ -17,14 +17,11 @@ public class EnsureInvalidRequestError extends AbstractCondition {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
-	@PreEnvironment(required = "callback_query_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		String error = env.getString("callback_query_params", "error");
+		String error = env.getString("authorization_endpoint_response", "error");
 
 		if (Strings.isNullOrEmpty(error)) {
 			throw error("Expected 'error' field not found");
