@@ -226,9 +226,6 @@ if __name__ == '__main__':
 
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    conformance = Conformance(api_url_base, token_endpoint, requests_session)
-    conformance.authorise(client_id, client_secret)
-
     if len(sys.argv) < 3:
         print("Syntax: run-test-plan.py <test-plan-name> <configuration-file> ...")
         sys.exit(1)
@@ -247,7 +244,22 @@ if __name__ == '__main__':
         print("Error: run-test-plan.py: must have even number of parameters")
         sys.exit(1)
 
-    all_test_modules_array = conformance.get_all_test_modules()
+    conformance = Conformance(api_url_base, token_endpoint, requests_session)
+
+    attempt = 0
+    while True:
+        try:
+            conformance.authorise(client_id, client_secret)
+            all_test_modules_array = conformance.get_all_test_modules()
+            break
+        except Exception as e:
+            # the server may not have finished starting yet; sleep & try again
+            print('Failed to connect to server on attempt {}: {}'.format(attempt, e))
+            if attempt > 6:
+                raise
+            attempt += 1
+            time.sleep(10)
+
     # convert the array into a dictionary with the testName as the key
     all_test_modules = {m['testName']: m for m in all_test_modules_array}
     untested_test_modules = sorted(all_test_modules.keys())
