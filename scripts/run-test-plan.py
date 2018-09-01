@@ -246,19 +246,27 @@ if __name__ == '__main__':
 
     conformance = Conformance(api_url_base, token_endpoint, requests_session)
 
-    attempt = 0
-    while True:
+    for attempt in range(1, 12):
         try:
             conformance.authorise(client_id, client_secret)
+            break
+        except Exception as exc:
+            # the server may not have finished starting yet; sleep & try again
+            print('Failed to connect to microauth on attempt {}: {}'.format(attempt, exc))
+            time.sleep(10)
+    else:
+        raise Exception("failed to connect to microauth")
+
+    for attempt in range(1, 12):
+        try:
             all_test_modules_array = conformance.get_all_test_modules()
             break
-        except Exception as e:
+        except Exception as exc:
             # the server may not have finished starting yet; sleep & try again
-            print('Failed to connect to server on attempt {}: {}'.format(attempt, e))
-            if attempt > 6:
-                raise
-            attempt += 1
+            print('Failed to connect to conformance suite on attempt {}: {}'.format(attempt, exc))
             time.sleep(10)
+    else:
+        raise Exception("failed to connect to conformance suite")
 
     # convert the array into a dictionary with the testName as the key
     all_test_modules = {m['testName']: m for m in all_test_modules_array}
