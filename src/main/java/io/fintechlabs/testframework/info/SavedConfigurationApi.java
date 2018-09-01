@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.google.gson.JsonObject;
 import com.mongodb.DBObject;
 
 /**
@@ -25,7 +26,8 @@ public class SavedConfigurationApi {
 		DBObject config = savedConfigurationService.getLastConfigForCurrentUser();
 
 		if (config == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			// always return a json object even if it's empty
+			return new ResponseEntity<>(new JsonObject(), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(config, HttpStatus.OK);
 		}
