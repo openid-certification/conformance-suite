@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.logging;
+package io.fintechlabs.testframework.info;
 
 import java.util.HashMap;
 import java.util.List;
