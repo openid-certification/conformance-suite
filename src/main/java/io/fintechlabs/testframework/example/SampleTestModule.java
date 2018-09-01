@@ -81,7 +81,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"mtls.key",
 		"mtls.ca",
 
-	}
+	},
+	summary = "This is a test module summary, which describes the test module in greater detail, possibly giving the user more instructions about how to interact with this test module."
 )
 public class SampleTestModule extends AbstractTestModule {
 

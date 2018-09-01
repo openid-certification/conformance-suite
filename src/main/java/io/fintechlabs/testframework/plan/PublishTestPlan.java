@@ -42,4 +42,6 @@ public @interface PublishTestPlan {
 	 */
 	String[] testModuleNames() default {};
 
+	String summary() default "";
+
 }

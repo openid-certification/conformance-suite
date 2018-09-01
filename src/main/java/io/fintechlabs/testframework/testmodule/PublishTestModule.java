@@ -35,4 +35,6 @@ public @interface PublishTestModule {
 
 	String[] configurationFields() default {};
 
+	String summary() default "";
+
 }

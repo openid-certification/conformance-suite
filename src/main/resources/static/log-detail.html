@@ -155,9 +155,19 @@
                         <div class="col-md-11"><%- test.planId %></div>
                     </div>
                     <% } %>
+
+					<% if (test.summary) { %>
+					<div class="row">
+						<div class="col-md-12">
+							<p class="bgSummary bg-info"><%- test.summary %></p>
+						</div>
+
+					</div>
+					<% } %>
+
                     <div class="row">
                         <!-- calculated test results -->
-                        <div class="col-md-1">Summary:</div>
+                        <div class="col-md-1">Results:</div>
                         <div class="col-md-11 labelCollection" id="testResultSummary">
 
                         </div>

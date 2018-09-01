@@ -17,19 +17,10 @@ package io.fintechlabs.testframework.info;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +29,19 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
-import io.fintechlabs.testframework.logging.DBEventLog;
+import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 /**
@@ -98,7 +92,7 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, io.fintechlabs.testframework.plan.TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules) {
+	public void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
@@ -108,8 +102,9 @@ public class DBTestPlanService implements TestPlanService {
 			.add("config", config)
 			.add("started", Instant.now().toString())
 			.add("owner", owner)
-			.add("description", description)
-			.add("version", version);
+			.add("description", description) // for the specific instance
+			.add("version", version)
+			.add("summary", summary); // from the plan definition
 
 		List<DBObject> moduleStructure = new ArrayList<>();
 

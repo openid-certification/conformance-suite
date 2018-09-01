@@ -54,7 +54,6 @@ import org.springframework.web.util.UriUtils;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -186,11 +185,12 @@ public class TestRunner implements DataUtils {
 	public ResponseEntity<Object> getAvailableTests(Model m) {
 
 		Set<Map<String, ?>> available = getTestModules().values().stream()
-			.map(e -> ImmutableMap.of(
+			.map(e -> args(
 				"testName", e.a.testName(),
 				"displayName", e.a.displayName(),
 				"profile", e.a.profile(),
-				"configurationFields", e.a.configurationFields()))
+				"configurationFields", e.a.configurationFields(),
+				"summary", e.a.summary()))
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
@@ -262,7 +262,9 @@ public class TestRunner implements DataUtils {
 		}
 
 		// record that this test was started
-		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description);
+		String summary = getTestModules().get(testName).a.summary();
+
+		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description, summary);
 
 
 		// log the test creation event in the event log

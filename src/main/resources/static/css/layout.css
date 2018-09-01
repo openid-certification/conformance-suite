@@ -205,6 +205,13 @@ textarea {
 	color: #ffffff;
 }
 
+.bgSummary {
+	padding: 5px 10px;
+	margin: 4px;
+	border: 1px #ddd solid;
+	border-radius: 2px;
+}
+
 .testStatusResultBlock {
 	padding: 5px 10px;
 	border-radius: 3px;
