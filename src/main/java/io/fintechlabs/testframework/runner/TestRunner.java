@@ -60,6 +60,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.ImageService;
+import io.fintechlabs.testframework.info.SavedConfigurationService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
@@ -109,6 +110,9 @@ public class TestRunner implements DataUtils {
 
 	@Autowired
 	private ImageService imageService;
+
+	@Autowired
+	private SavedConfigurationService savedConfigurationService;
 
 	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
 
@@ -213,10 +217,15 @@ public class TestRunner implements DataUtils {
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}
 		} else {
+			// we're starting an individual test module
 			config = testConfig;
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
+
+			// save this test config on the user's stack
+			savedConfigurationService.saveTestConfigurationForCurrentUser(config, testName);
+
 		}
 
 		TestModule test = createTestModule(testName, id, config);
