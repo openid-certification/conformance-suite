@@ -44,6 +44,7 @@ import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectclaims;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -330,6 +331,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
+
+		callAndStopOnFailure(ValidateRequestObjectclaims.class);
 
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-10");
 
