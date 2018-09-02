@@ -18,10 +18,11 @@ class Conformance(object):
         self.token_endpoint = token_endpoint
 
     def authorise(self, client_id, client_secret):
+        self.requests_session.headers = {}
         payload = {'grant_type': 'client_credentials'}
         response = self.requests_session.post(self.token_endpoint, data=payload, auth=(client_id, client_secret))
         if response.status_code != 200:
-            raise Exception(" {} authorisation failed - HTTP {:d} {}".format(
+            raise Exception("{} authorisation failed - HTTP {:d} {}".format(
                 self.token_endpoint, response.status_code, response.content))
         token_response = json.loads(response.content.decode('utf-8'))
         print(token_response)
