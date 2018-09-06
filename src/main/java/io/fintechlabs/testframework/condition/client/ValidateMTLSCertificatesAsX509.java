@@ -26,13 +26,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
-	/**
-	 *
-	 * @param testId
-	 * @param log
-	 * @param conditionResultOnFailure
-	 * @param requirements
-	 */
 	public ValidateMTLSCertificatesAsX509(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -51,26 +44,66 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		Security.addProvider(new BouncyCastleProvider());
 		CertificateFactory certFactory = null;
 		try {
-
 			certFactory = CertificateFactory.getInstance("X.509", "BC");
-			X509Certificate certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(certString)));
+		} catch (CertificateException | NoSuchProviderException | IllegalArgumentException e) {
+			throw error("Couldn't get CertificateFactory", e);
+		}
 
-			KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
-			KeySpec kspec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(keyString));
-			RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(kspec);
+		byte[] decodedKey;
+		try {
+			decodedKey = Base64.getDecoder().decode(keyString);
+		} catch (IllegalArgumentException e) {
+			throw error("base64 decode of key failed", e, args("key", keyString));
+		}
 
-			// Check that the private key and the certificate match
-			RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
-			if (!(privateKey.getModulus().equals(publicKey.getModulus()))) {
-				throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+		byte[] decodedCert;
+		try {
+			decodedCert = Base64.getDecoder().decode(certString);
+		} catch (IllegalArgumentException e) {
+			throw error("base64 decode of cert failed", e, args("cert", certString));
+		}
+
+		X509Certificate certificate;
+		try {
+			certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(decodedCert));
+		} catch (CertificateException | IllegalArgumentException e) {
+			throw error("Calling generateCertificate on cert failed", e, args("cert", certString));
+		}
+
+		KeyFactory kf;
+		try {
+			kf = KeyFactory.getInstance("RSA", "BC");
+		} catch (NoSuchProviderException | NoSuchAlgorithmException | IllegalArgumentException e) {
+			throw error("Couldn't get KeyFactory", e);
+		}
+
+		RSAPrivateKey privateKey;
+		try {
+			KeySpec kspec = new PKCS8EncodedKeySpec(decodedKey);
+			privateKey = (RSAPrivateKey) kf.generatePrivate(kspec);
+		} catch (InvalidKeySpecException | IllegalArgumentException e) {
+			throw error("Couldn't validate private key", e, args("key", keyString));
+		}
+
+		// Check that the private key and the certificate match
+		RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
+		if (!(privateKey.getModulus().equals(publicKey.getModulus()))) {
+			throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+		}
+
+		if (!Strings.isNullOrEmpty(caString)) {
+			byte[] decodedCa;
+			try {
+				decodedCa = Base64.getDecoder().decode(caString);
+			} catch (IllegalArgumentException e) {
+				throw error("base64 decode of ca failed", e, args("ca", caString));
 			}
 
-			if (!Strings.isNullOrEmpty(caString)) {
-				X509Certificate caCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(caString)));
+			try {
+				X509Certificate caCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(decodedCa));
+			} catch (CertificateException | IllegalArgumentException e) {
+				throw error("Calling generateCertificate on ca failed", e, args("ca", caString));
 			}
-
-		} catch (CertificateException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
-			throw error("Couldn't validate certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
 		}
 
 		logSuccess("Mutual TLS authentication cert validated as X.509");
