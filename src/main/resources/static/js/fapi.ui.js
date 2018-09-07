@@ -3,11 +3,34 @@ var FAPI_UI = {
 	logTemplates : {},
 
 	loadHomepageTemplates : function() {
+		/*
 		this.logTemplates.TEST_OPTION = _.template($("#indexTemplate_TestOption").html());
 		this.logTemplates.TEST_OPTGROUP = _.template($("#indexTemplate_TestOptGroup").html());
 		this.logTemplates.RUNNING_TEST = _.template($("#indexTemplate_RunningTest").html());
-		this.logTemplates.OWNER = _.template($("#logDetailTemplate_Owner").html());
+		this.logTemplates.RUNNING_TEST = _.template($("#logDetailTemplate_Owner").html());
 		this.logTemplates.TEST_STATUS = _.template($('#logTemplate_TestStatusAndResult').html());
+		*/
+		
+		return $.when(
+			$.get('templates/testOption.html', function(data) {
+				FAPI_UI.logTemplates.TEST_OPTION = _.template(data);
+			}),
+			$.get('templates/testOptGroup.html', function(data) {
+				FAPI_UI.logTemplates.TEST_OPTGROUP = _.template(data);
+			}),
+			$.get('templates/runningTest.html', function(data) {
+				FAPI_UI.logTemplates.RUNNING_TEST = _.template(data);
+			}),
+			$.get('templates/owner.html', function(data) {
+				FAPI_UI.logTemplates.OWNER = _.template(data);
+			}),
+			$.get('templates/statusAndResult.html', function(data) {
+				FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
+			}),
+			$.get('templates/userinfo.html', function(data) {
+				FAPI_UI.logTemplates.USER_INFO = _.template(data);
+			})
+		);
 	},
 
 	loadLogDetailTemplates: function() {
@@ -82,9 +105,6 @@ var FAPI_UI = {
 	},
 
     getUserInfoDiv : function( divToReplace ) {
-		if (!('USER_INFO' in this.logTemplates)) {
-			this.logTemplates.USER_INFO = _.template($("#userInfoTemplate").html());
-		}
 		// get the current user info
 		return $.getJSON({
 			url: '/currentuser',
