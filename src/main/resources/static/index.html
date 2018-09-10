@@ -745,7 +745,9 @@
 
             		   // add in any fields from the associated modules
         			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
-        				    fieldsToShow = _.unique(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+                           if (FAPI_UI.availableTests[module]) {
+                               fieldsToShow = _.unique(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+                           }
         			   });
 
             		   $('#createPlanBtn').prop('disabled', false);

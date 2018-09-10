@@ -40,22 +40,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 
-import io.fintechlabs.testframework.info.DBTestInfoService;
 import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
+import io.fintechlabs.testframework.testmodule.DataUtils;
 
 /**
  * @author jricher
  *
  */
 @Controller
-public class TestPlanApi {
+public class TestPlanApi implements DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(TestPlanApi.class);
 
@@ -80,7 +77,7 @@ public class TestPlanApi {
 			description = config.get("description").getAsString();
 		}
 
-		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames());
+		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames(), holder.a.summary());
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
@@ -118,12 +115,13 @@ public class TestPlanApi {
 
 		if (holder != null) {
 
-				Map map = ImmutableMap.of(
+				Map map = args(
 					"planName", holder.a.testPlanName(),
 					"displayName", holder.a.displayName(),
 					"profile", holder.a.profile(),
 					"moduleNames", holder.a.testModuleNames(),
-					"configurationFields", holder.a.configurationFields());
+					"configurationFields", holder.a.configurationFields(),
+					"summary", holder.a.summary());
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
@@ -135,12 +133,13 @@ public class TestPlanApi {
 	public ResponseEntity<Object> getAvailableTestPlans() {
 		Set<Map<String, ?>> available = getTestPlans()
 			.values().stream()
-			.map(e -> ImmutableMap.of(
+			.map(e -> args(
 				"planName", e.a.testPlanName(),
 				"displayName", e.a.displayName(),
 				"profile", e.a.profile(),
 				"moduleNames", e.a.testModuleNames(),
-				"configurationFields", e.a.configurationFields()))
+				"configurationFields", e.a.configurationFields(),
+				"summary", e.a.summary()))
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);

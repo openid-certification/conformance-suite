@@ -38,8 +38,9 @@ public interface TestPlanService {
 	 * @param config
 	 * @param owner
 	 * @param testModules
+	 * @param summary
 	 */
-	void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules);
+	void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary);
 
 	/**
 	 * @param id
