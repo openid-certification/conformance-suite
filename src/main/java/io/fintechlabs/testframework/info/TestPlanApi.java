@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.logging;
+package io.fintechlabs.testframework.info;
 
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +61,9 @@ public class TestPlanApi implements DataUtils {
 	@Autowired
 	private TestPlanService planService;
 
+	@Autowired
+	private SavedConfigurationService savedConfigurationService;
+
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> createTestPlan(@RequestParam("planName") String planName, @RequestBody JsonObject config, Model m) {
 
@@ -76,6 +79,9 @@ public class TestPlanApi implements DataUtils {
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
 			description = config.get("description").getAsString();
 		}
+
+		// save the configuration for the test plan
+		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName);
 
 		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames(), holder.a.summary());
 

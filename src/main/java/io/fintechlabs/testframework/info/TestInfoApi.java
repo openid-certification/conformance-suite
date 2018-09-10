@@ -12,7 +12,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package io.fintechlabs.testframework.logging;
+package io.fintechlabs.testframework.info;
 
 import java.util.List;
 
@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
-import io.fintechlabs.testframework.info.DBTestInfoService;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 /**

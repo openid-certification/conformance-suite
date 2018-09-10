@@ -94,7 +94,8 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 			new AntPathRequestMatcher("/runner/**"),
 			new AntPathRequestMatcher("/log/**"),
 			new AntPathRequestMatcher("/info/**"),
-			new AntPathRequestMatcher("/plan/**")
+			new AntPathRequestMatcher("/plan/**"),
+			new AntPathRequestMatcher("/lastconfig")
 			);
 	}
 

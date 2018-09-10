@@ -506,6 +506,8 @@
 			}).then(function() {
 				return loadAvailablePlans();
 			}).then(function() {
+				return loadLastConfig();
+			}).then(function() {
 				return loadIndexPage();
 			});
 		});
@@ -570,9 +572,33 @@
 			});
 		}
 
-		function loadIndexPage() {
-			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+		function loadLastConfig() {
+			return $.getJSON('/lastconfig', function(data) {
 
+				if (data.config) {
+					// we found a configuration file, load it up
+
+					$("#config").val(JSON.stringify(data.config, null, 4));
+
+					if (data.testName) {
+						$('#singleTestSelector').prop('checked', true).change();
+						$('#testSelect option[value=' + data.testName + ']').prop('selected', true).change();
+					} else if (data.planName) {
+						$('#singleTestSelector').prop('checked', false).change();
+						$('#planSelect option[value=' + data.planName + ']').prop('selected', true).change();
+					}
+
+				} else {
+
+					// otherwise set the defaults
+
+					$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+				}
+
+			});
+		}
+
+		function loadIndexPage() {
 			$('#createTestBtn').click(function(evt) {
 				var testName = $('#testSelect').val();
 
