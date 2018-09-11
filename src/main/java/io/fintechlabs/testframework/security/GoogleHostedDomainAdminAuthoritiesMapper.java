@@ -19,7 +19,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 /**
  *
  * Simple mapper that adds ROLE_USER to the auhorities map for all queries,
- * plus adds ROLE_ADMIN if the userInfo contains a specific 'hd' (Hosted Domain) from Google.
+ * plus adds ROLE_ADMIN if the userInfo contains specific 'hd' (Hosted Domains) from Google.
  *
  */
 public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
@@ -28,7 +28,7 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
 	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
-	private String ADMIN_DOMAIN;
+	private String ADMIN_DOMAINS;
 
 	private String ADMIN_ISSUER;
 
@@ -42,9 +42,17 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
 			out.add(authority);
 			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
-				&& userInfo.getSource().has("hd")
-				&& userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(ADMIN_DOMAIN)) {
-				out.add(ROLE_ADMIN);
+				&& userInfo.getSource().has("hd"))
+			{
+				String[] adminDomainArray = ADMIN_DOMAINS.split(",");
+
+				for (int i = 0; i < adminDomainArray.length; i++) {
+					String domain = adminDomainArray[i];
+					if (userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(domain)) {
+						out.add(ROLE_ADMIN);
+						break;
+					}
+				}
 			}
 			out.add(ROLE_USER);
 		} catch (ParseException e) {
@@ -53,9 +61,9 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 		return out;
 	}
 
-	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domain, String admin_iss) {
+	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domains, String admin_iss) {
 
-		this.ADMIN_DOMAIN = admin_domain;
+		this.ADMIN_DOMAINS = admin_domains;
 		this.ADMIN_ISSUER = admin_iss;
 	}
 }

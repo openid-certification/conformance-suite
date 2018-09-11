@@ -65,8 +65,8 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	private String googleIss;
 
 	// Config for the admin role
-	@Value("${oidc.admin.domain}")
-	private String admin_domain;
+	@Value("${oidc.admin.domains}")
+	private String admin_domains;
 	@Value("${oidc.admin.issuer}")
 	private String admin_iss;
 
@@ -162,7 +162,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
 		//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
 		//       Any users of a specific domain (fintechlabs.com)
-		authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(admin_domain, admin_iss));
+		authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(admin_domains, admin_iss));
 
 		// This default provider will set everyone to have the role "USER". To change this
 		// behavior, wire in a custom OIDCAuthoritiesMapper here
