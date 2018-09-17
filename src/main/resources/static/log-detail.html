@@ -90,8 +90,10 @@
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title">Configuration</h4>
-					<button class="btn-clipboard" data-clipboard-target="#config">Copy to clipboard</button>
+					<h4 class="modal-title">
+						<button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+						Configuration for <code id="configTestId" class="text-muted"></code>
+					</h4>
 				</div>
 				<div class="modal-body">
 					<div class="wrapLongStrings">
@@ -299,6 +301,7 @@
 	                    $('#showConfigBtn').click(function(evt) {
 	                        evt.preventDefault();
 	                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
+	                        $('#configTestId').html(_.escape(testId));
 	                        $('#configModal').modal('show');
 	                    });
 
