@@ -202,8 +202,11 @@
 						]
 					});
 					
+		            $('[data-toggle="tooltip"]').tooltip({
+		                container: 'body'
+		            });
+
 					fetchTestResults(dt);
-					
 					dt.on('draw', function() {
 						fetchTestResults(dt);
 					});
