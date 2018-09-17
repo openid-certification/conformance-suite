@@ -136,7 +136,7 @@
 		 */
 		$(document).ready(function() {
 			FAPI_UI.showBusy();
-			
+
 			FAPI_UI.loadPlanListTemplates()
 			.then(function() {
 				return FAPI_UI.getUserInfo();
@@ -201,7 +201,7 @@
 						}
 						]
 					});
-					
+
 		            $('[data-toggle="tooltip"]').tooltip({
 		                container: 'body'
 		            });
@@ -219,18 +219,18 @@
 				}
 			});
 		}
-		
+
 		function fetchTestResults(dt) {
 			// for every visible row
 			dt.rows(':visible').every(function (index) {
 				var row = dt.row(index);
 				// look for any test instances that haven't been loaded
 				$('[data-instance]', row.node()).each(function() {
-					
+
 					var el = $(this);
-					
+
 					var testId = el.data('instance');
-					
+
 					if (testId) {
 						// get this instance's status
 						$.ajax({
@@ -246,7 +246,7 @@
 								}
 							},
 							error: function() {
-								
+
 							}
 						});
 					}
@@ -254,7 +254,7 @@
 			});
 
 		}
-		
+
 	</script>
 
 	<footer class="pageFooter">

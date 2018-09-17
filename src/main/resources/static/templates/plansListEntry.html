@@ -5,9 +5,9 @@
                         <td><%- plan.description %></td>
                         <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>
                         <td data-search="<%- _.pluck(plan.modules, 'testModule') %>"><% _.each(plan.modules, function(module) { %>
-                        	
+
                         	<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="<%- module.testModule %>" data-instance="<%- module.instances ? module.instances[0] : ''%>"> </span>
-                        
+
                         <% }); %></td>
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
                         <td data-search="<%- plan.owner ? plan.owner.iss + ' ' + plan.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: plan.owner ? plan.owner : {}}) %></td>

@@ -30,7 +30,7 @@ var FAPI_UI = {
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
-					
+
 					$.get('templates/logHeader.html', function(data) {
 						FAPI_UI.logTemplates.LOG_START = _.template(data);
 					}),
@@ -98,7 +98,7 @@ var FAPI_UI = {
 					$.get('templates/resultsSummary.html', function(data) {
 						FAPI_UI.logTemplates.SUMMARY = _.template(data);
 					}),
-					
+
 					$.get('templates/startBlock.html', function(data) {
 						FAPI_UI.logTemplates.START_BLOCK = _.template(data);
 					})
@@ -111,7 +111,7 @@ var FAPI_UI = {
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
-					
+
 					$.get('templates/logsListEntry.html', function(data) {
 						FAPI_UI.logTemplates.LOG_LISTING = _.template(data);
 					}),
@@ -132,7 +132,7 @@ var FAPI_UI = {
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
-					
+
 					$.get('templates/plan.html', function(data) {
 						FAPI_UI.logTemplates.PLAN_START = _.template(data);
 					}),
@@ -153,7 +153,7 @@ var FAPI_UI = {
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
-					
+
 					$.get('templates/plansListEntry.html', function(data) {
 						FAPI_UI.logTemplates.PLAN_LISTING = _.template(data);
 					}),
@@ -173,7 +173,7 @@ var FAPI_UI = {
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
-					
+
 					$.get('templates/pendingImageUploader.html', function(data) {
 						FAPI_UI.logTemplates.PENDING = _.template(data);
 					}),

@@ -156,7 +156,7 @@
 		                            item: item
 		                        }));
 	                        }
-	                        
+
 	                        $('#logDetail .logContent').append(el);
 
 	                        // see if we've got any "extra" bits that we want to display in a block
@@ -596,7 +596,7 @@
 				return getHeader(testId); // render the header, which includes test info
 			}).then(function() {
 				return getLogs(testId); // render the log entries themselves
-			}).then(function() { 
+			}).then(function() {
 				return getActive(testId); // check to see if the test is currently active
 			}).always(function() {
 				FAPI_UI.hideBusy();
