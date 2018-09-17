@@ -27,71 +27,75 @@ var FAPI_UI = {
 
 		loadLogDetailTemplates: function() {
 			return $.when(
-					$.get('templates/LogStart.html', function(data) {
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					}),
+					
+					$.get('templates/logHeader.html', function(data) {
 						FAPI_UI.logTemplates.LOG_START = _.template(data);
 					}),
 
-					$.get('templates/logDetailTemplate.html', function(data) {
+					$.get('templates/logEntry.html', function(data) {
 						FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
 					}),
 
-					$.get('templates/Source.html', function(data) {
+					$.get('templates/source.html', function(data) {
 						FAPI_UI.logTemplates.SOURCE = _.template(data);
 					}),
 
-					$.get('templates/Message.html', function(data) {
+					$.get('templates/message.html', function(data) {
 						FAPI_UI.logTemplates.MESSAGE = _.template(data);
 					}),
 
-					$.get('templates/Requirements.html', function(data) {
+					$.get('templates/requirements.html', function(data) {
 						FAPI_UI.logTemplates.REQUIREMENTS = _.template(data);
 					}),
 
-					$.get('templates/Upload.html', function(data) {
+					$.get('templates/upload.html', function(data) {
 						FAPI_UI.logTemplates.UPLOAD = _.template(data);
 					}),
 
-					$.get('templates/Owner.html', function(data) {
+					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					}),
 
-					$.get('templates/Result.html', function(data) {
+					$.get('templates/result.html', function(data) {
 						FAPI_UI.logTemplates.RESULT = _.template(data);
 					}),
 
-					$.get('templates/Time.html', function(data) {
+					$.get('templates/time.html', function(data) {
 						FAPI_UI.logTemplates.TIME = _.template(data);
 					}),
 
-					$.get('templates/More.html', function(data) {
+					$.get('templates/more.html', function(data) {
 						FAPI_UI.logTemplates.MORE = _.template(data);
 					}),
 
-					$.get('templates/MoreButton.html', function(data) {
+					$.get('templates/moreButton.html', function(data) {
 						FAPI_UI.logTemplates.MORE_BUTTON = _.template(data);
 					}),
 
-					$.get('templates/Exported.html', function(data) {
+					$.get('templates/exported.html', function(data) {
 						FAPI_UI.logTemplates.EXPORTED = _.template(data);
 					}),
 
-					$.get('templates/Browser.html', function(data) {
+					$.get('templates/browser.html', function(data) {
 						FAPI_UI.logTemplates.BROWSER = _.template(data);
 					}),
 
-					$.get('templates/Http.html', function(data) {
+					$.get('templates/http.html', function(data) {
 						FAPI_UI.logTemplates.HTTP = _.template(data);
 					}),
 
-					$.get('templates/FinalError.html', function(data) {
+					$.get('templates/finalError.html', function(data) {
 						FAPI_UI.logTemplates.FINAL_ERROR = _.template(data);
 					}),
 
-					$.get('templates/TestStatusAndResult.html', function(data) {
+					$.get('templates/statusAndResult.html', function(data) {
 						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
 					}),
 
-					$.get('templates/ResultsSummary.html', function(data) {
+					$.get('templates/resultsSummary.html', function(data) {
 						FAPI_UI.logTemplates.SUMMARY = _.template(data);
 					})
 			);
@@ -100,11 +104,15 @@ var FAPI_UI = {
 
 		loadLogListTemplates: function() {
 			return $.when(
-					$.get('templates/logsListingTemplate.html', function(data) {
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					}),
+					
+					$.get('templates/logsListEntry.html', function(data) {
 						FAPI_UI.logTemplates.LOG_LISTING = _.template(data);
 					}),
 
-					$.get('templates/logsListingHeader.html', function(data) {
+					$.get('templates/logsListHeader.html', function(data) {
 						FAPI_UI.logTemplates.LOG_LISTING_HEADER = _.template(data);
 					}),
 
@@ -117,15 +125,19 @@ var FAPI_UI = {
 
 		loadPlanTemplates: function() {
 			return $.when(
-					$.get('templates/PlanStart.html', function(data) {
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					}),
+					
+					$.get('templates/plan.html', function(data) {
 						FAPI_UI.logTemplates.PLAN_START = _.template(data);
 					}),
 
-					$.get('templates/Owner.html', function(data) {
+					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					}),
 
-					$.get('templates/TestStatusAndResult.html', function(data) {
+					$.get('templates/statusAndResult.html', function(data) {
 						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
 					})
 			);
@@ -134,15 +146,19 @@ var FAPI_UI = {
 
 		loadPlanListTemplates: function() {
 			return $.when(
-					$.get('templates/plansListingTemplate.html', function(data) {
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					}),
+					
+					$.get('templates/plansListEntry.html', function(data) {
 						FAPI_UI.logTemplates.PLAN_LISTING = _.template(data);
 					}),
 
-					$.get('templates/plansListingHeader.html', function(data) {
+					$.get('templates/plansListHeader.html', function(data) {
 						FAPI_UI.logTemplates.PLAN_LISTING_HEADER = _.template(data);
 					}),
 
-					$.get('templates/Owner.html', function(data) {
+					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					})
 			);
@@ -150,6 +166,10 @@ var FAPI_UI = {
 
 		loadImageUploadTemplates: function() {
 			return $.when(
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					}),
+					
 					$.get('templates/pendingImageUploader.html', function(data) {
 						FAPI_UI.logTemplates.PENDING = _.template(data);
 					}),
@@ -158,11 +178,11 @@ var FAPI_UI = {
 						FAPI_UI.logTemplates.EXISTING = _.template(data);
 					}),
 
-					$.get('templates/Source.html', function(data) {
+					$.get('templates/source.html', function(data) {
 						FAPI_UI.logTemplates.SOURCE = _.template(data);
 					}),
 
-					$.get('templates/Message.html', function(data) {
+					$.get('templates/message.html', function(data) {
 						FAPI_UI.logTemplates.MESSAGE = _.template(data);
 					})
 			);
@@ -195,14 +215,14 @@ var FAPI_UI = {
 			}
 		},
 
-		getUserInfoDiv : function( divToReplace ) {
+		getUserInfo : function() {
 			// get the current user info
 			return $.getJSON({
 				url: '/currentuser',
 				context: this
 			}).done(function(userInfo) {
 				this.currentUser = userInfo;
-				$(divToReplace).html(this.logTemplates.USER_INFO({userInfo: userInfo}));
+				$('#userInfoHolder').html(this.logTemplates.USER_INFO({userInfo: userInfo}));
 				$('[data-toggle="tooltip"]').tooltip();
 			});
 		},

@@ -29,16 +29,15 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
-		FAPI_UI.getUserInfoDiv("#userInfoDiv");
 
 		var urlParams = new URLSearchParams(window.location.search);
 		var testId = urlParams.get('log');
 
 		FAPI_UI.showBusy();
 
-		$.when(FAPI_UI.loadImageUploadTemplates()) // load the templates
+		FAPI_UI.loadImageUploadTemplates() // load the templates
 		.then(function() {
-			return FAPI_UI.getUserInfoDiv('#userInfoDiv'); // then get the current user
+			return FAPI_UI.getUserInfo(); // then get the current user
 		}).then(function() {
 			return loadImagesForLog(testId); // load the existing and placeholder images and render the page
 		}).always(function() {
@@ -283,7 +282,7 @@
 			<div class="col-md-8">
 				<a href="index.html"><img src="/images/FinTechLabs.io.png" alt=""></a>
 			</div>
-			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+			<div id="userInfoHolder" class="col-md-4 text-right"></div>
 		</div>
 	</div>
 	<div class="clearfix"></div>
@@ -356,83 +355,6 @@
 		</div>
 
 	</div>
-
-	<!-- Templates -->
-	<!-- UserInfo Template-->
-	<script type="text/template" id="userInfoTemplate">
-        <div id="userInfoData">
-            <form action="/logout" method="post" class="form-inline">
-                <p class="form-control-static">Logged in as
-                    <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                    <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-            </form>
-        </div>
-    </script>
-
-	<!-- Pending Image Uploader -->
-	<script type="text/html" id="pendingImageUploader">
-		<div class="row">
-			<div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
-				<div class="row">
-					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
-					<div class="col-md-3">
-						<!-- image preview -->
-						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
-					</div>
-					<div class="col-md-8">
-						<!-- test details and form controls -->
-						<% if (item.src) { %>
-							<%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
-						<% } %>
-						<% if (item.msg) { %>
-							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-						<% } %>
-
-						<label class="btn btn-default">
-							<span class="glyphicon glyphicon-camera"></span> Select File</input>
-    							<input type="file" hidden>
-						</label>
-						<button class="btn btn-default uploadBtn" disabled>Upload</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</script>
-
-	<!-- Existing Image Entry -->
-	<script type="text/html" id="existingImage">
-		<div class="row">
-			<div class="col-md-12 logItem">
-				<div class="row">
-					<div class="col-md-1"><div class="bg-success testStatusResultBlock"><span class="glyphicon glyphicon-ok-sign"></span></div></div>
-					<div class="col-md-3">
-						<!-- image view -->
-						<img src="<%- item.img %>" alt="" class="img-responsive center-block imagePreview" />
-					</div>
-					<div class="col-md-8">
-						<% if (item.src) { %>
-							<%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
-						<% } %>
-						<% if (item.msg) { %>
-							<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-						<% } %>
-					</div>
-				</div>
-			</div>
-		</div>
-	</script>
-
-	<!-- Source -->
-	<script type="text/html" id="logDetailTemplate_Source">
-		<span class="log-source"><%- item.src %></span>
-	</script>
-
-	<!-- Message -->
-	<script type="text/html" id="logDetailTemplate_Message">
-		<p class="log-message wrapLongStrings"><%- item.msg %></p>
-	</script>
-
 
 	<footer class="pageFooter">
 		<span class="muted">FintechLabs.io conformance suite</span>

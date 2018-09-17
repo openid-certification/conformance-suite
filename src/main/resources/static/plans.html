@@ -41,7 +41,7 @@
 			<div class="col-md-8">
 				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
 			</div>
-			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+			<div id="userInfoHolder" class="col-md-4 text-right"></div>
 		</div>
 	</div>
 	<div class="clearfix"></div>
@@ -63,52 +63,6 @@
 		</div>
 	</div>
 
-
-	<!-- Templates -->
-	<script type="text/template" id="plansListingHeader">
-                    <tr>
-                        <th>Instance ID</th>
-                        <th>Config</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Started</th>
-                        <th>Modules</th>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <th>Owner</th>
-                        <% } %>
-                    </tr>
-        </script>
-
-	<script type="text/template" id="plansListingTemplate">
-                    <tr>
-                        <td data-order="<%- plan._id %>" data-search="<%- plan._id %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- plan._id %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- plan._id %></code></a></td>
-                        <td class="configColumn" data-search="<%- JSON.stringify(plan.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
-                        <td><%- plan.planName %></td>
-                        <td><%- plan.description %></td>
-                        <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>
-                        <td data-search="<%- _.pluck(plan.modules, 'testModule') %>"><%- _.pluck(plan.modules, 'testModule').join(', ') %></td>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <td data-search="<%- plan.owner ? plan.owner.iss + ' ' + plan.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: plan.owner ? plan.owner : {}}) %></td>
-                        <% } %>
-                    </tr>
-    </script>
-
-	<!-- Owner -->
-	<script type="text/template" id="logDetailTemplate_Owner">
-            <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
-    </script>
-
-	<!-- UserInfo Template-->
-	<script type="text/template" id="userInfoTemplate">
-            <div id="userInfoData">
-                <form action="/logout" method="post" class="form-inline">
-                    <p class="form-control-static">Logged in as
-                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                        <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
-            </div>
-        </script>
 
 	<!-- error modal -->
 	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
@@ -178,8 +132,10 @@
 		 */
 		$(document).ready(function() {
 			FAPI_UI.showBusy();
-			$.when(FAPI_UI.loadPlanListTemplates()).then(function() {
-				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+			
+			FAPI_UI.loadPlanListTemplates()
+			.then(function() {
+				return FAPI_UI.getUserInfo();
 			}).then(function() {
 				return loadAvailablePlans();
 			}).always(function() {
