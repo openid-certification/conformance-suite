@@ -97,6 +97,10 @@ var FAPI_UI = {
 
 					$.get('templates/resultsSummary.html', function(data) {
 						FAPI_UI.logTemplates.SUMMARY = _.template(data);
+					}),
+					
+					$.get('templates/startBlock.html', function(data) {
+						FAPI_UI.logTemplates.START_BLOCK = _.template(data);
 					})
 			);
 
