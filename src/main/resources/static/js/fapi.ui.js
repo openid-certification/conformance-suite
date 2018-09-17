@@ -116,7 +116,7 @@ var FAPI_UI = {
 						FAPI_UI.logTemplates.LOG_LISTING_HEADER = _.template(data);
 					}),
 
-					$.get('templates/Owner.html', function(data) {
+					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					})
 			);
@@ -222,7 +222,7 @@ var FAPI_UI = {
 				context: this
 			}).done(function(userInfo) {
 				this.currentUser = userInfo;
-				$('#userInfoHolder').html(this.logTemplates.USER_INFO({userInfo: userInfo}));
+				$('#userInfoHolder').html(FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo}));
 				$('[data-toggle="tooltip"]').tooltip();
 			});
 		},
