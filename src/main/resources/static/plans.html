@@ -187,7 +187,7 @@
 						});
 					});
 
-					$('#plansListing').DataTable({
+					var dt = $('#plansListing').DataTable({
 						order: [[4, "desc"]], // sort by the "date" column, descending, by default
 						columnDefs: [{
 							// disable sorting on the "view config" button
@@ -201,6 +201,12 @@
 						}
 						]
 					});
+					
+					fetchTestResults(dt);
+					
+					dt.on('draw', function() {
+						fetchTestResults(dt);
+					});
 
 				},
 				error: function(jqhxr, status, error) {
@@ -210,6 +216,42 @@
 				}
 			});
 		}
+		
+		function fetchTestResults(dt) {
+			// for every visible row
+			dt.rows(':visible').every(function (index) {
+				var row = dt.row(index);
+				// look for any test instances that haven't been loaded
+				$('[data-instance]', row.node()).each(function() {
+					
+					var el = $(this);
+					
+					var testId = el.data('instance');
+					
+					if (testId) {
+						// get this instance's status
+						$.ajax({
+							type: 'GET',
+							url: '/info/' + encodeURIComponent(testId),
+							data: {},
+							success: function(data) {
+								console.log(data);
+								el.data('instance', ''); // clear the data attribute so we don't re-fetch
+								if (data.result) {
+									el.removeClass('testResult-unknown');
+									el.addClass('testResult-' + data.result.toLowerCase());
+								}
+							},
+							error: function() {
+								
+							}
+						});
+					}
+				});
+			});
+
+		}
+		
 	</script>
 
 	<footer class="pageFooter">
