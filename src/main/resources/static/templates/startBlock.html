@@ -19,13 +19,13 @@ var textColor = chroma(item.blockId).luminance() > 0.6 ? 'black' : 'white';
 				</div>
 			</div>
 
-             <div class="col-md-9">
+             <div class="col-md-10">
                  <% if (item.msg) { %>
 					<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
                  <% } %>
              </div>
 
-             <div class="col-md-2">
+             <div class="col-md-1">
                  <% if (item.testOwner
                          && (item.testOwner.iss != FAPI_UI.currentUser.iss
                              || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
