@@ -37,7 +37,7 @@ import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourc
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
-import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
@@ -475,7 +475,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.WARNING, "FAPI-RW-8.6");
 
 		performTokenEndpointIdTokenExtraction();

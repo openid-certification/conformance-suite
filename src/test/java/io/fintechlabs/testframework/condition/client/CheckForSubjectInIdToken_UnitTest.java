@@ -32,7 +32,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CheckForSubscriberInIdToken_UnitTest {
+public class CheckForSubjectInIdToken_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -42,7 +42,7 @@ public class CheckForSubscriberInIdToken_UnitTest {
 
 	private JsonObject goodToken;
 
-	private CheckForSubscriberInIdToken cond;
+	private CheckForSubjectInIdToken cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -50,7 +50,7 @@ public class CheckForSubscriberInIdToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckForSubscriberInIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForSubjectInIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Good sample from OpenID Connect Core spec
 
@@ -68,7 +68,7 @@ public class CheckForSubscriberInIdToken_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link CheckForSubjectInIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
@@ -81,7 +81,7 @@ public class CheckForSubscriberInIdToken_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
+	 * Test method for {@link CheckForSubjectInIdToken#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
