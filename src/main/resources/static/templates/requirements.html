@@ -1,0 +1,13 @@
+            <div class="labelCollection">
+            <% _.each(item.requirements, function(requirement) {
+                var spec = _.find(_.keys(FAPI_UI.specLinks), function(prefix) {
+                    return requirement.indexOf(prefix) == 0;
+                });
+                if (spec) {
+                    // link to the spec if we have it %>
+                    <span class="log-requirement label label-default"><a href="<%- FAPI_UI.specLinks[spec] %>"><%- requirement %> <span class="glyphicon glyphicon-link"></span></a></span>
+                <% } else { %>
+                    <span class="log-requirement label label-default"><%- requirement %></span>
+                <% }
+            }); %>
+            </div>

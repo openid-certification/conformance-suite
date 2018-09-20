@@ -1,0 +1,8 @@
+        <div id="userInfoData">
+            <form action="/logout" method="post" class="form-inline">
+                <p class="form-control-static">Logged in as
+                    <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
+                    <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
+                <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+            </form>
+        </div>

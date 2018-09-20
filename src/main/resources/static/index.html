@@ -42,7 +42,7 @@
 			<div class="col-md-8">
 				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
 			</div>
-			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+			<div id="userInfoHolder" class="col-md-4 text-right"></div>
 		</div>
 	</div>
 	<div class="clearfix"></div>
@@ -410,87 +410,6 @@
 		</div>
 	</div>
 
-	<!-- Templates -->
-	<!-- UserInfo Template-->
-	<script type="text/template" id="userInfoTemplate">
-        <div id="userInfoData">
-            <form action="/logout" method="post" class="form-inline">
-                <p class="form-control-static">Logged in as
-                    <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                    <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-            </form>
-        </div>
-    </script>
-
-	<!-- Test Launch Selectors -->
-	<script type="text/template" id="indexTemplate_TestOption">
-        <option value="<%- val %>"><%- display %></option>
-    </script>
-
-	<script type="text/template" id="indexTemplate_TestOptGroup">
-        <optgroup label="<%- label %>">
-        </optgroup>
-    </script>
-
-	<!-- Owner -->
-	<script type="text/template" id="logDetailTemplate_Owner">
-        <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
-    </script>
-
-	<!-- Running Test: Main -->
-	<script type="text/template" id="indexTemplate_RunningTest">
-        <div class="runningTest row" data-instance-id="<%- test.id %>">
-            <div class="col-md-2 testStatusAndResult"> <!-- result/status -->
-
-            </div>
-            <div class="col-md-8"> <!-- test name / date -->
-                <div class="row">
-                    <div class="col-md-1">Test Name:</div>
-                    <div class="col-md-11"><%- test.name %></div>
-                </div>
-                <div class="row">
-                    <div class="col-md-1">Test ID:</div>
-                    <div class="col-md-11"><%- test.id %></div>
-                </div>
-                <div class="row">
-                    <div class="col-md-1">Created:</div>
-                    <div class="col-md-11"><%- new Date(test.created) %></div>
-                </div>
-                <div class="row">
-                    <div class="col-md-1">Updated:</div>
-                    <div class="col-md-11"><%- new Date(test.updated) %></div>
-                </div>
-                <% if (FAPI_UI.currentUser.isAdmin) { %>
-                <div class="row">
-                    <div class="col-md-1">Test Owner:</div>
-                    <div class="col-md-11">
-                        <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
-                    </div>
-                </div>
-                <% } %>
-            </div>
-            <div class="col-md-2"> <!-- controls -->
-                <button class="btn btn-default btn-block downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
-                <button class="btn btn-default btn-block viewBtn"><span class="glyphicon glyphicon-list-alt"></span> View Test Details</button>
-            </div>
-
-        </div>
-
-    </script>
-
-    <!-- result/status block -->
-    <script type="text/template" id="logTemplate_TestStatusAndResult">
-        <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
-            <%- test.status ? test.status : 'UNKNOWN' %>
-            <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-placement="right"></span></sup>
-        </div>
-        <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'unknown' %>">
-            <%- test.result ? test.result : 'UNKNOWN' %>
-            <sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-placement="right"></span></sup>
-        </div>
-    </script>
-
 	<script type="text/javascript">
 		/**
 		 *
@@ -499,8 +418,9 @@
 
             FAPI_UI.showBusy('Loading available tests...');
 
-			$.when(FAPI_UI.loadHomepageTemplates()).then(function() {
-				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+			FAPI_UI.loadHomepageTemplates()
+			.then(function() {
+				return FAPI_UI.getUserInfo();
 			}).then(function() {
 			    return loadAvailableTests();
 			}).then(function() {

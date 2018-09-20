@@ -26,6 +26,7 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
 	<!-- DataTables -->
 	<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
@@ -41,7 +42,7 @@
 			<div class="col-md-8">
 				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
 			</div>
-			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+			<div id="userInfoHolder" class="col-md-4 text-right"></div>
 		</div>
 	</div>
 	<div class="clearfix"></div>
@@ -63,60 +64,6 @@
 		</div>
 	</div>
 
-
-	<!-- Templates -->
-	<script type="text/template" id="logsListingHeader">
-                    <tr>
-                        <th>Instance ID</th>
-                        <th>Config</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Started</th>
-                        <th>Plan ID</th>
-                        <th>Status</th>
-                        <th>Result</th>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <th>Owner</th>
-                        <% } %>
-                    </tr>
-        </script>
-
-	<script type="text/template" id="logsListingTemplate">
-                    <tr>
-                        <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><a class="btn btn-default btn-block" href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted"><%- test.testId %></code></a></td>
-                        <td class="configColumn" data-search="<%- JSON.stringify(test.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
-                        <td><%- test.testName %></td>
-                        <td><%- test.description %></td>
-                        <td data-order="<%- test.started %>"><%- new Date(test.started).toLocaleString() %></td>
-                        <% if (test.planId) { %>
-                        <td data-order=<%- test.planId %>" data-search="<%- test.planId %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- encodeURIComponent(test.planId) %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- test.planId %></code></a></td>
-                        <% } else { %>
-                        <td></td>
-                        <% } %>
-                        <td class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>"><%- test.status %></td>
-                        <td class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>"><%- test.result %></td>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <td data-search="<%- test.owner ? test.owner.iss + ' ' + test.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: test.owner ? test.owner : {}}) %></td>
-                        <% } %>
-                    </tr>
-        </script>
-
-	<!-- Owner -->
-	<script type="text/template" id="logDetailTemplate_Owner">
-            <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
-        </script>
-
-	<!-- UserInfo Template-->
-	<script type="text/template" id="userInfoTemplate">
-            <div id="userInfoData">
-                <form action="/logout" method="post" class="form-inline">
-                    <p class="form-control-static">Logged in as
-                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                        <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
-            </div>
-        </script>
 
 	<!-- error modal -->
 	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
@@ -165,12 +112,15 @@
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title">Configuration</h4>
+					<h4 class="modal-title">
+						<button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+						Configuration for <code id="configTestId" class="text-muted"></code>
+					</h4>
 				</div>
 				<div class="modal-body">
-				    <div class="wrapLongStrings">
+					<div class="wrapLongStrings">
 						<pre id="config"></pre>
-				    </div>
+					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -186,12 +136,21 @@
 		 */
 		$(document).ready(function() {
 			FAPI_UI.showBusy();
-			$.when(FAPI_UI.loadLogListTemplates()).then(function() {
-				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+			FAPI_UI.loadLogListTemplates()
+			.then(function() {
+				return FAPI_UI.getUserInfo();
 			}).then(function() {
 				return loadAvailableLogs();
 			}).always(function() {
 				FAPI_UI.hideBusy();
+			});
+
+			var clipboard = new ClipboardJS('.btn-clipboard');
+			clipboard.on('success', function(e) {
+				console.log(e);
+			});
+			clipboard.on('error', function(e) {
+				console.log(e);
 			});
 		});
 
@@ -221,6 +180,7 @@
 						$('.showConfigBtn', logRow).click(function(evt) {
 							evt.preventDefault();
 							$('#config').html(_.escape(JSON.stringify(test.config, null, 4)));
+	                        $('#configTestId').html(_.escape(test.testId));
 							$('#configModal').modal('show');
 						});
 					});

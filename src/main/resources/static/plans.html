@@ -26,6 +26,7 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
 	<!-- DataTables -->
 	<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
@@ -41,7 +42,7 @@
 			<div class="col-md-8">
 				<a href="index.html"><img src="/images/FinTechLabs.io.png"></a>
 			</div>
-			<div id="userInfoDiv" class="col-md-4 text-right"></div>
+			<div id="userInfoHolder" class="col-md-4 text-right"></div>
 		</div>
 	</div>
 	<div class="clearfix"></div>
@@ -63,52 +64,6 @@
 		</div>
 	</div>
 
-
-	<!-- Templates -->
-	<script type="text/template" id="plansListingHeader">
-                    <tr>
-                        <th>Instance ID</th>
-                        <th>Config</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Started</th>
-                        <th>Modules</th>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <th>Owner</th>
-                        <% } %>
-                    </tr>
-        </script>
-
-	<script type="text/template" id="plansListingTemplate">
-                    <tr>
-                        <td data-order="<%- plan._id %>" data-search="<%- plan._id %>"><a class="btn btn-default btn-block" href="plan-detail.html?plan=<%- plan._id %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- plan._id %></code></a></td>
-                        <td class="configColumn" data-search="<%- JSON.stringify(plan.config) %>"><button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button></td>
-                        <td><%- plan.planName %></td>
-                        <td><%- plan.description %></td>
-                        <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>
-                        <td data-search="<%- _.pluck(plan.modules, 'testModule') %>"><%- _.pluck(plan.modules, 'testModule').join(', ') %></td>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <td data-search="<%- plan.owner ? plan.owner.iss + ' ' + plan.owner.sub : '' %>"><%= FAPI_UI.logTemplates.OWNER({owner: plan.owner ? plan.owner : {}}) %></td>
-                        <% } %>
-                    </tr>
-    </script>
-
-	<!-- Owner -->
-	<script type="text/template" id="logDetailTemplate_Owner">
-            <span class="log-owner"><span class="ownerSub"><%- owner.sub %></span><span class="ownerIss"><%- owner.iss %></span></span>
-    </script>
-
-	<!-- UserInfo Template-->
-	<script type="text/template" id="userInfoTemplate">
-            <div id="userInfoData">
-                <form action="/logout" method="post" class="form-inline">
-                    <p class="form-control-static">Logged in as
-                        <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                        <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
-                </form>
-            </div>
-        </script>
 
 	<!-- error modal -->
 	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
@@ -157,12 +112,15 @@
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h4 class="modal-title">Configuration</h4>
+					<h4 class="modal-title">
+						<button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+						Configuration for <code id="configTestId" class="text-muted"></code>
+					</h4>
 				</div>
 				<div class="modal-body">
-				    <div class="wrapLongStrings">
+					<div class="wrapLongStrings">
 						<pre id="config"></pre>
-				    </div>
+					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -178,13 +136,24 @@
 		 */
 		$(document).ready(function() {
 			FAPI_UI.showBusy();
-			$.when(FAPI_UI.loadPlanListTemplates()).then(function() {
-				return FAPI_UI.getUserInfoDiv("#userInfoDiv");
+
+			FAPI_UI.loadPlanListTemplates()
+			.then(function() {
+				return FAPI_UI.getUserInfo();
 			}).then(function() {
 				return loadAvailablePlans();
 			}).always(function() {
 				FAPI_UI.hideBusy();
 			});
+
+			var clipboard = new ClipboardJS('.btn-clipboard');
+			clipboard.on('success', function(e) {
+				console.log(e);
+			});
+			clipboard.on('error', function(e) {
+				console.log(e);
+			});
+
 		});
 
 		/**
@@ -213,11 +182,12 @@
 						$('.showConfigBtn', logRow).click(function(evt) {
 							evt.preventDefault();
 							$('#config').html(_.escape(JSON.stringify(plan.config, null, 4)));
+	                        $('#configTestId').html(_.escape(plan._id));
 							$('#configModal').modal('show');
 						});
 					});
 
-					$('#plansListing').DataTable({
+					var dt = $('#plansListing').DataTable({
 						order: [[4, "desc"]], // sort by the "date" column, descending, by default
 						columnDefs: [{
 							// disable sorting on the "view config" button
@@ -232,6 +202,15 @@
 						]
 					});
 
+		            $('[data-toggle="tooltip"]').tooltip({
+		                container: 'body'
+		            });
+
+					fetchTestResults(dt);
+					dt.on('draw', function() {
+						fetchTestResults(dt);
+					});
+
 				},
 				error: function(jqhxr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -240,6 +219,42 @@
 				}
 			});
 		}
+
+		function fetchTestResults(dt) {
+			// for every visible row
+			dt.rows(':visible').every(function (index) {
+				var row = dt.row(index);
+				// look for any test instances that haven't been loaded
+				$('[data-instance]', row.node()).each(function() {
+
+					var el = $(this);
+
+					var testId = el.data('instance');
+
+					if (testId) {
+						// get this instance's status
+						$.ajax({
+							type: 'GET',
+							url: '/info/' + encodeURIComponent(testId),
+							data: {},
+							success: function(data) {
+								console.log(data);
+								el.data('instance', ''); // clear the data attribute so we don't re-fetch
+								if (data.result) {
+									el.removeClass('testResult-unknown');
+									el.addClass('testResult-' + data.result.toLowerCase());
+								}
+							},
+							error: function() {
+
+							}
+						});
+					}
+				});
+			});
+
+		}
+
 	</script>
 
 	<footer class="pageFooter">

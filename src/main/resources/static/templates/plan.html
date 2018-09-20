@@ -1,0 +1,76 @@
+        <div class="well well-sm container-fluid">
+            <div class="row-fluid" id="planHeader"> <!-- main header -->
+
+                <div class="col-md-10">
+
+                    <div class="row">
+                        <div class="col-md-1">Plan Name:</div>
+                        <div class="col-md-11"><%- plan.planName %></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">Plan ID:</div>
+                        <div class="col-md-11"><%- plan._id %></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">Description:</div>
+                        <div class="col-md-11"><%- plan.description %></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">Started:</div>
+                        <div class="col-md-11"><%- plan.started %></div>
+                    </div>
+
+                    <% if (FAPI_UI.currentUser.isAdmin) { %>
+                    <div class="row">
+                        <div class="col-md-1">Test Owner:</div>
+                        <div class="col-md-11">
+                            <%= FAPI_UI.logTemplates.OWNER({owner: plan.owner}) %>
+                        </div>
+                    </div>
+                    <% } %>
+
+					<% if (plan.summary) { %>
+					<div class="row">
+						<div class="col-md-12">
+							<p class="bgSummary bg-info"><%- plan.summary %></p>
+						</div>
+
+					</div>
+					<% } %>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="container-fluid" id="planItems"> <!-- container for plan results -->
+            <% _.each(plan.modules, function(module) { %>
+                <% var lastInstance = module.instances.pop(); %>
+            <div class="row logItem" data-instance-id="<%- lastInstance %>">
+                <div class="col-md-2 testStatusAndResult">
+
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>"><span class="glyphicon glyphicon-play"></span> Run New Test</button>
+                    <button class="btn btn-default btn-block collapse viewBtn"><span class="glyphicon glyphicon-file"></span> View Logs</button>
+                    <button class="btn btn-default btn-block collapse downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                </div>
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-1">Test Name:</div>
+                        <div class="col-md-11"><%- module.testModule %></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">Test ID:</div>
+                        <div class="col-md-11"><%- lastInstance ? lastInstance : 'NONE' %></div>
+                    </div>
+                </div>
+            </div>
+            <% }); %>
+        </div>
