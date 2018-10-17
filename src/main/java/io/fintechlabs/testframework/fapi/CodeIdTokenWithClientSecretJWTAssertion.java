@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourc
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
-import io.fintechlabs.testframework.condition.client.CheckForSubscriberInIdToken;
+import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
@@ -317,7 +317,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-R-5.2.2-24");
+			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
 			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
@@ -365,7 +365,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(CheckForSubscriberInIdToken.class, "FAPI-R-5.2.2-24");
+			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
 			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
