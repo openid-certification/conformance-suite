@@ -484,6 +484,12 @@ deployment_test_review:
     export CONFORMANCE_CLIENT_SECRET=$(sed -n 's/client_secret://p' microauth-credentials | base64 -d)
     export CONFORMANCE_K8_NAMESPACE="$KUBE_NAMESPACE"
     export CONFORMANCE_K8_APPNAME="${CI_ENVIRONMENT_SLUG}-microauth"
+    # sometimes we see failures like https://gitlab.com/fintechlabs/fapi-conformance-suite/-/jobs/109515031
+    # or https://gitlab.com/fintechlabs/fapi-conformance-suite/-/jobs/109332450
+    # as an attempt to workaround or confirm that the problem is the deployment not having completed,
+    # sleep before we run the tests
+    echo "Sleeping for 4 minutes to allow everything to startup"
+    sleep 240
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ./run-tests.sh
   }
