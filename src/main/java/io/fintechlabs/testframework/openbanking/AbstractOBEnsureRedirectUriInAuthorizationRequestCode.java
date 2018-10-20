@@ -11,6 +11,11 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 public abstract class AbstractOBEnsureRedirectUriInAuthorizationRequestCode extends AbstractOBEnsureRedirectUriInAuthorizationRequest {
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.QUERY;
+	}
+
+	@Override
 	protected void createAuthorizationRequest() {
 
 		super.createAuthorizationRequest();

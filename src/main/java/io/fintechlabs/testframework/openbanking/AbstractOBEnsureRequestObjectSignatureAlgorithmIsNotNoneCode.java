@@ -11,6 +11,11 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNoneCode extends AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone {
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.QUERY;
+	}
+
+	@Override
 	protected void createAuthorizationRequest() {
 
 		super.createAuthorizationRequest();

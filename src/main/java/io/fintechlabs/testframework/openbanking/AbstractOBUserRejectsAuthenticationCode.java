@@ -13,6 +13,11 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 public abstract class AbstractOBUserRejectsAuthenticationCode extends AbstractOBServerTestModuleCode {
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.QUERY;
+	}
+
+	@Override
 	protected void createAuthorizationRequest() {
 
 		env.putInteger("requested_state_length", 128);
@@ -24,6 +29,7 @@ public abstract class AbstractOBUserRejectsAuthenticationCode extends AbstractOB
 
 	@Override
 	protected Object onAuthorizationCallbackResponse() {
+		env.putObject("authorization_endpoint_response", env.getObject("callback_query_params"));
 
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");

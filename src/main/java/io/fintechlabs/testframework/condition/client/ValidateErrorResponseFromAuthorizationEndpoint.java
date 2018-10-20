@@ -22,10 +22,10 @@ public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCond
 	}
 
 	@Override
-	@PreEnvironment(required = "callback_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		JsonObject callbackParams = env.getObject("callback_params");
+		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
 		int requiredParameterCount = 0;
 		int optionalParameterCount = 0;
 

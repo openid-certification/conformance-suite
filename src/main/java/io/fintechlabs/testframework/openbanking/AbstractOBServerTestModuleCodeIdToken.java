@@ -38,6 +38,11 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOBServerTestModuleCodeIdToken.class);
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.FRAGMENT;
+	}
+
+	@Override
 	protected void createAuthorizationRequest() {
 
 		super.createAuthorizationRequest();
