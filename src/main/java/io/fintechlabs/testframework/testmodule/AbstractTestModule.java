@@ -490,8 +490,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			stop();
 
 			eventLog.log(getName(), args(
-				"msg", "Finished",
-				"result", getResult()));
+				"msg", "Test has run to completion",
+				"result", Status.FINISHED.toString(),
+				"testmodule_result", getResult()));
 
 			return "done";
 		});

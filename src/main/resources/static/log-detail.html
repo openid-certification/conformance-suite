@@ -214,7 +214,7 @@
 				    var allResults = $('[data-entry-result]').map(function() { return $(this).data('entryResult'); }).get();
 				    var resultTotals = _.countBy(allResults, _.identity());
 
-				    var possibleResults = ['success', 'failure', 'warning', 'review', 'interrupted', 'info'];
+				    var possibleResults = ['success', 'failure', 'warning', 'review', 'info'];
 				    var results = '';
 				    _.each(possibleResults, function(result) {
 				    	   results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
