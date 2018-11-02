@@ -54,6 +54,23 @@ public interface DataUtils {
 		return m;
 	}
 
+	public default Map<String, String> stringMap(Object... a) {
+		if (a == null || (a.length % 2) != 0) {
+			throw new IllegalArgumentException("Need an even and nonzero number of arguments");
+		}
+
+		// start with an empty map of the right size
+		HashMap<String, String> m = new HashMap<>(a.length / 2);
+
+		for (int i = 0; i < a.length; i += 2) {
+			String key = (String) a[i];
+			String val = (String)a[i + 1];
+			m.put(key, val);
+		}
+
+		return m;
+	}
+
 	public default Map<String, Object> ex(Throwable cause) {
 		return ex(cause, new HashMap<>());
 	}

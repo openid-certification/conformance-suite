@@ -47,7 +47,7 @@ import io.fintechlabs.testframework.condition.client.EnsureResourceResponseConte
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
@@ -241,15 +241,6 @@ public class CodeIdTokenWithPKCE extends AbstractTestModule {
 			));
 	}
 
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 
 		getTestExecutionManager().runInBackground(() -> {
@@ -270,7 +261,7 @@ public class CodeIdTokenWithPKCE extends AbstractTestModule {
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
 
-			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 

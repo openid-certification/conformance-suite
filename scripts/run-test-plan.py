@@ -141,7 +141,7 @@ def show_plan_results(plan_result):
 
     for module in plan_modules:
         if module not in test_ids:
-            print('Test {} did not run'.format(module))
+            print(failure('Test {} did not run'.format(module)))
             continue
         module_id = test_ids[module]
 

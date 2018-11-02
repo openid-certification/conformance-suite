@@ -232,7 +232,7 @@ public class TestRunner implements DataUtils {
 
 		if (test == null) {
 			// return an error
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(stringMap("error", "createTestModule failed"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		logger.info("Created: " + testName);
