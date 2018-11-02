@@ -64,7 +64,7 @@ class Conformance(object):
         response = self.requests_session.post(api_url, params=payload)
 
         if response.status_code != 201:
-            raise Exception("create_test failed - HTTP {:d} {}".format(response.status_code, response.content))
+            raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return json.loads(response.content.decode('utf-8'))
 
     def get_module_info(self, module_id):
