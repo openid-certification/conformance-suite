@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import re
 import sys
 import time
 
@@ -53,6 +54,7 @@ def run_test_plan(test_plan, config_file):
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
     overall_time = time.time() - overall_start_time
+    print('\n\n')
     return {
         'test_plan': test_plan,
         'config_file': config_file,
@@ -195,7 +197,7 @@ def show_plan_results(plan_result):
         '\nOverall totals: ran {:d} test modules. '
         'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
         format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
-    print('\nResults are at: {}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
+    print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
         return True
@@ -291,8 +293,25 @@ if __name__ == '__main__':
 
     # filter untested list, as we don't currently have test environments for these
     for m in untested_test_modules[:]:
-        if all_test_modules[m]['profile'] in ['SAMPLE', 'OB', 'HEART', 'FAPI-RW']:
+        if all_test_modules[m]['profile'] in ['SAMPLE', 'HEART', 'FAPI-RW']:
             untested_test_modules.remove(m)
+            continue
+
+        if re.match(r'ob-ensure-server-handles-non-matching-intent-id-.*', m):
+            # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/274
+            untested_test_modules.remove(m)
+            continue
+
+        if re.match(r'ob-client-.*', m):
+            # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
+            untested_test_modules.remove(m)
+            continue
+
+        if re.match(r'ob-.*code-with-mtls', m):
+            # we don't have a test environment that supports oauth-mtls and the code
+            # response type
+            untested_test_modules.remove(m)
+            continue
 
     if show_untested and len(untested_test_modules) > 0:
         print(failure("** Exiting with failure - not all available modules were tested:"))
