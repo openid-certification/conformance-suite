@@ -21,6 +21,11 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 public abstract class AbstractOBServerTestModuleCode extends AbstractOBServerTestModule {
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.QUERY;
+	}
+
+	@Override
 	protected void createAuthorizationRequest() {
 
 		super.createAuthorizationRequest();

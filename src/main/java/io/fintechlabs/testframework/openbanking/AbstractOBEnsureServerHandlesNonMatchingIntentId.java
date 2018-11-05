@@ -1,23 +1,17 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
-import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
-import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestObjectError;
+import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
-import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
+import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
-import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,26 +55,65 @@ public abstract class AbstractOBEnsureServerHandlesNonMatchingIntentId extends A
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		// dispatch based on the path
+
 		if (path.equals("callback")) {
 			return handleCallback(requestParts);
+		} else if (path.equals(env.getString("implicit_submit", "path"))) {
+			return handleImplicitSubmission(requestParts);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
 	}
 
 	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
-
+	private ModelAndView handleCallback(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
-		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(ExpectInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		fireTestFinished();
+		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
-		// as we got an answer from the browser, we could mark the image placeholder as satisfied, but that's hard
+		setStatus(Status.WAITING);
+
+		return new ModelAndView("implicitCallback",
+			ImmutableMap.of(
+				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
+	}
+
+	private Object handleImplicitSubmission(JsonObject requestParts) {
+
+		getTestExecutionManager().runInBackground(() -> {
+			// process the callback
+
+			setStatus(Status.RUNNING);
+
+			JsonElement body = requestParts.get("body");
+
+			if (body != null) {
+				String hash = body.getAsString();
+				env.putString("implicit_hash", hash);
+			} else {
+				env.putString("implicit_hash", ""); // Clear any old value
+			}
+			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+
+			// We now have callback_query_params and callback_params (containing the hash) available
+
+			if (getResponseMode() == ResponseMode.QUERY) {
+				env.putObject("authorization_endpoint_response", env.getObject("callback_query_params"));
+			} else {
+				env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
+			}
+
+			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+			fireTestFinished();
+
+			// TODO: we got an answer from the browser, we could mark the image placeholder as satisfied
+			return "done";
+		});
 
 		return redirectToLogDetailPage();
 	}

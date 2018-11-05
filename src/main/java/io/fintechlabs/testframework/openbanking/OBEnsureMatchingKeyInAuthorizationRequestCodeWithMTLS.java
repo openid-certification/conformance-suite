@@ -35,6 +35,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class OBEnsureMatchingKeyInAuthorizationRequestCodeWithMTLS extends AbstractOBEnsureMatchingKeyInAuthorizationRequestCode {
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.QUERY;
+	}
+
+	@Override
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

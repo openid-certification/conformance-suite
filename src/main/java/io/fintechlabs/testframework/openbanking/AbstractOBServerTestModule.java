@@ -104,6 +104,11 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	private int whichClient;
 
+	enum ResponseMode {
+		QUERY,
+		FRAGMENT
+	}
+
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
 	 */
@@ -237,6 +242,8 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 	}
 
 	protected abstract void createClientCredentialsRequest();
+
+	protected abstract ResponseMode getResponseMode();
 
 	protected void createAccountRequest() {
 

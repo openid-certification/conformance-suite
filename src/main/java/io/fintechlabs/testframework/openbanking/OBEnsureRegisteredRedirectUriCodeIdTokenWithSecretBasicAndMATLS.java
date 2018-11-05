@@ -33,6 +33,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class OBEnsureRegisteredRedirectUriCodeIdTokenWithSecretBasicAndMATLS extends AbstractOBEnsureRegisteredRedirectUriCodeIdToken {
 
 	@Override
+	protected ResponseMode getResponseMode() {
+		return ResponseMode.FRAGMENT;
+	}
+
+	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		super.onConfigure(config, baseUrl);
