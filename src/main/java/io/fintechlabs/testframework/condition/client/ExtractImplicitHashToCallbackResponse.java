@@ -1,17 +1,3 @@
-/*******************************************************************************
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
-
 package io.fintechlabs.testframework.condition.client;
 
 import java.nio.charset.Charset;
@@ -35,25 +21,18 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param optional
-	 */
 	public ExtractImplicitHashToCallbackResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
-	@PreEnvironment() // We want an explicit error if implicit_hash is empty
+	@PreEnvironment(strings = "implicit_hash")
 	@PostEnvironment(required = "callback_params")
 	public Environment evaluate(Environment env) {
-		if (!Strings.isNullOrEmpty(env.getString("implicit_hash"))) {
+		String implicit_hash = env.getString("implicit_hash");
+		if (!Strings.isNullOrEmpty(implicit_hash)) {
 
-			String hash = env.getString("implicit_hash").substring(1); // strip off the leading # character
+			String hash = implicit_hash.substring(1); // strip off the leading # character
 
 			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
 
@@ -70,10 +49,13 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 
 			return env;
 
-		} else {
-			throw error("Couldn't find the authorization server's response in URL fragment (hash) for implicit flow");
 		}
 
+		JsonObject o = new JsonObject();
+		env.putObject("callback_params", o);
+		logSuccess("implicit_hash is empty", o);
+
+		return env;
 	}
 
 }
