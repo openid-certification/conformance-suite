@@ -420,7 +420,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 				// Try client 2's access token with client 1's keys
 
-				callAndStopOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, "OB-6.2.1-2");
+				callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, ConditionResult.FAILURE, "OB-6.2.1-2");
 
 				setStatus(Status.WAITING);
 				eventLog.endBlock();
