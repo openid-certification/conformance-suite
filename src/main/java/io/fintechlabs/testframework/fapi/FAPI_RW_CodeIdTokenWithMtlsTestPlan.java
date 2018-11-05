@@ -26,7 +26,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "FAPI-RW: code id_token with mtls Test Plan",
 	profile = "FAPI-RW",
 	testModuleNames = {
-		"fapi-rw-code-id-token-with-mtls"
+		"fapi-rw-code-id-token-with-mtls",
+		"fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
+		"fapi-rw-reject-code-flow-test"
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {
