@@ -1,14 +1,9 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 /**
@@ -19,6 +14,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-user-rejects-authentication-code-with-mtls",
 	displayName = "OB: user rejects authentication (code with MTLS authentication)",
+	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",

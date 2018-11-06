@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-ensure-redirect-uri-in-authorization-request-code-with-private-key-and-matls",
 	displayName = "OB: ensure redirect URI in authorization request (code with private key authentication and MATLS)",
+	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",

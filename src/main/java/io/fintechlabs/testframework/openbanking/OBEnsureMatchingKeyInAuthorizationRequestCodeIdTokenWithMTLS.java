@@ -15,6 +15,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-ensure-matching-key-in-authorization-request-code-id-token-with-mtls",
 	displayName = "OB: ensure matching key in authorization request (code id_token with MTLS authentication)",
+	summary = "This test should end with the authorisation server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
