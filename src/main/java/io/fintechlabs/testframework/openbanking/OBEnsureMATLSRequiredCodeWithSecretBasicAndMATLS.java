@@ -28,6 +28,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-ensure-matls-required-code-with-secret-basic-and-matls",
 	displayName = "OB: ensure MATLS required (code with client_secret_basic authentication and MATLS)",
+	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",

@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-ensure-registered-certificate-for-authorization-code-code-with-private-key-and-matls",
 	displayName = "OB: ensure registered certificate for authorization code (code with private key authentication and MATLS)",
+	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",

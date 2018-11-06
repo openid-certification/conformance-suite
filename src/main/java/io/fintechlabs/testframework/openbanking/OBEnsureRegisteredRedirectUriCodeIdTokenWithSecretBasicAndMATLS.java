@@ -14,6 +14,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-ensure-registered-redirect-uri-code-id-token-with-secret-basic-and-matls",
 	displayName = "OB: ensure registered redirect URI (code id_token with client_secret_basic authentication and MATLS)",
+	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",

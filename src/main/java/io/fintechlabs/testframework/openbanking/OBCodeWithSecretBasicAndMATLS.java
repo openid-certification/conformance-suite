@@ -28,6 +28,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ob-code-with-secret-basic-and-matls",
 	displayName = "OB: code (client_secret_basic authentication with MATLS)",
+	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc), tests that certificate bound access tokens are implemented correctly and tries reusing an authorization code.",
 	profile = "OB",
 	configurationFields = {
 		"server.discoveryUrl",
