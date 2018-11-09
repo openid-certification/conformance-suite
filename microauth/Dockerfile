@@ -6,5 +6,5 @@ ENTRYPOINT ["/tini", "--"]
 WORKDIR /server
 COPY package*.json ./
 RUN npm install
-COPY authorizationServer.js ./server.js
-CMD ["node", "./server.js"]
+COPY authorizationServer.js ./authorizationServer.js
+CMD ["node", "./authorizationServer.js"]
