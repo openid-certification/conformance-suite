@@ -270,10 +270,17 @@ public class TestRunner implements DataUtils {
 			description = config.get("description").getAsString();
 		}
 
-		// record that this test was started
+		// copy the summary from the test module
 		String summary = getTestModules().get(testName).a.summary();
 
-		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description, summary);
+		// extract the `publish` field if available
+		String publish = null;
+		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
+			publish = Strings.emptyToNull(config.get("publish").getAsString());
+		}
+
+		// record that this test was started
+		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description, summary, publish);
 
 
 		// log the test creation event in the event log

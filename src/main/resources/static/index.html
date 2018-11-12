@@ -126,24 +126,35 @@
 
 					<div class="tab-content">
 						<div id="formInput" class="tab-pane fade in active">
+						
 							<div class="config-form-container">
-								<h3 class="config-form-container-header">Alias</h3>
+							
+								<h3 class="config-form-container-header">Test Information</h3>
+								
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">alias</div>
 									<div class="col-md-10">
 										<input type="text" class="config-form-element" data-json-target="alias" placeholder="alias for test instance, used to create consistent URIs across test instances"></input>
 									</div>
 								</div>
-							</div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">Description</h3>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">description</div>
 									<div class="col-md-10">
 										<input type="text" class="config-form-element" data-json-target="description" placeholder="Freeform text to help you identify this test run (optional)"></input>
 									</div>
 								</div>
+
+								<div class="row config-form-element-container">
+									<div class="col-md-2 key">publish</div>
+									<div class="col-md-10">
+										<select class="config-form-element" data-json-target="publish">
+											<option value="" selected>No</option>
+											<option value="summary">Summary</option>
+										</select>
+									</div>
+								</div>
+
 							</div>
 
 							<div class="config-form-container">
@@ -700,8 +711,7 @@
             	   }
             }
 
-			fieldsToShow.push('alias'); // always show the alias field
-			fieldsToShow.push('description'); // Always show the description field
+			fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
 
 			// show/hide all the appropriate fields on the page
 			$('.config-form-element-container').each(function() {

@@ -32,15 +32,7 @@ public interface TestPlanService {
 	 */
 	void updateTestPlanWithModule(String planId, String testName, String id);
 
-	/**
-	 * @param id
-	 * @param planName
-	 * @param config
-	 * @param owner
-	 * @param testModules
-	 * @param summary
-	 */
-	void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary);
+	void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary, String publish);
 
 	/**
 	 * @param id
@@ -60,5 +52,10 @@ public interface TestPlanService {
 	 * @return
 	 */
 	List<Map> getAllPlansForCurrentUser();
+
+	/**
+	 *
+	 */
+	List<Map> getPublicPlans();
 
 }

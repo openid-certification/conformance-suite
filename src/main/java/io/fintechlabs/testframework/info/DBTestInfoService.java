@@ -84,11 +84,8 @@ public class DBTestInfoService implements TestInfoService {
 				}
 			});
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.info.TestInfoService#createTest(java.lang.String, java.lang.String, java.lang.String, com.google.gson.JsonObject, java.lang.String)
-	 */
 	@Override
-	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary) {
+	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
@@ -103,7 +100,8 @@ public class DBTestInfoService implements TestInfoService {
 			.add("planId", planId)
 			.add("status", Status.CREATED)
 			.add("version", version)
-			.add("summary", summary); // from the test definition
+			.add("summary", summary) // from the test definition
+			.add("publish", publish);
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
 

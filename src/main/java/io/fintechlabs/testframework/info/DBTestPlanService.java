@@ -92,7 +92,7 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, io.fintechlabs.testframework.plan.TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary) {
+	public void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary, String publish) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
@@ -104,7 +104,8 @@ public class DBTestPlanService implements TestPlanService {
 			.add("owner", owner)
 			.add("description", description) // for the specific instance
 			.add("version", version)
-			.add("summary", summary); // from the plan definition
+			.add("summary", summary) // from the plan definition
+			.add("publish", publish);
 
 		List<DBObject> moduleStructure = new ArrayList<>();
 
@@ -203,9 +204,34 @@ public class DBTestPlanService implements TestPlanService {
 
 		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).toArray();
 
-		return results.stream().map(e -> e.toMap()).collect(Collectors.toList());
+		return results.stream().map(DBObject::toMap).collect(Collectors.toList());
 
 	}
 
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlans()
+	 */
+	@Override
+	public List<Map> getPublicPlans() {
+
+		Criteria criteria = new Criteria();
+
+		criteria.and("publish").in("summary", "everything");
+
+		Query query = new Query(criteria);
+
+		query.fields()
+			.include("_id")
+			.include("planName")
+			.include("description")
+			.include("started")
+			.include("modules");
+
+		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject(), query.getFieldsObject()).toArray();
+
+		return results.stream().map(DBObject::toMap).collect(Collectors.toList());
+
+	}
 
 }

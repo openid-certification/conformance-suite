@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,35 @@ public class TestInfoApi {
 				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("owner", owner).get());
 			}
 		}
+		if (testInfo == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} else {
+			return new ResponseEntity<>(testInfo, HttpStatus.OK);
+		}
+
+	}
+
+	@GetMapping(value = "/public/api/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> getPublicTestInfo(@PathVariable("id") String id) {
+
+		Query query = new Query();
+		query.fields()
+			.include("_id")
+			.include("testId")
+			.include("testName")
+			.include("started")
+			.include("description")
+			.include("alias")
+			.include("owner")
+			.include("planId")
+			.include("status")
+			.include("version")
+			.include("summary")
+			.include("publish")
+			.include("result");
+
+		DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id, query.getFieldsObject());
+
 		if (testInfo == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else {
