@@ -162,6 +162,11 @@ textarea {
 	border: none;
 }
 
+.config-form-container-header {
+	border-bottom: 1px #dcdcdc solid;
+	background: linear-gradient(#ffffff, #efefef);
+}
+
 /** index.html end **/
 
 /** logs listing **/
