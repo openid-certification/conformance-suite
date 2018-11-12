@@ -1,11 +1,12 @@
 <%
 
-var textColor = chroma(item.blockId).luminance() > 0.6 ? 'black' : 'white';
+var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
+var textColor = chroma(bgColor).luminance() > 0.6 ? 'black' : 'white';
 
 %>
 <div class="row">
 	<div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem startBlock"
-		style="background: #<%- item.blockId %>; color: <%- textColor %>;">
+		style="background: <%- bgColor %>; color: <%- textColor %>;">
 
 		<div class="row"><!-- time / block title / owner -->
 
