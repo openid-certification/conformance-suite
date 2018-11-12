@@ -210,6 +210,7 @@ def show_plan_results(plan_result):
 if __name__ == '__main__':
     requests_session = requests.Session()
 
+    dev_mode = False
     if 'CONFORMANCE_SERVER' in os.environ:
         api_url_base = os.environ['CONFORMANCE_SERVER']
         token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
@@ -221,7 +222,9 @@ if __name__ == '__main__':
         token_endpoint = 'http://localhost:9001/token'
         client_id = 'oauth-client-1'
         client_secret = 'oauth-client-secret-1'
+        dev_mode = True
 
+    if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation
         requests_session.verify = False
         import urllib3
