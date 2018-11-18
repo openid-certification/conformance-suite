@@ -40,6 +40,7 @@ import org.bouncycastle.crypto.tls.TlsClient;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsCredentials;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
+import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
 
 import com.google.common.base.Strings;
@@ -192,6 +193,10 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				throw (ConditionError) e.getCause();
 			} else if ((e instanceof TlsFatalAlertReceived)
 				&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
+				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
+				return env;
+			} else if ((e instanceof TlsFatalAlert)
+				&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
 				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
