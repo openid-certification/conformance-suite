@@ -28,17 +28,7 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
  */
 public interface TestInfoService {
 
-	/**
-	 * Create a new test in the database
-	 *
-	 * @param id
-	 * @param testName
-	 * @param url
-	 * @param config
-	 * @param alias
-	 * @param summary
-	 */
-	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary);
+	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
 
 	/**
 	 * Update the result of a test in the database

@@ -38,11 +38,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.testmodule.DataUtils;
@@ -80,10 +80,16 @@ public class TestPlanApi implements DataUtils {
 			description = config.get("description").getAsString();
 		}
 
+		// extract the `publish` field if available
+		String publish = null;
+		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
+			publish = Strings.emptyToNull(config.get("publish").getAsString());
+		}
+
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName);
 
-		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames(), holder.a.summary());
+		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames(), holder.a.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
@@ -184,6 +190,16 @@ public class TestPlanApi implements DataUtils {
 			this.c = c;
 			this.a = a;
 		}
+	}
+
+
+	@GetMapping(value = "/public/api/plan")
+	public ResponseEntity<Object> getPublicPlans() {
+
+		List<Map> publicPlans = planService.getPublicPlans();
+
+		return new ResponseEntity<>(publicPlans, HttpStatus.OK);
+
 	}
 
 
