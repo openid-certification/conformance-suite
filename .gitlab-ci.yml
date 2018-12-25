@@ -56,6 +56,7 @@ build:
     - setup_docker
     - install_build_dependencies
     - build
+    - if [ -n "$GCP_PROJECT_ID" ]; then upload; fi
   artifacts:
     paths:
       - target/fapi-test-suite.jar
@@ -72,10 +73,13 @@ build_microauth:
     - docker:dind
   script:
     - install_build_dependencies
-    - docker build -t "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG" microauth/
-    - echo "$GCLOUD_SERVICE_KEY" | base64 -d > ${HOME}/gcloud-service-key.json
-    - ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
-    - ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
+    - docker build -t microauth microauth/
+    - if [ -n "$GCP_PROJECT_ID" ]; then
+    -   docker tag microauth "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
+    -   echo "$GCLOUD_SERVICE_KEY" | base64 -d > ${HOME}/gcloud-service-key.json
+    -   ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+    -   ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
+    - fi
 
 check-trailing-whitespace:
   stage: build
@@ -433,7 +437,11 @@ deployment_test_review:
 
   function build() {
     docker-compose -f builder-compose.yml run builder
-    docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+    docker build -t conformance-suite .
+  }
+
+  function upload() {
+    docker tag conformance-suite "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
 
     echo "Logging in to container registry..."
     echo "$GCLOUD_SERVICE_KEY" | base64 -d > ${HOME}/gcloud-service-key.json
