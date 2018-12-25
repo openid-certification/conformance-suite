@@ -8,7 +8,7 @@ echo Building ${VERSION}...
 
 mvn clean package
 
-TMPDIR=$(mktemp --directory)
+TMPDIR=$(mktemp -d)
 
 cp package/README.md $TMPDIR
 
