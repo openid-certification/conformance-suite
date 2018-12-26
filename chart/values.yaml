@@ -23,3 +23,12 @@ resources:
 #  requests:
 #    cpu: 100m
 #    memory: 128Mi
+mongodb:
+  image:
+    tag: 3.6
+  usePassword: false
+  mongodbExtraFlags:
+   - "--wiredTigerCacheSizeGB=0.25"
+  resources:
+    requests:
+      memory: 512Mi
