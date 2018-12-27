@@ -17,12 +17,17 @@ service:
   externalPort: 8080
   internalPort: 8080
 resources:
-#  limits:
-#    cpu: 100m
-#    memory: 128Mi
-#  requests:
-#    cpu: 100m
-#    memory: 128Mi
+  limits:
+    memory: 512Mi
+  requests:
+    cpu: 100m
+javaArgs: "-Xmx400M"
+microauth:
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
 mongodb:
   image:
     tag: 3.6
@@ -30,5 +35,7 @@ mongodb:
   mongodbExtraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
   resources:
-    requests:
+    limits:
       memory: 512Mi
+    requests:
+      cpu: 100m
