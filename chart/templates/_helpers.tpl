@@ -25,11 +25,6 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- $trackableName | trimSuffix "-stable" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "microauthname" -}}
-{{- $releaseName := default .Release.Name .Values.releaseOverride -}}
-{{- printf "%s-%s" $releaseName "microauth" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/*
 Get a hostname from URL
 */}}

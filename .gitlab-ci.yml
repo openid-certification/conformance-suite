@@ -355,6 +355,9 @@ deployment_test_review:
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
       --set image.tag="$CI_APPLICATION_TAG" \
       --set image.pullPolicy=IfNotPresent \
+      --set microauth.image.repository="$CI_APPLICATION_REPOSITORY" \
+      --set microauth.image.tag="microauth-$CI_APPLICATION_TAG" \
+      --set microauth.image.pullPolicy=IfNotPresent \
       --set application.track="$track" \
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
