@@ -276,7 +276,11 @@
 	                        evt.preventDefault();
 	                        window.open('/log/export/' + encodeURIComponent(testId));
 	                    });
-
+						$('#downloadLegibleLogBtn').click(function(evt) {
+							evt.preventDefault();
+							var timeZone = -(new Date().getTimezoneOffset()/60);
+							window.open('/api/log/exportLegibleLog/' + encodeURIComponent(testId) + "?timezone=GMT" + encodeURIComponent(timeZone > 0 ? ("+"+ timeZone): timeZone));
+						});
 	                    $('#uploadBtn').click(function(evt) {
 	                        evt.preventDefault();
 	                        window.open('/upload.html?log=' + encodeURIComponent(testId));
