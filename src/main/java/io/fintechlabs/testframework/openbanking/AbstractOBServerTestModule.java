@@ -535,14 +535,4 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 	}
-
-	protected void logClientSecretWarning() {
-		eventLog.log(getName(), args(
-			"msg", "client_secret_basic and client_secret_post are not recommended client authentication methods",
-			"result", ConditionResult.WARNING,
-			"requirements", Sets.newHashSet("OB-5.2.2-7.2")
-		));
-		updateResultFromConditionFailure(ConditionResult.WARNING);
-	}
-
 }
