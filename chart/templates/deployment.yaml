@@ -24,9 +24,11 @@ spec:
         - name: BASE_URL
           value: {{ .Values.service.url | quote }}
         - name: MICROAUTH_HOST
-          value: {{ template "microauthname" . }}
+          value: {{ template "appname" . }}-microauth
         - name: MONGODB_HOST
           value: {{ template "appname" . }}-mongodb
+        - name: JAVA_EXTRA_ARGS
+          value: {{ .Values.javaArgs | quote }}
         - name: OIDC_GOOGLE_CLIENTID
           valueFrom:
             secretKeyRef:

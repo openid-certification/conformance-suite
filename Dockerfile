@@ -2,6 +2,7 @@ FROM openjdk:9-jre-slim
 COPY target/fapi-test-suite.jar /server/
 ENV BASE_URL https://localhost:8443
 ENV MONGODB_HOST mongodb
+ENV JAVA_EXTRA_ARGS=
 EXPOSE 8080
 EXPOSE 9090
 ENTRYPOINT java \
@@ -10,4 +11,5 @@ ENTRYPOINT java \
   -D"oidc.google.clientid=${OIDC_GOOGLE_CLIENTID}" \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
   -D"oauth.introspection_url=http://${MICROAUTH_HOST}:9001/introspect" \
+  $JAVA_EXTRA_ARGS \
  -jar /server/fapi-test-suite.jar

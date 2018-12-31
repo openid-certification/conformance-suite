@@ -1,0 +1,11 @@
+replicaCount: 1
+image:
+  repository: gitlab.example.com/group/project
+  tag: stable
+  pullPolicy: Always
+service:
+  name: microauth
+  type: ClusterIP
+  externalPort: 9001
+  internalPort: 9001
+resources: {}
