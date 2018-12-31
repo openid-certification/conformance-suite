@@ -3,6 +3,9 @@ image:
   repository: gitlab.example.com/group/project
   tag: stable
   pullPolicy: Always
+application:
+  track: stable
+  tier: web
 service:
   name: microauth
   type: ClusterIP
