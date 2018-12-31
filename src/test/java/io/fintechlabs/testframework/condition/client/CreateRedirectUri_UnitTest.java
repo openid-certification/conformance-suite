@@ -9,8 +9,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 

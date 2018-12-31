@@ -8,7 +8,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.apache.commons.codec.binary.Base64;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

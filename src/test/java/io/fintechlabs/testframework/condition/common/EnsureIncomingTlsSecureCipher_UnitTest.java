@@ -17,7 +17,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.as.EnsureClientCertificateCNMatchesClientId;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;

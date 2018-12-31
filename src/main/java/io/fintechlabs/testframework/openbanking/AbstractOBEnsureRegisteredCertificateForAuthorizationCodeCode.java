@@ -1,15 +1,9 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 
 public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCode extends AbstractOBServerTestModuleCode {
 

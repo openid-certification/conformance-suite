@@ -1,22 +1,9 @@
 package io.fintechlabs.testframework.condition.client;
 
-import com.google.gson.JsonObject;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.*;
-import com.nimbusds.jwt.SignedJWT;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
-
-import java.security.Key;
-import java.text.ParseException;
-import java.util.List;
 
 /**
  * @author jheenan

@@ -5,11 +5,6 @@ import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-
 /**
  * @author jricher
  *

@@ -1,13 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
-import java.nio.charset.Charset;
-import java.util.List;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-
 import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
