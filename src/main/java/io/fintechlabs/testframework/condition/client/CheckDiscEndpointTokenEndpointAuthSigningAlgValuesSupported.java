@@ -4,7 +4,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import java.util.Arrays;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.PreEnvironment;

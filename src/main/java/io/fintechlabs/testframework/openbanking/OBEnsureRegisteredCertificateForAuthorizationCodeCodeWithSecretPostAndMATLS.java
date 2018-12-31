@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
@@ -10,10 +8,6 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(

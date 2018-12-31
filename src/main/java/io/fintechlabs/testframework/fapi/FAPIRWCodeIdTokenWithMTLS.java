@@ -1,19 +1,8 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
-import io.fintechlabs.testframework.frontChannel.BrowserControl;
-import io.fintechlabs.testframework.info.TestInfoService;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.openbanking.AbstractOBServerTestModuleCodeIdToken;
 import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
-import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-
-import java.util.Map;
 
 @PublishTestModule(
 	testName = "fapi-rw-code-id-token-with-mtls",

@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.ui;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

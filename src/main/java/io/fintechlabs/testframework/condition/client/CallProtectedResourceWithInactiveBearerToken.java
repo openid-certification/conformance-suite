@@ -20,7 +20,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * @author srmoore
