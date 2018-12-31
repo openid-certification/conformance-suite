@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 
 /**
@@ -18,8 +17,6 @@ public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends Abs
 		env.putInteger("requested_state_length", 128);
 
 		super.createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 	}
 
 	@Override
