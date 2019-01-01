@@ -33,7 +33,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModuleCodeIdToken {
+public class OBCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBServerTestModule {
 
 	@Override
 	protected void createClientCredentialsRequest() {

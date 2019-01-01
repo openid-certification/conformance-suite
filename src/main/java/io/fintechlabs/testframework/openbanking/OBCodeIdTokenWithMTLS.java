@@ -31,7 +31,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModuleCodeIdToken {
+public class OBCodeIdTokenWithMTLS extends AbstractOBServerTestModule {
 
 	@Override
 	protected void createClientCredentialsRequest() {

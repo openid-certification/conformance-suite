@@ -11,7 +11,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
  *
  */
 
-public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
+public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends AbstractOBServerTestModule {
 
 	@Override
 	protected void createAuthorizationRequest() {

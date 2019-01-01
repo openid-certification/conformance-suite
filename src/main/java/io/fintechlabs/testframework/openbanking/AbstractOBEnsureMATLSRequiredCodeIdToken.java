@@ -11,7 +11,7 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
-public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
+public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequiredCodeIdToken.class);
 
