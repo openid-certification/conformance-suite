@@ -54,71 +54,19 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 	}
 
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
+	protected void onAuthorizationCallbackResponse() {
 
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
+
+		/* If we get an error back from the authorisation server:
+		 * - It must be a 'invalid_request_object' error
+		 * - It must have the correct state we supplied
+		 */
+
+		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		fireTestFinished();
+
+		// as we got an answer from the browser, we could mark the image placeholder as satisfied, but that's hard
 	}
-
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
-
-		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
-
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
-
-		setStatus(Status.WAITING);
-
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-	}
-
-	private Object handleImplicitSubmission(JsonObject requestParts) {
-
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
-
-			JsonElement body = requestParts.get("body");
-
-			if (body != null) {
-				String hash = body.getAsString();
-				env.putString("implicit_hash", hash);
-			} else {
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
-			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-
-			// We now have callback_query_params and callback_params (containing the hash) available
-
-			/* If we get an error back from the authorisation server:
-			 * - It must be a 'invalid_request_object' error
-			 * - It must have the correct state we supplied
-			 */
-
-			env.mapKey("authorization_endpoint_response", "callback_params");
-
-			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-			fireTestFinished();
-
-			// as we got an answer from the browser, we could mark the image placeholder as satisfied, but that's hard
-
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
-	}
-
 }

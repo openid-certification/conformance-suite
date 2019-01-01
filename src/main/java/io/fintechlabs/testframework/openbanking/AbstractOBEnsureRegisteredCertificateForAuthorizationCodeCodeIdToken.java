@@ -21,57 +21,50 @@ import io.fintechlabs.testframework.condition.client.ValidateSHash;
 public abstract class AbstractOBEnsureRegisteredCertificateForAuthorizationCodeCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
 
 	@Override
-	protected Object performPostAuthorizationFlow() {
-		setStatus(Status.WAITING);
+	protected void performPostAuthorizationFlow() {
 
-		getTestExecutionManager().runInBackground(() -> {
-			setStatus(Status.RUNNING);
-			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
 
-			callAndContinueOnFailure(OBValidateIdTokenIntentId.class, ConditionResult.FAILURE,"OIDCC-2");
+		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, ConditionResult.FAILURE, "OIDCC-2");
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
-			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
-				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		skipIfMissing(new String[]{"s_hash"}, null, ConditionResult.INFO,
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
-			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-			skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO,
-				ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		skipIfMissing(new String[]{"c_hash"}, null, ConditionResult.INFO,
+			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-			callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
-			skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
-				ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		skipIfMissing(new String[]{"at_hash"}, null, ConditionResult.INFO,
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-			createAuthorizationCodeRequest();
+		createAuthorizationCodeRequest();
 
-			// Check that a call to the token endpoint succeeds normally
+		// Check that a call to the token endpoint succeeds normally
 
-			callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-			// Now try with the wrong certificate
+		// Now try with the wrong certificate
 
-			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
-			callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
+		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
 
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
+		fireTestFinished();
 	}
 
 }
