@@ -4,16 +4,19 @@ metadata:
   name: {{ template "fullname" . }}
   labels:
     app: {{ template "fullname" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    track: "{{ .Values.application.track }}"
+    tier: "{{ .Values.application.tier }}"
+#    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+# Pretend absolutely nothing has changed:
+    chart: fapi-conformance-suite-0.1.0
 spec:
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
         app: {{ template "fullname" . }}
-        release: {{ .Release.Name }}
+        track: "{{ .Values.application.track }}"
+        tier: "{{ .Values.application.tier }}"
     spec:
       containers:
         - name: {{ .Chart.Name }}
