@@ -113,11 +113,7 @@ public abstract class AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone e
 			 * - It must have the correct state we supplied
 			 */
 
-			if (getResponseMode() == ResponseMode.QUERY) {
-				env.putObject("authorization_endpoint_response", env.getObject("callback_query_params"));
-			} else {
-				env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
-			}
+			env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
 
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
