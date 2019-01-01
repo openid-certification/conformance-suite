@@ -101,7 +101,7 @@ public abstract class AbstractOBEnsureServerHandlesNonMatchingIntentId extends A
 
 			// We now have callback_query_params and callback_params (containing the hash) available
 
-			env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
+			env.mapKey("authorization_endpoint_response", "callback_params");
 
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");

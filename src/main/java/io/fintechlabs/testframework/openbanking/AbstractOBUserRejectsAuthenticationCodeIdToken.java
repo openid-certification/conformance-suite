@@ -21,7 +21,7 @@ public abstract class AbstractOBUserRejectsAuthenticationCodeIdToken extends Abs
 
 	@Override
 	protected Object onAuthorizationCallbackResponse() {
-		env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
+		env.mapKey("authorization_endpoint_response", "callback_params");
 
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");

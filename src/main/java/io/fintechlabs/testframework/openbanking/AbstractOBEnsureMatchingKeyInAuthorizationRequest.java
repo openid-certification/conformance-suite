@@ -106,7 +106,7 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 			 * - It must have the correct state we supplied
 			 */
 
-			env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
+			env.mapKey("authorization_endpoint_response", "callback_params");
 
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
