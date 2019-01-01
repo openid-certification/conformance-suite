@@ -520,17 +520,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	}
 
-	protected abstract void performTokenEndpointIdTokenExtraction();
-
-	protected void performTokenEndpointIdTokenExtractionCode() {
-		/* code flow, so the only id_token is from the token endpoint, so
-		 * c_hash is optional but s_hash is required
-		 */
-		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-	}
-
-	protected void performTokenEndpointIdTokenExtractionCodeIdToken() {
+	protected void performTokenEndpointIdTokenExtraction() {
 		/* code id_token flow - we already had an id_token from the authorisation endpoint,
 		 * so c_hash and s_hash are optional.
 		 */

@@ -24,11 +24,6 @@ public abstract class AbstractOBServerTestModuleCodeIdToken extends AbstractOBSe
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOBServerTestModuleCodeIdToken.class);
 
-	@Override
-	protected void performTokenEndpointIdTokenExtraction() {
-		performTokenEndpointIdTokenExtractionCodeIdToken();
-	}
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
 	 */

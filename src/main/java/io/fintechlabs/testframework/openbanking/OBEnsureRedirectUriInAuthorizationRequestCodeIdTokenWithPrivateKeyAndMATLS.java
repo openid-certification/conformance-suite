@@ -27,7 +27,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBEnsureRedirectUriInAuthorizationRequestCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBEnsureRedirectUriInAuthorizationRequestCodeIdToken {
+public class OBEnsureRedirectUriInAuthorizationRequestCodeIdTokenWithPrivateKeyAndMATLS extends AbstractOBEnsureRedirectUriInAuthorizationRequest {
 
 	@Override
 	protected void createClientCredentialsRequest() {
