@@ -58,8 +58,6 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 )
 public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(RejectPlainCodeChallengeMethodAS.class);
-
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */

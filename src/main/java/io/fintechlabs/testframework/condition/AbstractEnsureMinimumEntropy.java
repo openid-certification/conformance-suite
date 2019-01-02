@@ -52,7 +52,6 @@ public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 
 		double e = 0.0;
 		for (Map.Entry<Character, Integer> entry : occ.entrySet()) {
-			char cx = entry.getKey();
 			double p = (double) entry.getValue() / n;
 			e += p * log2(p);
 		}

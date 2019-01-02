@@ -63,8 +63,6 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 )
 public class PlainRS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(PlainRS.class);
-
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);

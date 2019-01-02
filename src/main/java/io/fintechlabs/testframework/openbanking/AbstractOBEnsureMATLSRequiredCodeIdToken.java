@@ -13,8 +13,6 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
 public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequiredCodeIdToken.class);
-
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
 	 */
