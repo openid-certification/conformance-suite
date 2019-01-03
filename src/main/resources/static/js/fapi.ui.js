@@ -347,6 +347,7 @@ var FAPI_UI = {
 		specLinks : {
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html",
+			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html",
 			"OB-" : "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default",
 			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749",

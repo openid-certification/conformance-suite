@@ -32,6 +32,13 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
+/**
+ * CallTokenEndpoint is effectively deprecated, new code is encouraged to use CallTokenEndpointAndReturnFullResponse,
+ * which allows the test to verify the exact http status code and headers.
+ *
+ * TODO: this should probably be renamed 'CallTokenEndpointExpectingSuccess' to differentiate it from
+ * CallTokenEndpointAndReturnFullResponse.
+ */
 public class CallTokenEndpoint extends AbstractCondition {
 
 	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpoint.class);
