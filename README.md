@@ -5,4 +5,4 @@ See the wiki for more info: https://gitlab.com/fintechlabs/fapi-conformance-suit
 
 To get started as a developer or running the conformance suite locally, see:
 
-https://gitlab.com/fintechlabs/fapi-conformance-suite/wikis/Build-&-Run
+https://gitlab.com/fintechlabs/fapi-conformance-suite/wikis/Developers/Build-&-Run
