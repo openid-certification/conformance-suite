@@ -27,7 +27,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBEnsureRequestObjectSignatureAlgorithmIsNotNoneCodeIdTokenWithPrivateKeyAndMTLS extends AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNoneCodeIdToken {
+public class OBEnsureRequestObjectSignatureAlgorithmIsNotNoneCodeIdTokenWithPrivateKeyAndMTLS extends AbstractOBEnsureRequestObjectSignatureAlgorithmIsNotNone {
 
 	@Override
 	protected void createClientCredentialsRequest() {

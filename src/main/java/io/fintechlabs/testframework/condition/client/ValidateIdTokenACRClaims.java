@@ -37,7 +37,6 @@ public class ValidateIdTokenACRClaims extends AbstractCondition {
 	@PreEnvironment(required = { "id_token",  "authorization_endpoint_request" })
 	public Environment evaluate(Environment env) {
 
-		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		JsonElement acrValue = env.getElementFromObject("authorization_endpoint_request", "claims.id_token.acr.value");
 		if (acrValue != null) {
 

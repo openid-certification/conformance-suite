@@ -11,9 +11,7 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
-public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModuleCodeIdToken {
-
-	public static Logger logger = LoggerFactory.getLogger(AbstractOBEnsureMATLSRequiredCodeIdToken.class);
+public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractOBServerTestModule {
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
@@ -59,25 +57,17 @@ public abstract class AbstractOBEnsureMATLSRequiredCodeIdToken extends AbstractO
 	}
 
 	@Override
-	protected Object performPostAuthorizationFlow() {
-		setStatus(Status.WAITING);
+	protected void performPostAuthorizationFlow() {
+		// call the token endpoint and expect an error, since this request does not
+		// meet any of the OB requirements for client authentication
 
-		getTestExecutionManager().runInBackground(() -> {
-			setStatus(Status.RUNNING);
-			// call the token endpoint and expect an error, since this request does not
-			// meet any of the OB requirements for client authentication
+		createAuthorizationCodeRequest();
 
-			createAuthorizationCodeRequest();
+		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-			callAndStopOnFailure(RemoveMTLSCertificates.class);
+		callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.FAILURE, "OB-5.2.2");
 
-			callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.FAILURE, "OB-5.2.2");
-
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
+		fireTestFinished();
 	}
 
 }

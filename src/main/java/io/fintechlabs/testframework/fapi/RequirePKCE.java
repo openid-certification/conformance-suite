@@ -162,7 +162,7 @@ public class RequirePKCE extends AbstractTestModule {
 			// We now have callback_query_params and callback_params (containing the hash) available
 
 			// code id_token, so response should be in the hash
-			env.putObject("authorization_endpoint_response", env.getObject("callback_params"));
+			env.mapKey("authorization_endpoint_response", "callback_params");
 
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 

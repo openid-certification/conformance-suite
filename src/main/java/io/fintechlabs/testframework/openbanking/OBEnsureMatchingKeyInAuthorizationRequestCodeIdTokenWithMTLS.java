@@ -27,7 +27,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBEnsureMatchingKeyInAuthorizationRequestCodeIdTokenWithMTLS extends AbstractOBEnsureMatchingKeyInAuthorizationRequestCodeIdToken {
+public class OBEnsureMatchingKeyInAuthorizationRequestCodeIdTokenWithMTLS extends AbstractOBEnsureMatchingKeyInAuthorizationRequest {
 
 	@Override
 	protected void createClientCredentialsRequest() {

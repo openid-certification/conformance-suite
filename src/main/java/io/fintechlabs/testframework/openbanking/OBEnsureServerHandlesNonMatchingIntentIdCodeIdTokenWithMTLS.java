@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class OBEnsureServerHandlesNonMatchingIntentIdCodeIdTokenWithMTLS extends AbstractOBEnsureServerHandlesNonMatchingIntentIdCodeIdToken {
+public class OBEnsureServerHandlesNonMatchingIntentIdCodeIdTokenWithMTLS extends AbstractOBEnsureServerHandlesNonMatchingIntentId {
 
 	@Override
 	protected void createClientCredentialsRequest() {
