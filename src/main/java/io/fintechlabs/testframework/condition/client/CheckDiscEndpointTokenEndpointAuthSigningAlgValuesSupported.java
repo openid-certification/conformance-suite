@@ -14,7 +14,7 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 
 	private static final String environmentVariable = "token_endpoint_auth_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
+	private static final String[] SET_VALUES = new String[] { "PS256", "ES256" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 
@@ -30,7 +30,7 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		final String[] valuesRequired = new String[] { "private_key_jwt", "client_secret_jwt"};
+		final String[] valuesRequired = new String[] { "private_key_jwt" };
 		JsonElement serverValues = env.getElementFromObject("server", "token_endpoint_auth_methods_supported");
 
 		if ( serverValues != null && serverValues.isJsonArray() ) {
@@ -41,7 +41,7 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 			}
 		}
 
-		String logMessage = "Not checking token_endpoint_auth_signing_alg_values_supported as token_endpoint_auth_methods_supported does not contain the methods (client_secret_jwt/private_key_jwt ) that require signing";
+		String logMessage = "Not checking token_endpoint_auth_signing_alg_values_supported as token_endpoint_auth_methods_supported does not contain the method (private_key_jwt ) that requires signing";
 
 		logSuccess(logMessage, args("actual", serverValues, "expected", valuesRequired));
 		return env;

@@ -139,7 +139,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
@@ -154,7 +154,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 
@@ -410,7 +410,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
 			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.WARNING, "FAPI-RW-8.6");
+			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
