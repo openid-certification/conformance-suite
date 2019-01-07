@@ -21,6 +21,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"ob-ensure-registered-redirect-uri-code-id-token-with-mtls",
 		"ob-ensure-request-object-signature-algorithm-is-not-none-code-id-token-with-mtls",
 		"ob-user-rejects-authentication-code-id-token-with-mtls",
+		"ob-ensure-server-handles-non-matching-intent-id-code-id-token-with-mtls",
 	}
 )
 public class OBCodeIdTokenWithMTLSTestPlan implements TestPlan {
