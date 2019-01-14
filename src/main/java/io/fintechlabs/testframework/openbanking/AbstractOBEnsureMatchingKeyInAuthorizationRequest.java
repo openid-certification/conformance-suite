@@ -67,6 +67,5 @@ public abstract class AbstractOBEnsureMatchingKeyInAuthorizationRequest extends 
 		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
 
-		// as we got an answer from the browser, we could mark the image placeholder as satisfied, but that's hard
 	}
 }

@@ -47,6 +47,5 @@ public abstract class AbstractOBEnsureServerHandlesNonMatchingIntentId extends A
 		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
 
-		// TODO: we got an answer from the browser, we could mark the image placeholder as satisfied
 	}
 }
