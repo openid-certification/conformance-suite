@@ -300,11 +300,6 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if re.match(r'ob-ensure-server-handles-non-matching-intent-id-.*', m):
-            # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/274
-            untested_test_modules.remove(m)
-            continue
-
         if re.match(r'ob-client-.*', m):
             # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
             untested_test_modules.remove(m)
