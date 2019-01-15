@@ -23,6 +23,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"ob-user-rejects-authentication-code-id-token-with-mtls",
 		"ob-ensure-server-handles-non-matching-intent-id-code-id-token-with-mtls",
 		"ob-ensure-request-object-without-exp-fails-with-mtls",
+		"ob-ensure-request-object-without-scope-fails-with-mtls",
 	}
 )
 public class OBCodeIdTokenWithMTLSTestPlan implements TestPlan {
