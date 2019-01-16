@@ -97,8 +97,8 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 	 * @param path Path, relative to baseUrl
 	 */
 	private void exposePath(String name, String path) {
-		env.putString("accounts_endpoint", env.getString("base_url") + "/" + ACCOUNTS_PATH);
-		exposeEnvString("accounts_endpoint");
+		env.putString(name, env.getString("base_url") + "/" + path);
+		exposeEnvString(name);
 	}
 
 	@Override
