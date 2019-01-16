@@ -5,9 +5,11 @@ import java.security.Security;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.fintechlabs.testframework.ui.ServerInfoTemplate;
 import org.apache.catalina.connector.Connector;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
@@ -17,8 +19,12 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 
+import javax.annotation.PostConstruct;
+
 @SpringBootApplication
 public class Application {
+	@Autowired
+	private ServerInfoTemplate serverInfoTemplate;
 
 	private static class EventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 		final private static org.slf4j.Logger logger = LoggerFactory.getLogger(EventListener.class);
@@ -77,5 +83,10 @@ public class Application {
 		tomcat.addAdditionalTomcatConnectors(ajpConnector);
 
 		return tomcat;
+	}
+
+	@PostConstruct
+	private void doPostConstruct(){
+		serverInfoTemplate.initServerInfo();
 	}
 }
