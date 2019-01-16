@@ -23,6 +23,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"ob-user-rejects-authentication-code-id-token-with-private-key-and-matls",
 		"ob-ensure-server-handles-non-matching-intent-id-code-id-token-with-private-key-and-matls",
 		"ob-ensure-request-object-without-exp-fails-with-private-key-and-matls",
+		"ob-ensure-request-object-without-scope-fails-with-private-key-and-matls",
 	}
 )
 public class OBCodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {
