@@ -87,9 +87,20 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 
 public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule {
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
+	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
+	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+
+	/**
+	 * Exposes, in the web frontend, a path that the user needs to know
+	 *
+	 * @param name Name to use in the frontend
+	 * @param path Path, relative to baseUrl
 	 */
+	private void exposePath(String name, String path) {
+		env.putString("accounts_endpoint", env.getString("base_url") + "/" + ACCOUNTS_PATH);
+		exposeEnvString("accounts_endpoint");
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
@@ -98,6 +109,9 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
+
+		exposePath("accounts_endpoint", ACCOUNTS_PATH);
+		exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
@@ -159,9 +173,9 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("open-banking/v1.1/account-requests")) {
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH)) {
 			return accountRequestsEndpoint(requestId);
-		} else if (path.equals("open-banking/v1.1/accounts")) {
+		} else if (path.equals(ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);

@@ -29,7 +29,7 @@ public class AddIatToRequestObject extends AbstractCondition {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		logSuccess("Added exp & iat to request object claims", args(
+		logSuccess("Added iat to request object claims", args(
 			"iat", requestObjectClaims.getAsJsonPrimitive("iat"))
 		);
 

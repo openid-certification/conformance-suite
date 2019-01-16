@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
-import io.fintechlabs.testframework.condition.client.ExpectRequestObjectBadIntentIdErrorPage;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 
 public abstract class AbstractOBEnsureServerHandlesNonMatchingIntentId extends AbstractOBServerTestModule {
@@ -27,8 +26,6 @@ public abstract class AbstractOBEnsureServerHandlesNonMatchingIntentId extends A
 
 		eventLog.log(getName(), "Redirecting to url " + redirectTo);
 
-		callAndStopOnFailure(ExpectRequestObjectBadIntentIdErrorPage.class, "FAPI-2-5.2.2-1");
-
 		env.unmapKey("mutual_tls_authentication");
 		env.unmapKey("client_jwks");
 		env.unmapKey("client");
@@ -37,7 +34,7 @@ public abstract class AbstractOBEnsureServerHandlesNonMatchingIntentId extends A
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo, env.getString("request_object_bad_intentid_error"));
+		browser.goToUrl(redirectTo);
 	}
 
 	@Override

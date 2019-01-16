@@ -12,7 +12,7 @@ public class CheckDiscEndpointRequestObjectSigningAlgValuesSupported extends Val
 
 	private static final String environmentVariable = "request_object_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RS256", "PS256" };
+	private static final String[] SET_VALUES = new String[] { "PS256", "ES256" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 
@@ -21,9 +21,6 @@ public class CheckDiscEndpointRequestObjectSigningAlgValuesSupported extends Val
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {

@@ -349,6 +349,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			logger.error("Couldn't create condition object", e);
 			fireTestFailure();
 			throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
+		} catch (TestFailureException e) {
+			logger.error("Caught TestFailureException", e);
+			fireTestFailure();
+			throw e;
 		} catch (Exception e) {
 			logException(e);
 			logger.error("Generic error from underlying test framework", e);
