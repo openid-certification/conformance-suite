@@ -111,22 +111,22 @@ public class ValidateJsonUri extends AbstractCondition {
 	 *
 	 * @param env
 	 * @param environmentVariable
-	 * @param requiredHostName
+	 * @param requiredHostname
 	 * @throws error
 	 * @return A copy of the Environment
 	 *
 	 * Validates the host part of the requested URL. Then validates the protocol.
 	 *
 	 */
-	public Environment validateWithHost(Environment env, String environmentVariable, String requiredHostName) {
+	public Environment validateWithHost(Environment env, String environmentVariable, String requiredHostname) {
 
 		JsonElement server = getServerValueOrDie(env, environmentVariable);
 		URL theURL = extractURLOrDie(server, environmentVariable);
 
-		if (!theURL.getHost().equals(requiredHostName)) {
-			throw error("Host Name does not match the requiredd one", args("expected", requiredHostName, "actual", theURL.getHost()));
+		if (!theURL.getHost().equals(requiredHostname)) {
+			throw error("Hostname does not match the required one", args("expected", requiredHostname, "actual", theURL.getHost()));
 		} else {
-			logSuccess("Host Name Passed", args("required", requiredHostName, "actual", theURL.getHost()));
+			logSuccess("Hostname is correct", args("required", requiredHostname, "actual", theURL.getHost()));
 		}
 
 		// Validate the base stuff.
