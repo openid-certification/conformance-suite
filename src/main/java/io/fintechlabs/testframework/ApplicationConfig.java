@@ -3,6 +3,7 @@ package io.fintechlabs.testframework;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import io.fintechlabs.testframework.ui.ServerInfoTemplate;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,4 +57,8 @@ public class ApplicationConfig {
 		return new KeyManager();
 	}
 
+	@Bean
+	public ServerInfoTemplate serverInfoTemplate() {
+		return new ServerInfoTemplate();
+	}
 }

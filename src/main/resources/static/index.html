@@ -440,6 +440,8 @@
 				return loadLastConfig();
 			}).then(function() {
 				return loadIndexPage();
+			}).then(function(){
+				return loadServerInfo();
 			});
 		});
 
@@ -894,10 +896,17 @@
 
 			//console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
+
+		function loadServerInfo() {
+			return $.getJSON('/api/server', function(data) {
+				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
+			});
+		}
 	</script>
 
 	<footer class="pageFooter">
 		<span class="muted">FintechLabs.io conformance suite</span>
+		<div class="serverInfo"></div>
 	</footer>
 </body>
 </html>
