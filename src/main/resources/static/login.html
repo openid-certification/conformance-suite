@@ -54,7 +54,6 @@
 
     <footer class="pageFooter">
         <span class="muted">FintechLabs.io conformance suite</span>
-		<div class="serverInfo"></div>
     </footer>
 
     <script type="text/javascript">
@@ -71,14 +70,7 @@
 	        if (logout) {
 	        	   $('#logout').show();
 	        }
-	        loadServerInfo();
 	    });
-
-	    function loadServerInfo() {
-			return $.getJSON('/api/server', function(data) {
-				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
-			});
-		}
     </script>
 
 
