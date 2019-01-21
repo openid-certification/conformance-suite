@@ -25,6 +25,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"ob-ensure-request-object-without-exp-fails-with-mtls",
 		"ob-ensure-request-object-without-scope-fails-with-mtls",
 		"ob-ensure-request-object-without-state-fails-with-mtls",
+		"ob-ensure-request-object-without-nonce-fails-with-mtls",
 	}
 )
 public class OBCodeIdTokenWithMTLSTestPlan implements TestPlan {
