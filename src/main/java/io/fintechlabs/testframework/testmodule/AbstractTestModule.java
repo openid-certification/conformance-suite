@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.testmodule;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -824,12 +825,32 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+		return Arrays.stream(getClass().getMethods())
+			.filter((m) -> m.isAnnotationPresent(HandleHttp.class))
+			.filter((m) -> m.getDeclaredAnnotation(HandleHttp.class).value().equals(path)) // TODO: have this match wildcards or ANT paths
+			.findFirst().map((m) -> {
+				try {
+					return m.invoke(this, req, res, session, requestParts);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw new TestFailureException(getId(), "Error while processing incoming HTTP request: " + e.getMessage());
+				}
+			})
+			.orElseThrow(() -> new TestFailureException(getId(), "Got an HTTP response we weren't expecting"));
 	}
 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+		return Arrays.stream(getClass().getMethods())
+			.filter((m) -> m.isAnnotationPresent(HandleHttpMtls.class))
+			.filter((m) -> m.getDeclaredAnnotation(HandleHttpMtls.class).value().equals(path)) // TODO: have this match wildcards or ANT paths
+			.findFirst().map((m) -> {
+				try {
+					return m.invoke(this, req, res, session, requestParts);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw new TestFailureException(getId(), "Error while processing incoming HTTP request: " + e.getMessage());
+				}
+			})
+			.orElseThrow(() -> new TestFailureException(getId(), "Got an HTTP response we weren't expecting"));
 	}
 
 	@Override
