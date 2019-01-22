@@ -2,10 +2,16 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
+import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingNonceErrorPage;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 
@@ -35,15 +41,31 @@ public abstract class AbstractOBEnsureRequestObjectWithoutNonceFails extends Abs
 	}
 
 	@Override
+	protected void createAuthorizationRequest() {
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		performProfileAuthorizationEndpointSetup();
+
+		env.putInteger("requested_state_length", null);
+
+		callAndStopOnFailure(CreateRandomStateValue.class);
+		exposeEnvString("state");
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+	}
+
+	@Override
 	protected void createAuthorizationRedirect() {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(AddExpToRequestObject.class);
 
-		String nonce = env.getObject("request_object_claims").get("nonce").getAsString();
-		env.getObject("request_object_claims").remove("nonce");
-
 		callAndStopOnFailure(SignRequestObject.class);
+
+		callAndStopOnFailure(CreateRandomNonceValue.class);
+		exposeEnvString("nonce");
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
