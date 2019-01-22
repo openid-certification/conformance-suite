@@ -76,10 +76,8 @@ import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
-import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.common.DisallowTLS10;
-import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.sequence.client.AddPKCEToAuthorizationRequest;
+import io.fintechlabs.testframework.sequence.client.EnsureTLSEndpoints;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -177,42 +175,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		eventLog.startBlock("Authorization endpoint TLS test");
-		env.mapKey("tls", "authorization_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.startBlock("Token Endpoint TLS test");
-		env.mapKey("tls", "token_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.startBlock("Userinfo Endpoint TLS test");
-		env.mapKey("tls", "userinfo_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.startBlock("Registration Endpoint TLS test");
-		env.mapKey("tls", "registration_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.startBlock("Resource Endpoint TLS test");
-		env.mapKey("tls", "resource_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.endBlock();
-		env.unmapKey("tls");
+		call(sequence(EnsureTLSEndpoints.class));
 
 		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
@@ -224,14 +187,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		call(condition(CreateRandomCodeVerifier.class));
-		call(exec().exposeEnvironmentString("code_verifier"));
-		call(condition(CreateS256CodeChallenge.class));
-		call(exec()
-			.exposeEnvironmentString("code_challenge")
-			.exposeEnvironmentString("code_challenge_method"));
-		call(condition(AddCodeChallengeToAuthorizationEndpointRequest.class)
-			.requirement("FAPI-R-5.2.2-7"));
+		call(sequence(AddPKCEToAuthorizationRequest.class));
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 

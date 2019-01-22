@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 
 /**
  * @author jricher
@@ -419,16 +420,49 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call((ConditionCallBuilder)builder);
 		} else if (builder instanceof TestExecutionBuilder) {
 			call((TestExecutionBuilder)builder);
+		} else if (builder instanceof ConditionSequence) {
+			call((ConditionSequence)builder);
 		} else {
 			throw new TestFailureException(getId(), "Unknown class passed to call() function");
 		}
 	}
 
 	/**
-	 * Call a list of execution units in order
+	 * Create a caller for the given sequence
 	 */
-	protected void call(List<TestExecutionUnit> units) {
-		units.forEach(this::call);
+	protected ConditionSequence sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		try {
+			ConditionSequence conditionSequence = conditionSequenceClass
+				.getDeclaredConstructor()
+				.newInstance();
+
+			return conditionSequence;
+
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logException(e);
+			logger.error("Couldn't create condition series object", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition series: " + conditionSequenceClass.getSimpleName());
+		} catch (TestFailureException e) {
+			logger.error("Caught TestFailureException", e);
+			fireTestFailure();
+			throw e;
+		} catch (Exception e) {
+			logException(e);
+			logger.error("Generic error from underlying test framework", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), e.getMessage());
+		}
+
+	}
+
+	protected void call(ConditionSequence series) {
+		// execute the sequence
+		series.evaluate();
+
+		// pass all of the resulting units to the call functions
+		series.getTestExecutionUnits()
+			.forEach(this::call);
 	}
 
 	@Override
