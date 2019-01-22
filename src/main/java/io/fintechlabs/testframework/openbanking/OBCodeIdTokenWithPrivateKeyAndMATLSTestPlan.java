@@ -25,6 +25,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"ob-ensure-request-object-without-exp-fails-with-private-key-and-matls",
 		"ob-ensure-request-object-without-scope-fails-with-private-key-and-matls",
 		"ob-ensure-request-object-without-state-fails-with-private-key-and-matls",
+		"ob-ensure-request-object-without-nonce-fails-with-private-key-and-matls",
 	}
 )
 public class OBCodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {

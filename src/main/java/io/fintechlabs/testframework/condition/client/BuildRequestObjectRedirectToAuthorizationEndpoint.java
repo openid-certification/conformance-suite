@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.condition.client;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.JsonElement;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
@@ -67,13 +68,19 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 
 		for (String key : authorizationEndpointRequest.keySet()) {
 
-			if (!(requestObjectClaims.get(key) instanceof JsonPrimitive)) {
+			JsonElement requestObjectElement = requestObjectClaims.get(key);
+			JsonElement requestParameterElement = authorizationEndpointRequest.get(key);
+			if (requestObjectElement != null && !(requestObjectElement instanceof JsonPrimitive)
+				|| !(requestParameterElement instanceof JsonPrimitive)) {
 				// only handle stringable values for now (as BuildPlainRedirectToAuthorizationEndpoint)
 				continue;
 			}
 
-			String requestObjectValue = requestObjectClaims.get(key).getAsString();
-			String requestParameterValue = authorizationEndpointRequest.get(key).getAsString();
+			String requestObjectValue = null;
+			if (requestObjectElement != null) {
+				requestObjectValue = requestObjectElement.getAsString();
+			}
+			String requestParameterValue = requestParameterElement.getAsString();
 
 			if (key.equals("state")) {
 				Boolean exposeState = env.getBoolean("expose_state_in_authorization_endpoint_request");
@@ -85,7 +92,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 			if (REQUIRED_PARAMETERS.contains(key)
 				|| requestObjectValue == null
 				|| !requestParameterValue.equals(requestObjectValue)) {
-				builder.queryParam(key, authorizationEndpointRequest.get(key).getAsString());
+				builder.queryParam(key, requestParameterValue);
 			}
 		}
 
