@@ -71,8 +71,11 @@ public abstract class AbstractConditionSequence extends TestExecutionUnit implem
 	}
 
 	@Override
-	public ConditionSequence with(String key, TestExecutionUnit builder) {
-		this.accessories.put(key, builder);
+	public ConditionSequence with(String key, TestExecutionUnit... builders) {
+
+		for (TestExecutionUnit builder : builders) {
+			this.accessories.put(key, builder);
+		}
 
 		return this;
 	}

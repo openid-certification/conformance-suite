@@ -11,7 +11,7 @@ public interface ConditionSequence {
 
 	List<TestExecutionUnit> getTestExecutionUnits();
 
-	ConditionSequence with(String key, TestExecutionUnit builder);
+	ConditionSequence with(String key, TestExecutionUnit... builders);
 
 	ConditionSequence replace(Class<? extends Condition> conditionToReplace, TestExecutionUnit builder);
 
