@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Author: Joseph Heenan
+# Author: Stewart Lait
 
 from __future__ import absolute_import
 from __future__ import division
@@ -41,13 +41,7 @@ def run_test_plan(test_plan, config_file):
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
-            state = conformance.wait_for_state(module_id, ["CONFIGURED", "FINISHED"])
-
-            if state == "CONFIGURED":
-                print('Starting test')
-                conformance.start_test(module_id)
-
-                conformance.wait_for_state(module_id, ["FINISHED"])
+            conformance.waiting_state_for_client(module_id, ["FINISHED"])
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
@@ -68,7 +62,6 @@ def run_test_plan(test_plan, config_file):
 
 # from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
 def color(text, **user_styles):
-
     styles = {
         # styles
         'reset': '\033[0m',
@@ -196,7 +189,7 @@ def show_plan_results(plan_result):
     print(
         '\nOverall totals: ran {:d} test modules. '
         'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
-        format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
+            format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
@@ -216,6 +209,8 @@ if __name__ == '__main__':
         token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
         client_id = os.environ['CONFORMANCE_CLIENT_ID']
         client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
+        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/fintech-clienttest/"
+
     else:
         # local development settings
         api_url_base = 'https://localhost:8443/'
@@ -228,6 +223,7 @@ if __name__ == '__main__':
         os.environ['CONFORMANCE_TOKEN_ENDPOINT'] = token_endpoint
         os.environ['CONFORMANCE_CLIENT_ID'] = client_id
         os.environ['CONFORMANCE_CLIENT_SECRET'] = client_secret
+        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/fintech-clienttest/"
 
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation

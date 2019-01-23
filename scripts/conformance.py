@@ -108,3 +108,22 @@ class Conformance(object):
                 raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
 
             time.sleep(2)
+
+    def waiting_state_for_client(self, module_id, required_states, timeout=240):
+        timeout_at = time.time() + timeout
+        while True:
+            if time.time() > timeout_at:
+                raise Exception("Timed out waiting for test module {} to be in one of states: {}".
+                                format(module_id, required_states))
+            info = self.get_module_info(module_id)
+            status = info['status']
+            print("module id {} status is {}".format(module_id, status))
+            if status in required_states:
+                return status
+            if status == 'INTERRUPTED':
+                raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
+            if status == 'WAITING':
+                import subprocess
+                subprocess.Popen(["npm", "run", "client"], cwd="../node-test-client")
+
+                time.sleep(2)
