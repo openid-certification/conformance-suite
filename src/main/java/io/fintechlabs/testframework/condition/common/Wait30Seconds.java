@@ -19,6 +19,7 @@ public class Wait30Seconds extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		try {
+			logSuccess("Pausing for 30 seconds");
 			TimeUnit.SECONDS.sleep(30);
 			logSuccess("Paused for 30 seconds");
 		} catch (InterruptedException e) {
