@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAcrScaClaimToAuthorizationEndpointRequest;
@@ -126,7 +127,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
-		callAndStopOnFailure(FetchServerKeys.class);
+		callAndContinueOnFailure(FetchServerKeys.class, ConditionResult.FAILURE);
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 
 		whichClient = 1;
