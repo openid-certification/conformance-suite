@@ -218,11 +218,6 @@ if __name__ == '__main__':
         client_secret = 'oauth-client-secret-1'
         dev_mode = True
 
-        os.environ["CONFORMANCE_SERVER"] = api_url_base
-        os.environ['CONFORMANCE_TOKEN_ENDPOINT'] = token_endpoint
-        os.environ['CONFORMANCE_CLIENT_ID'] = client_id
-        os.environ['CONFORMANCE_CLIENT_SECRET'] = client_secret
-
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation
         requests_session.verify = False
