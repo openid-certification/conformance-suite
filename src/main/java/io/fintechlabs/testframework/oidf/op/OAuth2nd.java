@@ -44,7 +44,7 @@ public class OAuth2nd extends AbstractTestModule {
 		fireSetupDone();
 	}
 
-	private ConditionSequence createConfigurationSequence() {
+	protected ConditionSequence createConfigurationSequence() {
 		return sequence(LoadServerAndClientConfiguration.class);
 	}
 
@@ -64,7 +64,7 @@ public class OAuth2nd extends AbstractTestModule {
 
 	}
 
-	private ConditionSequence createStartSequence() {
+	protected ConditionSequence createStartSequence() {
 		return sequence(CreateAuthorizationEndpointRequest.class);
 	}
 
@@ -131,11 +131,11 @@ public class OAuth2nd extends AbstractTestModule {
 			}
 			*/
 
-			call(sequence(ProcessAuthorizationEndpointResponse.class));
+			call(processAuthorizationEndpointResponse());
 
-			call(sequence(ProcessTokenEndpointResponse.class));
+			call(createTokenEndpointResponseSequence());
 
-			call(sequence(ProcessAuthorizationEndpointResponse.class)
+			call(processAuthorizationEndpointResponse()
 				.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
 
 			fireTestSuccess();
@@ -145,6 +145,14 @@ public class OAuth2nd extends AbstractTestModule {
 
 		});
 		return ResponseEntity.noContent().build();
+	}
+
+	protected ConditionSequence createTokenEndpointResponseSequence() {
+		return sequence(ProcessTokenEndpointResponse.class);
+	}
+
+	protected ConditionSequence processAuthorizationEndpointResponse() {
+		return sequence(ProcessAuthorizationEndpointResponse.class);
 	}
 
 }

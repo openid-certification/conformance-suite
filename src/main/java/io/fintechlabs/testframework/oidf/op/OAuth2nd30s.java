@@ -2,30 +2,25 @@ package io.fintechlabs.testframework.oidf.op;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.common.Wait30Seconds;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 /**
  * @author jricher
  *
  */
-public class OAuth2nd30s extends AbstractTestModule {
+@PublishTestModule(testName = "Oauth2nd30s",
+	displayName = "Use Auth Code twice with 30 second delay",
+	configurationFields = {		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.client_secret"})
+public class OAuth2nd30s extends OAuth2nd {
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
-	 */
 	@Override
-	public void configure(JsonObject config, String baseUrl) {
-		// TODO Auto-generated method stub
-
+	protected ConditionSequence createTokenEndpointResponseSequence() {
+		return super.createTokenEndpointResponseSequence().then(condition(Wait30Seconds.class));
 	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
-	 */
-	@Override
-	public void start() {
-		// TODO Auto-generated method stub
-
-	}
-
 }
