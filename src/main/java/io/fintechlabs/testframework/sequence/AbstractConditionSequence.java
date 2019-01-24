@@ -147,7 +147,7 @@ public abstract class AbstractConditionSequence extends TestExecutionUnit implem
 		if (hasAccessory(key)) {
 			call(getAccessories(key));
 		} else {
-			Arrays.asList(defaults);
+			call(Arrays.asList(defaults));
 		}
 	}
 
