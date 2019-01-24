@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.sequence.client;
 
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
@@ -14,9 +15,9 @@ public class LoadServerAndClientConfiguration extends AbstractConditionSequence 
 
 		call(exec().exposeEnvironmentString("redirect_uri"));
 
-		call(condition(GetDynamicServerConfiguration.class).dontStopOnFailure());
+		call(condition(GetDynamicServerConfiguration.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
 
-		call(condition(GetStaticServerConfiguration.class).dontStopOnFailure());
+		call(condition(GetStaticServerConfiguration.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
 
 		call(condition(CheckServerConfiguration.class));
 

@@ -8,10 +8,7 @@ import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.CreateAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.LoadServerAndClientConfiguration;
 import io.fintechlabs.testframework.sequence.client.ProcessAuthorizationEndpointResponse;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.ConditionCallBuilder;
-import io.fintechlabs.testframework.testmodule.HandleHttp;
-import io.fintechlabs.testframework.testmodule.UserFacing;
+import io.fintechlabs.testframework.testmodule.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -23,6 +20,12 @@ import javax.servlet.http.HttpSession;
  * @author jricher
  *
  */
+@PublishTestModule(testName = "sequenceTest",
+	displayName = "Sequence Test",
+	configurationFields = {		"server.discoveryUrl",
+	"client.client_id",
+	"client.scope",
+	"client.client_secret"})
 public class OAuth2nd extends AbstractTestModule {
 
 	/* (non-Javadoc)
@@ -73,7 +76,7 @@ public class OAuth2nd extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ModelAndView("implicitCallback",
-			args("implicitSumbitUrl", env.getString("implicit_submit", "fullUrl"),
+			args("implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
 				"returnUrl", "/log-detail.html?log=" + getId()));
 
 	}

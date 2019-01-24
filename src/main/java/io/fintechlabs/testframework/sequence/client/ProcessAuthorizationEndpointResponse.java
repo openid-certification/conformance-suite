@@ -15,6 +15,8 @@ public class ProcessAuthorizationEndpointResponse extends AbstractConditionSeque
 		// TODO: key for processing implicit parameters here; for now just unmap
 		call(exec().unmapKey("callback_params"));
 
+		call(exec().mapKey("callback_params", "callback_query_params"));
+
 		call(condition(CheckIfAuthorizationEndpointError.class));
 
 		call(condition(CheckMatchingStateParameter.class));
@@ -35,7 +37,7 @@ public class ProcessAuthorizationEndpointResponse extends AbstractConditionSeque
 
 		call(condition(ExtractAccessTokenFromTokenResponse.class));
 
-		call(condition(CheckForScopesInTokenResponse.class).dontStopOnFailure());
+		call(condition(CheckForScopesInTokenResponse.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
 
 		call(condition(ExtractIdTokenFromTokenResponse.class));
 
@@ -45,13 +47,11 @@ public class ProcessAuthorizationEndpointResponse extends AbstractConditionSeque
 
 		call(condition(CheckForSubjectInIdToken.class));
 
-		call(condition(CheckForRefreshTokenValue.class).dontStopOnFailure());
+		call(condition(CheckForRefreshTokenValue.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
 
-		call(condition(EnsureMinimumTokenLength.class).dontStopOnFailure());
+		call(condition(EnsureMinimumTokenLength.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
 
-		call(condition(EnsureMinimumTokenEntropy.class).dontStopOnFailure());
-
-
+		call(condition(EnsureMinimumTokenEntropy.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
 
 	}
 }
