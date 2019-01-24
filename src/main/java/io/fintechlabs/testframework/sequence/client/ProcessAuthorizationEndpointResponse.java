@@ -23,19 +23,9 @@ public class ProcessAuthorizationEndpointResponse extends AbstractConditionSeque
 
 		call(condition(CreateTokenEndpointRequestForAuthorizationCodeGrant.class));
 
-		if (hasAccessory("client_token_endpoint_authentication")) {
-			call(getAccessories("client_token_endpoint_authentication"));
-		} else {
-			call(condition(AddBasicAuthClientSecretAuthenticationParameters.class));
-		}
+		runAccessory("client_token_endpoint_authenticaiton", condition(AddBasicAuthClientSecretAuthenticationParameters.class));
 
-		//runAccessory("client_token_endpoint_authenticaiton", condition(AddBasicAuthClientSecretAuthenticationParameters.class))
-
-		if (hasAccessory("token_endpoint_request")) {
-			call(getAccessories("token_endpoint_request"));
-		}
-
-		//runAccessory("token_endpoint_request");
+		runAccessory("token_endpoint_request");
 
 		call(condition(CallTokenEndpoint.class));
 
