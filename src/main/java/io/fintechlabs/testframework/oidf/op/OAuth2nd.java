@@ -23,8 +23,8 @@ import javax.servlet.http.HttpSession;
  * @author jricher
  *
  */
-@PublishTestModule(testName = "sequenceTest",
-	displayName = "Sequence Test",
+@PublishTestModule(testName = "OAuth2nd",
+	displayName = "OAuth use Access Token twice",
 	configurationFields = {		"server.discoveryUrl",
 	"client.client_id",
 	"client.scope",
@@ -131,12 +131,7 @@ public class OAuth2nd extends AbstractTestModule {
 			}
 			*/
 
-			call(processAuthorizationEndpointResponse());
-
-			call(createTokenEndpointResponseSequence());
-
-			call(processAuthorizationEndpointResponse()
-				.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
+			implicitCallbackSequences();
 
 			fireTestSuccess();
 
@@ -145,6 +140,15 @@ public class OAuth2nd extends AbstractTestModule {
 
 		});
 		return ResponseEntity.noContent().build();
+	}
+
+	protected void implicitCallbackSequences() {
+		call(processAuthorizationEndpointResponse());
+
+		call(createTokenEndpointResponseSequence());
+
+		call(processAuthorizationEndpointResponse()
+			.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
 	}
 
 	protected ConditionSequence createTokenEndpointResponseSequence() {
