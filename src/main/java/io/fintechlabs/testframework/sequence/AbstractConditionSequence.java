@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.sequence;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,14 @@ public abstract class AbstractConditionSequence extends TestExecutionUnit implem
 
 	protected List<TestExecutionUnit> getAccessories(String key) {
 		return this.accessories.get(key);
+	}
+
+	protected void runAccessory(String key, TestExecutionUnit... defaults) {
+		if (hasAccessory(key)) {
+			call(getAccessories(key));
+		} else {
+			Arrays.asList(defaults);
+		}
 	}
 
 }

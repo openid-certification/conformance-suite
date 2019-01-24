@@ -32,21 +32,13 @@ public class CreateAuthorizationEndpointRequest extends AbstractConditionSequenc
 		call(exec().exposeEnvironmentString("nonce"));
 		call(condition(AddNonceToAuthorizationEndpointRequest.class));
 
-		if (hasAccessory("response_type")) {
-			call(getAccessories("response_type"));
-		} else {
-			call(condition(SetAuthorizationEndpointRequestResponseTypeToCode.class));
-		}
+		runAccessory("response_type",
+			condition(SetAuthorizationEndpointRequestResponseTypeToCode.class));
 
-		if (hasAccessory("authorization_request")) {
-			call(getAccessories("authorization_request"));
-		}
+		runAccessory("authorization_request");
 
-		if (hasAccessory("authorization_redirect")) {
-			call(getAccessories("authorization_redirect"));
-		} else {
-			call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
-		}
+		runAccessory("authorization_redirect",
+			condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
 	}
 
