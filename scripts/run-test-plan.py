@@ -41,13 +41,7 @@ def run_test_plan(test_plan, config_file):
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
-            state = conformance.wait_for_state(module_id, ["CONFIGURED", "FINISHED"])
-
-            if state == "CONFIGURED":
-                print('Starting test')
-                conformance.start_test(module_id)
-
-                conformance.wait_for_state(module_id, ["FINISHED"])
+            conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
