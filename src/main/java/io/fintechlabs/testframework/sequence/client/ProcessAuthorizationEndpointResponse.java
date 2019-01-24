@@ -31,27 +31,5 @@ public class ProcessAuthorizationEndpointResponse extends AbstractConditionSeque
 
 		call(condition(CallTokenEndpoint.class));
 
-		call(condition(CheckIfTokenEndpointResponseError.class));
-
-		call(condition(CheckForAccessTokenValue.class));
-
-		call(condition(ExtractAccessTokenFromTokenResponse.class));
-
-		call(condition(CheckForScopesInTokenResponse.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
-
-		call(condition(ExtractIdTokenFromTokenResponse.class));
-
-		call(condition(ValidateIdToken.class));
-
-		call(condition(ValidateIdTokenSignature.class));
-
-		call(condition(CheckForSubjectInIdToken.class));
-
-		call(condition(CheckForRefreshTokenValue.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
-
-		call(condition(EnsureMinimumTokenLength.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
-
-		call(condition(EnsureMinimumTokenEntropy.class).dontStopOnFailure().onFail(Condition.ConditionResult.WARNING));
-
 	}
 }

@@ -3,11 +3,14 @@ package io.fintechlabs.testframework.oidf.op;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.CreateAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.LoadServerAndClientConfiguration;
 import io.fintechlabs.testframework.sequence.client.ProcessAuthorizationEndpointResponse;
+import io.fintechlabs.testframework.sequence.client.ProcessTokenEndpointResponse;
 import io.fintechlabs.testframework.testmodule.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -100,9 +103,46 @@ public class OAuth2nd extends AbstractTestModule {
 				env.putString("implicit_hash", ""); // Clear any old value
 			}
 
+/*			// if we're on the first round:
+			// mark that we're doing the 2nd call (somehow)
+			if(!Boolean.TRUE.equals(env.getBoolean("second_auth_code"))) {
+				call(sequence(ProcessAuthorizationEndpointResponse.class));
+
+				call(sequence(ProcessTokenEndpointResponse.class));
+
+				call(exec().startBlock("Second Auth Code"));
+				env.putBoolean("second_auth_code", true);
+				// call authz endpoint again
+				sequence(CreateAuthorizationEndpointRequest.class);
+				// continue...
+				String redirectTo = env.getString("redirect_to_authorization_endpoint");
+				eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
+				setStatus(Status.WAITING);
+				browser.goToUrl(redirectTo);
+				// if we're on the 2nd round:
+				// done
+			} else {
+				call(sequence(ProcessAuthorizationEndpointResponse.class)
+					.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
+				call(exec().endBlock());
+				fireTestSuccess();
+
+				setStatus(Status.FINISHED);
+			}
+			*/
+
 			call(sequence(ProcessAuthorizationEndpointResponse.class));
 
+			call(sequence(ProcessTokenEndpointResponse.class));
+
+			call(sequence(ProcessAuthorizationEndpointResponse.class)
+				.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
+
+			fireTestSuccess();
+
+			setStatus(Status.FINISHED);
 			return "done";
+
 		});
 		return ResponseEntity.noContent().build();
 	}
