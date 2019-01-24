@@ -15,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.google.common.base.Strings;
@@ -825,9 +826,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		AntPathMatcher apm = new AntPathMatcher();
+
 		return Arrays.stream(getClass().getMethods())
 			.filter((m) -> m.isAnnotationPresent(HandleHttp.class))
-			.filter((m) -> m.getDeclaredAnnotation(HandleHttp.class).value().equals(path)) // TODO: have this match wildcards or ANT paths
+			.filter((m) -> apm.match(m.getDeclaredAnnotation(HandleHttp.class).value(), path))
 			.findFirst().map((m) -> {
 				try {
 					return m.invoke(this, req, res, session, requestParts);
@@ -840,9 +844,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		AntPathMatcher apm = new AntPathMatcher();
+
 		return Arrays.stream(getClass().getMethods())
 			.filter((m) -> m.isAnnotationPresent(HandleHttpMtls.class))
-			.filter((m) -> m.getDeclaredAnnotation(HandleHttpMtls.class).value().equals(path)) // TODO: have this match wildcards or ANT paths
+			.filter((m) -> apm.match(m.getDeclaredAnnotation(HandleHttp.class).value(), path))
 			.findFirst().map((m) -> {
 				try {
 					return m.invoke(this, req, res, session, requestParts);
