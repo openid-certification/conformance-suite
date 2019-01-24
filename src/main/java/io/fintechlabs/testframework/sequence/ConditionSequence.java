@@ -15,4 +15,12 @@ public interface ConditionSequence {
 
 	ConditionSequence replace(Class<? extends Condition> conditionToReplace, TestExecutionUnit builder);
 
+	ConditionSequence butFirst(TestExecutionUnit... builders);
+
+	ConditionSequence then(TestExecutionUnit... builders);
+
+	ConditionSequence insertAfter(Class<? extends Condition> conditionToInsertAt, TestExecutionUnit builder);
+
+	ConditionSequence insertBefore(Class<? extends Condition> conditionToInsertAt, TestExecutionUnit builder);
+
 }

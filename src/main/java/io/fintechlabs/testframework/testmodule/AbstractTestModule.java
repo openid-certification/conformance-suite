@@ -35,6 +35,7 @@ import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 
 /**
@@ -456,6 +457,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			throw new TestFailureException(getId(), e.getMessage());
 		}
 
+	}
+
+	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {
+		return new AbstractConditionSequence() {
+
+			@Override
+			public void evaluate() {
+				call(Arrays.asList(units));
+			}
+		};
 	}
 
 	protected void call(ConditionSequence series) {
