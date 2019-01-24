@@ -42,7 +42,7 @@ public class CreateRandomImplicitSubmitUrl extends AbstractCondition {
 		}
 
 		// create a random submission URL
-		String path = RandomStringUtils.randomAlphanumeric(20);
+		String path = "implicit/" + RandomStringUtils.randomAlphanumeric(20);
 
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);
