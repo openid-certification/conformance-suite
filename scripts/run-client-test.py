@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Author: Joseph Heenan
+# Author: Stewart Lait
 
 from __future__ import absolute_import
 from __future__ import division
@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import time
+import subprocess
 
 import requests
 
@@ -41,7 +42,10 @@ def run_test_plan(test_plan, config_file):
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
-            conformance.wait_for_state(module_id, ["FINISHED"])
+            state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+            if state == "WAITING":
+                subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+                conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
@@ -62,7 +66,6 @@ def run_test_plan(test_plan, config_file):
 
 # from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
 def color(text, **user_styles):
-
     styles = {
         # styles
         'reset': '\033[0m',
@@ -190,7 +193,7 @@ def show_plan_results(plan_result):
     print(
         '\nOverall totals: ran {:d} test modules. '
         'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
-        format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
+            format(len(test_ids), successful_conditions, len(failures_overall), len(warnings_overall), overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
     if len(test_ids) != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
@@ -210,6 +213,8 @@ if __name__ == '__main__':
         token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
         client_id = os.environ['CONFORMANCE_CLIENT_ID']
         client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
+        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+
     else:
         # local development settings
         api_url_base = 'https://localhost:8443/'
@@ -217,6 +222,12 @@ if __name__ == '__main__':
         client_id = 'oauth-client-1'
         client_secret = 'oauth-client-secret-1'
         dev_mode = True
+
+        os.environ["CONFORMANCE_SERVER"] = api_url_base
+        os.environ['CONFORMANCE_TOKEN_ENDPOINT'] = token_endpoint
+        os.environ['CONFORMANCE_CLIENT_ID'] = client_id
+        os.environ['CONFORMANCE_CLIENT_SECRET'] = client_secret
+        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
 
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation
@@ -226,7 +237,7 @@ if __name__ == '__main__':
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     if len(sys.argv) < 3:
-        print("Syntax: run-test-plan.py <test-plan-name> <configuration-file> ...")
+        print("Syntax: run-client-test.py <test-plan-name> <configuration-file> ...")
         sys.exit(1)
 
     args = sys.argv[1:]
@@ -240,7 +251,7 @@ if __name__ == '__main__':
         args = args[2:]
 
     if len(args) != 0:
-        print("Error: run-test-plan.py: must have even number of parameters")
+        print("Error: run-client-test.py: must have even number of parameters")
         sys.exit(1)
 
     conformance = Conformance(api_url_base, token_endpoint, requests_session)
@@ -288,14 +299,14 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - some tests did not run to completion"))
         sys.exit(1)
 
-    # filter untested list, as we don't currently have test environments for these
+    # This script only runs client tests, so exclude any non-client test
     for m in untested_test_modules[:]:
         if all_test_modules[m]['profile'] in ['SAMPLE', 'HEART']:
             untested_test_modules.remove(m)
             continue
 
-        if re.match(r'ob-client-.*', m):
-            # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
+        if not re.match(r'ob-client-.*', m):
+            # see https://gitlab.com/fintechlabs/fai-conformance-suite/issues/351
             untested_test_modules.remove(m)
             continue
 
