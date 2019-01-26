@@ -480,6 +480,7 @@ deployment_test_review:
   function run_test_plan() {
     echo "Installing extra dependencies"
     apk add -U openssh-client git
+    apk add --update nodejs nodejs-npm
     pip install requests
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
