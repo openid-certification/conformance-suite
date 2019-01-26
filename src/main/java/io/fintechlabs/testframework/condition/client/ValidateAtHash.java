@@ -12,7 +12,7 @@ public class ValidateAtHash extends ValidateHash {
 	}
 
 	@Override
-	@PreEnvironment(strings = "state", required = "at_hash")
+	@PreEnvironment(required = { "access_token", "at_hash" } )
 	public Environment evaluate(Environment env) {
 		return super.validateHash(env,"at_hash","at_hash");
 	}
