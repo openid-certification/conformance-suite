@@ -13,7 +13,7 @@ public class ValidateCHash extends ValidateHash {
 	}
 
 	@Override
-	@PreEnvironment(strings = "state", required = "c_hash")
+	@PreEnvironment(required = { "c_hash" , "callback_params" })
 	public Environment evaluate(Environment env) {
 		return super.validateHash(env,"c_hash","c_hash");
 	}
