@@ -9,32 +9,16 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class CreateAuthorizationEndpointRequestFromClientInformation extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param optional
-	 */
 	public CreateAuthorizationEndpointRequestFromClientInformation(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
-	@PreEnvironment(required = "client", strings = { "redirect_uri" })
+	@PreEnvironment(required = "client", strings = "redirect_uri" )
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-
-		if (!env.containsObject("client")) {
-			throw error("Couldn't find client configuration");
-		}
 
 		String clientId = env.getString("client", "client_id");
 
