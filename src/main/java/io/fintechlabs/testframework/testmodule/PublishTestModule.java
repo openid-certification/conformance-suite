@@ -23,4 +23,6 @@ public @interface PublishTestModule {
 
 	String summary() default "";
 
+	Variant[] variants() default {};
+
 }

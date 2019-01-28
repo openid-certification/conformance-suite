@@ -1,5 +1,12 @@
 package io.fintechlabs.testframework.oidf.op;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -7,17 +14,17 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.client.AuthorizationEndpointRequestCodeIdToken;
 import io.fintechlabs.testframework.sequence.client.CreateAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.LoadServerAndClientConfiguration;
 import io.fintechlabs.testframework.sequence.client.ProcessAuthorizationEndpointResponse;
 import io.fintechlabs.testframework.sequence.client.ProcessTokenEndpointResponse;
-import io.fintechlabs.testframework.testmodule.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.Accessory;
+import io.fintechlabs.testframework.testmodule.HandleHttp;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.UserFacing;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 /**
  * @author jricher
@@ -25,10 +32,28 @@ import javax.servlet.http.HttpSession;
  */
 @PublishTestModule(testName = "OAuth2nd",
 	displayName = "OAuth use Access Token twice",
-	configurationFields = {		"server.discoveryUrl",
-	"client.client_id",
-	"client.scope",
-	"client.client_secret"})
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.client_secret"},
+	variants = {
+		@Variant(name = "code_idtoken_private_key_jwks",
+			accessories = {
+			@Accessory(key = "response_type",
+				sequences =
+					AuthorizationEndpointRequestCodeIdToken.class
+				)
+			},
+			configurationFields = {
+				"server.discoveryUrl",
+				"client.client_id",
+				"client.scope",
+				"client.jwks"
+			}
+		)
+	}
+)
 public class OAuth2nd extends AbstractTestModule {
 
 	/* (non-Javadoc)
@@ -143,12 +168,12 @@ public class OAuth2nd extends AbstractTestModule {
 	}
 
 	protected void implicitCallbackSequences() {
-		call(processAuthorizationEndpointResponse());
 
-		call(createTokenEndpointResponseSequence());
-
-		call(processAuthorizationEndpointResponse()
-			.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
+		sequenceOf(
+			processAuthorizationEndpointResponse(),
+			createTokenEndpointResponseSequence(),
+			processAuthorizationEndpointResponse()
+				.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
 	}
 
 	protected ConditionSequence createTokenEndpointResponseSequence() {

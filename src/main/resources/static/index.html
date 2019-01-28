@@ -98,19 +98,24 @@
                         data-on="Single Test" data-off="Multi Test Plan"
                         data-onstyle="info" data-offstyle="primary"
                         data-style="btn-block"
-                        data-width="auto" data-height="auto"
+                        data-width="auto" data-height="auto"  checked
                         type="checkbox" id="singleTestSelector">
                 </div>
-                <div class="col-md-11" id="testSelector">
+                <div class="col-md-9" id="testSelector">
                     <select id="testSelect" class="form-control">
                         <option value="select">--- Select A Test ----</option>
                     </select>
                 </div>
-                <div class="col-md-11 collapse" id="planSelector">
+                <div class="col-md-9 collapse" id="planSelector">
                     <select id="planSelect" class="form-control">
                         <option value="select">--- Select A Test Plan ----</option>
                     </select>
                 </div>
+				<div class="col-md-2">
+					<select class="form-control config-form-element" data-json-target="variant" id="variantSelector">
+					</select>
+				</div>
+
             </div>
 
 			<div class="row">
@@ -471,6 +476,7 @@
                         	   display: item.displayName
                         }));
                     });
+                    
 
                 });
             });
@@ -510,6 +516,8 @@
 
 				if (data.config) {
 					// we found a configuration file, load it up
+					
+					FAPI_UI.testJSON = data.config;
 
 					$("#config").val(JSON.stringify(data.config, null, 4));
 
@@ -614,10 +622,22 @@
 			});
 
 			// update field visibility when the selectors change
-			$('#testSelect').on('change', updateConfigFieldVisibility);
-			$('#planSelect').on('change', updateConfigFieldVisibility);
+			$('#testSelect').on('change', function(e) {
+				updateVariants(e);
+				updateConfigFieldVisibility(e);
+			});
+			$('#planSelect').on('change', function(e) {
+				updateVariants(e);
+				updateConfigFieldVisibility(e);
+			});
+			$('#variantSelector').on('change', function(e) {
+				updateVariantConfig(e);
+				updateConfigFieldVisibility(e);
+			});
 
 			// update the config visibility right now
+			updateVariants();
+			updateVariantConfig();
 			updateConfigFieldVisibility();
 
 			$('#refresh').click(function(event) {
@@ -667,6 +687,7 @@
                 $('#createTestBtn').hide();
                 $('#createPlanBtn').show();
             }
+            updateVariants();
             updateConfigFieldVisibility();
 		}
 
@@ -685,8 +706,26 @@
 					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
 					// enable the create button
 					$('#createTestBtn').prop('disabled', false);
-				}
 
+					if (FAPI_UI.availableTests[testName].variants && FAPI_UI.availableTests[testName].variants.length > 0) {
+						var selectedVariant = $('#variantSelector').val();
+						if (selectedVariant) {
+							var variant = _.find(FAPI_UI.availableTests[testName].variants, {'name': selectedVariant});
+							if (variant) {
+								if (variant.configurationFields && variant.configurationFields.length > 0) {
+									// replace the visible fields with the variant version, if available
+									fieldsToShow = variant.configurationFields;
+								}
+							} else {
+								// choose the default value
+								$('#variantSelector').val('');
+							}
+						}
+					}
+
+
+				}
+				
 				if (!fieldsToShow) {
 					// the test hasn't defined anything, set a default
 					fieldsToShow = [];
@@ -805,10 +844,22 @@
 			_.each(children, function(child) {
 				populateJSON($(child).data("jsonTarget"), $(child).val());
 			});
-
+			
+			updateVariantConfig();
+			
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 		}
 
+		function updateVariantConfig() {
+			// special processing for the variant
+			var variant = $('#variantSelector').val();
+			if (variant) {
+				FAPI_UI.testJSON.variant = variant;
+			} else {
+				FAPI_UI.testJSON.variant = '';
+			}
+		}
+		
 		/**
 		 *
 		 */
@@ -891,10 +942,40 @@
 
 			//console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
+		
+
+		function updateVariants() {
+			if ($('#singleTestSelector').is(':checked')) {
+				// single test selected
+				var testName = $('#testSelect').val();
+
+				$('#variantSelector').find('option').remove();
+				$('#variantSelector').append(FAPI_UI.logTemplates.TEST_OPTION({
+					val: '',
+					display: 'Default'
+				}));
+
+				if (FAPI_UI.availableTests[testName] && 
+						FAPI_UI.availableTests[testName].variants && 
+						FAPI_UI.availableTests[testName].variants.length > 0) {
+					// update the variant display
+					_.each(FAPI_UI.availableTests[testName].variants, function(variant) {
+						$('#variantSelector').append(FAPI_UI.logTemplates.TEST_OPTION({
+							val: variant.name,
+							display: variant.name
+						}));
+					});
+					
+					// select the right option
+					$('#variantSelector option[value=' + FAPI_UI.testJSON.variant + ']').prop('selected', true).change();
+
+				}
+			}
+		}
 
 		function loadServerInfo() {
 			return $.getJSON('/api/server', function(data) {
-				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
+				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip : ""), (data.hasOwnProperty("version") ? "Version: " + data.version : "")].filter(Boolean).join(" - "));
 			});
 		}
 	</script>

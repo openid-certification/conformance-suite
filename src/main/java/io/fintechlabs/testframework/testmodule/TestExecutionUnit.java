@@ -6,6 +6,6 @@ package io.fintechlabs.testframework.testmodule;
  * @author jricher
  *
  */
-public abstract class TestExecutionUnit {
+public interface TestExecutionUnit {
 
 }

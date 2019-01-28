@@ -16,7 +16,7 @@ import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.TestExecutionBuilder;
 import io.fintechlabs.testframework.testmodule.TestExecutionUnit;
 
-public abstract class AbstractConditionSequence extends TestExecutionUnit implements ConditionSequence, DataUtils {
+public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
 	private List<TestExecutionUnit> callables = new ArrayList<>();
 	private ListMultimap<String, TestExecutionUnit> accessories = LinkedListMultimap.create();
@@ -57,7 +57,7 @@ public abstract class AbstractConditionSequence extends TestExecutionUnit implem
 		return new TestExecutionBuilder();
 	}
 
-	protected AbstractConditionSequence sequenceOf(TestExecutionUnit... units) {
+	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {
 		return new AbstractConditionSequence() {
 
 			@Override

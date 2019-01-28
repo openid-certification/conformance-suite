@@ -17,7 +17,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
  * @author jricher
  *
  */
-public class ConditionCallBuilder extends TestExecutionUnit {
+public class ConditionCallBuilder implements TestExecutionUnit {
 
 	private Class<? extends Condition> conditionClass = null;
 	private List<String> requirements = new ArrayList<>();
