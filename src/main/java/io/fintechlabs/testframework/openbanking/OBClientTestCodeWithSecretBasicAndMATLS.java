@@ -4,15 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.view.RedirectView;
-
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
@@ -45,6 +38,14 @@ import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectclaims;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.view.RedirectView;
+
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -107,6 +108,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		env.putObject("config", config);
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		callAndContinueOnFailure(AddResponseTypeCodeToServerConfiguration.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 

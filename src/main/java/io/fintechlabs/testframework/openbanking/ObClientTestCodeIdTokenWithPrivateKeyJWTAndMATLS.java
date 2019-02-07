@@ -76,6 +76,7 @@ public class ObClientTestCodeIdTokenWithPrivateKeyJWTAndMATLS extends AbstractTe
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
+		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class);
 		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
@@ -322,7 +323,7 @@ public class ObClientTestCodeIdTokenWithPrivateKeyJWTAndMATLS extends AbstractTe
 
 		callAndStopOnFailure(ExtractOBIntentId.class);
 
-		callAndStopOnFailure(EnsureResponseTypeIsCode.class);
+		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class);
 
@@ -336,7 +337,19 @@ public class ObClientTestCodeIdTokenWithPrivateKeyJWTAndMATLS extends AbstractTe
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 
-		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class);
+		callAndStopOnFailure(ExtractServerSigningAlg.class);
+
+		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
+
+		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
+
+		callAndStopOnFailure(AddCHashToIdTokenClaims.class);
+
+		callAndStopOnFailure(SignIdToken.class);
+
+		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
 
 		exposeEnvString("authorization_endpoint_response_redirect");
 
