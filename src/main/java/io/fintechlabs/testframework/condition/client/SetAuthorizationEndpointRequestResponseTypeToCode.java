@@ -8,32 +8,16 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class SetAuthorizationEndpointRequestResponseTypeToCode extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param optional
-	 */
 	public SetAuthorizationEndpointRequestResponseTypeToCode(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		if (!env.containsObject("authorization_endpoint_request")) {
-			throw error("Couldn't find authorization endpoint request");
-		}
-
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
 		authorizationEndpointRequest.addProperty("response_type", "code");
