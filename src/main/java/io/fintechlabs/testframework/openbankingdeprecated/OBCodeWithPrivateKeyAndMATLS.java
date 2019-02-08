@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-code-with-private-key-and-matls",
-	displayName = "OB: code (private key authentication with MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-code-with-private-key-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: code (private key authentication with MATLS)",
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc), tests that certificate bound access tokens are implemented correctly and tries reusing an authorization code.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

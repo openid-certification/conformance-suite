@@ -9,9 +9,9 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-server-handles-non-matching-intent-id-code-id-token-with-private-key-and-matls",
-	displayName = "OB: server handles non matching openbanking_intent_id (code id_token with private key authentication and MATLS)",
-	profile = "OB",
+	testName = "ob-deprecated-eol-sept-2019-ensure-server-handles-non-matching-intent-id-code-id-token-with-private-key-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: server handles non matching openbanking_intent_id (code id_token with private key authentication and MATLS)",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

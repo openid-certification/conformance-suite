@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-matls-required-code-with-mtls",
-	displayName = "OB: ensure MATLS required (code with MTLS authentication)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-matls-required-code-with-mtls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure MATLS required (code with MTLS authentication)",
 	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-registered-certificate-for-authorization-code-code-with-private-key-and-matls",
-	displayName = "OB: ensure registered certificate for authorization code (code with private key authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-registered-certificate-for-authorization-code-code-with-private-key-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure registered certificate for authorization code (code with private key authentication and MATLS)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

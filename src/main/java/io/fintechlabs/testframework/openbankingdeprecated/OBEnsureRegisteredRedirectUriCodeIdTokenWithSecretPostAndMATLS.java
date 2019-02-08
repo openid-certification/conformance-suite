@@ -12,10 +12,10 @@ import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEn
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-registered-redirect-uri-code-id-token-with-secret-post-and-matls",
-	displayName = "OB: ensure registered redirect URI (code id_token with client_secret_post authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-registered-redirect-uri-code-id-token-with-secret-post-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure registered redirect URI (code id_token with client_secret_post authentication and MATLS)",
 	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

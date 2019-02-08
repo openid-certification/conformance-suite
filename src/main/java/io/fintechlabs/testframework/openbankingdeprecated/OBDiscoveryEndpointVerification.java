@@ -27,9 +27,9 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-		testName = "ob-discovery-end-point-verification",
-		displayName = "OB: Discovery Endpoint Verification",
-		profile = "OB",
+		testName = "ob-deprecated-eol-sept-2019-discovery-end-point-verification",
+		displayName = "OB-deprecated-EOL-sept-2019: Discovery Endpoint Verification",
+		profile = "OB-deprecated-EOL-Sept-2019",
 		configurationFields = {
 			"server.discoveryUrl",
 		}

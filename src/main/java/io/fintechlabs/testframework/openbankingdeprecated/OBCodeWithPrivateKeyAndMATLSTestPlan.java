@@ -8,9 +8,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
  *
  */
 @PublishTestPlan (
-	testPlanName = "ob-code-with-private-key-and-matls-test-plan",
-	displayName = "OB: code with private key and matls Test Plan",
-	profile = "OB",
+	testPlanName = "ob-deprecated-eol-sept-2019-code-with-private-key-and-matls-test-plan",
+	displayName = "OB-deprecated-EOL-sept-2019: code with private key and matls Test Plan",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	testModuleNames = {
 		"ob-discovery-end-point-verification",
 		"ob-code-with-private-key-and-matls",

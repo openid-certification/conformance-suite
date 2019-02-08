@@ -16,10 +16,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
  */
 
 @PublishTestModule(
-	testName = "ob-user-rejects-authentication-code-with-secret-basic-and-matls",
-	displayName = "OB: user rejects authentication (code with client_secret_basic authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-user-rejects-authentication-code-with-secret-basic-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: user rejects authentication (code with client_secret_basic authentication and MATLS)",
 	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

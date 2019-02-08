@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-registered-redirect-uri-code-with-private-key-and-matls",
-	displayName = "OB: ensure registered redirect URI (code with private key authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-registered-redirect-uri-code-with-private-key-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure registered redirect URI (code with private key authentication and MATLS)",
 	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -12,10 +12,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
  */
 
 @PublishTestModule(
-	testName = "ob-user-rejects-authentication-code-id-token-with-mtls",
-	displayName = "OB: user rejects authentication (code id_token with MTLS authentication)",
+	testName = "ob-deprecated-eol-sept-2019-user-rejects-authentication-code-id-token-with-mtls",
+	displayName = "OB-deprecated-EOL-sept-2019: user rejects authentication (code id_token with MTLS authentication)",
 	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

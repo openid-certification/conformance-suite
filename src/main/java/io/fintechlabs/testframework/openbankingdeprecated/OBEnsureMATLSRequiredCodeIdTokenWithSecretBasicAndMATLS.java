@@ -12,10 +12,10 @@ import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEn
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-matls-required-code-id-token-with-secret-basic-and-matls",
-	displayName = "OB: ensure MATLS required (code id_token with client_secret_basic authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-matls-required-code-id-token-with-secret-basic-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure MATLS required (code id_token with client_secret_basic authentication and MATLS)",
 	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

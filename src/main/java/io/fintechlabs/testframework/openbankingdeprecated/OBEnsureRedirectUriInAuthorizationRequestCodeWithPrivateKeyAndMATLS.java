@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-redirect-uri-in-authorization-request-code-with-private-key-and-matls",
-	displayName = "OB: ensure redirect URI in authorization request (code with private key authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-redirect-uri-in-authorization-request-code-with-private-key-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure redirect URI in authorization request (code with private key authentication and MATLS)",
 	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

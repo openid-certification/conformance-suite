@@ -11,10 +11,10 @@ import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEn
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-registered-certificate-for-authorization-code-code-with-secret-basic-and-matls",
-	displayName = "OB: ensure registered certificate for authorization code (code with client_secret_basic authentication and MATLS)",
+	testName = "ob-deprecated-eol-sept-2019-ensure-registered-certificate-for-authorization-code-code-with-secret-basic-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: ensure registered certificate for authorization code (code with client_secret_basic authentication and MATLS)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
-	profile = "OB",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

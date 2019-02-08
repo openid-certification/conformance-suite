@@ -8,9 +8,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
  *
  */
 @PublishTestPlan (
-	testPlanName = "ob-code-id-token-with-mtls-test-plan",
-	displayName = "OB: code id_token with mtls Test Plan",
-	profile = "OB",
+	testPlanName = "ob-deprecated-eol-sept-2019-code-id-token-with-mtls-test-plan",
+	displayName = "OB-deprecated-EOL-sept-2019: code id_token with mtls Test Plan",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	testModuleNames = {
 		"ob-discovery-end-point-verification",
 		"ob-code-id-token-with-mtls",

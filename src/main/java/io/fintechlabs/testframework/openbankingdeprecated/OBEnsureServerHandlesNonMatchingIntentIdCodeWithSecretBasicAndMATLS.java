@@ -12,9 +12,9 @@ import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEn
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "ob-ensure-server-handles-non-matching-intent-id-code-with-secret-basic-and-matls",
-	displayName = "OB: server handles non matching openbanking_intent_id (code with client_secret_basic authentication and MATLS)",
-	profile = "OB",
+	testName = "ob-deprecated-eol-sept-2019-ensure-server-handles-non-matching-intent-id-code-with-secret-basic-and-matls",
+	displayName = "OB-deprecated-EOL-sept-2019: server handles non matching openbanking_intent_id (code with client_secret_basic authentication and MATLS)",
+	profile = "OB-deprecated-EOL-Sept-2019",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
