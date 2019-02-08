@@ -11,7 +11,6 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsSupp
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointDiscoveryUrl;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
-import io.fintechlabs.testframework.condition.client.CheckDiscEndpointJwksUri;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
@@ -22,6 +21,7 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpo
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
+import io.fintechlabs.testframework.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -72,7 +72,7 @@ public class OBDiscoveryEndpointVerification extends AbstractTestModule {
 			.dontStopOnFailure()
 			);
 
-		callAndContinueOnFailure(CheckDiscEndpointJwksUri.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, ConditionResult.FAILURE);
 
 		fireTestFinished();
 
