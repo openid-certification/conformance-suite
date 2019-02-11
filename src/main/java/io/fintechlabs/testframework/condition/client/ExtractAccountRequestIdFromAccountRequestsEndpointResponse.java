@@ -14,15 +14,24 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse extends 
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "account_requests_endpoint_response")
 	@PostEnvironment(strings = "account_request_id")
 	public Environment evaluate(Environment env) {
+		String accountRequestId;
 
-		String accountRequestId = env.getString("account_requests_endpoint_response", "Data.AccountRequestId");
+		Integer obApiVersion = env.getInteger("ob_api_version");
+		if (obApiVersion == null) {
+			throw error("ob_api_version missing from environment");
+		}
+
+		if (obApiVersion == 2) {
+			accountRequestId = env.getString("account_requests_endpoint_response", "Data.AccountRequestId");
+		} else if (obApiVersion == 3) {
+			accountRequestId = env.getString("account_requests_endpoint_response", "Data.ConsentId");
+		} else {
+			throw error("ob_api_version "+obApiVersion+" not supported");
+		}
 		if (Strings.isNullOrEmpty(accountRequestId)) {
 			throw error("Couldn't find account request ID");
 		}

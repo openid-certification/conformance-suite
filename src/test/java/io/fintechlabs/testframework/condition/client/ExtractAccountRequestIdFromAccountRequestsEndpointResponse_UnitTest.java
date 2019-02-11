@@ -80,6 +80,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 	public void testEvaluate_valuePresent() {
 
 		env.putObject("account_requests_endpoint_response", endpointResponse);
+		env.putInteger("ob_api_version", 2);
 
 		cond.evaluate(env);
 
