@@ -776,11 +776,6 @@
 					evt.preventDefault();
 					window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
 				});
-
-				$('.viewBtn', runningTest).click(function(evt) {
-					evt.preventDefault();
-					window.open('/log-detail.html?log=' + encodeURIComponent(testId));
-				});
 			}).then(function() {
 
 				var _self =  $(`[data-instance-id='${testId}']`);

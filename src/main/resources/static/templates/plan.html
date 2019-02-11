@@ -58,7 +58,7 @@
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>"><span class="glyphicon glyphicon-play"></span> Run New Test</button>
-                    <button class="btn btn-default btn-block collapse viewBtn"><span class="glyphicon glyphicon-file"></span> View Logs</button>
+					<a class="btn btn-default btn-block collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>
                     <button class="btn btn-default btn-block collapse downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                 </div>
                 <div class="col-md-8">
