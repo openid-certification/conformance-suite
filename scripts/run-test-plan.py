@@ -299,6 +299,12 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
+        if re.match(r'ob-deprecated-.*code-with-mtls', m):
+            # we don't have a test environment that supports oauth-mtls and the code
+            # response type
+            untested_test_modules.remove(m)
+            continue
+
     if show_untested and len(untested_test_modules) > 0:
         print(failure("** Exiting with failure - not all available modules were tested:"))
         for m in untested_test_modules:
