@@ -172,11 +172,7 @@
                           });
                           $('.downloadBtn', _self).show();
                           // show the view button
-                          $('.viewBtn', _self).click(function(evt) {
-                        	      evt.preventDefault();
-                        	      window.location.assign('/log-detail.html?log=' + encodeURIComponent(testId));
-                          });
-                          $('.viewBtn', _self).show();
+                          $('.viewBtn', _self).css('display', 'inline-block');
                           // fetch the test status
                           console.log('Fetching |' + testId + '|');
 	                      $.ajax({
