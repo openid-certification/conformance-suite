@@ -517,9 +517,7 @@ public abstract class AbstractOBDeprecatedServerTestModule extends AbstractTestM
 
 		// verify the access token against a protected resource
 
-		if ( whichClient != 2 ) {
-			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
-		}
+		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
