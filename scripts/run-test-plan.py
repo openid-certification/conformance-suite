@@ -15,6 +15,26 @@ import requests
 
 from conformance import Conformance
 
+import sys
+
+# Wrapper that adds timestamps to the start of our output
+#
+# This is mainly useful when the test is running inside gitlab, so we can see what exact time each step happened at
+class timestamp_filter:
+    # pending_output stores any output passed to write where a \n has not yet been found
+    pending_output = ''
+    def write(self, message):
+        output = self.pending_output + message
+        (output, not_used, self.pending_output) =  output.rpartition('\n')
+        if output != '':
+            timestamp = time.strftime("%Y-%m-%d %X")
+            output = timestamp + " " + output.replace("\n", "\n"+timestamp+" ")
+            print(output, file=sys.__stdout__)
+            sys.__stdout__.flush()
+    def flush(self):
+        pass
+
+sys.stdout = timestamp_filter()
 
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
