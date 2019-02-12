@@ -39,21 +39,17 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CallAccountRequestsEndpointWithBearerToken extends AbstractCondition {
 
-	private static final String ACCOUNT_REQUESTS_RESOURCE = "account-requests";
+
+	private static final String ACCOUNT_REQUESTS_RESOURCE_V2 = "account-requests";
+	// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937820271/Account+and+Transaction+API+Specification+-+v3.1
+	private static final String ACCOUNT_REQUESTS_RESOURCE_V3 = "account-access-consents";
 
 	private static final Logger logger = LoggerFactory.getLogger(CallAccountRequestsEndpointWithBearerToken.class);
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
 	public CallAccountRequestsEndpointWithBearerToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request" })
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "account_requests_endpoint_response" })
@@ -76,6 +72,21 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			throw error("Resource endpoint not found");
 		}
 
+		// Check which OB API version is used in the configuration by inspecting the url
+		// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937656404/Read%2BWrite%2BData%2BAPI%2BSpecification%2B-%2Bv3.1
+		// Resource URI Path Structure
+		// The path of the URI must follow the structure below (from the OB API Release Management document).
+		// [participant-path-prefix]/open-banking/[version]/[resource-group]/[resource]/[resource-id]/[sub-resource]
+		// [version] The version of the APIs expressed as /v[major-version].[minor-version]/.
+		String urlPath;
+		if (resourceEndpoint.contains("/v3.")) {
+			urlPath = ACCOUNT_REQUESTS_RESOURCE_V3;
+			env.putInteger("ob_api_version", 3);
+		} else {
+			urlPath = ACCOUNT_REQUESTS_RESOURCE_V2;
+			env.putInteger("ob_api_version", 2);
+		}
+
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
 		JsonObject requestObject = env.getObject("account_requests_endpoint_request");
@@ -85,7 +96,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 		// Build the endpoint URL
 		String accountRequestsUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-			.path(ACCOUNT_REQUESTS_RESOURCE)
+			.path(urlPath)
 			.toUriString();
 
 		try {
@@ -111,7 +122,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			String jsonString = response.getBody();
 
 			if (Strings.isNullOrEmpty(jsonString)) {
-				throw error("Didn't get back a response from the account requests endpoint");
+				throw error("Empty/missing response from the account requests endpoint");
 			} else {
 				log("Account requests endpoint response", args("account_requests_endpoint_response", jsonString));
 
