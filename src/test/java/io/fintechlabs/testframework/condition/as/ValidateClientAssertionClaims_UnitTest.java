@@ -96,9 +96,10 @@ public class ValidateClientAssertionClaims_UnitTest {
 		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("server", "issuer");
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
-		verify(env, atLeastOnce()).getElementFromObject("client_assertion", "claims.iss");
+		verify(env, atLeastOnce()).getElementFromObject("client_assertion", "claims.sub");
 		verify(env, atLeastOnce()).getElementFromObject("client_assertion", "claims.iss");
 		verify(env, atLeastOnce()).getElementFromObject("client_assertion", "claims.aud");
+		verify(env, atLeastOnce()).getElementFromObject("client_assertion", "claims.jti");
 		verify(env, atLeastOnce()).getLong("client_assertion", "claims.exp");
 		verify(env, atLeastOnce()).getLong("client_assertion", "claims.iat");
 
