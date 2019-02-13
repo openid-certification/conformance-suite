@@ -17,7 +17,7 @@ public abstract class AbstractOBEnsureServerAcceptsRequestObjectWithMultipleAud 
 		}
 		callAndStopOnFailure(AddExpToRequestObject.class);
 
-		callAndStopOnFailure(AddMultipleAudToRequestObject.class);
+		callAndStopOnFailure(AddMultipleAudToRequestObject.class, "RFC7519-4.1.3");
 
 		callAndStopOnFailure(SignRequestObject.class);
 
