@@ -12,7 +12,7 @@
 
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-responsive center-block imagePreview">
-            <% } else if (key == 'stacktrace') { %>
+            <% } else if (key == 'stacktrace' || key == 'stacktrace_cause') { %>
                 <ul>
                     <% _.each(value, function(v) { %>
                         <li><%- v %></li>

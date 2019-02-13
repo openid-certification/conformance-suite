@@ -40,7 +40,7 @@ public class TestExecutionManager {
 			} catch (TestFailureException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new TestFailureException(testId, e.getMessage());
+				throw new TestFailureException(testId, e);
 			}
 			return returnObj;
 		}

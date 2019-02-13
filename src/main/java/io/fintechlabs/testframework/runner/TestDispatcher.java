@@ -177,7 +177,7 @@ public class TestDispatcher implements DataUtils {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
-				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
+				logger.error("Caught an error in TestDispatcher while running the test, stopping the test: " + error.getMessage());
 				if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
 					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
 					// ConditionError will get handled by the logging system, no need to display with stacktrace

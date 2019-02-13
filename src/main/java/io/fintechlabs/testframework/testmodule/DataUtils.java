@@ -100,21 +100,27 @@ public interface DataUtils {
 		return copy;
 	}
 
-	public default Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		if (cause == null) {
+	public default Map<String, Object> ex(Throwable exception, Map<String, Object> in) {
+		if (exception == null) {
 			return null;
 		}
 
 		Map<String, Object> event = new HashMap<>(in);
-		event.put("error", cause.getMessage());
-		event.put("error_class", cause.getClass().getName());
+		event.put("error", exception.getMessage());
+		event.put("error_class", exception.getClass().getName());
 
-		if (cause.getCause() != null) {
-			event.put("cause", cause.getCause().getMessage());
-			event.put("cause_class", cause.getCause().getClass().getName());
+		final Throwable cause = exception.getCause();
+		if (cause != null) {
+			event.put("cause", cause.getMessage());
+			event.put("cause_class", cause.getClass().getName());
+			List<String> causeStack = Arrays.stream(cause.getStackTrace())
+				.map(StackTraceElement::toString)
+				.collect(Collectors.toList());
+
+			event.put("stacktrace_cause", causeStack);
 		}
 
-		List<String> stack = Arrays.stream(cause.getStackTrace())
+		List<String> stack = Arrays.stream(exception.getStackTrace())
 			.map(StackTraceElement::toString)
 			.collect(Collectors.toList());
 
