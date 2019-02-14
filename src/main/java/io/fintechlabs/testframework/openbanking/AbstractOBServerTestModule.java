@@ -108,7 +108,7 @@ public abstract class AbstractOBServerTestModule extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOBServerTestModule.class);
 
-	private int whichClient;
+	protected int whichClient;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl) {
