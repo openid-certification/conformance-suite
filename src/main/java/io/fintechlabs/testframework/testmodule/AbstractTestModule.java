@@ -592,6 +592,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			case CREATED:
 				switch (newStatus) {
 					case CONFIGURED:
+					case WAITING:
 					case INTERRUPTED:
 					case FINISHED:
 						break;

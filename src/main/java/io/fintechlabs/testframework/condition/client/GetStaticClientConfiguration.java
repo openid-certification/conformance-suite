@@ -10,25 +10,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class GetStaticClientConfiguration extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
 	public GetStaticClientConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "client", strings = "client_id")
 	public Environment evaluate(Environment env) {
-		if (!env.containsObject("config")) {
-			throw error("Couldn't find a configuration");
-		}
-
 		// make sure we've got a client object
 		JsonElement client = env.getElementFromObject("config", "client");
 		if (client == null || !client.isJsonObject()) {
