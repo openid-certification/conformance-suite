@@ -75,21 +75,31 @@ public interface DataUtils {
 		return ex(cause, new HashMap<>());
 	}
 
-	public default JsonObject ex(Throwable cause, JsonObject in) {
+	public default JsonObject ex(Throwable exception, JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		copy.addProperty("error", cause.getMessage());
-		copy.addProperty("error_class", cause.getClass().getName());
+		copy.addProperty("error", exception.getMessage());
+		copy.addProperty("error_class", exception.getClass().getName());
 
-		if (cause.getCause() != null) {
-			copy.addProperty("cause", cause.getCause().getMessage());
-			copy.addProperty("cause_class", cause.getCause().getClass().getName());
+		Throwable cause = exception.getCause();
+		if (cause != null) {
+			copy.addProperty("cause", cause.getMessage());
+			copy.addProperty("cause_class", cause.getClass().getName());
+
+			JsonArray causeStack = Arrays.stream(cause.getStackTrace())
+				.map(StackTraceElement::toString)
+				.collect(JsonArray::new,
+					JsonArray::add,
+					JsonArray::addAll);
+
+			copy.add("cause_stacktrace", causeStack);
+
 		}
 
-		JsonArray stack = Arrays.stream(cause.getStackTrace())
+		JsonArray stack = Arrays.stream(exception.getStackTrace())
 			.map(StackTraceElement::toString)
-			.collect(() -> new JsonArray(cause.getStackTrace().length),
-				(c, e) -> c.add(e),
-				(c1, c2) -> c1.addAll(c2));
+			.collect(JsonArray::new,
+				JsonArray::add,
+				JsonArray::addAll);
 
 		copy.add("stacktrace", stack);
 		copy.addProperty("result", ConditionResult.FAILURE.toString());
@@ -109,7 +119,7 @@ public interface DataUtils {
 		event.put("error", exception.getMessage());
 		event.put("error_class", exception.getClass().getName());
 
-		final Throwable cause = exception.getCause();
+		Throwable cause = exception.getCause();
 		if (cause != null) {
 			event.put("cause", cause.getMessage());
 			event.put("cause_class", cause.getClass().getName());
@@ -117,7 +127,7 @@ public interface DataUtils {
 				.map(StackTraceElement::toString)
 				.collect(Collectors.toList());
 
-			event.put("stacktrace_cause", causeStack);
+			event.put("cause_stacktrace", causeStack);
 		}
 
 		List<String> stack = Arrays.stream(exception.getStackTrace())
