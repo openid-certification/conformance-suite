@@ -102,7 +102,7 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 			}
 		}
 
-		logSuccess("Client Assertion passed all validation checks", args("tokenEndpoint", "HI"));
+		logSuccess("Client Assertion passed all validation checks");
 		return env;
 	}
 }
