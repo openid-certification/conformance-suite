@@ -13,7 +13,7 @@ import com.google.common.collect.ListMultimap;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.testmodule.ConditionCallBuilder;
 import io.fintechlabs.testframework.testmodule.DataUtils;
-import io.fintechlabs.testframework.testmodule.TestExecutionBuilder;
+import io.fintechlabs.testframework.testmodule.Command;
 import io.fintechlabs.testframework.testmodule.TestExecutionUnit;
 
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
@@ -53,8 +53,8 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	 * Create a call to a set of execution parameters
 	 * @return
 	 */
-	protected TestExecutionBuilder exec() {
-		return new TestExecutionBuilder();
+	protected Command exec() {
+		return new Command();
 	}
 
 	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {

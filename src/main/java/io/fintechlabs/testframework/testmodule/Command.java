@@ -13,7 +13,7 @@ import java.util.Map;
  * @author jricher
  *
  */
-public class TestExecutionBuilder implements TestExecutionUnit {
+public class Command implements TestExecutionUnit {
 	private Map<String, String> mapKeys = new LinkedHashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
 	private String startBlock = null;
@@ -30,7 +30,7 @@ public class TestExecutionBuilder implements TestExecutionUnit {
 	 * @param to the key to map to (the key that references the underlying object that will be returned when "from" is used in the Environment)
 	 * @return this builder
 	 */
-	public TestExecutionBuilder mapKey(String from, String to) {
+	public Command mapKey(String from, String to) {
 		mapKeys.put(from, to);
 		return this;
 	}
@@ -44,7 +44,7 @@ public class TestExecutionBuilder implements TestExecutionUnit {
 	 * @param key the key to unmap; subsequent calls to use this key in the Environment will return the original underlying object
 	 * @return this builder
 	 */
-	public TestExecutionBuilder unmapKey(String key) {
+	public Command unmapKey(String key) {
 		unmapKeys.add(key);
 		return this;
 	}
@@ -55,7 +55,7 @@ public class TestExecutionBuilder implements TestExecutionUnit {
 	 * @param msg the message to start the log block with
 	 * @return this builder
 	 */
-	public TestExecutionBuilder startBlock(String msg) {
+	public Command startBlock(String msg) {
 		this.startBlock = msg;
 		return this;
 	}
@@ -64,7 +64,7 @@ public class TestExecutionBuilder implements TestExecutionUnit {
 	 * End the current block in the event log. Defaults to false (block state is unchanged).
 	 * @return
 	 */
-	public TestExecutionBuilder endBlock() {
+	public Command endBlock() {
 		this.endBlock = true;
 		return this;
 	}
@@ -75,7 +75,7 @@ public class TestExecutionBuilder implements TestExecutionUnit {
 	 * @param key the environment string to expose
 	 * @return this builder
 	 */
-	public TestExecutionBuilder exposeEnvironmentString(String key) {
+	public Command exposeEnvironmentString(String key) {
 		exposeStrings.add(key);
 		return this;
 	}

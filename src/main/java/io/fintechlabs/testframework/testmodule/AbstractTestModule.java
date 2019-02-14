@@ -380,8 +380,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	/**
 	 * Create a new test execution builder, which can be passed to call()
 	 */
-	protected TestExecutionBuilder exec() {
-		return new TestExecutionBuilder();
+	protected Command exec() {
+		return new Command();
 	}
 
 	/**
@@ -396,7 +396,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *  - log blocks are ended
 	 *
 	 */
-	protected void call(TestExecutionBuilder builder) {
+	protected void call(Command builder) {
 
 		for(String e : builder.getExposeStrings()) {
 			exposeEnvString(e);
@@ -425,8 +425,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected void call(TestExecutionUnit builder) {
 		if (builder instanceof ConditionCallBuilder) {
 			call((ConditionCallBuilder)builder);
-		} else if (builder instanceof TestExecutionBuilder) {
-			call((TestExecutionBuilder)builder);
+		} else if (builder instanceof Command) {
+			call((Command)builder);
 		} else if (builder instanceof ConditionSequence) {
 			call((ConditionSequence)builder);
 		} else {
