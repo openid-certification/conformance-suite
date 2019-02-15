@@ -4,41 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
-import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeToServerConfiguration;
-import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
-import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
-import io.fintechlabs.testframework.condition.as.ClearClientAuthentication;
-import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
-import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
-import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
-import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.as.EnsureAuthorizationParametersMatchRequestObject;
-import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
-import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
-import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
-import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
-import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
-import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
-import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
-import io.fintechlabs.testframework.condition.as.EnsureResponseTypeIsCode;
-import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
-import io.fintechlabs.testframework.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
-import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
-import io.fintechlabs.testframework.condition.as.ExtractOBIntentId;
-import io.fintechlabs.testframework.condition.as.ExtractRequestObject;
-import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
-import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
-import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
-import io.fintechlabs.testframework.condition.as.GenerateIdTokenClaims;
-import io.fintechlabs.testframework.condition.as.GenerateServerConfigurationMTLS;
-import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
-import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthorizationCode;
-import io.fintechlabs.testframework.condition.as.SignIdToken;
-import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
-import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
-import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
-import io.fintechlabs.testframework.condition.as.ValidateRequestObjectclaims;
+import io.fintechlabs.testframework.condition.as.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,26 +34,10 @@ import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-@PublishTestModule(
-	testName = "ob-client-test-code-with-client-secret-basic-and-matls",
-	displayName = "OB: client test (code with client_secret_basic authentication and MATLS)",
-	profile = "OB",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.client_secret",
-		"client.scope",
-		"client.redirect_uri",
-		"client.certificate",
-		"client.jwks"
-	}
-)
-
-public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule {
+public abstract class AbstractObClientTestCodeIdToken extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
@@ -103,13 +53,21 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		exposeEnvString(name);
 	}
 
+	protected abstract void addTokenEndpointAuthMethodSupported();
+
+	protected abstract void validateClientAuthentication();
+
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
-		callAndContinueOnFailure(AddResponseTypeCodeToServerConfiguration.class);
+
+		addTokenEndpointAuthMethodSupported();
+
+		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class);
+		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
@@ -135,9 +93,6 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		fireSetupDone();
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
-	 */
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
@@ -145,9 +100,6 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 		setStatus(Status.WAITING);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
@@ -186,9 +138,6 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttpMtls(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
@@ -273,15 +222,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
-		callAndStopOnFailure(EnsureNoClientAssertionSentToTokenEndpoint.class);
-
-		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
-
-		callAndContinueOnFailure(AuthenticateClientWithClientSecret.class);
-
-		// make sure the client is authenticated then clear the flag in case it's called again
-		callAndStopOnFailure(EnsureClientIsAuthenticated.class);
-		callAndStopOnFailure(ClearClientAuthentication.class);
+		validateClientAuthentication();
 
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "params.grant_type");
@@ -357,7 +298,7 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(ExtractOBIntentId.class);
 
-		callAndStopOnFailure(EnsureResponseTypeIsCode.class);
+		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class);
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 
@@ -371,7 +312,19 @@ public class OBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestModule 
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 
-		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class);
+		callAndStopOnFailure(ExtractServerSigningAlg.class);
+
+		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
+
+		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
+
+		callAndStopOnFailure(AddCHashToIdTokenClaims.class);
+
+		callAndStopOnFailure(SignIdToken.class);
+
+		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
 
 		exposeEnvString("authorization_endpoint_response_redirect");
 

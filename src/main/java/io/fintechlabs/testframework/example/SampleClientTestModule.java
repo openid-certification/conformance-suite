@@ -250,7 +250,7 @@ public class SampleClientTestModule extends AbstractTestModule {
 
 		env.putObject("authorization_endpoint_request", requestParts);
 
-		callAndStopOnFailure(EnsureMatchingClientId.class);
+		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 
 		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 
