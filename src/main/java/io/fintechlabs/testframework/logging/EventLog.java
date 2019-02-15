@@ -58,4 +58,9 @@ public interface EventLog {
 	 */
 	String endBlock();
 
+	/**
+	 * create indexes on EventLog
+	 */
+	void createIndexes();
+
 }
