@@ -41,7 +41,7 @@ public class AddClientIdToTokenEndpointRequest extends AbstractCondition {
 
 		env.putObject("token_endpoint_request_form_parameters", o);
 
-		log(o);
+		logSuccess(o);
 
 		return env;
 
