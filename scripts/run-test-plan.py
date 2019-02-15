@@ -314,7 +314,7 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if re.match(r'ob-client-.*', m):
+        if re.match(r'fapi-ob-client-.*', m):
             # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
             untested_test_modules.remove(m)
             continue
