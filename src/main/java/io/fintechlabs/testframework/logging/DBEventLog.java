@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
+import com.mongodb.DBCollection;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,4 +116,9 @@ public class DBEventLog implements EventLog {
 		return oldBlock;
 	}
 
+	@Override
+	public void createIndexes(){
+		DBCollection eventLogCollection = mongoTemplate.getCollection(COLLECTION);
+		eventLogCollection.createIndex("testId");
+	}
 }

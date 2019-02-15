@@ -5,6 +5,7 @@ import java.security.Security;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.ui.ServerInfoTemplate;
 import org.apache.catalina.connector.Connector;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -25,6 +26,9 @@ import javax.annotation.PostConstruct;
 public class Application {
 	@Autowired
 	private ServerInfoTemplate serverInfoTemplate;
+
+	@Autowired
+	private EventLog eventLog;
 
 	private static class EventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 		final private static org.slf4j.Logger logger = LoggerFactory.getLogger(EventListener.class);
@@ -88,5 +92,6 @@ public class Application {
 	@PostConstruct
 	private void doPostConstruct(){
 		serverInfoTemplate.initServerInfo();
+		eventLog.createIndexes();
 	}
 }
