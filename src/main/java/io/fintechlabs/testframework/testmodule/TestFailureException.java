@@ -31,6 +31,11 @@ public class TestFailureException extends RuntimeException {
 		this.testId = testId;
 	}
 
+	public TestFailureException(String testId, Throwable cause) {
+		super(cause);
+		this.testId = testId;
+	}
+
 	public String getTestId() {
 		if (getCause() != null && getCause() instanceof ConditionError) {
 			return ((ConditionError) getCause()).getTestId();

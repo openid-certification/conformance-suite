@@ -539,7 +539,7 @@ public class TestRunner implements DataUtils {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
-				logger.error("Caught an error while running the test, stopping the test: " + error.getMessage());
+				logger.error("Caught an error in TestRunner while running the test, stopping the test: " + error.getMessage());
 				test.stop();
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
 

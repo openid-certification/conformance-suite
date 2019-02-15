@@ -75,21 +75,31 @@ public interface DataUtils {
 		return ex(cause, new HashMap<>());
 	}
 
-	public default JsonObject ex(Throwable cause, JsonObject in) {
+	public default JsonObject ex(Throwable exception, JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
-		copy.addProperty("error", cause.getMessage());
-		copy.addProperty("error_class", cause.getClass().getName());
+		copy.addProperty("error", exception.getMessage());
+		copy.addProperty("error_class", exception.getClass().getName());
 
-		if (cause.getCause() != null) {
-			copy.addProperty("cause", cause.getCause().getMessage());
-			copy.addProperty("cause_class", cause.getCause().getClass().getName());
+		Throwable cause = exception.getCause();
+		if (cause != null) {
+			copy.addProperty("cause", cause.getMessage());
+			copy.addProperty("cause_class", cause.getClass().getName());
+
+			JsonArray causeStack = Arrays.stream(cause.getStackTrace())
+				.map(StackTraceElement::toString)
+				.collect(JsonArray::new,
+					JsonArray::add,
+					JsonArray::addAll);
+
+			copy.add("cause_stacktrace", causeStack);
+
 		}
 
-		JsonArray stack = Arrays.stream(cause.getStackTrace())
+		JsonArray stack = Arrays.stream(exception.getStackTrace())
 			.map(StackTraceElement::toString)
-			.collect(() -> new JsonArray(cause.getStackTrace().length),
-				(c, e) -> c.add(e),
-				(c1, c2) -> c1.addAll(c2));
+			.collect(JsonArray::new,
+				JsonArray::add,
+				JsonArray::addAll);
 
 		copy.add("stacktrace", stack);
 		copy.addProperty("result", ConditionResult.FAILURE.toString());
@@ -100,21 +110,27 @@ public interface DataUtils {
 		return copy;
 	}
 
-	public default Map<String, Object> ex(Throwable cause, Map<String, Object> in) {
-		if (cause == null) {
+	public default Map<String, Object> ex(Throwable exception, Map<String, Object> in) {
+		if (exception == null) {
 			return null;
 		}
 
 		Map<String, Object> event = new HashMap<>(in);
-		event.put("error", cause.getMessage());
-		event.put("error_class", cause.getClass().getName());
+		event.put("error", exception.getMessage());
+		event.put("error_class", exception.getClass().getName());
 
-		if (cause.getCause() != null) {
-			event.put("cause", cause.getCause().getMessage());
-			event.put("cause_class", cause.getCause().getClass().getName());
+		Throwable cause = exception.getCause();
+		if (cause != null) {
+			event.put("cause", cause.getMessage());
+			event.put("cause_class", cause.getClass().getName());
+			List<String> causeStack = Arrays.stream(cause.getStackTrace())
+				.map(StackTraceElement::toString)
+				.collect(Collectors.toList());
+
+			event.put("cause_stacktrace", causeStack);
 		}
 
-		List<String> stack = Arrays.stream(cause.getStackTrace())
+		List<String> stack = Arrays.stream(exception.getStackTrace())
 			.map(StackTraceElement::toString)
 			.collect(Collectors.toList());
 

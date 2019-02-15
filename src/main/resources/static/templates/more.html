@@ -4,6 +4,9 @@
                 // regular rexpression for displaying JWTs
                 var jwtRe = /^(e[yw][a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
 
+                var doubleStack = _.has(more, 'stacktrace') && _.has(more, 'cause_stacktrace');
+                var doubleStackRendered = false;
+
                 // display all the extra fields
                 _.each(more, function(value, key, o) {
             %>
@@ -12,12 +15,40 @@
 
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-responsive center-block imagePreview">
-            <% } else if (key == 'stacktrace') { %>
+            <% } else if (key == 'stacktrace' || key == 'cause_stacktrace') { %>
+                <% if (doubleStack) {
+                    if (!doubleStackRendered) { %>
+
+                <ul>
+                    <% _.each(more['stacktrace'], function(v) { %>
+                        <li><%- v %></li>
+                    <% }); %>
+                </ul>
+
+                <b>Caused by:</b>
+
+                <ul>
+                    <% _.each(more['cause_stacktrace'], function(v) { %>
+                        <li><%- v %></li>
+                    <% }); %>
+                </ul>
+
+                <%
+                    // mark it as rendered
+                    doubleStackRendered = true;
+
+                    }
+                } else {
+
+                %>
+
                 <ul>
                     <% _.each(value, function(v) { %>
                         <li><%- v %></li>
                     <% }); %>
                 </ul>
+
+                <% } %>
             <% } else if (jwtRe.exec(value)) { // it's a JWT
                 var jwt = jwtRe.exec(value);
             %>
