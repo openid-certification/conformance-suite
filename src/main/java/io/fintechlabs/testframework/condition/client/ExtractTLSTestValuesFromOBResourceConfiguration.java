@@ -10,8 +10,8 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.condition.util.TLSTestValueExtractor;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint;
-import io.fintechlabs.testframework.openbanking.OBGetResourceEndpoint.Endpoint;
+import io.fintechlabs.testframework.openbanking.FAPIOBGetResourceEndpoint;
+import io.fintechlabs.testframework.openbanking.FAPIOBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -39,7 +39,7 @@ public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCon
 	public Environment evaluate(Environment env) {
 		try {
 
-			String accountsResourceEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
+			String accountsResourceEndpoint = FAPIOBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNTS_RESOURCE);
 			if (Strings.isNullOrEmpty(accountsResourceEndpoint)) {
 				throw error("Accounts resource endpoint not found");
 			}
@@ -48,7 +48,7 @@ public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCon
 
 			env.putObject("accounts_resource_endpoint_tls", accountsResourceEndpointTls);
 
-			String accountsRequestEndpoint = OBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNT_REQUESTS);
+			String accountsRequestEndpoint = FAPIOBGetResourceEndpoint.getBaseResourceURL(env, Endpoint.ACCOUNT_REQUESTS);
 			if (Strings.isNullOrEmpty(accountsRequestEndpoint)) {
 				throw error("Accounts resource endpoint not found");
 			}

@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.openbanking.OBCodeIdTokenWithMTLS;
+import io.fintechlabs.testframework.openbanking.FAPIOBCodeIdTokenWithMTLS;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWCodeIdTokenWithMTLS extends OBCodeIdTokenWithMTLS {
+public class FAPIRWCodeIdTokenWithMTLS extends FAPIOBCodeIdTokenWithMTLS {
 
 	@Override
 	protected void performPreAuthorizationSteps() {
