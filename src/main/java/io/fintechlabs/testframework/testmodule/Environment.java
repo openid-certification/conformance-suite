@@ -195,17 +195,25 @@ public class Environment {
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
-	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 * 	null if no element is found at the given path within the object
+	 * @throws IllegalArgumentException if the element is not the appropriate native type
 	 */
 	public String getString(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
 
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
-				return e.getAsString();
+				if (e.getAsJsonPrimitive().isString()) {
+					return e.getAsString();
+				} else {
+					throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
+				}
+			} else if (e.isJsonNull()) {
+				// if it's a literal null, return that
+				return null;
 			} else {
 				// it wasn't a primitive
-				return null;
+				throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
 			}
 		} else {
 			// we didn't find it
@@ -224,16 +232,24 @@ public class Environment {
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
-	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 * 	null if no element is found at the given path within the object
+	 * @throws IllegalArgumentException if the element is not the appropriate native type
 	 */
 	public Integer getInteger(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
-				return e.getAsInt();
+				if (e.getAsJsonPrimitive().isNumber()) {
+					return e.getAsNumber().intValue();
+				} else {
+					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
+				}
+			} else if (e.isJsonNull()) {
+				// if it's a literal null, return that
+				return null;
 			} else {
 				// it wasn't a primitive
-				return null;
+				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 			}
 		} else {
 			return null;
@@ -252,17 +268,25 @@ public class Environment {
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
-	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 * 	null if no element is found at the given path within the object
+	 * @throws IllegalArgumentException if the element is not the appropriate native type
 	 */
 
 	public Boolean getBoolean(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
-				return e.getAsBoolean();
+				if (e.getAsJsonPrimitive().isBoolean()) {
+					return e.getAsBoolean();
+				} else {
+					throw new IllegalArgumentException("Found non-boolean value for " + key + " / " + path);
+				}
+			} else if (e.isJsonNull()) {
+				// if it's a literal null, return that
+				return null;
 			} else {
 				// it wasn't a primitive
-				return null;
+				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 			}
 		} else {
 			return null;
@@ -281,16 +305,25 @@ public class Environment {
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
-	 * 	null if no element is found at the given path within the object, or null if the element is not the appropriate native type
+	 * 	null if no element is found at the given path within the object
+	 * @throws IllegalArgumentException if the element is not the appropriate native type
 	 */
 	public Long getLong(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
-				return e.getAsLong();
+
+				if (e.getAsJsonPrimitive().isNumber()) {
+					return e.getAsNumber().longValue();
+				} else {
+					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
+				}
+			} else if (e.isJsonNull()) {
+				// if it's a literal null, return that
+				return null;
 			} else {
 				// it wasn't a primitive
-				return null;
+				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 			}
 		} else {
 			return null;
