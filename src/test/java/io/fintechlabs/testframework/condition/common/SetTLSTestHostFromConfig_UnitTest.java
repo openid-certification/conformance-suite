@@ -60,7 +60,7 @@ public class SetTLSTestHostFromConfig_UnitTest {
 		verify(env, atLeastOnce()).getInteger("config", "tls.testPort");
 
 		assertThat(env.getString("tls", "testHost")).isEqualTo(tlsConfig.get("testHost").getAsString());
-		assertThat(env.getString("tls", "testPort")).isEqualTo(tlsConfig.get("testPort").getAsString());
+		assertThat(env.getInteger("tls", "testPort")).isEqualTo(tlsConfig.get("testPort").getAsNumber().intValue());
 	}
 
 }

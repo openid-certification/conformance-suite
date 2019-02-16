@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import java.util.Date;
 
+import com.google.gson.JsonElement;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -347,4 +348,19 @@ public class ValidateIdToken_UnitTest {
 		cond.evaluate(env);
 
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testEvaluate_invalidExpString() {
+
+		JsonElement o = claims.remove("exp");
+		claims.addProperty("exp", o.getAsString()); // a string (containing a valid number) is not ok
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.evaluate(env);
+
+	}
+
 }
