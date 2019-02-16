@@ -43,7 +43,6 @@ stages:
   - canary
   - production
   - autotest
-  - cleanup
 
 build:
   stage: build
@@ -143,7 +142,7 @@ review:
     - demo
 
 stop_review:
-  stage: cleanup
+  stage: review
   variables:
     GIT_STRATEGY: none
   script:
