@@ -14,12 +14,12 @@ import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
 import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.as.EnsureAuthorizationParametersMatchRequestObject;
-import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
 import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
 import io.fintechlabs.testframework.condition.as.EnsureClientIsAuthenticated;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
 import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
 import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
 import io.fintechlabs.testframework.condition.as.EnsureResponseTypeIsCode;
 import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
@@ -28,6 +28,7 @@ import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRe
 import io.fintechlabs.testframework.condition.as.ExtractOBIntentId;
 import io.fintechlabs.testframework.condition.as.ExtractRequestObject;
 import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
+import io.fintechlabs.testframework.condition.as.FAPIValidateRequestObjectSigningAlg;
 import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
 import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
 import io.fintechlabs.testframework.condition.as.GenerateIdTokenClaims;
@@ -36,9 +37,11 @@ import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
 import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.SignIdToken;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
+import io.fintechlabs.testframework.condition.as.CheckRequiredAuthorizationParametersPresent;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectClaims;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectExp;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
-import io.fintechlabs.testframework.condition.as.ValidateRequestObjectclaims;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -349,13 +352,19 @@ public class FAPIOBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestMod
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
+		callAndStopOnFailure(CheckRequiredAuthorizationParametersPresent.class);
+
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
-		callAndStopOnFailure(ValidateRequestObjectclaims.class);
+		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
 
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-10");
+		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4");
 
-		callAndStopOnFailure(ExtractOBIntentId.class);
+		callAndStopOnFailure(ValidateRequestObjectClaims.class);
+
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, " FAPI-RW-5.2.2-1");
+
+		callAndStopOnFailure(ExtractOBIntentId.class, "OIDCC-6.1");
 
 		callAndStopOnFailure(EnsureResponseTypeIsCode.class);
 

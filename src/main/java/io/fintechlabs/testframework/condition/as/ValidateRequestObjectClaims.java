@@ -16,7 +16,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * @author jricher
  *
  */
-public class ValidateRequestObjectclaims extends AbstractCondition {
+public class ValidateRequestObjectClaims extends AbstractCondition {
 
 	// TODO: make this configurable
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
@@ -27,7 +27,7 @@ public class ValidateRequestObjectclaims extends AbstractCondition {
 	 * @param conditionResultOnFailure
 	 * @param requirements
 	 */
-	public ValidateRequestObjectclaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ValidateRequestObjectClaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
