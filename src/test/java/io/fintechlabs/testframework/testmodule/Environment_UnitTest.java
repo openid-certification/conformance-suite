@@ -73,6 +73,8 @@ public class Environment_UnitTest {
 		testObject = new JsonParser().parse("{\n" +
 			"	\"long\": 123465478745287987,\n" +
 			"	\"string\": \"value\",\n" +
+			"	\"stringint\": \"3\",\n" +
+			"	\"stringbool\": \"true\",\n" +
 			"	\"array\": [1, 2, \"a\", \"b\"],\n" +
 			"	\"object\": {\n" +
 			"		\"int\": 1234,\n" +
@@ -249,6 +251,16 @@ public class Environment_UnitTest {
 		assertEquals(expected, actual.intValue());
 
 		assertNull(env.getInteger(testKey, pathNotFound));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetStringAsInteger() {
+		Integer actual = env.getInteger(testKey, "stringint");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetStringAsBoolean() {
+		Boolean actual = env.getBoolean(testKey, "stringbool");
 	}
 
 	/**
