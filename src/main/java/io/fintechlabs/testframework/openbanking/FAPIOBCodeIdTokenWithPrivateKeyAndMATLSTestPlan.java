@@ -29,6 +29,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ob-ensure-request-object-without-redirect-uri-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-matls",
 		"fapi-ob-ensure-wrong-client-id-in-token-endpoint-fails-with-private-key-and-matls",
+		"fapi-ob-ensure-expired-request-object-fails-with-private-key-and-matls",
 	}
 )
 public class FAPIOBCodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {
