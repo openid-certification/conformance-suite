@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
@@ -19,6 +20,9 @@ public class AddNonceToAuthorizationEndpointRequest extends AbstractCondition {
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		String nonce = env.getString("nonce");
+		if (Strings.isNullOrEmpty(nonce)) {
+			throw error("Couldn't find nonce value");
+		}
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
