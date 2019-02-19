@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
@@ -88,7 +90,7 @@ public class BrowserControl implements DataUtils {
 
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
-	private List<WebRunner> runners = new ArrayList<>();
+	private Queue<WebRunner> runners = new ConcurrentLinkedQueue<>();
 
 	private ImageService imageService;
 
