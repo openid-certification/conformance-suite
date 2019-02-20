@@ -32,6 +32,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ob-ensure-expired-request-object-fails-with-mtls",
 		"fapi-ob-ensure-different-nonce-inside-and-outside-request-object-with-mtls",
 		"fapi-ob-ensure-response-type-code-fails-with-mtls",
+		"fapi-ob-ensure-request-object-with-bad-aud-fails-with-mtls",
 	}
 )
 public class FAPIOBCodeIdTokenWithMTLSTestPlan implements TestPlan {
