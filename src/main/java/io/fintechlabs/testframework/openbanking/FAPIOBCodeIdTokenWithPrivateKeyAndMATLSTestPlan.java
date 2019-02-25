@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ob-ensure-wrong-client-id-in-token-endpoint-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-expired-request-object-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-different-nonce-inside-and-outside-request-object-with-private-key-and-matls",
+		"fapi-ob-ensure-response-type-code-fails-with-private-key-and-matls",
 	}
 )
 public class FAPIOBCodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {
