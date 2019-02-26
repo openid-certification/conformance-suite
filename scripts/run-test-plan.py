@@ -315,7 +315,12 @@ if __name__ == '__main__':
             continue
 
         if re.match(r'fapi-ob-client-.*', m):
-            # see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
+            # client tests are run seperately, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
+            untested_test_modules.remove(m)
+            continue
+
+        if all_test_modules[m]['profile'] in ['FAPI-CIBA']:
+            # tests are pending, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/396
             untested_test_modules.remove(m)
             continue
 
