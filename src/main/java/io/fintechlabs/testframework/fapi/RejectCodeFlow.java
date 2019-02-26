@@ -1,29 +1,13 @@
 package io.fintechlabs.testframework.fapi;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
-import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
-import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
-import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
+import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.common.ExpectGrantTypeErrorPage;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
  * @author srmoore
@@ -40,53 +24,14 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.scope",
 	}
 )
-public class RejectCodeFlow extends AbstractTestModule {
+public class RejectCodeFlow extends AbstractFAPIRWServerTestModule {
 
 	@Override
-	public void configure(JsonObject config, String baseUrl) {
-		env.putString("base_url", baseUrl);
-		env.putObject("config", config);
+	protected void performAuthorizationFlow() {
 
-		callAndStopOnFailure(CreateRedirectUri.class);
+		createAuthorizationRequest();
 
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
-
-		// Get the server's configuration
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-
-		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
-
-		// fetch or load the server's keys as needed
-		callAndStopOnFailure(FetchServerKeys.class);
-
-		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		exposeEnvString("client_id");
-
-		setStatus(Status.CONFIGURED);
-		fireSetupDone();
-	}
-
-	@Override
-	public void start() {
-		setStatus(Status.RUNNING);
-
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
-
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-
-		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+		createAuthorizationRedirect();
 
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
@@ -94,9 +39,9 @@ public class RejectCodeFlow extends AbstractTestModule {
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		callAndStopOnFailure(ExpectGrantTypeErrorPage.class, "FAPI-RW-5.2.2-2");
-
 		setStatus(Status.WAITING);
+
+		callAndStopOnFailure(ExpectGrantTypeErrorPage.class, "FAPI-RW-5.2.2-2");
 
 		waitForPlaceholders();
 
@@ -104,32 +49,31 @@ public class RejectCodeFlow extends AbstractTestModule {
 	}
 
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+	protected void createAuthorizationRedirect() {
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class, "FAPI-RW-5.2.2-2");
 
+		super.createAuthorizationRedirect();
 	}
 
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		/* If we get an error back from the authorisation server:
+		 * - It must be a 'unsupported_response_type' error
+		 * - It must have the correct state we supplied
+		 */
 
-			env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
-			callAndStopOnFailure(EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint.class);
+		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		fireTestFinished();
+	}
 
-			fireTestFinished();
-			return "done";
-		});
+	@Override
+	protected void createAuthorizationCodeRequest() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		return redirectToLogDetailPage();
-
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
 }

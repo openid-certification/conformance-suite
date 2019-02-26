@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.openbanking.FAPIOBCodeIdTokenWithMTLS;
+import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -26,21 +26,14 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWCodeIdTokenWithMTLS extends FAPIOBCodeIdTokenWithMTLS {
+public class FAPIRWCodeIdTokenWithMTLS extends AbstractFAPIRWServerTestModule {
 
 	@Override
-	protected void performPreAuthorizationSteps() {
-		/* none necessary; this is here to disable the OB specific steps */
-	}
+	protected void createAuthorizationCodeRequest() {
 
-	@Override
-	protected void performProfileIdTokenValidation() {
-		/* nothing yet; this is here to disable the OB specific checks */
-	}
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-	@Override
-	protected void performProfileAuthorizationEndpointSetup() {
-		callAndStopOnFailure(AddAcrClaimToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
 }
