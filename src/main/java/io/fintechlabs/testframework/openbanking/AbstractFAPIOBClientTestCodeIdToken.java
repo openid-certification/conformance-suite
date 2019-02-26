@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import io.fintechlabs.testframework.condition.as.*;
+import io.fintechlabs.testframework.condition.as.FAPIValidateRequestObjectSigningAlg;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -292,13 +293,17 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
-		callAndStopOnFailure(ValidateRequestObjectclaims.class);
+		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
 
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-10");
+		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
+
+		callAndStopOnFailure(ValidateRequestObjectClaims.class);
+
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2.1");
 
 		callAndStopOnFailure(ExtractOBIntentId.class);
 
-		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class);
+		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1");
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 
