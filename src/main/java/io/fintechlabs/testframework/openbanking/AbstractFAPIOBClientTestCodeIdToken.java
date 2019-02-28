@@ -4,8 +4,44 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import io.fintechlabs.testframework.condition.as.*;
+import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddCHashToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
+import io.fintechlabs.testframework.condition.as.AddTokenEndpointSigningAlg;
+import io.fintechlabs.testframework.condition.as.CalculateCHash;
+import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
+import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
+import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
+import io.fintechlabs.testframework.condition.as.CreateFapiInteractionIdIfNeeded;
+import io.fintechlabs.testframework.condition.as.CreateTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.as.EnsureAuthorizationParametersMatchRequestObject;
+import io.fintechlabs.testframework.condition.as.EnsureClientCertificateMatches;
+import io.fintechlabs.testframework.condition.as.EnsureMatchingClientId;
+import io.fintechlabs.testframework.condition.as.EnsureMatchingRedirectUri;
+import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.EnsureOpenIDInScopeRequest;
+import io.fintechlabs.testframework.condition.as.EnsureResponseTypeIsCodeIdToken;
+import io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.as.ExtractNonceFromAuthorizationRequest;
+import io.fintechlabs.testframework.condition.as.ExtractOBIntentId;
+import io.fintechlabs.testframework.condition.as.ExtractRequestObject;
+import io.fintechlabs.testframework.condition.as.ExtractRequestedScopes;
+import io.fintechlabs.testframework.condition.as.ExtractServerSigningAlg;
 import io.fintechlabs.testframework.condition.as.FAPIValidateRequestObjectSigningAlg;
+import io.fintechlabs.testframework.condition.as.FilterUserInfoForScopes;
+import io.fintechlabs.testframework.condition.as.GenerateBearerAccessToken;
+import io.fintechlabs.testframework.condition.as.GenerateIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.GenerateServerConfigurationMTLS;
+import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
+import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
+import io.fintechlabs.testframework.condition.as.SignIdToken;
+import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
+import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectClaims;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectExp;
+import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
+import io.fintechlabs.testframework.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -269,6 +305,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 
 		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
 
+		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "OIDCC-3.1.3.7-12");
+
 		callAndStopOnFailure(SignIdToken.class);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
@@ -294,6 +332,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
+
+		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5");
 
 		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
 
@@ -326,6 +366,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
 
 		callAndStopOnFailure(AddCHashToIdTokenClaims.class);
+
+		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "OIDCC-3.1.3.7-12");
 
 		callAndStopOnFailure(SignIdToken.class);
 
