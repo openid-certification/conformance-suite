@@ -16,10 +16,10 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRegistrati
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import io.fintechlabs.testframework.condition.client.CheckDiscEndpointResponseTypesSupported;
+import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupported;
+import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -46,13 +46,13 @@ public class FAPIOBDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointClaimsSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupported.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointResponseTypesSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, ConditionResult.WARNING, "OB-7.1-1");
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupported.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-14");
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported .class, ConditionResult.FAILURE);
 
 		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
