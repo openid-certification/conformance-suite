@@ -69,4 +69,8 @@ public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
 		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
 	}
 
+	@Override
+	protected void modeSpecificAuthorizationEndpointRequest() {
+		/* Nothing to do */
+	}
 }

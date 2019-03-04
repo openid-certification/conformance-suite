@@ -5,7 +5,6 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddHintToAuthorizationEndpointRequestResponse;
@@ -38,8 +37,6 @@ import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthentica
 import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpointUri;
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
@@ -99,7 +96,7 @@ import javax.servlet.http.HttpSession;
 public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(FAPICIBAPingWithMTLS.class);
-	private int whichClient;
+	protected int whichClient;
 
 	protected void createClientCredentialsRequest() {
 
@@ -219,15 +216,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
 
-		if ( whichClient == 2 ) {
-			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1,RFC6750-2.1");
-		} else {
-			callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
-		}
-
 		callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
 		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
-		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
 		callAndStopOnFailure(AddHintToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
 
 		// The spec also defines these parameters that we don't currently set:
@@ -235,6 +225,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		// binding_message
 		// user_code
 		// requested_expiry
+
+		modeSpecificAuthorizationEndpointRequest();
 
 		performProfileAuthorizationEndpointSetup();
 
@@ -296,6 +288,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		waitForAuthenticationToComplete(delaySeconds);
 	}
+
+	protected abstract void modeSpecificAuthorizationEndpointRequest();
 
 	protected abstract void waitForAuthenticationToComplete(long delaySeconds);
 

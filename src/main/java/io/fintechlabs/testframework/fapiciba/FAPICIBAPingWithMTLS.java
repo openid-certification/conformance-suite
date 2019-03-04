@@ -3,6 +3,9 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
+import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
+import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
@@ -70,5 +73,16 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 		callTokenEndpointForCibaGrant();
 		eventLog.endBlock();
 		handleSuccessfulTokenEndpointResponse();
+	}
+
+	@Override
+	protected void modeSpecificAuthorizationEndpointRequest() {
+		if ( whichClient == 2 ) {
+			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1,RFC6750-2.1");
+		} else {
+			callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
+		}
+
+		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
 	}
 }
