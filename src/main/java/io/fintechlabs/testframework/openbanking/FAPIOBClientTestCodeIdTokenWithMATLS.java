@@ -34,4 +34,10 @@ public class FAPIOBClientTestCodeIdTokenWithMATLS extends AbstractFAPIOBClientTe
 		callAndStopOnFailure(EnsureNoClientAssertionSentToTokenEndpoint.class);
 
 	}
+
+	@Override
+	protected void addCustomValuesToIdToken() {
+		//Do nothing
+	}
+
 }

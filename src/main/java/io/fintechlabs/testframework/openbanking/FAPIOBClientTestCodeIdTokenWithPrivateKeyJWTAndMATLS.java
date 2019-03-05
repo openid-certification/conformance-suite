@@ -41,4 +41,9 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLS extends Abstra
 	callAndStopOnFailure(ValidateClientSigningKeySize.class,"FAPI-R-5.2.2.5");
 
 	}
+
+	@Override
+	protected void addCustomValuesToIdToken(){
+		//Do nothing
+	}
 }
