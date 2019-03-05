@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AuthenticateClientWithClientSecret;
@@ -42,6 +43,7 @@ import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectClaims;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectExp;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
+import io.fintechlabs.testframework.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -330,6 +332,8 @@ public class FAPIOBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestMod
 
 		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
 
+		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "FAPI-RW-5.2.3-5");
+
 		callAndStopOnFailure(SignIdToken.class);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
@@ -357,6 +361,8 @@ public class FAPIOBClientTestCodeWithSecretBasicAndMATLS extends AbstractTestMod
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
+
+		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5");
 
 		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4");
 
