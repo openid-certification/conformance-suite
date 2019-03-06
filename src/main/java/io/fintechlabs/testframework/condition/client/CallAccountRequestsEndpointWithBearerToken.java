@@ -82,9 +82,11 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 		if (resourceEndpoint.contains("/v3.")) {
 			urlPath = ACCOUNT_REQUESTS_RESOURCE_V3;
 			env.putInteger("ob_api_version", 3);
+			log("Found '/v3.' in the resource url, using OB V3 API '"+urlPath+"'", args("resource_endpoint", resourceEndpoint));
 		} else {
 			urlPath = ACCOUNT_REQUESTS_RESOURCE_V2;
 			env.putInteger("ob_api_version", 2);
+			log("'/v3.' not found in the resource url, defaulting to OB V1/V2 API '"+urlPath+"'", args("resource_endpoint", resourceEndpoint));
 		}
 
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");

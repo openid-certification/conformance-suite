@@ -320,9 +320,11 @@ if __name__ == '__main__':
             continue
 
         if all_test_modules[m]['profile'] in ['FAPI-CIBA']:
-            # tests are pending, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/396
-            untested_test_modules.remove(m)
-            continue
+            if re.match(r'.*-ping-.*', m):
+                # ping tests are pending, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/389
+                print("Ignoring untested module: "+m)
+                untested_test_modules.remove(m)
+                continue
 
         if re.match(r'ob-deprecated-.*code-with-mtls', m):
             # we don't have a test environment that supports oauth-mtls and the code

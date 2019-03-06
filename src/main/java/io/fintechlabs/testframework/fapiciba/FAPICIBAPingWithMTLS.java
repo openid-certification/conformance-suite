@@ -1,14 +1,15 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
+import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
+import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 // FIXME document this somewhere else:
 // for dev with authlete client, forward notification endpoint back to localhost using ssh -R:3590::8443 button.heenan.me.uk
@@ -58,12 +59,12 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 		env.mapKey("client_request", envKey);
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
 		env.unmapKey("client_request");
 
 		// FIXME: CIBA-10.2 verify bearer token in incoming request is client_notification_token
-		callAndStopOnFailure(CheckAuthReqIdInCallback.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+		callAndStopOnFailure(CheckAuthReqIdInCallback.class, ConditionResult.FAILURE, "CIBA-10.2");
 
 		// FIXME: CIBA-10.2 verify callback doesn't contain anything other than auth_req_id
 		eventLog.endBlock();
@@ -72,5 +73,16 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 		callTokenEndpointForCibaGrant();
 		eventLog.endBlock();
 		handleSuccessfulTokenEndpointResponse();
+	}
+
+	@Override
+	protected void modeSpecificAuthorizationEndpointRequest() {
+		if ( whichClient == 2 ) {
+			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1,RFC6750-2.1");
+		} else {
+			callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
+		}
+
+		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
 	}
 }

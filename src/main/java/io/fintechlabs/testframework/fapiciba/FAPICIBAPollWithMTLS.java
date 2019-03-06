@@ -1,12 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
@@ -74,4 +69,8 @@ public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
 		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
 	}
 
+	@Override
+	protected void modeSpecificAuthorizationEndpointRequest() {
+		/* Nothing to do */
+	}
 }
