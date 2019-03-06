@@ -63,6 +63,7 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
@@ -285,6 +286,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		eventLog.endBlock();
 
 		// FIXME add 5 seconds to delaySeconds if token endpoint response was 'slowdown'
+
+		callAutomatedEndpoint();
 
 		waitForAuthenticationToComplete(delaySeconds);
 	}
@@ -538,6 +541,10 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 			callAndContinueOnFailure(ValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
 		}
 
+	}
+
+	protected void callAutomatedEndpoint() {
+		callAndStopOnFailure(CallAutomatedCibaApprovalEndpoint.class);
 	}
 
 	protected void requestProtectedResource() {
