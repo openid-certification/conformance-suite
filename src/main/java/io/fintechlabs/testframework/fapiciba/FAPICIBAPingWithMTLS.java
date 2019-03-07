@@ -78,7 +78,7 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		if ( whichClient == 2 ) {
-			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1,RFC6750-2.1");
+			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
 		} else {
 			callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 		}
