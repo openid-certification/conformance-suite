@@ -13,6 +13,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-request-object-without-scope-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-without-state-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-without-nonce-fails-with-private-key-and-matls",
+		"fapi-rw-ensure-request-object-without-redirect-uri-fails-with-private-key-and-matls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {

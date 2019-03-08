@@ -20,6 +20,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-request-object-without-scope-fails-with-mtls",
 		"fapi-rw-ensure-request-object-without-state-fails-with-mtls",
 		"fapi-rw-ensure-request-object-without-nonce-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-redirect-uri-fails-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {
