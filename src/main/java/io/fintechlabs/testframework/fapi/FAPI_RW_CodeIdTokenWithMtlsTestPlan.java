@@ -18,6 +18,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-client-id-in-token-endpoint-with-mtls",
 		"fapi-rw-ensure-request-object-without-exp-fails-with-mtls",
 		"fapi-rw-ensure-request-object-without-scope-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-state-fails-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {

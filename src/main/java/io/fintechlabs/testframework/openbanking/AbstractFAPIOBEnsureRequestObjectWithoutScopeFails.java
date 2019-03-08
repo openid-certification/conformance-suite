@@ -2,28 +2,18 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddAcrScaClaimToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
-import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequestWithExpiration;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
-import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingScopeErrorPage;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaims;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureRequestObjectWithoutScopeFails;
 
 public abstract class AbstractFAPIOBEnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWEnsureRequestObjectWithoutScopeFails {
