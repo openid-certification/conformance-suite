@@ -1,18 +1,17 @@
 package io.fintechlabs.testframework.oidf.op;
 
 import io.fintechlabs.testframework.condition.client.GetDynamicClientConfiguration;
-import io.fintechlabs.testframework.sequence.client.AuthorizationEndpointRequestCodeIdToken;
 import io.fintechlabs.testframework.sequence.client.DynamicallyRegisterClient;
 import io.fintechlabs.testframework.sequence.client.LoadServerAndClientConfiguration;
-import io.fintechlabs.testframework.testmodule.Accessory;
-import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestExecutionUnit;
-import io.fintechlabs.testframework.testmodule.Variant;
 
 /**
  * @author jricher
  *
  */
+
+/*
+
 @PublishTestModule(testName = "OAuth2nd",
 displayName = "OAuth use Access Token twice",
 configurationFields = {
@@ -37,6 +36,9 @@ variants = {
 	)
 }
 )
+
+*/
+
 public class RegistrationDynamic extends OidcOpTestModule {
 
 	/* (non-Javadoc)
