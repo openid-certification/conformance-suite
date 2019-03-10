@@ -163,7 +163,7 @@
 	                        $('#logDetail .logContent').append(el);
 
 	                        // see if we've got any "extra" bits that we want to display in a block
-	                        var more = _.pick(item, function(value, key, object) {
+	                        var more = _.pickBy(item, function(value, key) {
 	                            return !_.includes(FAPI_UI.visibleFields, key) && !key.startsWith("_");
 	                        });
 
@@ -372,7 +372,7 @@
 	                            type: 'GET',
 	                            success: function(planData) {
 
-	                                var modules = _.pluck(planData.modules, 'testModule');
+	                                var modules = _.map(planData.modules, 'testModule');
 	                                var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
 
 	                                if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {

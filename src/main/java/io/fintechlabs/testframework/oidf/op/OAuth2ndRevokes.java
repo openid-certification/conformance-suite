@@ -1,18 +1,12 @@
 package io.fintechlabs.testframework.oidf.op;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.condition.client.*;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
+import io.fintechlabs.testframework.condition.client.ExtractUserInfoEndpointAsResource;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.HandleHttp;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import org.springframework.http.ResponseEntity;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import io.fintechlabs.testframework.testmodule.TestExecutionUnit;
 
 /**
  * @author jricher
@@ -33,18 +27,21 @@ public class OAuth2ndRevokes extends OAuth2nd {
 	}
 
 	@Override
-	protected void implicitCallbackSequences() {
-		call(processAuthorizationEndpointResponse());
+	protected TestExecutionUnit createCallbackSequence() {
 
-		call(createTokenEndpointResponseSequence());
+		return sequenceOf(
+			processAuthorizationEndpointResponse(),
 
-		call(exec().mapKey("resource", "userinfo_resource"));
-		call(condition(CallProtectedResourceWithBearerToken.class));
+			createTokenEndpointResponseSequence(),
 
-		call(processAuthorizationEndpointResponse()
-			.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)));
+			exec().mapKey("resource", "userinfo_resource"),
 
-		call(condition(CallProtectedResourceWithBearerToken.class));
+			condition(CallProtectedResourceWithBearerToken.class),
+
+			processAuthorizationEndpointResponse()
+				.replace(CallTokenEndpoint.class, condition(CallTokenEndpointExpectingError.class)),
+
+			condition(CallProtectedResourceWithBearerToken.class));
 	}
 
 }

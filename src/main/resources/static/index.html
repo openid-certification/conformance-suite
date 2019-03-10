@@ -476,7 +476,7 @@
                         	   display: item.displayName
                         }));
                     });
-                    
+
 
                 });
             });
@@ -516,7 +516,7 @@
 
 				if (data.config) {
 					// we found a configuration file, load it up
-					
+
 					FAPI_UI.testJSON = data.config;
 
 					$("#config").val(JSON.stringify(data.config, null, 4));
@@ -725,7 +725,7 @@
 
 
 				}
-				
+
 				if (!fieldsToShow) {
 					// the test hasn't defined anything, set a default
 					fieldsToShow = [];
@@ -744,7 +744,7 @@
             		   // add in any fields from the associated modules
         			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
                            if (FAPI_UI.availableTests[module]) {
-                               fieldsToShow = _.unique(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+                               fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
                            }
         			   });
 
@@ -844,9 +844,9 @@
 			_.each(children, function(child) {
 				populateJSON($(child).data("jsonTarget"), $(child).val());
 			});
-			
+
 			updateVariantConfig();
-			
+
 			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
 		}
 
@@ -859,7 +859,7 @@
 				FAPI_UI.testJSON.variant = '';
 			}
 		}
-		
+
 		/**
 		 *
 		 */
@@ -942,7 +942,7 @@
 
 			//console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
 		}
-		
+
 
 		function updateVariants() {
 			if ($('#singleTestSelector').is(':checked')) {
@@ -955,8 +955,8 @@
 					display: 'Default'
 				}));
 
-				if (FAPI_UI.availableTests[testName] && 
-						FAPI_UI.availableTests[testName].variants && 
+				if (FAPI_UI.availableTests[testName] &&
+						FAPI_UI.availableTests[testName].variants &&
 						FAPI_UI.availableTests[testName].variants.length > 0) {
 					// update the variant display
 					_.each(FAPI_UI.availableTests[testName].variants, function(variant) {
@@ -965,10 +965,16 @@
 							display: variant.name
 						}));
 					});
-					
+
 					// select the right option
 					$('#variantSelector option[value=' + FAPI_UI.testJSON.variant + ']').prop('selected', true).change();
 
+					// make sure it's visible
+					$('#variantSelector').show();
+
+				} else {
+					// don't show the variant if there's none to show
+					$('#variantSelector').hide();
 				}
 			}
 		}
