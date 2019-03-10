@@ -35,7 +35,7 @@
                 _.each(more, function(value, key, o) {
 
                     // skip the stacktrace fields if they've been combined already
-                    if (key == 'stacktrace' || key == 'cause_stacktrace') && !doubleStack) {
+                    if ((key == 'stacktrace' || key == 'cause_stacktrace') && !doubleStack) {
                         return;
                     }
 
