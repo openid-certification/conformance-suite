@@ -2,167 +2,78 @@ package io.fintechlabs.testframework.openbanking;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
-import io.fintechlabs.testframework.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
-import io.fintechlabs.testframework.condition.client.ExtractAtHash;
-import io.fintechlabs.testframework.condition.client.ExtractCHash;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ExtractSHash;
-import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.ValidateAtHash;
-import io.fintechlabs.testframework.condition.client.ValidateCHash;
-import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.ValidateIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateSHash;
-import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.common.DisallowTLS10;
-import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureDifferentNonceInsideAndOutsideRequestObject;
 
-public abstract class AbstractFAPIOBEnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIOBServerTestModule {
+public abstract class AbstractFAPIOBEnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWEnsureDifferentNonceInsideAndOutsideRequestObject {
 
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();
 
-		createAuthorizationRequest();
+		super.performAuthorizationFlow();
+	}
 
-		createAuthorizationRedirect();
+	protected void performPreAuthorizationSteps() {
+		/* get an openbanking intent id */
+		requestClientCredentialsGrant();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		callAndStopOnFailure(ExpectRequestDifferentNonceInsideAndOutsideErrorPage.class, "OIDCC-6.1");
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, "request_unverifiable_error");
+		createAccountRequest();
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+	protected void performProfileIdTokenValidation() {
+		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 
-		if (whichClient == 2) {
-			callAndStopOnFailure(AddIatToRequestObject.class);
-		}
-
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(AddIncorrectNonceToAuthorizationEndpointRequest.class, "OIDCC-6.1");
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override
-	protected void onAuthorizationCallbackResponse() {
-		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
-		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
+	protected void performProfileAuthorizationEndpointSetup() {
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
-		if (!callbackParams.has("error")) {
-
-			super.onAuthorizationCallbackResponse();
-
-		} else {
-			/* If we get an error back from the authorisation server:
-			 * - It must be a 'invalid_request' error
-			 * - It must have the correct state we supplied
-			 */
-
-			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
-			fireTestFinished();
-		}
 	}
 
-	@Override
-	protected void performPostAuthorizationFlow() {
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+	protected abstract void createClientCredentialsRequest();
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+	protected void requestClientCredentialsGrant() {
 
-		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
+		createClientCredentialsRequest();
 
-		performProfileIdTokenValidation();
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+	}
 
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	protected void createAccountRequest() {
 
-		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
 
-		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
 
-		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
 
-		// call the token endpoint and complete the flow
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-		eventLog.endBlock();
-
-
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-		env.unmapKey("tls");
-		eventLog.endBlock();
-
-		requestProtectedResource();
-
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-		fireTestFinished();
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
 }
