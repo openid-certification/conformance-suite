@@ -14,7 +14,18 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModuleNames = {
 		"fapi-rw-code-id-token-with-mtls",
 		"fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
-		"fapi-rw-reject-code-flow-test"
+		"fapi-rw-reject-code-flow-test",
+		"fapi-rw-ensure-client-id-in-token-endpoint-with-mtls",
+		"fapi-rw-ensure-request-object-without-exp-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-scope-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-state-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-nonce-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-redirect-uri-fails-with-mtls",
+		"fapi-rw-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
+		"fapi-rw-ensure-expired-request-object-fails-with-mtls",
+		"fapi-rw-ensure-different-nonce-inside-and-outside-request-object-with-mtls",
+		"fapi-rw-ensure-response-type-code-fails-with-mtls",
+		"fapi-rw-ensure-request-object-with-bad-aud-fails-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {
