@@ -8,8 +8,10 @@ import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddCHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
+import io.fintechlabs.testframework.condition.as.AddSHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddTokenEndpointSigningAlg;
 import io.fintechlabs.testframework.condition.as.CalculateCHash;
+import io.fintechlabs.testframework.condition.as.CalculateSHash;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
 import io.fintechlabs.testframework.condition.as.CopyAccessTokenToClientCredentialsField;
 import io.fintechlabs.testframework.condition.as.CreateAuthorizationCode;
@@ -93,6 +95,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 	protected abstract void addTokenEndpointAuthMethodSupported();
 
 	protected abstract void validateClientAuthentication();
+
+	protected abstract void addCustomValuesToIdToken();
 
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
@@ -293,7 +297,7 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 
 	}
 
-	private Object authorizationCodeGrantType(String requestId) {
+	protected Object authorizationCodeGrantType(String requestId) {
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
@@ -320,7 +324,7 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 	}
 
 	@UserFacing
-	private Object authorizationEndpoint(String requestId) {
+	protected Object authorizationEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
@@ -361,11 +365,17 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 
 		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 
+		callAndStopOnFailure(CalculateSHash.class, "FAPI-RW-5.2.2-4");
+
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
 		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
 
-		callAndStopOnFailure(AddCHashToIdTokenClaims.class);
+		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
+
+		callAndStopOnFailure(AddSHashToIdTokenClaims.class, "FAPI-RW-5.2.2-4");
+
+		addCustomValuesToIdToken();
 
 		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "OIDCC-3.1.3.7-12");
 
