@@ -25,6 +25,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-expired-request-object-fails-with-mtls",
 		"fapi-rw-ensure-different-nonce-inside-and-outside-request-object-with-mtls",
 		"fapi-rw-ensure-response-type-code-fails-with-mtls",
+		"fapi-rw-ensure-request-object-with-bad-aud-fails-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {
