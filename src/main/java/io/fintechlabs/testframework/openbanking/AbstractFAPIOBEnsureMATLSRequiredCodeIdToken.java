@@ -1,70 +1,79 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
-import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
-import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.common.DisallowTLS10;
-import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureMATLSRequiredCodeIdToken;
 
-public abstract class AbstractFAPIOBEnsureMATLSRequiredCodeIdToken extends AbstractFAPIOBServerTestModule {
+public abstract class AbstractFAPIOBEnsureMATLSRequiredCodeIdToken extends AbstractFAPIRWEnsureMATLSRequiredCodeIdToken {
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
-	 */
 	@Override
-	public void start() {
-		setStatus(Status.RUNNING);
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
-		// check that all known endpoints support TLS correctly
+		super.performAuthorizationFlow();
+	}
 
-		eventLog.startBlock("Authorization endpoint TLS test");
-		env.mapKey("tls", "authorization_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		// additional ciphers are allowed on the authorization endpoint
+	protected void performPreAuthorizationSteps() {
+		/* get an openbanking intent id */
+		requestClientCredentialsGrant();
 
-		eventLog.startBlock("Token Endpoint TLS test");
-		env.mapKey("tls", "token_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.startBlock("Userinfo Endpoint TLS test");
-		env.mapKey("tls", "userinfo_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.startBlock("Registration Endpoint TLS test");
-		env.mapKey("tls", "registration_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		eventLog.endBlock();
-		env.unmapKey("tls");
-
-		performAuthorizationFlow();
+		createAccountRequest();
 	}
 
 	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and expect an error, since this request does not
-		// meet any of the OB requirements for client authentication
+	protected void performProfileIdTokenValidation() {
+		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 
-		createAuthorizationCodeRequest();
+	}
 
-		callAndStopOnFailure(RemoveMTLSCertificates.class);
+	@Override
+	protected void performProfileAuthorizationEndpointSetup() {
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
-		callAndContinueOnFailure(CallTokenEndpointExpectingError.class, ConditionResult.FAILURE, "OB-5.2.2");
+	}
 
-		fireTestFinished();
+	protected abstract void createClientCredentialsRequest();
+
+	protected void requestClientCredentialsGrant() {
+
+		createClientCredentialsRequest();
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+	}
+
+	protected void createAccountRequest() {
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
 
 }

@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "FAPI-RW: code id_token with private key and matls Test Plan",
 	profile = "FAPI-RW",
 	testModuleNames = {
+		"fapi-rw-code-id-token-with-private-key-and-matls",
 		"fapi-rw-ensure-client-id-in-token-endpoint-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-without-exp-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-without-scope-fails-with-private-key-and-matls",
@@ -19,6 +20,10 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-different-nonce-inside-and-outside-request-object-with-private-key-and-matls",
 		"fapi-rw-ensure-response-type-code-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-with-bad-aud-fails-with-private-key-and-matls",
+		"fapi-rw-ensure-matls-required-code-id-token-with-private-key-and-matls",
+		"fapi-rw-ensure-matching-key-in-authorization-request-code-id-token-with-private-key-and-matls",
+		"fapi-rw-ensure-redirect-uri-in-authorization-request-code-id-token-with-private-key-and-matls",
+		"fapi-rw-ensure-registered-certificate-for-authorization-code-code-id-token-with-private-key-and-matls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {
