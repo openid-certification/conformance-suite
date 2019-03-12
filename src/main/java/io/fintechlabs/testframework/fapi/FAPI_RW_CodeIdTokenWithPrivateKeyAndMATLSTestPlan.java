@@ -22,6 +22,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-matls-required-code-id-token-with-private-key-and-matls",
 		"fapi-rw-ensure-matching-key-in-authorization-request-code-id-token-with-private-key-and-matls",
 		"fapi-rw-ensure-redirect-uri-in-authorization-request-code-id-token-with-private-key-and-matls",
+		"fapi-rw-ensure-registered-certificate-for-authorization-code-code-id-token-with-private-key-and-matls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {
