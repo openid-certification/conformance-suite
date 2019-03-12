@@ -1,0 +1,28 @@
+package io.fintechlabs.testframework.openbanking;
+
+import io.fintechlabs.testframework.condition.as.AddInvalidNonceValueToIdToken;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
+
+@PublishTestModule(
+	testName = "fapi-ob-client-test-code-id-token-with-matls-invalid-nonce",
+	displayName = "FAPI-OB: client test - invalid nonce in id_token from authorization_endpoint should be rejected (code id_token MATLS)",
+	profile = "FAPI-OB",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.scope",
+		"client.redirect_uri",
+		"client.certificate",
+		"client.jwks",
+	}
+)
+
+public class FAPIOBClientTestCodeIdTokenWithMATLSInvalidNonce extends AbstractFAPIOBClientMATLSExpectNothingAfterAuthorisationEndpoint {
+
+	@Override
+	protected void addCustomValuesToIdToken() {
+
+		callAndStopOnFailure(AddInvalidNonceValueToIdToken.class, "OIDCC-3.1.3.7.11");
+	}
+
+}
