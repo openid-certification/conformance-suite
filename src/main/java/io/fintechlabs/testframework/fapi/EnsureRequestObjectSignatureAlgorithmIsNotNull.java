@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
@@ -45,6 +46,8 @@ public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractFAPI
 	@Override
 	protected void createAuthorizationRedirect() {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddExpToRequestObject.class);
 
 		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 

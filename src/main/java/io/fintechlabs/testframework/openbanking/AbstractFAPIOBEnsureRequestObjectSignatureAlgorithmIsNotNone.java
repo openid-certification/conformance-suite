@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
@@ -41,6 +42,8 @@ public abstract class AbstractFAPIOBEnsureRequestObjectSignatureAlgorithmIsNotNo
 		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddExpToRequestObject.class);
 
 		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 
