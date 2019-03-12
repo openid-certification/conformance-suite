@@ -1,36 +1,59 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.client.ExpectRedirectUriMissingErrorPage;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureRedirectUriInAuthorizationRequest;
 
-public abstract class AbstractFAPIOBEnsureRedirectUriInAuthorizationRequest extends AbstractFAPIOBServerTestModule {
+public abstract class AbstractFAPIOBEnsureRedirectUriInAuthorizationRequest extends AbstractFAPIRWEnsureRedirectUriInAuthorizationRequest {
 
 	@Override
 	protected void performAuthorizationFlow() {
-
 		requestClientCredentialsGrant();
 
 		createAccountRequest();
 
-		createAuthorizationRequest();
-
-		// Remove the redirect URL
-		env.getObject("authorization_endpoint_request").remove("redirect_uri");
-
-		createAuthorizationRedirect();
-
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("redirect_uri_missing_error"));
+		super.performAuthorizationFlow();
 	}
 
+	protected abstract void createClientCredentialsRequest();
+
+	protected void requestClientCredentialsGrant() {
+
+		createClientCredentialsRequest();
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+	}
+
+	protected void createAccountRequest() {
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
+	}
 }

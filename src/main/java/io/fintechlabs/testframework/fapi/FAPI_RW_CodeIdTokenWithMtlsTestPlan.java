@@ -28,6 +28,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-request-object-with-bad-aud-fails-with-mtls",
 		"fapi-rw-ensure-matls-required-code-id-token-with-mtls",
 		"fapi-rw-ensure-matching-key-in-authorization-request-code-id-token-with-mtls",
+		"fapi-rw-ensure-redirect-uri-in-authorization-request-code-id-token-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {
