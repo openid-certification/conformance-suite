@@ -1,11 +1,20 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
-import io.fintechlabs.testframework.condition.client.ExpectRequestObjectUnverifiableErrorPage;
-import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureMatchingKeyInAuthorizationRequest;
 
-public abstract class AbstractFAPIOBEnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIOBServerTestModule {
+public abstract class AbstractFAPIOBEnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIRWEnsureMatchingKeyInAuthorizationRequest {
 
 	@Override
 	protected void performAuthorizationFlow() {
@@ -14,45 +23,39 @@ public abstract class AbstractFAPIOBEnsureMatchingKeyInAuthorizationRequest exte
 
 		createAccountRequest();
 
-		createAuthorizationRequest();
+		super.performAuthorizationFlow();
 
-		// Switch to client 2 JWKs
-
-		eventLog.startBlock("Second client's keys");
-		env.mapKey("client_jwks", "client_jwks2");
-
-		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
-		createAuthorizationRedirect();
-
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), "Redirecting to url " + redirectTo);
-
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1");
-
-		eventLog.endBlock();
-		env.unmapKey("client_jwks");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
 	}
 
-	@Override
-	protected void onAuthorizationCallbackResponse() {
+	protected abstract void createClientCredentialsRequest();
 
-		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
+	protected void requestClientCredentialsGrant() {
 
-		/* If we get an error back from the authorisation server:
-		 * - It must be a 'invalid_request_object' error
-		 * - It must have the correct state we supplied
-		 */
+		createClientCredentialsRequest();
 
-		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		fireTestFinished();
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+	}
+
+	protected void createAccountRequest() {
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
 }

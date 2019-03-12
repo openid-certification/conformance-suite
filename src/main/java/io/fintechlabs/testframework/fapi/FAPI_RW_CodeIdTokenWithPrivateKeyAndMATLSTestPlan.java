@@ -20,6 +20,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-response-type-code-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-with-bad-aud-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-matls-required-code-id-token-with-private-key-and-matls",
+		"fapi-rw-ensure-matching-key-in-authorization-request-code-id-token-with-private-key-and-matls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {
