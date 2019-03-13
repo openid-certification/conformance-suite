@@ -1,21 +1,21 @@
 package io.fintechlabs.testframework.openbanking;
 
-import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
+import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureRegisteredRedirectUri;
 
-import io.fintechlabs.testframework.condition.client.CreateBadRedirectUri;
-import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
-
-public abstract class AbstractFAPIOBEnsureRegisteredRedirectUri extends AbstractFAPIOBServerTestModule {
-
-	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-
-		// create a random redirect URI
-		callAndStopOnFailure(CreateBadRedirectUri.class);
-
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
-	}
+public abstract class AbstractFAPIOBEnsureRegisteredRedirectUri extends AbstractFAPIRWEnsureRegisteredRedirectUri {
 
 	@Override
 	protected void performAuthorizationFlow() {
@@ -24,23 +24,45 @@ public abstract class AbstractFAPIOBEnsureRegisteredRedirectUri extends Abstract
 
 		createAccountRequest();
 
-		createAuthorizationRequest();
+		super.performAuthorizationFlow();
+	}
 
-		createAuthorizationRedirect();
+	@Override
+	protected void performProfileAuthorizationEndpointSetup() {
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+	}
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
+	protected abstract void createClientCredentialsRequest();
 
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
+	protected void requestClientCredentialsGrant() {
 
-		setStatus(Status.WAITING);
+		createClientCredentialsRequest();
 
-		waitForPlaceholders();
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+	}
+
+	protected void createAccountRequest() {
+
+		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+
+		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
+
+		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
+
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
+
+		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
 
 }

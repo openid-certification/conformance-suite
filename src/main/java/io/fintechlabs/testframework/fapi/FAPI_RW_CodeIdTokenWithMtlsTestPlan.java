@@ -30,6 +30,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-matching-key-in-authorization-request-code-id-token-with-mtls",
 		"fapi-rw-ensure-redirect-uri-in-authorization-request-code-id-token-with-mtls",
 		"fapi-rw-ensure-registered-certificate-for-authorization-code-code-id-token-with-mtls",
+		"fapi-rw-ensure-registered-redirect-uri-code-id-token-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {
