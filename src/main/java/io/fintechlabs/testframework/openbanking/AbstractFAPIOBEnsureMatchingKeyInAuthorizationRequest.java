@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
@@ -24,6 +25,12 @@ public abstract class AbstractFAPIOBEnsureMatchingKeyInAuthorizationRequest exte
 		createAccountRequest();
 
 		super.performAuthorizationFlow();
+
+	}
+
+	@Override
+	protected void performProfileAuthorizationEndpointSetup() {
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 	}
 
