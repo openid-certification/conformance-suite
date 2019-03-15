@@ -25,7 +25,7 @@ public class AddTokenEndpointSigningAlg extends AbstractCondition {
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_signing_alg", data);
 
-		logSuccess("Added private_key_jwt for token_endpoint_auth_methods_supported");
+		logSuccess("Set 'PS256' for token_endpoint_auth_signing_alg");
 
 		return env;
 	}

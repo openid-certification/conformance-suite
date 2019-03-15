@@ -10,7 +10,10 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModuleNames = {
 		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls",
 		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-shash",
-		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-chash"
+		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-chash",
+		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-nonce",
+		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-iss",
+		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-aud"
 	}
 )
 public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSTestPlan implements TestPlan {
