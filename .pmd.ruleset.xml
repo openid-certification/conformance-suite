@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+
+<ruleset name="Custom Rules"
+		 xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+	<description>
+		Custom rules used for conformance suite java
+	</description>
+
+	<rule ref="category/java/multithreading.xml">
+		<!-- UseConcurrentHashMap is quite noisy, and PMD developers don't necessarily recommend
+		 using it - https://github.com/pmd/pmd/issues/1022#issuecomment-378687539 -->
+		<exclude name="UseConcurrentHashMap"/>
+		<!-- The use of Runnable in FutureWatcher seems to trigger DoNotUseThreads -->
+		<exclude name="DoNotUseThreads"/>
+		<!-- "Use block level rather than method level
+			  synchronization." is triggered by TestRunner /
+			  TestInstanceEventLog -->
+		<exclude name="AvoidSynchronizedAtMethodLevel"/>
+	</rule>
+	<rule ref="category/java/documentation.xml/CommentContent"
+		  message="Please don't use the @author annotation, reliable authorship information can already be found in git">
+		<properties>
+			<property name="disallowedTerms" value="@author"/>
+		</properties>
+	</rule>
+
+	<rule ref="category/java/errorprone.xml">
+		<!-- These are excluded just because the codebase, at the time PMD was added, raised a number of these
+		  warnings. No analysis has been done on whether they're good checks to exclude. -->
+		<exclude name="BeanMembersShouldSerialize"/>
+		<exclude name="DataflowAnomalyAnalysis"/>
+		<exclude name="AvoidDuplicateLiterals"/>
+		<exclude name="NullAssignment"/>
+		<exclude name="EmptyIfStmt"/>
+		<exclude name="AvoidInstanceofChecksInCatchClause"/>
+		<exclude name="UseLocaleWithCaseConversions"/>
+		<exclude name="AvoidFieldNameMatchingMethodName"/>
+		<exclude name="AvoidLiteralsInIfCondition"/>
+		<exclude name="EmptyCatchBlock"/>
+		<exclude name="NonStaticInitializer"/>
+	</rule>
+
+	<!--
+	   We should probably enable more rules one day
+	<rule ref="category/java/design.xml"></rule>
+	<rule ref="category/java/bestpractices.xml"></rule>
+	<rule ref="category/java/documentation.xml"></rule>
+	<rule ref="category/java/codestyle.xml"></rule>
+	<rule ref="category/java/performance.xml"></rule>
+	<rule ref="category/java/security.xml"></rule>
+	-->
+
+	<!-- https://stackoverflow.com/a/48679770/292166
+		 Avoid flagging private @PostConstruct methods as unused
+	-->
+	<rule ref="category/java/bestpractices.xml/UnusedPrivateMethod">
+		<properties>
+			<property name="violationSuppressXPath"
+					  value="ancestor::ClassOrInterfaceBodyDeclaration/Annotation/MarkerAnnotation/Name[@Image='PostConstruct']" />
+		</properties>
+	</rule>
+</ruleset>

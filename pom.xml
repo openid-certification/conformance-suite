@@ -22,6 +22,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
+		<pmdVersion>6.20.0</pmdVersion>
 	</properties>
 
 	<dependencies>
@@ -211,6 +212,53 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<configuration>
+					<rulesets>
+						<ruleset>.pmd.ruleset.xml</ruleset>
+					</rulesets>
+					<printFailingErrors>true</printFailingErrors>
+				</configuration>
+				<version>3.12.0</version>
+				<executions>
+					<execution>
+						<phase>test</phase>
+						<goals>
+							<goal>check</goal>
+							<!-- CPD detector is disabled for now; there's a larger
+							amount of duplicate code in the OB test modules due to previous
+							limitations of the conformance suite
+							<goal>cpd-check</goal> -->
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<!-- use later version of pmd than default, see
+					https://maven.apache.org/plugins/maven-pmd-plugin/examples/upgrading-PMD-at-runtime.html -->
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-core</artifactId>
+						<version>${pmdVersion}</version>
+					</dependency>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-java</artifactId>
+						<version>${pmdVersion}</version>
+					</dependency>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-javascript</artifactId>
+						<version>${pmdVersion}</version>
+					</dependency>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-jsp</artifactId>
+						<version>${pmdVersion}</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 		<finalName>fapi-test-suite</finalName>
