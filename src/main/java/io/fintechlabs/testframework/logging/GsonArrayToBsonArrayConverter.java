@@ -8,10 +8,6 @@ import com.google.gson.JsonArray;
 import com.mongodb.BasicDBList;
 import com.mongodb.util.JSON;
 
-/**
- * @author jricher
- *
- */
 public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BasicDBList> {
 
 	private Gson gson = new GsonBuilder().create();

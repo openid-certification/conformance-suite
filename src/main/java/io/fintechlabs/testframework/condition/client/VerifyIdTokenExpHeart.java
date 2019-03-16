@@ -8,9 +8,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 import java.time.Instant;
 import java.util.Date;
 
-/**
- * @author srmoore
- */
 public class VerifyIdTokenExpHeart extends AbstractCondition {
 
 	public VerifyIdTokenExpHeart(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {

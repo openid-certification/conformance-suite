@@ -22,9 +22,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by
- *
- * @author jricher
- *
  */
 @PublishTestModule(
 	testName = "fapi-r-ensure-redirect-uri-is-registered",

@@ -30,10 +30,6 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 
-/**
- * @author jricher
- *
- */
 @Controller
 public class ImageAPI {
 

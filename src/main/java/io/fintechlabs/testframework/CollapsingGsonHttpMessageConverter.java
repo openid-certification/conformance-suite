@@ -15,10 +15,6 @@ import com.google.gson.JsonSerializer;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
-/**
- * @author jricher
- *
- */
 public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 
 	/**

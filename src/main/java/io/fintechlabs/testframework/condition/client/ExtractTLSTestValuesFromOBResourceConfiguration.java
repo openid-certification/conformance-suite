@@ -14,10 +14,6 @@ import io.fintechlabs.testframework.openbanking.FAPIOBGetResourceEndpoint;
 import io.fintechlabs.testframework.openbanking.FAPIOBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class ExtractTLSTestValuesFromOBResourceConfiguration extends AbstractCondition {
 
 	/**

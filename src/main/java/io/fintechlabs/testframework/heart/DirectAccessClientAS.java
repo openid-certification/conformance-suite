@@ -41,10 +41,6 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "heart-direct-access-client",
 	displayName = "HEART AS: Direct Access Client",

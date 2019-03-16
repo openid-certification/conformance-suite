@@ -16,10 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
-/**
- * @author srmoore
- *
- */
 @PublishTestModule(
 	testName = "heart-dynamic-client-registration",
 	displayName = "HEART AS: OAuth Dynamic Client Registration",

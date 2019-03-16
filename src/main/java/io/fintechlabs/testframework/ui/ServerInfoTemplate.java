@@ -8,9 +8,6 @@ import java.util.Map;
 
 /**
  * Static implementation of server info utility methods.
- *
- *  @author xuan ext
- *
  */
 public class ServerInfoTemplate {
 	@Value("${fintechlabs.version}")

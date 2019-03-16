@@ -27,8 +27,6 @@ import com.mongodb.util.JSON;
  *      "value": "foo"
  *    }
  *
- * @author jricher
- *
  */
 @Component
 @WritingConverter

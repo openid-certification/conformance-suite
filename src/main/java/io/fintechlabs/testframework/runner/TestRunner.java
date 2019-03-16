@@ -69,8 +69,6 @@ import io.fintechlabs.testframework.testmodule.TestModule;
  * GET /runner/browser/id: get front-channel external URLs
  * POST /runner/browser/id/visit: mark front-channel external URL as visited
  *
- * @author jricher
- *
  */
 @Controller
 public class TestRunner implements DataUtils {

@@ -17,9 +17,6 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 
 /**
  * Static implementation of data manipulation utility methods.
- *
- * @author jricher
- *
  */
 public interface DataUtils {
 

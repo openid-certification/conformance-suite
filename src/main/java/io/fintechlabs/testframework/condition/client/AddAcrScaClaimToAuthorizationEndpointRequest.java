@@ -1,8 +1,3 @@
-/**
- * @author ddrysdale
- *
- */
-
 package io.fintechlabs.testframework.condition.client;
 
 import io.fintechlabs.testframework.condition.PostEnvironment;

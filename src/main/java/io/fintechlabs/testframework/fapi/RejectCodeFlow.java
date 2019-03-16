@@ -9,10 +9,6 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 import io.fintechlabs.testframework.condition.common.ExpectGrantTypeErrorPage;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-/**
- * @author srmoore
- *
- */
 @PublishTestModule(
 	testName = "fapi-rw-reject-code-flow-test",
 	displayName = "FAPI-RW: Reject the code flow",

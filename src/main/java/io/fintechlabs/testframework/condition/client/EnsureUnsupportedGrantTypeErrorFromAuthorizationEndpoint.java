@@ -8,9 +8,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * Check to make sure a "unsupported_response_type" error was received from the server
- *
- * @author srmoore
- *
  */
 public class EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint extends AbstractCondition {
 

@@ -84,10 +84,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-client-secret-jwt",
 	displayName = "FAPI-R: code id_token (client secret jwt authentication)",

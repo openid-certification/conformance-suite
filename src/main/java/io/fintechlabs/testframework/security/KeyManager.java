@@ -15,10 +15,6 @@ import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.RSAKey;
 
-/**
- * @author jricher
- *
- */
 public class KeyManager {
 
 

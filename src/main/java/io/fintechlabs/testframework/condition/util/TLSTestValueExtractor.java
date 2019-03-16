@@ -8,9 +8,6 @@ import com.google.gson.JsonObject;
 /**
  * Extracts the host and port of a given URL string (including the default port if none is
  * specified) into a JSON object, for use with TLS testing.
- *
- * @author jricher
- *
  */
 public class TLSTestValueExtractor {
 

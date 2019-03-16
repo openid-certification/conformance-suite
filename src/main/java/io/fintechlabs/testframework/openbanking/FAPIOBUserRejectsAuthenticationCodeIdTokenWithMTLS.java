@@ -6,11 +6,6 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-/**
- * @author ddrysdale
- *
- */
-
 @PublishTestModule(
 	testName = "fapi-ob-user-rejects-authentication-code-id-token-with-mtls",
 	displayName = "FAPI-OB: user rejects authentication (code id_token with MTLS authentication)",

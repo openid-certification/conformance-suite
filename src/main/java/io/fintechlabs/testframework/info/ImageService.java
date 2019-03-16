@@ -5,9 +5,6 @@ import java.util.Map;
 
 import com.mongodb.DBObject;
 
-/**
- * @author jheenan
- */
 public interface ImageService {
 	/**
 	 * Fill a placeholder with the given content

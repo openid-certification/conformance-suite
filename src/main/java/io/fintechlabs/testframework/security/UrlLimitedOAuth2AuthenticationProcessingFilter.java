@@ -12,10 +12,6 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-/**
- * @author jricher
- *
- */
 public class UrlLimitedOAuth2AuthenticationProcessingFilter extends OAuth2AuthenticationProcessingFilter {
 
 	private RequestMatcher matcher = AnyRequestMatcher.INSTANCE;

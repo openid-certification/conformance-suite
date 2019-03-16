@@ -20,10 +20,6 @@ import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 import io.fintechlabs.testframework.security.KeyManager;
 
-/**
- * @author jricher
- *
- */
 @Configuration
 public class ApplicationConfig {
 	@Bean

@@ -3,10 +3,6 @@ package io.fintechlabs.testframework.info;
 import com.google.gson.JsonObject;
 import com.mongodb.DBObject;
 
-/**
- * @author jricher
- *
- */
 public interface SavedConfigurationService {
 
 	DBObject getLastConfigForCurrentUser();

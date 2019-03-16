@@ -33,10 +33,6 @@ import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 
-/**
- * @author jricher
- *
- */
 @Controller
 public class TestPlanApi implements DataUtils {
 

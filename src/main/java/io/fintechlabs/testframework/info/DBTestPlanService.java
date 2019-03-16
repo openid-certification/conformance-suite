@@ -30,10 +30,6 @@ import com.mongodb.DBObject;
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
-/**
- * @author jricher
- *
- */
 @Service
 public class DBTestPlanService implements TestPlanService {
 

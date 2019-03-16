@@ -9,9 +9,6 @@ import java.util.Map;
  * A builder class for test execution controls, such as mapping and unmapping keys in the environment,
  * starting and stopping blocks in the logs, and other controls not directly related to calling a
  * condition.
- *
- * @author jricher
- *
  */
 public class TestExecutionBuilder extends TestExecutionUnit {
 	private Map<String, String> mapKeys = new LinkedHashMap<>();

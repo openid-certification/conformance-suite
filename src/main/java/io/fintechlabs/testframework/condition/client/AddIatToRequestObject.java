@@ -8,9 +8,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.time.Instant;
 
-/**
- * @author jheenan
- */
 public class AddIatToRequestObject extends AbstractCondition {
 
 	public AddIatToRequestObject(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {

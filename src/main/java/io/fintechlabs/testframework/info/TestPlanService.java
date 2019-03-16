@@ -5,10 +5,6 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
-/**
- * @author jricher
- *
- */
 public interface TestPlanService {
 
 	/**

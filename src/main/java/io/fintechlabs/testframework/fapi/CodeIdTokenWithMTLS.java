@@ -85,10 +85,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-mtls",
 	displayName = "FAPI-R: code id_token (MTLS authentication)",

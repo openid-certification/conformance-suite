@@ -2,10 +2,6 @@ package io.fintechlabs.testframework.testmodule;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 
-/**
- * @author jricher
- *
- */
 public class TestFailureException extends RuntimeException {
 
 	// this is only used if the "cause" is not a ConditionError

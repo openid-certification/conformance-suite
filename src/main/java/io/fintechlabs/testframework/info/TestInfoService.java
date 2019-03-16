@@ -8,10 +8,6 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
-/**
- * @author jricher
- *
- */
 public interface TestInfoService {
 
 	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
