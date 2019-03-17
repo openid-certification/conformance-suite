@@ -1,11 +1,14 @@
 package io.fintechlabs.testframework.sequence.client;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.*;
+import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
-
-import javax.persistence.criteria.Fetch;
 
 public class LoadServerAndClientConfiguration extends AbstractConditionSequence {
 
@@ -28,11 +31,9 @@ public class LoadServerAndClientConfiguration extends AbstractConditionSequence 
 		// Dynamic is using dynamic registration which is a whole nother thing.
 		//call(condition(GetDynamicClientConfiguration.class).dontStopOnFailure());
 
-		if (hasAccessory("client_configuration")) {
-			call(getAccessories("client_configuration"));
-		} else {
-			call(condition(GetStaticClientConfiguration.class)); //.dontStopOnFailure());
-		}
+		runAccessory("client_configuration",
+			condition(GetStaticClientConfiguration.class)); //.dontStopOnFailure());
+
 		call(exec().exposeEnvironmentString("client_id"));
 	}
 }
