@@ -10,7 +10,7 @@
 #
 # In order to deploy, you must have a Kubernetes cluster configured either
 # via a project integration, or via group/project variables.
-# AUTO_DEVOPS_DOMAIN must also be set as a variable at the group or project
+# KUBE_INGRESS_BASE_DOMAIN must also be set as a variable at the group or project
 # level, or manually added below.
 #
 # If you want to deploy to staging first, or enable canary deploys,
@@ -27,8 +27,8 @@
 image: alpine:latest
 
 variables:
-  # AUTO_DEVOPS_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
-  # AUTO_DEVOPS_DOMAIN: domain.example.com
+  # KUBE_INGRESS_BASE_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
+  # KUBE_INGRESS_BASE_DOMAIN: domain.example.com
   BASE_HOST_NAME: review-app
   PRODUCTION_HOST: www
   STAGING_HOST: staging
@@ -130,7 +130,7 @@ review:
     - deploy
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$AUTO_DEVOPS_DOMAIN
+    url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
     on_stop: stop_review
   only:
     refs:
@@ -173,7 +173,7 @@ demo:
     - deploy
   environment:
     name: demo
-    url: https://$DEMO_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$DEMO_HOST.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - demo
@@ -201,7 +201,7 @@ staging:
     - deploy
   environment:
     name: staging
-    url: https://$STAGING_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$STAGING_HOST.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - master
@@ -222,7 +222,7 @@ staging:
     - deploy canary
   environment:
     name: production
-    url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
   when: manual
   only:
     refs:
@@ -246,7 +246,7 @@ production:
     - delete canary
   environment:
     name: production
-    url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - production
@@ -265,7 +265,7 @@ deployment_test_production:
   <<: *deployment_test
   environment:
     name: production
-    url: https://$PRODUCTION_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - production
@@ -275,7 +275,7 @@ deployment_test_staging:
   <<: *deployment_test
   environment:
     name: staging
-    url: https://$STAGING_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$STAGING_HOST.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - master
@@ -285,7 +285,7 @@ deployment_test_demo:
   <<: *deployment_test
   environment:
     name: demo
-    url: https://$DEMO_HOST.$AUTO_DEVOPS_DOMAIN
+    url: https://$DEMO_HOST.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - demo
@@ -295,7 +295,7 @@ deployment_test_review:
   <<: *deployment_test
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$AUTO_DEVOPS_DOMAIN
+    url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
   only:
     refs:
       - /^dev-branch-[1-9]$/
@@ -418,8 +418,8 @@ deployment_test_review:
   }
 
   function check_kube_domain() {
-    if [ -z ${AUTO_DEVOPS_DOMAIN+x} ]; then
-      echo "In order to deploy, AUTO_DEVOPS_DOMAIN must be set as a variable at the group or project level, or manually added in .gitlab-cy.yml"
+    if [ -z ${KUBE_INGRESS_BASE_DOMAIN+x} ]; then
+      echo "In order to deploy, KUBE_INGRESS_BASE_DOMAIN must be set as a variable at the group or project level, or manually added in .gitlab-ci.yml"
       false
     else
       true
