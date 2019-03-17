@@ -29,10 +29,10 @@ image: alpine:latest
 variables:
   # AUTO_DEVOPS_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
   # AUTO_DEVOPS_DOMAIN: domain.example.com
-  BASE_HOST_NAME: fapi-conformance
-  PRODUCTION_HOST: fintechlabs-fapi-conformance-suite
-  STAGING_HOST: fintechlabs-fapi-conformance-suite-staging
-  DEMO_HOST: fintechlabs-fapi-conformance-suite-demo
+  BASE_HOST_NAME: review-app
+  PRODUCTION_HOST: www
+  STAGING_HOST: staging
+  DEMO_HOST: demo
 
 stages:
   - build
@@ -484,8 +484,8 @@ deployment_test_review:
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
     cd ..
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:fintechlabs/fapi-conformance-suite-private.git
-    cd fapi-conformance-suite-private
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:openid/conformance-suite-private.git
+    cd conformance-suite-private
     kubectl -n "$KUBE_NAMESPACE" get secret microauth -o yaml > microauth-credentials
     export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
     export CONFORMANCE_MICROAUTH_LOCAL_PORT="9002"
