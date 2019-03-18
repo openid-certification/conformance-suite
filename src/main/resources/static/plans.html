@@ -238,7 +238,6 @@
 							url: '/info/' + encodeURIComponent(testId),
 							data: {},
 							success: function(data) {
-								console.log(data);
 								el.data('instance', ''); // clear the data attribute so we don't re-fetch
 								if (data.result) {
 									el.removeClass('testResult-unknown');
