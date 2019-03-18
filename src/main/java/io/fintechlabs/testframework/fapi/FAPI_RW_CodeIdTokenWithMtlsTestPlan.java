@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-registered-redirect-uri-code-id-token-with-mtls",
 		"fapi-rw-ensure-request-object-signature-algorithm-is-not-none-code-id-token-with-mtls",
 		"fapi-rw-user-rejects-authentication-code-id-token-with-mtls",
+		"fapi-rw-ensure-signed-request-object-with-RS256-fails-with-mtls",
 	}
 )
 public class FAPI_RW_CodeIdTokenWithMtlsTestPlan implements TestPlan {

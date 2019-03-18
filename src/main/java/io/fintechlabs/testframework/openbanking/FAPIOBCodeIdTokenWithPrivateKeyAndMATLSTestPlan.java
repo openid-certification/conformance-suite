@@ -33,6 +33,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ob-ensure-different-nonce-inside-and-outside-request-object-with-private-key-and-matls",
 		"fapi-ob-ensure-response-type-code-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-with-bad-aud-fails-with-private-key-and-matls",
+		"fapi-ob-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-matls",
+		"fapi-ob-ensure-signed-request-object-with-RS256-fails-with-private-key-and-matls",
 	}
 )
 public class FAPIOBCodeIdTokenWithPrivateKeyAndMATLSTestPlan implements TestPlan {

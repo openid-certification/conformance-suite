@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
@@ -67,6 +68,7 @@ import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointReq
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
@@ -142,6 +144,20 @@ public abstract class AbstractFAPIRWServerTestModule extends AbstractTestModule 
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+
+		// ES256 keys are supplied, but we can't do this and the test module should probably just immediately exit successfully
+		// We don't need to check null for jwks and keys because it was checked the steps before
+		// We get first key to compare with PS256 because we use it to sign request_object or client_assertion
+		JsonObject jwks = env.getObject("client_jwks");
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+		JsonObject key = keys.get(0).getAsJsonObject();
+		String alg = key.get("alg").getAsString();
+		if (!alg.equals("PS256")) {
+			callAndContinueOnFailure(TestCanOnlyBePerformedForPS256Alg.class, Condition.ConditionResult.FAILURE);
+			fireTestFinished();
+			return;
+
+		}
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
