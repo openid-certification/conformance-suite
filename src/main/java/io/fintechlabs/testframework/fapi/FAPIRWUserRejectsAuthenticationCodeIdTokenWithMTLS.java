@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-user-rejects-authentication-code-id-token-with-mtls",
 	displayName = "FAPI-RW: user rejects authentication (code id_token with MTLS authentication)",
+	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",

@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-ensure-redirect-uri-in-authorization-request-code-id-token-with-mtls",
 	displayName = "FAPI-RW: ensure redirect URI in authorization request (code id_token with MTLS authentication)",
+	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",

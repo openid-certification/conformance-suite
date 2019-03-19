@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-ensure-client-id-in-token-endpoint-with-private-key-and-matls",
 	displayName = "FAPI-RW: ensure client_id in token endpoint (private key authentication and MATLS)",
+	summary = "This test should end with the token endpoint returning an error message that the client is invalid.",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",

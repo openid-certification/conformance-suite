@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-ensure-registered-certificate-for-authorization-code-code-id-token-with-private-key-and-matls",
 	displayName = "FAPI-RW: ensure registered certificate for authorization code (code id_token with private key authentication and MATLS)",
+	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",
