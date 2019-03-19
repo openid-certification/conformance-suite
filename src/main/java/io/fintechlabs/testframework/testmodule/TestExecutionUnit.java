@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.testmodule;
 
 /**
- * Marker interface to allow collections of ConditionCallBuilder and TextExecutionBuilder instances.
+ * Marker interface to allow collections of ConditionCallBuilder and Command instances.
  *
  * @author jricher
  *

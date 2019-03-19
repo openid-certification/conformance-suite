@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -850,6 +851,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		return Arrays.stream(getClass().getMethods())
 			.filter((m) -> m.isAnnotationPresent(HandleHttp.class))
 			.filter((m) -> apm.match(m.getDeclaredAnnotation(HandleHttp.class).value(), path))
+			.sorted(Comparator.comparing(
+				(m) -> m.getDeclaredAnnotation(HandleHttp.class).value(),
+				apm.getPatternComparator(path)
+			))
 			.findFirst().map((m) -> {
 				try {
 					return m.invoke(this, req, res, session, requestParts);
@@ -857,7 +862,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					throw new TestFailureException(getId(), "Error while processing incoming HTTP request: " + e.getMessage());
 				}
 			})
-			.orElseThrow(() -> new TestFailureException(getId(), "Got an HTTP response we weren't expecting"));
+			.orElseThrow(() -> new TestFailureException(getId(), "Got an HTTP request we weren't expecting"));
 	}
 
 	@Override
@@ -867,7 +872,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		return Arrays.stream(getClass().getMethods())
 			.filter((m) -> m.isAnnotationPresent(HandleHttpMtls.class))
-			.filter((m) -> apm.match(m.getDeclaredAnnotation(HandleHttp.class).value(), path))
+			.filter((m) -> apm.match(m.getDeclaredAnnotation(HandleHttpMtls.class).value(), path))
+			.sorted(Comparator.comparing(
+				(m) -> m.getDeclaredAnnotation(HandleHttpMtls.class).value(),
+				apm.getPatternComparator(path)
+			))
 			.findFirst().map((m) -> {
 				try {
 					return m.invoke(this, req, res, session, requestParts);
@@ -875,7 +884,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					throw new TestFailureException(getId(), "Error while processing incoming HTTP request: " + e.getMessage());
 				}
 			})
-			.orElseThrow(() -> new TestFailureException(getId(), "Got an HTTP response we weren't expecting"));
+			.orElseThrow(() -> new TestFailureException(getId(), "Got an HTTP request we weren't expecting"));
 	}
 
 	@Override
