@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
+import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestOrInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingNonceErrorPage;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
@@ -74,12 +74,12 @@ public abstract class AbstractFAPIRWEnsureRequestObjectWithoutNonceFails extends
 		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
 
 		/* If we get an error back from the authorisation server:
-		 * - It must be a 'invalid_request_object' error
+		 * - It must be a 'invalid_request_object' or 'invalid_request' error
 		 * - It must have the correct state we supplied
 		 */
 
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(EnsureInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "OIDCC-3.3.2.6");
 		fireTestFinished();
 	}
 
