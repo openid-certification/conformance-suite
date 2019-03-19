@@ -2,11 +2,6 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidCHashValueToIdToken;
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
-import io.fintechlabs.testframework.condition.as.EnsureClientAssertionTypeIsJwt;
-import io.fintechlabs.testframework.condition.as.ExtractClientAssertion;
-import io.fintechlabs.testframework.condition.as.ValidateClientAssertionClaims;
-import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -23,26 +18,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidCHash extends AbstractFAPIOBClientTestCodeIdToken {
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
-	}
-
-	@Override
-	protected void validateClientAuthentication() {
-
-		callAndStopOnFailure(ExtractClientAssertion.class, "RFC7523-2.2");
-
-		callAndStopOnFailure(EnsureClientAssertionTypeIsJwt.class, "RFC7523-2.2");
-
-		callAndStopOnFailure(ValidateClientAssertionClaims.class, "RFC7523-3");
-
-		callAndStopOnFailure(ValidateClientSigningKeySize.class, "FAPI-R-5.2.2.5");
-
-	}
+public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidCHash extends AbstractFAPIOBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -53,29 +29,8 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidCHash ex
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 
-		setStatus(Status.WAITING);
-		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an invalid c_hash.");
+		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid c_hash value from the authorization_endpoint.");
 
-	}
-
-	@Override
-	protected Object authorizationEndpoint(String requestId){
-
-		Object returnValue = super.authorizationEndpoint(requestId);
-
-		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(5 * 1000);
-			if (getStatus().equals(Status.WAITING)) {
-				setStatus(Status.RUNNING);
-				//As the client hasn't call the token endpoint after 5 seconds, assume it has correctly detected the error and aborted.
-				fireTestFinished();
-			}
-
-			return "done";
-
-		});
-
-		return returnValue;
 	}
 
 }

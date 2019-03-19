@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidAudValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -23,6 +24,13 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidAud exte
 	protected void addCustomValuesToIdToken() {
 
 		callAndStopOnFailure(AddInvalidAudValueToIdToken.class, "OIDCC-3.1.3.7.3");
+	}
+
+	@Override
+	protected Object authorizationCodeGrantType(String requestId) {
+
+		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid aud value from the authorization_endpoint.");
+
 	}
 
 }
