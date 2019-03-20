@@ -355,7 +355,8 @@ var FAPI_UI = {
 			"RFC7231-" : "https://tools.ietf.org/html/rfc7231",
 			"RFC7519-" : "https://tools.ietf.org/html/rfc7519",
 			"RFC7523-" : "https://tools.ietf.org/html/rfc7523",
-			"HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html"
+			"HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html",
+			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2"
 		},
 
 		testJSON : {}

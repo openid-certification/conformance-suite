@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidNonceValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -24,6 +25,13 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidNonce ex
 	protected void addCustomValuesToIdToken() {
 
 		callAndStopOnFailure(AddInvalidNonceValueToIdToken.class, "OIDCC-3.1.3.7.11");
+	}
+
+	@Override
+	protected Object authorizationCodeGrantType(String requestId) {
+
+		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid nonce value from the authorization_endpoint.");
+
 	}
 
 }
