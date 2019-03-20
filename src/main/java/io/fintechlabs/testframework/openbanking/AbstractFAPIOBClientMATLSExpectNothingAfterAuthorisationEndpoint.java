@@ -1,13 +1,7 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
-import io.fintechlabs.testframework.condition.as.EnsureClientAssertionTypeIsJwt;
 import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
-import io.fintechlabs.testframework.condition.as.ExtractClientAssertion;
-import io.fintechlabs.testframework.condition.as.ValidateClientAssertionClaims;
-import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
-
 
 public abstract class AbstractFAPIOBClientMATLSExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIOBClientTestCodeIdToken {
 
