@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
@@ -20,6 +21,8 @@ import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticati
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
+import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
+import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -42,6 +45,8 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdLength;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
@@ -69,6 +74,9 @@ import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderFo
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
+import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestId;
+import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdExpiresIn;
+import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdInterval;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaims;
@@ -246,20 +254,22 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 
-		// FIXME: CIBA-7.3 check HTTP response status code is 200 (same way as CheckTokenEndpointHttpStatus200 works)
+		callAndStopOnFailure(CheckBackchannelAuthenticationEndpointHttpStatus200.class, "CIBA-7.3");
 
-		// FIXME: CIBA-7.3 check Content-Type: application/json
+		callAndStopOnFailure(CheckBackchannelAuthenticationEndpointContentType.class, "CIBA-7.3");
 
 		callAndStopOnFailure(CheckIfBackchannelAuthenticationEndpointResponseError.class);
 
-		// FIXME: CIBA-7.3 verify auth_req_id is a non-empty string, otherwise it doesn't appear to have much definition, see:
-		// https://bitbucket.org/openid/mobile/issues/150/should-auth_req_id-have-limits-on
+		callAndStopOnFailure(ValidateAuthenticationRequestId.class, "CIBA-7.3");
 
-		// FIXME: CIBA-7.3 verify auth_req_id has at least 128 bits entropy, and should have more than 160
+		callAndContinueOnFailure(EnsureMinimumAuthenticationRequestIdLength.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
 
-		// FIXME: CIBA-7.3 verify expires_in is a positive integer and less than (say) 1 year
+		callAndContinueOnFailure(EnsureMinimumAuthenticationRequestIdEntropy.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
 
-		// FIXME: CIBA-7.3 verify interval (if present)
+		callAndContinueOnFailure(ValidateAuthenticationRequestIdExpiresIn.class, Condition.ConditionResult.FAILURE,"CIBA-7.3");
+
+		callAndContinueOnFailure(ValidateAuthenticationRequestIdInterval.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
+
 		eventLog.endBlock();
 
 		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
@@ -270,8 +280,12 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		verifyTokenEndpointResponseIsPendingOrSlowDown();
 		eventLog.endBlock();
 
-		// FIXME: if interval was present in response, use that instead of 5 seconds
 		long delaySeconds = 5;
+		JsonElement jInterval = env.getElementFromObject("backchannel_authentication_endpoint_response", "interval");
+		if (jInterval != null && jInterval.isJsonPrimitive() && jInterval.getAsJsonPrimitive().isNumber()) {
+			delaySeconds = jInterval.getAsJsonPrimitive().getAsInt();
+		}
+
 		try {
 			Thread.sleep(delaySeconds * 1000);
 		} catch (InterruptedException e) {
@@ -285,7 +299,14 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		verifyTokenEndpointResponseIsPendingOrSlowDown();
 		eventLog.endBlock();
 
-		// FIXME add 5 seconds to delaySeconds if token endpoint response was 'slowdown'
+		JsonElement tokenEndpoint = env.getObject("token_endpoint_response");
+		if (tokenEndpoint == null) {
+			try {
+				Thread.sleep(5 * 1000L);
+			} catch (InterruptedException e) {
+				throw new TestFailureException(getId(), "Thread.sleep threw exception: " + e.getMessage());
+			}
+		}
 
 		callAutomatedEndpoint();
 

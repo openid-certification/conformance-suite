@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
@@ -68,7 +69,15 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 			String jsonString = null;
 
 			try {
-				jsonString = restTemplate.postForObject(bcAuthEndpoint, request, String.class);
+				ResponseEntity<String> response = restTemplate.postForEntity(bcAuthEndpoint, request, String.class);
+
+				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
+
+				env.putObject("backchannel_authentication_endpoint_response_headers", responseHeaders);
+
+				env.putInteger("backchannel_authentication_endpoint_response_http_status", response.getStatusCode().value());
+
+				jsonString = response.getBody();
 			} catch (RestClientResponseException e) {
 				throw error("Error from the backchannel authentication endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			}
