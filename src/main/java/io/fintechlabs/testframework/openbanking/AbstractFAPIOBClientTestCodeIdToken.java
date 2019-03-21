@@ -38,6 +38,7 @@ import io.fintechlabs.testframework.condition.as.GenerateServerConfigurationMTLS
 import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
 import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
 import io.fintechlabs.testframework.condition.as.SignIdToken;
+import io.fintechlabs.testframework.condition.as.SignIdTokenInvalid;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectClaims;
@@ -97,6 +98,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 	protected abstract void validateClientAuthentication();
 
 	protected abstract void addCustomValuesToIdToken();
+
+	protected void addCustomSignatureOfIdToken(){}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
@@ -380,6 +383,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "OIDCC-3.1.3.7-12");
 
 		callAndStopOnFailure(SignIdToken.class);
+
+		addCustomSignatureOfIdToken();
 
 		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
 

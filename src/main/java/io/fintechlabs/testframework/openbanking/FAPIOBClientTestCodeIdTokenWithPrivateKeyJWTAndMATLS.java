@@ -46,4 +46,5 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLS extends Abstra
 	protected void addCustomValuesToIdToken(){
 		//Do nothing
 	}
+
 }

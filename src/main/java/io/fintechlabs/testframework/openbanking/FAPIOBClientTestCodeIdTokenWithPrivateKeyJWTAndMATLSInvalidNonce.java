@@ -20,7 +20,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidNonce extends AbstractFAPIOBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
 
-
 	@Override
 	protected void addCustomValuesToIdToken() {
 
