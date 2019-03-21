@@ -14,7 +14,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ob-ensure-wrong-client-id-in-token-endpoint-fails-with-private-key-and-matls",
 	displayName = "FAPI-OB: ensure client id in token endpoint fails (with private key authentication and MATLS)",
-	summary = "This test should end with the token endpoint server showing an error message that the client is invalid.",
+	summary = "This test should end with the token endpoint returning an error message that the client is invalid.",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.discoveryUrl",

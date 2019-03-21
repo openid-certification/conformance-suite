@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
 	displayName = "FAPI-RW: ensure request object with multiple aud succeeds (MTLS authentication)",
+	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",

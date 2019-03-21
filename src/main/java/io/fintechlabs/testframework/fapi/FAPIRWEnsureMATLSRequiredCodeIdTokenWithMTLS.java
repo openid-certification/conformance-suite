@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-ensure-matls-required-code-id-token-with-mtls",
 	displayName = "FAPI-RW: ensure MATLS required (code id_token with MTLS authentication)",
+	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",
