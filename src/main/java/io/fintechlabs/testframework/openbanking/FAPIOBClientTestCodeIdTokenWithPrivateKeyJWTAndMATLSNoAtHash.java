@@ -1,6 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.as.AddNullAtHashValueToIdToken;
+import io.fintechlabs.testframework.condition.as.RemoveAtHashFromIdToken;
 import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.EnsureClientAssertionTypeIsJwt;
 import io.fintechlabs.testframework.condition.as.ExtractClientAssertion;
@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-missing-athash",
-	displayName = "FAPI-OB: client test with a missing at_hash value(code id_token with private_key_jwt and MATLSToDo)",
+	displayName = "FAPI-OB: client test - id_token without an at_hash value from the authorization_endpoint should be rejected(code id_token with private_key_jwt and MATLS)",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",
@@ -22,7 +22,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSNullAtHash extends AbstractFAPIOBClientTestCodeIdToken {
+public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSNoAtHash extends AbstractFAPIOBClientTestCodeIdToken {
 
 	@Override
 	protected void addTokenEndpointAuthMethodSupported() {
@@ -46,7 +46,7 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSNullAtHash exte
 	@Override
 	protected void addCustomValuesToIdToken(){
 
-		callAndStopOnFailure(AddNullAtHashValueToIdToken.class, "OIDCC-3.2.2.9");
+		callAndStopOnFailure(RemoveAtHashFromIdToken.class, "OIDCC-3.2.2.9");
 	}
 
 }

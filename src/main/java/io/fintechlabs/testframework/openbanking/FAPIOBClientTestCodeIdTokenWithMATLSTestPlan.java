@@ -25,4 +25,3 @@ import io.fintechlabs.testframework.plan.TestPlan;
 public class FAPIOBClientTestCodeIdTokenWithMATLSTestPlan implements TestPlan {
 
 }
-
