@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "FAPI-OB",
 	testModuleNames = {
 		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls",
+		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-missing-athash",
 		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-shash",
 		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-chash",
 		"fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-nonce",

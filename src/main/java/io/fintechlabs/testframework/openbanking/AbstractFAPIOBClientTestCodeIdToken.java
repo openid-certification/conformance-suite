@@ -5,11 +5,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddAtHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddCHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddSHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddTokenEndpointSigningAlg;
+import io.fintechlabs.testframework.condition.as.CalculateAtHash;
 import io.fintechlabs.testframework.condition.as.CalculateCHash;
 import io.fintechlabs.testframework.condition.as.CalculateSHash;
 import io.fintechlabs.testframework.condition.as.CheckForClientCertificate;
@@ -38,7 +40,6 @@ import io.fintechlabs.testframework.condition.as.GenerateServerConfigurationMTLS
 import io.fintechlabs.testframework.condition.as.LoadServerJWKs;
 import io.fintechlabs.testframework.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
 import io.fintechlabs.testframework.condition.as.SignIdToken;
-import io.fintechlabs.testframework.condition.as.SignIdTokenInvalid;
 import io.fintechlabs.testframework.condition.as.ValidateAuthorizationCode;
 import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectClaims;
@@ -370,6 +371,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 
 		callAndStopOnFailure(CalculateSHash.class, "FAPI-RW-5.2.2-4");
 
+		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
 		callAndStopOnFailure(AddOBIntentIdToIdTokenClaims.class);
@@ -377,6 +380,8 @@ public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractTestMo
 		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
 		callAndStopOnFailure(AddSHashToIdTokenClaims.class, "FAPI-RW-5.2.2-4");
+
+		callAndStopOnFailure(AddAtHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
 
