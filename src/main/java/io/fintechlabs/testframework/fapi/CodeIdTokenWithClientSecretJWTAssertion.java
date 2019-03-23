@@ -319,11 +319,11 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+			callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3"); // these can be continues
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+			callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
+			callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
 
 			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
