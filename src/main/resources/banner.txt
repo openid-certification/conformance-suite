@@ -1,7 +1,5 @@
 ===---
 
-  ❨⪕❩ Fintech Labs
-
-  Conformance Test Suite
+  OpenID Foundation Conformance Test Suite
 
 ===---
