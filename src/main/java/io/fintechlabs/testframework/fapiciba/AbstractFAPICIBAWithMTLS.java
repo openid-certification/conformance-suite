@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
@@ -32,6 +33,7 @@ import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointCacheHeaders;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus200;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
@@ -49,6 +51,7 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthentication
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdLength;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
+import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
@@ -260,11 +263,14 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckIfBackchannelAuthenticationEndpointResponseError.class);
 
+		// https://bitbucket.org/openid/mobile/issues/150/should-auth_req_id-have-limits-on
 		callAndStopOnFailure(ValidateAuthenticationRequestId.class, "CIBA-7.3");
 
 		callAndContinueOnFailure(EnsureMinimumAuthenticationRequestIdLength.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
 
 		callAndContinueOnFailure(EnsureMinimumAuthenticationRequestIdEntropy.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
+
+		callAndContinueOnFailure(EnsureRecommendedAuthenticationRequestIdEntropy.class, Condition.ConditionResult.WARNING, "CIBA-7.3");
 
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdExpiresIn.class, Condition.ConditionResult.FAILURE,"CIBA-7.3");
 
@@ -281,9 +287,9 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		eventLog.endBlock();
 
 		long delaySeconds = 5;
-		JsonElement jInterval = env.getElementFromObject("backchannel_authentication_endpoint_response", "interval");
-		if (jInterval != null && jInterval.isJsonPrimitive() && jInterval.getAsJsonPrimitive().isNumber()) {
-			delaySeconds = jInterval.getAsJsonPrimitive().getAsInt();
+		Integer interval = env.getInteger("backchannel_authentication_endpoint_response", "interval");
+		if (interval != null) {
+			delaySeconds = interval;
 		}
 
 		try {
@@ -299,8 +305,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		verifyTokenEndpointResponseIsPendingOrSlowDown();
 		eventLog.endBlock();
 
-		JsonElement tokenEndpoint = env.getObject("token_endpoint_response");
-		if (tokenEndpoint == null) {
+		String tokenEndpointError = env.getString("token_endpoint_response", "error");
+		if (!Strings.isNullOrEmpty(tokenEndpointError) && tokenEndpointError.equals("slow_down")) {
 			try {
 				Thread.sleep(5 * 1000L);
 			} catch (InterruptedException e) {
@@ -383,7 +389,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class, "RFC6749-5.1");
 
-		// FIXME: CIBA-10.1.1, OIDCC-3.1.3.3, RFC6749-5.1 check response includes http headers Cache-Control: no-store Pragma: no-cache
+		callAndContinueOnFailure(CheckTokenEndpointCacheHeaders.class, Condition.ConditionResult.FAILURE, "CIBA-10.1.1", "OIDCC-3.1.3.3", "RFC6749-5.1");
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 

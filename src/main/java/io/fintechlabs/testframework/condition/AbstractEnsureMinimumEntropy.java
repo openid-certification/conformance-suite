@@ -36,7 +36,7 @@ public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 	}
 
 	// entropy calculation from https://rosettacode.org/wiki/Entropy#Java
-	private double getShannonEntropy(String s) {
+	protected double getShannonEntropy(String s) {
 		int n = 0;
 		Map<Character, Integer> occ = new HashMap<>();
 

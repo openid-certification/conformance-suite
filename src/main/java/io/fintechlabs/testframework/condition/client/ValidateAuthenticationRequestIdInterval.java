@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateAuthenticationRequestIdInterval extends AbstractCondition {
+	private final double maximumInterval = 6 * 60 * 60; // 1 year as 30758400 seconds
 
 	public ValidateAuthenticationRequestIdInterval(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -33,6 +34,10 @@ public class ValidateAuthenticationRequestIdInterval extends AbstractCondition {
 		int interval = jInterval.getAsJsonPrimitive().getAsInt();
 		if (interval < 0) {
 			throw error("interval is less than zero");
+		}
+
+		if (interval > maximumInterval) {
+			throw error("internal is intended to be a few minutes in most cases anything over 6 hours can be seen as unreasonable.", args("expected", maximumInterval, "actual", interval));
 		}
 
 		logSuccess("interval passed all validation checks", args("interval", interval));

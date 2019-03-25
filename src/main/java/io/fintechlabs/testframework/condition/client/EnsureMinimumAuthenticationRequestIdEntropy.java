@@ -20,12 +20,12 @@ public class EnsureMinimumAuthenticationRequestIdEntropy extends AbstractEnsureM
 	@Override
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response")
 	public Environment evaluate(Environment env) {
-		String accessToken = env.getString("backchannel_authentication_endpoint_response", "auth_req_id");
+		String authRequestId = env.getString("backchannel_authentication_endpoint_response", "auth_req_id");
 
-		if (Strings.isNullOrEmpty(accessToken)) {
-			throw error("Can't find auth_req_id");
+		if (Strings.isNullOrEmpty(authRequestId)) {
+			throw error("auth_req_id was not present in the backchannel authentication endpoint response.");
 		}
 
-		return ensureMinimumEntropy(env, accessToken, requiredEntropy);
+		return ensureMinimumEntropy(env, authRequestId, requiredEntropy);
 	}
 }

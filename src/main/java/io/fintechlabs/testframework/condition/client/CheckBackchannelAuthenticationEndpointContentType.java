@@ -17,13 +17,7 @@ public class CheckBackchannelAuthenticationEndpointContentType extends AbstractC
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
 
-		JsonObject responseHeaders = env.getObject("backchannel_authentication_endpoint_response_headers");
-
-		if (responseHeaders == null) {
-			throw error("Backchannel authentication endpoint response headers can not be null.");
-		}
-
-		String contentType = responseHeaders.getAsJsonPrimitive("content-type").getAsString();
+		String contentType = env.getString("backchannel_authentication_endpoint_response_headers", "content-type");
 		String mimeType = contentType.split(";")[0].trim();
 		String expected = "application/json";
 

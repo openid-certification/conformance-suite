@@ -27,12 +27,12 @@ public class ValidateAuthenticationRequestIdExpiresIn extends AbstractCondition 
 		}
 
 		int expiresIn = jExpiresIn.getAsJsonPrimitive().getAsInt();
-		if (expiresIn < 0) {
-			throw error("expires_in is less than zero");
+		if (expiresIn <= 0) {
+			throw error("expires_in is less than or equal zero");
 		}
 
 		if (expiresIn > maximumExpiresIn) {
-			throw error("expires_in is more than expected.", args("expected", maximumExpiresIn, "actual", expiresIn));
+			throw error("expires_in is more than 1 year in the future, which is permitted by the specification but seems unreasonable.", args("expected", maximumExpiresIn, "actual", expiresIn));
 		} else {
 			logSuccess("expires_in passed all validation checks", args("expires_in", expiresIn));
 		}

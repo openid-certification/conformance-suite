@@ -28,20 +28,20 @@ public class ValidateAuthenticationRequestId extends AbstractCondition {
 
 		JsonElement authReqIdElement = backchannelResponse.get("auth_req_id");
 		if (authReqIdElement == null) {
-			throw error("Backchannel Authentication Endpoint ID did not return a JSON object");
+			throw error("auth_req_id in backchannel authentication endpoint can not be null.");
 		}
 
 		String authReqId = authReqIdElement.getAsString();
 		if (Strings.isNullOrEmpty(authReqId)) {
-			throw error("Authentication request ID in backchannel authentication endpoint can not be empty.");
+			throw error("auth_req_id in backchannel authentication endpoint can not be empty.");
 		}
 
 		Matcher matcher = Pattern.compile("[A-Za-z0-9\\-_\\.]+").matcher(authReqId);
 		if (!matcher.matches()) {
-			throw error("Authentication Endpoint ID is not same format", args("auth_req_id", authReqId));
+			throw error("auth_req_id contains characters other than A-Z, a-z, 0-9, '_', '-' and '.'.", args("auth_req_id", authReqId));
 		}
 
-		logSuccess("Authentication request ID passed all validation checks");
+		logSuccess("auth_req_id passed all validation checks");
 
 		return env;
 	}
