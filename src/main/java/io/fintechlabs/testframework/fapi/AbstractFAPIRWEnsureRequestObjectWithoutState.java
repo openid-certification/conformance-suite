@@ -35,7 +35,7 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
-public abstract class AbstractFAPIRWEnsureRequestObjectWithoutStateFails extends AbstractFAPIRWServerTestModule {
+public abstract class AbstractFAPIRWEnsureRequestObjectWithoutState extends AbstractFAPIRWServerTestModule {
 
 	@Override
 	protected void performAuthorizationFlow() {

@@ -18,7 +18,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-ensure-client-id-in-token-endpoint-with-mtls",
 		"fapi-rw-ensure-request-object-without-exp-fails-with-mtls",
 		"fapi-rw-ensure-request-object-without-scope-fails-with-mtls",
-		"fapi-rw-ensure-request-object-without-state-fails-with-mtls",
+		"fapi-rw-ensure-request-object-without-state-with-mtls",
 		"fapi-rw-ensure-request-object-without-nonce-fails-with-mtls",
 		"fapi-rw-ensure-request-object-without-redirect-uri-fails-with-mtls",
 		"fapi-rw-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
