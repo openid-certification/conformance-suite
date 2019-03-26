@@ -4,87 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddHintToAuthorizationEndpointRequestResponse;
-import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequestResponse;
-import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
-import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
-import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
-import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
-import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
-import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
-import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointCacheHeaders;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus200;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpointUri;
-import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
-import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
-import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdLength;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
-import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
-import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
-import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
-import io.fintechlabs.testframework.condition.client.ExtractCHash;
-import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
-import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
-import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
-import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
-import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
-import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
-import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.ValidateAtHash;
-import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestId;
-import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdExpiresIn;
-import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdInterval;
-import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.condition.client.ValidateIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaims;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
+import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -375,10 +295,9 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response is pending or slow_down");
 
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
-
-		// FIXME: RFC6749-5.2 error must not include characters outside %x20-21 / %x23-5B / %x5D-7E
-		// FIXME: RFC6749-5.2 error_description most not include characters outside %x20-21 / %x23-5B / %x5D-7E.
-		// FIXME: RFC6749-5.2 error_uri most not include characters outside %x21 / %x23-5B / %x5D-7E.
+		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
+		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
+		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
 
 		// FIXME: CIBA-check specifically that error response is slow_down or authorization_pending
 		eventLog.endBlock();
@@ -512,13 +431,13 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 			// Check access_token still works
 			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 
-			// FIXME: change this to CallTokenEndpointAndReturnFullResponse, add extract checks to match 'expecting error'
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 			callAndContinueOnFailure(CallTokenEndpointExpectingError.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-13");
-			// FIXME callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
-			// FIXME: RFC6749-5.2 error must not include characters outside %x20-21 / %x23-5B / %x5D-7E
-			// FIXME: RFC6749-5.2 error_description most not include characters outside %x20-21 / %x23-5B / %x5D-7E.
-			// FIXME: RFC6749-5.2 error_uri most not include characters outside %x21 / %x23-5B / %x5D-7E.
-			// FIXME: CIBA-11 check error is invalid_grant
+			callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
+			callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
+			callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
+			callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
+			callAndStopOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class);
 
 			// FIXME: is this a valid test for CIBA?
 			// The AS 'SHOULD' have revoked the access token; try it again".
