@@ -1,6 +1,5 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.as.AddInvalidAtHashValueToIdToken;
 import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.EnsureClientAssertionTypeIsJwt;
 import io.fintechlabs.testframework.condition.as.ExtractClientAssertion;
@@ -9,9 +8,9 @@ import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-athash",
-	displayName = "FAPI-OB: client test - invalid at_hash in id_token from authorization_endpoint should be rejected (code id_token with MATLS)",
-	profile = "FAPI-OB",
+	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls",
+	displayName = "FAPI-RW: client test (code id_token with private_key_jwt and MATLS)",
+	profile = "FAPI-RW",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -22,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidAtHash extends AbstractFAPIOBClientTestCodeIdToken {
+public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLS extends AbstractFAPIRWClientTestCodeIdToken {
 
 	@Override
 	protected void addTokenEndpointAuthMethodSupported() {
@@ -45,8 +44,7 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidAtHash e
 
 	@Override
 	protected void addCustomValuesToIdToken(){
-
-		callAndStopOnFailure(AddInvalidAtHashValueToIdToken.class, "OIDCC-3.3.2.10");
+		//Do nothing
 	}
 
 }

@@ -10,12 +10,11 @@ import os
 import re
 import sys
 import time
+import subprocess
 
 import requests
 
 from conformance import Conformance
-
-import sys
 
 # Wrapper that adds timestamps to the start of our output
 #
@@ -60,6 +59,19 @@ def run_test_plan(test_plan, config_file):
             test_ids[module] = module_id
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
+
+            state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+
+            if re.match(r'(fapi-rw-client-.*)', module):
+                os.putenv('CLIENTTESTMODE', 'fapi-rw')
+                if state == "WAITING":
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+
+            if re.match(r'(fapi-ob-client-.*)', module):
+                print("\nopenbanking-test-mode")
+                os.putenv('CLIENTTESTMODE', 'fapi-ob')
+                if state == "WAITING":
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
             conformance.wait_for_state(module_id, ["FINISHED"])
 
@@ -230,6 +242,7 @@ if __name__ == '__main__':
         token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
         client_id = os.environ['CONFORMANCE_CLIENT_ID']
         client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
+        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
     else:
         # local development settings
         api_url_base = 'https://localhost:8443/'
@@ -237,6 +250,12 @@ if __name__ == '__main__':
         client_id = 'oauth-client-1'
         client_secret = 'oauth-client-secret-1'
         dev_mode = True
+
+        os.environ["CONFORMANCE_SERVER"] = api_url_base
+        os.environ['CONFORMANCE_TOKEN_ENDPOINT'] = token_endpoint
+        os.environ['CONFORMANCE_CLIENT_ID'] = client_id
+        os.environ['CONFORMANCE_CLIENT_SECRET'] = client_secret
+        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
 
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation
@@ -314,23 +333,12 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if re.match(r'fapi-ob-client-.*', m):
-            # client tests are run seperately, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/351
-            untested_test_modules.remove(m)
-            continue
-
         if all_test_modules[m]['profile'] in ['FAPI-CIBA']:
             if re.match(r'.*-ping-.*', m):
                 # ping tests are pending, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/389
                 print("Ignoring untested module: "+m)
                 untested_test_modules.remove(m)
                 continue
-
-        if re.match(r'ob-deprecated-.*code-with-mtls', m):
-            # we don't have a test environment that supports oauth-mtls and the code
-            # response type
-            untested_test_modules.remove(m)
-            continue
 
     if show_untested and len(untested_test_modules) > 0:
         print(failure("** Exiting with failure - not all available modules were tested:"))
