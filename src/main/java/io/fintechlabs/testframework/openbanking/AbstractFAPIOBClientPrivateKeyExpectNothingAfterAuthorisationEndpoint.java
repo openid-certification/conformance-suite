@@ -48,4 +48,6 @@ public abstract class AbstractFAPIOBClientPrivateKeyExpectNothingAfterAuthorisat
 		return returnValue;
 	}
 
+	protected abstract Object authorizationCodeGrantType(String requestId);
+
 }

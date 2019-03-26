@@ -25,6 +25,7 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidSignatur
 		//Do Nothing
 	}
 
+	@Override
 	protected void addCustomSignatureOfIdToken(){
 
 		callAndStopOnFailure(SignIdTokenInvalid.class, "OIDCC-3.1.3.7.6");
