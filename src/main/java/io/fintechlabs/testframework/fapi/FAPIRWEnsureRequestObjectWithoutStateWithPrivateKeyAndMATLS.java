@@ -7,9 +7,9 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-request-object-without-state-fails-with-private-key-and-matls",
-	displayName = "FAPI-RW: ensure request object without state fails (private key authentication and MATLS)",
-	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-ensure-request-object-without-state-with-private-key-and-matls",
+	displayName = "FAPI-RW: ensure request object without state (private key authentication and MATLS)",
+	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded), or must successfully authenticate and does not return state and does not return s_hash.",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,7 +29,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWEnsureRequestObjectWithoutStateFailsWithPrivateKeyAndMATLS extends AbstractFAPIRWEnsureRequestObjectWithoutStateFails {
+public class FAPIRWEnsureRequestObjectWithoutStateWithPrivateKeyAndMATLS extends AbstractFAPIRWEnsureRequestObjectWithoutState {
 
 	@Override
 	protected void createAuthorizationCodeRequest() {

@@ -24,7 +24,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ob-ensure-server-handles-non-matching-intent-id-code-id-token-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-without-exp-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-without-scope-fails-with-private-key-and-matls",
-		"fapi-ob-ensure-request-object-without-state-fails-with-private-key-and-matls",
+		"fapi-ob-ensure-request-object-without-state-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-without-nonce-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-without-redirect-uri-fails-with-private-key-and-matls",
 		"fapi-ob-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-matls",
