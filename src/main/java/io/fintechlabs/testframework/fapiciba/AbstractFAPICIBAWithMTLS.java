@@ -275,10 +275,10 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 	protected void performProfileAuthorizationEndpointSetup() {
 		// Not sure there's a defined way to do these two in CIBA
-//	FIXME	callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		if ( whichClient == 2) {
-//	FIXME		callAndStopOnFailure(AddAcrScaClaimToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(AddAcrScaClaimToAuthorizationEndpointRequest.class);
 		}
 
 	}
@@ -299,7 +299,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
 
-		// FIXME: CIBA-check specifically that error response is slow_down or authorization_pending
+		callAndStopOnFailure(EnsureErrorTokenEndpointSlowdownOrAuthorizationPending.class);
+
 		eventLog.endBlock();
 	}
 
@@ -340,7 +341,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
 
 		// FIXME: check against id_token requirements in CIBA & FAPI-CIBA spec - e.g. at/rt hash + auth_req mandatory in push response
-		// FIXME: should we validate there ISN'T a c_hash  and s_hash?
+		callAndContinueOnFailure(ValidateTokenResponseNotIncludeCHashAndSHash.class, Condition.ConditionResult.WARNING);
+
 		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
