@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateTokenResponseNotIncludeCHashAndSHash_UnitTest {
+public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,12 +22,12 @@ public class ValidateTokenResponseNotIncludeCHashAndSHash_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateTokenResponseNotIncludeCHashAndSHash cond;
+	private ValidateIdTokenNotIncludeCHashAndSHash cond;
 
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateTokenResponseNotIncludeCHashAndSHash("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new ValidateIdTokenNotIncludeCHashAndSHash("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 	}
 

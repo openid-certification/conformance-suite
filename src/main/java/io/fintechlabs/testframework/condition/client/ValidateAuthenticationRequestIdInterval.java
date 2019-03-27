@@ -7,7 +7,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateAuthenticationRequestIdInterval extends AbstractCondition {
-	private final double maximumInterval = 6 * 60 * 60; // 1 year as 30758400 seconds
+	private final double maximumInterval = 6 * 60 * 60; // 6 hours as 21600 seconds
 
 	public ValidateAuthenticationRequestIdInterval(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);

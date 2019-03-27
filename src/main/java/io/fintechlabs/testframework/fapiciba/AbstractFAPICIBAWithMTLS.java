@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.*;
@@ -226,9 +225,13 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		eventLog.endBlock();
 
 		String tokenEndpointError = env.getString("token_endpoint_response", "error");
+		// slow_down: the interval MUST be increased by at least 5 seconds for this and all subsequent requests
+		// delaySeconds is as interval
 		if (!Strings.isNullOrEmpty(tokenEndpointError) && tokenEndpointError.equals("slow_down")) {
+			delaySeconds = delaySeconds + 5;
+
 			try {
-				Thread.sleep(5 * 1000L);
+				Thread.sleep(delaySeconds * 1000L);
 			} catch (InterruptedException e) {
 				throw new TestFailureException(getId(), "Thread.sleep threw exception: " + e.getMessage());
 			}
@@ -275,10 +278,10 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 	protected void performProfileAuthorizationEndpointSetup() {
 		// Not sure there's a defined way to do these two in CIBA
-		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+//	FIXME	callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		if ( whichClient == 2) {
-			callAndStopOnFailure(AddAcrScaClaimToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(AddAcrValuesScaToAuthorizationEndpointRequest.class);
 		}
 
 	}
@@ -341,7 +344,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
 
 		// FIXME: check against id_token requirements in CIBA & FAPI-CIBA spec - e.g. at/rt hash + auth_req mandatory in push response
-		callAndContinueOnFailure(ValidateTokenResponseNotIncludeCHashAndSHash.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ValidateIdTokenNotIncludeCHashAndSHash.class, Condition.ConditionResult.WARNING);
 
 		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
 

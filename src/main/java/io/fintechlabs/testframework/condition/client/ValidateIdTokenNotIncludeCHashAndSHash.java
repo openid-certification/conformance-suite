@@ -7,9 +7,9 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class ValidateTokenResponseNotIncludeCHashAndSHash extends AbstractCondition {
+public class ValidateIdTokenNotIncludeCHashAndSHash extends AbstractCondition {
 
-	public ValidateTokenResponseNotIncludeCHashAndSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public ValidateIdTokenNotIncludeCHashAndSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -29,7 +29,7 @@ public class ValidateTokenResponseNotIncludeCHashAndSHash extends AbstractCondit
 			throw error("claims contains 'c_hash' or 's_hash'", args("claims", claims));
 		}
 
-		logSuccess("id_token.claims not contains 'c_hash' or 's_hash'", args("claims", claims));
+		logSuccess("id_token claims correctly does not contain 'c_hash' and 's_hash'", args("claims", claims));
 
 		return env;
 	}
