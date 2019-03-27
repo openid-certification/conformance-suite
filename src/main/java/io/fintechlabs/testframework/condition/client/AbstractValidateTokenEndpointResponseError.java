@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractValidateTokenEndpointResponseError extends AbstractCondition {
 
+	protected static final String ERROR_FIELD_PATTERN_VALID = "[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+";
+
 	public AbstractValidateTokenEndpointResponseError(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
@@ -26,13 +28,14 @@ public abstract class AbstractValidateTokenEndpointResponseError extends Abstrac
 	protected abstract void validateFieldOfResponseError(Environment env);
 
 	/**
-	 * Validate string which has value MUST NOT include characters outside the set %x20-21 / %x23-5B / %x5D-7E.
+	 * Validate string which has value match with the pattern
 	 *
 	 * @param str
+	 * @param pattern
 	 * @return
 	 */
-	protected boolean isValidFieldFormat(String str) {
-		Pattern validPattern = Pattern.compile("[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+");
+	protected boolean isValidFieldFormat(String str, String pattern) {
+		Pattern validPattern = Pattern.compile(pattern);
 		if (validPattern.matcher(str).matches()) {
 			return true;
 		}

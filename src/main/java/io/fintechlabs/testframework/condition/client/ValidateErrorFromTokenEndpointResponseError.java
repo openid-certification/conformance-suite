@@ -14,10 +14,10 @@ public class ValidateErrorFromTokenEndpointResponseError extends AbstractValidat
 	protected void validateFieldOfResponseError(Environment env) {
 		String error = env.getString("token_endpoint_response", "error");
 		if (Strings.isNullOrEmpty(error)) {
-			throw error("Expected 'error' field not null or empty");
+			throw error("'error' field must not null or empty");
 		}
-		if (!isValidFieldFormat(error)) {
-			throw error("'error' field has unexpected value");
+		if (!isValidFieldFormat(error, ERROR_FIELD_PATTERN_VALID)) {
+			throw error("'error' field MUST NOT include characters outside the set %x20-21 / %x23-5B / %x5D-7E", args("error", error));
 		}
 		logSuccess("Token endpoint response error returned expected 'error' field", args("error", error));
 	}

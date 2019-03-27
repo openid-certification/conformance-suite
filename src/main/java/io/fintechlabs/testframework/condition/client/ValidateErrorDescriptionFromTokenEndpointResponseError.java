@@ -13,8 +13,8 @@ public class ValidateErrorDescriptionFromTokenEndpointResponseError extends Abst
 	@Override
 	protected void validateFieldOfResponseError(Environment env) {
 		String errorDescription = env.getString("token_endpoint_response", "error_description");
-		if (!Strings.isNullOrEmpty(errorDescription) && !isValidFieldFormat(errorDescription)) {
-			throw error("'error_description' field has unexpected value");
+		if (!Strings.isNullOrEmpty(errorDescription) && !isValidFieldFormat(errorDescription, ERROR_FIELD_PATTERN_VALID)) {
+			throw error("'error_description' field MUST NOT include characters outside the set %x20-21 / %x23-5B / %x5D-7E", args("error_description", errorDescription));
 		}
 		logSuccess("Token endpoint response error returned expected 'error_description' field", args("error_description", errorDescription));
 	}
