@@ -10,6 +10,8 @@ ENTRYPOINT java \
   -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
   -D"oidc.google.clientid=${OIDC_GOOGLE_CLIENTID}" \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
+  -D"oidc.microsoft.clientid=${OIDC_MICROSOFT_CLIENTID}" \
+  -D"oidc.microsoft.secret=${OIDC_MICROSOFT_SECRET}" \
   -D"oauth.introspection_url=http://${MICROAUTH_HOST}:9001/introspect" \
   $JAVA_EXTRA_ARGS \
  -jar /server/fapi-test-suite.jar

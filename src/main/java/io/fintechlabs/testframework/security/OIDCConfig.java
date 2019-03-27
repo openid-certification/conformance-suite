@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.security;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.mitre.oauth2.model.ClientDetailsEntity;
@@ -69,10 +70,29 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.admin.issuer}")
 	private String admin_iss;
 
+	//Microsoft client configuration
+	@Value("${oidc.microsoft.clientid}")
+	private String microsoftClientId;
+	@Value("${oidc.microsoft.secret}")
+	private String microsoftClientSecret;
+	@Value("${oidc.microsoft.iss}")
+	private String microsoftIss;
+	@Value("${oidc.microsoft.iss_with_tenantid_placeholder}")
+	private String microsoftIssWithTenantIdPlaceholder;
+
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(googleClientId);
 		rc.setClientSecret(googleClientSecret);
+		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
+		rc.setRedirectUris(ImmutableSet.of(redirectURI));
+		return rc;
+	}
+
+	private RegisteredClient microsoftClientConfig() {
+		RegisteredClient rc = new RegisteredClient();
+		rc.setClientId(microsoftClientId);
+		rc.setClientSecret(microsoftClientSecret);
 		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
 		return rc;
@@ -91,7 +111,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	// Bean to set up the server configuration service. We're only doing dynamic setup.
 	@Bean
 	public DynamicServerConfigurationService serverConfigurationService() {
-		return new DynamicServerConfigurationService();
+		return new MSCompatibleDynamicServerConfigurationService(this.microsoftIss, this.microsoftIssWithTenantIdPlaceholder);
 	}
 
 	// Service to store/retrieve persisted information for dynamically registered clients.
@@ -109,7 +129,11 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
 
 		// set up the static clients. (i.e. Google)
-		clientConfigService.setClients(ImmutableMap.of(googleIss, googleClientConfig()));
+		clientConfigService.setClients(ImmutableMap.of(
+			googleIss, googleClientConfig(),
+			microsoftIss, microsoftClientConfig(),
+			microsoftIssWithTenantIdPlaceholder, microsoftClientConfig()
+		));
 
 		// Setup template for dynamic registration
 		clientConfigService.setTemplate(getClientTemplate());
@@ -139,13 +163,14 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
-		OIDCAuthenticationFilter oidcaf = new OIDCAuthenticationFilter();
+		MSCompatibleOIDCAuthenticationFilter oidcaf = new MSCompatibleOIDCAuthenticationFilter();
 		oidcaf.setIssuerService(issuerService());
 		oidcaf.setServerConfigurationService(serverConfigurationService());
 		oidcaf.setClientConfigurationService(clientConfigurationService());
 		oidcaf.setAuthRequestOptionsService(new StaticAuthRequestOptionsService());
 		oidcaf.setAuthRequestUrlBuilder(authRequestUrlBuilder());
 		oidcaf.setAuthenticationManager(authenticationManager());
+		oidcaf.setClientsWithNoIssuerCheck(ImmutableSet.of(microsoftClientId));
 		return oidcaf;
 	}
 
@@ -156,7 +181,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
-		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
+		MSCompatibleOIDCAuthenticationProvider authenticationProvider = new MSCompatibleOIDCAuthenticationProvider();
 
 		// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
 		//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
@@ -204,7 +229,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
-			http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);
+			http.addFilterBefore(dummyUserFilter(), MSCompatibleOIDCAuthenticationFilter.class);
 		}
 	}
 

@@ -39,6 +39,16 @@ spec:
             secretKeyRef:
               name: oidc-google-credentials
               key: secret
+        - name: OIDC_MICROSOFT_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: oidc-microsoft-credentials
+              key: clientid
+        - name: OIDC_MICROSOFT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oidc-microsoft-credentials
+              key: secret
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
