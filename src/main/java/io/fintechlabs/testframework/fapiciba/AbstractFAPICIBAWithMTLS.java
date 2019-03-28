@@ -343,14 +343,20 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
 
-		// FIXME: check against id_token requirements in CIBA & FAPI-CIBA spec - e.g. at/rt hash + auth_req mandatory in push response
+		callAndStopOnFailure(FAPICIBAValidateIdTokenAuthRequestIdClaims.class, "CIBA-10.3.1");
+
 		callAndContinueOnFailure(ValidateIdTokenNotIncludeCHashAndSHash.class, Condition.ConditionResult.WARNING);
 
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
+		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
+
+		callAndContinueOnFailure(ExtractRtHash.class, Condition.ConditionResult.INFO);
 
 		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
 		 * determined by the Extract*Hash condition
 		 */
+		skipIfMissing(new String[] { "rt_hash" }, null, Condition.ConditionResult.INFO,
+			FAPICIBAValidateRtHash.class, Condition.ConditionResult.FAILURE, "CIBA-10.3.1", "OIDCC-3.3.2.11");
+
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
@@ -444,7 +450,6 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 			callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
 			callAndStopOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, "CIBA-11");
 
-			// FIXME: is this a valid test for CIBA?
 			// The AS 'SHOULD' have revoked the access token; try it again".
 			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
 			eventLog.endBlock();
@@ -488,8 +493,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 //		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 
 		if ( whichClient == 2 ) {
-			// FIXME: need to make sure this works if we find a way to request acr
-			callAndContinueOnFailure(ValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
+			callAndContinueOnFailure(FAPICIBAValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
 		}
 
 	}
