@@ -442,7 +442,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 			callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
 			callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
 			callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
-			callAndStopOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class);
+			callAndStopOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, "CIBA-11");
 
 			// FIXME: is this a valid test for CIBA?
 			// The AS 'SHOULD' have revoked the access token; try it again".
