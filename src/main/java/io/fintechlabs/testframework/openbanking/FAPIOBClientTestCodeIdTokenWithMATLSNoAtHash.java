@@ -39,7 +39,7 @@ public class FAPIOBClientTestCodeIdTokenWithMATLSNoAtHash extends AbstractFAPIOB
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(RemoveAtHashFromIdToken.class, "OIDCC-3.2.2.9");
+		callAndStopOnFailure(RemoveAtHashFromIdToken.class, "OIDCC-3.3.2.9");
 	}
 
 }

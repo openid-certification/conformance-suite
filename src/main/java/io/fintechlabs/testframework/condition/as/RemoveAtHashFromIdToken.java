@@ -24,7 +24,7 @@ public class RemoveAtHashFromIdToken extends AbstractCondition {
 
 		env.putObject("id_token_claims", claims);
 
-		logSuccess("Added null at_hash value to ID token claims", args("id_token_claims", claims));
+		logSuccess("Removed at_hash value from ID token claims", args("id_token_claims", claims));
 
 		return env;
 
