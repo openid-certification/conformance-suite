@@ -25,12 +25,12 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/1.3.7/chroma.min.js" integrity="sha256-5lUH8axVgWCBbZPof5CbN9eSWye/cPLd4G1feQ6l6VU=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.5.2/randomColor.js" integrity="sha256-MRXUjKPZRRi+LHqT1KY/uoxyFF2JLOp2b329vX4p+2Y=" crossorigin="anonymous"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/run_prettify.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.js" integrity="sha256-9I2FxupwHkF6hXzZKS3hLCwP95XFukX3EnxRzGqXzz0=" crossorigin="anonymous"></script>
 
 <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -163,8 +163,8 @@
 	                        $('#logDetail .logContent').append(el);
 
 	                        // see if we've got any "extra" bits that we want to display in a block
-	                        var more = _.pick(item, function(value, key, object) {
-	                            return !_.contains(FAPI_UI.visibleFields, key) && !key.startsWith("_");
+	                        var more = _.pickBy(item, function(value, key) {
+	                            return !_.includes(FAPI_UI.visibleFields, key) && !key.startsWith("_");
 	                        });
 
 	                        if (!_.isEmpty(more)) {
@@ -372,7 +372,7 @@
 	                            type: 'GET',
 	                            success: function(planData) {
 
-	                                var modules = _.pluck(planData.modules, 'testModule');
+	                                var modules = _.map(planData.modules, 'testModule');
 	                                var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
 
 	                                if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {

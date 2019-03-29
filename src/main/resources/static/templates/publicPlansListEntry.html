@@ -3,7 +3,7 @@
                         <td><%- plan.planName %></td>
                         <td><%- plan.description %></td>
                         <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>
-                        <td data-search="<%- _.pluck(plan.modules, 'testModule') %>"><% _.each(plan.modules, function(module) { %>
+                        <td data-search="<%- _.map(plan.modules, 'testModule') %>"><% _.each(plan.modules, function(module) { %>
 
                         	<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="<%- module.testModule %>" data-instance="<%- module.instances ? module.instances[0] : ''%>"> </span>
 
