@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModuleNames = {
 		"fapi-ob-client-test-code-id-token-with-matls",
 		"fapi-ob-client-test-code-id-token-with-matls-missing-athash",
+		"fapi-ob-client-test-code-id-token-with-matls-invalid-athash",
 		"fapi-ob-client-test-code-id-token-with-matls-invalid-shash",
 		"fapi-ob-client-test-code-id-token-with-matls-invalid-chash",
 		"fapi-ob-client-test-code-id-token-with-matls-invalid-nonce",
