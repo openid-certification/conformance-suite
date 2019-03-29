@@ -53,7 +53,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	private Set<String> scopes = ImmutableSet.of("openid", "email", "address", "profile", "phone");
 	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
-	// Specifcs for setting up a Static Client for Google
+	// Specifics for setting up a Static Client for Google
 	@Value("${oidc.google.clientid}")
 	private String googleClientId;
 
@@ -62,6 +62,16 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Value("${oidc.google.iss:https://accounts.google.com}")
 	private String googleIss;
+
+	// Static Client for gitlab
+	@Value("${oidc.gitlab.clientid}")
+	private String gitlabClientId;
+
+	@Value("${oidc.gitlab.secret}")
+	private String gitlabClientSecret;
+
+	@Value("${oidc.gitlab.iss:https://gitlab.com}")
+	private String gitlabIss;
 
 	// Config for the admin role
 	@Value("${oidc.admin.domains}")
@@ -73,6 +83,15 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(googleClientId);
 		rc.setClientSecret(googleClientSecret);
+		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
+		rc.setRedirectUris(ImmutableSet.of(redirectURI));
+		return rc;
+	}
+
+	private RegisteredClient gitlabClientConfig() {
+		RegisteredClient rc = new RegisteredClient();
+		rc.setClientId(gitlabClientId);
+		rc.setClientSecret(gitlabClientSecret);
 		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
 		return rc;
@@ -109,7 +128,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
 
 		// set up the static clients. (i.e. Google)
-		clientConfigService.setClients(ImmutableMap.of(googleIss, googleClientConfig()));
+		clientConfigService.setClients(ImmutableMap.of(googleIss, googleClientConfig(), gitlabIss, gitlabClientConfig()));
 
 		// Setup template for dynamic registration
 		clientConfigService.setTemplate(getClientTemplate());

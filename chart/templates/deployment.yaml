@@ -39,6 +39,16 @@ spec:
             secretKeyRef:
               name: oidc-google-credentials
               key: secret
+        - name: OIDC_GITLAB_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: oidc-gitlab-credentials
+              key: clientid
+        - name: OIDC_GITLAB_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oidc-gitlab-credentials
+              key: secret
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
