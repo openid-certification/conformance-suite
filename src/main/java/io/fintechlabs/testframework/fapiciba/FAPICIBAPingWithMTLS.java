@@ -27,6 +27,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
+		"client.hint_type",
+		"client.hint_value",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
