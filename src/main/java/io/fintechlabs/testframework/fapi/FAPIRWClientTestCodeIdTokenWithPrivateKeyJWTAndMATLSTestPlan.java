@@ -17,7 +17,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-secondary-aud",
 		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-signature",
 		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-null-alg",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-alternate-alg"
+		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-alternate-alg",
+		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-missing-exp",
+		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-expired-exp"
 	}
 )
 public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSTestPlan implements TestPlan {
