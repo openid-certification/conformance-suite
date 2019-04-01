@@ -9,13 +9,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- *
- * @author ddrysdale
- *
- */
-
-public class ValidateJsonUri extends AbstractCondition {
+public abstract class ValidateJsonUri extends AbstractCondition {
 
 	private static final String requiredProtocol = "https";
 	private static final String errorMessageNotJsonPrimitive = "Specified value is not a Json primative";
@@ -30,17 +24,10 @@ public class ValidateJsonUri extends AbstractCondition {
 	}
 
 	/***
-	 *
-	 * @param env
-	 * @param environmentVariable
-	 * @return JsonElement
-	 * @throws error
-	 *
 	 * Get and cache the "server" environment JsonElement
-	 *
 	 */
 
-	private JsonElement getServerValueOrDie(Environment env, String environmentVariable) {
+	protected JsonElement getServerValueOrDie(Environment env, String environmentVariable) {
 
 		if ( ServerValue != null) {
 			return ServerValue;
@@ -57,14 +44,9 @@ public class ValidateJsonUri extends AbstractCondition {
 	}
 
 	/***
-	 *
-	 * @param serverValue
-	 * @param environmentVariable
-	 * @return URL from the environment
-	 *
 	 * Get and cache the URL from the Environment variable.
 	 */
-	private URL extractURLOrDie(JsonElement serverValue, String environmentVariable) {
+	protected URL extractURLOrDie(JsonElement serverValue) {
 
 		if (extractedUrl != null) {
 			return extractedUrl;
@@ -83,12 +65,6 @@ public class ValidateJsonUri extends AbstractCondition {
 	}
 
 	/***
-	 *
-	 * @param env
-	 * @param environmentVariable
-	 * @throws error
-	 * @return A copy of the Environment
-	 *
 	 * Validates a specific environment variable URL's protocol
 	 */
 	public Environment validate(Environment env, String environmentVariable) {
@@ -96,7 +72,7 @@ public class ValidateJsonUri extends AbstractCondition {
 		final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariable;
 
 		JsonElement server = getServerValueOrDie(env, environmentVariable);
-		URL theURL = extractURLOrDie(server, environmentVariable);
+		URL theURL = extractURLOrDie(server);
 
 		if (!theURL.getProtocol().equals(requiredProtocol)) {
 			throw error(errorMessageNotRequiredProtocol, args("required", requiredProtocol, "actual", server));
@@ -105,39 +81,6 @@ public class ValidateJsonUri extends AbstractCondition {
 		logSuccess(environmentVariable, args("actual", server));
 
 		return env;
-	}
-
-	/***
-	 *
-	 * @param env
-	 * @param environmentVariable
-	 * @param requiredHostname
-	 * @throws error
-	 * @return A copy of the Environment
-	 *
-	 * Validates the host part of the requested URL. Then validates the protocol.
-	 *
-	 */
-	public Environment validateWithHost(Environment env, String environmentVariable, String requiredHostname) {
-
-		JsonElement server = getServerValueOrDie(env, environmentVariable);
-		URL theURL = extractURLOrDie(server, environmentVariable);
-
-		if (!theURL.getHost().equals(requiredHostname)) {
-			throw error("Hostname does not match the required one", args("expected", requiredHostname, "actual", theURL.getHost()));
-		} else {
-			logSuccess("Hostname is correct", args("required", requiredHostname, "actual", theURL.getHost()));
-		}
-
-		// Validate the base stuff.
-		return validate(env, environmentVariable);
-
-	}
-
-	@Override
-	public Environment evaluate(Environment env) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

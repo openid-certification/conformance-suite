@@ -11,6 +11,7 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsSupp
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointDiscoveryUrl;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
+import io.fintechlabs.testframework.condition.client.CheckJwksUri;
 import io.fintechlabs.testframework.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
@@ -72,7 +73,9 @@ public class FAPIOBDiscoveryEndpointVerification extends AbstractTestModule {
 			.dontStopOnFailure()
 			);
 
-		callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckJwksUri.class, ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, ConditionResult.WARNING);
 
 		fireTestFinished();
 

@@ -22,7 +22,7 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 	private final String environmentVariable = "server.discoveryUrl";
 
 
-	private final String errorMessageNotJsonPrimitive = "Specified value is not a Json primative";
+	private final String errorMessageNotJsonPrimitive = "Specified value is not a Json primitive";
 	private final String errorMessageInvalidURL = "Invalid URL. Unable to parse.";
 	private final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariable;
 
