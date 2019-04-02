@@ -27,8 +27,12 @@ public class AddHintToAuthorizationEndpointRequestResponse extends AbstractCondi
 		String hintValue = env.getString("config", "client.hint_value");
 		List<String> hintTypeList = ImmutableList.of("login_hint_token", "id_token_hint", "login_hint");
 
-		if (!hintTypeList.contains(hintType) || Strings.isNullOrEmpty(hintValue)) {
-			throw error("the hint_type is required 'login_hint_token', 'id_token_hint' or 'login_hint'");
+		if (!hintTypeList.contains(hintType)) {
+			throw error("the 'hint_type' provided in the configuration must be one of 'login_hint_token', 'id_token_hint' or 'login_hint'");
+		}
+
+		if (Strings.isNullOrEmpty(hintValue)) {
+			throw error("the 'hint_value' provided in the configuration must not empty");
 		}
 
 		authorizationEndpointRequest.addProperty(hintType, hintValue);

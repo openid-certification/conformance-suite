@@ -29,7 +29,7 @@ public class ValidateErrorUriFromTokenEndpointResponseError extends AbstractCond
 				throw error("'error_uri' field MUST NOT include characters outside the set %x21 / %x23-5B / %x5D-7E", args("error_uri", errorUri));
 			}
 		}
-		logSuccess("Token endpoint response error returned expected 'error_uri' field", args("error_uri", errorUri));
+		logSuccess("Token endpoint response error returned valid 'error_uri' field", args("error_uri", errorUri));
 		return env;
 	}
 

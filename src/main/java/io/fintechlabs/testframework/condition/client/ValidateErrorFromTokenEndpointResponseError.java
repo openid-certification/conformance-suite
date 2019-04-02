@@ -26,7 +26,7 @@ public class ValidateErrorFromTokenEndpointResponseError extends AbstractConditi
 		if (!isValidErrorFieldFormat(error)) {
 			throw error("'error' field MUST NOT include characters outside the set %x20-21 / %x23-5B / %x5D-7E", args("error", error));
 		}
-		logSuccess("Token endpoint response error returned expected 'error' field", args("error", error));
+		logSuccess("Token endpoint response error returned valid 'error' field", args("error", error));
 		return env;
 	}
 

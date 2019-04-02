@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 public class ValidateErrorDescriptionFromTokenEndpointResponseError extends AbstractCondition {
 
-	private static final String ERROR_DESCRITPTION_FIELD_PATTERN_VALID = "[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+";
+	private static final String ERROR_DESCRIPTION_FIELD_PATTERN_VALID = "[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+";
 
 	public ValidateErrorDescriptionFromTokenEndpointResponseError(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
@@ -23,12 +23,12 @@ public class ValidateErrorDescriptionFromTokenEndpointResponseError extends Abst
 		if (!Strings.isNullOrEmpty(errorDescription) && !isValidErrorDescriptionFieldFormat(errorDescription)) {
 			throw error("'error_description' field MUST NOT include characters outside the set %x20-21 / %x23-5B / %x5D-7E", args("error_description", errorDescription));
 		}
-		logSuccess("Token endpoint response error returned expected 'error_description' field", args("error_description", errorDescription));
+		logSuccess("Token endpoint response error returned valid 'error_description' field", args("error_description", errorDescription));
 		return env;
 	}
 
 	private boolean isValidErrorDescriptionFieldFormat(String str) {
-		Pattern validPattern = Pattern.compile(ERROR_DESCRITPTION_FIELD_PATTERN_VALID);
+		Pattern validPattern = Pattern.compile(ERROR_DESCRIPTION_FIELD_PATTERN_VALID);
 		if (validPattern.matcher(str).matches()) {
 			return true;
 		}
