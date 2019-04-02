@@ -21,7 +21,7 @@ public class CheckNotificationCallbackOnlyAuthReqId extends AbstractCondition {
 		JsonElement bodyCallback = env.getElementFromObject("notification_callback", "body_json");
 
 		if (bodyCallback == null || !bodyCallback.isJsonObject()) {
-			throw error("body_json in notification_callback must be json and not null");
+			throw error("body received in notification callback must be JSON");
 		}
 
 		JsonObject bodyJson = bodyCallback.getAsJsonObject();
@@ -29,12 +29,12 @@ public class CheckNotificationCallbackOnlyAuthReqId extends AbstractCondition {
 		int keySize = bodyJson.size();
 
 		if (keySize == 0) {
-			throw error("body_json in notification_callback was empty");
+			throw error("body received in notification callback was empty");
 		} else if (keySize > 1 || !bodyJson.keySet().contains(keyExpected)) {
-			throw error("body_json in notification_callback did not contain only auth_req_id", args("actual", bodyJson));
+			throw error("body received in notification callback did not contain only auth_req_id", args("actual", bodyJson));
 		}
 
-		logSuccess("body_json in notification_callback contained only auth_req_id", args("body", bodyCallback));
+		logSuccess("body received in notification callback contained only auth_req_id", args("body", bodyCallback));
 
 		return env;
 	}

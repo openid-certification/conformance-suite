@@ -21,28 +21,32 @@ public class VerifyBearerTokenHeaderCallback extends AbstractCondition {
 		JsonElement headersCallback = env.getElementFromObject("notification_callback", "headers");
 
 		if (headersCallback == null || !headersCallback.isJsonObject()) {
-			throw error("headers in notification_callback must be json and not null");
+			throw error("header in notification callback is missing or empty");
 		}
 
 		JsonObject headers = headersCallback.getAsJsonObject();
 		JsonElement authorizationElement = headers.get("authorization");
 
 		if (authorizationElement == null || !authorizationElement.isJsonPrimitive()) {
-			throw error("Authorization in headers notification_callback must be primitive and not null.");
+			throw error("'Authorization' header in notification callback must be primitive and not null.");
 		}
 
-		String authorizationExpected = String.format("bearer %s", env.getString("client_notification_token"));
+
 		String authorizationContent = authorizationElement.getAsString();
-
 		if (Strings.isNullOrEmpty(authorizationContent)) {
-			throw error("Authorization in headers notification_callback must be not null or empty");
+			throw error("'Authorization' header in notification callback is missing or empty");
 		}
 
-		if (!authorizationContent.equals(authorizationExpected)) {
-			throw error("Authorization in headers notification_callback did not meet expected.", args("expected", authorizationExpected, "actual", authorizationContent));
-		}
+		String[] authorizationContentElements = authorizationContent.split("( )+");
 
-		logSuccess("authorization in headers notification_callback contained client_notification_token.");
+		if (authorizationContentElements.length == 2
+			&& authorizationContentElements[0].equals("Bearer")
+			&& authorizationContentElements[1].equals(env.getString("client_notification_token"))) {
+			logSuccess("'Authorization' header in notification callback contained client_notification_token.");
+		} else {
+			String authorizationExpected = String.format("bearer %s", env.getString("client_notification_token"));
+			throw error("The value of the 'Authorization' header in the notification callback is not correct.", args("expected", authorizationExpected, "actual", authorizationContent));
+		}
 
 		return env;
 	}

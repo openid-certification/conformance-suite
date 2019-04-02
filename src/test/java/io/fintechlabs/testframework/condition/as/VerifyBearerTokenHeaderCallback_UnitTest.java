@@ -69,7 +69,16 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 	@Test
 	public void testEvaluate_caseGood() {
 		JsonObject o = new JsonObject();
-		o.add("headers", new JsonParser().parse("{\"authorization\": \"bearer 8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
+		o.add("headers", new JsonParser().parse("{\"authorization\": \"Bearer 8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
+		env.putObject("notification_callback", o);
+
+		cond.evaluate(env);
+	}
+
+	@Test
+	public void testEvaluate_caseGoodMultiSpaces() {
+		JsonObject o = new JsonObject();
+		o.add("headers", new JsonParser().parse("{\"authorization\": \"Bearer   8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
 		cond.evaluate(env);
@@ -78,7 +87,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseBad() {
 		JsonObject o = new JsonObject();
-		o.add("headers", new JsonParser().parse("{\"authorization\": \"bearer qw3lPzKZNTpgZ2IKYSNwn6Xct1pX9jdQ2dIBUpD4AiI\"}").getAsJsonObject());
+		o.add("headers", new JsonParser().parse("{\"authorization\": \"Bearer qw3lPzKZNTpgZ2IKYSNwn6Xct1pX9jdQ2dIBUpD4AiI\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
 		cond.evaluate(env);
