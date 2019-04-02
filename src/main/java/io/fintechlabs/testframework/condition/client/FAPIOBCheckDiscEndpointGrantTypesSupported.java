@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
+public class FAPIOBCheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 
 	private static final String environmentVariable = "grant_types_supported";
 
@@ -18,13 +18,10 @@ public class CheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
 	private static final String errorMessageNotEnough = "The server does not support enough of the required grant types.";
 
 
-	public CheckDiscEndpointGrantTypesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public FAPIOBCheckDiscEndpointGrantTypesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
