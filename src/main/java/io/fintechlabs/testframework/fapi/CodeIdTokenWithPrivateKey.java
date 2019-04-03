@@ -24,7 +24,6 @@ import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBea
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
@@ -66,6 +65,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -268,8 +268,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		skipIfMissing(new String[] { "callback_query_params" }, null, ConditionResult.INFO,
-				CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 

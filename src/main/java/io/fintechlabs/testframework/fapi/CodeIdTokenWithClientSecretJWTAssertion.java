@@ -65,6 +65,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticServerConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -270,6 +271,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
 
 		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
