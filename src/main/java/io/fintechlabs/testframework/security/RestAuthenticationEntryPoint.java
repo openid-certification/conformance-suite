@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
+import com.google.gson.JsonObject;
+
 /**
  * This class is to provide an alternate entry point into REST API request URLs.
  * If a request that is un-authenticated shows up rather than re-directing to the login page (as OIDC will do)
@@ -17,6 +19,12 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.setHeader("Content-Type", "application/json");
+		JsonObject obj = new JsonObject();
+		obj.addProperty("error", "Unauthorized");
+		obj.addProperty("message", authException.getMessage());
+		response.getOutputStream().print(obj.toString());
+		response.flushBuffer();
 	}
 }
