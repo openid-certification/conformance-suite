@@ -13,6 +13,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "FAPI-RW",
 	testModuleNames = {
 		"fapi-rw-code-id-token-with-mtls",
+		"fapi-rw-discovery-end-point-verification",
 		"fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
 		"fapi-rw-reject-code-flow-test",
 		"fapi-rw-ensure-client-id-in-token-endpoint-with-mtls",

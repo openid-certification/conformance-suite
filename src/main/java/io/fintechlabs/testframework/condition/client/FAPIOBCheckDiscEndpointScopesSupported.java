@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class CheckDiscEndpointScopesSupported extends ValidateJsonArray {
+public class FAPIOBCheckDiscEndpointScopesSupported extends ValidateJsonArray {
 
 	private static final String environmentVariable = "scopes_supported";
 
@@ -18,13 +18,10 @@ public class CheckDiscEndpointScopesSupported extends ValidateJsonArray {
 	private static final String errorMessageNotEnough = "The server does not support enough of the required scopes";
 
 
-	public CheckDiscEndpointScopesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public FAPIOBCheckDiscEndpointScopesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {

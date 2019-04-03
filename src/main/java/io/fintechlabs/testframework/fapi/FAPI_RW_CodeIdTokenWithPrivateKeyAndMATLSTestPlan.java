@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "FAPI-RW",
 	testModuleNames = {
 		"fapi-rw-code-id-token-with-private-key-and-matls",
+		"fapi-rw-discovery-end-point-verification",
 		"fapi-rw-ensure-client-id-in-token-endpoint-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-without-exp-fails-with-private-key-and-matls",
 		"fapi-rw-ensure-request-object-without-scope-fails-with-private-key-and-matls",
