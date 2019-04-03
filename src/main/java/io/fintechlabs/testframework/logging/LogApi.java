@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -179,6 +180,31 @@ public class LogApi {
 		};
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+	@GetMapping(value = "/public/api/log")
+	public ResponseEntity<Object> getAllPublicTests() {
+		@SuppressWarnings("unchecked")
+		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId");
+
+		Criteria criteria = new Criteria();
+		criteria.and("_id").in(testIds);
+		criteria.and("publish").in("summary", "everything");
+
+		Query query = new Query(criteria);
+		query.fields()
+			.include("_id")
+			.include("testId")
+			.include("testName")
+			.include("started")
+			.include("description")
+			.include("planId")
+			.include("status")
+			.include("result");
+
+		List<DBObject> results = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(query.getQueryObject()).toArray();
+
+		return new ResponseEntity<>(results, HttpStatus.OK);
 	}
 
 	/**

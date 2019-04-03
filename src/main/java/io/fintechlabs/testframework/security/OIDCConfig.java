@@ -204,7 +204,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/public/api/**", "/publicPlans.html")
+					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/public/api/**", "/publicLogs.html", "/publicPlans.html")
 					.permitAll()
 				.anyRequest()
 					.authenticated()

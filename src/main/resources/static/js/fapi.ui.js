@@ -127,6 +127,23 @@ var FAPI_UI = {
 
 		},
 
+		loadPublicLogListTemplates: function() {
+			return $.when(
+					$.get('templates/publicLogsListEntry.html', function(data) {
+						FAPI_UI.logTemplates.PUBLIC_LOG_LISTING = _.template(data);
+					}),
+
+					$.get('templates/publicLogsListHeader.html', function(data) {
+						FAPI_UI.logTemplates.PUBLIC_LOG_LISTING_HEADER = _.template(data);
+					}),
+
+					$.get('templates/owner.html', function(data) {
+						FAPI_UI.logTemplates.OWNER = _.template(data);
+					})
+			);
+
+		},
+
 		loadPlanTemplates: function() {
 			return $.when(
 					$.get('templates/userinfo.html', function(data) {

@@ -1,0 +1,13 @@
+                    <tr>
+                        <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><code class="text-muted"><%- test.testId %></code></td>
+                        <td><%- test.testName %></td>
+                        <td><%- test.description %></td>
+                        <td data-order="<%- test.started %>"><%- new Date(test.started).toLocaleString() %></td>
+                        <% if (test.planId) { %>
+                        <td data-order=<%- test.planId %>" data-search="<%- test.planId %>"><code class="text-muted"><%- test.planId %></code></td>
+                        <% } else { %>
+                        <td></td>
+                              <% } %>
+                        <td class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'testStatus-unknown' %>"><%- test.status %></td>
+                        <td class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'testResult-unknown' %>"><%- test.result %></td>
+                    </tr>
