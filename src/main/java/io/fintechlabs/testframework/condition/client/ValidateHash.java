@@ -90,7 +90,7 @@ public abstract class ValidateHash extends AbstractCondition {
 		return env;
 	}
 
-	private String getBaseStringBasedOnType(Environment env, String hashName) {
+	protected String getBaseStringBasedOnType(Environment env, String hashName) {
 
 		String baseString = null;
 

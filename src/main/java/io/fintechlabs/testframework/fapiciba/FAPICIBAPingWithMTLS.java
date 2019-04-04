@@ -3,6 +3,8 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
+import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
+import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
@@ -25,6 +27,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
+		"client.hint_type",
+		"client.hint_value",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
@@ -63,10 +67,11 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 
 		env.unmapKey("client_request");
 
-		// FIXME: CIBA-10.2 verify bearer token in incoming request is client_notification_token
+		callAndStopOnFailure(VerifyBearerTokenHeaderCallback.class, "CIBA-10.2");
+
 		callAndStopOnFailure(CheckAuthReqIdInCallback.class, ConditionResult.FAILURE, "CIBA-10.2");
 
-		// FIXME: CIBA-10.2 verify callback doesn't contain anything other than auth_req_id
+		callAndStopOnFailure(CheckNotificationCallbackOnlyAuthReqId.class, "CIBA-10.2");
 		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");

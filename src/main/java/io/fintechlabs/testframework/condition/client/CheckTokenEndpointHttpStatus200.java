@@ -12,9 +12,12 @@ public class CheckTokenEndpointHttpStatus200 extends AbstractCondition {
 	}
 
 	@Override
-//	@PreEnvironment(strings = "token_endpoint_response_http_status") - FIXME can't do this for an integer
 	public Environment evaluate(Environment env) {
-		int httpStatus = env.getInteger("token_endpoint_response_http_status");
+		Integer httpStatus = env.getInteger("token_endpoint_response_http_status");
+
+		if (httpStatus == null) {
+			throw error("Http status can not be null.");
+		}
 
 		if (httpStatus != 200) {
 			throw error("Invalid http status "+httpStatus);
