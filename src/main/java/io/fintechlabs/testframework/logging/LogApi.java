@@ -242,7 +242,7 @@ public class LogApi {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
 		criteria.and("publish").is("everything");
-		
+
 		if (mongoTemplate.getCollection(DBTestInfoService.COLLECTION).count(new Query(criteria).getQueryObject()) > 0)
 		{
 			return getTestResults(id, since, true);
