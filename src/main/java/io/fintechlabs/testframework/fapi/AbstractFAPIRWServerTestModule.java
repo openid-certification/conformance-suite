@@ -18,7 +18,6 @@ import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBea
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForAuthorizationEndpointErrorInQueryForHybridFLow;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
@@ -64,6 +63,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
@@ -273,11 +273,6 @@ public abstract class AbstractFAPIRWServerTestModule extends AbstractTestModule 
 	}
 
 	protected void onAuthorizationCallbackResponse() {
-
-		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-
-		skipIfMissing(new String[] { "callback_query_params" }, null, Condition.ConditionResult.INFO,
-			CheckForAuthorizationEndpointErrorInQueryForHybridFLow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
 		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
 
@@ -542,6 +537,10 @@ public abstract class AbstractFAPIRWServerTestModule extends AbstractTestModule 
 
 			// always the hybrid flow for OB, use the hash as the response
 			env.mapKey("authorization_endpoint_response", "callback_params");
+
+			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
 
 			onAuthorizationCallbackResponse();
 
