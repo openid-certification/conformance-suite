@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import io.fintechlabs.testframework.condition.Condition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -38,11 +39,13 @@ public class DBImageService implements ImageService {
 		if (assumeAdmin || authenticationFacade.isAdmin()) {
 			criteria = criteria.andOperator(
 				findTestId,
+				Criteria.where("result").is(Condition.ConditionResult.REVIEW.toString()),
 				additionalConstraints
 			);
 		} else {
 			criteria = criteria.andOperator(
 				findTestId,
+				Criteria.where("result").is(Condition.ConditionResult.REVIEW.toString()),
 				additionalConstraints,
 				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
 			);
