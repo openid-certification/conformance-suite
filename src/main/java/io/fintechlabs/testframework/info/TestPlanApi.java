@@ -184,5 +184,17 @@ public class TestPlanApi implements DataUtils {
 
 	}
 
+	@GetMapping(value = "/public/api/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> getPublicPlan(@PathVariable("id") String id) {
+
+		Map testPlan = planService.getPublicPlan(id);
+
+		if (testPlan != null) {
+			return new ResponseEntity<>(testPlan, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+	}
 
 }

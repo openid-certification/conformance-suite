@@ -28,6 +28,7 @@ var textColor = chroma(bgColor).luminance() > 0.6 ? 'black' : 'white';
 
              <div class="col-md-1">
                  <% if (item.testOwner
+                         && FAPI_UI.currentUser
                          && (item.testOwner.iss != FAPI_UI.currentUser.iss
                              || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
                      <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>

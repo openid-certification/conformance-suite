@@ -1,0 +1,73 @@
+          <div class="row">
+            <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem"<%
+                if (item.blockId) {
+					var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
+                    %> style="border-left: 3px solid <%- bgColor %>"<%
+                } %>>
+
+                <div class="row"><!-- time / result & http / source / owner -->
+
+                    <div class="col-md-1">
+                    <% if (item.time) { %>
+                        <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                    <% } %>
+
+                    </div>
+
+                    <div class="col-md-1 labelCollection">
+                      <% if (item.result) { %>
+                      <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
+                      <% } %>
+
+                      <% if (item.http) { %>
+                        <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
+                      <% } %>
+
+					  <% if (item.upload) { %>
+						<span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>
+					  <% } %>
+
+					  <% if (item.img) { %>
+						<span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
+					  <% } %>
+                    </div>
+
+                    <div class="col-md-9">
+                        <% if (item.src) { %>
+                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                        <% } %>
+                    </div>
+
+                </div>
+
+                <div class="row"><!-- more button / requirements / message -->
+                    <div class="col-md-1 moreButtonContainer">
+
+                    </div>
+
+                    <div class="col-md-1">
+                        <% if (item.requirements) { %>
+                            <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
+                        <% } %>
+                    </div>
+
+                    <div class="col-md-10">
+                        <% if (item.msg) { %>
+							<div class="row">
+								<div class="col-md-12">
+        		        		            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+								</div>
+							</div>
+                        <% } %>
+                    </div>
+
+                </div>
+
+                <div class="row"><!-- more info panel -->
+                    <div class="moreInfoContainer">
+
+                    </div>
+                </div>
+
+            </div>
+          </div>

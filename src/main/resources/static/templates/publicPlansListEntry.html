@@ -1,5 +1,5 @@
                     <tr>
-                        <td data-order="<%- plan._id %>" data-search="<%- plan._id %>"><code class="text-muted"><%- plan._id %></code></td>
+                        <td data-order="<%- plan._id %>" data-search="<%- plan._id %>"><a class="btn btn-default btn-block" href="publicPlanDetail.html?plan=<%- plan._id %>"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted"><%- plan._id %></code></a></td>
                         <td><%- plan.planName %></td>
                         <td><%- plan.description %></td>
                         <td data-order="<%- plan.started %>"><%- new Date(plan.started).toLocaleString() %></td>

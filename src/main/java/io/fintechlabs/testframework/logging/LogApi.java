@@ -101,10 +101,21 @@ public class LogApi {
 
 	@GetMapping(value = "/log/export/{id}", produces = "application/x-gtar")
 	public ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id) {
+		return export(id, false);
+	}
+
+	@GetMapping(value = "/public/api/log/export/{id}", produces = "application/x-gtar")
+	public ResponseEntity<StreamingResponseBody> exportPublic(@PathVariable("id") String id) {
+		return export(id, true);
+	}
+
+	private ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id, boolean publicOnly) {
 		List<DBObject> results = getTestResults(id);
 
 		DBObject testInfo = null;
-		if (authenticationFacade.isAdmin()) {
+		if (publicOnly) {
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("publish", "everything").get());
+		} else if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
@@ -207,6 +218,13 @@ public class LogApi {
 		return new ResponseEntity<>(results, HttpStatus.OK);
 	}
 
+	@GetMapping(value = "/public/api/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<DBObject>> getPublicLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
+		List<DBObject> results = getPublicTestResults(id, since);
+
+		return ResponseEntity.ok().body(results);
+	}
+
 	/**
 	 * @param id
 	 * @return
@@ -216,10 +234,28 @@ public class LogApi {
 	}
 
 	private List<DBObject> getTestResults(String id, Long since) {
+		return getTestResults(id, since, false);
+	}
+
+	private List<DBObject> getPublicTestResults(String id, Long since) {
+		// Only reveal details for tests which are everything-published
+		Criteria criteria = new Criteria();
+		criteria.and("_id").is(id);
+		criteria.and("publish").is("everything");
+		
+		if (mongoTemplate.getCollection(DBTestInfoService.COLLECTION).count(new Query(criteria).getQueryObject()) > 0)
+		{
+			return getTestResults(id, since, true);
+		} else {
+			return new ArrayList<DBObject>();
+		}
+	}
+
+	private List<DBObject> getTestResults(String id, Long since, boolean isPublic) {
 		Criteria criteria = new Criteria();
 		criteria.and("testId").is(id);
 
-		if (!authenticationFacade.isAdmin()) {
+		if (!isPublic && !authenticationFacade.isAdmin()) {
 			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
 		}
 
