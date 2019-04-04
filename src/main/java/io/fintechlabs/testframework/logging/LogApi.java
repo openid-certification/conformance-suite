@@ -120,9 +120,11 @@ public class LogApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
+		String testModuleName = testInfo.get("testName") != null ? testInfo.get("testName").toString() : "";
+
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + id + ".tar.bz2\"");
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + testModuleName + "-" + id + ".tar.bz2\"");
 
 		final Map<String, Object> export = new HashMap<>();
 
