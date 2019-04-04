@@ -487,7 +487,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			for (String placeholder : placeholders) {
 				Map<String, Object> update = ImmutableMap.of(
-					"test_finished", true);
+					"image_no_longer_required", true);
 				imageService.fillPlaceholder(getId(), placeholder, update, true);
 			}
 
