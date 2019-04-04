@@ -30,7 +30,7 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 
 	}
 
-	@Test
+	@Test(expected = NullPointerException.class)
 	public void testEvaluate_caseGoodEmpty() {
 		JsonObject requestParameters = new JsonParser().parse("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);

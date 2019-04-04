@@ -343,7 +343,11 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
 
-		callAndStopOnFailure(FAPICIBAValidateIdTokenAuthRequestIdClaims.class, "CIBA-10.3.1");
+		call(condition(FAPICIBAValidateIdTokenAuthRequestIdClaims.class)
+			.skipIfElementMissing("id_token", "claims.urn:openid:params:jwt:claim:auth_req_id")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirement("CIBA-10.3.1"));
 
 		callAndContinueOnFailure(ValidateIdTokenNotIncludeCHashAndSHash.class, Condition.ConditionResult.WARNING);
 
