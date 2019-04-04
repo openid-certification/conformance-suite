@@ -503,21 +503,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	@Override
-	public void fireTestPlaceholderFilled() {
-		// if we weren't interrupted already, then we're finished
-		if (!getStatus().equals(Status.INTERRUPTED)) {
-			setStatus(Status.FINISHED);
-		}
-
-		// if we don't have a result yet or we are waiting for manual review, set this to a success
-		if (getResult() == Result.UNKNOWN || getResult() == Result.REVIEW) {
-			fireTestSuccess();
-		}
-
-		stop();
-	}
-
-	@Override
 	public void fireTestReviewNeeded() {
 		setResult(Result.REVIEW);
 	}
