@@ -96,6 +96,24 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
+	public List<DBObject> getFilledPlaceholders(String testId, boolean assumeAdmin) {
+		Criteria findTestId = Criteria.where("testId").is(testId);
+
+		// look for placeholders that have already being filled
+		Criteria filledPlaceholders = Criteria.where("upload").exists(false);
+
+		Criteria postSearch = createCriteria(findTestId, filledPlaceholders, assumeAdmin);
+		Query search = Query.query(postSearch);
+
+		search.fields().include("upload");
+
+		return mongoTemplate
+			.getCollection(DBEventLog.COLLECTION)
+			.find(search.getQueryObject(), search.getFieldsObject())
+			.toArray();
+	}
+
+	@Override
 	public List<DBObject> getAllImagesForTestId(String testId, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 

@@ -207,6 +207,8 @@ def show_plan_results(plan_result):
             result_coloured = success(info['result'])
         elif info['result'] == 'WARNING':
             result_coloured = warning(info['result'])
+        elif info['result'] == 'REVIEW':
+            result_coloured = color(info['result'], bold=True, fg_light_blue=True)
         else:
             result_coloured = failure(info['result'])
         print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
