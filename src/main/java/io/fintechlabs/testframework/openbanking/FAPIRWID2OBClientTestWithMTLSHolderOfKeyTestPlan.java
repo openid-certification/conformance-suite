@@ -21,7 +21,11 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-null-alg",
 		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-alternate-alg",
 		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-exp",
-		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-expired-exp"
+		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-expired-exp",
+		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-aud",
+		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-iss",
+		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-nonce",
+		"fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-shash",
 	}
 )
 public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyTestPlan implements TestPlan {
