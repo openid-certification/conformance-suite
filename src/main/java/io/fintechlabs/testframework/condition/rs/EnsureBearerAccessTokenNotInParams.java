@@ -34,7 +34,7 @@ public class EnsureBearerAccessTokenNotInParams extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(incoming)) {
 			throw error("Client incorrectly supplied access token in query parameters or form body", args("access_token", incoming));
 		} else {
-			logSuccess("Client correctly did not sent access token in query parameters or form body");
+			logSuccess("Client correctly did not send access token in query parameters or form body");
 			return env;
 		}
 	}
