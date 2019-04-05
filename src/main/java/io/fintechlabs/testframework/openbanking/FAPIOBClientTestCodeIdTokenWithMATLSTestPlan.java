@@ -19,7 +19,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ob-client-test-code-id-token-with-matls-invalid-openbanking-intent-id",
 		"fapi-ob-client-test-code-id-token-with-matls-invalid-signature",
 		"fapi-ob-client-test-code-id-token-with-matls-invalid-null-alg",
-		"fapi-ob-client-test-code-id-token-with-matls-invalid-alternate-alg"
+		"fapi-ob-client-test-code-id-token-with-matls-invalid-alternate-alg",
+		"fapi-ob-client-test-code-id-token-with-matls-invalid-missing-exp",
+		"fapi-ob-client-test-code-id-token-with-matls-invalid-expired-exp"
 	}
 )
 public class FAPIOBClientTestCodeIdTokenWithMATLSTestPlan implements TestPlan {
