@@ -110,11 +110,14 @@ public class LogApi {
 	}
 
 	private ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id, boolean publicOnly) {
-		List<DBObject> results = getTestResults(id);
+		List<DBObject> results = getTestResults(id, null, publicOnly);
 
 		DBObject testInfo = null;
 		if (publicOnly) {
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("publish", "everything").get());
+			Criteria criteria = new Criteria();
+			criteria.and("_id").is(id);
+			criteria.and("publish").in("summary", "everything");
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(criteria.getCriteriaObject());
 		} else if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
 		} else {
@@ -238,20 +241,30 @@ public class LogApi {
 	}
 
 	private List<DBObject> getPublicTestResults(String id, Long since) {
-		// Only reveal details for tests which are everything-published
-		Criteria criteria = new Criteria();
-		criteria.and("_id").is(id);
-		criteria.and("publish").is("everything");
-
-		if (mongoTemplate.getCollection(DBTestInfoService.COLLECTION).count(new Query(criteria).getQueryObject()) > 0)
-		{
-			return getTestResults(id, since, true);
-		} else {
-			return new ArrayList<DBObject>();
-		}
+		return getTestResults(id, since, true);
 	}
 
 	private List<DBObject> getTestResults(String id, Long since, boolean isPublic) {
+		boolean summaryOnly;
+
+		if (isPublic) {
+			// Check publish status of test
+			Criteria criteria = new Criteria();
+			criteria.and("_id").is(id);
+			Query query = new Query(criteria);
+			query.fields().include("publish");
+			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(query.getQueryObject());
+			String publish = (String) testInfo.get("publish");
+			if (publish.equals("summary"))
+				summaryOnly = true;
+			else if (publish.equals("everything"))
+				summaryOnly = false;
+			else
+				return new ArrayList<DBObject>();
+		} else {
+			summaryOnly = false;
+		}
+
 		Criteria criteria = new Criteria();
 		criteria.and("testId").is(id);
 
@@ -263,7 +276,18 @@ public class LogApi {
 			criteria.and("time").gt(since);
 		}
 
-		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(criteria.getCriteriaObject())
+		Query query = new Query(criteria);
+		if (summaryOnly)
+		{
+			query.fields()
+				.include("result")
+				.include("testName")
+				.include("testId")
+				.include("src")
+				.include("time");
+		}
+
+		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(query.getQueryObject(), query.getFieldsObject())
 			.sort(BasicDBObjectBuilder.start()
 				.add("time", 1)
 				.get())

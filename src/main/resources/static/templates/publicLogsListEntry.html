@@ -1,11 +1,5 @@
                     <tr>
-                        <td data-order="<%- test.testId %>" data-search="<%- test.testId %>">
-                        <% if (test.publish == "everything") { %>
-                        <a class="btn btn-default btn-block" href="publicLogDetail.html?log=<%- encodeURIComponent(test.testId) %>"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted"><%- test.testId %></code></a>
-                        <% } else { %>
-                        <code class="text-muted"><%- test.testId %></code>
-                        <% } %>
-                        </td>
+                        <td data-order="<%- test.testId %>" data-search="<%- test.testId %>"><a class="btn btn-default btn-block" href="publicLogDetail.html?log=<%- encodeURIComponent(test.testId) %>"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted"><%- test.testId %></code></a></td>
                         <td><%- test.testName %></td>
                         <td><%- test.description %></td>
                         <td data-order="<%- test.started %>"><%- new Date(test.started).toLocaleString() %></td>
