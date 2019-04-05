@@ -58,10 +58,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "heart-oidc-id-token",
 	displayName = "HEART OIDC IDP: Id Token",

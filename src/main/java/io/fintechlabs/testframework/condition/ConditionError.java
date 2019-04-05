@@ -1,9 +1,5 @@
 package io.fintechlabs.testframework.condition;
 
-/**
- * @author jricher
- *
- */
 public class ConditionError extends RuntimeException {
 
 	private static final long serialVersionUID = 6331346678545936565L;

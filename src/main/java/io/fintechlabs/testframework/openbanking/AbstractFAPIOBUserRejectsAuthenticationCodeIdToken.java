@@ -15,11 +15,6 @@ import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEn
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWUserRejectsAuthenticationCodeIdToken;
 
-/**
- * @author ddrysdale
- *
- */
-
 public abstract class AbstractFAPIOBUserRejectsAuthenticationCodeIdToken extends AbstractFAPIRWUserRejectsAuthenticationCodeIdToken {
 	@Override
 	protected void performAuthorizationFlow() {

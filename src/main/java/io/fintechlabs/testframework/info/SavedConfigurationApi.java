@@ -10,10 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.google.gson.JsonObject;
 import com.mongodb.DBObject;
 
-/**
- * @author jricher
- *
- */
 @Controller
 public class SavedConfigurationApi {
 

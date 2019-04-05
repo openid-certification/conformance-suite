@@ -21,10 +21,6 @@ import com.mongodb.util.JSON;
 
 import io.fintechlabs.testframework.info.TestInfoService;
 
-/**
- * @author jricher
- *
- */
 @Component
 public class DBEventLog implements EventLog {
 

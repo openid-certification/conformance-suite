@@ -38,10 +38,6 @@ import io.fintechlabs.testframework.info.DBTestInfoService;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.security.KeyManager;
 
-/**
- * @author jricher
- *
- */
 @Controller
 public class LogApi {
 

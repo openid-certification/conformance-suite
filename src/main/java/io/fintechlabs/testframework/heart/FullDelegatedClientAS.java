@@ -54,10 +54,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "heart-full-delegated-client",
 	displayName = "HEART AS: Full Delegated Client",

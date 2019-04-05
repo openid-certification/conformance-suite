@@ -13,9 +13,6 @@ import com.google.gson.JsonParser;
 
 /**
  * Publish the public keys this server uses for signing.
- *
- * @author jricher
- *
  */
 @Controller
 public class JwksEndpoint {

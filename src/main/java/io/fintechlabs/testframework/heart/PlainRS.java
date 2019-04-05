@@ -41,10 +41,6 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "heart-rs-plain-get",
 	displayName = "HEART RS with plain GET request",

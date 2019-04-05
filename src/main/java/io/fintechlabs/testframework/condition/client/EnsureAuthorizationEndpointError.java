@@ -8,9 +8,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * Ensure there was an error from the authorization endpoint. If there isn't, log it and quit.
- *
- * @author srmoore
- *
  */
 public class EnsureAuthorizationEndpointError extends AbstractCondition {
 

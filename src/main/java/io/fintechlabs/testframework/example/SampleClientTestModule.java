@@ -43,10 +43,6 @@ import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
-/**
- * @author jricher
- *
- */
 @PublishTestModule(
 	testName = "sample-client-test",
 	displayName = "Sample Client Test",

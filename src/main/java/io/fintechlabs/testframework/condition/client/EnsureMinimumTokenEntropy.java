@@ -7,10 +7,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class EnsureMinimumTokenEntropy extends AbstractEnsureMinimumEntropy {
 	/**
 	 * The actual amount of required entropy is 128 bits, but we can't accurately measure entropy so a bit of

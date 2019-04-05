@@ -4,10 +4,6 @@ import java.util.Set;
 
 import io.fintechlabs.testframework.testmodule.TestModule;
 
-/**
- * @author jricher
- *
- */
 public interface TestRunnerSupport {
 
 	/**

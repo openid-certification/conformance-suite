@@ -26,10 +26,6 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
-/**
- * @author jricher
- *
- */
 @Service
 public class DBTestInfoService implements TestInfoService {
 

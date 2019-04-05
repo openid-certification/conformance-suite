@@ -18,9 +18,6 @@ import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
-/**
- * @author jricher
- */
 @Controller
 public class TestInfoApi {
 

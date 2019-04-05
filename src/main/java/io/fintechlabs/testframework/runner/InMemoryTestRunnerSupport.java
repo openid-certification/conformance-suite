@@ -18,10 +18,6 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
-/**
- * @author jricher
- *
- */
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 	private Duration closedTestTimeout = Duration.ofMinutes(15);

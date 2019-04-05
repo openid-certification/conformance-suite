@@ -39,10 +39,7 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
- * @author jricher
- * @author srmoore - Using {@link NativeDelegatedClientAS} as a base, but with a 'plain' code challenge,
- * 					 which should be rejected.
- *
+ * Using {@link NativeDelegatedClientAS} as a base, but with a 'plain' code challenge which should be rejected.
  */
 @PublishTestModule(
 	testName = "heart-reject-plain-code-challenge",

@@ -8,11 +8,6 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-/**
- * @author ddrysdale
- *
- */
-
 @PublishTestModule(
 	testName = "fapi-ob-user-rejects-authentication-code-id-token-with-private-key-and-matls",
 	displayName = "FAPI-OB: user rejects authentication (code id_token with private key authentication and MATLS)",

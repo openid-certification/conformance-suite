@@ -11,10 +11,6 @@ import org.springframework.security.core.Authentication;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
-/**
- * @author jricher
- *
- */
 public class TestExecutionManager {
 
 

@@ -3,10 +3,6 @@ package io.fintechlabs.testframework.openbanking;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
-/**
- * @author ddrysdale
- *
- */
 @PublishTestPlan (
 	testPlanName = "fapi-ob-code-id-token-with-mtls-test-plan",
 	displayName = "FAPI-OB: code id_token with mtls Test Plan",

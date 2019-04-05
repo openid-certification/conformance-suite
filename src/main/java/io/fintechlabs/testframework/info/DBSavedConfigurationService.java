@@ -19,10 +19,6 @@ import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
-/**
- * @author jricher
- *
- */
 @Service
 public class DBSavedConfigurationService implements SavedConfigurationService {
 

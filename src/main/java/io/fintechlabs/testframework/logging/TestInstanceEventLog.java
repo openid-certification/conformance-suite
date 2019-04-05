@@ -9,9 +9,6 @@ import io.fintechlabs.testframework.testmodule.DataUtils;
 
 /**
  * A wrapper around an EventLog that remebers the test ID and Owner information so the caller doesn't need to
- *
- * @author jricher
- *
  */
 public class TestInstanceEventLog implements DataUtils {
 

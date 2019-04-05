@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- * @author srmoore
- */
 @PublishTestModule(
 	testName = "heart-token-revocation",
 	displayName = "HEART AS: Token Revocation",

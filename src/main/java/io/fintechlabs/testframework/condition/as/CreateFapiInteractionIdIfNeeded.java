@@ -9,10 +9,6 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class CreateFapiInteractionIdIfNeeded extends AbstractCondition {
 
 	/**

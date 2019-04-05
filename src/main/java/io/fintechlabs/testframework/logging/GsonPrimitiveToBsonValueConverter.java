@@ -12,9 +12,6 @@ import com.google.gson.JsonPrimitive;
 
 /**
  * Converts JsonPrimitives from GSON into BSON Values for Mongo.
- *
- * @author jricher
- *
  */
 @Component
 @WritingConverter

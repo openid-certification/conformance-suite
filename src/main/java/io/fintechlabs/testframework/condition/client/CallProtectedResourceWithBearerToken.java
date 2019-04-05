@@ -28,7 +28,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
- * @author srmoore
  * This is to call a generic resource server endpoint with a Bearer Token.
  */
 public class CallProtectedResourceWithBearerToken extends AbstractCondition {

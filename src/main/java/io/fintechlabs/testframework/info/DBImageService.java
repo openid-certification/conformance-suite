@@ -20,10 +20,6 @@ import com.mongodb.DBObject;
 import io.fintechlabs.testframework.logging.DBEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
-/**
- * @author jheenan
- *
- */
 @Service
 public class DBImageService implements ImageService {
 

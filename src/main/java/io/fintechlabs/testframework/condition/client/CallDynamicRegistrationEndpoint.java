@@ -28,10 +28,6 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
-/**
- * @author srmoore
- *
- */
 public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 	private static final Logger logger = LoggerFactory.getLogger(CallDynamicRegistrationEndpoint.class);
 

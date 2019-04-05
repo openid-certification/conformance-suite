@@ -9,10 +9,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-/**
- * @author srmoore
- *
- */
 public class CreateRandomCodeVerifier extends AbstractCondition {
 
 	/**

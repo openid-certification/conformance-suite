@@ -3,10 +3,6 @@ package io.fintechlabs.testframework.example;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
-/**
- * @author jricher
- *
- */
 @PublishTestPlan (
 	testPlanName = "sample-test-plan",
 	displayName = "Sample Test Plan",
