@@ -49,15 +49,11 @@ public abstract class AbstractFAPRWID2EnsureRegisteredCertificateForAuthorizatio
 
 		createAuthorizationCodeRequest();
 
-		// Check that a call to the token endpoint succeeds normally
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
 		// Now try with the wrong certificate
 
 		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
 		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
 
