@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-null-alg",
 	displayName = "FAPI-OB: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected (code id_token with private_key_jwt and MATLS)",
+	summary = "This test should end with the client displaying an error message that the id_token was signed with alg: none",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",
@@ -29,7 +30,7 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidNullAlg 
 	@Override
 	protected void addCustomSignatureOfIdToken(){
 
-		callAndStopOnFailure(SignIdTokenWithNullAlgorithm.class,"OIDCC-3.1.3.7.7");
+		callAndStopOnFailure(SignIdTokenWithNullAlgorithm.class,"OIDCC-3.1.3.7-7");
 	}
 
 	@Override

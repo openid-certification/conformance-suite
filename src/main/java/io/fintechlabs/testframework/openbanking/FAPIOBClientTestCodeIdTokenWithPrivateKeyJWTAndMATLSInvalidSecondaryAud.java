@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-secondary-aud",
 	displayName = "FAPI-OB: client test - multiple aud values in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	summary = "This test should end with the client displaying an error message that there are multiple aud values in the id_token from the authorization_endpoint, and this behaviour is not expected",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",
@@ -23,7 +24,7 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidSecondar
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(AddSecondAudValueToIdToken.class, "OIDCC-3.1.3.7.8");
+		callAndStopOnFailure(AddSecondAudValueToIdToken.class, "OIDCC-3.1.3.7-8");
 	}
 
 	@Override

@@ -6,7 +6,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-matls-invalid-shash",
-	displayName = "FAPI-OB: client test (code id_token with MATLS and an invalid s_hash value)",
+	displayName = "FAPI-OB: client test - invalid s_hash in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MTLS)",
+	summary = "This test should end with the client displaying an error message that the s_hash value in the id_token does not match the state the client sent",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",

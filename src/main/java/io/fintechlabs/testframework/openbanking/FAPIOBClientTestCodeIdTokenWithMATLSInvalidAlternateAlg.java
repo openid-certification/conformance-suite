@@ -2,11 +2,13 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.ForceIdTokenToBeSignedWithRS256;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWClientPrivateKeyExpectNothingAfterAuthorisationEndpoint;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-matls-invalid-alternate-alg",
 	displayName = "FAPI-OB: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected (code id_token with MATLS)",
+	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",
@@ -29,7 +31,7 @@ public class FAPIOBClientTestCodeIdTokenWithMATLSInvalidAlternateAlg extends Abs
 	@Override
 	protected void addCustomSignatureOfIdToken(){
 
-		callAndStopOnFailure(ForceIdTokenToBeSignedWithRS256.class,"OIDCC-3.1.3.7.7");
+		callAndStopOnFailure(ForceIdTokenToBeSignedWithRS256.class,"OIDCC-3.1.3.7-7");
 	}
 
 	@Override
