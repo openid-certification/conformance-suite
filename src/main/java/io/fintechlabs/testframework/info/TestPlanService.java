@@ -40,4 +40,9 @@ public interface TestPlanService {
 	 */
 	List<Map> getPublicPlans();
 
+	/**
+	 * @param id
+	 */
+	Map getPublicPlan(String id);
+
 }

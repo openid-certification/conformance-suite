@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -100,10 +101,24 @@ public class LogApi {
 
 	@GetMapping(value = "/log/export/{id}", produces = "application/x-gtar")
 	public ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id) {
-		List<DBObject> results = getTestResults(id);
+		return export(id, false);
+	}
+
+	@GetMapping(value = "/public/api/log/export/{id}", produces = "application/x-gtar")
+	public ResponseEntity<StreamingResponseBody> exportPublic(@PathVariable("id") String id) {
+		return export(id, true);
+	}
+
+	private ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id, boolean publicOnly) {
+		List<DBObject> results = getTestResults(id, null, publicOnly);
 
 		DBObject testInfo = null;
-		if (authenticationFacade.isAdmin()) {
+		if (publicOnly) {
+			Criteria criteria = new Criteria();
+			criteria.and("_id").is(id);
+			criteria.and("publish").in("summary", "everything");
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(criteria.getCriteriaObject());
+		} else if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
@@ -181,6 +196,38 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
+	@GetMapping(value = "/public/api/log")
+	public ResponseEntity<Object> getAllPublicTests() {
+		@SuppressWarnings("unchecked")
+		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId");
+
+		Criteria criteria = new Criteria();
+		criteria.and("_id").in(testIds);
+		criteria.and("publish").in("summary", "everything");
+
+		Query query = new Query(criteria);
+		query.fields()
+			.include("_id")
+			.include("testId")
+			.include("testName")
+			.include("started")
+			.include("description")
+			.include("planId")
+			.include("status")
+			.include("result");
+
+		List<DBObject> results = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(query.getQueryObject()).toArray();
+
+		return new ResponseEntity<>(results, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/public/api/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<DBObject>> getPublicLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
+		List<DBObject> results = getPublicTestResults(id, since);
+
+		return ResponseEntity.ok().body(results);
+	}
+
 	/**
 	 * @param id
 	 * @return
@@ -190,10 +237,38 @@ public class LogApi {
 	}
 
 	private List<DBObject> getTestResults(String id, Long since) {
+		return getTestResults(id, since, false);
+	}
+
+	private List<DBObject> getPublicTestResults(String id, Long since) {
+		return getTestResults(id, since, true);
+	}
+
+	private List<DBObject> getTestResults(String id, Long since, boolean isPublic) {
+		boolean summaryOnly;
+
+		if (isPublic) {
+			// Check publish status of test
+			Criteria criteria = new Criteria();
+			criteria.and("_id").is(id);
+			Query query = new Query(criteria);
+			query.fields().include("publish");
+			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(query.getQueryObject());
+			String publish = (String) testInfo.get("publish");
+			if (publish.equals("summary"))
+				summaryOnly = true;
+			else if (publish.equals("everything"))
+				summaryOnly = false;
+			else
+				return new ArrayList<DBObject>();
+		} else {
+			summaryOnly = false;
+		}
+
 		Criteria criteria = new Criteria();
 		criteria.and("testId").is(id);
 
-		if (!authenticationFacade.isAdmin()) {
+		if (!isPublic && !authenticationFacade.isAdmin()) {
 			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
 		}
 
@@ -201,7 +276,18 @@ public class LogApi {
 			criteria.and("time").gt(since);
 		}
 
-		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(criteria.getCriteriaObject())
+		Query query = new Query(criteria);
+		if (summaryOnly)
+		{
+			query.fields()
+				.include("result")
+				.include("testName")
+				.include("testId")
+				.include("src")
+				.include("time");
+		}
+
+		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(query.getQueryObject(), query.getFieldsObject())
 			.sort(BasicDBObjectBuilder.start()
 				.add("time", 1)
 				.get())

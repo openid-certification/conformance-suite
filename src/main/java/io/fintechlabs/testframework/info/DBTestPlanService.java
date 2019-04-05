@@ -208,12 +208,42 @@ public class DBTestPlanService implements TestPlanService {
 			.include("planName")
 			.include("description")
 			.include("started")
-			.include("modules");
+			.include("modules")
+			.include("publish");
 
 		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject(), query.getFieldsObject()).toArray();
 
 		return results.stream().map(DBObject::toMap).collect(Collectors.toList());
 
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlan(java.lang.String)
+	 */
+	@Override
+	public Map getPublicPlan(String id) {
+
+		Criteria criteria = new Criteria();
+		criteria.and("_id").is(id);
+		criteria.and("publish").in("summary", "everything");
+
+		Query query = new Query(criteria);
+
+		query.fields()
+			.include("_id")
+			.include("planName")
+			.include("description")
+			.include("started")
+			.include("modules")
+			.include("publish");
+
+		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject(), query.getFieldsObject());
+
+		if (testPlan == null) {
+			return null;
+		} else {
+			return testPlan.toMap();
+		}
 	}
 
 }
