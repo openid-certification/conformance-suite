@@ -14,13 +14,13 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpo
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckJwksUri;
-import io.fintechlabs.testframework.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointClaimsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.client.FAPIRWCheckTLSClientCertificateBoundAccessTokens;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -50,7 +50,7 @@ public class FAPIRWDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-14");
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
-
+		callAndContinueOnFailure(FAPIRWCheckTLSClientCertificateBoundAccessTokens.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-6");
 
 		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_endpoint")
