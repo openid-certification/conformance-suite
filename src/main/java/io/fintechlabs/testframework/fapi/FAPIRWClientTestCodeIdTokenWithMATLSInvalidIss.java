@@ -2,12 +2,11 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidIssValueToIdToken;
-import io.fintechlabs.testframework.openbanking.AbstractFAPIOBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-iss",
-	displayName = "FAPI-RW: client test - invalid iss in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	testName = "fapi-rw-client-test-code-id-token-with-matls-invalid-iss",
+	displayName = "FAPI-RW: client test - invalid iss in id_token from authorization_endpoint should be rejected (code id_token with MTLS)",
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
 	profile = "FAPI-RW",
 	configurationFields = {
@@ -20,7 +19,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidIss extends AbstractFAPIRWClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWClientTestCodeIdTokenWithMATLSInvalidIss extends AbstractFAPIRWClientExpectNothingAfterAuthorisationEndpoint {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -32,7 +31,6 @@ public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidIss exte
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid iss value from the authorization_endpoint.");
-
 	}
 
 }

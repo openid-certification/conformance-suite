@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-nonce",
 	displayName = "FAPI-OB: client test - invalid nonce in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	summary = "This test should end with the client displaying an error message that the nonce value in the id_token from the authorization_endpoint does not match the nonce value in the request object",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",

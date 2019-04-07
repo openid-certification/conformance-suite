@@ -1,14 +1,14 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.SignIdTokenInvalid;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-signature",
-	displayName = "FAPI-OB: client test - invalid signature in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	testName = "fapi-rw-client-test-code-id-token-with-matls-invalid-signature",
+	displayName = "FAPI-RW: client test - invalid signature in id_token from authorization_endpoint should be rejected (code id_token with MTLS)",
 	summary = "This test should end with the client displaying an error message that the signature in the id_token from the authorization_endpoint does not match the signature value in the request object",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -19,14 +19,13 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidSignature extends AbstractFAPIOBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWClientTestCodeIdTokenWithMATLSInvalidSignature extends AbstractFAPIRWClientExpectNothingAfterAuthorisationEndpoint {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
 		//Do Nothing
 	}
 
-	@Override
 	protected void addCustomSignatureOfIdToken(){
 
 		callAndStopOnFailure(SignIdTokenInvalid.class, "OIDCC-3.1.3.7-6");

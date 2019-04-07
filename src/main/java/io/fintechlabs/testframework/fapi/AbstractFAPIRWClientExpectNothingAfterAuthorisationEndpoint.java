@@ -1,14 +1,15 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
 
-public abstract class AbstractFAPIOBClientMATLSExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIOBClientTestCodeIdToken {
+
+public abstract class AbstractFAPIRWClientExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWClientTestCodeIdToken {
 
 	@Override
 	protected void addTokenEndpointAuthMethodSupported() {
 
-		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
+		callAndStopOnFailure(AddTLSClientAuthToServerConfiguration.class);
 	}
 
 	@Override

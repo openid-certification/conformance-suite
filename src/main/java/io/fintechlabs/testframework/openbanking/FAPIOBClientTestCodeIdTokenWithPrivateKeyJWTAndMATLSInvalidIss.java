@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-iss",
 	displayName = "FAPI-OB: client test - invalid iss in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
 	profile = "FAPI-OB",
 	configurationFields = {
 		"server.jwks",
@@ -23,7 +24,7 @@ public class FAPIOBClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidIss exte
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(AddInvalidIssValueToIdToken.class, "OIDCC-3.1.3.7.2");
+		callAndStopOnFailure(AddInvalidIssValueToIdToken.class, "OIDCC-3.1.3.7-2");
 	}
 
 	@Override

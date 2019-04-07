@@ -24,7 +24,7 @@ public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidNonce ex
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(AddInvalidNonceValueToIdToken.class, "OIDCC-3.1.3.7.11");
+		callAndStopOnFailure(AddInvalidNonceValueToIdToken.class, "OIDCC-3.1.3.7-11");
 	}
 
 	@Override

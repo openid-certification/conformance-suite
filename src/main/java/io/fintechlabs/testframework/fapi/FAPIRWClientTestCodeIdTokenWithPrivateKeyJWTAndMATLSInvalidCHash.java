@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-chash",
 	displayName = "FAPI-RW: client test (code id_token with private_key_jwt and MATLS and an invalid c_hash value)",
+	summary = "This test should end with the client displaying an error message that the c_hash value in the id_token from the authorization_endpoint does not match the c_hash value in the request object",
 	profile = "FAPI-RW",
 	configurationFields = {
 		"server.jwks",
@@ -24,7 +25,7 @@ public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSInvalidCHash ex
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class, "OIDCC-3.3.2.10");
+		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class, "OIDCC-3.3.2-10");
 	}
 
 	@Override
