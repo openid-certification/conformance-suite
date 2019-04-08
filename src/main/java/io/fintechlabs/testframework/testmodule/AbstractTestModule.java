@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.mongodb.DBObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -478,7 +479,14 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			}
 
 			if (getResult() == Result.UNKNOWN) {
-				fireTestSuccess();
+				List<DBObject> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
+				if (filledPlaceholders.size() > 0) {
+					// This is only necessary for placeholders filled by browsercontrol; for images uploaded by the
+					// user we set the status to review when the image is uploaded
+					fireTestReviewNeeded();
+				} else {
+					fireTestSuccess();
+				}
 			}
 
 			// clean up any remaining placeholders here; if we call this function then we have reached a condition where we're not expecting them to be filled externally
@@ -487,7 +495,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			for (String placeholder : placeholders) {
 				Map<String, Object> update = ImmutableMap.of(
-					"test_finished", true);
+					"image_no_longer_required", true);
 				imageService.fillPlaceholder(getId(), placeholder, update, true);
 			}
 
@@ -500,21 +508,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			return "done";
 		});
-	}
-
-	@Override
-	public void fireTestPlaceholderFilled() {
-		// if we weren't interrupted already, then we're finished
-		if (!getStatus().equals(Status.INTERRUPTED)) {
-			setStatus(Status.FINISHED);
-		}
-
-		// if we don't have a result yet or we are waiting for manual review, set this to a success
-		if (getResult() == Result.UNKNOWN || getResult() == Result.REVIEW) {
-			fireTestSuccess();
-		}
-
-		stop();
 	}
 
 	@Override

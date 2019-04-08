@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import io.fintechlabs.testframework.condition.Condition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -38,11 +39,13 @@ public class DBImageService implements ImageService {
 		if (assumeAdmin || authenticationFacade.isAdmin()) {
 			criteria = criteria.andOperator(
 				findTestId,
+				Criteria.where("result").is(Condition.ConditionResult.REVIEW.toString()),
 				additionalConstraints
 			);
 		} else {
 			criteria = criteria.andOperator(
 				findTestId,
+				Criteria.where("result").is(Condition.ConditionResult.REVIEW.toString()),
 				additionalConstraints,
 				Criteria.where("testOwner").is(authenticationFacade.getPrincipal())
 			);
@@ -90,6 +93,24 @@ public class DBImageService implements ImageService {
 				.toArray().stream()
 					.map((obj) -> obj.get("upload").toString())
 					.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<DBObject> getFilledPlaceholders(String testId, boolean assumeAdmin) {
+		Criteria findTestId = Criteria.where("testId").is(testId);
+
+		// look for placeholders that have already being filled
+		Criteria filledPlaceholders = Criteria.where("upload").exists(false);
+
+		Criteria postSearch = createCriteria(findTestId, filledPlaceholders, assumeAdmin);
+		Query search = Query.query(postSearch);
+
+		search.fields().include("upload");
+
+		return mongoTemplate
+			.getCollection(DBEventLog.COLLECTION)
+			.find(search.getQueryObject(), search.getFieldsObject())
+			.toArray();
 	}
 
 	@Override

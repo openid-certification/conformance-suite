@@ -23,6 +23,16 @@ public interface ImageService {
 	List<String> getRemainingPlaceholders(String testId, boolean assumeAdmin);
 
 	/**
+	 * Get filled placeholder IDs
+	 *
+	 * This will only work before a test completes, as completing a test marks all placeholders as satisfied.
+	 *
+	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
+	 *                    test module itself, not via the REST API.
+	 */
+	List<DBObject> getFilledPlaceholders(String testId, boolean assumeAdmin);
+
+	/**
 	 * Get all the images for a test
 	 *
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
