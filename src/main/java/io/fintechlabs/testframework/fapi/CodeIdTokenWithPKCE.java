@@ -80,8 +80,6 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.client_id",
 		"client.scope",
 		"client.fapi_financial_id",
-		"tls.testHost",
-		"tls.testPort",
 		"resource.resourceUrl"
 	}
 )
