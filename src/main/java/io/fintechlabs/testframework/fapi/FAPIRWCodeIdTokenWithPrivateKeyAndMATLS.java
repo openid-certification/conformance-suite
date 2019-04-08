@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-RW: code id_token (private key authentication with MATLS)",
+	testName = "fapi-rw-id2-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2: (private key authentication with mtls holder of key)",
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc), tests that certificate bound access tokens are implemented correctly and tries reusing an authorization code.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

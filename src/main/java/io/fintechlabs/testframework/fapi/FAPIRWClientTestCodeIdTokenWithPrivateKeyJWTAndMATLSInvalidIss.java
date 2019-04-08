@@ -6,10 +6,10 @@ import io.fintechlabs.testframework.openbanking.AbstractFAPIOBClientPrivateKeyEx
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-iss",
-	displayName = "FAPI-RW: client test - invalid iss in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-iss",
+	displayName = "FAPI-RW-ID2: client test - invalid iss in id_token from authorization_endpoint should be rejected (with private_key_jwt and mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

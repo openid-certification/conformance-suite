@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSu
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-code-id-token-with-mtls",
-	displayName = "FAPI-RW: code id_token (MTLS authentication)",
+	testName = "fapi-rw-id2-with-mtls",
+	displayName = "FAPI-RW-ID2: (MTLS authentication)",
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc), tests that certificate bound access tokens are implemented correctly and tries reusing an authorization code.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

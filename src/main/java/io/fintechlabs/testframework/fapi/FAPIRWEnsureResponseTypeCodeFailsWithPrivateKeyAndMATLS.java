@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-response-type-code-fails-with-private-key-and-matls",
-	displayName = "FAPI-RW: ensure response_type code fails (with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ensure-response-type-code-fails-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2: ensure response_type code fails (with private key authentication and mtls holder of key)",
 	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

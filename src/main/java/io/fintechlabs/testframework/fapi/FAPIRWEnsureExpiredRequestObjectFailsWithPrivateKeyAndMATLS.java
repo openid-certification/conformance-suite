@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-expired-request-object-fails-with-private-key-and-matls",
-	displayName = "FAPI-RW: ensure expired request object fails (with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ensure-expired-request-object-fails-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2: ensure expired request object fails (with private key authentication and mtls holder of key)",
 	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

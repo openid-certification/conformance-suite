@@ -6,10 +6,10 @@ import io.fintechlabs.testframework.openbanking.AbstractFAPIOBClientPrivateKeyEx
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-chash",
-	displayName = "FAPI-RW: client test (code id_token with private_key_jwt and MATLS and an invalid c_hash value)",
+	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-chash",
+	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and mtls holder of key and an invalid c_hash value)",
 	summary = "This test should end with the client displaying an error message that the c_hash value in the id_token from the authorization_endpoint does not match the c_hash value in the request object",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

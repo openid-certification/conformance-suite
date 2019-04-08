@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-registered-certificate-for-authorization-code-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-RW: ensure registered certificate for authorization code (code id_token with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ensure-registered-certificate-for-authorization-code-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2: ensure registered certificate for authorization code (with private key authentication and mtls holder of key)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

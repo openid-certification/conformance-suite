@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-user-rejects-authentication-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-RW: user rejects authentication (code id_token with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-user-rejects-authentication-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2: user rejects authentication (with private key authentication and mtls holder of key)",
 	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

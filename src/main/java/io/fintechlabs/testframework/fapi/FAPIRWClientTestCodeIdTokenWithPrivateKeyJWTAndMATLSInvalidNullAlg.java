@@ -5,10 +5,10 @@ import io.fintechlabs.testframework.condition.as.AddSecondAudValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-null-alg",
-	displayName = "FAPI-RW: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected (code id_token with private_key_jwt and MATLS)",
+	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-null-alg",
+	displayName = "FAPI-RW-ID2: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected (with private_key_jwt and mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that the id_token was signed with alg: none",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

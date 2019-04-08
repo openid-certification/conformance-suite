@@ -5,10 +5,10 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
-	displayName = "FAPI-RW: ensure request object with multiple aud succeeds (MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
+	displayName = "FAPI-RW-ID2: ensure request object with multiple aud succeeds (MTLS authentication)",
 	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

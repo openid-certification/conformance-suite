@@ -6,10 +6,10 @@ import io.fintechlabs.testframework.openbanking.AbstractFAPIOBClientPrivateKeyEx
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-secondary-aud",
-	displayName = "FAPI-RW: client test - multiple aud values in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-secondary-aud",
+	displayName = "FAPI-RW-ID2: client test - multiple aud values in id_token from authorization_endpoint should be rejected (with private_key_jwt and mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that there are multiple aud values in the id_token from the authorization_endpoint, and this behaviour is not expected",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

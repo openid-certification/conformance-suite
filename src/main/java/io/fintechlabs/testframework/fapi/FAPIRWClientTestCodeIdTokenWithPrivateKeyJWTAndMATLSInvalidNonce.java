@@ -6,9 +6,9 @@ import io.fintechlabs.testframework.openbanking.AbstractFAPIOBClientPrivateKeyEx
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-nonce",
-	displayName = "FAPI-RW: client test - invalid nonce in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
-	profile = "FAPI-RW",
+	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-nonce",
+	displayName = "FAPI-RW-ID2: client test - invalid nonce in id_token from authorization_endpoint should be rejected (with private_key_jwt and mtls holder of key)",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

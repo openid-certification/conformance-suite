@@ -5,10 +5,10 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-different-nonce-inside-and-outside-request-object-with-mtls",
-	displayName = "FAPI-RW: ensure different nonce inside and outside request object (MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-different-nonce-inside-and-outside-request-object-with-mtls",
+	displayName = "FAPI-RW-ID2: ensure different nonce inside and outside request object (MTLS authentication)",
 	summary = "This test passes a different nonce in the authorization_endpoint parameters to the one inside the signed request object. The authorization server must either return an invalid_request error back to the client, and must show an error page (saying the request object is invalid as the 'nonce' value in the request object and outside it are different - upload a screenshot of the error page), or must successfully authenticate and return the nonce from inside the request object in the id_token.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

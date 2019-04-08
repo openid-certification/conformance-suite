@@ -4,22 +4,22 @@ import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
-	testPlanName = "fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-test-plan",
-	displayName = "FAPI-RW: client test (code id-token with private_key_jwt and MATLS) Test Plan",
-	profile = "FAPI-rw",
+	testPlanName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan",
+	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and mtls holder of key) Test Plan",
+	profile = "FAPI-rw-id2",
 	testModuleNames = {
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-shash",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-chash",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-nonce",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-iss",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-aud",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-secondary-aud",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-signature",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-null-alg",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-alternate-alg",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-missing-exp",
-		"fapi-rw-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-expired-exp"
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-shash",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-chash",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-nonce",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-iss",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-aud",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-secondary-aud",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-signature",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-null-alg",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-alternate-alg",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-exp",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-expired-exp"
 	}
 )
 public class FAPIRWClientTestCodeIdTokenWithPrivateKeyJWTAndMATLSTestPlan implements TestPlan {
