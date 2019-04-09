@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
@@ -15,9 +14,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFrom
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureDifferentNonceInsideAndOutsideRequestObject;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject;
 
-public abstract class AbstractFAPIOBEnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWEnsureDifferentNonceInsideAndOutsideRequestObject {
+public abstract class AbstractFAPIOBEnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject {
 
 	@Override
 	protected void performAuthorizationFlow() {

@@ -10,10 +10,10 @@ import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithN
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-ensure-request-object-signature-algorithm-is-not-null",
-	displayName = "FAPI-RW: Ensure request object signature algorithm is not null (code id_token)",
+	testName = "fapi-rw-id2-ensure-request-object-signature-algorithm-is-not-null",
+	displayName = "FAPI-RW-ID2: Ensure request object signature algorithm is not null",
 	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -21,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.jwks"
 	}
 )
-public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractFAPIRWServerTestModule {
+public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performAuthorizationFlow() {

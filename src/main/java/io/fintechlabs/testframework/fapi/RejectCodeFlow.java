@@ -10,10 +10,10 @@ import io.fintechlabs.testframework.condition.common.ExpectGrantTypeErrorPage;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-reject-code-flow-test",
-	displayName = "FAPI-RW: Reject the code flow",
+	testName = "fapi-rw-id2-reject-code-flow-test",
+	displayName = "FAPI-RW-ID2: Reject the code flow",
 	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -21,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.scope",
 	}
 )
-public class RejectCodeFlow extends AbstractFAPIRWServerTestModule {
+public class RejectCodeFlow extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performAuthorizationFlow() {

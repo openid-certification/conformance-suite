@@ -14,9 +14,9 @@ import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEn
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureRequestObjectSignatureAlgorithmIsNotNone;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone;
 
-public abstract class AbstractFAPIOBEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPIRWEnsureRequestObjectSignatureAlgorithmIsNotNone {
+public abstract class AbstractFAPIOBEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone {
 
 	@Override
 	protected void performAuthorizationFlow() {

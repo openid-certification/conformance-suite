@@ -19,7 +19,7 @@ import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.FAPIRWEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMATLS;
+import io.fintechlabs.testframework.fapi.FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -47,7 +47,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIOBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMATLS extends FAPIRWEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMATLS {
+public class FAPIOBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMATLS extends FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey {
 
 	@Override
 	protected void performAuthorizationFlow() {

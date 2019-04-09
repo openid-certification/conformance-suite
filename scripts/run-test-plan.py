@@ -62,7 +62,7 @@ def run_test_plan(test_plan, config_file):
 
             state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
-            if re.match(r'(fapi-rw-client-.*)', module):
+            if re.match(r'(fapi-rw-id2-client-.*)', module):
                 os.putenv('CLIENTTESTMODE', 'fapi-rw')
                 if state == "WAITING":
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")

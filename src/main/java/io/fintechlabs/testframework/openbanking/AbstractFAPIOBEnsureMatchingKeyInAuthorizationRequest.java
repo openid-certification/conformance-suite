@@ -13,9 +13,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromToken
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureMatchingKeyInAuthorizationRequest;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest;
 
-public abstract class AbstractFAPIOBEnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIRWEnsureMatchingKeyInAuthorizationRequest {
+public abstract class AbstractFAPIOBEnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest {
 
 	@Override
 	protected void performAuthorizationFlow() {

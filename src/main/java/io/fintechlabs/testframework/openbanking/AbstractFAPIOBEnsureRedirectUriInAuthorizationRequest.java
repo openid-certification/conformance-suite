@@ -13,9 +13,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromToken
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureRedirectUriInAuthorizationRequest;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest;
 
-public abstract class AbstractFAPIOBEnsureRedirectUriInAuthorizationRequest extends AbstractFAPIRWEnsureRedirectUriInAuthorizationRequest {
+public abstract class AbstractFAPIOBEnsureRedirectUriInAuthorizationRequest extends AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest {
 
 	@Override
 	protected void performAuthorizationFlow() {
