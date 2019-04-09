@@ -56,7 +56,7 @@ public class TestDispatcher implements DataUtils {
 	 * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
 	 * This requests may or may not be user-facing so we don't assume anything about the response.
 	 */
-	@RequestMapping({ TEST_PATH + "**", TEST_MTLS_PATH + "**" })
+	@RequestMapping({TEST_PATH + "**", TEST_MTLS_PATH + "**"})
 	public Object handle(
 		HttpServletRequest req, HttpServletResponse res,
 		HttpSession session,
@@ -95,30 +95,36 @@ public class TestDispatcher implements DataUtils {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		// wrap up all the rest of the path as a string again, stripping off the initial bits
-		String restOfPath = Joiner.on("/").join(pathParts);
+		TestModule test = support.getRunningTestById(testId);
 
-		// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
-		JsonObject requestParts = new JsonObject();
-		requestParts.add("params", mapToJsonObject(params, false)); // don't change case of parameters
-		requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
-		requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
-
-		if (body != null) {
-			requestParts.addProperty("body", body);
-
-			// check the content type and try to parse it if it's JSON
-			if (contentType != null) {
-				if (contentType.equals(MediaType.APPLICATION_JSON)) {
-					// parse the body as json
-					requestParts.add("body_json", new JsonParser().parse(body));
-				}
-				// TODO: convert other data types?
-			}
+		if (test == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		TestModule test = support.getRunningTestById(testId);
-		if (test != null) {
+		try {
+
+			// wrap up all the rest of the path as a string again, stripping off the initial bits
+			String restOfPath = Joiner.on("/").join(pathParts);
+
+			// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
+			JsonObject requestParts = new JsonObject();
+			requestParts.add("params", mapToJsonObject(params, false)); // don't change case of parameters
+			requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
+			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
+
+			if (body != null) {
+				requestParts.addProperty("body", body);
+
+				// check the content type and try to parse it if it's JSON
+				if (contentType != null) {
+					if (contentType.equals(MediaType.APPLICATION_JSON)) {
+						// parse the body as json
+						requestParts.add("body_json", new JsonParser().parse(body));
+					}
+					// TODO: convert other data types?
+				}
+			}
+
 			Object response;
 			logIncomingHttpRequest(test, restOfPath, requestParts);
 			if (path.startsWith(TEST_PATH)) {
@@ -130,8 +136,11 @@ public class TestDispatcher implements DataUtils {
 			}
 			logOutgoingHttpResponse(test, restOfPath, response);
 			return response;
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+		} catch (TestFailureException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new TestFailureException(test.getId(), e);
 		}
 	}
 
@@ -149,7 +158,7 @@ public class TestDispatcher implements DataUtils {
 
 	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
 		if (response instanceof ResponseEntity) {
-			ResponseEntity responseEntity = (ResponseEntity)response;
+			ResponseEntity responseEntity = (ResponseEntity) response;
 			eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",
@@ -174,20 +183,17 @@ public class TestDispatcher implements DataUtils {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
 				logger.error("Caught an error in TestDispatcher while running the test, stopping the test: " + error.getMessage());
-				if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
-					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-					// ConditionError will get handled by the logging system, no need to display with stacktrace
-					test.setFinalError(error);
-					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
-						args(
-							"result", ConditionResult.FAILURE,
-							"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
-						));
-				}
 
-				test.fireTestFailure();
-				test.stop();
+				test.setFinalError(error);
+				eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
+					args(
+						"result", ConditionResult.FAILURE,
+						"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
+				));
 			}
+
+			test.fireTestFailure();
+			test.stop();
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {
 				// look for the user-facing annotation in the stack
