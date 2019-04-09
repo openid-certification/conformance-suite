@@ -13,9 +13,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromToken
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWUserRejectsAuthenticationCodeIdToken;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2UserRejectsAuthentication;
 
-public abstract class AbstractFAPIOBUserRejectsAuthenticationCodeIdToken extends AbstractFAPIRWUserRejectsAuthenticationCodeIdToken {
+public abstract class AbstractFAPIOBUserRejectsAuthenticationCodeIdToken extends AbstractFAPIRWID2UserRejectsAuthentication {
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

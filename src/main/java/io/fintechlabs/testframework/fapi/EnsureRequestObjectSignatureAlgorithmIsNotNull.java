@@ -21,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.jwks"
 	}
 )
-public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractFAPIRWServerTestModule {
+public class EnsureRequestObjectSignatureAlgorithmIsNotNull extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performAuthorizationFlow() {

@@ -21,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.scope",
 	}
 )
-public class RejectCodeFlow extends AbstractFAPIRWServerTestModule {
+public class RejectCodeFlow extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performAuthorizationFlow() {

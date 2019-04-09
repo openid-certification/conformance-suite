@@ -5,10 +5,10 @@ import io.fintechlabs.testframework.condition.as.AddOBIntentIdToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.ExtractOBIntentId;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountsResponse;
 import io.fintechlabs.testframework.condition.rs.GenerateOpenBankingAccountId;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWClientTestCodeIdToken;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientTest;
 
 
-public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractFAPIRWClientTestCodeIdToken {
+public abstract class AbstractFAPIOBClientTestCodeIdToken extends AbstractFAPIRWID2ClientTest {
 
 	@Override
 	protected void authorizationCodeGrantTypeProfile() {

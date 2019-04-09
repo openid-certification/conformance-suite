@@ -14,9 +14,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFrom
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureMATLSRequiredCodeIdToken;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired;
 
-public abstract class AbstractFAPIOBEnsureMATLSRequiredCodeIdToken extends AbstractFAPIRWEnsureMATLSRequiredCodeIdToken {
+public abstract class AbstractFAPIOBEnsureMATLSRequiredCodeIdToken extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
 
 	@Override
 	protected void performAuthorizationFlow() {

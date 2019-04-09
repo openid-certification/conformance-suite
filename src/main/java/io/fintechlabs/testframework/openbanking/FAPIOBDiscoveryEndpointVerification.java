@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.condition.client.CheckJwksUriIsHostedOnOpenB
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
-import io.fintechlabs.testframework.fapi.FAPIRWDiscoveryEndpointVerification;
+import io.fintechlabs.testframework.fapi.FAPIRWID2DiscoveryEndpointVerification;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -19,7 +19,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		}
 )
 
-public class FAPIOBDiscoveryEndpointVerification extends FAPIRWDiscoveryEndpointVerification {
+public class FAPIOBDiscoveryEndpointVerification extends FAPIRWID2DiscoveryEndpointVerification {
 
 	@Override
 	protected void performProfileSpecificChecks() {

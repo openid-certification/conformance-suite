@@ -17,9 +17,9 @@ import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEn
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaims;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureServerAcceptsRequestObjectWithMultipleAud;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud;
 
-public abstract class AbstractFAPIOBEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWEnsureServerAcceptsRequestObjectWithMultipleAud {
+public abstract class AbstractFAPIOBEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

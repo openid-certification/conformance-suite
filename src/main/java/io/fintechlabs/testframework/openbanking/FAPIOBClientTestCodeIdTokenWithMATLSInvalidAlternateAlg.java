@@ -2,7 +2,7 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.ForceIdTokenToBeSignedWithRS256;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWClientPrivateKeyExpectNothingAfterAuthorisationEndpoint;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(

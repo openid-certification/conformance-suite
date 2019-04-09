@@ -14,9 +14,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFrom
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWEnsureRequestObjectWithoutScopeFails;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails;
 
-public abstract class AbstractFAPIOBEnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWEnsureRequestObjectWithoutScopeFails {
+public abstract class AbstractFAPIOBEnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails {
 
 	@Override
 	protected void performAuthorizationFlow() {
