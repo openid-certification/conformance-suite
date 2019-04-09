@@ -1,8 +1,14 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
+import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
+import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -52,14 +58,17 @@ public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends Abs
 
 	@Override
 	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and expect an error, since this request does not
-		// meet any of the OB requirements for client authentication
-
 		createAuthorizationCodeRequest();
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndContinueOnFailure(CallTokenEndpointExpectingError.class, Condition.ConditionResult.FAILURE, "OB-5.2.2");
+		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 
 		fireTestFinished();
 	}
