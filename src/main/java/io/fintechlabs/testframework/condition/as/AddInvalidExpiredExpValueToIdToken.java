@@ -7,6 +7,8 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
+import java.time.Instant;
+
 public class AddInvalidExpiredExpValueToIdToken extends AbstractCondition {
 
 	public AddInvalidExpiredExpValueToIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
@@ -20,15 +22,13 @@ public class AddInvalidExpiredExpValueToIdToken extends AbstractCondition {
 
 		JsonObject claims = env.getObject("id_token_claims");
 
-		Long exp = env.getLong("id_token_claims", "exp");
+		Instant exp = Instant.now().minusSeconds(60 * 6);
 
-		Long expSubtract6Mins = (exp - 360);
-
-		claims.addProperty("exp", expSubtract6Mins);
+		claims.addProperty("exp", exp.getEpochSecond());
 
 		env.putObject("id_token_claims", claims);
 
-		logSuccess("Added expired exp value to ID token claims", args("id_token_claims", claims, "exp", expSubtract6Mins));
+		logSuccess("Added expired exp value to ID token claims", args("id_token_claims", claims, "exp", exp));
 
 		return env;
 
