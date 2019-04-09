@@ -22,6 +22,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-client-test-with-mtls-holder-of-key-invalid-missing-iss",
 		"fapi-rw-id2-client-test-with-mtls-holder-of-key-invalid-missing-nonce",
 		"fapi-rw-id2-client-test-with-mtls-holder-of-key-invalid-missing-shash",
+		"fapi-rw-id2-client-test-with-mtls-holder-of-key-valid-aud-as-array"
 	}
 )
 public class FAPIRWID2ClientTestWithMTLSHolderOfKeyTestPlan implements TestPlan {

@@ -29,7 +29,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * @author jricher
- *
  */
 public class SignIdToken extends AbstractCondition {
 
@@ -62,8 +61,6 @@ public class SignIdToken extends AbstractCondition {
 		}
 
 		try {
-			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
-
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
 
 			if (jwkSet.getKeys().size() == 1) {
@@ -90,19 +87,36 @@ public class SignIdToken extends AbstractCondition {
 
 				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
 
-				SignedJWT idToken = new SignedJWT(header, claimSet);
+				String idToken = performSigning(header, claims, signer);
 
-				idToken.sign(signer);
+				env.putString("id_token", idToken);
 
-				env.putString("id_token", idToken.serialize());
-
-				logSuccess("Signed the ID token", args("id_token", idToken.serialize()));
+				logSuccess("Signed the ID token", args("id_token", idToken));
 
 				return env;
 
 			} else {
 				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
 			}
+
+		} catch (ParseException e) {
+			throw error(e);
+		} catch (JOSEException e) {
+			throw error(e);
+		}
+
+	}
+
+	protected String performSigning(JWSHeader header, JsonObject claims, JWSSigner signer) {
+
+		try {
+			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
+
+			SignedJWT idToken = new SignedJWT(header, claimSet);
+
+			idToken.sign(signer);
+
+			return idToken.serialize();
 
 		} catch (ParseException e) {
 			throw error(e);
