@@ -116,7 +116,7 @@ public class LogApi {
 		if (publicOnly) {
 			Criteria criteria = new Criteria();
 			criteria.and("_id").is(id);
-			criteria.and("publish").in("summary", "everything");
+			criteria.and("publish").is("everything");
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(criteria.getCriteriaObject());
 		} else if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);

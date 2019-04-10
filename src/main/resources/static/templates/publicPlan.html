@@ -45,7 +45,9 @@
                 </div>
                 <div class="col-md-2">
 					<a class="btn btn-default btn-block collapse viewBtn" href="publicLogDetail.html?log=<%- encodeURIComponent(lastInstance) %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>
+                    <% if (plan.publish == "everything") { %>
                     <button class="btn btn-default btn-block collapse downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                    <% } %>
                 </div>
                 <div class="col-md-8">
                     <div class="row">
