@@ -1,14 +1,14 @@
-package io.fintechlabs.testframework.fapi;
+package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidIssValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-iss",
-	displayName = "FAPI-RW-ID2: client test - invalid iss in id_token from authorization_endpoint should be rejected (with private_key_jwt and mtls holder of key)",
+	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-iss",
+	displayName = "FAPI-RW-ID2-OB: client test - invalid iss in id_token from authorization_endpoint should be rejected (with mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -19,7 +19,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidIss extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidIss extends AbstractFAPIRWID2OBClientMTLSHolderOfKeyExpectNothingAfterAuthorisationEndpoint {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
