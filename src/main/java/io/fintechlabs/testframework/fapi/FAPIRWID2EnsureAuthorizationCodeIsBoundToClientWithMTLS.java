@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-registered-certificate-for-authorization-code-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure registered certificate for authorization code (with MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-authorization-code-is-bound-to-client-with-mtls",
+	displayName = "FAPI-RW-ID2: ensure authorization code is bound to client (with MTLS authentication)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -27,7 +27,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPRWID2EnsureRegisteredCertificateForAuthorizationCodeWithMTLS extends AbstractFAPRWID2EnsureRegisteredCertificateForAuthorizationCode {
+public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithMTLS extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
 
 	@Override
 	protected void createAuthorizationCodeRequest() {

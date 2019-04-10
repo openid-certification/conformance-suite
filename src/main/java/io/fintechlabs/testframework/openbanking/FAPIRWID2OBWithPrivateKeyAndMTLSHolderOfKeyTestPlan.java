@@ -17,7 +17,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ob-ensure-mtls-holder-of-key-required-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-ensure-matching-key-in-authorization-request-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-mtls-holder-of-key",
-		"fapi-rw-id2-ob-ensure-registered-certificate-for-authorization-code-with-private-key-and-mtls-holder-of-key",
+		"fapi-rw-id2-ob-ensure-authorization-code-is-bound-to-client-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-ensure-registered-redirect-uri-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-ensure-request-object-signature-algorithm-is-not-none-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-user-rejects-authentication-with-private-key-and-mtls-holder-of-key",

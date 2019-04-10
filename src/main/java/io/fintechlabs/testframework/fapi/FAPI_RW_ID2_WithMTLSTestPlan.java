@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ensure-mtls-holder-of-key-required-with-mtls",
 		"fapi-rw-id2-ensure-matching-key-in-authorization-request-with-mtls",
 		"fapi-rw-id2-ensure-redirect-uri-in-authorization-request-with-mtls",
-		"fapi-rw-id2-ensure-registered-certificate-for-authorization-code-with-mtls",
+		"fapi-rw-id2-ensure-authorization-code-is-bound-to-client-with-mtls",
 		"fapi-rw-id2-ensure-registered-redirect-uri-with-mtls",
 		"fapi-rw-id2-ensure-request-object-signature-algorithm-is-not-none-with-mtls",
 		"fapi-rw-id2-user-rejects-authentication-with-mtls",

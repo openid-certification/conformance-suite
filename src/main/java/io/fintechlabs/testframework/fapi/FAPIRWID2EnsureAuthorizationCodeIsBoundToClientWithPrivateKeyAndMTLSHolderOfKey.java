@@ -7,8 +7,8 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-registered-certificate-for-authorization-code-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure registered certificate for authorization code (with private key authentication and mtls holder of key)",
+	testName = "fapi-rw-id2-ensure-authorization-code-is-bound-to-client-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2: ensure authorization code is bound to client (with private key authentication and mtls holder of key)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -29,7 +29,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPRWID2EnsureRegisteredCertificateForAuthorizationCodeWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPRWID2EnsureRegisteredCertificateForAuthorizationCode {
+public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
 
 	@Override
 	protected void createAuthorizationCodeRequest() {

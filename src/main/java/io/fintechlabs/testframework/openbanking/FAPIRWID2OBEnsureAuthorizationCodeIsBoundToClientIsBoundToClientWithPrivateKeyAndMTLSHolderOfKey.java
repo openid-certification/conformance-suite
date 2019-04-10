@@ -1,14 +1,16 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-ensure-registered-certificate-for-authorization-code-with-mtls",
-	displayName = "FAPI-RW-ID2-OB: ensure registered certificate for authorization code (with MTLS authentication)",
+	testName = "fapi-rw-id2-ob-ensure-authorization-code-is-bound-to-client-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure authorization code is bound to client (with private key authentication and mtls holder of key)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -31,7 +33,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2OBEnsureRegisteredCertificateForAuthorizationCodeWithMTLS extends AbstractFAPIRWID2OBEnsureRegisteredCertificateForAuthorizationCode {
+public class FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureAuthorizationCodeIsBoundToClient {
 
 	@Override
 	protected void createClientCredentialsRequest() {
@@ -39,7 +41,11 @@ public class FAPIRWID2OBEnsureRegisteredCertificateForAuthorizationCodeWithMTLS 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 	@Override
@@ -47,7 +53,11 @@ public class FAPIRWID2OBEnsureRegisteredCertificateForAuthorizationCodeWithMTLS 
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 }
