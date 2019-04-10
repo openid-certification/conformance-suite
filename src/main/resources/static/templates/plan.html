@@ -45,7 +45,8 @@
                 <div class="col-md-2">
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
                     <% if (!plan.publish) { %>
-                    <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish</button>
+                    <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
+                    <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
                     <% } else { %>
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
