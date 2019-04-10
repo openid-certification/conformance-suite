@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-redirect-uri-in-authorization-request-code-id-token-with-mtls",
-	displayName = "FAPI-OB: ensure redirect URI in authorization request (code id_token with MTLS authentication)",
+	testName = "fapi-rw-id2-ob-ensure-redirect-uri-in-authorization-request-with-mtls",
+	displayName = "FAPI-RW-ID2-OB: ensure redirect URI in authorization request (with MTLS authentication)",
 	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

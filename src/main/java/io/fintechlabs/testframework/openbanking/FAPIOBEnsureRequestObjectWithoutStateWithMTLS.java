@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-request-object-without-state-with-mtls",
-	displayName = "FAPI-OB: ensure request object without state (with MTLS authentication)",
+	testName = "fapi-rw-id2-ob-ensure-request-object-without-state-with-mtls",
+	displayName = "FAPI-RW-ID2-OB: ensure request object without state (with MTLS authentication)",
 	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded), or must successfully authenticate and does not return state and does not return s_hash.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

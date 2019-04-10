@@ -78,9 +78,9 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-with-client-secret-basic-and-matls",
-	displayName = "FAPI-OB: client test (code with client_secret_basic authentication and MATLS)",
-	profile = "FAPI-OB",
+	testName = "fapi-rw-id2-ob-client-test-code-with-client-secret-basic-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: client test (code with client_secret_basic authentication and mtls holder of key)",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

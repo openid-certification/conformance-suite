@@ -8,9 +8,9 @@ import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls",
-	displayName = "FAPI-OB: client test (code id_token with private_key_jwt and MATLS)",
-	profile = "FAPI-OB",
+	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: client test (with private_key_jwt and mtls holder of key)",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

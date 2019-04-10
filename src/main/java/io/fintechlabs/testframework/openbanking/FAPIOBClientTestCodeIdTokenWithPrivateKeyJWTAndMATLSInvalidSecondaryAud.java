@@ -5,10 +5,10 @@ import io.fintechlabs.testframework.condition.as.AddSecondAudValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-secondary-aud",
-	displayName = "FAPI-OB: client test - multiple aud values in id_token from authorization_endpoint should be rejected (code id_token with private_key_jwt and MATLS)",
+	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-secondary-aud",
+	displayName = "FAPI-RW-ID2-OB: client test - multiple aud values in id_token from authorization_endpoint should be rejected (with private_key_jwt and mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that there are multiple aud values in the id_token from the authorization_endpoint, and this behaviour is not expected",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

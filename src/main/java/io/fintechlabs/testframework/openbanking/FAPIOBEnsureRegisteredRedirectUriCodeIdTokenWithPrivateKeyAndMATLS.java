@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-registered-redirect-uri-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-OB: ensure registered redirect URI (code id_token with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-registered-redirect-uri-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure registered redirect URI (with private key authentication and mtls holder of key)",
 	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

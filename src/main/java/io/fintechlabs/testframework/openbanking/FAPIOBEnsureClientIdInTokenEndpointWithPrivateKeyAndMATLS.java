@@ -12,10 +12,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-wrong-client-id-in-token-endpoint-fails-with-private-key-and-matls",
-	displayName = "FAPI-OB: ensure client id in token endpoint fails (with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-wrong-client-id-in-token-endpoint-fails-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure client id in token endpoint fails (with private key authentication and mtls holder of key)",
 	summary = "This test should end with the token endpoint returning an error message that the client is invalid.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

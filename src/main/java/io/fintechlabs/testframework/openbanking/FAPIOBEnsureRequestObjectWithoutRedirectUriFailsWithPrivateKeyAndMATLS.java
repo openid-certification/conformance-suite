@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-request-object-without-redirect-uri-fails-with-private-key-and-matls",
-	displayName = "FAPI-OB: ensure request object without redirect_uri fails (with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-request-object-without-redirect-uri-fails-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure request object without redirect_uri fails (with private key authentication and mtls holder of key)",
 	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

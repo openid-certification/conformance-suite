@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-server-handles-non-matching-intent-id-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-OB: server handles non matching openbanking_intent_id (code id_token with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: server handles non matching openbanking_intent_id (with private key authentication and mtls holder of key)",
 	summary = "This test registers an intentId with one client and then uses it with a different client. It should end with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

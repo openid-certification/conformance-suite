@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-registered-certificate-for-authorization-code-code-id-token-with-mtls",
-	displayName = "FAPI-OB: ensure registered certificate for authorization code (code id_token with MTLS authentication)",
+	testName = "fapi-rw-id2-ob-ensure-registered-certificate-for-authorization-code-with-mtls",
+	displayName = "FAPI-RW-ID2-OB: ensure registered certificate for authorization code (with MTLS authentication)",
 	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -6,9 +6,9 @@ import io.fintechlabs.testframework.condition.as.RemoveAtHashFromIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-matls-missing-athash",
-	displayName = "FAPI-OB: client test - id_token without an at_hash value from the authorization_endpoint should be rejected(code id_token with MATLS)",
-	profile = "FAPI-OB",
+	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-missing-athash",
+	displayName = "FAPI-RW-ID2-OB: client test - id_token without an at_hash value from the authorization_endpoint should be rejected(with mtls holder of key)",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

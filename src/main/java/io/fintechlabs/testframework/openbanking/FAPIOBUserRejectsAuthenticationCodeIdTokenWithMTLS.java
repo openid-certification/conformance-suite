@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-user-rejects-authentication-code-id-token-with-mtls",
-	displayName = "FAPI-OB: user rejects authentication (code id_token with MTLS authentication)",
+	testName = "fapi-rw-id2-ob-user-rejects-authentication-with-mtls",
+	displayName = "FAPI-RW-ID2-OB: user rejects authentication (with MTLS authentication)",
 	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

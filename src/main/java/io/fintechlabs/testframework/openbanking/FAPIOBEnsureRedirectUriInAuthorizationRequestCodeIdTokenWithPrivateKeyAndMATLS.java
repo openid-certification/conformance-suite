@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-redirect-uri-in-authorization-request-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-OB: ensure redirect URI in authorization request (code id_token with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-redirect-uri-in-authorization-request-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure redirect URI in authorization request (with private key authentication and mtls holder of key)",
 	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

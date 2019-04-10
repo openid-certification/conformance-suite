@@ -5,10 +5,10 @@ import io.fintechlabs.testframework.condition.as.RemoveExpFromIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-matls-invalid-missing-exp",
-	displayName = "FAPI-OB: client test - missing exp value in id_token from authorization_endpoint, should be rejected (code id_token with MATLS)",
+	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-exp",
+	displayName = "FAPI-RW-ID2-OB: client test - missing exp value in id_token from authorization_endpoint, should be rejected (with mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that the exp value in the id_token from the authorization_endpoint is missing",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

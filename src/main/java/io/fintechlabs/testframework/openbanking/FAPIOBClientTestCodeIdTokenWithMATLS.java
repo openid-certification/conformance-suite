@@ -5,9 +5,9 @@ import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-matls",
-	displayName = "FAPI-OB: client test (code id_token with MATLS)",
-	profile = "FAPI-OB",
+	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: client test (with mtls holder of key)",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

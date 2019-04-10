@@ -5,9 +5,9 @@ import io.fintechlabs.testframework.condition.as.AddInvalidOpenBankingIntentIdTo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-private-key-jwt-and-matls-invalid-openbanking-intent-id",
-	displayName = "FAPI-OB: client test (code id_token with private_key_jwt and MATLS and an invalid openbanking_intent_id value)",
-	profile = "FAPI-OB",
+	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-openbanking-intent-id",
+	displayName = "FAPI-RW-ID2-OB: client test (with private_key_jwt and mtls holder of key and an invalid openbanking_intent_id value)",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

@@ -10,10 +10,10 @@ import io.fintechlabs.testframework.fapi.FAPIRWID2DiscoveryEndpointVerification;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-		testName = "fapi-ob-discovery-end-point-verification",
-		displayName = "FAPI-OB: Discovery Endpoint Verification",
+		testName = "fapi-rw-id2-ob-discovery-end-point-verification",
+		displayName = "FAPI-RW-ID2-OB: Discovery Endpoint Verification",
 		summary = "This test ensures that the server's configurations (including scopes, response_types, grant_types etc) is containing the required value in the specification",
-		profile = "FAPI-OB",
+		profile = "FAPI-RW-ID2-OB",
 		configurationFields = {
 			"server.discoveryUrl",
 		}

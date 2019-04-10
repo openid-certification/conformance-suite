@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-matls-required-code-id-token-with-private-key-and-matls",
-	displayName = "FAPI-OB: ensure MATLS required (code id_token with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-mtls-holder-of-key-required-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure mtls holder of key required (with private key authentication and mtls holder of key)",
 	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -6,10 +6,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientPrivateKeyExpect
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-client-test-code-id-token-with-matls-invalid-alternate-alg",
-	displayName = "FAPI-OB: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected (code id_token with MATLS)",
+	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-alternate-alg",
+	displayName = "FAPI-RW-ID2-OB: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected (with mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

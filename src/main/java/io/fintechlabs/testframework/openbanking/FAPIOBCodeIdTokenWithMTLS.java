@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-code-id-token-with-mtls",
-	displayName = "FAPI-OB: code id_token (MTLS authentication)",
+	testName = "fapi-rw-id2-ob-with-mtls",
+	displayName = "FAPI-RW-ID2-OB: (MTLS authentication)",
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc), tests that certificate bound access tokens are implemented correctly and tries reusing an authorization code.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

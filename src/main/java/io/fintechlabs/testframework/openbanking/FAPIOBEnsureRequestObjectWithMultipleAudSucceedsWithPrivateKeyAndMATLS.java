@@ -9,10 +9,10 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-matls",
-	displayName = "FAPI-OB: ensure request object with good or bad values of aud succeeds (with private key authentication and MATLS)",
+	testName = "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-mtls-holder-of-key",
+	displayName = "FAPI-RW-ID2-OB: ensure request object with good or bad values of aud succeeds (with private key authentication and mtls holder of key)",
 	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -7,10 +7,10 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ob-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
-	displayName = "FAPI-OB: ensure request object with good or bad values of aud succeeds (with MTLS authentication)",
+	testName = "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
+	displayName = "FAPI-RW-ID2-OB: ensure request object with good or bad values of aud succeeds (with MTLS authentication)",
 	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
-	profile = "FAPI-OB",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
