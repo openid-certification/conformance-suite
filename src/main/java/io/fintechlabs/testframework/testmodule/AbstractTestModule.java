@@ -358,7 +358,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			logException(e);
 			logger.error("Generic error from underlying test framework", e);
 			fireTestFailure();
-			throw new TestFailureException(getId(), e.getMessage());
+			throw new TestFailureException(getId(), e);
 		}
 
 	}
