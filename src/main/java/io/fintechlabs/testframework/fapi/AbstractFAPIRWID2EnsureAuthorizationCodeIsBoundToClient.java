@@ -1,10 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
-import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
@@ -12,12 +11,15 @@ import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2Fro
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
+import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 
-public abstract class AbstractFAPRWID2EnsureRegisteredCertificateForAuthorizationCode extends AbstractFAPIRWID2ServerTestModule {
+public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performPostAuthorizationFlow() {
@@ -49,19 +51,21 @@ public abstract class AbstractFAPRWID2EnsureRegisteredCertificateForAuthorizatio
 
 		createAuthorizationCodeRequest();
 
-		// Check that a call to the token endpoint succeeds normally
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
 		// Now try with the wrong certificate
 
 		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
-		callAndStopOnFailure(CallTokenEndpointExpectingError.class, "OB-5.2.2-5");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		env.mapKey("client_jwks", "client_jwks2");
+
+		createAuthorizationCodeRequest();
+
+		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
+		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 
 		fireTestFinished();
 	}
-
 }
