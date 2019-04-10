@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidNonceValueToIdToken;
-import io.fintechlabs.testframework.openbanking.AbstractFAPIOBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(

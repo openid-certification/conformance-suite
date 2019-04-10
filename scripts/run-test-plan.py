@@ -67,7 +67,7 @@ def run_test_plan(test_plan, config_file):
                 if state == "WAITING":
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
-            if re.match(r'(fapi-ob-client-.*)', module):
+            if re.match(r'(fapi-rw-id2-ob-client-.*)', module):
                 print("\nopenbanking-test-mode")
                 os.putenv('CLIENTTESTMODE', 'fapi-ob')
                 if state == "WAITING":

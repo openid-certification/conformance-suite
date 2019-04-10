@@ -1,14 +1,14 @@
-package io.fintechlabs.testframework.fapi;
+package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidCHashValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-chash",
-	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and mtls holder of key and an invalid c_hash value)",
+	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-chash",
+	displayName = "FAPI-RW-ID2-OB: client test (with private_key_jwt and mtls holder of key and an invalid c_hash value)",
 	summary = "This test should end with the client displaying an error message that the c_hash value in the id_token from the authorization_endpoint does not match the c_hash value in the request object",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -19,12 +19,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidCHash extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidCHash extends AbstractFAPIRWID2OBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class, "OIDCC-3.3.2-10");
+		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class, "OIDCC-3.3.2.10");
 	}
 
 	@Override
