@@ -44,6 +44,14 @@
 
                 <div class="col-md-2">
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
+                    <% if (!plan.publish) { %>
+                    <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish</button>
+                    <% } else { %>
+                        <% if (FAPI_UI.currentUser.isAdmin) { %>
+                    <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
+                        <% } %>
+                    <a href="publicPlanDetail.html?plan=<%- plan._id %>" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
+                    <% } %>
                 </div>
 
             </div>

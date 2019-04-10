@@ -45,4 +45,9 @@ public interface TestPlanService {
 	 */
 	Map getPublicPlan(String id);
 
+	/**
+	 * @param id
+	 * @param publish
+	 */
+	boolean publishTestPlan(String id, String publish);
 }
