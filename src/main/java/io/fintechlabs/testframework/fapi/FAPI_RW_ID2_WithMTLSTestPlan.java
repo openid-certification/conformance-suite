@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ensure-request-object-signature-algorithm-is-not-none-with-mtls",
 		"fapi-rw-id2-user-rejects-authentication-with-mtls",
 		"fapi-rw-id2-ensure-signed-request-object-with-RS256-fails-with-mtls",
+		"fapi-rw-id2-ensure-authorization-request-without-request-object-fails-with-mtls",
 	}
 )
 public class FAPI_RW_ID2_WithMTLSTestPlan implements TestPlan {

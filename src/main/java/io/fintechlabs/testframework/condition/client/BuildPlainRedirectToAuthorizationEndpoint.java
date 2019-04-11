@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.gson.JsonElement;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
@@ -45,8 +46,19 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(authorizationEndpoint);
 
 		for (String key : authorizationEndpointRequest.keySet()) {
-			// assume everything is a string for now
-			builder.queryParam(key, authorizationEndpointRequest.get(key).getAsString());
+			JsonElement element = authorizationEndpointRequest.get(key);
+
+			// for nonce, state, client_id, redirect_uri, etc.
+			if (element.isJsonPrimitive()) {
+
+				builder.queryParam(key, element.getAsString());
+			}
+			// for claims
+			else {
+
+				builder.queryParam(key, element.toString());
+			}
+
 		}
 
 		String redirectTo = builder.toUriString();
