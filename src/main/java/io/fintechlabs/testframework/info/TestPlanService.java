@@ -46,8 +46,10 @@ public interface TestPlanService {
 	Map getPublicPlan(String id);
 
 	/**
-	 * @param id
-	 * @param publish
+	 * Sets published status of test plan and latest tests
+	 * @param id Plan ID
+	 * @param publish Publish status: null (unpublish), "summary" or "everything"
+	 * @return true for success; false if not allowed
 	 */
 	boolean publishTestPlan(String id, String publish);
 }
