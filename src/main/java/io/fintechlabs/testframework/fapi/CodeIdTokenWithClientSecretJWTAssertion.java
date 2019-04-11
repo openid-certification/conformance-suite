@@ -4,6 +4,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
+import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
@@ -22,7 +30,6 @@ import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndp
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointExpectingError;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -485,7 +492,13 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 
-			callAndStopOnFailure(CallTokenEndpointExpectingError.class);
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
+			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 
 			// put everything back where we found it
 			env.unmapKey("client");

@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-authorization-code-is-bound-to-client-with-mtls",
 	displayName = "FAPI-RW-ID2-OB: ensure authorization code is bound to client (with MTLS authentication)",
-	summary = "This test ensures the token endpoint returns an error if a valid request for one client is sent using another client's TLS certificate.",
+	summary = "This test ensures the token endpoint returns an error if a valid authorization code is used with another client's credentials.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
