@@ -287,10 +287,34 @@ public class DBTestPlanService implements TestPlanService {
 		if (!result.isUpdateOfExisting())
 			return false;
 
-		// We need to update all the test results as well
+		// We need to update all the latest test results (if possible) as well
+
+		// The goal of the mess below is to get the last value in each of the
+		// "instances" arrays for the modules in this plan.
+
+		Object testModules = mongoTemplate.getCollection(COLLECTION)
+				.findOne(BasicDBObjectBuilder.start()
+								.add("_id", id)
+								.get())
+				.get("modules");
+
+		Object[] latestTestIds = ((BasicDBList) testModules)
+				.stream()
+				.map(mod -> (BasicDBList) ((BasicDBObject) mod).get("instances"))
+				.filter(x -> !x.isEmpty())
+				.map(x -> x.get(x.size() - 1))
+				.toArray();
+
+		// And now we plug the values back into a separate query in true
+		// no-SQL fashion.
 
 		criteria = new Criteria();
+		criteria.and("_id").in(latestTestIds);
 		criteria.and("planId").is(id);
+
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		}
 
 		query = new Query(criteria);
 
