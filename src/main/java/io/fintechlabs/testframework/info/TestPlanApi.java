@@ -103,6 +103,27 @@ public class TestPlanApi implements DataUtils {
 
 	}
 
+	@PostMapping(value = "/plan/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> publishTestPlan(@PathVariable("id") String id, @RequestBody JsonObject config) {
+
+		String publish = null;
+		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
+			publish = Strings.emptyToNull(config.get("publish").getAsString());
+		} else {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+
+		if (!planService.publishTestPlan(id, publish)) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("id", id);
+		map.put("publish", publish);
+
+		return new ResponseEntity<>(map, HttpStatus.OK);
+	}
+
 	@GetMapping(value = "plan/info/{planName}")
 	public ResponseEntity<Object> getTestPlanInfo(@PathVariable("planName") String planName) {
 		TestPlanHolder holder = getTestPlans().get(planName);

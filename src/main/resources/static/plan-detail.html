@@ -105,6 +105,27 @@
 		</div>
 	</div>
 
+	<!-- Publish modal -->
+	<div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="errorLabel">Publish</h4>
+				</div>
+				<div class="modal-body">
+					Are you sure? This will make all keys, secrets, and all other test information publicly visible.
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal" data-publish="everything">Publish</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- resident DOM -->
 	<div class="container-fluid">
 		<div id="planDetail">
@@ -133,6 +154,12 @@
                        $('#configTestId').html(_.escape(planId));
                        $('#configModal').modal('show');
                    });
+
+				   // wire up publish button
+				   $('#publishBtn').click(function(evt) {
+					   evt.preventDefault();
+					   $('#publishModal').modal('show');
+				   });
 
 				   $('[data-module]').click(function(evt) {
 					   var module = $(this).data('module');
@@ -192,6 +219,28 @@
 					  }
 
 
+				   });
+
+				   $('[data-publish]').click(function(evt) {
+				       evt.preventDefault();
+
+				       var publish = $(this).data('publish');
+
+				       $.ajax({
+				           type: 'POST',
+				           url: '/plan/' + encodeURIComponent(planId) + '/publish',
+				           contentType: 'application/json',
+				           data: JSON.stringify({ publish: publish }),
+				           success: function(data) {
+				               // redirect to the published version or reload
+				               window.location.assign((publish ? '/publicPlanDetail.html' : '/plan-detail.html') + '?plan=' + encodeURIComponent(planId));
+				           },
+				           error: function(jqxhr, status, error) {
+				               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+				                   error: error
+				               });
+				           }
+				       });
 				   });
 
 			   },

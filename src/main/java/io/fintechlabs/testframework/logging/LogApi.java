@@ -116,7 +116,7 @@ public class LogApi {
 		if (publicOnly) {
 			Criteria criteria = new Criteria();
 			criteria.and("_id").is(id);
-			criteria.and("publish").in("summary", "everything");
+			criteria.and("publish").is("everything");
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(criteria.getCriteriaObject());
 		} else if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
@@ -254,8 +254,12 @@ public class LogApi {
 			Query query = new Query(criteria);
 			query.fields().include("publish");
 			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(query.getQueryObject());
+			if (testInfo == null)
+				return new ArrayList<DBObject>();
 			String publish = (String) testInfo.get("publish");
-			if (publish.equals("summary"))
+			if (publish == null)
+				return new ArrayList<DBObject>();
+			else if (publish.equals("summary"))
 				summaryOnly = true;
 			else if (publish.equals("everything"))
 				summaryOnly = false;

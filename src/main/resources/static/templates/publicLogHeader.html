@@ -50,7 +50,9 @@
                 </div>
 
                 <div class="col-md-2"> <!-- controls -->
+                    <% if (test.publish == "everything") { %>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                    <% } %>
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
                 </div>
 
