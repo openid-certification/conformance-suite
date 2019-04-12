@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.WriteResult;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
@@ -153,4 +154,43 @@ public class DBTestInfoService implements TestInfoService {
 		*/
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestInfoService#publishTest(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public boolean publishTest(String id, String publish) {
+
+		Criteria criteria = new Criteria();
+		criteria.and("_id").is(id);
+
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		}
+
+		if (publish == null) {
+			if (!authenticationFacade.isAdmin()) {
+				// Only admins may un-publish
+				criteria.and("publish").is(null);
+			}
+		} else if (publish.equals("summary")) {
+			if (!authenticationFacade.isAdmin()) {
+				// Non-admins may only increase publish-level
+				criteria.and("publish").in(null, "summary");
+			}
+		} else if (publish.equals("everything")) {
+			// OK
+		} else {
+			// Invalid publish value
+			return false;
+		}
+
+		Query query = new Query(criteria);
+		Update update = new Update();
+		update.set("publish", publish);
+
+		WriteResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
+
+		return result.isUpdateOfExisting();
+	}
 }
