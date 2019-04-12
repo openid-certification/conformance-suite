@@ -35,4 +35,12 @@ public interface TestInfoService {
 	 * @return
 	 */
 	ImmutableMap<String, String> getTestOwner(String id);
+
+	/**
+	 * Sets published status of test
+	 * @param id Test ID
+	 * @param publish Publish status: null (unpublish), "summary" or "everything"
+	 * @return true for success; false if not allowed
+	 */
+	boolean publishTest(String id, String publish);
 }

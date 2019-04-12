@@ -1,6 +1,8 @@
 package io.fintechlabs.testframework.info;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -11,8 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
@@ -26,6 +32,9 @@ public class TestInfoApi {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	@Autowired
+	private TestInfoService testInfoService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<DBObject>> getAllTests() {
@@ -59,6 +68,27 @@ public class TestInfoApi {
 			return new ResponseEntity<>(testInfo, HttpStatus.OK);
 		}
 
+	}
+
+	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> publishTestInfo(@PathVariable("id") String id, @RequestBody JsonObject config) {
+
+		String publish = null;
+		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
+			publish = Strings.emptyToNull(config.get("publish").getAsString());
+		} else {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+
+		if (!testInfoService.publishTest(id, publish)) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("id", id);
+		map.put("publish", publish);
+
+		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/public/api/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
