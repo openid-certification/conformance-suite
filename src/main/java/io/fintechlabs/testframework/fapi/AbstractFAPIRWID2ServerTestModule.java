@@ -548,20 +548,25 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 
 			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
 
-			// always the hybrid flow for OB, use the hash as the response
-			env.mapKey("authorization_endpoint_response", "callback_params");
-
-			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-
-			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
-
-			onAuthorizationCallbackResponse();
+			processCallback();
 
 			return "done";
 		});
 
 		return redirectToLogDetailPage();
 
+	}
+
+	protected void processCallback() {
+
+		// FAPI-RW always requires the hybrid flow, use the hash as the response
+		env.mapKey("authorization_endpoint_response", "callback_params");
+
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		onAuthorizationCallbackResponse();
 	}
 
 	protected void performProfileIdTokenValidation() {
