@@ -429,7 +429,7 @@ deployment_test_review:
   function install_build_dependencies() {
     apk -q add --no-cache --update curl tar gzip make ca-certificates openssl python py-pip
     update-ca-certificates
-    pip -q install docker-compose
+    pip -q install docker-compose==1.23.2
     docker-compose --version
 
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar zx
