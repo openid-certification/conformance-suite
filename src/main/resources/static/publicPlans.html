@@ -155,54 +155,59 @@
 		});
 
 		function loadAvailablePlans() {
-			return $.ajax({
-				type: 'GET',
-				url: "/public/api/plan",
-				data: {},
-				success: function(data) {
-
-					$('#plansListing thead').html(FAPI_UI.logTemplates.PUBLIC_PLAN_LISTING_HEADER());
-
-					_.each(data, function(plan) {
-						var logRow = $(FAPI_UI.logTemplates.PUBLIC_PLAN_LISTING({
-							plan: plan
-						}));
-						$('#plansListing tbody').append(logRow);
-
-						// wire up configuration button
-						$('.showConfigBtn', logRow).click(function(evt) {
-							evt.preventDefault();
-							$('#config').html(_.escape(JSON.stringify(plan.config, null, 4)));
-	                        $('#configTestId').html(_.escape(plan._id));
-							$('#configModal').modal('show');
+			return $('#plansListing').DataTable({
+				ajax: {
+					url: '/public/api/plan',
+					cache: true,
+					data: {},
+					dataSrc: '',
+					error: function(jqxhr, status, error) {
+						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+							error: error
 						});
-					});
-
-					var dt = $('#plansListing').DataTable({
-						order: [[3, "desc"]], // sort by the "date" column, descending, by default
-						columnDefs: [{
-							// disable sorting on the "modules" column
-							targets: 4,
-							orderable: false
+					}
+				},
+				columns: [
+					{
+						title: 'Instance ID',
+						data: '_id',
+						render: {
+							display: function(data) {
+								return '<a class="btn btn-default btn-block" href="publicPlanDetail.html?plan=' + data + '"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted">' + data + '</code></a>';
+							}
 						}
-						]
-					});
-
+					},
+					{ title: 'Name', data: 'planName' },
+					{ title: 'Description', data: 'description', defaultContent: '' },
+					{
+						title: 'Started',
+						data: 'started',
+						render: {
+							display: function(data) { return new Date(data).toLocaleString(); }
+						}
+					},
+					{
+						title: 'Modules',
+						data: 'modules',
+						render: {
+							filter: function(data) { return _.map(data, 'testModule'); },
+							display: function(data) {
+								return _.map(data, function(module) {
+									return '<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="' + module.testModule + '" data-instance="' + (module.instances && module.instances[0] || '') + '"> </span>';
+								}).join('');
+							}
+						},
+						orderable: false
+					}
+				],
+				drawCallback: function() {
 		            $('[data-toggle="tooltip"]').tooltip({
 		                container: 'body'
 		            });
 
-					fetchTestResults(dt);
-					dt.on('draw', function() {
-						fetchTestResults(dt);
-					});
-
+					fetchTestResults($('#plansListing').DataTable());
 				},
-				error: function(jqxhr, status, error) {
-					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-						error: error
-					});
-				}
+				order: [[3, "desc"]] // sort by the "date" column, descending, by default
 			});
 		}
 

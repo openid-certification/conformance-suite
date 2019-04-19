@@ -253,14 +253,6 @@ var FAPI_UI = {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
 
-					$.get('templates/plansListEntry.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_LISTING = _.template(data);
-					}),
-
-					$.get('templates/plansListHeader.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_LISTING_HEADER = _.template(data);
-					}),
-
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					})
@@ -269,14 +261,6 @@ var FAPI_UI = {
 
 		loadPublicPlanListTemplates: function() {
 			return $.when(
-					$.get('templates/publicPlansListEntry.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_PLAN_LISTING = _.template(data);
-					}),
-
-					$.get('templates/publicPlansListHeader.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_PLAN_LISTING_HEADER = _.template(data);
-					}),
-
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					})
