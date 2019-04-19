@@ -545,6 +545,7 @@
 
 			try {
 				localSavedConfig = localStorage ? JSON.parse(localStorage.getItem('savedConfig')) : null;
+				clearSavedConfig();
 			} catch (e) {
 				localSavedConfig = null;
 			}
