@@ -162,44 +162,102 @@
 		 *
 		 */
 		function loadAvailableLogs() {
-			return $.ajax({
-				type: 'GET',
-				url: "/log",
-				data: {},
-				success: function(logsList) {
-
-					$('#logsListing thead').html(FAPI_UI.logTemplates.LOG_LISTING_HEADER());
-
-					_.each(logsList, function(test) {
-						var logRow = $(FAPI_UI.logTemplates.LOG_LISTING({
-							test: test
-						}));
-						$('#logsListing tbody').append(logRow);
-
-						// wire up configuration button
-						$('.showConfigBtn', logRow).click(function(evt) {
-							evt.preventDefault();
-							$('#config').html(_.escape(JSON.stringify(test.config, null, 4)));
-	                        $('#configTestId').html(_.escape(test.testId));
-							$('#configModal').modal('show');
+			return $('#logsListing').DataTable({
+				ajax: {
+					url: '/log',
+					cache: true,
+					data: {},
+					dataSrc: '',
+					error: function(jqxhr, status, error) {
+						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+							error: error
 						});
-					});
-
-					$('#logsListing').DataTable({
-						order: [[4, "desc"]], // sort by the "date" column, descending, by default
-						columnDefs: [{
-							targets: 1,
-							orderable: false
-						// disable sorting on the "view config" button
-						}]
-					});
-
+					}
 				},
-				error: function(jqxhr, status, error) {
-					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-						error: error
+				columns: [
+					{
+						title: 'Instance ID',
+						data: 'testId',
+						render: {
+							display: function(data) {
+								return '<a class="btn btn-default btn-block" href="log-detail.html?log=' + encodeURIComponent(data) + '"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted">' + data + '</code></a>';
+							}
+						}
+					},
+					{
+						title: 'Config',
+						data: 'config',
+						render: {
+							'_': function(data) { return JSON.stringify(data); },
+							'display': function() { return '<button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>'; }
+						},
+						createdCell: function(cell) { $(cell).addClass('configColumn'); },
+						orderable: false
+					},
+					{ title: 'Name', data: 'testName' },
+					{ title: 'Description', data: 'description', defaultContent: '' },
+					{
+						title: 'Started',
+						data: 'started',
+						render: {
+							display: function(data) { return new Date(data).toLocaleString(); }
+						}
+					},
+					{
+						title: 'Plan ID',
+						data: 'planId',
+						defaultContent: '',
+						render: {
+							display: function(data) {
+								if (data)
+									return '<a class="btn btn-default btn-block" href="plan-detail.html?plan=' + encodeURIComponent(data) + '"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted">' + data + '</code></a>';
+								else
+									return '';
+							}
+						}
+					},
+					{
+						title: 'Status',
+						data: 'status',
+						defaultContent: '',
+						createdCell: function(cell, cellData) {
+							$(cell).addClass('testStatusResultBlock testStatus-' + (cellData ? cellData.toLowerCase() : 'testStatus-unknown'));
+						}
+					},
+					{
+						title: 'Result',
+						data: 'result',
+						defaultContent: '',
+						createdCell: function(cell, cellData) {
+							$(cell).addClass('testStatusResultBlock testResult-' + (cellData ? cellData.toLowerCase() : 'testResult-unknown'));
+						}
+					},
+					{
+						title: 'Owner',
+						data: function(row, type) {
+							if (type == 'filter' || type == 'sort')
+								return row.owner ? row.owner.iss +  ' ' + row.owner.sub : '';
+							else
+								return { owner: row.owner ? row.owner : {} };
+						},
+						render: {
+							display: function(data) {
+								return FAPI_UI.logTemplates.OWNER(data);
+							}
+						},
+						visible: FAPI_UI.currentUser.isAdmin
+					}
+				],
+				createdRow: function(row, data) {
+					// wire up configuration button
+					$('.showConfigBtn', row).click(function(evt) {
+						evt.preventDefault();
+						$('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
+                        $('#configTestId').html(_.escape(data.testId));
+						$('#configModal').modal('show');
 					});
-				}
+				},
+				order: [[4, "desc"]] // sort by the "date" column, descending, by default
 			});
 		}
 	</script>

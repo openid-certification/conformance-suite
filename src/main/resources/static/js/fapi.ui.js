@@ -181,14 +181,6 @@ var FAPI_UI = {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					}),
 
-					$.get('templates/logsListEntry.html', function(data) {
-						FAPI_UI.logTemplates.LOG_LISTING = _.template(data);
-					}),
-
-					$.get('templates/logsListHeader.html', function(data) {
-						FAPI_UI.logTemplates.LOG_LISTING_HEADER = _.template(data);
-					}),
-
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					})
@@ -198,14 +190,6 @@ var FAPI_UI = {
 
 		loadPublicLogListTemplates: function() {
 			return $.when(
-					$.get('templates/publicLogsListEntry.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_LOG_LISTING = _.template(data);
-					}),
-
-					$.get('templates/publicLogsListHeader.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_LOG_LISTING_HEADER = _.template(data);
-					}),
-
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
 					})
