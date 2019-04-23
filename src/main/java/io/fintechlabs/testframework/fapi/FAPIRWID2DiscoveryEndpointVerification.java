@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointAuthorizat
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointDiscoveryUrl;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
+import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIssuer;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
@@ -41,6 +42,7 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");

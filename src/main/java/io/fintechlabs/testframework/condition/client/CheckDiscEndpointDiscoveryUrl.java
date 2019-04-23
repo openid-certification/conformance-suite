@@ -47,7 +47,13 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 				throw error(errorMessageNotJsonPrimitive, args("Failure", configUrl));
 			} else {
 				try {
-					URL extractedUrl = new URL(configUrl.getAsString());
+					String discoveryUrl = configUrl.getAsString();
+
+					if (!discoveryUrl.endsWith("/.well-known/openid-configuration")) {
+						throw error("discoveryUrl was missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));
+					}
+
+					URL extractedUrl = new URL(discoveryUrl);
 					if ( !extractedUrl.getProtocol().equals(requiredProtocol)) {
 						throw error(errorMessageNotRequiredProtocol, args("actual", extractedUrl.getProtocol(), "expected",requiredProtocol));
 					}
