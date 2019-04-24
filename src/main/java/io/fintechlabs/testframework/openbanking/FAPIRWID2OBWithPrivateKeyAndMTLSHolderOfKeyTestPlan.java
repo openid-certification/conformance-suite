@@ -36,6 +36,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ob-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-ensure-signed-request-object-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-ensure-authorization-request-without-request-object-fails-with-private-key-and-mtls-holder-of-key",
+		"fapi-rw-id2-ob-ensure-client-assertion-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
 	}
 )
 public class FAPIRWID2OBWithPrivateKeyAndMTLSHolderOfKeyTestPlan implements TestPlan {
