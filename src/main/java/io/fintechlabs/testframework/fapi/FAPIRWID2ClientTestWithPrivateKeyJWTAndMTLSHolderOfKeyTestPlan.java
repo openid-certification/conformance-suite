@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan",
 	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and mtls holder of key) Test Plan",
-	profile = "FAPI-rw-id2",
+	profile = "FAPI-RW-ID2",
 	testModuleNames = {
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-shash",
@@ -24,6 +24,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-iss",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-nonce",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-shash",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-valid-aud-as-array"
 	}
 )
 public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyTestPlan implements TestPlan {

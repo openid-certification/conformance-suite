@@ -21,7 +21,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfkey extends AbstractFAPIRWID2ClientTest {
+public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKey extends AbstractFAPIRWID2ClientTest {
 
 	@Override
 	protected void addTokenEndpointAuthMethodSupported() {
