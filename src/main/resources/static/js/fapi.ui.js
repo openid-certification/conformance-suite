@@ -388,7 +388,11 @@ var FAPI_UI = {
 				if (error.message) {
 					msg += " : " + error.message
 				}
-				$('#errorMessage').html(_.escape(msg));
+				var msgHtml = _.escape(msg);
+				if (error.error == "Unauthorized") {
+					msgHtml += "<br><br>Refresh the page to renew your session";
+				}
+				$('#errorMessage').html(msgHtml);
 			} else {
 				$('#errorMessage').html('Error from server.');
 			}

@@ -525,7 +525,47 @@
 			});
 		}
 
+		function saveConfig(config) {
+			var localStorage = tryGetStorage('sessionStorage');
+			if (localStorage) {
+				localStorage.setItem('savedConfig', JSON.stringify(config));
+			}
+		}
+
+		function clearSavedConfig() {
+			var localStorage = tryGetStorage('sessionStorage');
+			if (localStorage) {
+				localStorage.removeItem('savedConfig');
+			}
+		}
+
 		function loadLastConfig() {
+			var localStorage = tryGetStorage('sessionStorage');
+			var localSavedConfig;
+
+			try {
+				localSavedConfig = localStorage ? JSON.parse(localStorage.getItem('savedConfig')) : null;
+				clearSavedConfig();
+			} catch (e) {
+				localSavedConfig = null;
+			}
+
+			// If we left the page with an unsaved config, restore it now.
+
+			if (localSavedConfig) {
+				$('#config').val(localSavedConfig.config);
+				if (localSavedConfig.testName) {
+					$('#singleTestSelector').prop('checked', true).change();
+					$('#testSelect option[value=' + localSavedConfig.testName + ']').prop('selected', true).change();
+				} else if (localSavedConfig.planName) {
+					$('#singleTestSelector').prop('checked', false).change();
+					$('#planSelect option[value=' + localSavedConfig.planName + ']').prop('selected', true).change();
+				}
+				return true;
+			}
+
+			// Otherwise, try to get a config from the server
+
 			return $.getJSON('/lastconfig', function(data) {
 
 				if (data.config) {
@@ -575,12 +615,16 @@
 
 				FAPI_UI.showBusy('Creating test...');
 
+				// Stash the config in case we are unable to create the test
+				saveConfig({ config: $('#config').val(), testName: testName });
+
 				$.ajax({
 					url: '/runner/?test=' + encodeURIComponent(testName),
 					type: 'POST',
 					contentType: 'application/json',
 					data: $('#config').val(),
 					success: function(data, status) {
+						clearSavedConfig();
 						// forward to the test info page
 						window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
 					},
@@ -614,12 +658,16 @@
 
                 FAPI_UI.showBusy('Creating plan...');
 
+				// Stash the config in case we are unable to create the test
+				saveConfig({ config: $('#config').val(), planName: planName });
+
                 $.ajax({
                 	   url: '/plan?planName=' + encodeURIComponent(planName),
                 	   type: 'POST',
                 	   contentType: 'application/json',
                 	   data: $('#config').val(),
                 	   success: function(data, status) {
+                		   clearSavedConfig();
                 		   // forward to the test plan page
                 		   window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
                 	   },
@@ -916,6 +964,19 @@
 			return $.getJSON('/api/server', function(data) {
 				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
 			});
+		}
+
+		function tryGetStorage(type) {
+			// simple check to see whether browser storage is usable
+			try {
+				var storage = window[type];
+				var x = '__storage_test__';
+				storage.setItem(x, x);
+				storage.removeItem(x);
+				return storage;
+			} catch (e) {
+				return null;
+			}
 		}
 	</script>
 
