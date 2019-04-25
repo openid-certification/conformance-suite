@@ -170,7 +170,7 @@ public class ConditionCallBuilder extends TestExecutionUnit {
 	 *
 	 * See Environment.getElement(String, String)
 	 *
-	 * @param objId The object in the envrionment to search
+	 * @param objId The object in the environment to search
 	 * @param path The path within the object to retrieve, in dot-separated format such as "foo.bar"
 	 * @return this builder
 	 */
