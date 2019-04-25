@@ -456,7 +456,8 @@ var FAPI_UI = {
 			"RFC7523-" : "https://tools.ietf.org/html/rfc7523",
 			"HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html",
 			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2",
-			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html"
+			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html",
+			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html"
 		},
 
 		testJSON : {}
