@@ -20,6 +20,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-alternate-alg",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-exp",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-expired-exp",
+		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-expired-iat",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-aud",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-iss",
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-nonce",
