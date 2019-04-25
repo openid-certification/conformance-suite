@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ob-ensure-request-object-with-bad-aud-fails-with-mtls",
 		"fapi-rw-id2-ob-ensure-signed-request-object-with-RS256-fails-with-mtls",
 		"fapi-rw-id2-ob-ensure-authorization-request-without-request-object-fails-with-mtls",
+		"fapi-rw-id2-ob-ensure-response-mode-query-with-mtls",
 	}
 )
 public class FAPIRWID2OBWithMTLSTestPlan implements TestPlan {
