@@ -5,6 +5,8 @@ import java.security.Security;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.fintechlabs.testframework.info.TestInfoService;
+import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.ui.ServerInfoTemplate;
 import org.apache.catalina.connector.Connector;
@@ -26,6 +28,12 @@ import javax.annotation.PostConstruct;
 public class Application {
 	@Autowired
 	private ServerInfoTemplate serverInfoTemplate;
+
+	@Autowired
+	private TestInfoService testInfoService;
+
+	@Autowired
+	private TestPlanService testPlanService;
 
 	@Autowired
 	private EventLog eventLog;
@@ -92,6 +100,8 @@ public class Application {
 	@PostConstruct
 	private void doPostConstruct(){
 		serverInfoTemplate.initServerInfo();
+		testInfoService.createIndexes();
+		testPlanService.createIndexes();
 		eventLog.createIndexes();
 	}
 }

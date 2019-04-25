@@ -36,6 +36,7 @@ import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.info.DBTestInfoService;
+import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.security.KeyManager;
 
@@ -60,7 +61,7 @@ public class LogApi {
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<DBObject>> getAllTests() {
+	public ResponseEntity<Object> getAllTests(PaginationRequest page) {
 
 		DBObject queryFilter;
 		if (authenticationFacade.isAdmin()) {
@@ -73,22 +74,12 @@ public class LogApi {
 		@SuppressWarnings("unchecked")
 		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId", queryFilter);
 
-		List<DBObject> results = new ArrayList<>(testIds.size());
+		Criteria criteria = new Criteria();
+		criteria.and("_id").in(testIds);
 
-		for (String testId : testIds) {
-			// fetch the test object from the info log if available
-			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(testId);
+		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), new Query(criteria));
 
-			if (testInfo == null) {
-				// make a fake document with just the ID
-				results.add(BasicDBObjectBuilder.start("_id", testId).get());
-			} else {
-				// otherwise, add everything
-				results.add(testInfo);
-			}
-		}
-
-		return new ResponseEntity<>(results, HttpStatus.OK);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 
 	}
 
@@ -197,7 +188,7 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/public/api/log")
-	public ResponseEntity<Object> getAllPublicTests() {
+	public ResponseEntity<Object> getAllPublicTests(PaginationRequest page) {
 		@SuppressWarnings("unchecked")
 		List<String> testIds = mongoTemplate.getCollection(DBEventLog.COLLECTION).distinct("testId");
 
@@ -216,9 +207,9 @@ public class LogApi {
 			.include("status")
 			.include("result");
 
-		List<DBObject> results = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(query.getQueryObject()).toArray();
+		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), query);
 
-		return new ResponseEntity<>(results, HttpStatus.OK);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/public/api/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

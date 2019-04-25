@@ -165,11 +165,22 @@
 		 */
 		function loadAvailablePlans() {
 			return $('#plansListing').DataTable({
+				serverSide: true,
 				ajax: {
 					url: '/plan',
 					cache: true,
-					data: {},
-					dataSrc: '',
+					data: function(data) {
+						// Translate query parameters into a simpler schema
+						return {
+							draw: data.draw,
+							start: data.start,
+							length: data.length,
+							search: data.search.value,
+							order: _.map(data.order, function(x) {
+								return data.columns[x.column].data + ',' + x.dir;
+							}).join(',')
+						};
+					},
 					error: function(jqxhr, status, error) {
 						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 							error: error
@@ -209,7 +220,6 @@
 						title: 'Modules',
 						data: 'modules',
 						render: {
-							filter: function(data) { return _.map(data, 'testModule'); },
 							display: function(data) {
 								return _.map(data, function(module) {
 									return '<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="' + module.testModule + '" data-instance="' + (module.instances && module.instances[0] || '') + '"> </span>';
@@ -220,12 +230,7 @@
 					},
 					{
 						title: 'Owner',
-						data: function(row, type) {
-							if (type == 'filter' || type == 'sort')
-								return row.owner ? row.owner.iss +  ' ' + row.owner.sub : '';
-							else
-								return { owner: row.owner ? row.owner : {} };
-						},
+						data: function(row) { return { owner: row.owner ? row.owner : {} }; },
 						render: {
 							display: function(data) {
 								return FAPI_UI.logTemplates.OWNER(data);
