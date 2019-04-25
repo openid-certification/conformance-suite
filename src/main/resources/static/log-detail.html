@@ -132,6 +132,27 @@
 		</div>
 	</div>
 
+	<!-- Rerun test confirmation modal -->
+	<div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">Run test confirmation</h4>
+				</div>
+				<div class="modal-body">
+					Are you sure you want to rerun this test? It is owned by a different user.
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- resident DOM -->
 	<div class="container-fluid">
 		<div id="logDetail">
@@ -305,29 +326,11 @@
 
 	                    $('#reloadBtn').click(function(evt) {
 	                        evt.preventDefault();
-
-	                        FAPI_UI.showBusy('Creating a clone of this test...');
-
-	                        $.ajax({
-	                            url: '/runner/?test=' + encodeURIComponent(data.testName) + (data.planId ? '&plan=' + encodeURIComponent(data.planId) : ''),
-	                            type: 'POST',
-	                            contentType: 'application/json',
-								// pass config if necessary, which it isn't if the test is part of a plan
-	                            data: data.planId ? undefined : JSON.stringify(data.config),
-	                            success: function(data, status) {
-	                                // we need to switch to the new window now
-	                                var newUrl = window.location.href.replace(testId, data.id);
-	                                window.location.assign(newUrl);
-	                            },
-	                            error: function(jqxhr, status, error) {
-	                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-	                                    error: error
-	                                });
-	                                // don't update anymore
-	                                stopReloader();
-	                            }
-	                        });
-
+	                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
+								$('#reRunTestModal').modal('show');
+							} else {
+	                        	runTest(data.testName, data.planId, data.config, testId);
+							}
 	                    });
 
 	                    // wire up configuration button
@@ -467,6 +470,11 @@
 	                        })
 
 	                    }
+
+						$('#reRunTestModalBtn').click(function(evt) {
+							evt.preventDefault();
+							runTest(data.testName, data.planId, data.config, testId);
+						});
 					}
 
 					// update the status and result regardless of whether we rendered the header in full
@@ -633,6 +641,29 @@
             }).then(function() {
                 return getActive(testId);
             });
+		}
+
+		function runTest(testName, planId, config, oldTestId) {
+			FAPI_UI.showBusy('Creating a clone of this test...');
+			$.ajax({
+				url: '/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : ''),
+				type: 'POST',
+				contentType: 'application/json',
+				// pass config if necessary, which it isn't if the test is part of a plan
+				data: planId ? undefined : JSON.stringify(config),
+				success: function(data, status) {
+					// we need to switch to the new window now
+					var newUrl = window.location.href.replace(oldTestId, data.id);
+					window.location.assign(newUrl);
+				},
+				error: function(jqxhr, status, error) {
+					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+						error: error
+					});
+					// don't update anymore
+					stopReloader();
+				}
+			});
 		}
 
 		$(document).ready(function() {

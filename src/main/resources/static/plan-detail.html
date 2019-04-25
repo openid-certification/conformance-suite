@@ -126,6 +126,27 @@
 		</div>
 	</div>
 
+	<!-- Rerun test confirmation modal -->
+	<div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">Run test confirmation</h4>
+				</div>
+				<div class="modal-body">
+					Are you sure you want to rerun this test? It is owned by a different user.
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- resident DOM -->
 	<div class="container-fluid">
 		<div id="planDetail">
@@ -162,26 +183,14 @@
 				   });
 
 				   $('[data-module]').click(function(evt) {
-					   var module = $(this).data('module');
                        evt.preventDefault();
-
-                       FAPI_UI.showBusy('Creating a new test for ' + module + '...');
-
-                       $.ajax({
-                           url: '/runner/?test=' + encodeURIComponent(module) + '&plan=' + encodeURIComponent(planId),
-                           type: 'POST',
-                           contentType: 'application/json',
-                           success: function(testData, status) {
-                               // we need to switch to the new window now
-                               window.location.assign('/log-detail.html?log=' + encodeURIComponent(testData.id));
-                           },
-                           error: function(jqxhr, status, error) {
-                               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                   error: error
-                               });
-                           }
-                       });
-
+					   var testName = $(this).data('module');
+					   if(FAPI_UI.currentUser.sub !== data.owner.sub){
+						   $('#reRunTestModalBtn').attr('test-name', testName);
+						   $('#reRunTestModal').modal('show');
+					   } else {
+						   runTest(testName, planId);
+					   }
 				   });
 
 				   $('[data-instance-id]').each(function() {
@@ -243,6 +252,12 @@
 				       });
 				   });
 
+				   $('#reRunTestModalBtn').click(function(evt) {
+					   evt.preventDefault();
+					   var testName = $('#reRunTestModalBtn').attr('test-name');
+					   runTest(testName, planId);
+				   });
+
 			   },
                error: function(jqxhr, status, error) {
                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -253,6 +268,24 @@
 
 	   }
 
+	   function runTest(testName, planId) {
+		   FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+
+		   $.ajax({
+			   url: '/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId),
+			   type: 'POST',
+			   contentType: 'application/json',
+			   success: function(testData, status) {
+				   // we need to switch to the new window now
+				   window.location.assign('/log-detail.html?log=' + encodeURIComponent(testData.id));
+			   },
+			   error: function(jqxhr, status, error) {
+				   FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+					   error: error
+				   });
+			   }
+		   });
+	   }
 
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
