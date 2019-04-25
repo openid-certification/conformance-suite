@@ -71,6 +71,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
+		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 
@@ -78,6 +79,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		// extract second client
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		// get the second client's JWKs
@@ -417,6 +419,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
+			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 

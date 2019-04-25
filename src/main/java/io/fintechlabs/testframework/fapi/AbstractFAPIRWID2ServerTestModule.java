@@ -81,7 +81,9 @@ import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
@@ -156,11 +158,13 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 		if(logEndTestIfAlgIsNotPS256()){return;}
 
 		// Test won't pass without MATLS, but we'll try anyway (for now)
+		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 
 		// extract second client
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		// get the second client's JWKs
@@ -377,6 +381,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
+			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 

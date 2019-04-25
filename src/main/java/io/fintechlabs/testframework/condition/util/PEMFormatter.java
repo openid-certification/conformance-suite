@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.condition.util;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +14,20 @@ import java.util.regex.Pattern;
 public class PEMFormatter {
 
 	private static final Pattern PEM_PATTERN = Pattern.compile("^-----BEGIN [^-]+-----$(.*?)^-----END [^-]+-----$", Pattern.MULTILINE | Pattern.DOTALL);
+
+	public static List<String> extractPEMHeader(String in) {
+
+		Matcher m = PEM_PATTERN.matcher(in);
+
+		List<String> headerList = new ArrayList<>();
+		if (m.find()) {
+			do {
+				headerList.add(in.substring(m.start(), m.start(1)));
+			} while(m.find());
+		}
+
+		return headerList;
+	}
 
 	public static String stripPEM(String in) throws IllegalArgumentException {
 
