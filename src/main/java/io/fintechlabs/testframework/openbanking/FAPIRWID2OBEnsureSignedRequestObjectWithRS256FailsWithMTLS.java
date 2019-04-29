@@ -1,9 +1,13 @@
 package io.fintechlabs.testframework.openbanking;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -44,5 +48,24 @@ public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+	}
+
+	@Override
+	protected boolean logEndTestIfAlgIsNotPS256() {
+
+		// ES256 keys are supplied, but we can't do this and the test module should probably just immediately exit successfully
+		// We don't need to check null for jwks and keys because it was checked the steps before
+		// We get first key to compare with PS256 because we use it to sign request_object or client_assertion
+		JsonObject jwks = env.getObject("client_jwks");
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+		JsonObject key = keys.get(0).getAsJsonObject();
+		String alg = key.get("alg").getAsString();
+		if (!alg.equals("PS256")) {
+			callAndContinueOnFailure(TestCanOnlyBePerformedForPS256Alg.class, Condition.ConditionResult.FAILURE);
+			fireTestFinished();
+			return true;
+		}
+
+		return false;
 	}
 }
