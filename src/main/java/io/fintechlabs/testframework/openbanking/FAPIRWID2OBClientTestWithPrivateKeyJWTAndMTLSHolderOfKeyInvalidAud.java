@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-aud",
-	displayName = "FAPI-RW-ID2-OB: client test - invalid aud in id_token from authorization_endpoint should be rejected (with private_key_jwt and mtls holder of key)",
+	displayName = "FAPI-RW-ID2-OB: client test - invalid aud in id_token from authorization_endpoint, should be rejected (with private_key_jwt and MTLS)",
 	summary = "This test should end with the client displaying an error message that the aud value in the id_token does not match the client id",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {

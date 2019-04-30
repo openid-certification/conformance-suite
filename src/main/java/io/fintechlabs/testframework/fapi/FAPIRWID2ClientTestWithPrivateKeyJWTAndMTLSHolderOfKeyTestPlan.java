@@ -5,7 +5,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan",
-	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and mtls holder of key) Test Plan",
+	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and MTLS) Test Plan",
 	profile = "FAPI-RW-ID2",
 	testModuleNames = {
 		"fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key",

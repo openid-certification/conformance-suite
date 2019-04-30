@@ -6,7 +6,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2-OB: client test (with mtls holder of key)",
+	displayName = "FAPI-RW-ID2-OB: client test (with MTLS)",
+	summary = "Successful test case scenario where response_type used is code id_token combined with MTLS encryption. Requires that the client supports OpenBanking UK specific features like obtaining an intent id prior to authorisation.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",

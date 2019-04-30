@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-valid-aud-as-array",
-	displayName = "FAPI-RW-ID2-OB: client test - valid aud in id_token as data type array(code id_token with MATLS)",
+	displayName = "FAPI-RW-ID2-OB: client test - valid aud in id_token as data type array (with MTLS)",
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {

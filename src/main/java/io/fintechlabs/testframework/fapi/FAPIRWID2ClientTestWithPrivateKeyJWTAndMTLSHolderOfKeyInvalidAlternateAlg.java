@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-alternate-alg",
-	displayName = "FAPI-RW-ID2: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected (with private_key_jwt and mtls holder of key)",
+	displayName = "FAPI-RW-ID2: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected (with private_key_jwt and MTLS)",
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {

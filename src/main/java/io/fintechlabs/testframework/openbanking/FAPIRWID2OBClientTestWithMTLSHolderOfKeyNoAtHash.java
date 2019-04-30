@@ -7,7 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-missing-athash",
-	displayName = "FAPI-RW-ID2-OB: client test - id_token without an at_hash value from the authorization_endpoint should be rejected(with mtls holder of key)",
+	displayName = "FAPI-RW-ID2-OB: client test - id_token without an at_hash value from the authorization_endpoint, should be rejected (with MTLS)",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",
