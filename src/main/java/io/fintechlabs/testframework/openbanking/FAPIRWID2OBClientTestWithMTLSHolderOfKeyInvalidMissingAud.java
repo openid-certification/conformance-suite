@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-missing-aud",
-	displayName = "FAPI-RW-ID2-OB: client test - missing aud value in id_token from authorization_endpoint, should be rejected (with mtls holder of key)",
+	displayName = "FAPI-RW-ID2-OB: client test - missing aud value in id_token from authorization_endpoint, should be rejected (with MTLS)",
 	summary = "This test should end with the client displaying an error message that the aud value in the id_token from the authorization_endpoint is missing",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {

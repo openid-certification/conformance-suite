@@ -9,7 +9,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and mtls holder of key)",
+	displayName = "FAPI-RW-ID2: client test (with private_key_jwt and MTLS)",
+	summary = "Successful test case scenario where response_type used is code id_token combined with private_key_jwt and MTLS encryption",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",

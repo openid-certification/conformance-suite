@@ -6,7 +6,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-openbanking-intent-id",
-	displayName = "FAPI-RW-ID2-OB: client test (with private_key_jwt and mtls holder of key and an invalid openbanking_intent_id value)",
+	displayName = "FAPI-RW-ID2-OB: client test  - invalid openbanking_intent_id, should be rejected (with private_key_jwt and MTLS)",
+	summary = "This test should end with the client displaying an error message that the openbanking_intent_id returned in id_token from authorization endpoint does not match the value sent in the request object",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.jwks",

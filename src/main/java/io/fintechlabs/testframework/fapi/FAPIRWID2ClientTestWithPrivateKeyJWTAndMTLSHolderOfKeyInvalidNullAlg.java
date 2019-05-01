@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-null-alg",
-	displayName = "FAPI-RW-ID2: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected (with private_key_jwt and mtls holder of key)",
+	displayName = "FAPI-RW-ID2: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected (with private_key_jwt and MTLS)",
 	summary = "This test should end with the client displaying an error message that the id_token was signed with alg: none",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {

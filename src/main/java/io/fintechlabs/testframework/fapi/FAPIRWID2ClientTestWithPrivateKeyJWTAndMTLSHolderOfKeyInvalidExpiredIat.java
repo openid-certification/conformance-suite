@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-expired-iat",
-	displayName = "FAPI-RW-ID2: client test - expired iat value in id_token from authorization_endpoint, should be rejected (code id_token with private_key and MTLS)",
+	displayName = "FAPI-RW-ID2: client test - expired iat value in id_token from authorization_endpoint, should be rejected (with private_key and mtls holder of key)",
 	summary = "This test should end with the client displaying an error message that the iat value in the id_token (from the authorization_endpoint) has expired (in the request object)",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {

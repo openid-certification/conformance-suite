@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-chash",
-	displayName = "FAPI-RW-ID2-OB: client test (with mtls holder of key and an invalid c_hash value)",
+	displayName = "FAPI-RW-ID2-OB: client test - invalid c_hash in id_token from authorization endpoint, should be rejected (with MTLS)",
 	summary = "This test should end with the client displaying an error message that the c_hash value in the id_token from the authorization_endpoint does not match the c_hash value in the request object",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
