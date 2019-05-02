@@ -21,6 +21,7 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 	private Duration closedTestTimeout = Duration.ofMinutes(15);
+	private Duration waitingTestTimeout = Duration.ofMinutes(360);
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -141,6 +142,10 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 				removeRunningTest(entry.getKey());
 
+			}
+			else if(entry.getValue().getStatus().equals(Status.WAITING)
+					&& entry.getValue().getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
+				removeRunningTest(entry.getKey());
 			}
 		}
 	}
