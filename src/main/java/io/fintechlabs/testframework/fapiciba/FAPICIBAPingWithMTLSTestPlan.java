@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "FAPI-CIBA: ping with mtls client authentication test plan",
 	profile = "FAPI-CIBA",
 	testModuleNames = {
+		"fapi-ciba-ping-discovery-end-point-verification",
 		"fapi-ciba-ping-with-mtls",
 	}
 )
