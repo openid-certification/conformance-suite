@@ -8,6 +8,9 @@ import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndp
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
+import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
+import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
@@ -16,6 +19,7 @@ import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingStateErrorPage;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
+import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
@@ -96,7 +100,19 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 		if (!callbackParams.has("error")) {
 
-			super.onAuthorizationCallbackResponse();
+			callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+			call(condition(CheckMatchingStateParameter.class)
+				.skipIfElementMissing("callback_params", "state")
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.FAILURE)
+				.dontStopOnFailure());
+
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+			performPostAuthorizationFlow();
 
 		} else {
 			/* If we get an error back from the authorisation server:
