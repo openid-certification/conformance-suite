@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidSHashValueToIdToken;
+import io.fintechlabs.testframework.condition.as.LogEndTestIfStateIsNotSupplied;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -20,6 +22,19 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 
 public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidSHash extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+
+	@Override
+	protected boolean endTestIfStateIsNotSupplied() {
+
+		String shash = env.getString("authorization_request_object", "claims.state");
+		if (shash == null) {
+			callAndContinueOnFailure(LogEndTestIfStateIsNotSupplied.class, Condition.ConditionResult.WARNING);
+			fireTestFinished();
+			return true;
+		}
+
+		return false;
+	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {

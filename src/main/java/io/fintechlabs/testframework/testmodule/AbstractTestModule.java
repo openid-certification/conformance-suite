@@ -196,6 +196,20 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	/**
+	 * Create and evaluate a Condition in the current environment, but only if the environment contains the given
+	 * objects and strings (both can be null).
+	 */
+	protected void skipIfElementMissing(String objId, String path, ConditionResult onSkip,
+										Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
+		call(condition(conditionClass)
+			.skipIfElementMissing(objId, path)
+			.onSkip(onSkip)
+			.requirements(requirements)
+			.onFail(onFail)
+			.dontStopOnFailure());
+	}
+
+	/**
 	 * Call the condition as specified in the builder. The ConditionCallBuilder is accessed in the following order:
 	 *
 	 *  - condition class is instantiated

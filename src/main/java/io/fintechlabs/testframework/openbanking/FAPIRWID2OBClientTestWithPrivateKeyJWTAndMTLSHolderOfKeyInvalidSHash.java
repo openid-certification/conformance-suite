@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidSHashValueToIdToken;
+import io.fintechlabs.testframework.condition.as.LogEndTestIfStateIsNotSupplied;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -20,6 +22,19 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 
 public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidSHash extends AbstractFAPIRWID2OBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+
+	@Override
+	protected boolean endTestIfStateIsNotSupplied() {
+
+		String shash = env.getString("authorization_request_object", "claims.state");
+		if (shash == null) {
+			callAndContinueOnFailure(LogEndTestIfStateIsNotSupplied.class, ConditionResult.WARNING);
+			fireTestFinished();
+			return true;
+		}
+
+		return false;
+	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {

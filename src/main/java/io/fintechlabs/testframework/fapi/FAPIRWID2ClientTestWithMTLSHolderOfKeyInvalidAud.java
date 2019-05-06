@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidAudValueToIdToken;
-import io.fintechlabs.testframework.condition.as.ForceIdTokenToBeSignedWithRS256;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(

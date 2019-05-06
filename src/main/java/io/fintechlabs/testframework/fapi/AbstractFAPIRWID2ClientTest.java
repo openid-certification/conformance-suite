@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
@@ -67,6 +68,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -103,6 +105,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 	protected void accountsEndpointProfile(){}
 
+	protected boolean endTestIfStateIsNotSupplied(){return false;}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
@@ -343,6 +346,12 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
+		if (endTestIfStateIsNotSupplied())
+		{return new ModelAndView("error",
+			ImmutableMap.of(
+				"status",
+				"test is not applicable as client did not send state"));}
+
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
@@ -373,7 +382,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 
-		callAndStopOnFailure(CalculateSHash.class, "FAPI-RW-5.2.2-4");
+		skipIfElementMissing("authorization_request_object", "claims.state", ConditionResult.INFO,
+			CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
@@ -385,7 +395,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
-		callAndStopOnFailure(AddSHashToIdTokenClaims.class, "FAPI-RW-5.2.2-4");
+		skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
+			AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 		callAndStopOnFailure(AddAtHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
