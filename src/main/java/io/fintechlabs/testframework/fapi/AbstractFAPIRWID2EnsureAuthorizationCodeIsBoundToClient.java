@@ -19,6 +19,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEn
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 
 public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2ServerTestModule {
@@ -54,7 +55,7 @@ public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient ex
 		createAuthorizationCodeRequest();
 
 		// Now try with the wrong certificate
-
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
