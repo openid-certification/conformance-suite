@@ -177,12 +177,28 @@ var FAPI_UI = {
 
 		loadLogListTemplates: function() {
 			return $.when(
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					$.get('templates/configButton.html', function(data) {
+						FAPI_UI.logTemplates.CONFIG = _.template(data);
+					}),
+
+					$.get('templates/date.html', function(data) {
+						FAPI_UI.logTemplates.DATE = _.template(data);
+					}),
+
+					$.get('templates/logDetailButton.html', function(data) {
+						FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
 					}),
 
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
+					}),
+
+					$.get('templates/planDetailButton.html', function(data) {
+						FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
+					}),
+
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					})
 			);
 
@@ -190,8 +206,20 @@ var FAPI_UI = {
 
 		loadPublicLogListTemplates: function() {
 			return $.when(
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
+					$.get('templates/date.html', function(data) {
+						FAPI_UI.logTemplates.DATE = _.template(data);
+					}),
+
+					$.get('templates/publicLogDetailButton.html', function(data) {
+						FAPI_UI.logTemplates.PUBLIC_LOG_DETAIL = _.template(data);
+					}),
+
+					$.get('templates/publicPlanDetailButton.html', function(data) {
+						FAPI_UI.logTemplates.PUBLIC_PLAN_DETAIL = _.template(data);
+					}),
+
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					})
 			);
 
@@ -233,20 +261,48 @@ var FAPI_UI = {
 
 		loadPlanListTemplates: function() {
 			return $.when(
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					$.get('templates/configButton.html', function(data) {
+						FAPI_UI.logTemplates.CONFIG = _.template(data);
+					}),
+
+					$.get('templates/date.html', function(data) {
+						FAPI_UI.logTemplates.DATE = _.template(data);
+					}),
+
+					$.get('templates/planDetailButton.html', function(data) {
+						FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
+					}),
+
+					$.get('templates/planModules.html', function(data) {
+						FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
 					}),
 
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
+					}),
+
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					})
 			);
 		},
 
 		loadPublicPlanListTemplates: function() {
 			return $.when(
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
+					$.get('templates/date.html', function(data) {
+						FAPI_UI.logTemplates.DATE = _.template(data);
+					}),
+
+					$.get('templates/publicPlanDetailButton.html', function(data) {
+						FAPI_UI.logTemplates.PUBLIC_PLAN_DETAIL = _.template(data);
+					}),
+
+					$.get('templates/planModules.html', function(data) {
+						FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
+					}),
+
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					})
 			);
 		},

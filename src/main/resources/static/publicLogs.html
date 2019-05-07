@@ -181,9 +181,7 @@
 						title: 'Instance ID',
 						data: 'testId',
 						render: {
-							display: function(data) {
-								return '<a class="btn btn-default btn-block" href="publicLogDetail.html?log=' + encodeURIComponent(data) + '"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted">' + data + '</code></a>';
-							}
+							display: function(data) { return FAPI_UI.logTemplates.PUBLIC_LOG_DETAIL({ id: data }); }
 						}
 					},
 					{ title: 'Name', data: 'testName' },
@@ -192,7 +190,7 @@
 						title: 'Started',
 						data: 'started',
 						render: {
-							display: function(data) { return new Date(data).toLocaleString(); }
+							display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
 						}
 					},
 					{
@@ -202,7 +200,7 @@
 						render: {
 							display: function(data) {
 								if (data)
-									return '<a class="btn btn-default btn-block" href="publicPlanDetail.html?plan=' + encodeURIComponent(data) + '"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted">' + data + '</code></a>';
+									return FAPI_UI.logTemplates.PUBLIC_PLAN_DETAIL({ id: data });
 								else
 									return '';
 							}

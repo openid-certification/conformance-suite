@@ -190,17 +190,14 @@
 						title: 'Instance ID',
 						data: 'testId',
 						render: {
-							display: function(data) {
-								return '<a class="btn btn-default btn-block" href="log-detail.html?log=' + encodeURIComponent(data) + '"><span class="glyphicon glyphicon-file"></span> View Logs <code class="text-muted">' + data + '</code></a>';
-							}
+							display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data }); }
 						}
 					},
 					{
 						title: 'Config',
 						data: 'config',
 						render: {
-							'_': function(data) { return JSON.stringify(data); },
-							'display': function() { return '<button class="btn btn-default btn-block showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>'; }
+							display: function() { return FAPI_UI.logTemplates.CONFIG(); }
 						},
 						createdCell: function(cell) { $(cell).addClass('configColumn'); },
 						orderable: false
@@ -211,7 +208,7 @@
 						title: 'Started',
 						data: 'started',
 						render: {
-							display: function(data) { return new Date(data).toLocaleString(); }
+							display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
 						}
 					},
 					{
@@ -221,7 +218,7 @@
 						render: {
 							display: function(data) {
 								if (data)
-									return '<a class="btn btn-default btn-block" href="plan-detail.html?plan=' + encodeURIComponent(data) + '"><span class="glyphicon glyphicon-book"></span> View Plan <code class="text-muted">' + data + '</code></a>';
+									return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data });
 								else
 									return '';
 							}
@@ -247,9 +244,7 @@
 						title: 'Owner',
 						data: function(row) { return { owner: row.owner ? row.owner : {} }; },
 						render: {
-							display: function(data) {
-								return FAPI_UI.logTemplates.OWNER(data);
-							}
+							display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
 						},
 						visible: FAPI_UI.currentUser.isAdmin
 					}
