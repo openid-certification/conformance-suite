@@ -35,6 +35,12 @@ import java.util.Collections;
 
 public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
+	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
+
+	public CallBackchannelAuthenticationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
+	}
+
 	private class OurErrorHandler extends DefaultResponseErrorHandler {
 		@Override
 		public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -44,11 +50,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 		}
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
-
-	public CallBackchannelAuthenticationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = { "server", "backchannel_authentication_endpoint_request_form_parameters" })
@@ -69,6 +70,8 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
+
+			restTemplate.setErrorHandler(new OurErrorHandler());
 
 			HttpHeaders headers = headersFromJson(env.getObject("backchannel_authentication_endpoint_request_headers"));
 

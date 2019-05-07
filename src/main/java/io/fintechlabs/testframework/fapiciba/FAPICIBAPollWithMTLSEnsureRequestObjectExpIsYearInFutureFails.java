@@ -33,9 +33,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPollWithMTLSEnsureRequestObjectExpIsYearInFutureFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
-	protected void buildRequestObject() {
+	protected void createAuthorizationRequestObject() {
 
-		super.buildRequestObject();
+		super.createAuthorizationRequestObject();
 
 		callAndStopOnFailure(AddExpValueIsYearInFutureToRequestObject.class, "CIBA-7.1.1");
 

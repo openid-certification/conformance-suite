@@ -23,6 +23,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-hour-in-future-fails",
 		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-jti-fails",
 		"fapi-ciba-poll-ensure-authorization-request-with-multiple-hints-fails-with-mtls",
+		"fapi-ciba-poll-ensure-request-object-signature-algorithm-is-none-fails-with-mtls",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {

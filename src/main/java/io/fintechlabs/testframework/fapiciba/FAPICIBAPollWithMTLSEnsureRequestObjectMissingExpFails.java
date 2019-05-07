@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddExpiredExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.RemoveExpFromRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -31,8 +30,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPollWithMTLSEnsureRequestObjectMissingExpFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
-	protected void buildRequestObject() {
-		super.buildRequestObject();
+	protected void createAuthorizationRequestObject() {
+		super.createAuthorizationRequestObject();
 		callAndStopOnFailure(RemoveExpFromRequestObject.class, "CIBA-7.1.1");
 	}
 
