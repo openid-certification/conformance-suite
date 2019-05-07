@@ -13,6 +13,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-aud-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-bad-aud-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-iss-fails",
+		"fapi-ciba-ping-with-mtls-ensure-request-object-bad-iss-fails",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
