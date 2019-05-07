@@ -12,6 +12,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-poll-with-mtls",
 		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-aud-fails",
 		"fapi-ciba-poll-with-mtls-ensure-request-object-bad-aud-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-iss-fails",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {
