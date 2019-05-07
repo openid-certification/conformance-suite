@@ -2,6 +2,7 @@
 
 package io.fintechlabs.testframework.openbanking;
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
@@ -23,9 +24,11 @@ public class FAPIRWID2OBDiscoveryEndpointVerification extends FAPIRWID2Discovery
 
 	@Override
 	protected void performProfileSpecificChecks() {
-		callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OBSP-3.4");
 
-		callAndContinueOnFailure(FAPIOBCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING, "OBSP-3.4");
+
+		callAndContinueOnFailure(FAPIOBCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE, "OBSP-3.4");
 		callAndContinueOnFailure(FAPIOBCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(FAPIOBCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
 	}

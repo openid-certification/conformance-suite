@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.fapi;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointDiscoveryUrl;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointIssuer;
@@ -35,7 +34,6 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 	protected final void performEndpointVerification() {
 
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 
 		callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
