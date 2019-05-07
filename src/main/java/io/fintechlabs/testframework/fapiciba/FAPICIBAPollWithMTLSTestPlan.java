@@ -16,6 +16,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-poll-with-mtls-ensure-request-object-bad-iss-fails",
 		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-exp-fails",
 		"fapi-ciba-poll-with-mtls-ensure-request-object-expired-exp-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-iat-fails",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {
