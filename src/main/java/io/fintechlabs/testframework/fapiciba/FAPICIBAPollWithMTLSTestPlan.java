@@ -25,6 +25,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-poll-ensure-authorization-request-with-multiple-hints-fails-with-mtls",
 		"fapi-ciba-poll-ensure-request-object-signature-algorithm-is-none-fails-with-mtls",
 		"fapi-ciba-poll-ensure-request-object-signature-algorithm-is-bad-fails-with-mtls",
+		"fapi-ciba-poll-ensure-request-object-signature-algorithm-is-RS256-fails-with-mtls",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {

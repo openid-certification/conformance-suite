@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ciba-poll-ensure-request-object-signature-algorithm-is-none-fails-with-mtls",
-	displayName = "FAPI-CIBA: Poll mode ensure request_object signature algorithm is none fails (MTLS client authentication)",
+	testName = "fapi-ciba-poll-ensure-request-object-signature-algorithm-is-RS256-fails-with-mtls",
+	displayName = "FAPI-CIBA: Poll mode ensure request_object signature algorithm is RS256 fails (MTLS client authentication)",
 	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
@@ -28,8 +28,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS {
-
+public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS {
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 		fireTestFailure();
