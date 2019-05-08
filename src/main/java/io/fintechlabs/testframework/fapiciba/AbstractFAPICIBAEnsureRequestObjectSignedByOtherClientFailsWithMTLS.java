@@ -10,9 +10,8 @@ import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticati
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.SignRequestObjectInvalid;
 
-public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidSignedRequestObjectWithMTLS {
+public abstract class AbstractFAPICIBAEnsureRequestObjectSignedByOtherClientFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidSignedRequestObjectWithMTLS {
 
 	@Override
 	protected void performAuthorizationRequest() {
@@ -22,10 +21,12 @@ public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBad
 		callAndStopOnFailure(AddNbfToRequestObject.class, "CIBA-7.1.1");
 		callAndStopOnFailure(AddJtiToRequestObject.class, "CIBA-7.1.1");
 
+		// Switch to client 2 JWKs
+		eventLog.startBlock("Swapping to Jwks2");
+		env.mapKey("client_jwks", "client_jwks2");
+
 		// aud, iss are added by SignRequestObject
 		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
-
-		callAndStopOnFailure(SignRequestObjectInvalid.class, "CIBA-7.2");
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 
@@ -33,5 +34,10 @@ public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBad
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+
+		env.unmapKey("client_jwks");
+
+		eventLog.endBlock();
 	}
+
 }

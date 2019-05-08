@@ -12,8 +12,8 @@ import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCiph
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ping-ensure-request-object-signature-algorithm-is-bad-fails-with-mtls",
-	displayName = "FAPI-CIBA: Ping mode ensure request_object signature algorithm is bad fails (MTLS client authentication)",
+	testName = "fapi-ciba-ping-ensure-request-object-signed-by-other-client-fails-with-mtls",
+	displayName = "FAPI-CIBA: Ping mode ensure request_object signed by other client fails (MTLS client authentication)",
 	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
@@ -35,7 +35,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPingEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS {
+public class FAPICIBAPingEnsureRequestObjectSignedByOtherClientFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignedByOtherClientFailsWithMTLS {
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 
