@@ -320,14 +320,29 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected void verifyTokenEndpointResponseIsPendingOrSlowDown() {
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response is pending or slow_down");
 
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
-		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
-		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
-		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
+		validateErrorFromTokenEndpointResponse();
 
 		callAndStopOnFailure(EnsureErrorTokenEndpointSlowdownOrAuthorizationPending.class);
 
 		eventLog.endBlock();
+	}
+
+	protected void verifyTokenEndpointResponseIsAccessDenied() {
+		eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
+
+		validateErrorFromTokenEndpointResponse();
+
+		env.putObject("callback_params", env.getObject("token_endpoint_response"));
+		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class);
+
+		eventLog.endBlock();
+	}
+
+	protected void validateErrorFromTokenEndpointResponse() {
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
+		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
+		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
+		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
 	}
 
 	protected void handleSuccessfulTokenEndpointResponse() {
@@ -527,6 +542,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	}
 
 	protected void callAutomatedEndpoint() {
+		env.putString("request_action", "allow");
 		callAndStopOnFailure(CallAutomatedCibaApprovalEndpoint.class);
 	}
 

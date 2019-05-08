@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModuleNames = {
 		"fapi-ciba-ping-discovery-end-point-verification",
 		"fapi-ciba-ping-with-mtls",
+		"fapi-ciba-ping-user-rejects-authentication-with-mtls",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-aud-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-bad-aud-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-iss-fails",
