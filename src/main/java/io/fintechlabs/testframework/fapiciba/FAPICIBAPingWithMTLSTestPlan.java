@@ -24,6 +24,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-jti-fails",
 		"fapi-ciba-ping-ensure-authorization-request-with-multiple-hints-fails-with-mtls",
 		"fapi-ciba-ping-ensure-request-object-signature-algorithm-is-none-fails-with-mtls",
+		"fapi-ciba-ping-ensure-request-object-signature-algorithm-is-bad-fails-with-mtls",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
