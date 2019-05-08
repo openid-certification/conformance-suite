@@ -38,9 +38,10 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 			log("If your server supports automated testing, you can set '"+configPath+"' in your configuration to a url like https://cibasim.example.com/action?token={auth_req_id}&type=approve (auth_req_id will be automatically substituted for the current auth_req_id by the conformance suite)");
 			return env;
 		}
-			//"https://cibasim.authlete.com/api/authenticate/actionize?workspace=authlete/fapidev&action=allow&token={auth_req_id}";
+			//"https://cibasim.authlete.com/api/authenticate/actionize?workspace=authlete/fapidev&action={action}&token={auth_req_id}";
 
 		final String authReqId = env.getString("backchannel_authentication_endpoint_response", "auth_req_id");
+		final String action = env.getString("request_action");
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
@@ -55,6 +56,7 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 
 			Map<String, String> uriVariables = new HashMap<>();
 			uriVariables.put("auth_req_id", authReqId);
+			uriVariables.put("action", action);
 
 			String jsonString = null;
 
