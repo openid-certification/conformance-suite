@@ -10,6 +10,17 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModuleNames = {
 		"fapi-ciba-poll-discovery-end-point-verification",
 		"fapi-ciba-poll-with-mtls",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-aud-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-bad-aud-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-iss-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-bad-iss-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-exp-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-expired-exp-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-iat-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-hour-in-future-fails",
+		"fapi-ciba-poll-with-mtls-ensure-request-object-missing-jti-fails",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {

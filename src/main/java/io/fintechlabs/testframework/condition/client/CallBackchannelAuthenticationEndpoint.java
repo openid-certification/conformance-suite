@@ -16,8 +16,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,6 +34,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
 public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
+
+	private class OurErrorHandler extends DefaultResponseErrorHandler {
+		@Override
+		public boolean hasError(ClientHttpResponse response) throws IOException {
+			// Treat nothing as an error, so spring never throws an exception due to the http status code
+			// meaning the rest of our code can handle http status codes how it likes
+			return false;
+		}
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
 
@@ -69,6 +80,8 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 			String jsonString = null;
 
 			try {
+				restTemplate.setErrorHandler(new OurErrorHandler());
+
 				ResponseEntity<String> response = restTemplate.postForEntity(bcAuthEndpoint, request, String.class);
 
 				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);

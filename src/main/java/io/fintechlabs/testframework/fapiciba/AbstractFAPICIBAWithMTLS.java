@@ -164,13 +164,9 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		performProfileAuthorizationEndpointSetup();
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-		callAndStopOnFailure(AddIatToRequestObject.class, "CIBA-7.1.1");
-		callAndStopOnFailure(AddExpToRequestObject.class, "CIBA-7.1.1");
-		callAndStopOnFailure(AddNbfToRequestObject.class, "CIBA-7.1.1");
-		callAndStopOnFailure(AddJtiToRequestObject.class, "CIBA-7.1.1");
-		// aud, iss are added by SignRequestObject
-		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
+		buildRequestObject();
+
+		callAndStopOnFailure(SignAuthenticationRequest.class, "CIBA-7.1.1");
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 
@@ -178,6 +174,29 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+
+		onCallBackChannelAuthenticationEndpointResponse();
+	}
+
+	protected void buildRequestObject() {
+
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "CIBA-7.1.1");
+
+		callAndStopOnFailure(AddExpToRequestObject.class, "CIBA-7.1.1");
+
+		callAndStopOnFailure(AddNbfToRequestObject.class, "CIBA-7.1.1");
+
+		callAndStopOnFailure(AddJtiToRequestObject.class, "CIBA-7.1.1");
+
+		callAndStopOnFailure(AddAudToRequestObject.class, "CIBA-7.1.1");
+
+		callAndStopOnFailure(AddIssToRequestObject.class, "CIBA-7.1.1");
+
+	}
+
+	protected void onCallBackChannelAuthenticationEndpointResponse() {
 
 		callAndStopOnFailure(CheckBackchannelAuthenticationEndpointHttpStatus200.class, "CIBA-7.3");
 
@@ -243,6 +262,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAutomatedEndpoint();
 
 		waitForAuthenticationToComplete(delaySeconds);
+
 	}
 
 	protected abstract void modeSpecificAuthorizationEndpointRequest();
