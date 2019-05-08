@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-exp-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-expired-exp-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-iat-fails",
+		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-jti-fails",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
