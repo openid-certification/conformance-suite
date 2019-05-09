@@ -153,40 +153,77 @@
 		});
 
 		function loadAvailableLogs() {
-			return $.ajax({
-				type: 'GET',
-				url: "/public/api/log",
-				data: {},
-				success: function(logsList) {
-
-					$('#logsListing thead').html(FAPI_UI.logTemplates.PUBLIC_LOG_LISTING_HEADER());
-
-					_.each(logsList, function(test) {
-						var logRow = $(FAPI_UI.logTemplates.PUBLIC_LOG_LISTING({
-							test: test
-						}));
-						$('#logsListing tbody').append(logRow);
-
-						// wire up configuration button
-						$('.showConfigBtn', logRow).click(function(evt) {
-							evt.preventDefault();
-							$('#config').html(_.escape(JSON.stringify(test.config, null, 4)));
-	                        $('#configTestId').html(_.escape(test.testId));
-							$('#configModal').modal('show');
+			return $('#logsListing').DataTable({
+				serverSide: true,
+				ajax: {
+					url: '/public/api/log',
+					cache: true,
+					data: function(data) {
+						// Translate query parameters into a simpler schema
+						return {
+							draw: data.draw,
+							start: data.start,
+							length: data.length,
+							search: data.search.value,
+							order: _.map(data.order, function(x) {
+								return data.columns[x.column].data + ',' + x.dir;
+							}).join(',')
+						};
+					},
+					error: function(jqxhr, status, error) {
+						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+							error: error
 						});
-					});
-
-					$('#logsListing').DataTable({
-						order: [[3, "desc"]], // sort by the "date" column, descending, by default
-						columnDefs: []
-					});
-
+					}
 				},
-				error: function(jqxhr, status, error) {
-					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-						error: error
-					});
-				}
+				columns: [
+					{
+						title: 'Instance ID',
+						data: 'testId',
+						render: {
+							display: function(data) { return FAPI_UI.logTemplates.PUBLIC_LOG_DETAIL({ id: data }); }
+						}
+					},
+					{ title: 'Name', data: 'testName' },
+					{ title: 'Description', data: 'description', defaultContent: '' },
+					{
+						title: 'Started',
+						data: 'started',
+						render: {
+							display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
+						}
+					},
+					{
+						title: 'Plan ID',
+						data: 'planId',
+						defaultContent: '',
+						render: {
+							display: function(data) {
+								if (data)
+									return FAPI_UI.logTemplates.PUBLIC_PLAN_DETAIL({ id: data });
+								else
+									return '';
+							}
+						}
+					},
+					{
+						title: 'Status',
+						data: 'status',
+						defaultContent: '',
+						createdCell: function(cell, cellData) {
+							$(cell).addClass('testStatusResultBlock testStatus-' + (cellData ? cellData.toLowerCase() : 'testStatus-unknown'));
+						}
+					},
+					{
+						title: 'Result',
+						data: 'result',
+						defaultContent: '',
+						createdCell: function(cell, cellData) {
+							$(cell).addClass('testStatusResultBlock testResult-' + (cellData ? cellData.toLowerCase() : 'testResult-unknown'));
+						}
+					}
+				],
+				order: [[3, "desc"]] // sort by the "date" column, descending, by default
 			});
 		}
 	</script>

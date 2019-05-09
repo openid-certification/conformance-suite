@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBCollection;
 import com.mongodb.WriteResult;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
@@ -192,5 +193,11 @@ public class DBTestInfoService implements TestInfoService {
 		WriteResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
 
 		return result.isUpdateOfExisting();
+	}
+
+	@Override
+	public void createIndexes(){
+		DBCollection collection = mongoTemplate.getCollection(COLLECTION);
+		collection.createIndex(BasicDBObjectBuilder.start("$**", "text").get());
 	}
 }

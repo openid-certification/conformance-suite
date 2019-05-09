@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.info;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +28,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.testmodule.DataUtils;
@@ -82,12 +82,11 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getTestPlansForCurrentUser() {
+	public ResponseEntity<Object> getTestPlansForCurrentUser(PaginationRequest page) {
 
-		List<Map> allPlans = planService.getAllPlansForCurrentUser();
+		Map response = planService.getPaginatedPlansForCurrentUser(page);
 
-		return new ResponseEntity<>(allPlans, HttpStatus.OK);
-
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -197,11 +196,11 @@ public class TestPlanApi implements DataUtils {
 
 
 	@GetMapping(value = "/public/api/plan")
-	public ResponseEntity<Object> getPublicPlans() {
+	public ResponseEntity<Object> getPublicPlans(PaginationRequest page) {
 
-		List<Map> publicPlans = planService.getPublicPlans();
+		Map response = planService.getPaginatedPublicPlans(page);
 
-		return new ResponseEntity<>(publicPlans, HttpStatus.OK);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 
 	}
 

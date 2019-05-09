@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +24,12 @@ import com.google.gson.JsonParser;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
 
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
+import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 @Service
@@ -172,10 +173,10 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.info.TestPlanService#getAllPlansForCurrentUser()
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getPaginatedPlansForCurrentUser()
 	 */
 	@Override
-	public List<Map> getAllPlansForCurrentUser() {
+	public Map getPaginatedPlansForCurrentUser(PaginationRequest page) {
 
 		Criteria criteria = new Criteria();
 
@@ -183,20 +184,15 @@ public class DBTestPlanService implements TestPlanService {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
-		Query query = new Query(criteria);
-
-		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).toArray();
-
-		return results.stream().map(DBObject::toMap).collect(Collectors.toList());
-
+		return page.getResults(mongoTemplate.getCollection(COLLECTION), new Query(criteria));
 	}
 
 
 	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlans()
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getPaginatedPublicPlans()
 	 */
 	@Override
-	public List<Map> getPublicPlans() {
+	public Map getPaginatedPublicPlans(PaginationRequest page) {
 
 		Criteria criteria = new Criteria();
 
@@ -212,10 +208,7 @@ public class DBTestPlanService implements TestPlanService {
 			.include("modules")
 			.include("publish");
 
-		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject(), query.getFieldsObject()).toArray();
-
-		return results.stream().map(DBObject::toMap).collect(Collectors.toList());
-
+		return page.getResults(mongoTemplate.getCollection(COLLECTION), query);
 	}
 
 	/* (non-Javadoc)
@@ -322,5 +315,11 @@ public class DBTestPlanService implements TestPlanService {
 		mongoTemplate.updateMulti(query, update, DBTestInfoService.COLLECTION);
 
 		return true;
+	}
+
+	@Override
+	public void createIndexes(){
+		DBCollection collection = mongoTemplate.getCollection(COLLECTION);
+		collection.createIndex(BasicDBObjectBuilder.start("$**", "text").get());
 	}
 }

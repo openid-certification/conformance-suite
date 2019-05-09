@@ -43,4 +43,6 @@ public interface TestInfoService {
 	 * @return true for success; false if not allowed
 	 */
 	boolean publishTest(String id, String publish);
+
+	void createIndexes();
 }

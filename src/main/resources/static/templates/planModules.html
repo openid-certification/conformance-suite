@@ -1,0 +1,3 @@
+<% _.each(modules, function(module) { %>
+<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="<%- module.testModule %>" data-instance="<%- module.instances && module.instances[0] || '' %>"> </span>
+<% }); %>

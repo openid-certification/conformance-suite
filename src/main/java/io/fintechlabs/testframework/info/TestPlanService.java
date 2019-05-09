@@ -1,9 +1,10 @@
 package io.fintechlabs.testframework.info;
 
-import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.pagination.PaginationRequest;
 
 public interface TestPlanService {
 
@@ -33,12 +34,12 @@ public interface TestPlanService {
 	/**
 	 * @return
 	 */
-	List<Map> getAllPlansForCurrentUser();
+	Map getPaginatedPlansForCurrentUser(PaginationRequest page);
 
 	/**
 	 *
 	 */
-	List<Map> getPublicPlans();
+	Map getPaginatedPublicPlans(PaginationRequest page);
 
 	/**
 	 * @param id
@@ -52,4 +53,6 @@ public interface TestPlanService {
 	 * @return true for success; false if not allowed
 	 */
 	boolean publishTestPlan(String id, String publish);
+
+	void createIndexes();
 }
