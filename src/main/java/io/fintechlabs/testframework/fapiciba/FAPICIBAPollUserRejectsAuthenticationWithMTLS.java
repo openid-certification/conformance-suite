@@ -1,9 +1,8 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
@@ -51,12 +50,8 @@ public class FAPICIBAPollUserRejectsAuthenticationWithMTLS extends AbstractFAPIC
 			eventLog.startBlock(currentClientString() + "Polling token endpoint waiting for user to authenticate");
 			callTokenEndpointForCibaGrant();
 			eventLog.endBlock();
-			int httpStatus = env.getInteger("token_endpoint_response_http_status");
 
-			if (httpStatus == 200) {
-				fireTestFailure();
-				throw new TestFailureException(new ConditionError(getId(), "Expect user to deny authentication instead of allowing authentication"));
-			}
+			callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
 
 			String error = env.getString("token_endpoint_response", "error");
 			if (error.equals("access_denied")) {
@@ -74,7 +69,7 @@ public class FAPICIBAPollUserRejectsAuthenticationWithMTLS extends AbstractFAPIC
 		}
 
 		fireTestFailure();
-		throw new TestFailureException(new ConditionError(getId(), "User did not authenticate before timeout"));
+		throw new TestFailureException(new ConditionError(getId(), "User did not reject authentication before timeout"));
 	}
 
 	@Override

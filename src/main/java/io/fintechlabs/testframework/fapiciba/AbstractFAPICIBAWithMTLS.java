@@ -3,6 +3,9 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
+import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
+import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
 import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
@@ -10,6 +13,8 @@ import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
+import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
+import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
@@ -17,7 +22,6 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -567,6 +571,32 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
 		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
+	}
+
+	protected void processPingNotificationCallback(JsonObject requestParts){
+		String envKey = "notification_callback";
+
+		eventLog.startBlock(currentClientString() + "Verify notification callback");
+
+		env.putObject(envKey, requestParts);
+
+		env.mapKey("client_request", envKey);
+
+		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+
+		env.unmapKey("client_request");
+
+		callAndStopOnFailure(VerifyBearerTokenHeaderCallback.class, "CIBA-10.2");
+
+		callAndStopOnFailure(CheckAuthReqIdInCallback.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+
+		callAndStopOnFailure(CheckNotificationCallbackOnlyAuthReqId.class, "CIBA-10.2");
+		eventLog.endBlock();
+
+		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
+		callTokenEndpointForCibaGrant();
+		eventLog.endBlock();
 	}
 
 }

@@ -1,21 +1,11 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
-import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
-import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
-import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
 @PublishTestModule(
@@ -55,36 +45,9 @@ public class FAPICIBAPingUserRejectsAuthenticationWithMTLS extends AbstractFAPIC
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 
-		String envKey = "notification_callback";
+		processPingNotificationCallback(requestParts);
 
-		eventLog.startBlock(currentClientString() + "Verify notification callback");
-
-		env.putObject(envKey, requestParts);
-
-		env.mapKey("client_request", envKey);
-
-		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
-
-		env.unmapKey("client_request");
-
-		callAndStopOnFailure(VerifyBearerTokenHeaderCallback.class, "CIBA-10.2");
-
-		callAndStopOnFailure(CheckAuthReqIdInCallback.class, ConditionResult.FAILURE, "CIBA-10.2");
-
-		callAndStopOnFailure(CheckNotificationCallbackOnlyAuthReqId.class, "CIBA-10.2");
-		eventLog.endBlock();
-
-		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
-		callTokenEndpointForCibaGrant();
-		eventLog.endBlock();
-
-		int httpStatus = env.getInteger("token_endpoint_response_http_status");
-
-		if (httpStatus == 200) {
-			fireTestFailure();
-			throw new TestFailureException(new ConditionError(getId(), "Expect user to deny authentication instead of allowing authentication"));
-		}
+		callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
 
 		env.putObject("callback_params", env.getObject("token_endpoint_response"));
 		verifyTokenEndpointResponseIsAccessDenied();
