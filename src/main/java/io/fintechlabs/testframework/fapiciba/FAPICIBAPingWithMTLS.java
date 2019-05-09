@@ -1,16 +1,10 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
-import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
-import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 // FIXME document this somewhere else:
@@ -54,29 +48,8 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 
-		String envKey = "notification_callback";
+		processPingNotificationCallback(requestParts);
 
-		eventLog.startBlock(currentClientString() + "Verify notification callback");
-
-		env.putObject(envKey, requestParts);
-
-		env.mapKey("client_request", envKey);
-
-		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
-
-		env.unmapKey("client_request");
-
-		callAndStopOnFailure(VerifyBearerTokenHeaderCallback.class, "CIBA-10.2");
-
-		callAndStopOnFailure(CheckAuthReqIdInCallback.class, ConditionResult.FAILURE, "CIBA-10.2");
-
-		callAndStopOnFailure(CheckNotificationCallbackOnlyAuthReqId.class, "CIBA-10.2");
-		eventLog.endBlock();
-
-		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
-		callTokenEndpointForCibaGrant();
-		eventLog.endBlock();
 		handleSuccessfulTokenEndpointResponse();
 	}
 
