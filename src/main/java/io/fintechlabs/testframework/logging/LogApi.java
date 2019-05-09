@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Field;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,7 +78,7 @@ public class LogApi {
 		Criteria criteria = new Criteria();
 		criteria.and("_id").in(testIds);
 
-		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), new Query(criteria));
+		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -196,8 +197,7 @@ public class LogApi {
 		criteria.and("_id").in(testIds);
 		criteria.and("publish").in("summary", "everything");
 
-		Query query = new Query(criteria);
-		query.fields()
+		Field fields = new Field()
 			.include("_id")
 			.include("testId")
 			.include("testName")
@@ -207,7 +207,7 @@ public class LogApi {
 			.include("status")
 			.include("result");
 
-		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), query);
+		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria, fields);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
