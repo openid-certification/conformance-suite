@@ -154,19 +154,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
 
-		callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
-		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
-		callAndStopOnFailure(AddHintToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
-
-		// The spec also defines these parameters that we don't currently set:
-		// acr_values
-		// binding_message
-		// user_code
-		// requested_expiry
-
-		modeSpecificAuthorizationEndpointRequest();
-
-		performProfileAuthorizationEndpointSetup();
+		createAuthorizationRequest();
 
 		buildRequestObject();
 
@@ -180,6 +168,23 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 
 		onCallBackChannelAuthenticationEndpointResponse();
+	}
+
+	protected void createAuthorizationRequest() {
+
+		callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
+		callAndStopOnFailure(AddHintToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
+
+		// The spec also defines these parameters that we don't currently set:
+		// acr_values
+		// binding_message
+		// user_code
+		// requested_expiry
+
+		modeSpecificAuthorizationEndpointRequest();
+
+		performProfileAuthorizationEndpointSetup();
 	}
 
 	protected void buildRequestObject() {
