@@ -22,6 +22,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-hour-in-future-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-jti-fails",
+		"fapi-ciba-ping-ensure-authorization-request-with-multiple-hints-fails-with-mtls",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
