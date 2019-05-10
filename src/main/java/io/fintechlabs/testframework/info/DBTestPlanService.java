@@ -21,9 +21,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mongodb.AggregationOptions;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.Cursor;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
@@ -112,22 +114,46 @@ public class DBTestPlanService implements TestPlanService {
 	 */
 	@Override
 	public Map getTestPlan(String id) {
+
+		return getSinglePlan(id, false);
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlan(java.lang.String)
+	 */
+	@Override
+	public Map getPublicPlan(String id) {
+
+		return getSinglePlan(id, true);
+	}
+
+	private Map getSinglePlan(String id, boolean publishedOnly) {
+
+		boolean isAdmin = authenticationFacade.isAdmin();
+
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
-
-		if (!authenticationFacade.isAdmin()) {
+		if (publishedOnly) {
+			criteria.and("publish").in("summary", "everything");
+		} else if (!isAdmin) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
-		Query query = new Query(criteria);
+		List<DBObject> pipeline = new ArrayList<DBObject>();
+		pipeline.add(new BasicDBObject("$match", criteria.getCriteriaObject()));
+		pipeline.addAll(getTestPlanProjection(publishedOnly, isAdmin));
 
-		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject());
+		// Force the driver to include a 'cursor' option - Mongo complains otherwise.
+		AggregationOptions options = AggregationOptions.builder()
+				.outputMode(AggregationOptions.OutputMode.CURSOR)
+				.build();
 
-		if (testPlan == null) {
+		Cursor results = mongoTemplate.getCollection(COLLECTION).aggregate(pipeline, options);
+
+		if (results.hasNext())
+			return results.next().toMap();
+		else
 			return null;
-		} else {
-			return testPlan.toMap();
-		}
 	}
 
 	@Override
@@ -203,6 +229,13 @@ public class DBTestPlanService implements TestPlanService {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
+		List<DBObject> projection = getTestPlanProjection(publishedOnly, isAdmin);
+
+		return page.getResults(mongoTemplate.getCollection(COLLECTION), criteria.getCriteriaObject(), projection);
+	}
+
+	private List<DBObject> getTestPlanProjection(boolean publishedOnly, boolean isAdmin) {
+
 		List<DBObject> projection = new ArrayList<DBObject>();
 
 		// Filter test modules to return only user-owned instances
@@ -260,36 +293,7 @@ public class DBTestPlanService implements TestPlanService {
 							.get()));
 		}
 
-		return page.getResults(mongoTemplate.getCollection(COLLECTION), criteria.getCriteriaObject(), projection);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlan(java.lang.String)
-	 */
-	@Override
-	public Map getPublicPlan(String id) {
-
-		Criteria criteria = new Criteria();
-		criteria.and("_id").is(id);
-		criteria.and("publish").in("summary", "everything");
-
-		Query query = new Query(criteria);
-
-		query.fields()
-			.include("_id")
-			.include("planName")
-			.include("description")
-			.include("started")
-			.include("modules")
-			.include("publish");
-
-		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject(), query.getFieldsObject());
-
-		if (testPlan == null) {
-			return null;
-		} else {
-			return testPlan.toMap();
-		}
+		return projection;
 	}
 
 	/*
