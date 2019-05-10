@@ -1,3 +1,4 @@
 <% _.each(modules, function(module) { %>
-<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="<%- module.testModule %>" data-instance="<%- module.instances && module.instances[0] || '' %>"> </span>
+<% var lastInstance = module.instances.pop(); %>
+<span class="testStatusResultBlock testResult-unknown" data-toggle="tooltip" title="<%- module.testModule %>" data-instance="<%- lastInstance || '' %>"> </span>
 <% }); %>

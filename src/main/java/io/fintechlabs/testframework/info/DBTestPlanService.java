@@ -21,9 +21,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mongodb.AggregationOptions;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.Cursor;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
@@ -112,22 +114,46 @@ public class DBTestPlanService implements TestPlanService {
 	 */
 	@Override
 	public Map getTestPlan(String id) {
+
+		return getSinglePlan(id, false);
+	}
+
+	/* (non-Javadoc)
+	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlan(java.lang.String)
+	 */
+	@Override
+	public Map getPublicPlan(String id) {
+
+		return getSinglePlan(id, true);
+	}
+
+	private Map getSinglePlan(String id, boolean publishedOnly) {
+
+		boolean isAdmin = authenticationFacade.isAdmin();
+
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
-
-		if (!authenticationFacade.isAdmin()) {
+		if (publishedOnly) {
+			criteria.and("publish").in("summary", "everything");
+		} else if (!isAdmin) {
 			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
-		Query query = new Query(criteria);
+		List<DBObject> pipeline = new ArrayList<DBObject>();
+		pipeline.add(new BasicDBObject("$match", criteria.getCriteriaObject()));
+		pipeline.addAll(getTestPlanProjection(publishedOnly, isAdmin));
 
-		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject());
+		// Force the driver to include a 'cursor' option - Mongo complains otherwise.
+		AggregationOptions options = AggregationOptions.builder()
+				.outputMode(AggregationOptions.OutputMode.CURSOR)
+				.build();
 
-		if (testPlan == null) {
+		Cursor results = mongoTemplate.getCollection(COLLECTION).aggregate(pipeline, options);
+
+		if (results.hasNext())
+			return results.next().toMap();
+		else
 			return null;
-		} else {
-			return testPlan.toMap();
-		}
 	}
 
 	@Override
@@ -178,15 +204,8 @@ public class DBTestPlanService implements TestPlanService {
 	@Override
 	public Map getPaginatedPlansForCurrentUser(PaginationRequest page) {
 
-		Criteria criteria = new Criteria();
-
-		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
-		}
-
-		return page.getResults(mongoTemplate.getCollection(COLLECTION), new Query(criteria));
+		return getPaginatedPlans(page, false);
 	}
-
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.info.TestPlanService#getPaginatedPublicPlans()
@@ -194,50 +213,87 @@ public class DBTestPlanService implements TestPlanService {
 	@Override
 	public Map getPaginatedPublicPlans(PaginationRequest page) {
 
-		Criteria criteria = new Criteria();
-
-		criteria.and("publish").in("summary", "everything");
-
-		Query query = new Query(criteria);
-
-		query.fields()
-			.include("_id")
-			.include("planName")
-			.include("description")
-			.include("started")
-			.include("modules")
-			.include("publish");
-
-		return page.getResults(mongoTemplate.getCollection(COLLECTION), query);
+		return getPaginatedPlans(page, true);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlan(java.lang.String)
-	 */
-	@Override
-	public Map getPublicPlan(String id) {
+	private Map getPaginatedPlans(PaginationRequest page, boolean publishedOnly) {
 
+		boolean isAdmin = authenticationFacade.isAdmin();
+
+		// Limit result set
 		Criteria criteria = new Criteria();
-		criteria.and("_id").is(id);
-		criteria.and("publish").in("summary", "everything");
 
-		Query query = new Query(criteria);
-
-		query.fields()
-			.include("_id")
-			.include("planName")
-			.include("description")
-			.include("started")
-			.include("modules")
-			.include("publish");
-
-		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject(), query.getFieldsObject());
-
-		if (testPlan == null) {
-			return null;
-		} else {
-			return testPlan.toMap();
+		if (publishedOnly) {
+			criteria.and("publish").in("summary", "everything");
+		} else if (!isAdmin) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
+
+		List<DBObject> projection = getTestPlanProjection(publishedOnly, isAdmin);
+
+		return page.getResults(mongoTemplate.getCollection(COLLECTION), criteria.getCriteriaObject(), projection);
+	}
+
+	private List<DBObject> getTestPlanProjection(boolean publishedOnly, boolean isAdmin) {
+
+		List<DBObject> projection = new ArrayList<DBObject>();
+
+		// Filter test modules to return only user-owned instances
+		if (publishedOnly || !isAdmin) {
+			List<DBObject> testCriteria = new ArrayList<DBObject>();
+			testCriteria.add(new BasicDBObject("$in", new String[] { "$_id", "$$instances" }));
+			if (publishedOnly)
+				testCriteria.add(new BasicDBObject("$in", new Object[] { "$publish", new String[] { "summary", "everything" } }));
+			else if (!isAdmin)
+				testCriteria.add(new BasicDBObject("$eq", new Object[] { "$owner", authenticationFacade.getPrincipal() }));
+
+			projection.add(new BasicDBObject("$unwind",
+					BasicDBObjectBuilder.start()
+							.add("path", "$modules")
+							.add("preserveNullAndEmptyArrays", true)
+							.get()));
+			projection.add(new BasicDBObject("$lookup",
+					BasicDBObjectBuilder.start()
+							.add("from", DBTestInfoService.COLLECTION)
+							.add("let", new BasicDBObject("instances", "$modules.instances"))
+							.add("pipeline", new DBObject[] {
+									new BasicDBObject("$match",
+											new BasicDBObject("$expr", new BasicDBObject("$and", testCriteria))),
+									new BasicDBObject("$addFields",
+											new BasicDBObject("sort",
+													new BasicDBObject("$indexOfArray", new String[] { "$$instances", "$_id" }))),
+									new BasicDBObject("$sort", new BasicDBObject("sort", 1))
+							})
+							.add("as", "modules.instances")
+							.get()));
+			projection.add(new BasicDBObject("$addFields",
+					new BasicDBObject("modules.instances", "$modules.instances._id")));
+			projection.add(new BasicDBObject("$group",
+					BasicDBObjectBuilder.start()
+							.add("_id", "$_id")
+							.add("planName", new BasicDBObject("$first", "$planName"))
+							.add("config", new BasicDBObject("$first", "$config"))
+							.add("started", new BasicDBObject("$first", "$started"))
+							.add("owner", new BasicDBObject("$first", "$owner"))
+							.add("description", new BasicDBObject("$first", "$description"))
+							.add("modules", new BasicDBObject("$push", "$modules"))
+							.add("publish", new BasicDBObject("$first", "$publish"))
+							.get()));
+		}
+
+		if (publishedOnly) {
+			projection.add(new BasicDBObject("$project",
+					BasicDBObjectBuilder.start()
+							.add("_id", 1)
+							.add("planName", 1)
+							.add("description", 1)
+							.add("started", 1)
+							.add("modules", 1)
+							.add("publish", 1)
+							.get()));
+		}
+
+		return projection;
 	}
 
 	/*
