@@ -272,7 +272,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();
 
-		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
+		eventLog.startBlock(currentClientString() + "Call backchannel authentication endpoint");
 
 		createAuthorizationRequest();
 
