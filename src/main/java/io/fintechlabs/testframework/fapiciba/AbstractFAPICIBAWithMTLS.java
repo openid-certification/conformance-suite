@@ -219,7 +219,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		long delaySeconds = 5;
 		Integer interval = env.getInteger("backchannel_authentication_endpoint_response", "interval");
-		if (interval != null) {
+		if (interval != null && interval > 5) {
+			// ignore intervals lower than 5; we don't want to fill the log or exhaust our retries too quickly
 			delaySeconds = interval;
 		}
 
