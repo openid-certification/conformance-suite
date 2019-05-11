@@ -319,7 +319,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
 		skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
@@ -367,7 +367,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
 		skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
