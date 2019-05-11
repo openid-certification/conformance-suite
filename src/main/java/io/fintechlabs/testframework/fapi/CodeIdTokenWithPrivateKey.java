@@ -219,7 +219,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		call(condition(CreateRandomCodeVerifier.class));
+		call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
 		call(exec().exposeEnvironmentString("code_verifier"));
 		call(condition(CreateS256CodeChallenge.class));
 		call(exec()
@@ -416,7 +416,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		call(condition(CreateRandomCodeVerifier.class));
+		call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
 		call(exec().exposeEnvironmentString("code_verifier"));
 		call(condition(CreateS256CodeChallenge.class));
 		call(exec()
