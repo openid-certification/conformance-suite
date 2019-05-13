@@ -198,6 +198,10 @@ public class DBTestInfoService implements TestInfoService {
 	@Override
 	public void createIndexes(){
 		DBCollection collection = mongoTemplate.getCollection(COLLECTION);
+		collection.createIndex(new BasicDBObject("testName", 1));
+		collection.createIndex(new BasicDBObject("description", 1));
+		collection.createIndex(new BasicDBObject("started", 1));
+		collection.createIndex(new BasicDBObject("owner", 1));
 		collection.createIndex(BasicDBObjectBuilder.start("$**", "text").get());
 	}
 }
