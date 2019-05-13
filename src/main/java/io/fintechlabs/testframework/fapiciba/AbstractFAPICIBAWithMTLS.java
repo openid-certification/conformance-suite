@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
 import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
 import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
@@ -287,6 +288,39 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected abstract void modeSpecificAuthorizationEndpointRequest();
 
 	protected abstract void waitForAuthenticationToComplete(long delaySeconds);
+
+	protected void waitForPollingAuthenticationToComplete(long delaySeconds) {
+		int attempts = 0;
+		while (attempts++ < 20) {
+			// poll the token endpoint
+
+			setStatus(Status.WAITING);
+			try {
+				Thread.sleep(delaySeconds * 1000);
+			} catch (InterruptedException e) {
+				throw new TestFailureException(getId(), "Thread.sleep threw exception: " + e.getMessage());
+			}
+			setStatus(Status.RUNNING);
+
+			eventLog.startBlock(currentClientString() + "Polling token endpoint waiting for user to authenticate");
+			callTokenEndpointForCibaGrant();
+			eventLog.endBlock();
+			int httpStatus = env.getInteger("token_endpoint_response_http_status");
+			if (httpStatus == 200) {
+				handleSuccessfulTokenEndpointResponse();
+				return;
+			}
+			verifyTokenEndpointResponseIsPendingOrSlowDown();
+
+			if (delaySeconds < 60) {
+				delaySeconds *= 1.5;
+			}
+		}
+
+		// we never moved out of pending and hence could not complete the test, test fails
+		fireTestFailure();
+		throw new TestFailureException(new ConditionError(getId(), "User did not authenticate before timeout"));
+	}
 
 	protected void requestClientCredentialsGrant() {
 		createClientCredentialsRequest();

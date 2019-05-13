@@ -3,12 +3,11 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "fapi-ciba-poll-with-mtls",
-	displayName = "FAPI-CIBA: Poll mode (MTLS client authentication)",
-	summary = "This test requires two different clients registered to use MTLS client authentication under the FAPI-CIBA profile for the 'poll' mode. The test authenticates the user twice (using different variations on the authorisation request etc), tests that certificate bound access tokens are implemented correctly. Do not respond to the request until the test enters the 'WAITING' state.",
+	testName = "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
+	displayName = "FAPI-CIBA: Poll mode - test with a binding message of '1234', the server must authenticate successfully (MTLS client authentication)",
+	summary = "This test tries sending a binding message of '1234' to authorization endpoint request then the server must authenticate successfully.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
+public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS {
 
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
@@ -46,4 +45,5 @@ public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		/* Nothing to do */
 	}
+
 }
