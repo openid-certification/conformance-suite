@@ -12,7 +12,7 @@ import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthentica
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.SignRequestObjectInvalid;
 
-public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidSignedRequestObjectWithMTLS {
+public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
 
 	@Override
 	protected void performAuthorizationRequest() {

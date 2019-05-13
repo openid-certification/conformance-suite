@@ -11,7 +11,7 @@ import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
 
-public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidSignedRequestObjectWithMTLS {
+public abstract class AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
 
 	@Override
 	protected void performAuthorizationRequest() {

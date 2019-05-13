@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
@@ -7,8 +8,8 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
 
-// Send invalid signed request_object to backchannel authorisation endpoint and the response is invalid_request
-public abstract class AbstractFAPICIBAEnsureSendingInvalidSignedRequestObjectWithMTLS extends AbstractFAPICIBAWithMTLS {
+// Send invalid request to backchannel authorisation endpoint and the response is invalid_request
+public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS extends AbstractFAPICIBAWithMTLS {
 	@Override
 	protected void performPostAuthorizationResponse() {
 
@@ -42,5 +43,10 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidSignedRequestObjectWit
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		//Nothings to do
 
+	}
+
+	@Override
+	protected void processNotificationCallback(JsonObject requestParts) {
+		/* Nothing to do */
 	}
 }

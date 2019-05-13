@@ -42,17 +42,6 @@ public class FAPICIBAPollWithMTLSEnsureRequestObjectExpIsYearInFutureFails exten
 	}
 
 	@Override
-	protected void onCallBackChannelAuthenticationEndpointResponse() {
-
-		callAndContinueOnFailure(EnsureErrorFromBackchannelAuthenticationEndpointResponse.class, Condition.ConditionResult.FAILURE);
-
-		callAndContinueOnFailure(EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse.class, Condition.ConditionResult.FAILURE);
-
-		fireTestFinished();
-
-	}
-
-	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		/* Nothing to do */
 	}

@@ -41,15 +41,4 @@ public class FAPICIBAPingWithMTLSEnsureRequestObjectExpIsYearInFutureFails exten
 
 	}
 
-	@Override
-	protected void onCallBackChannelAuthenticationEndpointResponse() {
-
-		callAndContinueOnFailure(EnsureErrorFromBackchannelAuthenticationEndpointResponse.class, Condition.ConditionResult.FAILURE);
-
-		callAndContinueOnFailure(EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse.class, Condition.ConditionResult.FAILURE);
-
-		fireTestFinished();
-
-	}
-
 }
