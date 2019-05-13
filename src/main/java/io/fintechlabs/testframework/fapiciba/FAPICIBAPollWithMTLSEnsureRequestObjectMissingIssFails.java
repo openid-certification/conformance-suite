@@ -30,8 +30,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPollWithMTLSEnsureRequestObjectMissingIssFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
-	protected void buildRequestObject() {
-		super.buildRequestObject();
+	protected void createAuthorizationRequestObject() {
+		super.createAuthorizationRequestObject();
 		callAndStopOnFailure(RemoveIssFromRequestObject.class, "CIBA-7.1.1");
 	}
 

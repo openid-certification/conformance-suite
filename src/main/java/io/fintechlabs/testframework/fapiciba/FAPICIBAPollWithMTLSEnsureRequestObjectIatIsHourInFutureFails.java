@@ -30,9 +30,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPollWithMTLSEnsureRequestObjectIatIsHourInFutureFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
-	protected void buildRequestObject() {
+	protected void createAuthorizationRequestObject() {
 
-		super.buildRequestObject();
+		super.createAuthorizationRequestObject();
 
 		callAndStopOnFailure(AddIatValueIsHourInFutureToRequestObject.class, "CIBA-7.1.1");
 

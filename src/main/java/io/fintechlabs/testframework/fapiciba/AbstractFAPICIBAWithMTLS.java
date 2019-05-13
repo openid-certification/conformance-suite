@@ -149,27 +149,6 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		return "";
 	}
 
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
-
-		createAuthorizationRequest();
-
-		buildRequestObject();
-
-		callAndStopOnFailure(SignAuthenticationRequest.class, "CIBA-7.1.1");
-
-		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
-
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
-		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
-
-		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
-
-		onCallBackChannelAuthenticationEndpointResponse();
-	}
-
 	protected void createAuthorizationRequest() {
 
 		callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
@@ -187,7 +166,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		performProfileAuthorizationEndpointSetup();
 	}
 
-	protected void buildRequestObject() {
+	protected void createAuthorizationRequestObject() {
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
@@ -205,7 +184,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 	}
 
-	protected void onCallBackChannelAuthenticationEndpointResponse() {
+	protected void performValidateAuthorizationResponse() {
 
 		callAndStopOnFailure(CheckBackchannelAuthenticationEndpointHttpStatus200.class, "CIBA-7.3");
 
@@ -225,8 +204,9 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdExpiresIn.class, Condition.ConditionResult.FAILURE,"CIBA-7.3");
 
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdInterval.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
+	}
 
-		eventLog.endBlock();
+	protected void performPostAuthorizationResponse() {
 
 		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
 		// As there's no way the user could have authenticated this request, we assume we will get a
@@ -272,6 +252,36 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		waitForAuthenticationToComplete(delaySeconds);
 
+	}
+
+	protected void performAuthorizationRequest() {
+
+		createAuthorizationRequestObject();
+
+		callAndStopOnFailure(SignAuthenticationRequest.class, "CIBA-7.1.1");
+
+		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
+
+		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
+		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
+
+		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+	}
+
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
+		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
+
+		createAuthorizationRequest();
+
+		performAuthorizationRequest();
+
+		performValidateAuthorizationResponse();
+
+		eventLog.endBlock();
+
+		performPostAuthorizationResponse();
 	}
 
 	protected abstract void modeSpecificAuthorizationEndpointRequest();

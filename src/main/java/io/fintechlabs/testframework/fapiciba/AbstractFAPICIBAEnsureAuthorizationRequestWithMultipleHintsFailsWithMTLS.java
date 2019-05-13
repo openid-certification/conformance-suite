@@ -7,7 +7,7 @@ import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEnd
 import io.fintechlabs.testframework.condition.client.EnsureErrorFromBackchannelAuthenticationEndpointResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse;
 
-public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAWithMTLS {
+public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
 
 	@Override
 	protected void createAuthorizationRequest() {
@@ -25,17 +25,6 @@ public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHint
 		modeSpecificAuthorizationEndpointRequest();
 
 		performProfileAuthorizationEndpointSetup();
-
-	}
-
-	@Override
-	protected void onCallBackChannelAuthenticationEndpointResponse() {
-
-		callAndStopOnFailure(EnsureErrorFromBackchannelAuthenticationEndpointResponse.class);
-
-		callAndStopOnFailure(EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse.class);
-
-		fireTestFinished();
 
 	}
 

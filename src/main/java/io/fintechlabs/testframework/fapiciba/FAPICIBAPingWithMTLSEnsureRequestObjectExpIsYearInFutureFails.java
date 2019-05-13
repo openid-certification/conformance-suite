@@ -33,22 +33,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPingWithMTLSEnsureRequestObjectExpIsYearInFutureFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
-	protected void buildRequestObject() {
+	protected void createAuthorizationRequestObject() {
 
-		super.buildRequestObject();
+		super.createAuthorizationRequestObject();
 
 		callAndStopOnFailure(AddExpValueIsYearInFutureToRequestObject.class, "CIBA-7.1.1");
-
-	}
-
-	@Override
-	protected void onCallBackChannelAuthenticationEndpointResponse() {
-
-		callAndContinueOnFailure(EnsureErrorFromBackchannelAuthenticationEndpointResponse.class, Condition.ConditionResult.FAILURE);
-
-		callAndContinueOnFailure(EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse.class, Condition.ConditionResult.FAILURE);
-
-		fireTestFinished();
 
 	}
 
