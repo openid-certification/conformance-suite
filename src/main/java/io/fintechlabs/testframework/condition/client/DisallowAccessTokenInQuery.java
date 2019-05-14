@@ -76,7 +76,9 @@ public class DisallowAccessTokenInQuery extends AbstractCondition {
 
 			throw error("Got a successful response from the resource endpoint", args("body", response.getBody()));
 		} catch (RestClientResponseException e) {
-			if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST || e.getRawStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+			if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST ||
+				e.getRawStatusCode() == HttpStatus.SC_UNAUTHORIZED ||
+				e.getRawStatusCode() == HttpStatus.SC_REQUEST_URI_TOO_LONG) {
 				logSuccess("Resource server refused request", args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 				return env;
 			} else {

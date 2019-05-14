@@ -231,7 +231,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		call(condition(CreateRandomCodeVerifier.class));
+		call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
 		call(exec().exposeEnvironmentString("code_verifier"));
 		call(condition(CreateS256CodeChallenge.class));
 		call(exec()
@@ -334,7 +334,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
@@ -377,7 +377,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
@@ -426,7 +426,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-			call(condition(CreateRandomCodeVerifier.class));
+			call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
 			call(exec().exposeEnvironmentString("code_verifier"));
 			call(condition(CreateS256CodeChallenge.class));
 			call(exec()

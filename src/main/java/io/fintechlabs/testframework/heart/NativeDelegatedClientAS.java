@@ -132,9 +132,9 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
 		// set up PKCE
-		callAndStopOnFailure(CreateRandomCodeVerifier.class, "HEART-OAuth2-2.1.2");
-		callAndStopOnFailure(CreateS256CodeChallenge.class, "HEART-OAuth2-2.1.2");
-		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class, "HEART-OAuth2-2.1.2");
+		callAndStopOnFailure(CreateRandomCodeVerifier.class, "HEART-OAuth2-2.1.3.2", "RFC7636-4.1");
+		callAndStopOnFailure(CreateS256CodeChallenge.class, "HEART-OAuth2-2.1.3.2");
+		callAndStopOnFailure(AddCodeChallengeToAuthorizationEndpointRequest.class, "HEART-OAuth2-2.1.3.2");
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 

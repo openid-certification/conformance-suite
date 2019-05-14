@@ -32,7 +32,7 @@ public abstract class AbstractFAPIRWID2PerformTokenEndpoint extends AbstractFAPI
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 

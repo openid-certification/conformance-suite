@@ -223,7 +223,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-		call(condition(CreateRandomCodeVerifier.class));
+		call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
 		call(exec().exposeEnvironmentString("code_verifier"));
 		call(condition(CreateS256CodeChallenge.class));
 		call(exec()
@@ -319,13 +319,13 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+			callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3"); // these can be continues
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+			callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
+			callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
@@ -373,7 +373,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
 			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
@@ -422,7 +422,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 
-			call(condition(CreateRandomCodeVerifier.class));
+			call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
 			call(exec().exposeEnvironmentString("code_verifier"));
 			call(condition(CreateS256CodeChallenge.class));
 			call(exec()

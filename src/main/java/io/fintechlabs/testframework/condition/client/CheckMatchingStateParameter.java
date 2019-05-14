@@ -43,18 +43,18 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 				logSuccess("No state parameter to check");
 				return in;
 			} else {
-				throw error("State parameter did not match", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+				throw error("No state value was sent, but a state parameter was returned", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			}
 		} else {
 			// we did save a state parameter, make sure it's the same as before
 			if (expected.equals(actual)) {
 				// we're good
-				logSuccess("Checking for state parameter",
+				logSuccess("State parameter correctly returned",
 					args("state", Strings.nullToEmpty(actual)));
 
 				return in;
 			} else {
-				throw error("State parameter did not match");
+				throw error("State parameter did not match",  args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			}
 		}
 

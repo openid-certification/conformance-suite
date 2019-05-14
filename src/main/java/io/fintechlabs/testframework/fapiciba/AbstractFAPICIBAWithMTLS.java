@@ -219,7 +219,8 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		long delaySeconds = 5;
 		Integer interval = env.getInteger("backchannel_authentication_endpoint_response", "interval");
-		if (interval != null) {
+		if (interval != null && interval > 5) {
+			// ignore intervals lower than 5; we don't want to fill the log or exhaust our retries too quickly
 			delaySeconds = interval;
 		}
 
@@ -272,7 +273,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();
 
-		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
+		eventLog.startBlock(currentClientString() + "Call backchannel authentication endpoint");
 
 		createAuthorizationRequest();
 
@@ -432,7 +433,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		call(condition(FAPICIBAValidateIdTokenAuthRequestIdClaims.class)
 			.skipIfElementMissing("id_token", "claims.urn:openid:params:jwt:claim:auth_req_id")

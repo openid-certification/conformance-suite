@@ -1,10 +1,10 @@
 package io.fintechlabs.testframework.fapi;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -71,7 +71,6 @@ import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointReq
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
@@ -289,16 +288,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE,"OIDCC-2");
 
 		performProfileIdTokenValidation();
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
@@ -460,16 +459,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdTokenNonce.class,"OIDCC-2");
+		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
 
 		performProfileIdTokenValidation();
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE,  "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		performTokenEndpointIdTokenExtraction();
 		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");

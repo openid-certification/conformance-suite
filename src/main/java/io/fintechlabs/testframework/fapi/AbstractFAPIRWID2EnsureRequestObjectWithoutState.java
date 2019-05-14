@@ -22,7 +22,6 @@ import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
@@ -34,6 +33,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.VerifyNoSHash;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -140,10 +140,10 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.WARNING, "FAPI-RW-8.6");
+		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
-		// s_hash are optional.
-		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.INFO, "FAPI-RW-5.2.2-4");
+		// s_hash must not be returned, as AS must ignore the state parameter outside the request object
+		callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-10");
 
 		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
