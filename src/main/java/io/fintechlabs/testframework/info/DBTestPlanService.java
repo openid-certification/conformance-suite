@@ -380,6 +380,7 @@ public class DBTestPlanService implements TestPlanService {
 		collection.createIndex(new BasicDBObject("description", 1));
 		collection.createIndex(new BasicDBObject("started", 1));
 		collection.createIndex(new BasicDBObject("owner", 1));
+		collection.createIndex(new BasicDBObject("publish", 1));
 		collection.createIndex(BasicDBObjectBuilder.start("$**", "text").get());
 	}
 }
