@@ -110,9 +110,6 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPrivateKey.class);
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
-	 */
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
@@ -163,9 +160,6 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
-	 */
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
