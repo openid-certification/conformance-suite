@@ -28,7 +28,7 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();
 
-		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
+		eventLog.startBlock(currentClientString() + "Call backchannel authentication endpoint");
 
 		createAuthorizationRequest();
 
@@ -41,12 +41,12 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
-		//Nothings to do
+		//Not called in this test
 
 	}
 
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
-		/* Nothing to do */
+		//Not called in this test
 	}
 }
