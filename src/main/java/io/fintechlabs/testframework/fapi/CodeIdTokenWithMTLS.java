@@ -480,7 +480,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
 
-			// use the code with the first client's ID
+			eventLog.startBlock("Attempt to use authorization code obtained by client 2 with the client_id for client 1");
 			env.unmapKey("client");
 
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);

@@ -469,7 +469,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-			// use the code with the first client's credentials
+			eventLog.startBlock("Attempt to use authorization code obtained by client 2 with a client assertion for client 1");
+
 			env.unmapKey("client");
 			env.unmapKey("client_jwks");
 			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
