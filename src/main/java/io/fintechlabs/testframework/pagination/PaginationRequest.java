@@ -85,25 +85,27 @@ public class PaginationRequest {
 
 	public Map getResults(DBCollection collection, DBObject criteria, List<DBObject> projection) {
 
+		return getResults(collection, Collections.singletonList(new BasicDBObject("$match", criteria)), projection);
+	}
+
+	public Map getResults(DBCollection collection, List<DBObject> selection, List<DBObject> projection) {
+
+		List<DBObject> pipeline = new ArrayList<DBObject>(selection);
+
 		// First get the total number of unfiltered results
-		long total = collection.count(criteria);
+		long total = aggregateCount(collection, pipeline);
+		long filteredCount = total;
 
 		// Update the criteria with search term, if any
 		if (search != null && !search.isEmpty()) {
-			criteria = new BasicDBObject("$and",
-					new DBObject[] {
-							criteria,
-							new BasicDBObject("$text", new BasicDBObject("$search", search))
-					});
+			// Text search must be the frirst pipeline stage
+			pipeline.add(0, new BasicDBObject("$match", new BasicDBObject("$text", new BasicDBObject("$search", search))));
+
+			// Count the filtered results
+			filteredCount = aggregateCount(collection, pipeline);
 		}
 
-		// Count the filtered results
-		long filteredCount = collection.count(criteria);
-
 		// Sort and paginate
-		List<DBObject> pipeline = new ArrayList<DBObject>();
-
-		pipeline.add(new BasicDBObject("$match", criteria));
 		pipeline.add(new BasicDBObject("$sort", getSortObject()));
 		pipeline.add(new BasicDBObject("$skip", start));
 		pipeline.add(new BasicDBObject("$limit", length));
@@ -127,6 +129,28 @@ public class PaginationRequest {
 		response.put("data", results);
 
 		return response;
+	}
+
+	private static long aggregateCount(DBCollection collection, List<DBObject> selection) {
+
+		// Have to do this explicitly since DBCollection only supports
+		// criteria-based selection.
+
+		List<DBObject> pipeline = new ArrayList<DBObject>(selection);
+		pipeline.add(new BasicDBObject("$count", "count"));
+
+		// Force the driver to include a 'cursor' option - Mongo complains otherwise.
+		AggregationOptions options = AggregationOptions.builder()
+				.outputMode(AggregationOptions.OutputMode.CURSOR)
+				.build();
+
+		Cursor cursor = collection.aggregate(pipeline, options);
+		if (cursor.hasNext()) {
+			DBObject result = cursor.next();
+			return new BasicDBObject(result.toMap()).getLong("count");
+		} else {
+			return 0;
+		}
 	}
 
 	private DBObject getSortObject() {
