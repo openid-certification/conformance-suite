@@ -27,6 +27,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-ensure-request-object-signature-algorithm-is-bad-fails-with-mtls",
 		"fapi-ciba-ping-ensure-request-object-signature-algorithm-is-RS256-fails-with-mtls",
 		"fapi-ciba-ping-ensure-request-object-signed-by-other-client-fails-with-mtls",
+		"fapi-ciba-ping-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
