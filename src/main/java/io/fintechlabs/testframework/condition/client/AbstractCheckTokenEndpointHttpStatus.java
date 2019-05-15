@@ -26,7 +26,7 @@ public abstract class AbstractCheckTokenEndpointHttpStatus extends AbstractCondi
 		int expectedValue = expectedStatus.value();
 
 		if (httpStatus != expectedValue) {
-			throw error("Invalid http status " + expectedValue);
+			throw error("Invalid http status " + httpStatus + " - expected " + expectedValue);
 		}
 
 		logSuccess("Token endpoint http status code was " + expectedValue);

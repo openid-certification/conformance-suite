@@ -114,9 +114,6 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithClientSecretJWTAssertion.class);
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, java.lang.String)
-	 */
 	@Override
 	public void configure(JsonObject config, String baseUrl) {
 		env.putString("base_url", baseUrl);
@@ -167,9 +164,6 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#start()
-	 */
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
@@ -243,9 +237,6 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 		browser.goToUrl(redirectTo);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		// dispatch based on the path
@@ -478,7 +469,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractTestModule 
 
 			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-			// use the code with the first client's credentials
+			eventLog.startBlock("Attempt to use authorization code obtained by client 2 with a client assertion for client 1");
+
 			env.unmapKey("client");
 			env.unmapKey("client_jwks");
 			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
