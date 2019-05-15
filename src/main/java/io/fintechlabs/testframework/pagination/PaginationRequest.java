@@ -98,7 +98,7 @@ public class PaginationRequest {
 
 		// Update the criteria with search term, if any
 		if (search != null && !search.isEmpty()) {
-			// Text search must be the frirst pipeline stage
+			// Mongo requires text search to come first in the pipeline
 			pipeline.add(0, new BasicDBObject("$match", new BasicDBObject("$text", new BasicDBObject("$search", search))));
 
 			// Count the filtered results
