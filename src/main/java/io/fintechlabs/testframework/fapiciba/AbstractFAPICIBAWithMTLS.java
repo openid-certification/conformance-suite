@@ -392,6 +392,16 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		eventLog.endBlock();
 	}
 
+	protected void verifyTokenEndpointResponseIsTokenExpired() {
+		eventLog.startBlock(currentClientString() + "Verify token endpoint response is expired_token");
+
+		validateErrorFromTokenEndpointResponse();
+
+		callAndStopOnFailure(ExpectExpiredTokenErrorFromTokenEndpoint.class, "CIBA-11");
+
+		eventLog.endBlock();
+	}
+
 	protected void validateErrorFromTokenEndpointResponse() {
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
@@ -623,7 +633,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 	}
 
-	protected void processPingNotificationCallback(JsonObject requestParts){
+	protected void verifyNotificationCallback(JsonObject requestParts){
 		String envKey = "notification_callback";
 
 		eventLog.startBlock(currentClientString() + "Verify notification callback");
@@ -643,6 +653,15 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckNotificationCallbackOnlyAuthReqId.class, "CIBA-10.2");
 		eventLog.endBlock();
+
+		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
+		callTokenEndpointForCibaGrant();
+		eventLog.endBlock();
+	}
+
+	protected void processPingNotificationCallback(JsonObject requestParts){
+
+		verifyNotificationCallback(requestParts);
 
 		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
 		callTokenEndpointForCibaGrant();
