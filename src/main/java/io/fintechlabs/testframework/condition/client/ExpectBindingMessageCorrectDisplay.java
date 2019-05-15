@@ -1,0 +1,31 @@
+package io.fintechlabs.testframework.condition.client;
+
+import com.google.common.base.Strings;
+import io.fintechlabs.testframework.condition.AbstractCondition;
+import io.fintechlabs.testframework.condition.PreEnvironment;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
+
+public class ExpectBindingMessageCorrectDisplay extends AbstractCondition {
+
+	public ExpectBindingMessageCorrectDisplay(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+		super(testId, log, conditionResultOnFailure, requirements);
+	}
+
+	@Override
+	@PreEnvironment(required = "config")
+	public Environment evaluate(Environment env) {
+
+		String automatedApprovalUrl = env.getString("config", "automated_ciba_approval_url");
+
+		if (!Strings.isNullOrEmpty(automatedApprovalUrl)) {
+
+			throw error("Automated approval url has been provided in the configuration json it is assumed this is an automated run and the display of the binding message cannot be verified.");
+
+		}
+
+		String placeholder = createBrowserInteractionPlaceholder("If the server does not return the invalid_binding_message error. It must authenticate successfully and the binding message being correctly displayed - upload a screenshot/photo of the binding message");
+
+		return env;
+	}
+}

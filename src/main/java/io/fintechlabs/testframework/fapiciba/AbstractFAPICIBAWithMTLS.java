@@ -207,6 +207,18 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdInterval.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
 	}
 
+	protected void validateErrorFromBackchannelAuthorizationRequestResponse() {
+
+		callAndContinueOnFailure(ValidateErrorResponseFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+
+		callAndContinueOnFailure(ValidateErrorUriFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+
+		callAndContinueOnFailure(ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+
+		callAndContinueOnFailure(CheckBackchannelAuthenticationEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+
+	}
+
 	protected void performPostAuthorizationResponse() {
 
 		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
@@ -489,37 +501,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		if (whichClient == 1) {
 
-			eventLog.startBlock("Accounts request endpoint TLS test");
-			env.mapKey("tls", "accounts_request_endpoint_tls");
-			callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-			callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-			eventLog.endBlock();
-
-
-			eventLog.startBlock("Accounts resource endpoint TLS test");
-			env.mapKey("tls", "accounts_resource_endpoint_tls");
-			callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-			callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-			env.unmapKey("tls");
-			eventLog.endBlock();
-
-			requestProtectedResource();
-
-			callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+			verifyAccessTokenWithProtectedResource();
 
 			// Try the second client
 
@@ -579,6 +561,40 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 			fireTestFinished();
 		}
+	}
+
+	protected void verifyAccessTokenWithProtectedResource() {
+		eventLog.startBlock("Accounts request endpoint TLS test");
+		env.mapKey("tls", "accounts_request_endpoint_tls");
+		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+
+		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
+		eventLog.endBlock();
+
+
+		eventLog.startBlock("Accounts resource endpoint TLS test");
+		env.mapKey("tls", "accounts_resource_endpoint_tls");
+		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+
+		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
+		env.unmapKey("tls");
+		eventLog.endBlock();
+
+		requestProtectedResource();
+
+		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
+
+		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+
+		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+
+		callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 	}
 
 
