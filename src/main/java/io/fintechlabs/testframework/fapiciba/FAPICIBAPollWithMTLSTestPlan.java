@@ -29,6 +29,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-poll-ensure-request-object-signed-by-other-client-fails-with-mtls",
 		"fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
 		"fapi-ciba-poll-auth-req-id-expired-with-mtls",
+		"fapi-ciba-poll-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {

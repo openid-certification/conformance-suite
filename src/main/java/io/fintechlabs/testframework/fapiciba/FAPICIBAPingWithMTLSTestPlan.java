@@ -29,6 +29,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-ensure-request-object-signed-by-other-client-fails-with-mtls",
 		"fapi-ciba-ping-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
 		"fapi-ciba-ping-auth-req-id-expired-with-mtls",
+		"fapi-ciba-ping-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
