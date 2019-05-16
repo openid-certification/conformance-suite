@@ -116,5 +116,6 @@ public class DBEventLog implements EventLog {
 	public void createIndexes(){
 		DBCollection eventLogCollection = mongoTemplate.getCollection(COLLECTION);
 		eventLogCollection.createIndex("testId");
+		eventLogCollection.createIndex("testOwner");
 	}
 }
