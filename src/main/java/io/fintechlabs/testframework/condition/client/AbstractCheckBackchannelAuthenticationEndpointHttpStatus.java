@@ -26,7 +26,7 @@ public abstract class AbstractCheckBackchannelAuthenticationEndpointHttpStatus e
 		int expectedValue = expectedStatus.value();
 
 		if (httpStatus != expectedValue) {
-			throw error("Invalid http status " + expectedValue);
+			throw error("Invalid http status", args("actual", httpStatus, "expected", expectedValue));
 		}
 
 		logSuccess("Backchannel authentication endpoint http status code was " + expectedValue);
