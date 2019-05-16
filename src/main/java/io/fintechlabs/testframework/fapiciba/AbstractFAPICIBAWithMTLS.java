@@ -653,10 +653,6 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckNotificationCallbackOnlyAuthReqId.class, "CIBA-10.2");
 		eventLog.endBlock();
-
-		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
-		callTokenEndpointForCibaGrant();
-		eventLog.endBlock();
 	}
 
 	protected void processPingNotificationCallback(JsonObject requestParts){
