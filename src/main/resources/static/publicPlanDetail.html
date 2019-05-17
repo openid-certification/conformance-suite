@@ -150,9 +150,14 @@
 	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
 	                          },
 	                          error: function(jqxhr, status, error) {
-	                              FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-	                                  error: error
-	                              });
+	                              if (jqxhr.status == 404) {
+	                                  // If the latest run is not accessible (unpublished), we'll get a 404 error.
+	                                  // Just ignore it.
+	                              } else {
+	                                  FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+	                                      error: error
+	                                  });
+	                              }
 	                          }
 	                      });
 					  } else {

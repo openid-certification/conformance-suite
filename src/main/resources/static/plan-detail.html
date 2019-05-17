@@ -217,7 +217,14 @@
 	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
 	                          },
 	                          error: function(jqxhr, status, error) {
-
+	                              if (jqxhr.status == 404) {
+	                                  // If an admin has re-run the test we won't be able to fetch the status (error 404).
+	                                  // Just ignore it.
+	                              } else {
+	                                  FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+	                                      error: error
+	                                  });
+	                              }
 	                          }
 	                      });
 					  } else {
