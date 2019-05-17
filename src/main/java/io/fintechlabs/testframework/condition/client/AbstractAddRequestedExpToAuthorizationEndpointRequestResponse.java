@@ -7,11 +7,13 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class AddRequestedExpToAuthorizationEndpointRequestResponse extends AbstractCondition {
+public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequestResponse extends AbstractCondition {
 
-	public AddRequestedExpToAuthorizationEndpointRequestResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AbstractAddRequestedExpToAuthorizationEndpointRequestResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
+
+	protected abstract Integer getExpectedRequestedExpiry();
 
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_request"} )
@@ -20,16 +22,16 @@ public class AddRequestedExpToAuthorizationEndpointRequestResponse extends Abstr
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		Integer requestedExpiry = env.getInteger("client", "requested_expiry");
+		Integer requestedExpiry = getExpectedRequestedExpiry();
 		if (requestedExpiry == null || requestedExpiry.intValue() == 0) {
-			throw error("requested_expiry missing/empty in client object");
+			throw error("requested_expiry missing/empty");
 		}
 
 		authorizationEndpointRequest.addProperty("requested_expiry", requestedExpiry);
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added requested expiry to authorization endpoint request", authorizationEndpointRequest);
+		logSuccess("Added requested expiry to authorization endpoint request", args("requested_expiry", requestedExpiry));
 
 		return env;
 	}
