@@ -36,7 +36,6 @@ variables:
 
 stages:
   - build
-  - test
   - review
   - demo
   - staging
@@ -88,7 +87,7 @@ check-trailing-whitespace:
     - ./scripts/checkwhitespace.py
 
 test:
-  stage: test
+  stage: build
   image: gliderlabs/herokuish:latest
   script:
     # Run tests explicitly, since herokuish doesn't pick up the maven environment
