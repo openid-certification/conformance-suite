@@ -2,7 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.client.AddRequestedExpToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequestResponse;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.SleepUntilAuthReqExpires;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -62,7 +62,6 @@ public class FAPICIBAPollAuthReqIdExpiredWithMTLS extends AbstractFAPICIBAWithMT
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
-		env.getObject("client").addProperty("requested_expiry", 30);
-		callAndStopOnFailure(AddRequestedExpToAuthorizationEndpointRequestResponse.class, "CIBA-11");
+		callAndStopOnFailure(AddRequestedExp30sToAuthorizationEndpointRequestResponse.class, "CIBA-11");
 	}
 }

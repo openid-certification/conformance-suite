@@ -2,7 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
-import io.fintechlabs.testframework.condition.client.AddRequestedExpToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddRequestedExp300sToAuthorizationEndpointRequestResponse;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
@@ -59,8 +59,7 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 		if ( whichClient == 2 ) {
 			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
 
-			env.getObject("client").addProperty("requested_expiry", 300);
-			callAndStopOnFailure(AddRequestedExpToAuthorizationEndpointRequestResponse.class, "CIBA-11");
+			callAndStopOnFailure(AddRequestedExp300sToAuthorizationEndpointRequestResponse.class, "CIBA-11");
 		} else {
 			callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 		}
