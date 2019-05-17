@@ -813,8 +813,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected void waitForPlaceholders() {
 		// set up a listener to wait for either an error callback or an image upload
 		executionManager.runInBackground(() -> {
+			long delayMillis = 1000; // wait for a second before we check the first time
 
-			Thread.sleep(10 * 1000); // wait for 10 seconds before we check the first time
+			Thread.sleep(delayMillis);
 
 			boolean cont = true;
 
@@ -841,7 +842,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// let go of the lock
 				clearLock();
 
-				Thread.sleep(10 * 1000); // wait for 10 seconds before we check again
+				if (delayMillis < 30 * 1000) {
+					// backoff checks to every 30 seconds so we don't overload db or jvm
+					delayMillis *= 2;
+				}
+				Thread.sleep(delayMillis);
 
 			}
 
