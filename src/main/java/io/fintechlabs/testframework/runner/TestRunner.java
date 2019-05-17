@@ -3,7 +3,10 @@ package io.fintechlabs.testframework.runner;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -53,6 +56,7 @@ import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.Accessory;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -179,6 +183,12 @@ public class TestRunner implements DataUtils {
 				"displayName", e.a.displayName(),
 				"profile", e.a.profile(),
 				"configurationFields", e.a.configurationFields(),
+				"variants", Arrays.stream(e.a.variants())
+					.map((v) -> args(
+						"name", v.name(),
+						"configurationFields", v.configurationFields()
+					))
+					.collect(Collectors.toList()),
 				"summary", e.a.summary()))
 			.collect(Collectors.toSet());
 
@@ -457,8 +467,25 @@ public class TestRunner implements DataUtils {
 			TestModule module = testModuleClass.getDeclaredConstructor()
 				.newInstance();
 
+
+			// see if we're running a variant
+
+			List<Accessory> accessories = Collections.emptyList();
+
+			if (config.has("variant") && config.get("variant").isJsonPrimitive()) {
+
+				String variantName = config.get("variant").getAsString();
+
+				accessories = Arrays.stream(holder.a.variants())
+					.filter((v) -> v.name().equals(variantName))
+					.findAny()
+					.map((v) -> Arrays.asList(v.accessories()))
+					.orElse(Collections.emptyList());
+
+			}
+
 			// pass in all the components for this test module to execute
-			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
+			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService, accessories);
 
 			return module;
 

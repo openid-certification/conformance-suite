@@ -10,7 +10,7 @@ import java.util.Map;
  * starting and stopping blocks in the logs, and other controls not directly related to calling a
  * condition.
  */
-public class Command extends TestExecutionUnit {
+public class Command implements TestExecutionUnit {
 	private Map<String, String> mapKeys = new LinkedHashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
 	private String startBlock = null;

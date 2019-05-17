@@ -3,6 +3,8 @@ package io.fintechlabs.testframework.testmodule;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,8 @@ import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
 
@@ -61,12 +65,14 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
+	private List<Accessory> accessories = Collections.emptyList();
+
 	protected AbstractTestModule() {
 
 	}
 
 	@Override
-	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService) {
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService, List<Accessory> accessories) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
@@ -74,6 +80,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		this.testInfo = testInfo;
 		this.executionManager = executionManager;
 		this.imageService = imageService;
+		this.accessories  = accessories;
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
@@ -439,16 +446,62 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call((ConditionCallBuilder)builder);
 		} else if (builder instanceof Command) {
 			call((Command)builder);
+		} else if (builder instanceof ConditionSequence) {
+			call((ConditionSequence)builder);
 		} else {
 			throw new TestFailureException(getId(), "Unknown class passed to call() function");
 		}
 	}
 
 	/**
-	 * Call a list of execution units in order
+	 * Create a caller for the given sequence
 	 */
-	protected void call(List<TestExecutionUnit> units) {
-		units.forEach(this::call);
+	protected ConditionSequence sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		ConditionSequence conditionSequence = createSequence(conditionSequenceClass);
+
+		this.accessories.stream()
+			.forEach((a) -> conditionSequence.with(a.key(),
+				(TestExecutionUnit[]) Arrays.stream(a.sequences())
+					.map((c) -> createSequence(c))
+					.toArray()
+			));
+
+		return conditionSequence;
+	}
+
+	private ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		try {
+			ConditionSequence conditionSequence = conditionSequenceClass
+				.getDeclaredConstructor()
+				.newInstance();
+
+			return conditionSequence;
+
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logException(e);
+			logger.error("Couldn't create condition series object", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition series: " + conditionSequenceClass.getSimpleName());
+		}
+	}
+
+	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {
+		return new AbstractConditionSequence() {
+
+			@Override
+			public void evaluate() {
+				call(Arrays.asList(units));
+			}
+		};
+	}
+
+	protected void call(ConditionSequence series) {
+		// execute the sequence
+		series.evaluate();
+
+		// pass all of the resulting units to the call functions
+		series.getTestExecutionUnits()
+			.forEach(this::call);
 	}
 
 	@Override
