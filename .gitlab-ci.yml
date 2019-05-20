@@ -36,7 +36,6 @@ variables:
 
 stages:
   - build
-  - test
   - review
   - demo
   - staging
@@ -62,6 +61,24 @@ build:
   cache:
     paths:
       - .m2/
+
+test:
+  stage: build
+  image: gliderlabs/herokuish:latest
+  script:
+    # Run tests explicitly, since herokuish doesn't pick up the maven environment
+    - cp -R * /tmp/build
+    - "[ -e .m2 ] && cp -R .m2 /tmp/cache"
+    - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
+    - export JAVA_HOME=/tmp/build/.jdk
+    - HOME=/tmp/build source /tmp/build/.profile.d/maven.sh
+    - cd /tmp/build
+    - mvn -B test
+    - >
+      perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
+  cache:
+    paths:
+      - .m2/
   only:
     - branches
 
@@ -79,6 +96,8 @@ build_microauth:
     -   ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
     -   ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
     - fi
+  only:
+    - branches
 
 check-trailing-whitespace:
   stage: build
@@ -86,24 +105,6 @@ check-trailing-whitespace:
   script:
     - apk -q add --no-cache --update python
     - ./scripts/checkwhitespace.py
-
-test:
-  stage: test
-  image: gliderlabs/herokuish:latest
-  script:
-    # Run tests explicitly, since herokuish doesn't pick up the maven environment
-    - cp -R * /tmp/build
-    - "[ -e .m2 ] && cp -R .m2 /tmp/cache"
-    - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
-    - export JAVA_HOME=/tmp/build/.jdk
-    - HOME=/tmp/build source /tmp/build/.profile.d/maven.sh
-    - cd /tmp/build
-    - mvn -B test
-    - >
-      perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
-  cache:
-    paths:
-      - .m2/
   only:
     - branches
 

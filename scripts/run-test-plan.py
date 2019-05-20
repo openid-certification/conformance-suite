@@ -62,18 +62,17 @@ def run_test_plan(test_plan, config_file):
 
             state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
-            if re.match(r'(fapi-rw-id2-client-.*)', module):
-                os.putenv('CLIENTTESTMODE', 'fapi-rw')
-                if state == "WAITING":
+            if state == "WAITING":
+                # If it's a client test, we need to run the client
+                if re.match(r'(fapi-rw-id2-client-.*)', module):
+                    os.putenv('CLIENTTESTMODE', 'fapi-rw')
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
-            if re.match(r'(fapi-rw-id2-ob-client-.*)', module):
-                print("\nopenbanking-test-mode")
-                os.putenv('CLIENTTESTMODE', 'fapi-ob')
-                if state == "WAITING":
+                if re.match(r'(fapi-rw-id2-ob-client-.*)', module):
+                    os.putenv('CLIENTTESTMODE', 'fapi-ob')
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
-            conformance.wait_for_state(module_id, ["FINISHED"])
+                conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
