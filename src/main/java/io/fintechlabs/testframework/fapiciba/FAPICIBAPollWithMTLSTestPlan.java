@@ -32,6 +32,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-poll-auth-req-id-expired-with-mtls",
 		"fapi-ciba-poll-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
 		"fapi-ciba-poll-multiple-call-to-token-endpoint-with-mtls",
+		"fapi-ciba-poll-ensure-different-client-id-and-issuer-in-backchannel-authorization-request-with-mtls",
+		"fapi-ciba-poll-ensure-wrong-client-id-in-token-endpoint-request-with-mtls",
+		"fapi-ciba-poll-ensure-wrong-client-id-in-backchannel-authorization-request-with-mtls",
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {
