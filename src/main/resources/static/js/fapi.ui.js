@@ -411,6 +411,11 @@ var FAPI_UI = {
 				var msg = error.error;
 				if (error.message) {
 					msg += " : " + error.message
+				} else if (msg.match(/^\d+$/)) {
+					// Tomcat considers that HTTP status messages should not be sent,
+					// so we get unhelpful responses like "HTTP/1.1 404 404". Make it
+					// clear that this is an HTTP error code.
+					msg = "HTTP Error " + msg;
 				}
 				var msgHtml = _.escape(msg);
 				if (error.error == "Unauthorized") {
