@@ -482,10 +482,12 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 			eventLog.startBlock("Attempt to use authorization code obtained by client 2 with the client_id for client 1");
 			env.unmapKey("client");
+			env.unmapKey("mutual_tls_authentication");
 
 			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
 			env.mapKey("client", "client2");
+			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
