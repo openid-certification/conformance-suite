@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +32,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
@@ -66,45 +64,13 @@ public class LogApi {
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAllTests(PaginationRequest page) {
 
-		List<DBObject> selection = new ArrayList<DBObject>();
+		Criteria criteria = new Criteria();
 
-		// Join test logs for existence check
-		if (authenticationFacade.isAdmin()) {
-			selection.add(new BasicDBObject("$lookup",
-					BasicDBObjectBuilder.start()
-							.add("from", DBEventLog.COLLECTION)
-							.add("localField", "_id")
-							.add("foreignField", "testId")
-							.add("as", "logs")
-							.get()));
-		} else {
-			selection.add(new BasicDBObject("$lookup",
-					BasicDBObjectBuilder.start()
-							.add("from", DBEventLog.COLLECTION)
-							.add("let", new BasicDBObject("testId", "$_id"))
-							.add("pipeline", new DBObject[] {
-									new BasicDBObject("$match",
-											BasicDBObjectBuilder.start()
-													.add("_id", "$$testId")
-													.add("testOwner", authenticationFacade.getPrincipal())
-													.get())
-							})
-							.add("as", "logs")
-							.get()));
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
 		}
 
-		// Filter any tests that don't have any logs
-		selection.add(new BasicDBObject("$match",
-				new BasicDBObject("logs", BasicDBObjectBuilder.start()
-						.add("$exists", true)
-						.add("$ne", new Object[0])
-						.get())));
-
-		// Don't include logs in the result
-		selection.add(new BasicDBObject("$project",
-				new BasicDBObject("logs", 0)));
-
-		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), selection, Collections.emptyList());
+		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -217,26 +183,8 @@ public class LogApi {
 	@GetMapping(value = "/public/api/log")
 	public ResponseEntity<Object> getAllPublicTests(PaginationRequest page) {
 
-		List<DBObject> selection = new ArrayList<DBObject>();
-
-		// Join test logs for existence check
-		selection.add(new BasicDBObject("$lookup",
-				BasicDBObjectBuilder.start()
-						.add("from", DBEventLog.COLLECTION)
-						.add("localField", "_id")
-						.add("foreignField", "testId")
-						.add("as", "logs")
-						.get()));
-
-		// Only want tests which are published and have logs
-		selection.add(new BasicDBObject("$match",
-				BasicDBObjectBuilder.start()
-						.add("publish", new BasicDBObject("$in", new String[] { "summary", "everything" }))
-						.add("logs", BasicDBObjectBuilder.start()
-								.add("$exists", true)
-								.add("$ne", new Object[0])
-								.get())
-						.get()));
+		Criteria criteria = new Criteria();
+		criteria.and("publish").in("summary", "everything");
 
 		Field fields = new Field()
 			.include("_id")
@@ -248,9 +196,7 @@ public class LogApi {
 			.include("status")
 			.include("result");
 
-		List<DBObject> projection = Collections.singletonList(new BasicDBObject("$project", fields.getFieldsObject()));
-
-		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), selection, projection);
+		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria, fields);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
