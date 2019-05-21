@@ -408,7 +408,13 @@ var FAPI_UI = {
 		 */
 		showError : function(error) {
 			if (error != null) {
-				var msg = error.error;
+				var msg = error.error || error.code;
+				if (/^\d+$/.test(msg)) {
+					// Tomcat considers that HTTP status messages should not be sent,
+					// so we get unhelpful responses like "HTTP/1.1 404 404". Make it
+					// clear that this is an HTTP error code.
+					msg = "HTTP Error " + msg;
+				}
 				if (error.message) {
 					msg += " : " + error.message
 				}

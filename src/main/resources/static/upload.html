@@ -168,6 +168,7 @@
 							},
 							error: function(jqxhr, status, error) {
 								FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+									code: jqxhr.status,
 									error: error
 								});
 							}
@@ -226,6 +227,7 @@
 						},
 						error: function(jqxhr, status, error) {
 							FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+								code: jqxhr.status,
 								error: error
 							});
 						}
@@ -267,6 +269,7 @@
 			},
 			error: function(jqxhr, status, error) {
 				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+					code: jqxhr.status,
 					error: error
 				});
 			}
