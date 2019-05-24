@@ -374,7 +374,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected void verifyTokenEndpointResponseIsPendingOrSlowDown() {
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response is pending or slow_down");
 
-		validateErrorFromTokenEndpointResponse();
+		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
 
 		callAndStopOnFailure(EnsureErrorTokenEndpointSlowdownOrAuthorizationPending.class);
 
@@ -384,7 +384,7 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected void verifyTokenEndpointResponseIsAccessDenied() {
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
 
-		validateErrorFromTokenEndpointResponse();
+		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
 
 		env.putObject("callback_params", env.getObject("token_endpoint_response"));
 		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class);
@@ -395,15 +395,31 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 	protected void verifyTokenEndpointResponseIsTokenExpired() {
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response is expired_token");
 
-		validateErrorFromTokenEndpointResponse();
+		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
 
 		callAndStopOnFailure(ExpectExpiredTokenErrorFromTokenEndpoint.class, "CIBA-11");
 
 		eventLog.endBlock();
 	}
 
-	protected void validateErrorFromTokenEndpointResponse() {
+	protected void verifyTokenEndpointResponseIs503Error() {
+		eventLog.startBlock(currentClientString() + "Verify token endpoint response is 503 error");
+
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus503.class);
+
+		validateErrorFromTokenEndpointResponse();
+
+		callAndStopOnFailure(CheckTokenEndpointRetryAfterHeaders.class, "CIBA-11");
+
+		eventLog.endBlock();
+	}
+
+	protected void checkStatusCode400AndValidateErrorFromTokenEndpointResponse() {
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
+		validateErrorFromTokenEndpointResponse();
+	}
+
+	protected void validateErrorFromTokenEndpointResponse() {
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
@@ -662,6 +678,27 @@ public abstract class AbstractFAPICIBAWithMTLS extends AbstractTestModule {
 		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
 		callTokenEndpointForCibaGrant();
 		eventLog.endBlock();
+	}
+
+	protected void multipleCallToTokenEndpointAndVerifyResponse(){
+		int attempts = 0;
+		while (attempts++ < 20) {
+			eventLog.startBlock(currentClientString() + "Calling token endpoint expecting one of errors of authorization_pending, slow_down, or 503 error");
+			callTokenEndpointForCibaGrant();
+			eventLog.endBlock();
+
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusNot200.class);
+
+			int httpStatus = env.getInteger("token_endpoint_response_http_status");
+			if(httpStatus == org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503){
+				verifyTokenEndpointResponseIs503Error();
+				return;
+			} else {
+				verifyTokenEndpointResponseIsPendingOrSlowDown();
+			}
+		}
+
+		fireTestFinished();
 	}
 
 }
