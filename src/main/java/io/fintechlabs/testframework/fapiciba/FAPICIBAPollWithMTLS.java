@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300sToAuthorizationEndpointRequestResponse;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
@@ -40,6 +42,12 @@ public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
 	protected void processNotificationCallback(JsonObject requestParts) {
 		fireTestFailure();
 		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
+	}
+
+	@Override
+	protected void addClientAuthenticationToBackchannelRequest() {
+
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
 	}
 
 	@Override
