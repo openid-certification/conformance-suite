@@ -812,7 +812,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	@UserFacing
-	private Object handlePingCallback(JsonObject requestParts) {
+	protected Object handlePingCallback(JsonObject requestParts) {
 		getTestExecutionManager().runInBackground(() -> {
 
 			// process the callback
