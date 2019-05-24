@@ -52,11 +52,17 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 					.requestMatchers(getMatcher())
 					.authenticated()
 			.and()
+				.addFilterBefore(apiTokenFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.addFilterBefore(oauth2Filter(), AbstractPreAuthenticatedProcessingFilter.class)
 			.exceptionHandling()
 				.authenticationEntryPoint(restAuthenticationEntryPoint());
 
 		// @formatter:off
+	}
+
+	@Bean
+	public Filter apiTokenFilter() {
+		return new ApiTokenFilter();
 	}
 
 	/**
@@ -81,6 +87,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 			new AntPathRequestMatcher("/log/**"),
 			new AntPathRequestMatcher("/info/**"),
 			new AntPathRequestMatcher("/plan/**"),
+			new AntPathRequestMatcher("/token/**"),
 			new AntPathRequestMatcher("/lastconfig")
 			);
 	}
