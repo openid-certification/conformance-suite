@@ -161,6 +161,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 
+		eventLog.startBlock("Verify configuration of second client");
+
 		// extract second client
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
@@ -179,6 +181,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 		env.unmapKey("mutual_tls_authentication");
+
+		eventLog.endBlock();
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -213,6 +217,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 	}
 
 	protected void performAuthorizationFlow() {
+		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 
 		createAuthorizationRequest();
 
@@ -357,7 +362,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 
 			whichClient = 2;
 
-			eventLog.startBlock("Second client");
+			eventLog.startBlock(currentClientString() + "Setup");
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
@@ -553,6 +558,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 
 	protected void processCallback() {
 
+		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
+
 		// FAPI-RW always requires the hybrid flow, use the hash as the response
 		env.mapKey("authorization_endpoint_response", "callback_params");
 
@@ -561,6 +568,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 		callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		onAuthorizationCallbackResponse();
+
+		eventLog.endBlock();
 	}
 
 	protected void performProfileIdTokenValidation() {
@@ -579,6 +588,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource
+		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
 		if ( whichClient != 2 ) {
 			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
@@ -597,5 +607,15 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
 		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
+
+		eventLog.endBlock();
+	}
+
+	/** Return which client is in use, for use in block identifiers */
+	protected String currentClientString() {
+		if (whichClient == 2) {
+			return "Second client: ";
+		}
+		return "";
 	}
 }
