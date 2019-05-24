@@ -10,18 +10,6 @@ import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAss
 
 public abstract class AbstractFAPICIBAWithPrivateKeyJWTAndMTLS extends AbstractFAPICIBA {
 
-
-	@Override
-	protected void createClientAssertionSteps() {
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-
-	}
-
 	@Override
 	protected void addClientAuthenticationToBackchannelRequest(){
 
@@ -29,7 +17,8 @@ public abstract class AbstractFAPICIBAWithPrivateKeyJWTAndMTLS extends AbstractF
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		//https://bitbucket.org/openid/mobile/issues/155/aud-to-use-in-client_assertion-passed-to
+		// The spec isn't 100% clear on whether this is the correct thing to do; see:
+		// https://bitbucket.org/openid/mobile/issues/155/aud-to-use-in-client_assertion-passed-to
 		callAndStopOnFailure(SetClientAuthenticationAudToBackchannelAuthenticationEndpoint.class);
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);

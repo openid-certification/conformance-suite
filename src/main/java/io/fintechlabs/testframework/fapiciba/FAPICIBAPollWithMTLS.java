@@ -45,12 +45,6 @@ public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
 	}
 
 	@Override
-	protected void addClientAuthenticationToBackchannelRequest() {
-
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
-	}
-
-	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		if ( whichClient == 2 ) {
 			callAndStopOnFailure(AddRequestedExp300sToAuthorizationEndpointRequestResponse.class, "CIBA-11");

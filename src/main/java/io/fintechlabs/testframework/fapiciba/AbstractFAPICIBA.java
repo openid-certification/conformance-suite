@@ -138,18 +138,16 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected int whichClient;
 
 
-	protected void createClientAssertionSteps(){}
+	abstract void addClientAuthenticationToBackchannelRequest();
 
-	protected void addClientAuthenticationToBackchannelRequest(){}
-
-	protected void addClientAuthenticationToTokenEndpointRequest(){}
+	abstract void addClientAuthenticationToTokenEndpointRequest();
 
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
 
-		createClientAssertionSteps();
+		addClientAuthenticationToTokenEndpointRequest();
 	}
 
 	@Override
@@ -385,7 +383,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
 		addClientAuthenticationToBackchannelRequest();
@@ -488,10 +485,8 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	protected void callTokenEndpointForCibaGrant() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForCIBAGrant.class);
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 		callAndStopOnFailure(AddAuthReqIdToTokenEndpointRequest.class);
 
-		//FixME
 		addClientAuthenticationToTokenEndpointRequest();
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
