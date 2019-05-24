@@ -13,7 +13,7 @@ public class ClientContinuedAfterReceivingIdTokenIssuedInPast extends AbstractCo
 	@Override
 	public Environment evaluate(Environment env) {
 
-		logFailure("Client has incorrectly called token_endpoint after receiving an id_token with an expired iat value from the authorization_endpoint.");
+		logFailure("Client has incorrectly called token_endpoint after receiving an id_token with an iat value which is a week in the past from the authorization_endpoint.");
 
 		return env;
 	}

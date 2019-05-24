@@ -28,7 +28,7 @@ public class AddIatValueIsWeekInPastToRequestObject extends AbstractCondition {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		logSuccess("Added expired iat value to request object which is a week in the past", args("request_object_claims", requestObjectClaims, "iat_is_week_in_the_past", iat));
+		logSuccess("Added iat value to request object which is a week in the past", args("request_object_claims", requestObjectClaims, "iat_is_week_in_the_past", iat));
 
 		return env;
 
