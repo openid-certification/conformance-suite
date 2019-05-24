@@ -16,7 +16,7 @@ import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpoint
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
+import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingStateErrorPage;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -116,12 +116,12 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 		} else {
 			/* If we get an error back from the authorisation server:
-			 * - It must be a 'invalid_request_object' error
+			 * - It must be a 'invalid_request_object', 'invalid_request' or 'access_denied' error
 			 * - It must have the correct state we supplied
 			 */
 
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+			callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
 
 			fireTestFinished();
 		}
