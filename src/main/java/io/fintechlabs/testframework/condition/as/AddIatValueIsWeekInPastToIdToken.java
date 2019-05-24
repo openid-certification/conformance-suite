@@ -9,9 +9,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.time.Instant;
 
-public class AddInvalidExpiredIatValueToIdToken extends AbstractCondition {
+public class AddIatValueIsWeekInPastToIdToken extends AbstractCondition {
 
-	public AddInvalidExpiredIatValueToIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AddIatValueIsWeekInPastToIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
@@ -28,7 +28,7 @@ public class AddInvalidExpiredIatValueToIdToken extends AbstractCondition {
 
 		env.putObject("id_token_claims", claims);
 
-		logSuccess("Added expired iat value to ID token claims", args("id_token_claims", claims, "iat_seven_days_in_the_past", iat));
+		logSuccess("Added iat value which is a week in the past to ID token claims", args("id_token_claims", claims, "iat_seven_days_in_the_past", iat));
 
 		return env;
 
