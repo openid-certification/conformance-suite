@@ -8,8 +8,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "FAPI-RW-ID2: with private key and mtls holder of key Test Plan",
 	profile = "FAPI-RW-ID2",
 	testModuleNames = {
-		"fapi-rw-id2-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-discovery-end-point-verification",
+		"fapi-rw-id2-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ensure-client-id-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ensure-request-object-without-exp-fails-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ensure-request-object-without-scope-fails-with-private-key-and-mtls-holder-of-key",
