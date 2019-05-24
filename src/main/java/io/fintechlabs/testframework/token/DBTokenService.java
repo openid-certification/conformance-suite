@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
@@ -49,10 +50,13 @@ public class DBTokenService implements TokenService {
 	@Override
 	public Map createToken(boolean permanent) {
 
+		String id = RandomStringUtils.randomAlphanumeric(13);
+
 		byte[] tokenBytes = new byte[TOKEN_BYTES];
 		new SecureRandom().nextBytes(tokenBytes);
 
 		BasicDBObject token = (BasicDBObject) BasicDBObjectBuilder.start()
+				.add("_id", id)
 				.add("owner", authenticationFacade.getPrincipal())
 				.add("info", JSON.parse(authenticationFacade.getUserInfo().toJson().toString()))
 				.add("token", Base64Utils.encodeToString(tokenBytes))
@@ -61,7 +65,6 @@ public class DBTokenService implements TokenService {
 
 		WriteResult result = mongoTemplate.getCollection(COLLECTION).insert(token);
 		if (result.wasAcknowledged()) {
-			token.append("_id", result.getUpsertedId());
 			return token.toMap();
 		} else {
 			return null;
