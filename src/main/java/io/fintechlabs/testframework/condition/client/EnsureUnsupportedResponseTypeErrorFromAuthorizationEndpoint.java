@@ -11,33 +11,23 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
 	public EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
-	@PreEnvironment(required = "callback_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment in) {
-		if (!in.containsObject("callback_params")) {
-			throw error("Couldn't find callback parameters");
-		}
 
-		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
-			if (in.getString("callback_params","error").equals("unsupported_response_type")){
+		if (!Strings.isNullOrEmpty(in.getString("authorization_endpoint_response", "error"))) {
+			if (in.getString("authorization_endpoint_response","error").equals("unsupported_response_type")){
 				logSuccess("unsupported_response_type error from the authorization endpoint");
 				return in;
 			} else {
-				throw error("Incorrect error from the authorization endpoint", in.getObject("callback_params"));
+				throw error("Incorrect error from the authorization endpoint", in.getObject("authorization_endpoint_response"));
 			}
 		} else {
-			throw error("No unsupported_response_type error found from the authorization endpoint", in.getObject("callback_params"));
+			throw error("No unsupported_response_type error found from the authorization endpoint", in.getObject("authorization_endpoint_response"));
 		}
 
 	}

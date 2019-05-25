@@ -1,7 +1,11 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.client.DetectWhetherErrorResponseIsInQueryOrFragment;
 import io.fintechlabs.testframework.condition.client.EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlFragment;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.common.ExpectGrantTypeErrorPage;
@@ -38,16 +42,24 @@ public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends Abstr
 	}
 
 	@Override
-	protected void onAuthorizationCallbackResponse() {
-		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
+	protected void processCallback() {
 
-		/* If we get an error back from the authorisation server:
-		 * - It must be a 'unsupported_response_type' error
-		 * - It must have the correct state we supplied
+		eventLog.startBlock(currentClientString() + "Verify authorization endpoint error response");
+
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
+		callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);
+
+		/* The error from the authorisation server:
+		 * - must be a 'unsupported_response_type' error
+		 * - must have the correct state we supplied
 		 */
-
-		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+
+		eventLog.endBlock();
 		fireTestFinished();
 	}
 
