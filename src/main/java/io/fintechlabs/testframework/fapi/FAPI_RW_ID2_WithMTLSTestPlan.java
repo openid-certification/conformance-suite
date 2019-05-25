@@ -11,7 +11,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-discovery-end-point-verification",
 		"fapi-rw-id2-with-mtls",
 		"fapi-rw-id2-ensure-request-object-signature-algorithm-is-not-null",
-		"fapi-rw-id2-reject-code-flow-test",
 		"fapi-rw-id2-ensure-client-id-in-token-endpoint-with-mtls",
 		"fapi-rw-id2-ensure-request-object-without-exp-fails-with-mtls",
 		"fapi-rw-id2-ensure-request-object-without-scope-fails-with-mtls",
