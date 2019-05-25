@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.common.ExpectGrantTypeErrorPage;
@@ -47,7 +47,7 @@ public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends Abstr
 		 */
 
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+		callAndContinueOnFailure(EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 		fireTestFinished();
 	}
 

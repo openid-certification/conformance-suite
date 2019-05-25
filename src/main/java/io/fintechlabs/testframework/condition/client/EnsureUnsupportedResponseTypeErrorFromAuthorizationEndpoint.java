@@ -9,13 +9,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
 /**
  * Check to make sure a "unsupported_response_type" error was received from the server
  */
-public class EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint extends AbstractCondition {
+public class EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint extends AbstractCondition {
 
 	/**
 	 * @param testId
 	 * @param log
 	 */
-	public EnsureUnsupportedGrantTypeErrorFromAuthorizationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
