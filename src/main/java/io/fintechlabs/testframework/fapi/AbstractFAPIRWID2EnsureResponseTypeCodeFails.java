@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlFragment
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.common.ExpectGrantTypeErrorPage;
+import io.fintechlabs.testframework.condition.common.ExpectResponseTypeErrorPage;
 
 public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2ServerTestModule {
 
@@ -27,11 +27,11 @@ public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends Abstr
 
 		setStatus(Status.WAITING);
 
-		callAndStopOnFailure(ExpectGrantTypeErrorPage.class, "FAPI-RW-5.2.2-2");
+		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI-RW-5.2.2-2");
 
 		waitForPlaceholders();
 
-		browser.goToUrl(redirectTo, env.getString("grant_type_error"));
+		browser.goToUrl(redirectTo, env.getString("response_type_error"));
 	}
 
 	@Override
