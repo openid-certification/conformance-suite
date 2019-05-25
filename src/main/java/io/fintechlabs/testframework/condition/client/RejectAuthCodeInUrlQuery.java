@@ -15,8 +15,7 @@ public class RejectAuthCodeInUrlQuery extends AbstractCondition {
 	}
 
 	@Override
-	@PreEnvironment() // We want an explicit error if implicit_hash is empty
-	@PostEnvironment(required = "callback_query_params")
+	@PreEnvironment(required = "callback_query_params")
 	public Environment evaluate(Environment env) {
 		if (!Strings.isNullOrEmpty(env.getString("callback_query_params", "code"))) {
 			throw error("Authorization code is present in URL query returned from authorization endpoint - hybrid/implicit flow require it to be returned in the URL fragment/hash only");
