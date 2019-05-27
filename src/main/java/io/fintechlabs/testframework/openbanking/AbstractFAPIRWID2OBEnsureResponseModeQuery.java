@@ -24,9 +24,14 @@ public abstract class AbstractFAPIRWID2OBEnsureResponseModeQuery extends Abstrac
 	}
 
 	protected void performPreAuthorizationSteps() {
+		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
+
 		/* get an openbanking intent id */
 		requestClientCredentialsGrant();
+
 		createAccountRequest();
+
+		eventLog.endBlock();
 	}
 
 	@Override
