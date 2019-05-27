@@ -18,18 +18,20 @@ public class EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint extends
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment in) {
+		final String expected = "unsupported_response_type";
 
-		if (!Strings.isNullOrEmpty(in.getString("authorization_endpoint_response", "error"))) {
-			if (in.getString("authorization_endpoint_response","error").equals("unsupported_response_type")){
-				logSuccess("unsupported_response_type error from the authorization endpoint");
-				return in;
-			} else {
-				throw error("Incorrect error from the authorization endpoint", in.getObject("authorization_endpoint_response"));
-			}
-		} else {
+		final String actual = in.getString("authorization_endpoint_response", "error");
+		if (Strings.isNullOrEmpty(actual)) {
 			throw error("No unsupported_response_type error found from the authorization endpoint", in.getObject("authorization_endpoint_response"));
 		}
 
+		if (actual.equals(expected)){
+			logSuccess(expected+" error from the authorization endpoint");
+			return in;
+		} else {
+			throw error("Incorrect error from the authorization endpoint",
+				args("expected", expected, "actual", actual));
+		}
 	}
 
 }
