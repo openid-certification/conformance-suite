@@ -1,7 +1,7 @@
             <div class="moreInfo collapse">
                 <dl class="dl-horizontal">
             <%
-                // regular rexpression for displaying JWTs
+                // regular expression for displaying JWTs
                 var jwtRe = /^(e[yw][a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
 
                 // if we have a double stack trace, take care of it first
@@ -9,7 +9,7 @@
 
                 %>
 
-                    <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom">stacktrace</dt>
+                    <dt data-toggle="tooltip" title="stacktrace" data-placement="bottom">stacktrace</dt>
                     <dd class="wrapLongStrings">
                         <ul>
                             <% _.each(more['stacktrace'], function(v) { %>
@@ -35,7 +35,7 @@
                 _.each(more, function(value, key, o) {
 
                     // skip the stacktrace fields if they've been combined already
-                    if ((key == 'stacktrace' || key == 'cause_stacktrace') && !doubleStack) {
+                    if ((key == 'stacktrace' || key == 'cause_stacktrace') && doubleStack) {
                         return;
                     }
 
