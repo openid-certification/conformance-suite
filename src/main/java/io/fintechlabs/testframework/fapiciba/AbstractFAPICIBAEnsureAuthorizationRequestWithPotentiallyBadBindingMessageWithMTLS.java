@@ -38,7 +38,13 @@ public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithPotentiallyB
 	@Override
 	protected void performPostAuthorizationFlow() {
 
-		verifyAccessTokenWithProtectedResource();
+		checkAccountRequestEndpointTLS();
+
+		checkAccountResourceEndpointTLS();
+
+		requestProtectedResource();
+
+		verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
 
 		setStatus(Status.WAITING);
 
