@@ -611,29 +611,21 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		if (whichClient == 1) {
 
-			verifyAccessTokenWithProtectedResource();
+			checkAccountRequestEndpointTLS();
 
-			// Try the second client
+			checkAccountResourceEndpointTLS();
 
-			whichClient = 2;
+			requestProtectedResource();
 
-			eventLog.startBlock(currentClientString() + "Setup");
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+			verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
 
-			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
-			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-
-			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+			setupAndValidateConfigurationOfSecondClient();
 
 			performAuthorizationFlow();
-		} else {
-			// call the token endpoint and complete the flow
 
+		} else {
+
+			// call the token endpoint and complete the flow
 			requestProtectedResource();
 
 			// Switch back to client 1
@@ -643,7 +635,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 			env.unmapKey("mutual_tls_authentication");
 
 			// Try client 2's access token with client 1's keys
-
 			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
 
 			eventLog.endBlock();
@@ -673,29 +664,25 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		}
 	}
 
-	protected void verifyAccessTokenWithProtectedResource() {
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+	protected void setupAndValidateConfigurationOfSecondClient() {
+		// Try the second client
+		whichClient = 2;
 
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-		eventLog.endBlock();
+		eventLog.startBlock(currentClientString() + "Setup");
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
+		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+	}
 
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-		env.unmapKey("tls");
-		eventLog.endBlock();
-
-		requestProtectedResource();
-
+	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
 
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
@@ -705,6 +692,28 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
 		callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+	}
+
+	protected void checkAccountResourceEndpointTLS() {
+		eventLog.startBlock("Accounts resource endpoint TLS test");
+		env.mapKey("tls", "accounts_resource_endpoint_tls");
+		checkEndpointTLS();
+		env.unmapKey("tls");
+		eventLog.endBlock();
+	}
+
+	protected void checkAccountRequestEndpointTLS() {
+		eventLog.startBlock("Accounts request endpoint TLS test");
+		env.mapKey("tls", "accounts_request_endpoint_tls");
+		checkEndpointTLS();
+		eventLog.endBlock();
+	}
+
+	protected void checkEndpointTLS() {
+		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 	}
 
 
