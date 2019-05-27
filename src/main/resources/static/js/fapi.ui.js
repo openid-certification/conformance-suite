@@ -478,20 +478,20 @@ var FAPI_UI = {
 		},
 
 		specLinks : {
-			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html",
-			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html",
-			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html",
-			"OB-" : "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default",
-			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html",
-			"RFC6749-" : "https://tools.ietf.org/html/rfc6749",
-			"RFC6819-" : "https://tools.ietf.org/html/rfc6819",
-			"RFC7231-" : "https://tools.ietf.org/html/rfc7231",
-			"RFC7519-" : "https://tools.ietf.org/html/rfc7519",
-			"RFC7523-" : "https://tools.ietf.org/html/rfc7523",
-			"HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html",
-			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2",
-			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html",
-			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html"
+			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
+			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
+			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
+			"OB-" : "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#",
+			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
+			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
+			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",
+			"RFC7231-" : "https://tools.ietf.org/html/rfc7231#section-",
+			"RFC7519-" : "https://tools.ietf.org/html/rfc7519#section-",
+			"RFC7523-" : "https://tools.ietf.org/html/rfc7523#section-",
+			"HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html#rfc.section.",
+			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
+			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
+			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section."
 		},
 
 		testJSON : {}
