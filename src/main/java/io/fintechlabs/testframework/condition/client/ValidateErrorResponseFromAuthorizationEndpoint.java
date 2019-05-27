@@ -7,12 +7,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author ddrysdale
- *
- */
-
-
 public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCondition {
 
 	public ValidateErrorResponseFromAuthorizationEndpoint(String testId, TestInstanceEventLog log,
@@ -38,8 +32,8 @@ public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCond
 				String stateSystem = env.getString("state");
 
 				if (!stateCallback.equals(stateSystem)) {
-					throw error("Error callback state value does not match system value",
-							args("Expected", stateSystem, "Actual", stateCallback));
+					throw error("state returned from authorization endpoint does not match the state that was sent",
+							args("expected", stateSystem, "actual", stateCallback));
 				} else {
 					requiredParameterCount++;
 
@@ -59,10 +53,10 @@ public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCond
 					}
 				}
 			} else {
-				throw error("No state parameter found", callbackParams);
+				throw error("state is missing from authorization endpoint response", callbackParams);
 			}
 		} else {
-			throw error("No error parameter found", callbackParams);
+			throw error("Authorization server was expected to return an error but did not", callbackParams);
 		}
 		return env;
 	}
