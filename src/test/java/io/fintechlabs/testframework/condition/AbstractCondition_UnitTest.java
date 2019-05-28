@@ -40,9 +40,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 /**
  * This tests the behavior of the various utility methods in the
  * abstract superclass used by most conditions.
- *
- * @author jricher
- *
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractCondition_UnitTest {
@@ -1357,9 +1354,6 @@ public class AbstractCondition_UnitTest {
 
 	/**
 	 * This subclass exposes the utility methods used by Condition classes so that we can test them here.
-	 *
-	 * @author jricher
-	 *
 	 */
 	private class AbstractConditionTester extends AbstractCondition {
 

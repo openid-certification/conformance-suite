@@ -3,10 +3,6 @@ package io.fintechlabs.testframework.fapi;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
-/**
- * @author jheenan
- *
- */
 @PublishTestPlan (
 	testPlanName = "fapi-r-code-id-token-with-private-key-test-plan",
 	displayName = "FAPI-R: code id_token with private key Test Plan",

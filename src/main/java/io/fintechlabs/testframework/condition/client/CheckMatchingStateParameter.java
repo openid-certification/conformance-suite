@@ -9,9 +9,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
  * Checks to make sure the "state" parameter matches the one that was saved previously.
- *
- * @author jricher
- *
  */
 public class CheckMatchingStateParameter extends AbstractCondition {
 

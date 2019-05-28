@@ -18,9 +18,6 @@ import java.util.Date;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class VerifyIdTokenExpHeart_UnitTest {
 	@Spy

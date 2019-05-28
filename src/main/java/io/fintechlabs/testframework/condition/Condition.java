@@ -2,10 +2,6 @@ package io.fintechlabs.testframework.condition;
 
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public interface Condition {
 
 	/**

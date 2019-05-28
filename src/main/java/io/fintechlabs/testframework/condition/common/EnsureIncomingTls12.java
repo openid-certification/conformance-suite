@@ -7,10 +7,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class EnsureIncomingTls12 extends AbstractCondition {
 
 	private static final String TLS_12 = "TLSv1.2";

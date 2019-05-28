@@ -14,11 +14,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author ddrysdale
- *
- */
-
 public class CreateCreateAccountRequestRequestWithExpiration extends AbstractCondition {
 
 	public CreateCreateAccountRequestRequestWithExpiration(String testId, TestInstanceEventLog log,

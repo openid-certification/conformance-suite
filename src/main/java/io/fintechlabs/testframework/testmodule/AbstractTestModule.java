@@ -35,10 +35,6 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 
-/**
- * @author jricher
- *
- */
 public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);

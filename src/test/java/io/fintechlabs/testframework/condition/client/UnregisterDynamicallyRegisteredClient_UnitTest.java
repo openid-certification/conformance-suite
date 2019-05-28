@@ -18,10 +18,6 @@ import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.noContent;
 
-
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class UnregisterDynamicallyRegisteredClient_UnitTest {
 

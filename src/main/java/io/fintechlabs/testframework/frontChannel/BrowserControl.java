@@ -37,9 +37,6 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
-/**
- * @author srmoore
- */
 public class BrowserControl implements DataUtils {
 
 	/*  EXAMPLE OF WHAT TO ADD TO CONFIG:

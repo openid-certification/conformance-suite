@@ -3,10 +3,6 @@ package io.fintechlabs.testframework.openbanking;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
-/**
- * @author jheenan
- *
- */
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan",
 	displayName = "FAPI-RW-ID2-OB: with private key and mtls holder of key Test Plan",

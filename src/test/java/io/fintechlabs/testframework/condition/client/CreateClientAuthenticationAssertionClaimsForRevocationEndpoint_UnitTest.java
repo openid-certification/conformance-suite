@@ -17,10 +17,6 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-/**
- * @author jricher
- *
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_UnitTest {
 

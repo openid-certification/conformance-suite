@@ -5,10 +5,6 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
-/**
- * @author jricher
- *
- */
 public abstract class AbstractOpenBankingApiResponse extends AbstractCondition {
 
 	/**

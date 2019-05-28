@@ -12,9 +12,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CreateDynamicRegistrationRequest_UnitTest {
 
