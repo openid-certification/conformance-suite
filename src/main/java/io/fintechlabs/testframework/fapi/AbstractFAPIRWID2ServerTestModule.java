@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -49,7 +47,6 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -87,23 +84,15 @@ import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModule {
+public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -223,15 +212,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
 	protected void createAuthorizationRequest() {
@@ -487,72 +468,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractTestModu
 			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			return super.handleHttp(path, req, res, session, requestParts);
-		}
-
-	}
-
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
-
-		setStatus(Status.RUNNING);
-
-		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
-
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
-
-		setStatus(Status.WAITING);
-
-		String submissionUrl = env.getString("implicit_submit", "fullUrl");
-		logger.info("Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
-
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-	}
-
-	private Object handleImplicitSubmission(JsonObject requestParts) {
-
-		getTestExecutionManager().runInBackground(() -> {
-
-			// process the callback
-			setStatus(Status.RUNNING);
-
-			JsonElement body = requestParts.get("body");
-
-			if (body != null) {
-				String hash = body.getAsString();
-
-				logger.info("URL fragment (hash): " + hash);
-
-				env.putString("implicit_hash", hash);
-			} else {
-				logger.warn("No hash/URL fragment submitted");
-
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
-
-			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-
-			processCallback();
-
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
 
 	}
 
