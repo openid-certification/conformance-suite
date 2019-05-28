@@ -241,6 +241,10 @@ var FAPI_UI = {
 
 					$.get('templates/statusAndResult.html', function(data) {
 						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
+					}),
+
+					$.get('templates/testVersion.html', function(data) {
+						FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
 					})
 			);
 
@@ -254,6 +258,10 @@ var FAPI_UI = {
 
 					$.get('templates/statusAndResult.html', function(data) {
 						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
+					}),
+
+					$.get('templates/testVersion.html', function(data) {
+						FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
 					})
 			);
 
