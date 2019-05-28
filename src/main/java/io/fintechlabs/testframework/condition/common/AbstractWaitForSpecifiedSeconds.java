@@ -22,7 +22,7 @@ public abstract class AbstractWaitForSpecifiedSeconds extends AbstractCondition 
 
 			TimeUnit.SECONDS.sleep(expectedWaitSeconds);
 
-			logSuccess("Paused for " + expectedWaitSeconds + " seconds");
+			logSuccess("Woke up after " + expectedWaitSeconds + " seconds sleep");
 		} catch (InterruptedException e) {
 			throw error("Interrupted while sleeping", e);
 		}
