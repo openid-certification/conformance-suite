@@ -17,21 +17,21 @@ public class CheckAuthorizationResponseWhenResponseModeQuery extends AbstractCon
 		JsonObject callbackFragmentParams = env.getObject("callback_params");
 
 		if (callbackQueryParams.has("error")) {
-			logSuccess("'error' is returned in URL query", args("error", env.getString("callback_query_params", "error")));
+			logSuccess("Server has chosen to return 'error' in URL query", args("error", env.getString("callback_query_params", "error")));
 			env.mapKey("authorization_endpoint_response", "callback_query_params");
 			return env;
 		}
 
 		if (callbackFragmentParams.has("error")) {
-			logSuccess("'error' is returned in URL fragment", args("error", env.getString("callback_params", "error")));
+			logSuccess("Server has chosen to return 'error' in URL fragment", args("error", env.getString("callback_params", "error")));
 			return env;
 		}
 
 		if (callbackFragmentParams.has("id_token")) {
-			logSuccess("Authorisation server ignores response_mode=query and return a successful response in the fragment");
+			logSuccess("Authorization server ignores response_mode=query and return a successful response in the fragment");
 			return env;
 		}
 
-		throw error("Authorisation server returns a non-error response in the url query");
+		throw error("Authorization server returns a non-error response in the url query");
 	}
 }

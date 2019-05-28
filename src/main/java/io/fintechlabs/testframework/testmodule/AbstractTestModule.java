@@ -744,16 +744,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			return;
 		}
 
-		if (!getStatus().equals(Status.FINISHED)) {
-			setStatus(Status.INTERRUPTED);
-			eventLog.log(getName(), args(
-				"msg", "Test was interrupted before it could complete",
-				"result", Status.INTERRUPTED.toString()));
-		} else {
-			eventLog.log(getName(), args(
-				"msg", "Test was stopped",
-				"result", getResult().toString()));
-		}
+		setStatus(Status.INTERRUPTED);
+		eventLog.log(getName(), args(
+			"msg", "Test was interrupted before it could complete",
+			"result", Status.INTERRUPTED.toString()));
 
 		logFinalEnv();
 	}
