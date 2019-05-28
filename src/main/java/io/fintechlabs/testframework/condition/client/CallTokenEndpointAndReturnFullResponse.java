@@ -100,10 +100,6 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 			if (Strings.isNullOrEmpty(jsonString)) {
 				throw error("Missing or empty response from the token endpoint");
 			} else {
-				log("Token endpoint response",
-					args("token_endpoint_response", jsonString,
-						"token_endpoint_response_http_status", env.getInteger("token_endpoint_response_http_status")));
-
 				try {
 					JsonElement jsonRoot = new JsonParser().parse(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
