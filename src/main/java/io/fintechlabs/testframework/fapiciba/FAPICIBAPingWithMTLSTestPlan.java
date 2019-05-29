@@ -35,6 +35,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-ensure-different-client-id-and-issuer-in-backchannel-authorization-request-with-mtls",
 		"fapi-ciba-ping-ensure-wrong-client-id-in-token-endpoint-request-with-mtls",
 		"fapi-ciba-ping-ensure-wrong-client-id-in-backchannel-authorization-request-with-mtls",
+		"fapi-ciba-ping-ensure-wrong-auth-req-id-in-token-endpoint-request-with-mtls",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
