@@ -24,6 +24,11 @@
                         <div class="col-md-11"><%- test.description %></div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-1">Test Version:</div>
+                        <div class="col-md-11"><%- test.version %></div>
+                    </div>
+
                     <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <div class="row">
                         <div class="col-md-1">Test Owner:</div>

@@ -215,6 +215,7 @@
 	                          data: {},
 	                          success: function(data) {
 	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
+	                              $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
 	                          },
 	                          error: function(jqxhr, status, error) {
 	                              if (jqxhr.status == 404) {
@@ -231,6 +232,7 @@
 					  } else {
 						  // render an "UNKNOWN" field
                           $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: {}}));
+                          $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''}));
 					  }
 
 
