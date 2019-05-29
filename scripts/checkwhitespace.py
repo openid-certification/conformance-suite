@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 #
 # Checks for incorrect whitespace in source files
-#
-# Author: Joseph Heenan
 
 from __future__ import absolute_import
 from __future__ import division

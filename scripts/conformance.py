@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #
 # python wrapper for conformance suite API
-# Author: Joseph Heenan
 
 from __future__ import absolute_import
 from __future__ import division

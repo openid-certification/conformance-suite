@@ -1,5 +1,3 @@
-//Author: ddrysdale
-
 package io.fintechlabs.testframework.condition.client;
 
 import java.net.MalformedURLException;
@@ -11,8 +9,6 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
-
-// author: ddrysdale
 
 public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 
