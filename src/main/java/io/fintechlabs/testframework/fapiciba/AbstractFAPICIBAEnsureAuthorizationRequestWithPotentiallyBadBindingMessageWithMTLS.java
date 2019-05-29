@@ -2,7 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddPotentiallyBadBindingMessageToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage;
 import io.fintechlabs.testframework.condition.client.ExpectBindingMessageCorrectDisplay;
 
@@ -13,7 +13,7 @@ public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithPotentiallyB
 
 		super.createAuthorizationRequest();
 
-		callAndStopOnFailure(AddPotentiallyBadBindingMessageToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
+		callAndStopOnFailure(AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest.class, "CIBA-7.1");
 
 	}
 

@@ -14,7 +14,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AddMultipleHintsToAuthorizationEndpointRequestResponse_UnitTest {
+public class AddMultipleHintsToAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,11 +22,11 @@ public class AddMultipleHintsToAuthorizationEndpointRequestResponse_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddMultipleHintsToAuthorizationEndpointRequestResponse cond;
+	private AddMultipleHintsToAuthorizationEndpointRequest cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddMultipleHintsToAuthorizationEndpointRequestResponse("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddMultipleHintsToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

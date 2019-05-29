@@ -8,28 +8,25 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class AddScopeToAuthorizationEndpointRequestResponse extends AbstractCondition {
+public class AddClientNotificationTokenToAuthorizationEndpointRequest extends AbstractCondition {
 
-	public AddScopeToAuthorizationEndpointRequestResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AddClientNotificationTokenToAuthorizationEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
 	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request", "client" } )
+	@PreEnvironment(required = "authorization_endpoint_request", strings = "client_notification_token" )
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		String scope = env.getString("client", "scope");
-		if (Strings.isNullOrEmpty(scope)) {
-			throw error("scope missing/empty in client object");
-		}
+		String token = env.getString("client_notification_token");
 
-		authorizationEndpointRequest.addProperty("scope", scope);
+		authorizationEndpointRequest.addProperty("client_notification_token", token);
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added scope of '"+scope+"' to authorization endpoint request", authorizationEndpointRequest);
+		logSuccess("Added client_notification_token '"+token+"' to authorization endpoint request", authorizationEndpointRequest);
 
 		return env;
 	}

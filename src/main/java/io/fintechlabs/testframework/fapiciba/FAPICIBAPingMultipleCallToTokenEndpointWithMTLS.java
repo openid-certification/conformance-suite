@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -57,6 +57,6 @@ public class FAPICIBAPingMultipleCallToTokenEndpointWithMTLS extends AbstractFAP
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
+		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
 	}
 }

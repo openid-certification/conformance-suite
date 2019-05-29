@@ -1,8 +1,8 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequestResponse;
-import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
@@ -66,8 +66,8 @@ public class FAPICIBAPingAuthReqIdExpiredWithMTLS extends AbstractFAPICIBAWithMT
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
+		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddRequestedExp30sToAuthorizationEndpointRequestResponse.class, "CIBA-11");
+		callAndStopOnFailure(AddRequestedExp30sToAuthorizationEndpointRequest.class, "CIBA-11");
 	}
 }

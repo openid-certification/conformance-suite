@@ -22,11 +22,11 @@ public class AddRequestedExp300sToAuthorizationEndpointRequestResponse_UnitTest 
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddRequestedExp300sToAuthorizationEndpointRequestResponse cond;
+	private AddRequestedExp300SToAuthorizationEndpointRequest cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddRequestedExp300sToAuthorizationEndpointRequestResponse("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddRequestedExp300SToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test
