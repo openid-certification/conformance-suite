@@ -460,22 +460,15 @@ if __name__ == '__main__':
     dev_mode = False
     if 'CONFORMANCE_SERVER' in os.environ:
         api_url_base = os.environ['CONFORMANCE_SERVER']
-        token_endpoint = os.environ['CONFORMANCE_TOKEN_ENDPOINT']
-        client_id = os.environ['CONFORMANCE_CLIENT_ID']
-        client_secret = os.environ['CONFORMANCE_CLIENT_SECRET']
+        token = os.environ['CONFORMANCE_TOKEN']
         os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
     else:
         # local development settings
         api_url_base = 'https://localhost:8443/'
-        token_endpoint = 'http://localhost:9001/token'
-        client_id = 'oauth-client-1'
-        client_secret = 'oauth-client-secret-1'
+        token = None
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
-        os.environ['CONFORMANCE_TOKEN_ENDPOINT'] = token_endpoint
-        os.environ['CONFORMANCE_CLIENT_ID'] = client_id
-        os.environ['CONFORMANCE_CLIENT_SECRET'] = client_secret
         os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
 
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
@@ -499,18 +492,7 @@ if __name__ == '__main__':
         to_run.append((params[0], params[1]))
         params = params[2:]
 
-    conformance = Conformance(api_url_base, token_endpoint, requests_session)
-
-    for attempt in range(1, 12):
-        try:
-            conformance.authorise(client_id, client_secret)
-            break
-        except Exception as exc:
-            # the server may not have finished starting yet; sleep & try again
-            print('Failed to connect to microauth on attempt {}: {}'.format(attempt, exc))
-            time.sleep(10)
-    else:
-        raise Exception("failed to connect to microauth")
+    conformance = Conformance(api_url_base, token, requests_session)
 
     for attempt in range(1, 12):
         try:
