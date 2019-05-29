@@ -10,10 +10,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import jersey.repackaged.com.google.common.collect.Lists;
 
-/**
- * @author jricher
- *
- */
 public class RequireOpenIDScope extends AbstractCondition {
 
 	/**

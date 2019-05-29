@@ -7,10 +7,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class CheckForRefreshTokenValue extends AbstractCondition {
 
 	/**

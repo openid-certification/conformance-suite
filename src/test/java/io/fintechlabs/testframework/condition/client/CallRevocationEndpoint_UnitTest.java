@@ -20,9 +20,6 @@ import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CallRevocationEndpoint_UnitTest {
 

@@ -13,9 +13,6 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 /**
  * Utility class to collect the attributes related to a Condition call, such as which class
  * to call, what to do on failure, when the call should be skipped.
- *
- * @author jricher
- *
  */
 public class ConditionCallBuilder extends TestExecutionUnit {
 

@@ -14,9 +14,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CreateTokenRevocationRequest_UnitTest {
 	@Spy

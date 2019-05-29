@@ -11,10 +11,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Instant;
 
-/**
- * @author jricher
- *
- */
 public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint extends AbstractCondition {
 
 	/**

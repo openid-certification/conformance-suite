@@ -7,10 +7,6 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author srmoore
- *
- */
 public class CreateDynamicRegistrationRequest extends AbstractCondition {
 
 	public CreateDynamicRegistrationRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements){

@@ -23,9 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CallDynamicRegistrationEndpoint_UnitTest {
 

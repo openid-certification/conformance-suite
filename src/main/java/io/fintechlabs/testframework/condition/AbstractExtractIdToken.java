@@ -11,10 +11,6 @@ import com.nimbusds.jwt.JWTParser;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public abstract class AbstractExtractIdToken extends AbstractCondition {
 
 	/**

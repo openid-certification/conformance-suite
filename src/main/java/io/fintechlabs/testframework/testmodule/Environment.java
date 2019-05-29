@@ -38,9 +38,7 @@ import com.google.gson.reflect.TypeToken;
  *
  * Native values (strings, integers, longs) can be stored and accessed through special accessor functions. These values are
  * stored internally in a dedicated JSON object alongside all other objects. A native value and a JSON object can be stored using
- * the same key, but the two of these are unrelated to each other. Native value keys are never be mapped.
- *
- * @author jricher
+ * the same key, but the two of these are unrelated to each other. Native value keys are never mapped.
  *
  */
 public class Environment {

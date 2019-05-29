@@ -9,9 +9,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author srmoore
- */
 public class AddRedirectUriToDynamicRegistrationRequest extends AbstractCondition {
 
 	public AddRedirectUriToDynamicRegistrationRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {

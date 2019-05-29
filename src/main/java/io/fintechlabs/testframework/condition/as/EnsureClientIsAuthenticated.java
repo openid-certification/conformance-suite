@@ -6,10 +6,6 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class EnsureClientIsAuthenticated extends AbstractCondition {
 
 	/**

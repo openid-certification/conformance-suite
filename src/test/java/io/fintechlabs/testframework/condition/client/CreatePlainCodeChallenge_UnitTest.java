@@ -15,9 +15,6 @@ import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CreatePlainCodeChallenge_UnitTest {
 

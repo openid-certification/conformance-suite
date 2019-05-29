@@ -10,10 +10,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestDispatcher;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author leo
- *
- */
 public class GenerateServerConfigurationMTLS extends AbstractCondition {
 
 	/**

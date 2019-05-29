@@ -26,10 +26,6 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public class EnsureTLS12 extends AbstractCondition {
 
 	// Signals that the connection was aborted after discovering the server version

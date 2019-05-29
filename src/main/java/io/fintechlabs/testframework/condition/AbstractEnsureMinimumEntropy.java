@@ -6,10 +6,6 @@ import java.util.Map;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 
 	/**

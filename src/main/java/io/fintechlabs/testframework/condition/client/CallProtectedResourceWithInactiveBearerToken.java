@@ -22,7 +22,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
 /**
- * @author srmoore
  * This is to call a generic resource server endpoint with a BAD Bearer Token.
  * We should return the env if we catch a 401 back from the resource server, and throw
  * a {@link io.fintechlabs.testframework.condition.ConditionError} if it comes back ok.

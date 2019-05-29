@@ -14,10 +14,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import jersey.repackaged.com.google.common.collect.Lists;
 
-/**
- * @author jricher
- *
- */
 public class FilterUserInfoForScopes extends AbstractCondition {
 
 	private static SetMultimap<String, String> scopesToClaims = HashMultimap.create();

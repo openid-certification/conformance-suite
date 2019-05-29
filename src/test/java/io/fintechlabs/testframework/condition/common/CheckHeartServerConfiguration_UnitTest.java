@@ -18,9 +18,6 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CheckHeartServerConfiguration_UnitTest {
 

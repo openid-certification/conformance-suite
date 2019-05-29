@@ -21,8 +21,6 @@ import io.fintechlabs.testframework.runner.TestExecutionManager;
  *
  * String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo
  *
- * @author jricher
- *
  */
 public interface TestModule {
 

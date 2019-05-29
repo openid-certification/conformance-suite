@@ -13,9 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/**
- * @author srmoore
- */
 @RunWith(MockitoJUnitRunner.class)
 public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 

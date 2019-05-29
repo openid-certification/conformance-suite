@@ -20,10 +20,6 @@ import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-/**
- * @author jricher
- *
- */
 @RunWith(MockitoJUnitRunner.class)
 public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 
