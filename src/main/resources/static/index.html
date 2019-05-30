@@ -1039,7 +1039,9 @@
 					});
 
 					// select the right option
-					$('#variantSelector option[value=' + FAPI_UI.testJSON.variant + ']').prop('selected', true).change();
+					if (FAPI_UI.testJSON.variant) {
+						$('#variantSelector option[value=' + FAPI_UI.testJSON.variant + ']').prop('selected', true).change();
+					}
 
 					// make sure it's visible
 					$('#variantSelector').show();
