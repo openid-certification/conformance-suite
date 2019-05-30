@@ -1,0 +1,29 @@
+# this file is used if you want to run java on the host, for example
+# directly from IntelliJ
+# mongo is exposed to be accessible from the host
+# the httpd is modified to pass through to the host
+# To start the java part, you can use "Run 'Conformance'" (or 'Debug')
+# in IntelliJ 'Spring Boot' support or start manually something like:
+# java -Xdebug \
+# -Xrunjdwp:transport=dt_socket,address=127.0.0.1:9999,server=y,suspend=n \
+# -jar target/fapi-test-suite.jar --fintechlabs.devmode=true \
+# --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
+# This should only be used for development; when running the suite use
+# the docker containers for consistency
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    volumes:
+     - ./mongo/data:/data/db:delegated
+    ports:
+     - "27017:27017"
+  httpdlocal:
+    build:
+      context: ./httpd
+      dockerfile: Dockerfile-nodocker
+    ports:
+     - "8443:8443"
+    volumes:
+      # we don't use delegated here so that updates propogate promptly
+     - ./src/main/resources/:/usr/local/apache2/htdocs/
