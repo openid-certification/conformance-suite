@@ -150,7 +150,8 @@ public class DBTestPlanService implements TestPlanService {
 				.include("description")
 				.include("started")
 				.include("modules")
-				.include("publish");
+				.include("publish")
+				.include("version");
 
 		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject(), query.getFieldsObject());
 
