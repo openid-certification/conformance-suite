@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-#
-# Author: Joseph Heenan
 
 from __future__ import absolute_import
 from __future__ import division

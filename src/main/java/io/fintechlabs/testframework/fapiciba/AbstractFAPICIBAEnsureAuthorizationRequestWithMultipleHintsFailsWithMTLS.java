@@ -1,11 +1,9 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequestResponse;
-import io.fintechlabs.testframework.condition.client.AddMultipleHintsToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddMultipleHintsToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.EnsureErrorFromBackchannelAuthenticationEndpointResponse;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse;
 
 public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
 
@@ -13,8 +11,8 @@ public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHint
 	protected void createAuthorizationRequest() {
 
 		callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
-		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
-		callAndStopOnFailure(AddMultipleHintsToAuthorizationEndpointRequestResponse.class, "CIBA-7.2-3");
+		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequest.class, "CIBA-7.1");
+		callAndStopOnFailure(AddMultipleHintsToAuthorizationEndpointRequest.class, "CIBA-7.2-3");
 
 		// The spec also defines these parameters that we don't currently set:
 		// acr_values

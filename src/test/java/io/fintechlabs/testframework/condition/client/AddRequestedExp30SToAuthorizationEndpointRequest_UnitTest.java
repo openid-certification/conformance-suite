@@ -14,7 +14,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AddRequestedExp30sToAuthorizationEndpointRequestResponse_UnitTest {
+public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,11 +22,11 @@ public class AddRequestedExp30sToAuthorizationEndpointRequestResponse_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddRequestedExp30sToAuthorizationEndpointRequestResponse cond;
+	private AddRequestedExp30sToAuthorizationEndpointRequest cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddRequestedExp30sToAuthorizationEndpointRequestResponse("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddRequestedExp30sToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

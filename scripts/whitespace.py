@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 #
 # Python module for dealing with whitespace etc in source files
-#
-# Author: Joseph Heenan
 
 from __future__ import absolute_import
 from __future__ import division

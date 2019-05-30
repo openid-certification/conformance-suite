@@ -7,32 +7,26 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequestResponse extends AbstractCondition {
+public class AddBindingMessageToAuthorizationEndpointRequest extends AbstractCondition {
 
-	public AbstractAddRequestedExpToAuthorizationEndpointRequestResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AddBindingMessageToAuthorizationEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 
-	protected abstract Integer getExpectedRequestedExpiry();
-
 	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request"} )
+	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		Integer requestedExpiry = getExpectedRequestedExpiry();
-		if (requestedExpiry == null || requestedExpiry.intValue() == 0) {
-			throw error("requested_expiry missing/empty");
-		}
-
-		authorizationEndpointRequest.addProperty("requested_expiry", requestedExpiry);
+		authorizationEndpointRequest.addProperty("binding_message", "1234");
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added requested expiry to authorization endpoint request", args("requested_expiry", requestedExpiry));
+		logSuccess("Added binding message to authorization endpoint request", args("binding_message", "1234"));
 
 		return env;
 	}
+
 }

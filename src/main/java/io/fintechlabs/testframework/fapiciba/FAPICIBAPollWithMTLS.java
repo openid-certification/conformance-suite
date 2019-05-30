@@ -1,10 +1,8 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
-import io.fintechlabs.testframework.condition.client.AddRequestedExp300sToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -47,7 +45,7 @@ public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		if ( whichClient == 2 ) {
-			callAndStopOnFailure(AddRequestedExp300sToAuthorizationEndpointRequestResponse.class, "CIBA-11");
+			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
 		}
 	}
 }

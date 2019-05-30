@@ -1,5 +1,3 @@
-// author: ddrysdale
-
 package io.fintechlabs.testframework.openbanking;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsParameterSupported;

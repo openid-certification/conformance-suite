@@ -11,9 +11,9 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.util.List;
 
-public class AddHintToAuthorizationEndpointRequestResponse extends AbstractCondition {
+public class AddHintToAuthorizationEndpointRequest extends AbstractCondition {
 
-	public AddHintToAuthorizationEndpointRequestResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public AddHintToAuthorizationEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

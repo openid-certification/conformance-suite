@@ -10,17 +10,15 @@ import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback
 import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddHintToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddHintToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequestResponse;
+import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
@@ -260,8 +258,8 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected void createAuthorizationRequest() {
 
 		callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
-		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
-		callAndStopOnFailure(AddHintToAuthorizationEndpointRequestResponse.class, "CIBA-7.1");
+		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequest.class, "CIBA-7.1");
+		callAndStopOnFailure(AddHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
 
 		// The spec also defines these parameters that we don't currently set:
 		// acr_values
