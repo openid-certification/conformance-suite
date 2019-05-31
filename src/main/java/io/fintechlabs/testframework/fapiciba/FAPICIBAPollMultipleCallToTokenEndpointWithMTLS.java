@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-multiple-call-to-token-endpoint-with-mtls",
-	displayName = "FAPI-CIBA: Poll mode (MTLS client authentication)",
+	displayName = "FAPI-CIBA: Poll mode - call token endpoint multiple times in a short space of time (MTLS client authentication)",
 	summary = "This test should end with the token endpoint server showing an error message: authorization_pending or slow_down or 503 Retry later",
 	profile = "FAPI-CIBA",
 	configurationFields = {
