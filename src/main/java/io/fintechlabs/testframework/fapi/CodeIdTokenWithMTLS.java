@@ -136,7 +136,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(EnsureServerConfigurationSupportsMTLS.class, "FAPI-RW-5.2.2-6");
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
