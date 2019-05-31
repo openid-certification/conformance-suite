@@ -1,22 +1,17 @@
-package io.fintechlabs.testframework.fapiciba;
+package io.fintechlabs.testframework.sequence.client;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 
-public abstract class AbstractFAPICIBAWithMTLS extends AbstractFAPICIBA {
+public class AddMTLSClientAuthenticationToTokenEndpointRequest extends AbstractConditionSequence {
 
-	// TODO: this will be obsolete once @Variant has been applied to all the CIBA tests
 	@Override
-	protected void addClientAuthenticationToBackchannelRequest() {
+	public void evaluate() {
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
-	}
-
-	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
