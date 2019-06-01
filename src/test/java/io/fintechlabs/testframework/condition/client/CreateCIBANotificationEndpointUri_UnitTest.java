@@ -32,7 +32,8 @@ public class CreateCIBANotificationEndpointUri_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateCIBANotificationEndpointUri("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateCIBANotificationEndpointUri();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 

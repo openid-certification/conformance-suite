@@ -17,10 +17,6 @@ import java.util.List;
 
 public class AddACRClaimToIdTokenClaims extends AbstractCondition {
 
-	public AddACRClaimToIdTokenClaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
 	@Override
 	@PreEnvironment(required = "id_token_claims", strings = "requested_id_token_acr_values")
 	@PostEnvironment(required = "id_token_claims")
