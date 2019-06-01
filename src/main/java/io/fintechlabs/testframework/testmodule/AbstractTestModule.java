@@ -496,12 +496,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void call(ConditionSequence series) {
+		logger.info("   Starting sequence " + series.getClass().getSimpleName());
+
 		// execute the sequence
 		series.evaluate();
 
 		// pass all of the resulting units to the call functions
 		series.getTestExecutionUnits()
 			.forEach(this::call);
+
+		logger.info("   End of sequence " + series.getClass().getSimpleName());
 	}
 
 	@Override
