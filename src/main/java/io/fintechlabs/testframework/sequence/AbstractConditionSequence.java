@@ -13,11 +13,6 @@ import java.util.List;
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
 	private List<TestExecutionUnit> callables = new ArrayList<>();
-	private Map<Class<? extends Condition>, TestExecutionUnit> replacements = new HashMap<>();
-	private Map<Class<? extends Condition>, TestExecutionUnit> insertBefore = new HashMap<>();
-	private Map<Class<? extends Condition>, TestExecutionUnit> insertAfter = new HashMap<>();
-	private List<TestExecutionUnit> before = new ArrayList<>();
-	private List<TestExecutionUnit> after = new ArrayList<>();
 
 	/**
 	 * Add the builder to the list of calls to be made when this sequence is executed
@@ -64,58 +59,10 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	public List<TestExecutionUnit> getTestExecutionUnits() {
 
 		List<TestExecutionUnit> units = new ArrayList<>();
-		units.addAll(before);
-		units.addAll(this.callables.stream()
-			.map((action) -> {
-				if (action instanceof ConditionCallBuilder) {
-					ConditionCallBuilder builder = (ConditionCallBuilder) action;
-					if (replacements.containsKey(builder.getConditionClass())) {
-						// if we know to replace the class on the way in, do it here
-						return replacements.get(builder.getConditionClass());
-					} else if (insertBefore.containsKey(builder.getConditionClass())) {
-						return sequenceOf(insertBefore.get(builder.getConditionClass()), action);
-					} else if (insertAfter.containsKey(builder.getConditionClass())) {
-						return sequenceOf(action, insertAfter.get(builder.getConditionClass()));
-					}
-				}
-				// otherwise pass through
-				return action;
-			})
-			.collect(Collectors.toList()));
-		units.addAll(after);
+
+		units.addAll(this.callables);
 
 		return units;
-	}
-
-	@Override
-	public ConditionSequence replace(Class<? extends Condition> conditionToReplace, TestExecutionUnit builder) {
-		this.replacements.put(conditionToReplace, builder);
-
-		return this;
-	}
-
-
-	@Override
-	public ConditionSequence insertBefore(Class<? extends Condition> conditionToInsertAt, TestExecutionUnit builder) {
-		this.insertBefore.put(conditionToInsertAt, builder);
-		return this;
-	}
-	@Override
-	public ConditionSequence insertAfter(Class<? extends Condition> conditionToInsertAt, TestExecutionUnit builder) {
-		this.insertAfter.put(conditionToInsertAt, builder);
-		return this;
-	}
-
-	@Override
-	public ConditionSequence then(TestExecutionUnit... builders) {
-		this.after.addAll(Arrays.asList(builders));
-		return this;
-	}
-
-	@Override
-	public ConditionSequence butFirst(TestExecutionUnit... builders) {
-		this.before.addAll(Arrays.asList(builders));
-		return this;
 	}
 
 	/**
