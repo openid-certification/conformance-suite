@@ -1022,10 +1022,6 @@
 				var testName = $('#testSelect').val();
 
 				$('#variantSelector').find('option').remove();
-				$('#variantSelector').append(FAPI_UI.logTemplates.TEST_OPTION({
-					val: '',
-					display: 'Default'
-				}));
 
 				if (FAPI_UI.availableTests[testName] &&
 						FAPI_UI.availableTests[testName].variants &&
