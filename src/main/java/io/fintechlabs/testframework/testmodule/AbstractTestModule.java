@@ -61,14 +61,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
-	private List<Accessory> accessories = Collections.emptyList();
-
 	protected AbstractTestModule() {
 
 	}
 
 	@Override
-	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService, List<Accessory> accessories) {
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService) {
 		this.id = id;
 		this.owner = owner;
 		this.eventLog = eventLog;
@@ -76,7 +74,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		this.testInfo = testInfo;
 		this.executionManager = executionManager;
 		this.imageService = imageService;
-		this.accessories  = accessories;
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
@@ -454,13 +451,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 */
 	protected ConditionSequence sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
 		ConditionSequence conditionSequence = createSequence(conditionSequenceClass);
-
-		this.accessories.stream()
-			.forEach((a) -> conditionSequence.with(a.key(),
-				(TestExecutionUnit[]) Arrays.stream(a.sequences())
-					.map((c) -> createSequence(c))
-					.toArray()
-			));
 
 		return conditionSequence;
 	}

@@ -11,8 +11,6 @@ public @interface Variant {
 
 	String name();
 
-	Accessory[] accessories() default {};
-
 	String[] configurationFields() default {};
 
 }

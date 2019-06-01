@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.testmodule;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -184,6 +183,6 @@ public interface TestModule {
 	/**
 	 * Pass along the appropriate runtime services and properties to allow the test to run. It cannot be used until this is completed.
 	 */
-	void setProperties(String id, Map<String, String> owner, TestInstanceEventLog wrappedEventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService, List<Accessory> accessories);
+	void setProperties(String id, Map<String, String> owner, TestInstanceEventLog wrappedEventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService);
 
 }

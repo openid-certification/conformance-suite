@@ -56,7 +56,6 @@ import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
-import io.fintechlabs.testframework.testmodule.Accessory;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -469,23 +468,15 @@ public class TestRunner implements DataUtils {
 
 
 			// see if we're running a variant
-
-			List<Accessory> accessories = Collections.emptyList();
-
 			if (config.has("variant") && config.get("variant").isJsonPrimitive()) {
 
 				String variantName = config.get("variant").getAsString();
 
-				accessories = Arrays.stream(holder.a.variants())
-					.filter((v) -> v.name().equals(variantName))
-					.findAny()
-					.map((v) -> Arrays.asList(v.accessories()))
-					.orElse(Collections.emptyList());
-
+				// FIXME: apply a variant
 			}
 
 			// pass in all the components for this test module to execute
-			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService, accessories);
+			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
 
 			return module;
 

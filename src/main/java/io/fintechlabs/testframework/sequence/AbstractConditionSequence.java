@@ -13,7 +13,6 @@ import java.util.List;
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
 	private List<TestExecutionUnit> callables = new ArrayList<>();
-	private ListMultimap<String, TestExecutionUnit> accessories = LinkedListMultimap.create();
 	private Map<Class<? extends Condition>, TestExecutionUnit> replacements = new HashMap<>();
 	private Map<Class<? extends Condition>, TestExecutionUnit> insertBefore = new HashMap<>();
 	private Map<Class<? extends Condition>, TestExecutionUnit> insertAfter = new HashMap<>();
@@ -89,16 +88,6 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	}
 
 	@Override
-	public ConditionSequence with(String key, TestExecutionUnit... builders) {
-
-		for (TestExecutionUnit builder : builders) {
-			this.accessories.put(key, builder);
-		}
-
-		return this;
-	}
-
-	@Override
 	public ConditionSequence replace(Class<? extends Condition> conditionToReplace, TestExecutionUnit builder) {
 		this.replacements.put(conditionToReplace, builder);
 
@@ -127,22 +116,6 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	public ConditionSequence butFirst(TestExecutionUnit... builders) {
 		this.before.addAll(Arrays.asList(builders));
 		return this;
-	}
-
-	protected boolean hasAccessory(String key) {
-		return this.accessories.containsKey(key);
-	}
-
-	protected List<TestExecutionUnit> getAccessories(String key) {
-		return this.accessories.get(key);
-	}
-
-	protected void runAccessory(String key, TestExecutionUnit... defaults) {
-		if (hasAccessory(key)) {
-			call(getAccessories(key));
-		} else {
-			call(Arrays.asList(defaults));
-		}
 	}
 
 	/**
