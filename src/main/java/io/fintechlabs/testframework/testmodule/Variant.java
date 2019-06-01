@@ -4,7 +4,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * @author jricher
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
