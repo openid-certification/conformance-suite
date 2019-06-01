@@ -15,13 +15,6 @@ import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
 
-/**
- *
- * TestModule instances are assumed to have a constructor with the signature:
- *
- * String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo
- *
- */
 public interface TestModule {
 
 	public static enum Status {
@@ -49,8 +42,6 @@ public interface TestModule {
 	 * @param config
 	 *            A JSON object consisting of details that the testRunner
 	 *            doesn't need to know about
-	 * @param id
-	 *            The id of this test
 	 * @param baseUrl
 	 *            The base of the URL that will need to be appended to any
 	 *            URL construction.
