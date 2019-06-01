@@ -151,4 +151,49 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 		}
 	}
 
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 *
+	 * onFail is set to FAILURE
+	 *
+	 */
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
+		call(condition(conditionClass)
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirements(requirements));
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 */
+	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
+		call(condition(conditionClass)
+			.requirements(requirements)
+			.onFail(onFail));
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
+	 * onFail is set to INFO if requirements is null or empty, WARNING if requirements are specified
+	 *
+	 */
+	protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
+		call(condition(conditionClass)
+			.onFail((requirements == null || requirements.length == 0) ? Condition.ConditionResult.INFO : Condition.ConditionResult.WARNING)
+			.requirements(requirements)
+			.dontStopOnFailure());
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
+	 */
+	protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
+		call(condition(conditionClass)
+			.requirements(requirements)
+			.onFail(onFail)
+			.dontStopOnFailure());
+	}
+
 }
