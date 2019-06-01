@@ -2,9 +2,10 @@ package io.fintechlabs.testframework.runner;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import io.fintechlabs.testframework.testmodule.Variant;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,7 +184,7 @@ public class TestRunner implements DataUtils {
 				"displayName", e.a.displayName(),
 				"profile", e.a.profile(),
 				"configurationFields", e.a.configurationFields(),
-				"variants", Arrays.stream(e.a.variants())
+				"variants", e.variants.stream()
 					.map((v) -> args(
 						"name", v.name(),
 						"configurationFields", v.configurationFields()
@@ -468,11 +470,18 @@ public class TestRunner implements DataUtils {
 
 
 			// see if we're running a variant
-			if (config.has("variant") && config.get("variant").isJsonPrimitive()) {
 
+			if (config.has("variant") && config.get("variant").isJsonPrimitive()) {
 				String variantName = config.get("variant").getAsString();
 
-				// FIXME: apply a variant
+				Method variantMethod = getVariant(module.getClass(), variantName);
+
+				variantMethod.invoke(module);
+			} else {
+				// if a test module has variants, the user must pick one
+				if (holder.variants.size() > 0) {
+					throw new RuntimeException("This test module has variants, configuration json must contain 'variant'");
+				}
 			}
 
 			// pass in all the components for this test module to execute
@@ -494,6 +503,35 @@ public class TestRunner implements DataUtils {
 		return testModuleSupplier.get();
 	}
 
+	// get all the variants found on methods in given TestModule
+	private List<Variant> getVariants(Class<? extends TestModule> c) {
+		return Arrays.stream(c.getDeclaredMethods()) // includes private methods, excludes inherited
+			.filter((m) -> m.isAnnotationPresent(Variant.class))
+			.map((m) -> m.getDeclaredAnnotation(Variant.class))
+			.collect(Collectors.toList());
+	}
+
+	// get Method for a particular variant name
+	private Method getVariant(Class<? extends TestModule> c, String name) {
+		List<Method> methods = Arrays.stream(c.getDeclaredMethods()) // includes private methods, excludes inherited
+			.filter((m) -> m.isAnnotationPresent(Variant.class))
+			.map((m) -> {
+				if (Modifier.isPublic(m.getModifiers())) {
+					return m;
+				}
+				throw new RuntimeException("Variant methods must be public");
+			})
+			.filter((m) -> m.getDeclaredAnnotation(Variant.class).name().equals(name))
+			.collect(Collectors.toList());
+		if (methods.size() == 0) {
+			throw new RuntimeException("Variant '"+name+"' not found");
+		}
+		if (methods.size() > 1) {
+			throw new RuntimeException("More than one variant with '"+name+"' found");
+		}
+		return methods.get(0);
+	}
+
 	// this is used to load all the test modules into the memoized copy used above
 	// we memoize this because reflection is slow
 	private Map<String, TestModuleHolder> findTestModules() {
@@ -507,8 +545,9 @@ public class TestRunner implements DataUtils {
 				@SuppressWarnings("unchecked")
 				Class<? extends TestModule> c = (Class<? extends TestModule>) Class.forName(bd.getBeanClassName());
 				PublishTestModule a = c.getDeclaredAnnotation(PublishTestModule.class);
+				List<Variant> v = getVariants(c);
 
-				testModules.put(a.testName(), new TestModuleHolder(c, a));
+				testModules.put(a.testName(), new TestModuleHolder(c, a, v));
 
 			} catch (ClassNotFoundException e) {
 				logger.error("Couldn't load test module definition: " + bd.getBeanClassName());
@@ -521,10 +560,12 @@ public class TestRunner implements DataUtils {
 	private class TestModuleHolder {
 		public Class<? extends TestModule> c;
 		public PublishTestModule a;
+		public List<Variant> variants;
 
-		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a) {
+		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a, List<Variant> variants) {
 			this.c = c;
 			this.a = a;
+			this.variants = variants;
 		}
 	}
 
