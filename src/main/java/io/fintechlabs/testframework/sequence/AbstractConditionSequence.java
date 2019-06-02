@@ -1,20 +1,14 @@
 package io.fintechlabs.testframework.sequence;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.ListMultimap;
-
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.testmodule.Command;
 import io.fintechlabs.testframework.testmodule.ConditionCallBuilder;
 import io.fintechlabs.testframework.testmodule.DataUtils;
-import io.fintechlabs.testframework.testmodule.Command;
 import io.fintechlabs.testframework.testmodule.TestExecutionUnit;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
@@ -27,7 +21,7 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	private List<TestExecutionUnit> after = new ArrayList<>();
 
 	/**
-	 * Add the builder to the list of calls to be made when this series is executed
+	 * Add the builder to the list of calls to be made when this sequence is executed
 	 *
 	 * @param builder
 	 */
