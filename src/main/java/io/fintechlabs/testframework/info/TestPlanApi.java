@@ -1,10 +1,12 @@
 package io.fintechlabs.testframework.info;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,12 +73,12 @@ public class TestPlanApi implements DataUtils {
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName);
 
-		planService.createTestPlan(id, planName, config, description, holder.a.testModuleNames(), holder.a.summary(), publish);
+		planService.createTestPlan(id, planName, config, description, holder.testModuleNames, holder.a.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
 		map.put("id", id);
-		map.put("modules", holder.a.testModuleNames());
+		map.put("modules", holder.testModuleNames);
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
 	}
@@ -133,7 +135,7 @@ public class TestPlanApi implements DataUtils {
 					"planName", holder.a.testPlanName(),
 					"displayName", holder.a.displayName(),
 					"profile", holder.a.profile(),
-					"moduleNames", holder.a.testModuleNames(),
+					"moduleNames", holder.testModuleNames,
 					"configurationFields", holder.a.configurationFields(),
 					"summary", holder.a.summary());
 
@@ -151,7 +153,7 @@ public class TestPlanApi implements DataUtils {
 				"planName", e.a.testPlanName(),
 				"displayName", e.a.displayName(),
 				"profile", e.a.profile(),
-				"moduleNames", e.a.testModuleNames(),
+				"moduleNames", e.testModuleNames,
 				"configurationFields", e.a.configurationFields(),
 				"summary", e.a.summary()))
 			.collect(Collectors.toSet());
@@ -188,10 +190,26 @@ public class TestPlanApi implements DataUtils {
 	private class TestPlanHolder {
 		public Class<? extends TestPlan> c;
 		public PublishTestPlan a;
+		public String[] testModuleNames;
+
+		// TODO: remove use of deprecated testModuleNames
+		@SuppressWarnings("deprecation")
 		public TestPlanHolder(Class<? extends TestPlan> c, PublishTestPlan a) {
 			this.c = c;
 			this.a = a;
+
+			if (a.testModules().length > 0) {
+				this.testModuleNames = Arrays.stream(a.testModules())
+					.map((m) -> m.getDeclaredAnnotation(PublishTestModule.class).testName())
+					.toArray(String[]::new);
+			} else {
+				// TODO: remove use of deprecated testModuleNames; this falls back to the old path is the testModules
+				// annotation isn't present
+				this.testModuleNames = a.testModuleNames();
+			}
 		}
+
+
 	}
 
 

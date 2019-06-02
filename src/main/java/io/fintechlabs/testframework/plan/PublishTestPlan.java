@@ -1,5 +1,7 @@
 package io.fintechlabs.testframework.plan;
 
+import io.fintechlabs.testframework.testmodule.TestModule;
+
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -21,8 +23,16 @@ public @interface PublishTestPlan {
 	/**
 	 * Get the ordered list of test modules that are part
 	 * of this plan.
+	 *
+	 * @deprecated use testModules() instead
 	 */
 	String[] testModuleNames() default {};
+
+	/**
+	 * Get the ordered list of test modules that are part
+	 * of this plan.
+	 */
+	Class<? extends TestModule>[] testModules() default {};
 
 	String summary() default "";
 
