@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
+import io.fintechlabs.testframework.condition.client.TellUserToRejectCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestModule;
 
@@ -37,7 +37,7 @@ public class FAPICIBAPingUserRejectsAuthenticationWithMTLS extends AbstractFAPIC
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		// for Ping mode:
-		callAndStopOnFailure(WaitForSuccessfulCibaAuthentication.class);
+		callAndStopOnFailure(TellUserToRejectCIBAAuthentication.class);
 
 		setStatus(TestModule.Status.WAITING);
 	}

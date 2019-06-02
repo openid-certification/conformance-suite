@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
+import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -36,7 +36,7 @@ public class FAPICIBAPingEnsureAuthorizationRequestWithBindingMessageSucceedsWit
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 
-		callAndStopOnFailure(WaitForSuccessfulCibaAuthentication.class);
+		callAndStopOnFailure(TellUserToDoCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
 	}

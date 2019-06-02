@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class WaitForSuccessfulCibaAuthentication extends AbstractCondition {
+public class TellUserToDoCIBAAuthentication extends AbstractCondition {
 
-	public WaitForSuccessfulCibaAuthentication(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
+	public TellUserToDoCIBAAuthentication(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		super(testId, log, conditionResultOnFailure, requirements);
 	}
 

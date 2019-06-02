@@ -5,7 +5,7 @@ import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenT
 import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
+import io.fintechlabs.testframework.condition.client.TellUserToIgnoreCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -42,7 +42,7 @@ public class FAPICIBAPingAuthReqIdExpiredWithMTLS extends AbstractFAPICIBAWithMT
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		// for Ping mode:
-		callAndStopOnFailure(WaitForSuccessfulCibaAuthentication.class);
+		callAndStopOnFailure(TellUserToIgnoreCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
 	}
