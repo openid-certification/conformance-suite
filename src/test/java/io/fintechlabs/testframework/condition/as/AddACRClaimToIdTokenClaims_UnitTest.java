@@ -38,7 +38,8 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddACRClaimToIdTokenClaims("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddACRClaimToIdTokenClaims();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		randomValue = new JsonArray();
 		randomValue.add("randomvalue1");

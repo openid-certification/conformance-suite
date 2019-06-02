@@ -1,8 +1,12 @@
 package io.fintechlabs.testframework.condition;
 
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public interface Condition {
+
+	/** Setup everything the Condition needs to run; call before evaluate() */
+	void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements);
 
 	/**
 	 * Tests if the condition holds true. Reads from the given environment and returns a potentially modified environment.

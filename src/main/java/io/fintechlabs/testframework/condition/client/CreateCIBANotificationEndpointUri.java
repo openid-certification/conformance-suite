@@ -9,10 +9,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CreateCIBANotificationEndpointUri extends AbstractCondition {
 
-	public CreateCIBANotificationEndpointUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
 	@Override
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(strings = "notification_uri")
