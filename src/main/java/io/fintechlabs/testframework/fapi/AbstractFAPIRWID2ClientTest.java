@@ -48,7 +48,6 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
-import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.condition.rs.ClearAccessTokenFromRequest;
 import io.fintechlabs.testframework.condition.rs.CreateFAPIAccountEndpointResponse;
 import io.fintechlabs.testframework.condition.rs.CreateOpenBankingAccountRequestResponse;
@@ -133,8 +132,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(LoadUserInfo.class);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
 		// for signing request objects
 		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
