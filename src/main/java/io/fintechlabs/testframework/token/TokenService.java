@@ -3,8 +3,6 @@ package io.fintechlabs.testframework.token;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.core.Authentication;
-
 @SuppressWarnings("rawtypes")
 public interface TokenService {
 
@@ -14,7 +12,7 @@ public interface TokenService {
 
 	List<Map> getAllTokens();
 
-	Authentication getAuthenticationForToken(String token);
+	Map findToken(String token);
 
 	void createIndexes();
 }

@@ -3,26 +3,16 @@ package io.fintechlabs.testframework.token;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.mitre.openid.connect.model.DefaultUserInfo;
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
-import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBCollection;
@@ -95,24 +85,14 @@ public class DBTokenService implements TokenService {
 	}
 
 	@Override
-	public Authentication getAuthenticationForToken(String token) {
+	public Map findToken(String token) {
 
 		Criteria criteria = new Criteria("token").is(token);
-		criteria.andOperator(
-				new Criteria().orOperator(
-						new Criteria("expires").is(null),
-						new Criteria("expires").gt(System.currentTimeMillis())));
 		Query query = new Query(criteria);
 
 		DBObject result = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject());
-
 		if (result != null) {
-			BasicDBObject owner = (BasicDBObject) result.get("owner");
-			String iss = owner.getString("iss");
-			String sub = owner.getString("sub");
-			Set<GrantedAuthority> authorities = ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"));
-			UserInfo info = DefaultUserInfo.fromJson(new Gson().fromJson(((BasicDBObject) result.get("info")).toJson(), JsonObject.class));
-			return new OIDCAuthenticationToken(sub, iss, info, authorities, null, null, null);
+			return result.toMap();
 		} else {
 			return null;
 		}

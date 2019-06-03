@@ -24,6 +24,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import io.fintechlabs.testframework.token.ApiTokenService;
+
 @Configuration
 @Order(1)
 public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
@@ -52,17 +54,11 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 					.requestMatchers(getMatcher())
 					.authenticated()
 			.and()
-				.addFilterBefore(apiTokenFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.addFilterBefore(oauth2Filter(), AbstractPreAuthenticatedProcessingFilter.class)
 			.exceptionHandling()
 				.authenticationEntryPoint(restAuthenticationEntryPoint());
 
 		// @formatter:off
-	}
-
-	@Bean
-	public Filter apiTokenFilter() {
-		return new ApiTokenFilter();
 	}
 
 	/**
@@ -108,6 +104,15 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	@Primary
 	public ResourceServerTokenServices tokenServices() {
+
+		ApiTokenService tokenService = new ApiTokenService();
+		tokenService.setFallbackService(microauthTokenServices());
+
+		return tokenService;
+	}
+
+	@Bean
+	public ResourceServerTokenServices microauthTokenServices() {
 
 		IntrospectingTokenService tokenService = new IntrospectingTokenService();
 		tokenService.setCacheTokens(true);
