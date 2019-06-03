@@ -88,7 +88,6 @@ public class DBTokenService implements TokenService {
 		Query query = new Query(criteria);
 		query.fields()
 				.include("_id")
-				.include("token")
 				.include("expires");
 
 		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject(), query.getFieldsObject()).toArray();
