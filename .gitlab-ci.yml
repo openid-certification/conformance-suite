@@ -42,6 +42,7 @@ stages:
   - canary
   - production
   - autotest
+  - cleanup
 
 build:
   stage: build
@@ -143,7 +144,7 @@ review:
     - demo
 
 stop_review:
-  stage: review
+  stage: cleanup
   variables:
     GIT_STRATEGY: none
   script:
@@ -297,6 +298,7 @@ deployment_test_review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    on_stop: stop_review
   only:
     refs:
       - /^dev-branch-[1-9]$/
