@@ -1,0 +1,25 @@
+<div class="row">
+	<div class="col-md-10">
+		<div class="row">
+			<div class="col-md-1">Test Name:</div>
+			<div class="col-md-11"><%- test.testName %></div>
+		</div>
+		<div class="row">
+			<div class="col-md-1">Test ID:</div>
+			<div class="col-md-11"><%- test.testId %></div>
+		</div>
+		<% if (test.summary) { %>
+		<div class="row">
+			<div class="col-md-1">Summary:</div>
+			<div class="col-md-11">
+				<p class="bgSummary bg-info"><%- test.summary %></p>
+			</div>
+
+		</div>
+		<% } %>
+	</div>
+
+	<div class="col-md-2">
+		<a class="btn btn-default btn-block" href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>"><span class="glyphicon glyphicon-book paddingRight5"></span>Return to test log</a>
+	</div>
+</div>

@@ -40,6 +40,8 @@
 			return FAPI_UI.getUserInfo(); // then get the current user
 		}).then(function() {
 			return loadImagesForLog(testId); // load the existing and placeholder images and render the page
+		}).then(function() {
+			return getHeader(testId); // render the header, which includes test info
 		}).always(function() {
 			FAPI_UI.hideBusy();
 		});
@@ -105,7 +107,6 @@
 			});
 
 		});
-
 
 	function loadImagesForLog(testId) {
 		return $.ajax({
@@ -276,6 +277,23 @@
 		});
 
 	}
+
+	function getHeader(testId) {
+		return $.ajax({
+			type: 'GET',
+			url: '/info/' + encodeURIComponent(testId),
+			data: {},
+			success: function(data) {
+				$('#testInfo').html(FAPI_UI.logTemplates.UPLOAD_HEADER({test: data}));
+			},
+			error: function(jqxhr, status, error) {
+				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+					code: jqxhr.status,
+					error: error
+				});
+			}
+		});
+	}
 </script>
 </head>
 <body>
@@ -329,32 +347,37 @@
 		</div>
 	</div>
 
-
-	<div class="logContent container-fluid">
-		<div id="imageBlocks">
-
+	<div class="container-fluid">
+		<div id="testInfo" class="well well-sm container-fluid">
 		</div>
 
-		<div class="row">
-			<div class="col-md-12 logItem" id="additionalUploader">
-				<div class="row">
-					<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
-					<div class="col-md-3">
-						<!-- image preview -->
-						<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
-					</div>
-					<div class="col-md-8">
-						<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+		<div class="logContent container-fluid">
+			<div id="imageBlocks">
 
-						<input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
-						<label class="btn btn-default">
-							<span class="glyphicon glyphicon-camera"></span> Select File</input>
-    							<input type="file" hidden>
-						</label>
-						<button class="btn btn-default uploadBtn" disabled>Upload</button>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12 logItem" id="additionalUploader">
+					<div class="row">
+						<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+						<div class="col-md-3">
+							<!-- image preview -->
+							<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
+						</div>
+						<div class="col-md-8">
+							<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+
+							<input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
+							<label class="btn btn-default">
+								<span class="glyphicon glyphicon-camera"></span> Select File</input>
+									<input type="file" hidden>
+							</label>
+							<button class="btn btn-default uploadBtn" disabled>Upload</button>
+						</div>
 					</div>
 				</div>
 			</div>
+
 		</div>
 
 	</div>
