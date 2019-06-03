@@ -335,6 +335,10 @@ var FAPI_UI = {
 
 					$.get('templates/message.html', function(data) {
 						FAPI_UI.logTemplates.MESSAGE = _.template(data);
+					}),
+
+					$.get('templates/uploadHeader.html', function(data) {
+						FAPI_UI.logTemplates.UPLOAD_HEADER = _.template(data);
 					})
 			);
 
