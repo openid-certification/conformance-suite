@@ -5,12 +5,12 @@ import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenT
 import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
+import io.fintechlabs.testframework.condition.client.TellUserToIgnoreCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-auth-req-id-expired-with-mtls",
-	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication)",
+	displayName = "FAPI-CIBA: Ping mode - user fails to authenticate (MTLS client authentication)",
 	summary = "This test should end with the token endpoint server showing an error message that the auth_req_id token expired.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
@@ -42,7 +42,7 @@ public class FAPICIBAPingAuthReqIdExpiredWithMTLS extends AbstractFAPICIBAWithMT
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		// for Ping mode:
-		callAndStopOnFailure(WaitForSuccessfulCibaAuthentication.class);
+		callAndStopOnFailure(TellUserToIgnoreCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
 	}

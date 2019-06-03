@@ -5,11 +5,11 @@ import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenT
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
+import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 // FIXME document this somewhere else:
-// for dev with authlete client, forward notification endpoint back to localhost using ssh -R:3590::8443 button.heenan.me.uk
+// for dev with authlete client, forward notification endpoint back to localhost using ssh -R:3590::8443 cibaping@button.heenan.me.uk
 // to authorise, use https://cibasim.authlete.com/authlete/fapidev/ad/1001
 
 @PublishTestModule(
@@ -41,7 +41,7 @@ public class FAPICIBAPingWithMTLS extends AbstractFAPICIBAWithMTLS {
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		// for Ping mode:
-		callAndStopOnFailure(WaitForSuccessfulCibaAuthentication.class);
+		callAndStopOnFailure(TellUserToDoCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
 	}

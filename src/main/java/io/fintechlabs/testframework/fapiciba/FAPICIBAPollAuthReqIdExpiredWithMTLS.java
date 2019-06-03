@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-auth-req-id-expired-with-mtls",
-	displayName = "FAPI-CIBA: Poll mode (MTLS client authentication)",
+	displayName = "FAPI-CIBA: Poll mode - user fails to authenticate (MTLS client authentication)",
 	summary = "This test should end with the token endpoint server showing an error message that the auth_req_id token expired.",
 	profile = "FAPI-CIBA",
 	configurationFields = {

@@ -3,12 +3,12 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.WaitForSuccessfulCibaAuthentication;
+import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-multiple-call-to-token-endpoint-with-mtls",
-	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication)",
+	displayName = "FAPI-CIBA: Ping mode - call token endpoint multiple times in a short space of time (MTLS client authentication)",
 	summary = "This test should end with the token endpoint server showing an error message: authorization_pending or slow_down or 503 Retry later.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
@@ -40,7 +40,7 @@ public class FAPICIBAPingMultipleCallToTokenEndpointWithMTLS extends AbstractFAP
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		// for Ping mode:
-		callAndStopOnFailure(WaitForSuccessfulCibaAuthentication.class);
+		callAndStopOnFailure(TellUserToDoCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
 	}
