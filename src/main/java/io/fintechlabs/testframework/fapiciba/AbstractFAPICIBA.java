@@ -349,7 +349,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		// call token endpoint again and perform same checks exactly as above - but avoiding letting the request expire
 
-		eventLog.startBlock(currentClientString() + "Call token endpoint expecting pending");
+		eventLog.startBlock(currentClientString() + "Call token endpoint expecting pending (second time)");
 		callTokenEndpointForCibaGrant();
 		verifyTokenEndpointResponseIsPendingOrSlowDown();
 		eventLog.endBlock();
