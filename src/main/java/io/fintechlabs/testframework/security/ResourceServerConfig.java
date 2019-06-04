@@ -24,6 +24,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import io.fintechlabs.testframework.token.ApiTokenService;
+
 @Configuration
 @Order(1)
 public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
@@ -81,6 +83,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 			new AntPathRequestMatcher("/log/**"),
 			new AntPathRequestMatcher("/info/**"),
 			new AntPathRequestMatcher("/plan/**"),
+			new AntPathRequestMatcher("/token/**"),
 			new AntPathRequestMatcher("/lastconfig")
 			);
 	}
@@ -101,6 +104,15 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	@Primary
 	public ResourceServerTokenServices tokenServices() {
+
+		ApiTokenService tokenService = new ApiTokenService();
+		tokenService.setFallbackService(microauthTokenServices());
+
+		return tokenService;
+	}
+
+	@Bean
+	public ResourceServerTokenServices microauthTokenServices() {
 
 		IntrospectingTokenService tokenService = new IntrospectingTokenService();
 		tokenService.setCacheTokens(true);

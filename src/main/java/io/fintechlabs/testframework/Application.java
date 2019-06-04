@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.info.TestPlanService;
 import io.fintechlabs.testframework.logging.EventLog;
+import io.fintechlabs.testframework.token.TokenService;
 import io.fintechlabs.testframework.ui.ServerInfoTemplate;
 import org.apache.catalina.connector.Connector;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -34,6 +35,9 @@ public class Application {
 
 	@Autowired
 	private TestPlanService testPlanService;
+
+	@Autowired
+	private TokenService tokenService;
 
 	@Autowired
 	private EventLog eventLog;
@@ -102,6 +106,7 @@ public class Application {
 		serverInfoTemplate.initServerInfo();
 		testInfoService.createIndexes();
 		testPlanService.createIndexes();
+		tokenService.createIndexes();
 		eventLog.createIndexes();
 	}
 }

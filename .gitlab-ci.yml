@@ -367,6 +367,11 @@ deployment_test_review:
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       "$name" \
       chart/
+
+    MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} -o template --template="{{(index .items 0).metadata.name}}"`
+    kubectl exec $MONGO_POD -- \
+      mongo mongodb://localhost/test_suite --eval \
+        "db.API_TOKEN.insert({ _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null })"
   }
 
   function install_dependencies() {
