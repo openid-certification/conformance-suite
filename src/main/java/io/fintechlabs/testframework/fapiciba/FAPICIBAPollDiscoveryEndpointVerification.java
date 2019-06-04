@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelTokenDeliveryPollModeSupported;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-discovery-end-point-verification",
@@ -14,6 +15,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollDiscoveryEndpointVerification extends AbstractFAPICIBADiscoveryEndpointVerification {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
 
 	@Override
 	public void performProfileSpecificChecks() {

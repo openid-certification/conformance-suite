@@ -4,6 +4,7 @@ import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthori
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.SleepUntilAuthReqExpires;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-auth-req-id-expired-with-mtls",
@@ -30,6 +31,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollAuthReqIdExpiredWithMTLS extends AbstractFAPICIBAWithMTLS {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
 
 	@Override
 	protected void callAutomatedEndpoint() {

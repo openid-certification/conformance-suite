@@ -227,8 +227,8 @@
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
+    "test-name": "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
     "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
     "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
     "expected-result": "warning"
@@ -244,13 +244,6 @@
     "test-name": "fapi-ciba-ping-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Verify notification callback",
-    "condition": "EnsureIncomingTlsSecureCipher",
-    "expected-result": "failure"
-  },
-  {
-    "test-name": "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Second client: Verify notification callback",
     "condition": "EnsureIncomingTlsSecureCipher",
     "expected-result": "failure"
   },

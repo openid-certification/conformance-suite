@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatu
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-user-rejects-authentication-with-mtls",
@@ -31,7 +32,10 @@ import io.fintechlabs.testframework.testmodule.TestModule;
 	}
 )
 public class FAPICIBAPollUserRejectsAuthenticationWithMTLS extends AbstractFAPICIBAUserRejectAuthentication {
-
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
 
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {

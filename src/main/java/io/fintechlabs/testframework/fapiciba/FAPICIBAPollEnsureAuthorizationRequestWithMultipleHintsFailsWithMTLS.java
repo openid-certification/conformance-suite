@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-ensure-authorization-request-with-multiple-hints-fails-with-mtls",
@@ -25,6 +26,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
+
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pollCleanupAfterBackchannelRequestShouldHaveFailed();

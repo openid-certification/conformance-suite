@@ -8,9 +8,18 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "FAPI-CIBA: poll with mtls client authentication test plan",
 	profile = "FAPI-CIBA",
 	testModules = {
+		// Normal well behaved client cases
 		FAPICIBAPollDiscoveryEndpointVerification.class,
-		FAPICIBAPollWithMTLS.class,
+		FAPICIBAPoll.class,
 		FAPICIBAPollUserRejectsAuthenticationWithMTLS.class,
+		FAPICIBAPollMultipleCallToTokenEndpointWithMTLS.class,
+		FAPICIBAPollAuthReqIdExpiredWithMTLS.class,
+		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
+
+		// Possible failure case
+		FAPICIBAPollEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS.class,
+
+		// Negative tests for request objects
 		FAPICIBAPollWithMTLSEnsureRequestObjectMissingAudFails.class,
 		FAPICIBAPollWithMTLSEnsureRequestObjectBadAudFails.class,
 		FAPICIBAPollWithMTLSEnsureRequestObjectMissingIssFails.class,
@@ -22,20 +31,24 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBAPollWithMTLSEnsureRequestObjectIatIsWeekInPastFails.class,
 		FAPICIBAPollWithMTLSEnsureRequestObjectIatIsHourInFutureFails.class,
 		FAPICIBAPollWithMTLSEnsureRequestObjectMissingJtiFails.class,
-		FAPICIBAPollEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS.class,
 		FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS.class,
 		FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS.class,
 		FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS.class,
 		FAPICIBAPollEnsureRequestObjectSignedByOtherClientFailsWithMTLS.class,
-		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS.class,
-		FAPICIBAPollEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS.class,
-		FAPICIBAPollAuthReqIdExpiredWithMTLS.class,
-		FAPICIBAPollEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS.class,
-		FAPICIBAPollMultipleCallToTokenEndpointWithMTLS.class,
+
+		// Negative tests for hints
+		FAPICIBAPollEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS.class,
+
+		// Negative tests for token endpoint
+		FAPICIBAPollEnsureWrongAuthenticationRequestIdInTokenEndpointRequestWithMTLS.class,
+
+		// MTLS specific tests - not possible to test with private_key_jwt
 		FAPICIBAPollEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS.class,
 		FAPICIBAPollEnsureWrongClientIdInTokenEndpointRequestWithMTLS.class,
 		FAPICIBAPollEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS.class,
-		FAPICIBAPollEnsureWrongAuthenticationRequestIdInTokenEndpointRequestWithMTLS.class,
+
+		// FAPI specific
+		FAPICIBAPollEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS.class,
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {
