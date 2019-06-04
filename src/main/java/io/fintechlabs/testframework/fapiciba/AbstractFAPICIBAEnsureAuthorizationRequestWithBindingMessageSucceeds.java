@@ -5,7 +5,7 @@ import io.fintechlabs.testframework.condition.client.AddHintToAuthorizationEndpo
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
 
-public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS extends AbstractFAPICIBAWithMTLS {
+public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBA {
 
 	@Override
 	protected void createAuthorizationRequest() {

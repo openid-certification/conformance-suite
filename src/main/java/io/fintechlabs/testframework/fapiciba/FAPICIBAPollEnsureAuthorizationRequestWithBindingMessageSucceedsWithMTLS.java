@@ -26,16 +26,20 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS {
 
-	@Override
-	protected void waitForAuthenticationToComplete(long delaySeconds) {
-		waitForPollingAuthenticationToComplete(delaySeconds);
-	}
+/** Temporary wrapper for FAPICIBAPoll until MTLS test plan is migrated to variants */
+public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceedsWithMTLS extends FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds {
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		/* Nothing to do */
+	}
+
+	@Override
+	public void configure(JsonObject config, String baseUrl, String overrideUrl) {
+		// FIXME: temporary until this supports variants
+		setupMTLS();
+		super.configure(config, baseUrl);
 	}
 
 }

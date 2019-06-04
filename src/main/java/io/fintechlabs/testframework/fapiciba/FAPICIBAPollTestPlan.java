@@ -7,8 +7,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testPlanName = "fapi-ciba-poll-test-plan",
 	displayName = "FAPI-CIBA: poll test plan",
 	profile = "FAPI-CIBA",
-	testModuleNames = {
-		"fapi-ciba-poll",
+	testModules = {
+		FAPICIBAPoll.class,
+		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 	}
 )
 public class FAPICIBAPollTestPlan implements TestPlan {
