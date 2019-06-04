@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +74,7 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-interaction-id"));
-		assertEquals(interactionId, req.get("x-fapi-interaction-id").getAsString());
+		assertEquals(interactionId, OIDFJSON.getString(req.get("x-fapi-interaction-id")));
 
 	}
 
@@ -89,7 +90,7 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-interaction-id"));
-		assertEquals(interactionId, req.get("x-fapi-interaction-id").getAsString());
+		assertEquals(interactionId, OIDFJSON.getString(req.get("x-fapi-interaction-id")));
 
 	}
 

@@ -8,7 +8,7 @@ public class SleepUntilAuthReqExpires extends AbstractWaitForSpecifiedSeconds {
 
 	@Override
 	protected long getExpectedWaitSeconds(Environment env) {
-		return env.getElementFromObject("backchannel_authentication_endpoint_response", "expires_in").getAsJsonPrimitive().getAsLong();
+		return env.getLong("backchannel_authentication_endpoint_response", "expires_in");
 	}
 
 	public SleepUntilAuthReqExpires(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {

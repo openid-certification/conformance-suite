@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class EnsureServerConfigurationSupportsPrivateKeyJwt extends AbstractCondition {
 
@@ -29,7 +30,7 @@ public class EnsureServerConfigurationSupportsPrivateKeyJwt extends AbstractCond
 
 		try {
 			for (JsonElement method : supportedAuthMethods.getAsJsonArray()) {
-				if (PRIVATEKEY_JWT_AUTH_METHOD.equals(method.getAsString())) {
+				if (PRIVATEKEY_JWT_AUTH_METHOD.equals(OIDFJSON.getString(method))) {
 					logSuccess("Found supported private_key_jwt method", args("method", method));
 					supportsPrivateKeyJwt = true;
 				}

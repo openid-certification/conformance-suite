@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -108,7 +109,7 @@ public class BrowserControl implements DataUtils {
 
 		for (int bc = 0; bc < browserCommands.size(); bc++) {
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
-			String urlMatcher = current.get("match").getAsString();
+			String urlMatcher = OIDFJSON.getString(current.get("match"));
 			logger.debug("Found URL MATCHER: " + urlMatcher);
 			tasksForUrls.put(urlMatcher, current.getAsJsonArray("tasks"));
 		}
@@ -232,7 +233,7 @@ public class BrowserControl implements DataUtils {
 						throw new TestFailureException(testId, "Invalid Task Definition: no 'task' property");
 					}
 
-					String taskName = currentTask.get("task").getAsString();
+					String taskName = OIDFJSON.getString(currentTask.get("task"));
 
 					this.currentTask = taskName;
 
@@ -243,12 +244,12 @@ public class BrowserControl implements DataUtils {
 					String expectedUrlMatcher = "*"; // default to matching any URL
 					if (currentTask.has("match")) {
 						// if there is a more specific "match" element, use its value instead
-						expectedUrlMatcher = currentTask.get("match").getAsString();
+						expectedUrlMatcher = OIDFJSON.getString(currentTask.get("match"));
 					}
 
 					if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
 						if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, driver.getCurrentUrl())) {
-							if (currentTask.has("optional") && currentTask.get("optional").getAsBoolean()) {
+							if (currentTask.has("optional") && OIDFJSON.getBoolean(currentTask.get("optional"))) {
 								eventLog.log("WebRunner", args(
 									"msg", "Skipping optional task due to URL mismatch",
 									"match", expectedUrlMatcher,
@@ -269,7 +270,7 @@ public class BrowserControl implements DataUtils {
 									"commands", currentTask.get("commands")
 								));
 
-								throw new TestFailureException(testId, "WebRunner unexpected url for task: " + currentTask.get("task").getAsString());
+								throw new TestFailureException(testId, "WebRunner unexpected url for task: " + OIDFJSON.getString(currentTask.get("task")));
 							}
 						}
 
@@ -334,14 +335,14 @@ public class BrowserControl implements DataUtils {
 		 */
 		private void doCommand(JsonArray command, String taskName) {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
-			String commandString = command.get(0).getAsString();
+			String commandString = OIDFJSON.getString(command.get(0));
 			if (!Strings.isNullOrEmpty(commandString)) {
 
 				this.currentCommand = commandString;
 
 				// selectors common to all elements
-				String elementType = command.get(1).getAsString();
-				String target = command.get(2).getAsString();
+				String elementType = OIDFJSON.getString(command.get(1));
+				String target = OIDFJSON.getString(command.get(2));
 
 				if (commandString.equalsIgnoreCase("click")) {
 					// ["click", "id" or "name", "id_or_name"]
@@ -362,7 +363,7 @@ public class BrowserControl implements DataUtils {
 				} else if (commandString.equalsIgnoreCase("text")) {
 					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
 
-					String value = command.get(3).getAsString();
+					String value = OIDFJSON.getString(command.get(3));
 
 					eventLog.log("WebRunner", args(
 						"msg", "Entering text",
@@ -387,9 +388,9 @@ public class BrowserControl implements DataUtils {
 					// if waiting for an element, the next parameter can be a regexp to be matched
 					// and the final parameter can be 'update-image-placeholder' to mark an image placeholder as satisfied
 
-					int timeoutSeconds = command.get(3).getAsInt();
-					String regexp = command.size() >= 5 ? command.get(4).getAsString() : null;
-					String action = command.size() >= 6 ? command.get(5).getAsString() : null;
+					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
+					String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
+					String action = command.size() >= 6 ? OIDFJSON.getString(command.get(5)) : null;
 					boolean updateImagePlaceHolder = false;
 					if (!Strings.isNullOrEmpty(action)) {
 						if (action.equals("update-image-placeholder")) {

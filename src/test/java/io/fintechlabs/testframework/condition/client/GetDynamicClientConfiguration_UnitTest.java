@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,7 +76,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 
 		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
 		assertThat(env.getObject("dynamic_client_registration_template").get("client_name")).isNotNull();
-		assertThat(env.getObject("dynamic_client_registration_template").get("client_name").getAsString()).isEqualTo("foo");
+		assertThat(OIDFJSON.getString(env.getObject("dynamic_client_registration_template").get("client_name"))).isEqualTo("foo");
 		assertThat(env.getString("client_name")).isNotNull();
 		assertThat(env.getString("client_name")).isEqualTo("foo");
 	}

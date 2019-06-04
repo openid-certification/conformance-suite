@@ -12,6 +12,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateResourceAssertionClaims extends AbstractCondition {
 
@@ -65,7 +66,7 @@ public class ValidateResourceAssertionClaims extends AbstractCondition {
 				throw error("Audience didn't match the server issuer", args("issuer", issuer, "endpoint", introspectionEndpoint, "actual", aud));
 			}
 		} else {
-			String aud = a.getAsString();
+			String aud = OIDFJSON.getString(a);
 
 			if (!issuer.equals(aud) && !introspectionEndpoint.equals(aud)) {
 				throw error("Audience didn't match the server issuer", args("issuer", issuer, "endpoint", introspectionEndpoint, "actual", aud));

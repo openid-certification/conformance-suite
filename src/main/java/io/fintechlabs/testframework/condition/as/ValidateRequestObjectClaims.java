@@ -11,6 +11,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateRequestObjectClaims extends AbstractCondition {
 
@@ -63,7 +64,7 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 				throw error("Audience not found", args("expected", issuer, "actual", aud));
 			}
 		} else {
-			if (!issuer.equals(aud.getAsString())) {
+			if (!issuer.equals(OIDFJSON.getString(aud))) {
 				throw error("Audience mismatch", args("expected", issuer, "actual", aud));
 			}
 		}

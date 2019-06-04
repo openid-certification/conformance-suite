@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.within;
 
 import java.time.Instant;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,16 +67,16 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 
 		JsonObject claims = env.getObject("client_assertion_claims");
 
-		assertThat(claims.get("iss").getAsString()).isEqualTo(clientId);
-		assertThat(claims.get("sub").getAsString()).isEqualTo(clientId);
-		assertThat(claims.get("aud").getAsString()).isEqualTo(tokenEndpoint);
+		assertThat(OIDFJSON.getString(claims.get("iss"))).isEqualTo(clientId);
+		assertThat(OIDFJSON.getString(claims.get("sub"))).isEqualTo(clientId);
+		assertThat(OIDFJSON.getString(claims.get("aud"))).isEqualTo(tokenEndpoint);
 
 		assertThat(claims.get("jti")).isNotNull();
 
 		Instant now = Instant.now();
 
-		assertThat(claims.get("iat").getAsLong()).isCloseTo(now.getEpochSecond(), within(5L)); // five second leeway
-		assertThat(claims.get("exp").getAsLong()).isCloseTo(now.plusSeconds(60).getEpochSecond(), within(5L)); // 60 seconds in the future, 5 second leeway
+		assertThat(OIDFJSON.getLong(claims.get("iat"))).isCloseTo(now.getEpochSecond(), within(5L)); // five second leeway
+		assertThat(OIDFJSON.getLong(claims.get("exp"))).isCloseTo(now.plusSeconds(60).getEpochSecond(), within(5L)); // 60 seconds in the future, 5 second leeway
 
 	}
 

@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 
@@ -43,7 +44,7 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 				throw error(errorMessageNotJsonPrimitive, args("Failure", configUrl));
 			} else {
 				try {
-					String discoveryUrl = configUrl.getAsString();
+					String discoveryUrl = OIDFJSON.getString(configUrl);
 
 					if (!discoveryUrl.endsWith("/.well-known/openid-configuration")) {
 						throw error("discoveryUrl was missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));

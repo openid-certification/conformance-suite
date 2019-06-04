@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckDiscEndpointIssuer extends AbstractCondition {
 
@@ -26,7 +27,7 @@ public class CheckDiscEndpointIssuer extends AbstractCondition {
 
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");
 
-		String issuerUrl = issuerElement.getAsString();
+		String issuerUrl = OIDFJSON.getString(issuerElement);
 
 		if (discoveryUrl.endsWith(removingPartInUrl)) {
 

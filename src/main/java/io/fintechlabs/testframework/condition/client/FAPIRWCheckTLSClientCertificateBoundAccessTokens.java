@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class FAPIRWCheckTLSClientCertificateBoundAccessTokens extends AbstractCondition {
 
@@ -25,8 +26,8 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens extends AbstractCo
 			throw error("Type of tls_client_certificate_bound_access_tokens must be boolean.");
 		}
 
-		if (!element.getAsBoolean()) {
-			throw error("tls_client_certificate_bound_access_tokens must be 'true'", args("actual", element.getAsBoolean()));
+		if (!OIDFJSON.getBoolean(element)) {
+			throw error("tls_client_certificate_bound_access_tokens must be 'true'", args("actual", OIDFJSON.getBoolean(element)));
 		}
 
 		logSuccess("tls_client_certificate_bound_access_tokens was 'true'");

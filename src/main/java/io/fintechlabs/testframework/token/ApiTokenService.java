@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
@@ -67,8 +68,8 @@ public class ApiTokenService implements ResourceServerTokenServices {
 	private Authentication createAuth(JsonObject tokenInfo) {
 
 		JsonObject owner = tokenInfo.getAsJsonObject("owner");
-		String iss = owner.get("iss").getAsString();
-		String sub = owner.get("sub").getAsString();
+		String iss = OIDFJSON.getString(owner.get("iss"));
+		String sub = OIDFJSON.getString(owner.get("sub"));
 
 		Set<GrantedAuthority> authorities = ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"));
 		UserInfo info = DefaultUserInfo.fromJson(tokenInfo.getAsJsonObject("info"));
@@ -118,10 +119,10 @@ public class ApiTokenService implements ResourceServerTokenServices {
 		private Date expireDate;
 
 		public LocalOAuth2AccessToken(JsonObject info) {
-			this.tokenString = info.get("token").getAsString();
+			this.tokenString = OIDFJSON.getString(info.get("token"));
 
 			JsonPrimitive expires = info.getAsJsonPrimitive("expires");
-			this.expireDate = expires != null ? new Date(expires.getAsLong()) : null;
+			this.expireDate = expires != null ? new Date(OIDFJSON.getLong(expires)) : null;
 		}
 
 		@Override

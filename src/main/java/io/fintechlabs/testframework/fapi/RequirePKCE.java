@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
@@ -153,7 +154,7 @@ public class RequirePKCE extends AbstractTestModule {
 			JsonElement body = requestParts.get("body");
 
 			if (body != null) {
-				String hash = body.getAsString();
+				String hash = OIDFJSON.getString(body);
 				env.putString("implicit_hash", hash);
 			} else {
 				env.putString("implicit_hash", ""); // Clear any old value

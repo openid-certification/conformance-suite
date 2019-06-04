@@ -144,7 +144,7 @@ public interface DataUtils {
 		HttpHeaders headers = new HttpHeaders();
 		if (headerJson != null) {
 			for (String header : headerJson.keySet()) {
-				headers.set(header, headerJson.get(header).getAsString());
+				headers.set(header, OIDFJSON.getString(headerJson.get(header)));
 			}
 		}
 		return headers;

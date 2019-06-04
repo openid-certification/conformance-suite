@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class EnsureAuthorizationCodeGrantTypeInClient extends AbstractCondition {
 
@@ -21,7 +22,7 @@ public class EnsureAuthorizationCodeGrantTypeInClient extends AbstractCondition 
 		if (!client.has("grant_types") || client.getAsJsonArray("grant_types").size() != 1) {
 			throw error("Missing or invalid number of grant_types found in client");
 		}
-		String grantType = client.getAsJsonArray("grant_types").get(0).getAsString();
+		String grantType = OIDFJSON.getString(client.getAsJsonArray("grant_types").get(0));
 
 		if(grantType.equalsIgnoreCase("authorization_code")) {
 			logSuccess("Found \"authorization_code\" grant type");

@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +27,7 @@ public class FAPICIBAValidateIdTokenACRClaims extends AbstractCondition {
 			if (acrValue.isJsonPrimitive()) {
 
 				// Split our requirements as per the spec
-				String[] valuesNeeded = acrValue.getAsString().split(" ");
+				String[] valuesNeeded = OIDFJSON.getString(acrValue).split(" ");
 
 				// Read what the server has sent us
 				JsonElement acrServerClaims = env.getElementFromObject("id_token", "claims.acr");
@@ -34,7 +35,7 @@ public class FAPICIBAValidateIdTokenACRClaims extends AbstractCondition {
 					throw error("Missing or invalid acr value in id_token",
 						args("id_token", env.getObject("id_token"), "expected", valuesNeeded));
 				}
-				List<String> valuesReceived = Arrays.asList(acrServerClaims.getAsString().split(" "));
+				List<String> valuesReceived = Arrays.asList(OIDFJSON.getString(acrServerClaims).split(" "));
 
 				// Test the sets
 				Boolean foundEnough = false;

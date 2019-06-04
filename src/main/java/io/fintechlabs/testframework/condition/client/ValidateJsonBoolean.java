@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateJsonBoolean extends AbstractCondition {
 
@@ -23,7 +24,7 @@ public class ValidateJsonBoolean extends AbstractCondition {
 			}
 		} else {
 			if (parameterValue.isJsonPrimitive()) {
-				if (parameterValue.getAsBoolean() != requiredValue) {
+				if (OIDFJSON.getBoolean(parameterValue) != requiredValue) {
 					errorMessage = environmentVariable + " must be: " + requiredValue;
 				}
 			} else {

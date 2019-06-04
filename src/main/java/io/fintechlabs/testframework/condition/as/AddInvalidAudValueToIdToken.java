@@ -20,7 +20,7 @@ public class AddInvalidAudValueToIdToken extends AbstractCondition {
 
 		JsonObject claims = env.getObject("id_token_claims");
 
-		String aud = env.getElementFromObject("id_token_claims", "aud").getAsString();
+		String aud = env.getString("id_token_claims", "aud");
 
 		//Add number 1 onto end of aud string
 		String concat = (aud + 1);

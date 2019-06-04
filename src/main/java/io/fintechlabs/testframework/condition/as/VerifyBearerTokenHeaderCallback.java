@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class VerifyBearerTokenHeaderCallback extends AbstractCondition {
 
@@ -32,7 +33,7 @@ public class VerifyBearerTokenHeaderCallback extends AbstractCondition {
 		}
 
 
-		String authorizationContent = authorizationElement.getAsString();
+		String authorizationContent = OIDFJSON.getString(authorizationElement);
 		if (Strings.isNullOrEmpty(authorizationContent)) {
 			throw error("'Authorization' header in notification callback is missing or empty");
 		}

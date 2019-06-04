@@ -20,7 +20,7 @@ public class AddInvalidNonceValueToIdToken extends AbstractCondition {
 
 		JsonObject claims = env.getObject("id_token_claims");
 
-		String nonce = env.getElementFromObject("id_token_claims", "nonce").getAsString();
+		String nonce = env.getString("id_token_claims", "nonce");
 
 		//Add number 1 onto end of nonce string
 		String concat = (nonce + 1);

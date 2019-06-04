@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public abstract class ValidateJsonUri extends AbstractCondition {
 
@@ -55,7 +56,7 @@ public abstract class ValidateJsonUri extends AbstractCondition {
 				throw error(errorMessageNotJsonPrimitive);
 			} else {
 				try {
-					extractedUrl = new URL(serverValue.getAsString());
+					extractedUrl = new URL(OIDFJSON.getString(serverValue));
 					return extractedUrl;
 				} catch (MalformedURLException invalidURL) {
 					throw error(errorMessageInvalidURL);

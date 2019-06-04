@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,6 @@ public class CreateTokenRevocationRequest_UnitTest {
 
 		String tokenVal = env.getString("revocation_endpoint_request_form_parameters", "token");
 		assertThat(tokenVal).isNotEmpty();
-		assertThat(tokenVal.equals(accessToken.get("value").getAsString()));
+		assertThat(tokenVal.equals(OIDFJSON.getString(accessToken.get("value"))));
 	}
 }

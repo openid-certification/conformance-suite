@@ -24,6 +24,7 @@ import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.collect.ImmutableMap;
@@ -165,7 +166,7 @@ public class RejectPlainPKCE extends AbstractTestModule {
 			JsonElement body = requestParts.get("body");
 
 			if (body != null) {
-				String hash = body.getAsString();
+				String hash = OIDFJSON.getString(body);
 				env.putString("implicit_hash", hash);
 			} else {
 				env.putString("implicit_hash", ""); // Clear any old value

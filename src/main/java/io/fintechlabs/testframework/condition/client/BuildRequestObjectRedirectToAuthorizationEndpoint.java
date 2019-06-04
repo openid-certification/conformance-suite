@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.JsonElement;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
@@ -78,9 +79,9 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 
 			String requestObjectValue = null;
 			if (requestObjectElement != null) {
-				requestObjectValue = requestObjectElement.getAsString();
+				requestObjectValue = OIDFJSON.forceConversionToString(requestObjectElement);
 			}
-			String requestParameterValue = requestParameterElement.getAsString();
+			String requestParameterValue = OIDFJSON.forceConversionToString(requestParameterElement);
 
 			if (key.equals("state")) {
 				Boolean exposeState = env.getBoolean("expose_state_in_authorization_endpoint_request");

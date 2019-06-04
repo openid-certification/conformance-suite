@@ -28,7 +28,7 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 			throw error("Couldn't find an ID Token in response");
 		}
 
-		String idTokenString = idTokenElement.getAsString();
+		String idTokenString = env.getString(key, "id_token");
 
 		try {
 			JWT idToken = JWTParser.parse(idTokenString);

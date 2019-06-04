@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -75,7 +76,7 @@ public class TestInfoApi {
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
-			publish = Strings.emptyToNull(config.get("publish").getAsString());
+			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
 		} else {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}

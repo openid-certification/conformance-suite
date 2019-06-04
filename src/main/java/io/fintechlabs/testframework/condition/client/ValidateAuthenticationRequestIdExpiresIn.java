@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateAuthenticationRequestIdExpiresIn extends AbstractCondition {
 	private final double maximumExpiresIn = 356 * 24 * 60 * 60; // 1 year as 30758400 seconds
@@ -26,7 +27,7 @@ public class ValidateAuthenticationRequestIdExpiresIn extends AbstractCondition 
 			throw error("expires_in is not a number!");
 		}
 
-		int expiresIn = jExpiresIn.getAsJsonPrimitive().getAsInt();
+		int expiresIn = OIDFJSON.getInt(jExpiresIn);
 		if (expiresIn <= 0) {
 			throw error("expires_in is less than or equal zero");
 		}

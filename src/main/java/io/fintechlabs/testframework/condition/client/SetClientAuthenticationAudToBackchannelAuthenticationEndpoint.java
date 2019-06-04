@@ -20,7 +20,7 @@ public class SetClientAuthenticationAudToBackchannelAuthenticationEndpoint exten
 
 		JsonObject claims = env.getObject("client_assertion_claims");
 
-		String aud = env.getElementFromObject("server", "backchannel_authentication_endpoint").getAsString();
+		String aud = env.getString("server", "backchannel_authentication_endpoint");
 
 		claims.addProperty("aud", aud);
 

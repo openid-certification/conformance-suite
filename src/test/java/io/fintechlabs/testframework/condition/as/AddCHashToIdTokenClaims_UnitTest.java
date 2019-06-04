@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +44,7 @@ public class AddCHashToIdTokenClaims_UnitTest {
 			+ "\"openbanking_intent_id\":\"ABC123DEF456\""
 			+ "}").getAsJsonObject();
 
-		hash = new JsonParser().parse("40PTS2Jr3ezaQXA_T0BN_A").getAsString();
+		hash = OIDFJSON.getString((new JsonParser().parse("40PTS2Jr3ezaQXA_T0BN_A")));
 	}
 
 	@Test
@@ -59,7 +60,7 @@ public class AddCHashToIdTokenClaims_UnitTest {
 		cond.evaluate(env);
 
 		assertNotNull(env.getObject("id_token_claims" ));
-		assertEquals(hash, env.getElementFromObject("id_token_claims", "c_hash").getAsString());
+		assertEquals(hash, env.getString("id_token_claims", "c_hash"));
 	}
 
 

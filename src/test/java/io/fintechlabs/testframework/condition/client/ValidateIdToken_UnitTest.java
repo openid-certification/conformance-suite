@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.condition.client;
 import java.util.Date;
 
 import com.google.gson.JsonElement;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -353,7 +354,7 @@ public class ValidateIdToken_UnitTest {
 	public void testEvaluate_invalidExpString() {
 
 		JsonElement o = claims.remove("exp");
-		claims.addProperty("exp", o.getAsString()); // a string (containing a valid number) is not ok
+		claims.addProperty("exp", String.valueOf(OIDFJSON.getNumber(o))); // a string (containing a valid number) is not ok
 
 		env.putObject("client", client);
 		env.putObject("server", server);

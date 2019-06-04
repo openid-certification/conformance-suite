@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonElement;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
@@ -51,7 +52,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 			// for nonce, state, client_id, redirect_uri, etc.
 			if (element.isJsonPrimitive()) {
 
-				builder.queryParam(key, element.getAsString());
+				builder.queryParam(key, OIDFJSON.getString(element));
 			}
 			// for claims
 			else {

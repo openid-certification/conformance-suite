@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.fintechlabs.testframework.testmodule.Variant;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -243,7 +244,7 @@ public class TestRunner implements DataUtils {
 		// see if an alias was passed in as part of the configuration and use it if available
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
 			try {
-				alias = config.get("alias").getAsString();
+				alias = OIDFJSON.getString(config.get("alias"));
 
 				// create an alias for the test
 				if (!createTestAlias(alias, id)) {
@@ -263,7 +264,7 @@ public class TestRunner implements DataUtils {
 
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
-			description = config.get("description").getAsString();
+			description = OIDFJSON.getString(config.get("description"));
 		}
 
 		// copy the summary from the test module
@@ -272,7 +273,7 @@ public class TestRunner implements DataUtils {
 		// extract the `publish` field if available
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
-			publish = Strings.emptyToNull(config.get("publish").getAsString());
+			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
 		}
 
 		// record that this test was started

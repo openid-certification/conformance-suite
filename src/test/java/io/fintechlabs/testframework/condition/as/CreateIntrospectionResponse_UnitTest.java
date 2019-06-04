@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.as;
 
 import java.time.Instant;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,11 +98,11 @@ public class CreateIntrospectionResponse_UnitTest {
 		assertTrue(res.has("client_id"));
 		assertTrue(res.has("exp"));
 
-		assertTrue(res.get("active").getAsBoolean());
-		assertEquals(scope, res.get("scope").getAsString());
-		assertEquals(clientId, res.get("client_id").getAsString());
+		assertTrue(OIDFJSON.getBoolean(res.get("active").getAsJsonPrimitive()));
+		assertEquals(scope, OIDFJSON.getString(res.get("scope").getAsJsonPrimitive()));
+		assertEquals(clientId, OIDFJSON.getString(res.get("client_id").getAsJsonPrimitive()));
 
-		Instant exp = Instant.ofEpochSecond(res.get("exp").getAsLong());
+		Instant exp = Instant.ofEpochSecond(OIDFJSON.getLong(res.get("exp").getAsJsonPrimitive()));
 		Instant now = Instant.now();
 
 		// give a little bit of leeway
@@ -128,7 +129,7 @@ public class CreateIntrospectionResponse_UnitTest {
 		assertFalse(res.has("client_id"));
 		assertFalse(res.has("exp"));
 
-		assertFalse(res.get("active").getAsBoolean());
+		assertFalse(OIDFJSON.getBoolean(res.get("active")));
 
 	}
 

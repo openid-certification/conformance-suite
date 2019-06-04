@@ -15,6 +15,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import com.google.common.base.Strings;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public abstract class ValidateHash extends AbstractCondition {
 
@@ -44,11 +45,11 @@ public abstract class ValidateHash extends AbstractCondition {
 		String hash = null;
 
 		if (algElement.isJsonPrimitive()) {
-			alg = algElement.getAsString();
+			alg = OIDFJSON.getString(algElement);
 		}
 
 		if (hashElement.isJsonPrimitive()) {
-			hash = hashElement.getAsString();
+			hash = OIDFJSON.getString(hashElement);
 		}
 
 		if (Strings.isNullOrEmpty(alg)) {
@@ -106,7 +107,7 @@ public abstract class ValidateHash extends AbstractCondition {
 				if (accessToken == null) {
 					throw error("Could not get access_token object...");
 				}
-				baseString = accessToken.get("value").getAsString();
+				baseString = OIDFJSON.getString(accessToken.get("value"));
 				break;
 			case "c_hash":
 				baseString = env.getString("callback_params", "code");

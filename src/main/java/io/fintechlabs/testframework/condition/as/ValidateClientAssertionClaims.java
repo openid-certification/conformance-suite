@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 import java.time.Instant;
 import java.util.Date;
@@ -57,7 +58,7 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 				throw error("aud not found", args("expected", tokenEndpoint, "actual", aud));
 			}
 		} else {
-			if (!tokenEndpoint.equals(aud.getAsString())) {
+			if (!tokenEndpoint.equals(OIDFJSON.getString(aud))) {
 				throw error("aud mismatch", args("expected", tokenEndpoint, "actual", aud));
 			}
 		}

@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +52,7 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
-		assertThat(parameters.get("scope").getAsString()).isEqualTo("accounts");
+		assertThat(OIDFJSON.getString(parameters.get("scope"))).isEqualTo("accounts");
 
 	}
 

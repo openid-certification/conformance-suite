@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -59,7 +60,7 @@ public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends 
 		JsonObject jwks = env.getObject("client_jwks");
 		JsonArray keys = jwks.get("keys").getAsJsonArray();
 		JsonObject key = keys.get(0).getAsJsonObject();
-		String alg = key.get("alg").getAsString();
+		String alg = OIDFJSON.getString(key.get("alg"));
 		if (!alg.equals("PS256")) {
 			callAndContinueOnFailure(TestCanOnlyBePerformedForPS256Alg.class, Condition.ConditionResult.FAILURE);
 			fireTestFinished();

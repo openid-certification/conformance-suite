@@ -14,6 +14,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckClientRedirectUri extends AbstractCondition {
 
@@ -50,7 +51,7 @@ public class CheckClientRedirectUri extends AbstractCondition {
 		Map<String, String> otherSchemes = new HashMap<>();
 
 		for (JsonElement el : redirectUris) {
-			String redirectUri = el.getAsString();
+			String redirectUri = OIDFJSON.getString(el);
 
 			try {
 

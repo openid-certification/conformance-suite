@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class EnsureTokenResponseTypeInClient extends AbstractCondition {
 
@@ -21,7 +22,7 @@ public class EnsureTokenResponseTypeInClient extends AbstractCondition {
 		if (!client.has("response_types") || client.getAsJsonArray("response_types").size() != 1) {
 			throw error("Missing or invalid number of response_types found in client");
 		}
-		String responseType = client.getAsJsonArray("response_types").get(0).getAsString();
+		String responseType = OIDFJSON.getString(client.getAsJsonArray("response_types").get(0));
 
 		if(responseType.equalsIgnoreCase("token")) {
 			logSuccess("Found \"token\" response type");

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 import org.slf4j.Logger;
@@ -83,7 +84,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 			JsonElement body = requestParts.get("body");
 
 			if (body != null) {
-				String hash = body.getAsString();
+				String hash = OIDFJSON.getString(body);
 
 				logger.info("URL fragment (hash): " + hash);
 

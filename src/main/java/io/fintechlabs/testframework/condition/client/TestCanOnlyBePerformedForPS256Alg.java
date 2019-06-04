@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class TestCanOnlyBePerformedForPS256Alg extends AbstractCondition {
 
@@ -27,7 +28,7 @@ public class TestCanOnlyBePerformedForPS256Alg extends AbstractCondition {
 
 		// Get first key that use to sign request_object or client_assertion
 		JsonObject key = keys.get(0).getAsJsonObject();
-		String alg = key.get("alg").getAsString();
+		String alg = OIDFJSON.getString(key.get("alg"));
 		logSuccess(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped.", alg));
 
 		return env;

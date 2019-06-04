@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCondition {
 
@@ -28,7 +29,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCond
 			requiredParameterCount++;
 			if (callbackParams.has("state")) {
 
-				String stateCallback = callbackParams.get("state").getAsString();
+				String stateCallback = OIDFJSON.getString(callbackParams.get("state"));
 				String stateSystem = env.getString("state");
 
 				if (!stateCallback.equals(stateSystem)) {

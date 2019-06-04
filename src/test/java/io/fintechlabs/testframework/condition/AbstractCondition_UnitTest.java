@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.apache.http.client.HttpClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -185,7 +186,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -233,7 +234,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("SUCCESS");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -254,7 +255,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("SUCCESS");
 
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
@@ -440,10 +441,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("SUCCESS");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -464,10 +465,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 3);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("SUCCESS");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("SUCCESS");
 
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
@@ -499,7 +500,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -520,7 +521,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
@@ -706,10 +707,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -730,10 +731,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 3);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
@@ -765,7 +766,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 1);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("INFO");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("INFO");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -786,7 +787,7 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("WARNING");
 
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
@@ -972,10 +973,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("INFO");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("INFO");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -996,10 +997,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 3);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("WARNING");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("WARNING");
 
 		assertThat(res.has("requirements")).isEqualTo(true);
 		assertThat(res.get("requirements").isJsonArray()).isEqualTo(true);
@@ -1187,10 +1188,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 5);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -1214,10 +1215,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 2);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(msg);
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(msg);
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
@@ -1242,10 +1243,10 @@ public class AbstractCondition_UnitTest {
 		assertThat(res.size()).isEqualTo(obj.size() + 5);
 
 		assertThat(res.has("msg")).isEqualTo(true);
-		assertThat(res.get("msg").getAsString()).isEqualTo(cause.getMessage());
+		assertThat(OIDFJSON.getString(res.get("msg"))).isEqualTo(cause.getMessage());
 
 		assertThat(res.has("result")).isEqualTo(true);
-		assertThat(res.get("result").getAsString()).isEqualTo("FAILURE");
+		assertThat(OIDFJSON.getString(res.get("result"))).isEqualTo("FAILURE");
 
 		// make sure 'res' has everything 'obj' does
 		for (String key : obj.keySet()) {
