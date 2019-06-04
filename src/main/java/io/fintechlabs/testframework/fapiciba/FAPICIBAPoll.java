@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
@@ -35,9 +33,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 
 public class FAPICIBAPoll extends AbstractFAPICIBA {
-	Class<? extends ConditionSequence> addBackchannelClientAuthentication;
-	Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
-
 	@Variant(name = "mtls")
 	public void setupMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
@@ -51,24 +46,12 @@ public class FAPICIBAPoll extends AbstractFAPICIBA {
 	}
 
 	@Override
-	protected void addClientAuthenticationToBackchannelRequest() {
-		call(sequence(addBackchannelClientAuthentication));
-	}
-
-	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-		call(sequence(addTokenEndpointClientAuthentication));
-	}
-
-	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		waitForPollingAuthenticationToComplete(delaySeconds);
 	}
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
-		if (whichClient == 2) {
-			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
-		}
+		// Nothing extra to setup for Poll
 	}
 }
