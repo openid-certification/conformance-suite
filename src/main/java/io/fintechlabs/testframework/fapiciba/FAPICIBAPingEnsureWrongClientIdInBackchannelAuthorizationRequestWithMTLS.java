@@ -7,7 +7,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ciba-ping-ensure-wrong-client-id-in-backchannel-authorization-request-with-mtls",
 	displayName = "FAPI-CIBA: Ping mode ensure wrong client_id in backchannel authorization request (MTLS client authentication)",
-	summary = "This test should end with the backchannel authorization server returning an error message that must be access_denied or invalid_request",
+	summary = "This test sends the wrong client_id for the MTLS key to the backchannel authorization endpoint, and should end with the server returning an access_denied or invalid_request error",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
