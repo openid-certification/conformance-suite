@@ -29,23 +29,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPollWithMTLS extends AbstractFAPICIBAWithMTLS {
+/** Temporary wrapper for FAPICIBAPoll until MTLS test plan is migrated to variants */
+public class FAPICIBAPollWithMTLS extends FAPICIBAPoll {
 
-	@Override
-	protected void waitForAuthenticationToComplete(long delaySeconds) {
-		waitForPollingAuthenticationToComplete(delaySeconds);
-	}
+	public void configure(JsonObject config, String baseUrl) {
+		setupMTLS();
+		super.configure(config, baseUrl);
 
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		fireTestFailure();
-		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
-	}
-
-	@Override
-	protected void modeSpecificAuthorizationEndpointRequest() {
-		if ( whichClient == 2 ) {
-			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
-		}
 	}
 }

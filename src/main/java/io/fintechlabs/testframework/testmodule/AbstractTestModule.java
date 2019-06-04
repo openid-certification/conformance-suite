@@ -1,29 +1,12 @@
 package io.fintechlabs.testframework.testmodule;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import com.mongodb.DBObject;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.view.RedirectView;
-
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
+import com.mongodb.DBObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
@@ -34,6 +17,23 @@ import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.runner.TestExecutionManager;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
 
@@ -439,16 +439,59 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call((ConditionCallBuilder)builder);
 		} else if (builder instanceof Command) {
 			call((Command)builder);
+		} else if (builder instanceof ConditionSequence) {
+			call((ConditionSequence)builder);
 		} else {
 			throw new TestFailureException(getId(), "Unknown class passed to call() function");
 		}
 	}
 
 	/**
-	 * Call a list of execution units in order
+	 * Create a caller for the given sequence
 	 */
-	protected void call(List<TestExecutionUnit> units) {
-		units.forEach(this::call);
+	protected ConditionSequence sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		ConditionSequence conditionSequence = createSequence(conditionSequenceClass);
+
+		return conditionSequence;
+	}
+
+	private ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		try {
+			ConditionSequence conditionSequence = conditionSequenceClass
+				.getDeclaredConstructor()
+				.newInstance();
+
+			return conditionSequence;
+
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			logException(e);
+			logger.error("Couldn't create condition sequence object", e);
+			fireTestFailure();
+			throw new TestFailureException(getId(), "Couldn't create required condition sequence: " + conditionSequenceClass.getSimpleName());
+		}
+	}
+
+	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {
+		return new AbstractConditionSequence() {
+
+			@Override
+			public void evaluate() {
+				call(Arrays.asList(units));
+			}
+		};
+	}
+
+	protected void call(ConditionSequence sequence) {
+		logger.info("   Starting sequence " + sequence.getClass().getSimpleName());
+
+		// execute the sequence
+		sequence.evaluate();
+
+		// pass all of the resulting units to the call functions
+		sequence.getTestExecutionUnits()
+			.forEach(this::call);
+
+		logger.info("   End of sequence " + sequence.getClass().getSimpleName());
 	}
 
 	@Override
