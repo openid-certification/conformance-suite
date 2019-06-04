@@ -106,13 +106,13 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	public ResourceServerTokenServices tokenServices() {
 
 		ApiTokenService tokenService = new ApiTokenService();
-		tokenService.setFallbackService(microauthTokenServices());
+		tokenService.setFallbackService(introspectingTokenServices());
 
 		return tokenService;
 	}
 
 	@Bean
-	public ResourceServerTokenServices microauthTokenServices() {
+	public ResourceServerTokenServices introspectingTokenServices() {
 
 		IntrospectingTokenService tokenService = new IntrospectingTokenService();
 		tokenService.setCacheTokens(true);
