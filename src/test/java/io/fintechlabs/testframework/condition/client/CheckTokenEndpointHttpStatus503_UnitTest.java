@@ -21,14 +21,10 @@ public class CheckTokenEndpointHttpStatus503_UnitTest {
 
 	private CheckTokenEndpointHttpStatus503 cond;
 
-	/**
-	 * @throws Exception
-	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckTokenEndpointHttpStatus503("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new CheckTokenEndpointHttpStatus503();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

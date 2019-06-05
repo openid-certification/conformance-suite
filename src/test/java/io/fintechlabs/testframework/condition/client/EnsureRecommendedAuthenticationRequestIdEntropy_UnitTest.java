@@ -25,9 +25,8 @@ public class EnsureRecommendedAuthenticationRequestIdEntropy_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureRecommendedAuthenticationRequestIdEntropy("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new EnsureRecommendedAuthenticationRequestIdEntropy();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

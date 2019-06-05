@@ -25,9 +25,8 @@ public class EnsureMinimumAuthenticationRequestIdLength_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureMinimumAuthenticationRequestIdLength("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new EnsureMinimumAuthenticationRequestIdLength();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

@@ -51,7 +51,8 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 		server = new JsonObject();
 		server.addProperty("token_endpoint", tokenEndpoint);
 
-		cond = new CreateClientAuthenticationAssertionClaims("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateClientAuthenticationAssertionClaims();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 

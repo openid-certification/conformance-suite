@@ -28,9 +28,8 @@ public class AddAcrValuesScaToAuthorizationEndpointRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new AddAcrValuesScaToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new AddAcrValuesScaToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

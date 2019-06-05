@@ -7,24 +7,10 @@ import com.google.common.collect.Lists;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureOpenIDInScopeRequest extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param conditionResultOnFailure
-	 * @param requirements
-	 */
-	public EnsureOpenIDInScopeRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(strings = "scope")
 	public Environment evaluate(Environment env) {

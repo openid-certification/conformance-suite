@@ -38,7 +38,9 @@ public class CheckRequiredAuthorizationParametersPresent_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckRequiredAuthorizationParametersPresent("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
+		cond = new CheckRequiredAuthorizationParametersPresent();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 
 		params = new JsonParser().parse("{"
 			+ "\"response_type\":\"" + responseType + "\","

@@ -29,8 +29,8 @@ public class CreateRandomStateValue_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateRandomStateValue("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomStateValue();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -32,7 +32,8 @@ public class EnsureResponseTypeIsCodeIdToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureResponseTypeIsCodeIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureResponseTypeIsCodeIdToken();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		String token =  "code id_token";
 		String invalidToken = "invalidToken";

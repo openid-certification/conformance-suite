@@ -1,17 +1,12 @@
 package io.fintechlabs.testframework.condition.client;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.springframework.http.HttpStatus;
 
 public abstract class AbstractCheckBackchannelAuthenticationEndpointHttpStatus extends AbstractCondition {
 
 	protected abstract HttpStatus getExpectedHttpStatus();
-
-	public AbstractCheckBackchannelAuthenticationEndpointHttpStatus(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {

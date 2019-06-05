@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.condition.client;
 import java.util.Arrays;
 
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class OBDeprecatedCheckDiscEndpointTokenEndpointAuthMethodsSupported extends ValidateJsonArray {
@@ -14,14 +13,6 @@ public class OBDeprecatedCheckDiscEndpointTokenEndpointAuthMethodsSupported exte
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 
-
-	public OBDeprecatedCheckDiscEndpointTokenEndpointAuthMethodsSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {

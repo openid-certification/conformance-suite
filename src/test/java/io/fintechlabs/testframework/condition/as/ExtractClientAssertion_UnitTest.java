@@ -33,7 +33,9 @@ public class ExtractClientAssertion_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractClientAssertion("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
+		cond = new ExtractClientAssertion();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 
 		String clientAssertion =  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6" +
 			"ImMxZGYwZTdhLTAzMWMtNDIzMi05MzE0LTg3MTdkOWJjY2RiNCJ9.eyJpYXQiOjE1N" +

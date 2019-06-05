@@ -41,13 +41,10 @@ public class SetTLSTestHostFromConfig_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new SetTLSTestHostFromConfig("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetTLSTestHostFromConfig();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.SetTLSTestHostFromConfig#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate() {
 

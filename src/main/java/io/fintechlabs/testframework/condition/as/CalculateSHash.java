@@ -4,7 +4,6 @@ import com.nimbusds.jose.util.Base64URL;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.nio.charset.StandardCharsets;
@@ -14,10 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CalculateSHash extends AbstractCondition {
-
-	public CalculateSHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String[] requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(strings = "signing_algorithm", required = "authorization_request_object")

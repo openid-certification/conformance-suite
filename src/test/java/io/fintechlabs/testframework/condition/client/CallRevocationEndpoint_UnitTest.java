@@ -52,9 +52,9 @@ public class CallRevocationEndpoint_UnitTest {
 
 	@Before
 	public void setUp(){
-
 		hoverfly.resetJournal();
-		cond = new CallRevocationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CallRevocationEndpoint();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

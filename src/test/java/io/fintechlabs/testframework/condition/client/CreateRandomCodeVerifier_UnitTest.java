@@ -29,8 +29,8 @@ public class CreateRandomCodeVerifier_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateRandomCodeVerifier("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomCodeVerifier();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

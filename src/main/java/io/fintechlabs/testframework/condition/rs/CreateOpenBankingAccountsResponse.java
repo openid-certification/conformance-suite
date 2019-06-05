@@ -7,18 +7,10 @@ import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CreateOpenBankingAccountsResponse extends AbstractOpenBankingApiResponse {
 
-	public CreateOpenBankingAccountsResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String[] requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(strings = {"account_id", "fapi_interaction_id"})
 	@PostEnvironment(required = {"accounts_endpoint_response", "accounts_endpoint_response_headers"})

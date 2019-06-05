@@ -37,7 +37,9 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddIntrospectionUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddIntrospectionUrlToServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();

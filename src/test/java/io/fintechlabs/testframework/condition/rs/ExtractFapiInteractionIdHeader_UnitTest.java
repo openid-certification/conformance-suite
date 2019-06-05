@@ -43,7 +43,9 @@ public class ExtractFapiInteractionIdHeader_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractFapiInteractionIdHeader("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractFapiInteractionIdHeader();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodRequest = new JsonParser().parse("{\"headers\":{"
 			+ "\"x-fapi-interaction-id\": \"" + id + "\""

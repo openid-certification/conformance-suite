@@ -35,9 +35,8 @@ public class ExtractSHash_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ExtractSHash("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new ExtractSHash();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	private void addIdToken(Environment env, String alg, String stateHash) {

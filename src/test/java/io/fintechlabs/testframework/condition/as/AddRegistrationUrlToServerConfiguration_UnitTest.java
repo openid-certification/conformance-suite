@@ -37,7 +37,9 @@ public class AddRegistrationUrlToServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddRegistrationUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddRegistrationUrlToServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();

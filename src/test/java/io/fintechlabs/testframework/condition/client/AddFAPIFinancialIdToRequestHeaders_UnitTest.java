@@ -42,8 +42,9 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddFAPIFinancialIdToResourceEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddFAPIFinancialIdToResourceEndpointRequest();
 
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// create a random financial ID so we know it's getting copied
 		financialId = RandomStringUtils.randomAlphanumeric(30);

@@ -33,8 +33,8 @@ public class CreateBadRedirectUri_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateBadRedirectUri("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateBadRedirectUri();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

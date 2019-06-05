@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.util.List;
@@ -12,10 +11,6 @@ import java.util.List;
 public class CheckErrorFromBackchannelAuthenticationEndpointError extends AbstractCondition {
 
 	private static final List<String> EXPECTED_VALUES = ImmutableList.of("access_denied", "invalid_request");
-
-	public CheckErrorFromBackchannelAuthenticationEndpointError(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response")

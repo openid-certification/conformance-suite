@@ -32,7 +32,8 @@ public class CreateTokenRevocationRequest_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new CreateTokenRevocationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateTokenRevocationRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -39,7 +39,9 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureBearerAccessTokenNotInParams("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureBearerAccessTokenNotInParams();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasToken = new JsonParser().parse(
 			"{\"params\": " +

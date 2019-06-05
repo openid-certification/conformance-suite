@@ -63,7 +63,9 @@ public class DisallowAccessTokenInQuery_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new DisallowAccessTokenInQuery("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new DisallowAccessTokenInQuery();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		env.putObject("resource", new JsonObject());
 	}

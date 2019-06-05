@@ -8,7 +8,6 @@ import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
@@ -38,10 +37,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
 
-	public CallBackchannelAuthenticationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
 	private class OurErrorHandler extends DefaultResponseErrorHandler {
 		@Override
 		public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -50,7 +45,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 			return false;
 		}
 	}
-
 
 	@Override
 	@PreEnvironment(required = { "server", "backchannel_authentication_endpoint_request_form_parameters" })

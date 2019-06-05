@@ -32,7 +32,8 @@ public class EnsureResponseTypeIsCode_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureResponseTypeIsCode("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureResponseTypeIsCode();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		String token =  "code";
 		String invalidToken = "invalidToken";

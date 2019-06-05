@@ -3,15 +3,10 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateJsonBoolean extends AbstractCondition {
-
-	public ValidateJsonBoolean(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	public Environment validate(Environment env, String environmentVariable,Boolean defaultValue, Boolean requiredValue) {
 

@@ -33,7 +33,9 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureMatchingFAPIInteractionId("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureMatchingFAPIInteractionId();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		env.putString("fapi_interaction_id", interactionId);
 

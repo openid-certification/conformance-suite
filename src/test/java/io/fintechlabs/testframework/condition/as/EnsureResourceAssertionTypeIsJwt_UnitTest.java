@@ -37,7 +37,9 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureResourceAssertionTypeIsJwt("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureResourceAssertionTypeIsJwt();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		assertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 

@@ -7,10 +7,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class AddAcrClaimToAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
 
-	public AddAcrClaimToAuthorizationEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")

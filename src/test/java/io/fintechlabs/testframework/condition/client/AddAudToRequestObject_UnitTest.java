@@ -28,7 +28,9 @@ public class AddAudToRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddAudToRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddAudToRequestObject();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject serverIssuer = new JsonObject();
 

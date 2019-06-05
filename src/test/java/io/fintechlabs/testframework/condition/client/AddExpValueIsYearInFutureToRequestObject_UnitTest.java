@@ -28,7 +28,8 @@ public class AddExpValueIsYearInFutureToRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddExpValueIsYearInFutureToRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddExpValueIsYearInFutureToRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

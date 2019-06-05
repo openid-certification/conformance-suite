@@ -86,13 +86,17 @@ public class AbstractCondition_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.FAILURE);
+		cond = new AbstractConditionTester();
+		cond.setProperties(TEST_ID, eventLog, ConditionResult.FAILURE);
 
-		condReqs = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.FAILURE, req1, req2);
+		condReqs = new AbstractConditionTester();
+		condReqs.setProperties(TEST_ID, eventLog, ConditionResult.FAILURE, req1, req2);
 
-		opt = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.INFO);
+		opt = new AbstractConditionTester();
+		opt.setProperties(TEST_ID, eventLog, ConditionResult.INFO);
 
-		optReqs = new AbstractConditionTester(TEST_ID, eventLog, ConditionResult.WARNING, req1, req2);
+		optReqs = new AbstractConditionTester();
+		optReqs.setProperties(TEST_ID, eventLog, ConditionResult.WARNING, req1, req2);
 
 		obj = new JsonParser().parse("{\"foo\": \"bar\", \"baz\": 1234}").getAsJsonObject();
 
@@ -1357,16 +1361,6 @@ public class AbstractCondition_UnitTest {
 	 * This subclass exposes the utility methods used by Condition classes so that we can test them here.
 	 */
 	private class AbstractConditionTester extends AbstractCondition {
-
-		/**
-		 * @param testId
-		 * @param log
-		 * @param optional
-		 * @param requirements
-		 */
-		public AbstractConditionTester(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-			super(testId, log, conditionResultOnFailure, requirements);
-		}
 
 		/* (non-Javadoc)
 		 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)

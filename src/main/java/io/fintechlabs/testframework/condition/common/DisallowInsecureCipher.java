@@ -37,7 +37,6 @@ import com.google.common.primitives.Ints;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class DisallowInsecureCipher extends AbstractCondition {
@@ -74,17 +73,6 @@ public class DisallowInsecureCipher extends AbstractCondition {
 		}
 	}
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public DisallowInsecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "tls")
 	public Environment evaluate(Environment env) {

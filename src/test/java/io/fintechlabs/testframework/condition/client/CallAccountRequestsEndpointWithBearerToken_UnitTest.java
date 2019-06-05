@@ -113,7 +113,9 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new CallAccountRequestsEndpointWithBearerToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CallAccountRequestsEndpointWithBearerToken();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		env.putObject("resource", new JsonObject());
 	}

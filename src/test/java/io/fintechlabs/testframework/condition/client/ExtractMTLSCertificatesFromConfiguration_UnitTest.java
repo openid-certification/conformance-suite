@@ -267,9 +267,8 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ExtractMTLSCertificatesFromConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new ExtractMTLSCertificatesFromConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -47,7 +47,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractAssertionFromIntrospectionRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractAssertionFromIntrospectionRequest();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		assertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 

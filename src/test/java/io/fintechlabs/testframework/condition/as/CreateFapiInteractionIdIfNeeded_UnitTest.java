@@ -37,9 +37,8 @@ public class CreateFapiInteractionIdIfNeeded_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateFapiInteractionIdIfNeeded("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new CreateFapiInteractionIdIfNeeded();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

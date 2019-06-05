@@ -29,7 +29,8 @@ public class EnsureImplicitGrantTypeInClient_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureImplicitGrantTypeInClient("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureImplicitGrantTypeInClient();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

@@ -32,8 +32,8 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateTokenEndpointRequestForAuthorizationCodeGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateTokenEndpointRequestForAuthorizationCodeGrant();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

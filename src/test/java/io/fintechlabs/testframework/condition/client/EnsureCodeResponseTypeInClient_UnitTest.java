@@ -29,7 +29,8 @@ public class EnsureCodeResponseTypeInClient_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureCodeResponseTypeInClient("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureCodeResponseTypeInClient();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

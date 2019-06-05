@@ -32,7 +32,8 @@ public class CheckRedirectUri_UnitTest {
 
 	@Before
 	public void setUp(){
-		cond = new CheckRedirectUri("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckRedirectUri();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

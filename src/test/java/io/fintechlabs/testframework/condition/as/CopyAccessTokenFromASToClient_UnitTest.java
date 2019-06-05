@@ -39,7 +39,9 @@ public class CopyAccessTokenFromASToClient_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CopyAccessTokenFromASToClient("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CopyAccessTokenFromASToClient();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		accessTokenValue = "foo1234556";
 		tokenType = "Bearer";

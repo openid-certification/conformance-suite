@@ -44,7 +44,9 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureIncomingTlsSecureCipher("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureIncomingTlsSecureCipher();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasTls = new ArrayList<>();
 

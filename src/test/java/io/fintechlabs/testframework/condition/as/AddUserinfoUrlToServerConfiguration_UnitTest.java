@@ -37,7 +37,9 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddUserinfoUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddUserinfoUrlToServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();

@@ -2,23 +2,12 @@ package io.fintechlabs.testframework.condition;
 
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import com.google.gson.JsonObject;
-
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public abstract class AbstractSetTLSTestHost extends AbstractCondition {
 
 	private static final int HTTPS_DEFAULT_PORT = 443;
-
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public AbstractSetTLSTestHost(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	protected Environment setTLSTestHost(Environment env, String host, int port) {
 

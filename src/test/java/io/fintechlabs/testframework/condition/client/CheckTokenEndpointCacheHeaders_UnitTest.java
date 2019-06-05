@@ -25,9 +25,8 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckTokenEndpointCacheHeaders("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new CheckTokenEndpointCacheHeaders();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

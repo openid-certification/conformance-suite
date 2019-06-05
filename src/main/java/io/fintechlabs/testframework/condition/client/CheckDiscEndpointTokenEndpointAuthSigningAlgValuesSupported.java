@@ -5,7 +5,6 @@ import java.util.Arrays;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends ValidateJsonArray {
@@ -16,14 +15,6 @@ public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 
-
-	public CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {

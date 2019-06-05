@@ -31,20 +31,14 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest_UnitTest {
 
 	private String requestId;
 
-	/**
-	 * @throws java.lang.Exception
-	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new AddAccountRequestIdToAuthorizationEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddAccountRequestIdToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		requestId = "88379"; // OpenBanking example
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.AddAccountRequestIdToAuthorizationEndpointRequest#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate() {
 

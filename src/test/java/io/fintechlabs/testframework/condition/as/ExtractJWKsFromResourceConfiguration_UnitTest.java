@@ -39,7 +39,9 @@ public class ExtractJWKsFromResourceConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractJWKsFromResourceConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractJWKsFromResourceConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		jwks = new JsonParser().parse("{\n" +
 			"  \"keys\": [\n" +

@@ -4,18 +4,9 @@ import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CreatePlainCodeChallenge extends AbstractCondition{
-
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public CreatePlainCodeChallenge(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(strings = "code_verifier")

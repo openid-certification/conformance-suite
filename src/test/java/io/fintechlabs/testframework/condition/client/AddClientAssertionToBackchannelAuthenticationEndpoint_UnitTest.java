@@ -31,7 +31,9 @@ public class AddClientAssertionToBackchannelAuthenticationEndpoint_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddClientAssertionToBackchannelAuthenticationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddClientAssertionToBackchannelAuthenticationEndpoint();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		clientAssertion = "client.assertion.string"; // note that this is normally a JWT calculated by another module, this module just copies the value
 	}

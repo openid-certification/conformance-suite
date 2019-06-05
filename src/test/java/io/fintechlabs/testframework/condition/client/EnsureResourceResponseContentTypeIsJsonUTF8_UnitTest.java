@@ -30,7 +30,8 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureResourceResponseContentTypeIsJsonUTF8("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureResourceResponseContentTypeIsJsonUTF8();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -25,9 +25,8 @@ public class EnsureMinimumAuthenticationRequestIdEntropy_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureMinimumAuthenticationRequestIdEntropy("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new EnsureMinimumAuthenticationRequestIdEntropy();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

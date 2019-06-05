@@ -35,7 +35,8 @@ public class FAPIValidateRequestObjectSigningAlg_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new FAPIValidateRequestObjectSigningAlg("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new FAPIValidateRequestObjectSigningAlg();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		header = new JsonParser().parse("{"
 			+ "\"iss\":\"test-client-id-346334adgdsfgdfg3425\""

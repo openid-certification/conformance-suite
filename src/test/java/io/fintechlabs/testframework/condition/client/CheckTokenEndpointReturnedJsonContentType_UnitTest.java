@@ -28,9 +28,8 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckTokenEndpointReturnedJsonContentType("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new CheckTokenEndpointReturnedJsonContentType();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	private void setHeader(Environment env, String value) {

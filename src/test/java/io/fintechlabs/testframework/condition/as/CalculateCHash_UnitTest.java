@@ -34,8 +34,8 @@ public class CalculateCHash_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CalculateCHash("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
+		cond = new CalculateCHash();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 	}
 
 	@Test

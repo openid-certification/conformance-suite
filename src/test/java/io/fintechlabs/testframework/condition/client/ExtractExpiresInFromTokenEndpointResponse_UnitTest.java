@@ -36,7 +36,9 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractExpiresInFromTokenEndpointResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractExpiresInFromTokenEndpointResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodResponse = new JsonParser().parse("{"
 			+ "\"access_token\":"

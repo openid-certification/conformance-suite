@@ -35,7 +35,8 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractClientCertificateFromTokenEndpointRequestHeaders("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractClientCertificateFromTokenEndpointRequestHeaders();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC 7468
 		String certificate = "-----BEGIN CERTIFICATE----- " +

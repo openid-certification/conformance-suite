@@ -45,7 +45,9 @@ public class ExtractFapiIpAddressHeader_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractFapiIpAddressHeader("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractFapiIpAddressHeader();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodRequest = new JsonParser().parse("{\"headers\":{"
 			+ "\"x-fapi-customer-ip-address\": \"" + addr + "\""

@@ -6,15 +6,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateJsonArray extends AbstractCondition {
-
-	public ValidateJsonArray(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	public long countMatchingElements(List<String> searchValues, JsonArray searchSpace ) {
 		long foundCount = 0;

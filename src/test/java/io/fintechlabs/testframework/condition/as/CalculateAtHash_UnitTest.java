@@ -33,8 +33,8 @@ public class CalculateAtHash_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CalculateAtHash("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
+		cond = new CalculateAtHash();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 	}
 
 	@Test

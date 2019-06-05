@@ -34,8 +34,8 @@ public class ExtractImplicitHashToTokenEndpointResponse_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ExtractImplicitHashToTokenEndpointResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractImplicitHashToTokenEndpointResponse();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -38,7 +38,8 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateTokenEndpointRequestForClientCredentialsGrant("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateTokenEndpointRequestForClientCredentialsGrant();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		clientWithScope = new JsonParser().parse("{\"scope\": \"foo bar\"}").getAsJsonObject();
 		clientWithoutScope = new JsonParser().parse("{}").getAsJsonObject();

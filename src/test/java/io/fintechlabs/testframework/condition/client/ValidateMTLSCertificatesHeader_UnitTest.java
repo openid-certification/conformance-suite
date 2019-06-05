@@ -589,7 +589,8 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new ValidateMTLSCertificatesHeader("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateMTLSCertificatesHeader();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test(expected = ConditionError.class)

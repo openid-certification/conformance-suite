@@ -26,9 +26,8 @@ public class FAPICIBAValidateRtHash_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new FAPICIBAValidateRtHash("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new FAPICIBAValidateRtHash();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

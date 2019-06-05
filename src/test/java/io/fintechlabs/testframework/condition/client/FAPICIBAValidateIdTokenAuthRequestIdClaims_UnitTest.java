@@ -25,9 +25,8 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new FAPICIBAValidateIdTokenAuthRequestIdClaims("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new FAPICIBAValidateIdTokenAuthRequestIdClaims();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test(expected = NullPointerException.class)

@@ -31,9 +31,8 @@ public class ClearAccessTokenFromRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ClearAccessTokenFromRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new ClearAccessTokenFromRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

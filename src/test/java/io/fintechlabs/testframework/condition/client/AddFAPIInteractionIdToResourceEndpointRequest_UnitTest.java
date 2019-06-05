@@ -42,14 +42,10 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new AddFAPIInteractionIdToResourceEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new AddFAPIInteractionIdToResourceEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.AddFAPIInteractionIdToResourceEndpointRequest#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate() {
 

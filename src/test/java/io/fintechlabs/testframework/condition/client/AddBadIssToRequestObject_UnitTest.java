@@ -28,7 +28,9 @@ public class AddBadIssToRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddBadIssToRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddBadIssToRequestObject();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject client = new JsonObject();
 

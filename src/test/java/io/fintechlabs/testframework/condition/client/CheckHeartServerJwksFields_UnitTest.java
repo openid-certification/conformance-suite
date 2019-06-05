@@ -33,7 +33,8 @@ public class CheckHeartServerJwksFields_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckHeartServerJwksFields("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new CheckHeartServerJwksFields();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		keyA = new JsonParser().parse("{"
 			+ "\"alg\": \"RS256\","

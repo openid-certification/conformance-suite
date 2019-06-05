@@ -37,7 +37,8 @@ public class AddRedirectUriToDynamicRegistrationRequest_UnitTest {
 
 	@Before
 	public void setUp(){
-		cond = new AddRedirectUriToDynamicRegistrationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddRedirectUriToDynamicRegistrationRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 

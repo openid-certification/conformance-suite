@@ -25,9 +25,8 @@ public class CheckBackchannelAuthenticationEndpointContentType_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckBackchannelAuthenticationEndpointContentType("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new CheckBackchannelAuthenticationEndpointContentType();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	private void setHeader(Environment env, String value) {

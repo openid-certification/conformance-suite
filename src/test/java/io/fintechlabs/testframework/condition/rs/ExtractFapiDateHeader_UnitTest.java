@@ -51,7 +51,9 @@ public class ExtractFapiDateHeader_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractFapiDateHeader("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractFapiDateHeader();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodRequest = new JsonParser().parse("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + date + "\""

@@ -7,7 +7,6 @@ import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
@@ -17,17 +16,6 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 		"tls_client_auth",
 		"pub_key_tls_client_auth");
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public EnsureServerConfigurationSupportsMTLS(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {

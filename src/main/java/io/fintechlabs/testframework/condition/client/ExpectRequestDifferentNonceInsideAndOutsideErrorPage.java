@@ -2,14 +2,9 @@ package io.fintechlabs.testframework.condition.client;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ExpectRequestDifferentNonceInsideAndOutsideErrorPage extends AbstractCondition {
-
-	public ExpectRequestDifferentNonceInsideAndOutsideErrorPage(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PostEnvironment(strings = "request_unverifiable_error")

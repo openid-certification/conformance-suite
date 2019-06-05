@@ -26,7 +26,8 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CreateDynamicRegistrationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateDynamicRegistrationRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
