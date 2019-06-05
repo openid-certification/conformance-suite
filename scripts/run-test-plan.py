@@ -140,6 +140,9 @@ def color(text, **user_styles):
     return '\033[0m{}\033[0m'.format(color_text)
 
 
+def redbg(text):
+    return color(text, bold=True, bg_red=True)
+
 def failure(text):
     return color(text, bold=True, fg_red=True)
 
@@ -197,7 +200,9 @@ def show_plan_results(plan_result, expected_failures_json):
         if module in untested_test_modules:
             untested_test_modules.remove(module)
 
+        status_coloured = info['status']
         if info['status'] != 'FINISHED':
+            status_coloured = redbg(status_coloured)
             incomplete += 1
         if 'result' not in info:
             info['result'] = 'UNKNOWN'
@@ -220,7 +225,7 @@ def show_plan_results(plan_result, expected_failures_json):
 
         counts = result['counts']
         print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
-              format(module, module_id, info['status'], result_coloured, len(logs),
+              format(module, module_id, status_coloured, result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
         test_result = summary_unexpected_failures_test_module(result, test_name, module_id)
