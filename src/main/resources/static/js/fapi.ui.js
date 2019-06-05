@@ -344,6 +344,18 @@ var FAPI_UI = {
 
 		},
 
+		loadTokenListTemplates: function() {
+			return $.when(
+					$.get('templates/date.html', function(data) {
+						FAPI_UI.logTemplates.DATE = _.template(data);
+					}),
+
+					$.get('templates/userinfo.html', function(data) {
+						FAPI_UI.logTemplates.USER_INFO = _.template(data);
+					})
+			);
+		},
+
 		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
 
 		availableTests : {},

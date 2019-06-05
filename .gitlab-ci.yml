@@ -516,13 +516,7 @@ deployment_server_test_review:
     cd conformance-suite-private
     kubectl -n "$KUBE_NAMESPACE" get secret microauth -o yaml > microauth-credentials
     export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
-    export CONFORMANCE_MICROAUTH_LOCAL_PORT="9002"
-    export CONFORMANCE_MICROAUTH_REMOTE_PORT="9001"
-    export CONFORMANCE_TOKEN_ENDPOINT="http://localhost:${CONFORMANCE_MICROAUTH_LOCAL_PORT}/token"
-    export CONFORMANCE_CLIENT_ID=$(sed -n 's/client_id://p' microauth-credentials | base64 -d)
-    export CONFORMANCE_CLIENT_SECRET=$(sed -n 's/client_secret://p' microauth-credentials | base64 -d)
-    export CONFORMANCE_K8_NAMESPACE="$KUBE_NAMESPACE"
-    export CONFORMANCE_K8_APPNAME="${CI_ENVIRONMENT_SLUG}-microauth"
+    export CONFORMANCE_TOKEN="${CI_TOKEN}"
   }
 
   function run_all_test_plan() {

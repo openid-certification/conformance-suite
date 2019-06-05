@@ -3,6 +3,7 @@
                 <p class="form-control-static">Logged in as
                     <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
                     <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
+                <% if (!userInfo.isAdmin) { %><a class="btn btn-sm btn-default" href="/tokens.html">Tokens</a><% } %>
                 <input type="submit" class="btn btn-sm btn-primary" value="Logout">
             </form>
         </div>

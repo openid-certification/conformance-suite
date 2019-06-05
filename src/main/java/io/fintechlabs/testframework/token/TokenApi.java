@@ -38,7 +38,14 @@ public class TokenApi {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 		JsonElement permanent = request.get("permanent");
-		Object token = tokenService.createToken(permanent != null && permanent.equals(true));
+		boolean isPermanent = false;
+		try {
+			if (permanent != null && permanent.isJsonPrimitive())
+				isPermanent = permanent.getAsBoolean();
+		} catch (ClassCastException e) {
+			// Not a boolean
+		}
+		Object token = tokenService.createToken(isPermanent);
 		return new ResponseEntity<>(token, HttpStatus.CREATED);
 	}
 

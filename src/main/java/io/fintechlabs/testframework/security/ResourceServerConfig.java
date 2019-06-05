@@ -30,6 +30,9 @@ import io.fintechlabs.testframework.token.ApiTokenService;
 @Order(1)
 public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
+	@Value("${fintechlabs.devmode:false}")
+	private boolean devmode;
+
 	// Config for the OAuth introspection filters
 	@Value("${oauth.introspection_url}")
 	private String introspectionUrl;
@@ -59,6 +62,15 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 				.authenticationEntryPoint(restAuthenticationEntryPoint());
 
 		// @formatter:off
+
+		if (devmode) {
+			http.addFilterBefore(dummyUserFilter(), UrlLimitedOAuth2AuthenticationProcessingFilter.class);
+		}
+	}
+
+	@Bean
+	public DummyUserFilter dummyUserFilter() {
+		return new DummyUserFilter();
 	}
 
 	/**
@@ -106,13 +118,13 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	public ResourceServerTokenServices tokenServices() {
 
 		ApiTokenService tokenService = new ApiTokenService();
-		tokenService.setFallbackService(microauthTokenServices());
+		tokenService.setFallbackService(introspectingTokenServices());
 
 		return tokenService;
 	}
 
 	@Bean
-	public ResourceServerTokenServices microauthTokenServices() {
+	public ResourceServerTokenServices introspectingTokenServices() {
 
 		IntrospectingTokenService tokenService = new IntrospectingTokenService();
 		tokenService.setCacheTokens(true);
