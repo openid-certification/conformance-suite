@@ -261,7 +261,8 @@ production:
     - check_kube_domain
     - install_dependencies
     - ensure_namespace
-    - run_test_plan
+    - set_up_for_running_test_plan
+    - run_all_test_plan
 
 deployment_test_production:
   <<: *deployment_test
@@ -293,8 +294,9 @@ deployment_test_demo:
       - demo
     kubernetes: active
 
-deployment_test_review:
-  <<: *deployment_test
+.deployment_test_review: &deployment_test_review
+  stage: autotest
+  image: python:alpine
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -303,6 +305,24 @@ deployment_test_review:
     refs:
       - /^dev-branch-[1-9]$/
     kubernetes: active
+
+deployment_client_test_review:
+  <<: *deployment_test_review
+  script:
+    - check_kube_domain
+    - install_dependencies
+    - ensure_namespace
+    - set_up_for_running_test_plan
+    - run_client_test_plan
+
+deployment_server_test_review:
+  <<: *deployment_test_review
+  script:
+    - check_kube_domain
+    - install_dependencies
+    - ensure_namespace
+    - set_up_for_running_test_plan
+    - run_server_test_plan
 
 # ---------------------------------------------------------------------------
 
@@ -484,7 +504,7 @@ deployment_test_review:
     helm delete "$name" || true
   }
 
-  function run_test_plan() {
+  function set_up_for_running_test_plan() {
     echo "Installing extra dependencies"
     apk add -U openssh-client git
     apk add --update nodejs nodejs-npm
@@ -503,8 +523,21 @@ deployment_test_review:
     export CONFORMANCE_CLIENT_SECRET=$(sed -n 's/client_secret://p' microauth-credentials | base64 -d)
     export CONFORMANCE_K8_NAMESPACE="$KUBE_NAMESPACE"
     export CONFORMANCE_K8_APPNAME="${CI_ENVIRONMENT_SLUG}-microauth"
+  }
+
+  function run_all_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ./run-tests.sh
+  }
+
+  function run_client_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ./run-tests.sh --client-tests-only
+  }
+
+  function run_server_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ./run-tests.sh --server-tests-only
   }
 
 before_script:
