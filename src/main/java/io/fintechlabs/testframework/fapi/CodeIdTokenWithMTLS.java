@@ -14,6 +14,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpo
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
@@ -301,7 +302,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 			JsonElement body = requestParts.get("body");
 
 			if (body != null) {
-				String hash = body.getAsString();
+				String hash = OIDFJSON.getString(body);
 
 				logger.info("Hash: " + hash);
 
@@ -457,7 +458,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 			JsonElement body = requestParts.get("body");
 
 			if (body != null) {
-				String hash = body.getAsString();
+				String hash = OIDFJSON.getString(body);
 
 				logger.info("Hash: " + hash);
 

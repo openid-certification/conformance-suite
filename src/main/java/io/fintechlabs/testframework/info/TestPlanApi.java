@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -61,13 +62,13 @@ public class TestPlanApi implements DataUtils {
 
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
-			description = config.get("description").getAsString();
+			description = OIDFJSON.getString(config.get("description"));
 		}
 
 		// extract the `publish` field if available
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
-			publish = Strings.emptyToNull(config.get("publish").getAsString());
+			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
 		}
 
 		// save the configuration for the test plan
@@ -109,7 +110,7 @@ public class TestPlanApi implements DataUtils {
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
-			publish = Strings.emptyToNull(config.get("publish").getAsString());
+			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
 		} else {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}

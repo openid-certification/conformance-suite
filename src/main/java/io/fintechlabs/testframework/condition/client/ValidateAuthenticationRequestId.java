@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,7 +32,7 @@ public class ValidateAuthenticationRequestId extends AbstractCondition {
 			throw error("auth_req_id in backchannel authentication endpoint can not be null.");
 		}
 
-		String authReqId = authReqIdElement.getAsString();
+		String authReqId = OIDFJSON.getString(authReqIdElement);
 		if (Strings.isNullOrEmpty(authReqId)) {
 			throw error("auth_req_id in backchannel authentication endpoint can not be empty.");
 		}

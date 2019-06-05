@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateJsonArray extends AbstractCondition {
 
@@ -23,7 +24,7 @@ public class ValidateJsonArray extends AbstractCondition {
 
 		for (int viableIndex = 0; viableIndex < viableSize; viableIndex++) {
 			for (int serverIndex = 0; serverIndex < serverSize; serverIndex++) {
-				if (searchValues.get(viableIndex).equals(searchSpace.get(serverIndex).getAsString())) {
+				if (searchValues.get(viableIndex).equals(OIDFJSON.getString(searchSpace.get(serverIndex)))) {
 					foundCount++;
 					break;
 				}

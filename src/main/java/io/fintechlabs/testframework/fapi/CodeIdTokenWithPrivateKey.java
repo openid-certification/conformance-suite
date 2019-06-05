@@ -12,6 +12,7 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJ
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
@@ -286,7 +287,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		JsonElement body = requestParts.get("body");
 
 		if (body != null) {
-			String hash = body.getAsString();
+			String hash = OIDFJSON.getString(body);
 
 			logger.info("Hash: " + hash);
 
@@ -443,7 +444,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 			JsonElement body = requestParts.get("body");
 
 			if (body != null) {
-				String hash = body.getAsString();
+				String hash = OIDFJSON.getString(body);
 
 				logger.info("Hash: " + hash);
 

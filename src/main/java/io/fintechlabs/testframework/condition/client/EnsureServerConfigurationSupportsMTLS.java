@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 
@@ -42,7 +43,7 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 
 		try {
 			for (JsonElement method : supportedAuthMethods.getAsJsonArray()) {
-				if (MTLS_AUTH_METHODS.contains(method.getAsString())) {
+				if (MTLS_AUTH_METHODS.contains(OIDFJSON.getString(method))) {
 					logSuccess("Found supported MTLS method", args("method", method));
 					supportsMtls = true;
 				}

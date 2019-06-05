@@ -56,7 +56,7 @@ public class AddAccountRequestIdToAuthorizationEndpointRequest_UnitTest {
 		verify(env, atLeastOnce()).getString("account_request_id");
 
 		assertThat(env.getString("authorization_endpoint_request", "claims.id_token.openbanking_intent_id.value")).isEqualTo(requestId);
-		assertThat(env.getElementFromObject("authorization_endpoint_request", "claims.id_token.openbanking_intent_id.essential").getAsBoolean()).isTrue();
+		assertThat(env.getBoolean("authorization_endpoint_request", "claims.id_token.openbanking_intent_id.essential")).isTrue();
 
 	}
 

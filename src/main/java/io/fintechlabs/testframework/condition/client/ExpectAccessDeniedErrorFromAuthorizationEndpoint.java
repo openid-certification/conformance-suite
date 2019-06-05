@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ExpectAccessDeniedErrorFromAuthorizationEndpoint extends AbstractCondition {
 
@@ -24,7 +25,7 @@ public class ExpectAccessDeniedErrorFromAuthorizationEndpoint extends AbstractCo
 		if (!callbackQueryParams.has("error")) {
 			throw error("error parameter not found", callbackQueryParams);
 		}
-		String error = callbackQueryParams.get("error").getAsString();
+		String error = OIDFJSON.getString(callbackQueryParams.get("error"));
 		if (Strings.isNullOrEmpty(error)) {
 			throw error("error parameter empty/invalid", callbackQueryParams);
 		}

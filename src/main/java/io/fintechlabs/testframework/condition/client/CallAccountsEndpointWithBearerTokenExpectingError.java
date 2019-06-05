@@ -10,6 +10,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -109,7 +110,7 @@ public class CallAccountsEndpointWithBearerTokenExpectingError extends AbstractC
 
 					JsonObject responseObj = jsonRoot.getAsJsonObject();
 
-					if (responseObj.has("error") && !Strings.isNullOrEmpty(responseObj.get("error").getAsString())) {
+					if (responseObj.has("error") && !Strings.isNullOrEmpty(OIDFJSON.getString(responseObj.get("error")))) {
 						logSuccess("Found error in resource endpoint error response", responseObj);
 						return env;
 					} else {

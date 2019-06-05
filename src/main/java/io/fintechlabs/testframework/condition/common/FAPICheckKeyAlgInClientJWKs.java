@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class FAPICheckKeyAlgInClientJWKs extends AbstractCondition {
 
@@ -32,7 +33,7 @@ public class FAPICheckKeyAlgInClientJWKs extends AbstractCondition {
 				throw error("alg not found in key", args("key", key));
 			}
 
-			String alg = keyObj.getAsJsonPrimitive("alg").getAsString();
+			String alg = OIDFJSON.getString(keyObj.getAsJsonPrimitive("alg"));
 			if (alg.equals("PS256") || alg.equals("ES256")) {
 				found = true;
 			}

@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 import java.time.Instant;
 import java.util.Date;
@@ -64,7 +65,7 @@ public class ValidateIdTokenHeartClaims extends AbstractCondition {
 				throw error("Audience not found", args("expected", clientId, "actual", aud));
 			}
 		} else {
-			if (!clientId.equals(aud.getAsString())) {
+			if (!clientId.equals(OIDFJSON.getString(aud))) {
 				throw error("Audience mismatch", args("expected", clientId, "actual", aud));
 			}
 		}

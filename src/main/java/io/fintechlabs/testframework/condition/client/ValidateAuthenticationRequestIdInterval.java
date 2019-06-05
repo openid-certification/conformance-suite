@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateAuthenticationRequestIdInterval extends AbstractCondition {
 	private final double maximumInterval = 6 * 60 * 60; // 6 hours as 21600 seconds
@@ -31,7 +32,7 @@ public class ValidateAuthenticationRequestIdInterval extends AbstractCondition {
 			throw error("interval is not a number!");
 		}
 
-		int interval = jInterval.getAsJsonPrimitive().getAsInt();
+		int interval = OIDFJSON.getInt(jInterval);
 		if (interval < 0) {
 			throw error("interval is less than zero");
 		}

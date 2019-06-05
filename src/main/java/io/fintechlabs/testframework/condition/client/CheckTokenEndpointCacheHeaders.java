@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckTokenEndpointCacheHeaders extends AbstractCondition {
 
@@ -25,7 +26,7 @@ public class CheckTokenEndpointCacheHeaders extends AbstractCondition {
 		if (headers.has("cache-control")) {
 
 			String expected = "no-store";
-			String cacheControl = headers.get("cache-control").getAsString();
+			String cacheControl = OIDFJSON.getString(headers.get("cache-control"));
 
 			if (Strings.isNullOrEmpty(cacheControl) || !isStringsContainElement(cacheControl.split(","), expected)) {
 				throw error("'cache-control' in the headers doesn't contain expected value.", args("expected", expected, "actual", cacheControl));
@@ -35,7 +36,7 @@ public class CheckTokenEndpointCacheHeaders extends AbstractCondition {
 		if (headers.has("pragma")) {
 
 			String expected = "no-cache";
-			String pragma = headers.get("pragma").getAsString();
+			String pragma = OIDFJSON.getString(headers.get("pragma"));
 
 			if (Strings.isNullOrEmpty(pragma) || !isStringsContainElement(pragma.split(","), expected)) {
 				throw error("'pragma' in the headers doesn't contain expected value.", args("expected", expected, "actual", pragma));

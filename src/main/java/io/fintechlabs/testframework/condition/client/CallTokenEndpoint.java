@@ -10,6 +10,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -64,7 +65,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 		JsonObject formJson = env.getObject("token_endpoint_request_form_parameters");
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
 		for (String key : formJson.keySet()) {
-			form.add(key, formJson.get(key).getAsString());
+			form.add(key, OIDFJSON.getString(formJson.get(key)));
 		}
 
 		try {

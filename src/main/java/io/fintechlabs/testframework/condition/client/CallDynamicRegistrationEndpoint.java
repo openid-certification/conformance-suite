@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -87,8 +88,8 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 					if (jsonRoot.getAsJsonObject().has("registration_client_uri") &&
 						jsonRoot.getAsJsonObject().has("registration_access_token")) {
 
-						String registrationClientUri = jsonRoot.getAsJsonObject().get("registration_client_uri").getAsString();
-						String registrationAccessToken = jsonRoot.getAsJsonObject().get("registration_access_token").getAsString();
+						String registrationClientUri = OIDFJSON.getString(jsonRoot.getAsJsonObject().get("registration_client_uri"));
+						String registrationAccessToken = OIDFJSON.getString(jsonRoot.getAsJsonObject().get("registration_access_token"));
 
 						if (!Strings.isNullOrEmpty(registrationClientUri) &&
 							!Strings.isNullOrEmpty(registrationAccessToken)) {

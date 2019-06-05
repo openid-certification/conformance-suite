@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -65,7 +66,7 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 		JsonObject formJson = env.getObject("backchannel_authentication_endpoint_request_form_parameters");
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
 		for (String key : formJson.keySet()) {
-			form.add(key, formJson.get(key).getAsString());
+			form.add(key, OIDFJSON.getString(formJson.get(key)));
 		}
 
 		try {

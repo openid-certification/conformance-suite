@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.mitre.openid.connect.client.OIDCAuthoritiesMapper;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.UserInfo;
@@ -48,7 +49,7 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 
 				for (int i = 0; i < adminDomainArray.length; i++) {
 					String domain = adminDomainArray[i];
-					if (userInfo.getSource().getAsJsonPrimitive("hd").getAsString().equals(domain)) {
+					if (OIDFJSON.getString(userInfo.getSource().get("hd")).equals(domain)) {
 						out.add(ROLE_ADMIN);
 						break;
 					}

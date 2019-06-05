@@ -202,7 +202,7 @@ public class Environment {
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
 				if (e.getAsJsonPrimitive().isString()) {
-					return e.getAsString();
+					return OIDFJSON.getString(e);
 				} else {
 					throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
 				}
@@ -238,7 +238,7 @@ public class Environment {
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
 				if (e.getAsJsonPrimitive().isNumber()) {
-					return e.getAsNumber().intValue();
+					return OIDFJSON.getNumber(e).intValue();
 				} else {
 					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 				}
@@ -275,7 +275,7 @@ public class Environment {
 		if (e != null) {
 			if (e.isJsonPrimitive()) {
 				if (e.getAsJsonPrimitive().isBoolean()) {
-					return e.getAsBoolean();
+					return OIDFJSON.getBoolean(e);
 				} else {
 					throw new IllegalArgumentException("Found non-boolean value for " + key + " / " + path);
 				}
@@ -312,7 +312,7 @@ public class Environment {
 			if (e.isJsonPrimitive()) {
 
 				if (e.getAsJsonPrimitive().isNumber()) {
-					return e.getAsNumber().longValue();
+					return OIDFJSON.getNumber(e).longValue();
 				} else {
 					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 				}

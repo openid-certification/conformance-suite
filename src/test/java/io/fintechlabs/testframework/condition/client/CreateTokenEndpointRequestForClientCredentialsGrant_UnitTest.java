@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +58,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
-		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
+		assertThat(OIDFJSON.getString(parameters.get("grant_type"))).isEqualTo("client_credentials");
 
 		assertThat(parameters.has("scope")).isTrue();
 		assertThat(parameters.get("scope")).isEqualTo(clientWithScope.get("scope"));
@@ -73,7 +74,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
 		assertThat(parameters).isNotNull();
-		assertThat(parameters.get("grant_type").getAsString()).isEqualTo("client_credentials");
+		assertThat(OIDFJSON.getString(parameters.get("grant_type"))).isEqualTo("client_credentials");
 
 		assertThat(parameters.has("scope")).isFalse();
 	}

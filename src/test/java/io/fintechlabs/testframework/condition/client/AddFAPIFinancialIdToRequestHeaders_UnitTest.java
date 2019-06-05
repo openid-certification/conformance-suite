@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
-		assertEquals(financialId, req.get("x-fapi-financial-id").getAsString());
+		assertEquals(financialId, OIDFJSON.getString(req.get("x-fapi-financial-id")));
 
 	}
 
@@ -82,7 +83,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
-		assertEquals(financialId, req.get("x-fapi-financial-id").getAsString());
+		assertEquals(financialId, OIDFJSON.getString(req.get("x-fapi-financial-id")));
 
 	}
 
@@ -98,7 +99,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		assertNotNull(req);
 		assertTrue(req.has("x-fapi-financial-id"));
-		assertEquals(financialId, req.get("x-fapi-financial-id").getAsString());
+		assertEquals(financialId, OIDFJSON.getString(req.get("x-fapi-financial-id")));
 
 	}
 

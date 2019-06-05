@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckBackchannelUserCodeParameterSupported extends AbstractCondition {
 
@@ -25,8 +26,8 @@ public class CheckBackchannelUserCodeParameterSupported extends AbstractConditio
 			throw error("Type of backchannel_user_code_parameter_supported must be boolean.");
 		}
 
-		if (!element.getAsBoolean()) {
-			throw error("backchannel_user_code_parameter_supported must be 'true'", args("actual", element.getAsBoolean()));
+		if (!OIDFJSON.getBoolean(element)) {
+			throw error("backchannel_user_code_parameter_supported must be 'true'", args("actual", OIDFJSON.getBoolean(element)));
 		}
 
 		logSuccess("backchannel_user_code_parameter_supported was 'true'");

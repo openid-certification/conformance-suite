@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.as;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,8 +99,8 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 		JsonObject res = env.getObject("resource_assertion");
 
 		assertNotNull(res);
-		assertEquals(assertion, res.get("assertion").getAsString());
-		assertEquals(assertionType, res.get("assertion_type").getAsString());
+		assertEquals(assertion, OIDFJSON.getString(res.get("assertion")));
+		assertEquals(assertionType, OIDFJSON.getString(res.get("assertion_type")));
 		assertEquals(header, res.get("assertion_header").getAsJsonObject());
 		assertEquals(payload, res.get("assertion_payload").getAsJsonObject());
 	}

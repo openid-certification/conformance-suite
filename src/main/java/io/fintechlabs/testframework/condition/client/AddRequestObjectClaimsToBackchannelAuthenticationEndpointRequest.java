@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class AddRequestObjectClaimsToBackchannelAuthenticationEndpointRequest extends AbstractCondition {
 
@@ -29,7 +30,7 @@ public class AddRequestObjectClaimsToBackchannelAuthenticationEndpointRequest ex
 			// for nonce, state, client_id, redirect_uri, etc.
 			if (element.isJsonPrimitive()) {
 
-				o.addProperty(key, element.getAsString());
+				o.addProperty(key, OIDFJSON.getString(element));
 			}
 
 		}

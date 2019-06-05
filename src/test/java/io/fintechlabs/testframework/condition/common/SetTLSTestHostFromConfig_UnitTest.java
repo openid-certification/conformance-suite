@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,8 +60,8 @@ public class SetTLSTestHostFromConfig_UnitTest {
 		verify(env, atLeastOnce()).getString("config", "tls.testHost");
 		verify(env, atLeastOnce()).getInteger("config", "tls.testPort");
 
-		assertThat(env.getString("tls", "testHost")).isEqualTo(tlsConfig.get("testHost").getAsString());
-		assertThat(env.getInteger("tls", "testPort")).isEqualTo(tlsConfig.get("testPort").getAsNumber().intValue());
+		assertThat(env.getString("tls", "testHost")).isEqualTo(OIDFJSON.getString(tlsConfig.get("testHost")));
+		assertThat(env.getInteger("tls", "testPort")).isEqualTo(OIDFJSON.getNumber(tlsConfig.get("testPort")).intValue());
 	}
 
 }

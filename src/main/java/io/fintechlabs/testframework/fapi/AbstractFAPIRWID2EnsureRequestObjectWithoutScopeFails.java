@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalid
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingScopeErrorPage;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWID2ServerTestModule {
 
@@ -38,7 +39,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails exte
 
 		callAndStopOnFailure(AddExpToRequestObject.class);
 
-		String scope = env.getObject("request_object_claims").get("scope").getAsString();
+		String scope = OIDFJSON.getString(env.getObject("request_object_claims").get("scope"));
 		env.getObject("request_object_claims").remove("scope");
 
 		callAndStopOnFailure(SignRequestObject.class);

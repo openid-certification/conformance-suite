@@ -20,7 +20,7 @@ public class AddInvalidIssValueToIdToken extends AbstractCondition {
 
 		JsonObject claims = env.getObject("id_token_claims");
 
-		String iss = env.getElementFromObject("id_token_claims", "iss").getAsString();
+		String iss = env.getString("id_token_claims", "iss");
 
 		//Add number 1 onto end of iss string
 		String concat = (iss + 1);

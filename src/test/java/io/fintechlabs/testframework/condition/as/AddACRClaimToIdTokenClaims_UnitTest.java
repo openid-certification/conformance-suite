@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,7 +61,7 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getObject("id_token_claims");
-		assertEquals("urn:openbanking:psd2:sca", env.getElementFromObject("id_token_claims", "acr").getAsString());
+		assertEquals("urn:openbanking:psd2:sca", env.getString("id_token_claims", "acr"));
 
 	}
 
@@ -73,7 +74,7 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 		cond.evaluate(env);
 
 		verify(env, atLeastOnce()).getObject("id_token_claims");
-		assertEquals("urn:openbanking:psd2:ca", env.getElementFromObject("id_token_claims", "acr").getAsString());
+		assertEquals("urn:openbanking:psd2:ca", env.getString("id_token_claims", "acr"));
 	}
 
 	@Test(expected = ConditionError.class)

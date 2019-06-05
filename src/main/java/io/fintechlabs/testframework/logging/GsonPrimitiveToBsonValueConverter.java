@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.logging;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.bson.BsonBoolean;
 import org.bson.BsonDouble;
 import org.bson.BsonString;
@@ -22,12 +23,12 @@ public class GsonPrimitiveToBsonValueConverter implements Converter<JsonPrimitiv
 		if (source == null) {
 			return null;
 		} else if (source.isBoolean()) {
-			return BsonBoolean.valueOf(source.getAsBoolean());
+			return BsonBoolean.valueOf(OIDFJSON.getBoolean(source));
 		} else if (source.isNumber()) {
 			// TODO: should we have this optimize for integers, too?
-			return new BsonDouble(source.getAsDouble());
+			return new BsonDouble(OIDFJSON.getDouble(source));
 		} else if (source.isString()) {
-			return new BsonString(source.getAsString());
+			return new BsonString(OIDFJSON.getString(source));
 		} else {
 			throw new IllegalArgumentException("Source JsonPrimitive not a known category: " + source);
 		}

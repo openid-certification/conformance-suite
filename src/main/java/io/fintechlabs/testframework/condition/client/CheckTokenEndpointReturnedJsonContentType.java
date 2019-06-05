@@ -6,6 +6,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckTokenEndpointReturnedJsonContentType extends AbstractCondition {
 
@@ -18,7 +19,7 @@ public class CheckTokenEndpointReturnedJsonContentType extends AbstractCondition
 	public Environment evaluate(Environment env) {
 		JsonObject responseHeaders = env.getObject("token_endpoint_response_headers");
 
-		String contentType = responseHeaders.getAsJsonPrimitive("content-type").getAsString();
+		String contentType = OIDFJSON.getString(responseHeaders.get("content-type"));
 		String mimeType = contentType.split(";")[0].trim();
 		String expected = "application/json";
 		if (mimeType.equals(expected)) {

@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,8 +66,8 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "token_type");
 
 		assertThat(env.getObject("access_token")).isNotNull();
-		assertThat(env.getString("access_token", "value")).isEqualTo(tokenResponse.get("access_token").getAsString());
-		assertThat(env.getString("access_token", "type")).isEqualTo(tokenResponse.get("token_type").getAsString());
+		assertThat(env.getString("access_token", "value")).isEqualTo(OIDFJSON.getString(tokenResponse.get("access_token")));
+		assertThat(env.getString("access_token", "type")).isEqualTo(OIDFJSON.getString(tokenResponse.get("token_type")));
 
 	}
 
