@@ -26,7 +26,9 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTes
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject authorizationEndpointResponse = new JsonObject();
 

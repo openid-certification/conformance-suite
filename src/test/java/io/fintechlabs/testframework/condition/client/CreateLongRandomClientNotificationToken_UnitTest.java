@@ -28,8 +28,8 @@ public class CreateLongRandomClientNotificationToken_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateLongRandomClientNotificationToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateLongRandomClientNotificationToken();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

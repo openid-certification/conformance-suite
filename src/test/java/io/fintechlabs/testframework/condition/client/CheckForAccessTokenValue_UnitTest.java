@@ -39,7 +39,9 @@ public class CheckForAccessTokenValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckForAccessTokenValue("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForAccessTokenValue();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodResponse = new JsonParser().parse("{"
 			+ "\"access_token\":"

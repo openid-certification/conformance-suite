@@ -39,7 +39,9 @@ public class EnsureNoRefreshToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureNoRefreshToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureNoRefreshToken();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		badResponse = new JsonParser().parse("{"
 			+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","

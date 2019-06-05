@@ -39,7 +39,9 @@ public class CheckForScopesInTokenResponse_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckForScopesInTokenResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForScopesInTokenResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodResponse = new JsonParser().parse("{"
 			+ "\"access_token\":\"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3\","

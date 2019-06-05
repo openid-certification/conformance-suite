@@ -32,7 +32,9 @@ public class EnsureClientCertificateCNMatchesClientId_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureClientCertificateCNMatchesClientId("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureClientCertificateCNMatchesClientId();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		JsonObject client = new JsonParser().parse("{" +
 			"\"client_id\":\"CN=example.org\"" +

@@ -35,7 +35,9 @@ public class ClearClientAuthentication_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ClearClientAuthentication("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ClearClientAuthentication();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		clientAuthentication = new JsonParser().parse("{\"client_id\": \"client\", \"client_auth\": \"client_auth\", \"method\": \"client:auth:method\"}").getAsJsonObject();
 

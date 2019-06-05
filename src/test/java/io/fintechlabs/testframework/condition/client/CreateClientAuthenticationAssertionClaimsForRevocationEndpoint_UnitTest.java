@@ -51,7 +51,8 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 		server = new JsonObject();
 		server.addProperty("issuer", issuer);
 
-		cond = new CreateClientAuthenticationAssertionClaimsForRevocationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateClientAuthenticationAssertionClaimsForRevocationEndpoint();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 

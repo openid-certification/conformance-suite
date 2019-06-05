@@ -31,7 +31,6 @@ import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.openbanking.FAPIOBGetResourceEndpoint;
 import io.fintechlabs.testframework.openbanking.FAPIOBGetResourceEndpoint.Endpoint;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -39,16 +38,11 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CallAccountRequestsEndpointWithBearerToken extends AbstractCondition {
 
-
 	private static final String ACCOUNT_REQUESTS_RESOURCE_V2 = "account-requests";
 	// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937820271/Account+and+Transaction+API+Specification+-+v3.1
 	private static final String ACCOUNT_REQUESTS_RESOURCE_V3 = "account-access-consents";
 
 	private static final Logger logger = LoggerFactory.getLogger(CallAccountRequestsEndpointWithBearerToken.class);
-
-	public CallAccountRequestsEndpointWithBearerToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request" })

@@ -33,7 +33,9 @@ public class EnsureAuthorizationEndpointError_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureAuthorizationEndpointError("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureAuthorizationEndpointError();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		successParams = new JsonParser().parse("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","

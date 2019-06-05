@@ -52,7 +52,9 @@ public class CreateIntrospectionResponse_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateIntrospectionResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateIntrospectionResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		accessTokenValue = "foo1234556";
 

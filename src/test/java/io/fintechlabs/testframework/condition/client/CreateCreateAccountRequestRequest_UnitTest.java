@@ -33,7 +33,9 @@ public class CreateCreateAccountRequestRequest_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CreateCreateAccountRequestRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateCreateAccountRequestRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+
 	}
 
 	/**

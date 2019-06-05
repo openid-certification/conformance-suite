@@ -26,13 +26,10 @@ public class CreateRandomFAPIInteractionId_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateRandomFAPIInteractionId("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomFAPIInteractionId();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRandomInteractionId#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate() {
 

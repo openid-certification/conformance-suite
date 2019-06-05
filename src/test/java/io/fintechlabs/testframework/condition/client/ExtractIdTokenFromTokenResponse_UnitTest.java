@@ -42,7 +42,8 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractIdTokenFromTokenResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractIdTokenFromTokenResponse();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodResponse = new JsonParser().parse("{"
 			+ "\"access_token\":"

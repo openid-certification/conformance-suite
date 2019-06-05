@@ -40,7 +40,9 @@ public class ExtractJWKsFromClientConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractJWKsFromClientConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractJWKsFromClientConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		jwks = new JsonParser().parse("{\n" +
 			"  \"keys\": [\n" +

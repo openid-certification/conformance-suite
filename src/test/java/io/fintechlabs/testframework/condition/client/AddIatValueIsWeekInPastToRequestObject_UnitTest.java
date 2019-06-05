@@ -28,7 +28,8 @@ public class AddIatValueIsWeekInPastToRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddIatValueIsWeekInPastToRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddIatValueIsWeekInPastToRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

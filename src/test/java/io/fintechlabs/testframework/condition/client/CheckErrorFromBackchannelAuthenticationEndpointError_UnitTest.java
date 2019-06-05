@@ -25,9 +25,8 @@ public class CheckErrorFromBackchannelAuthenticationEndpointError_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckErrorFromBackchannelAuthenticationEndpointError("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new CheckErrorFromBackchannelAuthenticationEndpointError();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

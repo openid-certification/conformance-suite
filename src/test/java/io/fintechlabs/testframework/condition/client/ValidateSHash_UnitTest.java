@@ -33,9 +33,8 @@ public class ValidateSHash_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ValidateSHash("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new ValidateSHash();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	private void addStateHash(Environment env, String alg, String s_hash) {

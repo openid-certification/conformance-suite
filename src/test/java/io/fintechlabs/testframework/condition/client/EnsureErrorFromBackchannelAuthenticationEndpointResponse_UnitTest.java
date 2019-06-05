@@ -25,7 +25,9 @@ public class EnsureErrorFromBackchannelAuthenticationEndpointResponse_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureErrorFromBackchannelAuthenticationEndpointResponse("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureErrorFromBackchannelAuthenticationEndpointResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject backChannelAuthenticationEndpointResponse = new JsonObject();
 

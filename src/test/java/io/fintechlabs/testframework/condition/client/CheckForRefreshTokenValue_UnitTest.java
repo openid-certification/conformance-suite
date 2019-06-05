@@ -39,7 +39,9 @@ public class CheckForRefreshTokenValue_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckForRefreshTokenValue("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForRefreshTokenValue();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodResponse = new JsonParser().parse("{"
 			+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","

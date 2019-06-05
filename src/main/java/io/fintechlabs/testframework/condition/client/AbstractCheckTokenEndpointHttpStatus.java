@@ -1,15 +1,10 @@
 package io.fintechlabs.testframework.condition.client;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.springframework.http.HttpStatus;
 
 public abstract class AbstractCheckTokenEndpointHttpStatus extends AbstractCondition {
-
-	public AbstractCheckTokenEndpointHttpStatus(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	protected abstract HttpStatus getExpectedHttpStatus();
 

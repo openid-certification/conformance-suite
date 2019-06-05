@@ -33,7 +33,8 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureClientAssertionTypeIsJwt("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureClientAssertionTypeIsJwt();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		String clientAssertionType =  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 		String invalidClientAssertionType = "invalidAssertionType";

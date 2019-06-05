@@ -29,7 +29,8 @@ public class EnsureTokenResponseTypeInClient_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureTokenResponseTypeInClient("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureTokenResponseTypeInClient();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

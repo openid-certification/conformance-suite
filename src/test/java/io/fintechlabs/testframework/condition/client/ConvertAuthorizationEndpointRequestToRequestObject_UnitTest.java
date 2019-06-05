@@ -39,7 +39,9 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ConvertAuthorizationEndpointRequestToRequestObject("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ConvertAuthorizationEndpointRequestToRequestObject();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 

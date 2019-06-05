@@ -36,7 +36,9 @@ public class ExtractServerSigningAlg_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractServerSigningAlg("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
+		cond = new ExtractServerSigningAlg();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 
 		jwks = new JsonParser().parse("{"
 			+ "\"keys\":["

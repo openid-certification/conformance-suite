@@ -34,7 +34,9 @@ public class CheckClientRedirectUri_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckClientRedirectUri("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckClientRedirectUri();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		client = new JsonParser().parse("{\n" +
 			"  \"redirect_uris\": "

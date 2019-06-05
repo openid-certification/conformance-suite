@@ -28,7 +28,8 @@ public class CheckErrorFromTokenEndpointResponseErrorInvalidGrant_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckErrorFromTokenEndpointResponseErrorInvalidGrant("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new CheckErrorFromTokenEndpointResponseErrorInvalidGrant();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		tokenEndpointResponse = new JsonParser().parse("{"
 			+ "\"error_description\":\"[A200308] The end-user has not been authenticated yet.\","
 			+ "\"error\":\"invalid_grant\","

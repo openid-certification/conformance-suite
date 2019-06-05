@@ -27,9 +27,8 @@ public class EnsureMinimumTokenEntropy_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureMinimumTokenEntropy("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new EnsureMinimumTokenEntropy();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

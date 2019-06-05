@@ -34,8 +34,8 @@ public class EnsureTLS12_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureTLS12("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureTLS12();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

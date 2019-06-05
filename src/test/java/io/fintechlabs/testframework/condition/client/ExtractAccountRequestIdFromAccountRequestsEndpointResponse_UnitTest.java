@@ -39,7 +39,9 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractAccountRequestIdFromAccountRequestsEndpointResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractAccountRequestIdFromAccountRequestsEndpointResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from OpenBanking spec
 		endpointResponse = new JsonParser().parse("{\n" +

@@ -33,8 +33,8 @@ public class CreateRandomImplicitSubmitUrl_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateRandomImplicitSubmitUrl("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomImplicitSubmitUrl();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

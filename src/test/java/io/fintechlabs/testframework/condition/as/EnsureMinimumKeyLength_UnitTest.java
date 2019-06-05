@@ -62,9 +62,8 @@ public class EnsureMinimumKeyLength_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureMinimumKeyLength("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new EnsureMinimumKeyLength();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	private JsonObject buildJwks(String... keyStrings) {

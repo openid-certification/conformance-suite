@@ -6,7 +6,6 @@ import java.net.URL;
 import com.google.gson.JsonElement;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
@@ -18,11 +17,6 @@ public abstract class ValidateJsonUri extends AbstractCondition {
 
 	private JsonElement ServerValue = null;
 	private URL extractedUrl = null;
-
-	public ValidateJsonUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure,
-			String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	/***
 	 * Get and cache the "server" environment JsonElement

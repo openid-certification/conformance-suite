@@ -25,7 +25,9 @@ public class EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse_
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject backChannelAuthenticationEndpointResponse = new JsonObject();
 

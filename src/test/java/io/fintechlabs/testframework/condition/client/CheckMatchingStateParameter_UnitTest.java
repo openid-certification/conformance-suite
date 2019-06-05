@@ -39,7 +39,9 @@ public class CheckMatchingStateParameter_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckMatchingStateParameter("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckMatchingStateParameter();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		paramsWithState = new JsonParser().parse("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","

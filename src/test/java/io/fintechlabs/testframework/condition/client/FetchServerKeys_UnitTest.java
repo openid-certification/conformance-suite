@@ -64,7 +64,9 @@ public class FetchServerKeys_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new FetchServerKeys("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new FetchServerKeys();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

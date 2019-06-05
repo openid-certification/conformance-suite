@@ -2,13 +2,9 @@ package io.fintechlabs.testframework.condition.common;
 
 import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public abstract class AbstractCheckForKeyIdinJWKs extends AbstractCondition {
-	public AbstractCheckForKeyIdinJWKs(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	protected Environment checkForKeyIdInJWKs(Environment env, String envJWKsKey) {
 		JsonElement keys = env.getElementFromObject(envJWKsKey, "keys");

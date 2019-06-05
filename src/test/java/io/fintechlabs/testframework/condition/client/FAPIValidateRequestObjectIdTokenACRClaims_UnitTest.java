@@ -44,7 +44,8 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new FAPIValidateRequestObjectIdTokenACRClaims("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new FAPIValidateRequestObjectIdTokenACRClaims();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		acrValues = new JsonArray();
 		acrValues.add("urn:openbanking:psd2:sca");

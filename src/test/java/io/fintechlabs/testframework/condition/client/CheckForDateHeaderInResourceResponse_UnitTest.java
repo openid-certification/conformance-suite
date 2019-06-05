@@ -33,7 +33,8 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckForDateHeaderInResourceResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForDateHeaderInResourceResponse();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
@@ -51,9 +52,6 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 		verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "date");
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CheckForDateHeaderInResourceResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_oldDate() {
 

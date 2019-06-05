@@ -28,7 +28,8 @@ public class AddIatValueIsHourInFutureToRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddIatValueIsHourInFutureToRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddIatValueIsHourInFutureToRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

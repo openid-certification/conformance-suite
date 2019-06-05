@@ -29,8 +29,8 @@ public class CreateRandomNonceValue_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateRandomNonceValue("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateRandomNonceValue();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

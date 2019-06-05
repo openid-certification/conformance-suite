@@ -28,7 +28,8 @@ public class AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest_UnitT
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

@@ -5,24 +5,10 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CopyAccessTokenFromASToClient extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param conditionResultOnFailure
-	 * @param requirements
-	 */
-	public CopyAccessTokenFromASToClient(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(strings = { "access_token", "token_type" })
 	@PostEnvironment(required = "access_token")

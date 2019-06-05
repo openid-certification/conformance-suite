@@ -79,7 +79,9 @@ public class CallTokenEndpoint_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new CallTokenEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CallTokenEndpoint();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

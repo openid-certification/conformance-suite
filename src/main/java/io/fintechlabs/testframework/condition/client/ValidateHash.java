@@ -11,17 +11,12 @@ import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import com.google.common.base.Strings;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public abstract class ValidateHash extends AbstractCondition {
-
-	public ValidateHash(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	public Environment validateHash(Environment env, String hashName, String envName ) {
 

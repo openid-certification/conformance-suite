@@ -35,8 +35,8 @@ public class CreateS256CodeChallenge_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateS256CodeChallenge("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreateS256CodeChallenge();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test(expected = ConditionError.class)

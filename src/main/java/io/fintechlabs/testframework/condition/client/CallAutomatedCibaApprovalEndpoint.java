@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,10 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
-
-	public CallAutomatedCibaApprovalEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {

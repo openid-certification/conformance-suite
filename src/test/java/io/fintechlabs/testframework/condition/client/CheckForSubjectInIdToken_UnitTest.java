@@ -37,7 +37,9 @@ public class CheckForSubjectInIdToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckForSubjectInIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForSubjectInIdToken();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Good sample from OpenID Connect Core spec
 

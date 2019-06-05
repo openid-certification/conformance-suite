@@ -4,14 +4,9 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CreateDynamicRegistrationRequest extends AbstractCondition {
-
-	public CreateDynamicRegistrationRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements){
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PostEnvironment(required = "dynamic_registration_request")

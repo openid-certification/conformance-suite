@@ -41,7 +41,9 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractAuthorizationCodeFromAuthorizationResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractAuthorizationCodeFromAuthorizationResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		callbackParams = new JsonParser().parse("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","

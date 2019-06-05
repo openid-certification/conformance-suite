@@ -33,14 +33,10 @@ public class CreateRedirectUri_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CreateRedirectUri("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new CreateRedirectUri();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate_valuePresent() {
 

@@ -40,7 +40,9 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddBasicAuthClientSecretAuthenticationParameters("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddBasicAuthClientSecretAuthenticationParameters();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example values from RFC 6749
 

@@ -4,15 +4,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.util.PEMFormatter;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 
 import java.util.List;
 
 public abstract class AbstractValidateMTLSCertificatesHeader extends AbstractCondition {
-
-	public AbstractValidateMTLSCertificatesHeader(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	protected void validateMTLSCertificatesHeader(String certString, String keyString, String caString) {
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {

@@ -26,7 +26,8 @@ public class AddMultipleHintsToAuthorizationEndpointRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddMultipleHintsToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddMultipleHintsToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

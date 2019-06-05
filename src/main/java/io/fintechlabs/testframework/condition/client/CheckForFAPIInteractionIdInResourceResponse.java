@@ -6,14 +6,9 @@ import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckForFAPIInteractionIdInResourceResponse extends AbstractCondition {
-
-	public CheckForFAPIInteractionIdInResourceResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_headers")

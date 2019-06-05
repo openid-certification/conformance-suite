@@ -25,9 +25,8 @@ public class EnsureErrorTokenEndpointSlowdownOrAuthorizationPending_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureErrorTokenEndpointSlowdownOrAuthorizationPending("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new EnsureErrorTokenEndpointSlowdownOrAuthorizationPending();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

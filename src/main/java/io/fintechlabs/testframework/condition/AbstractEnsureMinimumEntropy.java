@@ -3,18 +3,9 @@ package io.fintechlabs.testframework.condition;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
-
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public AbstractEnsureMinimumEntropy(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	protected Environment ensureMinimumEntropy(Environment env, String s, double requiredEntropy) {
 

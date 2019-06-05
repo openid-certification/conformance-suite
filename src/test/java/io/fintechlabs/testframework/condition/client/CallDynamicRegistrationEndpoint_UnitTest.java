@@ -97,7 +97,9 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new CallDynamicRegistrationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CallDynamicRegistrationEndpoint();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -27,9 +27,8 @@ public class EnsureMinimumTokenLength_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new EnsureMinimumTokenLength("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new EnsureMinimumTokenLength();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

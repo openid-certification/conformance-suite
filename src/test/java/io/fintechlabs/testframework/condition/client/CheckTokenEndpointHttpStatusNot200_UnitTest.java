@@ -27,9 +27,8 @@ public class CheckTokenEndpointHttpStatusNot200_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckTokenEndpointHttpStatusNot200("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new CheckTokenEndpointHttpStatusNot200();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test(expected = ConditionError.class)

@@ -30,7 +30,8 @@ public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckForFAPIInteractionIdInResourceResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForFAPIInteractionIdInResourceResponse();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

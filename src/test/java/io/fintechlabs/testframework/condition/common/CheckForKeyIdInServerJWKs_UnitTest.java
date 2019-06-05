@@ -30,8 +30,8 @@ public class CheckForKeyIdInServerJWKs_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckForKeyIdInServerJWKs("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckForKeyIdInServerJWKs();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

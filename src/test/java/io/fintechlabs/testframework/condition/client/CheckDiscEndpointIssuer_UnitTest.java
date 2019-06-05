@@ -27,7 +27,9 @@ public class CheckDiscEndpointIssuer_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckDiscEndpointIssuer("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new CheckDiscEndpointIssuer();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject config = new JsonObject();
 		config.add("server", new JsonParser().parse("{\"discoveryUrl\": \"https://login.microsoftonline.com/5608b4e0-e26d-4bd1-8a1a-d57d7ae2af8c/v2.0/.well-known/openid-configuration\"}"));

@@ -37,7 +37,9 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddRevocationUrlToServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddRevocationUrlToServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		server = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();

@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -27,10 +26,6 @@ import java.util.Collections;
 public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends AbstractCondition {
 
 	private static final Logger logger = LoggerFactory.getLogger(EnsureDynamicRegistrationEndpointRequiresRedirectUri.class);
-
-	public EnsureDynamicRegistrationEndpointRequiresRedirectUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements){
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})

@@ -29,7 +29,8 @@ public class EnsureAuthorizationCodeGrantTypeInClient_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureAuthorizationCodeGrantTypeInClient("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new EnsureAuthorizationCodeGrantTypeInClient();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.net.URL;
@@ -10,10 +9,6 @@ import java.net.URL;
 public class CheckJwksUriIsHostedOnOpenBankingDirectory extends ValidateJsonUri {
 
 	private static final String requiredHostname = "keystore.openbanking.org.uk";
-
-	public CheckJwksUriIsHostedOnOpenBankingDirectory(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "server")

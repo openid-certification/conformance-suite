@@ -26,9 +26,8 @@ public class CheckTokenEndpointRetryAfterHeaders_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckTokenEndpointRetryAfterHeaders("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new CheckTokenEndpointRetryAfterHeaders();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test(expected = ConditionError.class)

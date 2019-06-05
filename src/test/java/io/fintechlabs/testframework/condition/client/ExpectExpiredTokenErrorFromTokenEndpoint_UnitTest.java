@@ -27,7 +27,9 @@ public class ExpectExpiredTokenErrorFromTokenEndpoint_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new ExpectExpiredTokenErrorFromTokenEndpoint("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new ExpectExpiredTokenErrorFromTokenEndpoint();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		tokenEndpointResponse = new JsonObject();
 

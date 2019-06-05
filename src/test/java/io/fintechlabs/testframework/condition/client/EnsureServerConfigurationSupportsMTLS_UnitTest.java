@@ -35,7 +35,9 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureServerConfigurationSupportsMTLS("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureServerConfigurationSupportsMTLS();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		env.putObject("server", new JsonObject());
 	}

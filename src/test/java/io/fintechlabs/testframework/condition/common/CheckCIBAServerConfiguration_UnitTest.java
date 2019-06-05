@@ -41,7 +41,9 @@ public class CheckCIBAServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckCIBAServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckCIBAServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodConfig = new JsonParser().parse("{"
 			+ "\"backchannel_authentication_endpoint\":\"https://example.com/oauth/backauth\","

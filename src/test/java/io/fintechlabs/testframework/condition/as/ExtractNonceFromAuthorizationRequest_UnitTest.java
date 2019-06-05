@@ -42,7 +42,9 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractNonceFromAuthorizationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractNonceFromAuthorizationRequest();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasNonce = new JsonParser().parse("{\"params\": " +
 			"{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}" +

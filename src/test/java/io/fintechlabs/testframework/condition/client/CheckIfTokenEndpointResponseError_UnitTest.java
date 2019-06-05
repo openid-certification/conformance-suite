@@ -39,7 +39,9 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckIfTokenEndpointResponseError("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckIfTokenEndpointResponseError();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		successParams = new JsonParser().parse("{"
 			+ "\"accessToken\":\"2YotnFZFEjr1zCsicMWpAA\","
@@ -54,9 +56,6 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 			+ "}").getAsJsonObject();
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CheckIfTokenEndpointReponseError#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test
 	public void testEvaluate_noError() {
 

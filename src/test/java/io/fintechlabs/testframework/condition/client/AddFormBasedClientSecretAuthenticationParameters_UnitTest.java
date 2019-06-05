@@ -41,7 +41,9 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddFormBasedClientSecretAuthenticationParameters("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddFormBasedClientSecretAuthenticationParameters();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		client = new JsonParser().parse("{"
 			+ "\"client_id\":\"client\","

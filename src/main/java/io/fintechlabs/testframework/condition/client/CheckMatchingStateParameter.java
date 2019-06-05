@@ -12,17 +12,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class CheckMatchingStateParameter extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public CheckMatchingStateParameter(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "callback_params")
 	public Environment evaluate(Environment in) {

@@ -51,7 +51,8 @@ public class CheckHeartServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckHeartServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckHeartServerConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodConfig = new JsonParser().parse("{"
 			+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","

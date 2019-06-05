@@ -34,7 +34,9 @@ public class AddCHashToIdTokenClaims_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddCHashToIdTokenClaims("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddCHashToIdTokenClaims();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		claims = new JsonParser().parse("{"
 			+ "\"iss\":\"https://localhost:8443/test/a/fintech-clienttest\","

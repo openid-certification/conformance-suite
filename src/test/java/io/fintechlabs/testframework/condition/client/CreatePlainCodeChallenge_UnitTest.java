@@ -28,7 +28,8 @@ public class CreatePlainCodeChallenge_UnitTest {
 
 	@Before
 	public void setUp(){
-		cond = new CreatePlainCodeChallenge("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CreatePlainCodeChallenge();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test(expected = ConditionError.class)

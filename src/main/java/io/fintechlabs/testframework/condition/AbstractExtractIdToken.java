@@ -8,18 +8,9 @@ import com.google.gson.JsonParser;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public abstract class AbstractExtractIdToken extends AbstractCondition {
-
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public AbstractExtractIdToken(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	protected Environment extractIdToken(Environment env, String key) {
 

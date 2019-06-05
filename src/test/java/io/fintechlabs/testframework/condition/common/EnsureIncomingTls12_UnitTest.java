@@ -41,7 +41,9 @@ public class EnsureIncomingTls12_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureIncomingTls12("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new EnsureIncomingTls12();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasTls = new JsonParser().parse("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"

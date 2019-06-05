@@ -26,7 +26,8 @@ public class AddBindingMessageToAuthorizationEndpointRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddBindingMessageToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddBindingMessageToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

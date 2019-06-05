@@ -26,9 +26,8 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new FAPICIBAValidateIdTokenACRClaims("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new FAPICIBAValidateIdTokenACRClaims();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

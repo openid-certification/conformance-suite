@@ -40,7 +40,9 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractAccessTokenFromTokenResponse("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ExtractAccessTokenFromTokenResponse();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC6750
 		tokenResponse = new JsonParser().parse("{" +

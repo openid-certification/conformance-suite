@@ -11,16 +11,11 @@ import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckForDateHeaderInResourceResponse extends AbstractCondition {
 
 	private static final TemporalAmount DATE_TOLERANCE = Duration.ofMinutes(5);
-
-	public CheckForDateHeaderInResourceResponse(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_headers")

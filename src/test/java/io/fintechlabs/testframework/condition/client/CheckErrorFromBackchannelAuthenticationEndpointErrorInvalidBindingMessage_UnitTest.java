@@ -26,7 +26,9 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject response = new JsonObject();
 

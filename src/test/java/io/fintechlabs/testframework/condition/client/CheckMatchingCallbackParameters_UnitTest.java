@@ -43,7 +43,9 @@ public class CheckMatchingCallbackParameters_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckMatchingCallbackParameters("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckMatchingCallbackParameters();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		uriWithoutSuffix = "https://example.com/callback";
 

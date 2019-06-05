@@ -26,7 +26,8 @@ public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddRequestedExp30sToAuthorizationEndpointRequest("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new AddRequestedExp30sToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

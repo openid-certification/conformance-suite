@@ -2,9 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
@@ -12,10 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FAPICIBAValidateIdTokenACRClaims extends AbstractCondition {
-
-	public FAPICIBAValidateIdTokenACRClaims(String testId, TestInstanceEventLog log, Condition.ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = { "id_token",  "authorization_endpoint_request" })

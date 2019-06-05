@@ -2,16 +2,11 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractEnsureMinimumEntropy;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureRecommendedAuthenticationRequestIdEntropy extends AbstractEnsureMinimumEntropy {
 
 	private final double recommendedEntropy = 160;
-
-	public EnsureRecommendedAuthenticationRequestIdEntropy(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {

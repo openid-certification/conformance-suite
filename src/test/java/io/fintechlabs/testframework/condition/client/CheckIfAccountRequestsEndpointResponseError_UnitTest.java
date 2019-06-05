@@ -39,7 +39,9 @@ public class CheckIfAccountRequestsEndpointResponseError_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckIfAccountRequestsEndpointResponseError("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckIfAccountRequestsEndpointResponseError();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		successParams = new JsonObject();
 

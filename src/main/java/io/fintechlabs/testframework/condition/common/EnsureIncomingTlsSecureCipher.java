@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureIncomingTlsSecureCipher extends AbstractCondition {
@@ -21,19 +20,6 @@ public class EnsureIncomingTlsSecureCipher extends AbstractCondition {
 		"DHE-RSA-AES256-GCM-SHA384",
 		"ECDHE-RSA-AES256-GCM-SHA384");
 
-	/**
-	 * @param testId
-	 * @param log
-	 * @param conditionResultOnFailure
-	 * @param requirements
-	 */
-	public EnsureIncomingTlsSecureCipher(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@PreEnvironment(required = "client_request")
 	@Override
 	public Environment evaluate(Environment env) {

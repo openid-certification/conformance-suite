@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.condition.client;
 import java.util.Arrays;
 
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class CheckDiscEndpointUserinfoSigningAlgValuesSupported extends ValidateJsonArray {
@@ -13,11 +12,6 @@ public class CheckDiscEndpointUserinfoSigningAlgValuesSupported extends Validate
 	private static final String[] SET_VALUES = new String[] { "PS256", "ES256" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
-
-
-	public CheckDiscEndpointUserinfoSigningAlgValuesSupported(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "server")

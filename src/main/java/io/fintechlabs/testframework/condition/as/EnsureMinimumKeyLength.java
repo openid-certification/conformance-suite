@@ -9,7 +9,6 @@ import com.nimbusds.jose.jwk.KeyType;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureMinimumKeyLength extends AbstractCondition {
@@ -18,13 +17,6 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 
 	private static final int MINIMUM_KEY_LENGTH_EC = 160;
 
-	public EnsureMinimumKeyLength(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {

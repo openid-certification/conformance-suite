@@ -38,7 +38,9 @@ public class AddAudValueAsArrayToIdToken_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new AddAudValueAsArrayToIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new AddAudValueAsArrayToIdToken();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		aud = "test-client-id-123";
 

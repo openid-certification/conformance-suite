@@ -39,7 +39,9 @@ public class CheckIfAuthorizationEndpointError_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new CheckIfAuthorizationEndpointError("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new CheckIfAuthorizationEndpointError();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		successParams = new JsonParser().parse("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","

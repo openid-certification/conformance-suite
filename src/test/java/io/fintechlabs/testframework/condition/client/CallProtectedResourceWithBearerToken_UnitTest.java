@@ -64,7 +64,9 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new CallProtectedResourceWithBearerToken("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new CallProtectedResourceWithBearerToken();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		env.putObject("resource", new JsonObject());
 	}

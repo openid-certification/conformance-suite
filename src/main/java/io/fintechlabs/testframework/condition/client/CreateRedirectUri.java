@@ -5,7 +5,6 @@ import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 /**
@@ -13,17 +12,6 @@ import io.fintechlabs.testframework.testmodule.Environment;
  */
 public class CreateRedirectUri extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public CreateRedirectUri(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#assertTrue(io.fintechlabs.testframework.testmodule.Environment, io.fintechlabs.testframework.logging.EventLog)
-	 */
 	@Override
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(strings = "redirect_uri")

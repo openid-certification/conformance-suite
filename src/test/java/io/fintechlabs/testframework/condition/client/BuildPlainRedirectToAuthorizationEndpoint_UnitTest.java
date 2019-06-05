@@ -59,7 +59,8 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new BuildPlainRedirectToAuthorizationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new BuildPlainRedirectToAuthorizationEndpoint();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		server = new JsonObject();
 		server.addProperty("authorization_endpoint", authorizationEndpoint);

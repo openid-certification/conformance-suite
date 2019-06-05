@@ -24,9 +24,8 @@ public class CheckBackchannelAuthenticationEndpointHttpStatus200_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new CheckBackchannelAuthenticationEndpointHttpStatus200("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new CheckBackchannelAuthenticationEndpointHttpStatus200();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test
