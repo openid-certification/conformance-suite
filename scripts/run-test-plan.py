@@ -448,7 +448,7 @@ def parser_args_cli():
     # Parser arguments list which is supplied by the user
     parser = argparse.ArgumentParser(description='Parser arguments list which is supplied by the user')
 
-    parser.add_argument('--show-untested-test-modules', help='Flag to require show or do not show test modules which were untested', action='store_true')
+    parser.add_argument('--show-untested-test-modules', help='Flag to require show or do not show test modules which were untested', default='')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
 
@@ -570,6 +570,17 @@ if __name__ == '__main__':
             if re.match(r'.*-ping-.*', m):
                 # ping tests are pending, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/389
                 print("Ignoring untested module: "+m)
+                untested_test_modules.remove(m)
+                continue
+
+        if show_untested == 'client':
+            # Only run client test, therefore ignore all server test
+            if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) ):
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'server':
+            # Only run server test, therefore ignore all client test
+            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m):
                 untested_test_modules.remove(m)
                 continue
 
