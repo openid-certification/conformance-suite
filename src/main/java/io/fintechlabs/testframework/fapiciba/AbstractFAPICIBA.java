@@ -832,8 +832,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 				verifyTokenEndpointResponseIsPendingOrSlowDown();
 			}
 		}
-
-		fireTestFinished();
 	}
 
 }
