@@ -27,7 +27,9 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new VerifyBearerTokenHeaderCallback("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new VerifyBearerTokenHeaderCallback();
+
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		env.putString("client_notification_token", "8d67dc78-7faa-4d41-aabd-67707b374255");
 	}

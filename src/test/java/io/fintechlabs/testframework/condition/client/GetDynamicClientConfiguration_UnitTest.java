@@ -32,7 +32,8 @@ public class GetDynamicClientConfiguration_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new GetDynamicClientConfiguration("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new GetDynamicClientConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	/**

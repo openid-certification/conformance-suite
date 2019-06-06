@@ -66,17 +66,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private Set<String> requirements;
 	private ConditionResult conditionResultOnFailure;
 
-	protected AbstractCondition() {
-	}
-
-	protected AbstractCondition(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		//TODO: remove this once all Conditions are converted to new constructor; see https://gitlab.com/openid/conformance-suite/issues/496
-		this.testId = testId;
-		this.log = log;
-		this.conditionResultOnFailure = conditionResultOnFailure;
-		this.requirements = Sets.newHashSet(requirements);
-	}
-
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		this.testId = testId;
 		this.log = log;

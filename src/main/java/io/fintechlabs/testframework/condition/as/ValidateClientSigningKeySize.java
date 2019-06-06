@@ -9,7 +9,6 @@ import com.nimbusds.jose.jwk.KeyType;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class ValidateClientSigningKeySize extends AbstractCondition {
@@ -17,10 +16,6 @@ public class ValidateClientSigningKeySize extends AbstractCondition {
 	private static final int MINIMUM_KEY_LENGTH_RSA = 2048;
 
 	private static final int MINIMUM_KEY_LENGTH_EC = 160;
-
-	public ValidateClientSigningKeySize(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "client_jwks")

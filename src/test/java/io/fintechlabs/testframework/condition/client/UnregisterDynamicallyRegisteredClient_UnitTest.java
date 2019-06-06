@@ -43,7 +43,8 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 		hoverfly.resetJournal();
-		cond = new UnregisterDynamicallyRegisteredClient("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new UnregisterDynamicallyRegisteredClient();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

@@ -33,13 +33,10 @@ public class SetPermissiveAcceptHeaderForResourceEndpointRequest_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new SetPermissiveAcceptHeaderForResourceEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetPermissiveAcceptHeaderForResourceEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.SetPermissiveAcceptHeaderForResourceEndpointRequest#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate_noHeaders() {
 
@@ -48,9 +45,6 @@ public class SetPermissiveAcceptHeaderForResourceEndpointRequest_UnitTest {
 		assertThat(env.getString("resource_endpoint_request_headers", "Accept")).isEqualTo(expectedHeader);
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.SetPermissiveAcceptHeaderForResourceEndpointRequest#evaluate(io.fintechlabs.testframework.testmodule.Environment).
-	 */
 	@Test
 	public void testEvaluate_replace() {
 

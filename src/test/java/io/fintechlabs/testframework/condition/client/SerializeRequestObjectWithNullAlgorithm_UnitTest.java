@@ -44,7 +44,9 @@ public class SerializeRequestObjectWithNullAlgorithm_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new SerializeRequestObjectWithNullAlgorithm("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SerializeRequestObjectWithNullAlgorithm();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 

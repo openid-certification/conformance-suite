@@ -26,7 +26,8 @@ public class RemoveIssFromRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new RemoveIssFromRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new RemoveIssFromRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

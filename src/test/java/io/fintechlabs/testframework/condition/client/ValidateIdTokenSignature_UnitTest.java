@@ -43,7 +43,9 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateIdTokenSignature("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateIdTokenSignature();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodIdToken = new JsonParser().parse("{"
 			+ "\"value\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."

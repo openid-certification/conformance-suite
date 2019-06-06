@@ -38,7 +38,8 @@ public class ValidateExpiresIn_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateExpiresIn("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateExpiresIn();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodInteger = new JsonParser().parse("{\"expires_in\":3600}").getAsJsonObject();
 		badStringNumeric = new JsonParser().parse("{\"expires_in\":\"3600\"}").getAsJsonObject();

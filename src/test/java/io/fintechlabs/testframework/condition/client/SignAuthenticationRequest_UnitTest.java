@@ -51,7 +51,9 @@ public class SignAuthenticationRequest_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new SignAuthenticationRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SignAuthenticationRequest();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 

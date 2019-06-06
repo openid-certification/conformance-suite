@@ -40,7 +40,9 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateResourceAssertionSignature("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateResourceAssertionSignature();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		goodAssertion = new JsonParser().parse("{"
 			+ "\"assertion\":"

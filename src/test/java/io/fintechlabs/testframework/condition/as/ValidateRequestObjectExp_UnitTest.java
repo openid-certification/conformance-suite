@@ -37,7 +37,8 @@ public class ValidateRequestObjectExp_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateRequestObjectExp("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateRequestObjectExp();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		Date now = new Date();
 		nowSeconds = now.getTime() / 1000;

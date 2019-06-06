@@ -19,22 +19,10 @@ import com.google.gson.JsonSyntaxException;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class GetDynamicServerConfiguration extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public GetDynamicServerConfiguration(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment, java.lang.String, io.fintechlabs.testframework.logging.EventLog)
-	 */
 	@Override
 	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "server")

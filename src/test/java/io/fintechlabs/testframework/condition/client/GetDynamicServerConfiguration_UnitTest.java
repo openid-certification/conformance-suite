@@ -56,7 +56,9 @@ public class GetDynamicServerConfiguration_UnitTest {
 
 		hoverfly.resetJournal();
 
-		cond = new GetDynamicServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new GetDynamicServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

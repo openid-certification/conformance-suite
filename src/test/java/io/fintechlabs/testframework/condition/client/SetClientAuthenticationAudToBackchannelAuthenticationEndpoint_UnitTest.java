@@ -34,7 +34,9 @@ public class SetClientAuthenticationAudToBackchannelAuthenticationEndpoint_UnitT
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new SetClientAuthenticationAudToBackchannelAuthenticationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetClientAuthenticationAudToBackchannelAuthenticationEndpoint();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		claims = new JsonParser().parse("{"
 			+ "\"iss\":\"294570236252\","

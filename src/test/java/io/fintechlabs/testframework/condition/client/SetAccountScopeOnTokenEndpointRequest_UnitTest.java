@@ -35,7 +35,9 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new SetAccountScopeOnTokenEndpointRequest("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetAccountScopeOnTokenEndpointRequest();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 

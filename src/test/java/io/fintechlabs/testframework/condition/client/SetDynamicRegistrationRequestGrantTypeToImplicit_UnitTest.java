@@ -43,7 +43,8 @@ public class SetDynamicRegistrationRequestGrantTypeToImplicit_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new SetDynamicRegistrationRequestGrantTypeToImplicit("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetDynamicRegistrationRequestGrantTypeToImplicit();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

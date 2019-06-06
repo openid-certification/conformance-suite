@@ -30,7 +30,8 @@ public class VerifyIdTokenExpHeart_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new VerifyIdTokenExpHeart("UNIT_TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new VerifyIdTokenExpHeart();
+		cond.setProperties("UNIT_TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	private void createIdToken(Environment env, int seconds) {

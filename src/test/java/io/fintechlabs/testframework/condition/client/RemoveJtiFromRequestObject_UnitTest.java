@@ -29,7 +29,8 @@ public class RemoveJtiFromRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new RemoveJtiFromRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new RemoveJtiFromRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

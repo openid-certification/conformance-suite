@@ -5,14 +5,9 @@ import org.springframework.http.HttpHeaders;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class SetPermissiveAcceptHeaderForResourceEndpointRequest extends AbstractCondition {
-
-	public SetPermissiveAcceptHeaderForResourceEndpointRequest(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {

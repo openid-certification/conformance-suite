@@ -25,9 +25,8 @@ public class ValidateAuthenticationRequestIdInterval_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ValidateAuthenticationRequestIdInterval("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new ValidateAuthenticationRequestIdInterval();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test
