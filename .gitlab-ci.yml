@@ -521,17 +521,17 @@ deployment_server_test_review:
 
   function run_all_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ./run-tests.sh
+    ../conformance-suite/.gitlab-ci/run-tests.sh
   }
 
   function run_client_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ./run-tests.sh --client-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
   }
 
   function run_server_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ./run-tests.sh --server-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --server-tests-only
   }
 
 before_script:
