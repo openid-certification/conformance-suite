@@ -244,7 +244,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 						"msg", "Skipped evaluation due to missing required object: " + req,
 						"expected", req,
 						"result", builder.getOnSkip(),
-						"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
+						"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
+						"requirements", builder.getRequirements()
 					// TODO: log the environment here?
 					));
 					updateResultFromConditionFailure(builder.getOnSkip());
@@ -257,7 +258,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required string: " + s,
 						"expected", s,
-						"result", builder.getOnSkip()
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
 					// TODO: log the environment here?
 					));
 					updateResultFromConditionFailure(builder.getOnSkip());
@@ -273,8 +275,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 						"object", idx.getLeft(),
 						"path", idx.getRight(),
 						"mapped", env.isKeyShadowed(idx.getLeft()) ? env.getEffectiveKey(idx.getLeft()) : null,
-						"result", builder.getOnSkip()
-					// TODO: log the environment here?
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
+ 					// TODO: log the environment here?
 					));
 					updateResultFromConditionFailure(builder.getOnSkip());
 					return;
@@ -291,7 +294,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
 							"result", ConditionResult.FAILURE,
-							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
+							"requirements", builder.getRequirements()
 						// TODO: log the environment here?
 						));
 						fireTestFailure();
@@ -304,7 +308,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
 							"expected", s,
-							"result", ConditionResult.FAILURE
+							"result", ConditionResult.FAILURE,
+							"requirements", builder.getRequirements()
 						// TODO: log the environment here?
 						));
 						fireTestFailure();
@@ -326,7 +331,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
 							"result", ConditionResult.FAILURE,
-							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
+							"requirements", builder.getRequirements()
 						// TODO: log the environment here?
 						));
 						fireTestFailure();
@@ -339,7 +345,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 						eventLog.log(condition.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
 							"expected", s,
-							"result", ConditionResult.FAILURE
+							"result", ConditionResult.FAILURE,
+							"requirements", builder.getRequirements()
 						// TODO: log the environment here?
 						));
 						fireTestFailure();
