@@ -227,18 +227,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		try {
 
 			// create a new condition object from the class above
-			Condition condition;
-			try {
-				//TODO: remove this once all Conditions are converted to new constructor; see https://gitlab.com/openid/conformance-suite/issues/496
-				condition = builder.getConditionClass()
-					.getDeclaredConstructor(String.class, TestInstanceEventLog.class, ConditionResult.class, String[].class)
-					.newInstance(id, eventLog, builder.getOnFail(), builder.getRequirements());
-			} catch (Exception e) {
-				condition = builder.getConditionClass()
+			Condition condition = builder.getConditionClass()
 					.getDeclaredConstructor()
 					.newInstance();
-				condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
-			}
+			condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
+
 			Method eval = builder.getConditionClass().getMethod("evaluate", Environment.class);
 
 			logger.info((builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
