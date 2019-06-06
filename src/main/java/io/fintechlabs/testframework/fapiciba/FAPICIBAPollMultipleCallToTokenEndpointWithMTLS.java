@@ -39,6 +39,8 @@ public class FAPICIBAPollMultipleCallToTokenEndpointWithMTLS extends AbstractFAP
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 
 		multipleCallToTokenEndpointAndVerifyResponse();
+
+		fireTestFinished();
 	}
 
 	@Override

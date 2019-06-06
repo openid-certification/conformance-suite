@@ -39,18 +39,16 @@ public class FAPICIBAPingMultipleCallToTokenEndpointWithMTLS extends AbstractFAP
 
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
-		// for Ping mode:
+		multipleCallToTokenEndpointAndVerifyResponse();
+
 		callAndStopOnFailure(TellUserToDoCIBAAuthentication.class);
 
-		setStatus(Status.WAITING);
+		super.callAutomatedEndpoint();
 	}
 
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
-
-		verifyNotificationCallback(requestParts);
-
-		multipleCallToTokenEndpointAndVerifyResponse();
+		fireTestFinished();
 	}
 
 	@Override
