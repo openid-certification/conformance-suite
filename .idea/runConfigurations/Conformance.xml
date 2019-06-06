@@ -15,6 +15,11 @@
         <option name="name" value="spring.data.mongodb.uri" />
         <option name="value" value="mongodb://127.0.0.1:27017/test_suite" />
       </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="fintechlabs.external_url_override" />
+        <option name="value" value="https://www.heenan.me.uk" />
+      </param>
     </additionalParameters>
     <method v="2">
       <option name="Make" enabled="true" />

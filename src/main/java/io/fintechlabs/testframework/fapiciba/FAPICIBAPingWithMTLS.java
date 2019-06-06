@@ -8,10 +8,6 @@ import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificat
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
-// FIXME document this somewhere else:
-// for dev with authlete client, forward notification endpoint back to localhost using ssh -R:3590::8443 cibaping@button.heenan.me.uk
-// to authorise, use https://cibasim.authlete.com/authlete/fapidev/ad/1001
-
 @PublishTestModule(
 	testName = "fapi-ciba-ping-with-mtls",
 	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication)",

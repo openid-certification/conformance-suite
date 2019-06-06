@@ -36,7 +36,6 @@ public interface TestModule {
 	}
 
 	/**
-	 * *
 	 * Method is called to pass configuration parameters
 	 *
 	 * @param config
@@ -45,8 +44,10 @@ public interface TestModule {
 	 * @param baseUrl
 	 *            The base of the URL that will need to be appended to any
 	 *            URL construction.
+	 * @param externalUrlOverride
+	 *            The base of the URL if any external notifications are needed
 	 */
-	void configure(JsonObject config, String baseUrl);
+	void configure(JsonObject config, String baseUrl, String externalUrlOverride);
 
 	/**
 	 * *

@@ -1,8 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -32,9 +30,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 /** Temporary wrapper for FAPICIBAPoll until MTLS test plan is migrated to variants */
 public class FAPICIBAPollWithMTLS extends FAPICIBAPoll {
 
-	public void configure(JsonObject config, String baseUrl) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		setupMTLS();
-		super.configure(config, baseUrl);
+		super.configure(config, baseUrl, externalUrlOverride);
 
 	}
 }

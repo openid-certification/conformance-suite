@@ -103,7 +103,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected boolean logEndTestIfAlgIsNotPS256(){return false;}
 
 	@Override
-	public final void configure(JsonObject config, String baseUrl) {
+	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 

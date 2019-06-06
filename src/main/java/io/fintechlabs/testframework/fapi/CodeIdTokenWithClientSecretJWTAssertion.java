@@ -103,7 +103,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectSer
 	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithClientSecretJWTAssertion.class);
 
 	@Override
-	public void configure(JsonObject config, String baseUrl) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
