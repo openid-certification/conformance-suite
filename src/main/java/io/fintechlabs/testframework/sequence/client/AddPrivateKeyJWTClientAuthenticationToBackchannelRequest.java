@@ -1,17 +1,11 @@
 package io.fintechlabs.testframework.sequence.client;
 
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToBackchannelAuthenticationEndpoint;
-import io.fintechlabs.testframework.condition.client.AddRedirectUriToDynamicRegistrationRequest;
-import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import io.fintechlabs.testframework.condition.client.SetClientAuthenticationAudToBackchannelAuthenticationEndpoint;
-import io.fintechlabs.testframework.condition.client.SetDynamicRegistrationRequestGrantTypeToAuthorizationCode;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.condition.client.UnregisterDynamicallyRegisteredClient;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 
 public class AddPrivateKeyJWTClientAuthenticationToBackchannelRequest extends AbstractConditionSequence {
@@ -19,7 +13,7 @@ public class AddPrivateKeyJWTClientAuthenticationToBackchannelRequest extends Ab
 	@Override
 	public void evaluate() {
 
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
