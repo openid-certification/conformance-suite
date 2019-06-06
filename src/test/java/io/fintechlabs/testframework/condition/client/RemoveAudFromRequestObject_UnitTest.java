@@ -26,7 +26,8 @@ public class RemoveAudFromRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new RemoveAudFromRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new RemoveAudFromRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

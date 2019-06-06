@@ -25,9 +25,8 @@ public class ValidateAuthenticationRequestIdExpiresIn_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ValidateAuthenticationRequestIdExpiresIn("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new ValidateAuthenticationRequestIdExpiresIn();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

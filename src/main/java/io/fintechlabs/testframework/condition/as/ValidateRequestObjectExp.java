@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.condition.as;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.time.Instant;
@@ -12,10 +11,6 @@ public class ValidateRequestObjectExp extends AbstractCondition {
 
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 	private long oneDayMillis = 60 * 60 * 24 * 1000L; // Duration for one day
-
-	public ValidateRequestObjectExp(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = {"authorization_request_object", "client"})

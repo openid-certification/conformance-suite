@@ -45,7 +45,8 @@ public class SetDynamicRegistrationRequestGrantTypeToAuthorizationCode_UnitTest 
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new SetDynamicRegistrationRequestGrantTypeToAuthorizationCode("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SetDynamicRegistrationRequestGrantTypeToAuthorizationCode();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

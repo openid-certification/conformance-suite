@@ -4,32 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateIdTokenACRClaims extends AbstractCondition {
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public ValidateIdTokenACRClaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure,
-			String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.
-	 * testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = { "id_token",  "authorization_endpoint_request" })
 	public Environment evaluate(Environment env) {

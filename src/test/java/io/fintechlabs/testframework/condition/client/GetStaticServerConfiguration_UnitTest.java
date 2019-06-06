@@ -42,7 +42,9 @@ public class GetStaticServerConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new GetStaticServerConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new GetStaticServerConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		server = new JsonParser().parse("{"
 			+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","

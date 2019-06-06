@@ -28,7 +28,8 @@ public class RemoveExpFromRequestObject_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new RemoveExpFromRequestObject("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new RemoveExpFromRequestObject();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

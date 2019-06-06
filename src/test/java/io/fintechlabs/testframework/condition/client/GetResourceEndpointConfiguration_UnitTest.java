@@ -40,9 +40,8 @@ public class GetResourceEndpointConfiguration_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new GetResourceEndpointConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new GetResourceEndpointConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**

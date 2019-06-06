@@ -45,9 +45,8 @@ public class RedirectBackToClientWithAuthorizationCodeAndIdToken_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new RedirectBackToClientWithAuthorizationCodeAndIdToken("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new RedirectBackToClientWithAuthorizationCodeAndIdToken();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test

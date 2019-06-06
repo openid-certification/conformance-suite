@@ -28,7 +28,8 @@ public class ValidateErrorDescriptionFromTokenEndpointResponseError_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new ValidateErrorDescriptionFromTokenEndpointResponseError("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		cond = new ValidateErrorDescriptionFromTokenEndpointResponseError();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		tokenEndpointResponse = new JsonParser().parse("{"
 			+ "\"error_description\":\"[A200308] The end-user has not been authenticated yet.\","
 			+ "\"error\":\"authorization_pending\","

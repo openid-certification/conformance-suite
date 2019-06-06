@@ -39,7 +39,9 @@ public class GetStaticResourceConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new GetStaticResourceConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new GetStaticResourceConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		resourceId = "resource123455";
 

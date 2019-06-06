@@ -45,7 +45,9 @@ public class SignClientAuthenticationAssertion_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new SignClientAuthenticationAssertion("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new SignClientAuthenticationAssertion();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		claims = new JsonParser().parse("{" +
 			"	\"iss\": \"client\"," +

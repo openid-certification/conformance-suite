@@ -25,9 +25,8 @@ public class ValidateErrorResponseFromBackchannelAuthenticationEndpoint_UnitTest
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ValidateErrorResponseFromBackchannelAuthenticationEndpoint("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new ValidateErrorResponseFromBackchannelAuthenticationEndpoint();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	private void doTestString(String stringToTest) {

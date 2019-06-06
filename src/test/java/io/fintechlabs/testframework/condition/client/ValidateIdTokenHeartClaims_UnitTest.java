@@ -46,7 +46,9 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateIdTokenHeartClaims("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateIdTokenHeartClaims();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		Date now = new Date();
 		nowSeconds = now.getTime() / 1000;

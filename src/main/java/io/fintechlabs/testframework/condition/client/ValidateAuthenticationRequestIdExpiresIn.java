@@ -3,16 +3,12 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateAuthenticationRequestIdExpiresIn extends AbstractCondition {
-	private final double maximumExpiresIn = 356 * 24 * 60 * 60; // 1 year as 30758400 seconds
 
-	public ValidateAuthenticationRequestIdExpiresIn(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
+	private final double maximumExpiresIn = 356 * 24 * 60 * 60; // 1 year as 30758400 seconds
 
 	@Override
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response")

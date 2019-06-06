@@ -3,15 +3,10 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class TestCanOnlyBePerformedForPS256Alg extends AbstractCondition {
-
-	public TestCanOnlyBePerformedForPS256Alg(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {

@@ -44,7 +44,8 @@ public class ValidateClientAssertionClaims_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateClientAssertionClaims("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
+		cond = new ValidateClientAssertionClaims();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 
 		Date now = new Date();
 		nowSeconds = now.getTime() / 1000;

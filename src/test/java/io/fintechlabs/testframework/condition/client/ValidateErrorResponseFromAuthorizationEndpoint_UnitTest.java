@@ -37,9 +37,8 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ValidateErrorResponseFromAuthorizationEndpoint("UNIT-TEST", eventLog, ConditionResult.INFO);
-
+		cond = new ValidateErrorResponseFromAuthorizationEndpoint();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	private void addState(String globalStateToAdd) {

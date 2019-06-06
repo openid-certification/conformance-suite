@@ -26,9 +26,8 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-
-		cond = new ValidateIdTokenNotIncludeCHashAndSHash("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
+		cond = new ValidateIdTokenNotIncludeCHashAndSHash();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test

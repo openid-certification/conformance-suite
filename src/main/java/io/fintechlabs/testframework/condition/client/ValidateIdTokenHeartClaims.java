@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
@@ -17,17 +16,6 @@ public class ValidateIdTokenHeartClaims extends AbstractCondition {
 	// TODO: make this configurable
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
-	/**
-	 * @param testId
-	 * @param log
-	 */
-	public ValidateIdTokenHeartClaims(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
-
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.condition.Condition#evaluate(io.fintechlabs.testframework.testmodule.Environment)
-	 */
 	@Override
 	@PreEnvironment(required = { "id_token", "server" }, strings = "client_id")
 	public Environment evaluate(Environment env) {

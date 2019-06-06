@@ -42,7 +42,9 @@ public class GetStaticClientConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new GetStaticClientConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new GetStaticClientConfiguration();
+
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		client = new JsonParser().parse("{"
 			+ "\"client_id\":\"client\","

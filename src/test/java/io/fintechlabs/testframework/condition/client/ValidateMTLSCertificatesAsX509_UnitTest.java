@@ -202,9 +202,9 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateMTLSCertificatesAsX509("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond = new ValidateMTLSCertificatesAsX509();
 
-		//cond = new ExtractMTLSCertificatesFromConfiguration("UNIT-TEST", eventLog, ConditionResult.INFO);
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 	}
 

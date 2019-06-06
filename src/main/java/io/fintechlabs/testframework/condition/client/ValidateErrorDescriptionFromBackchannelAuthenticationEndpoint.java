@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.util.regex.Pattern;
@@ -11,10 +10,6 @@ import java.util.regex.Pattern;
 public class ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 	private static final String ERROR_DESCRIPTION_FIELD_PATTERN_VALID = "[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+";
-
-	public ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
-		super(testId, log, conditionResultOnFailure, requirements);
-	}
 
 	@Override
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response")
