@@ -10,20 +10,32 @@ import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback
 import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCibaGrantTypeToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddCibaRequestSigningPS256ToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddCibaTokenDeliveryModePingToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddHintToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddNotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
+import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
@@ -47,9 +59,11 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatu
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointRetryAfterHeaders;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpointUri;
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.CreateDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
@@ -70,6 +84,7 @@ import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFrom
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromDynamicClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -83,6 +98,8 @@ import io.fintechlabs.testframework.condition.client.FAPICIBAValidateRtHash;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.client.GetDynamicClient2Configuration;
+import io.fintechlabs.testframework.condition.client.GetDynamicClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
@@ -148,9 +165,47 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		addClientAuthenticationToTokenEndpointRequest();
 	}
 
+	public void registerClient() {
+
+		callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
+
+		// create basic dynamic registration request
+		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
+		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
+
+		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
+		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class, "OBRW-4.3.1");
+		callAndStopOnFailure(AddNotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
+		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
+		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
+		// TODO: for now this only works for 'ping'
+		callAndStopOnFailure(AddCibaTokenDeliveryModePingToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddCibaRequestSigningPS256ToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddEmptyResponseTypesArrayToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
+
+		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+
+		// TODO: we currently do little verification of the dynamic registration response
+
+		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
+		// copy it across.
+		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
+
+		// TODO: at the end of the test, delete the client
+		// IF management interface, delete the client to clean up
+//		skipIfMissing(null,
+//			new String[] {"registration_client_uri", "registration_access_token"},
+//			Condition.ConditionResult.INFO,
+//			UnregisterDynamicallyRegisteredClient.class);
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
+		env.putString("external_url_override", externalUrlOverride);
 		env.putObject("config", config);
 
 		callAndStopOnFailure(CreateCIBANotificationEndpointUri.class);
@@ -172,11 +227,17 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		whichClient = 1;
 
 		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		if (env.getElementFromObject("config", "client.client_id") != null) {
+			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
+			callAndStopOnFailure(GetStaticClientConfiguration.class);
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		} else {
+			eventLog.startBlock("First client: No client_id in configuration, registering client using dynamic client registration");
+			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			registerClient();
+		}
 
 		exposeEnvString("client_id");
-
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
@@ -184,26 +245,36 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
+		eventLog.endBlock();
 
-		eventLog.startBlock("Verify configuration of second client");
+		// It might be more sensible to do this only if/when the test needs a second client
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("client_public_jwks", "client_public_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
-		// extract second client
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		if (env.getElementFromObject("config", "client2.client_id") != null) {
+			eventLog.startBlock("Verify Second client: client_id supplied, assume static client configuration");
+			callAndStopOnFailure(GetStaticClient2Configuration.class);
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		} else {
+			eventLog.startBlock("Second client: No client_id in configuration, registering client using dynamic client registration");
+			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			registerClient();
+		}
+
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+
 		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 
-		// get the second client's JWKs
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		// validate the secondary MTLS keys
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
-
-		// validate the secondary MTLS keys
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		env.unmapKey("client_public_jwks");
 		env.unmapKey("mutual_tls_authentication");
 
 		eventLog.endBlock();
@@ -453,7 +524,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-		eventLog.endBlock();
 	}
 
 	protected void createAccountRequest() {
@@ -666,18 +736,11 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		// Try the second client
 		whichClient = 2;
 
-		eventLog.startBlock(currentClientString() + "Setup");
+		// get the second client's JWKs
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("client_public_jwks", "client_public_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 	}
 
 	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
