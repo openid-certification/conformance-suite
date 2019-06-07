@@ -3,7 +3,7 @@ package io.fintechlabs.testframework.info;
 import java.util.List;
 import java.util.Map;
 
-import com.mongodb.DBObject;
+import org.bson.Document;
 
 public interface ImageService {
 	/**
@@ -12,7 +12,7 @@ public interface ImageService {
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
 	 *                    test module itself, not via the REST API.
 	 */
-	DBObject fillPlaceholder(String testId, String placeholder, Map<String, Object> update, boolean assumeAdmin);
+	Document fillPlaceholder(String testId, String placeholder, Map<String, Object> update, boolean assumeAdmin);
 
 	/**
 	 * Get unfilled placeholder IDs
@@ -30,7 +30,7 @@ public interface ImageService {
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
 	 *                    test module itself, not via the REST API.
 	 */
-	List<DBObject> getFilledPlaceholders(String testId, boolean assumeAdmin);
+	List<Document> getFilledPlaceholders(String testId, boolean assumeAdmin);
 
 	/**
 	 * Get all the images for a test
@@ -38,5 +38,5 @@ public interface ImageService {
 	 * @param assumeAdmin If true, no access controls will be applied. Only set to true if being called from the
 	 *                    test module itself, not via the REST API.
 	 */
-	List<DBObject> getAllImagesForTestId(String testId, boolean assumeAdmin);
+	List<Document> getAllImagesForTestId(String testId, boolean assumeAdmin);
 }

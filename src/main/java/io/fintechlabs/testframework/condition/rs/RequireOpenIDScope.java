@@ -3,11 +3,11 @@ package io.fintechlabs.testframework.condition.rs;
 import java.util.List;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 public class RequireOpenIDScope extends AbstractCondition {
 

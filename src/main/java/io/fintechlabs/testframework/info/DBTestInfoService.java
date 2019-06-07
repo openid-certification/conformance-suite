@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.WriteResult;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.UpdateResult;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
@@ -56,10 +56,10 @@ public class DBTestInfoService implements TestInfoService {
 				@Override
 				public ImmutableMap<String, String> load(String key) {
 					Query query = Query.query(Criteria.where("_id").is(key));
-					BasicDBObject test = mongoTemplate.findOne(query, BasicDBObject.class, COLLECTION);
+					Document test = mongoTemplate.findOne(query, Document.class, COLLECTION);
 					if (test != null &&
-						test.containsField("owner")) {
-						BasicDBObject owner = (BasicDBObject) test.get("owner");
+						test.containsKey("owner")) {
+						Document owner = test.get("owner", Document.class);
 						String iss = owner.getString("iss");
 						String sub = owner.getString("sub");
 						return ImmutableMap.of("sub", sub, "iss", iss);
@@ -142,10 +142,10 @@ public class DBTestInfoService implements TestInfoService {
 
 		/* Non caching code here
 		Query query = Query.query(Criteria.where("_id").is(id));
-		BasicDBObject test = mongoTemplate.findOne(query, BasicDBObject.class, COLLECTION);
+		Document test = mongoTemplate.findOne(query, Document.class, COLLECTION);
 		if (test != null &&
-				test.containsField("owner")) {
-			BasicDBObject owner = (BasicDBObject)test.get("owner");
+				test.containsKey("owner")) {
+			Document owner = test.get("owner", Document.class);
 			String iss = owner.getString("iss");
 			String sub = owner.getString("sub");
 			return ImmutableMap.of("sub", sub, "iss", iss);
@@ -190,19 +190,19 @@ public class DBTestInfoService implements TestInfoService {
 		Update update = new Update();
 		update.set("publish", publish);
 
-		WriteResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
+		UpdateResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
 
-		return result.isUpdateOfExisting();
+		return result.getMatchedCount() > 0;
 	}
 
 	@Override
 	public void createIndexes(){
-		DBCollection collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new BasicDBObject("testName", 1));
-		collection.createIndex(new BasicDBObject("description", 1));
-		collection.createIndex(new BasicDBObject("started", 1));
-		collection.createIndex(new BasicDBObject("owner", 1));
-		collection.createIndex(new BasicDBObject("publish", 1));
-		collection.createIndex(BasicDBObjectBuilder.start("$**", "text").get());
+		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
+		collection.createIndex(new Document("testName", 1));
+		collection.createIndex(new Document("description", 1));
+		collection.createIndex(new Document("started", 1));
+		collection.createIndex(new Document("owner", 1));
+		collection.createIndex(new Document("publish", 1));
+		collection.createIndex(new Document("$**", "text"));
 	}
 }

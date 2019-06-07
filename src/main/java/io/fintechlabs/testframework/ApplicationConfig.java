@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import io.fintechlabs.testframework.ui.ServerInfoTemplate;
-import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.convert.CustomConversions;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
@@ -40,9 +40,8 @@ public class ApplicationConfig {
 	}
 
 	@Bean
-	@SuppressWarnings("unchecked")
-	public CustomConversions mongoCustomConversions() {
-		return new CustomConversions(Lists.newArrayList(
+	public MongoCustomConversions mongoCustomConversions() {
+		return new MongoCustomConversions(Lists.newArrayList(
 			new GsonPrimitiveToBsonValueConverter(),
 			new GsonObjectToBsonDocumentConverter(),
 			new GsonArrayToBsonArrayConverter()));

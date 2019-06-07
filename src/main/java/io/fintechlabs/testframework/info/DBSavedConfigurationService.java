@@ -1,9 +1,9 @@
 package io.fintechlabs.testframework.info;
 
 import java.time.Instant;
-import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,28 +36,18 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	 * @see io.fintechlabs.testframework.info.SavedConfigurationService#getLastConfigForCurrentUser()
 	 */
 	@Override
-	public DBObject getLastConfigForCurrentUser() {
+	public Document getLastConfigForCurrentUser() {
 		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
 			return null;
 		}
 
-		List<DBObject> list = mongoTemplate.getCollection(COLLECTION)
-			.find(BasicDBObjectBuilder.start()
-				.add("owner", user)
-				.get())
-			.sort(BasicDBObjectBuilder.start()
-				.add("time", -1)
-				.get())
+		return mongoTemplate.getCollection(COLLECTION)
+			.find(new Document("owner", user))
+			.sort(new Document("time", -1))
 			.limit(1)
-			.toArray(1);
-
-		if (list.isEmpty()) {
-			return null;
-		} else {
-			return list.get(0);
-		}
+			.first();
 	}
 
 	@Override

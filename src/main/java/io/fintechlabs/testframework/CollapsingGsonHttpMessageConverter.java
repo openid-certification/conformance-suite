@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
@@ -12,8 +13,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 
 public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 
@@ -46,12 +45,12 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 	 */
 	public static Gson getDbObjectCollapsingGson() {
 		return new GsonBuilder()
-			.registerTypeHierarchyAdapter(DBObject.class, new JsonSerializer<DBObject>() {
+			.registerTypeHierarchyAdapter(Document.class, new JsonSerializer<Document>() {
 
 				private Gson internalGson = new Gson();
 
 				@Override
-				public JsonElement serialize(DBObject src, Type typeOfSrc, JsonSerializationContext context) {
+				public JsonElement serialize(Document src, Type typeOfSrc, JsonSerializationContext context) {
 					// run the field conversion
 					Object converted = convertStructureToField(src);
 					// delegate to regular GSON for the real work
@@ -67,13 +66,13 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 							.map(this::convertStructureToField)
 							.collect(Collectors.toList());
 						return converted;
-					} else if (source instanceof DBObject) {
+					} else if (source instanceof Document) {
 						// if it's an object, need to look through all the fields and convert any weird ones
-						DBObject dbo = (DBObject) source;
-						DBObject converted = new BasicDBObject();
+						Document dbo = (Document) source;
+						Document converted = new Document();
 						for (String key : dbo.keySet()) {
 							if (key.startsWith("__wrapped_key_element_")) {
-								DBObject wrapped = (DBObject) dbo.get(key);
+								Document wrapped = dbo.get(key, Document.class);
 								converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
 							} else if (key.equals("_class")) {
 								// skip all class elements

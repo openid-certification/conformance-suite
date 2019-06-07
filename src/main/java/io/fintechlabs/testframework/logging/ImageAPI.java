@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -61,18 +60,18 @@ public class ImageAPI {
 			String entryId = testId + "-" + RandomStringUtils.randomAlphanumeric(32);
 
 			// create a new entry in the database
-			BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-				.add("_id", entryId)
-				.add("testId", testId)
-				.add("testOwner", testOwner)
-				.add("src", "_image-api")
-				.add("time", new Date().getTime())
-				.add("msg", Strings.emptyToNull(description))
-				.add("img", encoded);
+			Document document = new Document()
+				.append("_id", entryId)
+				.append("testId", testId)
+				.append("testOwner", testOwner)
+				.append("src", "_image-api")
+				.append("time", new Date().getTime())
+				.append("msg", Strings.emptyToNull(description))
+				.append("img", encoded);
 
-			mongoTemplate.insert(documentBuilder.get(), DBEventLog.COLLECTION);
+			mongoTemplate.insert(document, DBEventLog.COLLECTION);
 
-			DBObject updated = mongoTemplate.getCollection(DBEventLog.COLLECTION).findOne(entryId);
+			Document updated = mongoTemplate.findById(entryId, Document.class, DBEventLog.COLLECTION);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
@@ -95,7 +94,7 @@ public class ImageAPI {
 
 			Map<String, Object> update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
 
-			DBObject result = imageService.fillPlaceholder(testId, placeholder, update, false);
+			Document result = imageService.fillPlaceholder(testId, placeholder, update, false);
 
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
@@ -118,7 +117,7 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			List<DBObject> images = imageService.getAllImagesForTestId(testId, false);
+			List<Document> images = imageService.getAllImagesForTestId(testId, false);
 
 			return new ResponseEntity<>(images, HttpStatus.OK);
 		} else {

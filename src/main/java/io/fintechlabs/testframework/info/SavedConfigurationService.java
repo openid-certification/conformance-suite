@@ -1,11 +1,12 @@
 package io.fintechlabs.testframework.info;
 
+import org.bson.Document;
+
 import com.google.gson.JsonObject;
-import com.mongodb.DBObject;
 
 public interface SavedConfigurationService {
 
-	DBObject getLastConfigForCurrentUser();
+	Document getLastConfigForCurrentUser();
 
 	void saveTestConfigurationForCurrentUser(JsonObject config, String testName);
 

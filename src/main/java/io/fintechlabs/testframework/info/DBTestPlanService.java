@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +23,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.UpdateResult;
 
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.pagination.PaginationRequest;
@@ -123,13 +122,7 @@ public class DBTestPlanService implements TestPlanService {
 
 		Query query = new Query(criteria);
 
-		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject());
-
-		if (testPlan == null) {
-			return null;
-		} else {
-			return testPlan.toMap();
-		}
+		return mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).first();
 	}
 
 	/* (non-Javadoc)
@@ -153,26 +146,24 @@ public class DBTestPlanService implements TestPlanService {
 				.include("publish")
 				.include("version");
 
-		DBObject testPlan = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject(), query.getFieldsObject());
-
-		if (testPlan == null) {
-			return null;
-		} else {
-			return testPlan.toMap();
-		}
+		return mongoTemplate
+				.getCollection(COLLECTION)
+				.find(query.getQueryObject())
+				.projection(query.getFieldsObject())
+				.first();
 	}
 
 	@Override
 	public JsonObject getModuleConfig(String planId, String moduleName) {
 		Map testPlan = getTestPlan(planId);
 
-		BasicDBList modules = (BasicDBList) testPlan.get("modules");
+		List modules = (List) testPlan.get("modules");
 
 		boolean found = false;
 
 		for (Object o : modules)
 		{
-			BasicDBObject module = (BasicDBObject) o;
+			Map module = (Map) o;
 			if (module.containsValue(moduleName)) {
 				found = true;
 			}
@@ -183,7 +174,7 @@ public class DBTestPlanService implements TestPlanService {
 			return null;
 		}
 
-		DBObject dbConfig = (DBObject) testPlan.get("config");
+		Object dbConfig = testPlan.get("config");
 
 		String json = gson.toJson(dbConfig);
 
@@ -273,9 +264,9 @@ public class DBTestPlanService implements TestPlanService {
 		Update update = new Update();
 		update.set("publish", publish);
 
-		WriteResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
+		UpdateResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
 
-		if (!result.isUpdateOfExisting())
+		if (result.getMatchedCount() == 0)
 			return false;
 
 		// We need to update all the latest test results (if possible) as well
@@ -284,14 +275,13 @@ public class DBTestPlanService implements TestPlanService {
 		// "instances" arrays for the modules in this plan.
 
 		Object testModules = mongoTemplate.getCollection(COLLECTION)
-				.findOne(BasicDBObjectBuilder.start()
-								.add("_id", id)
-								.get())
+				.find(new Document("_id", id))
+				.first()
 				.get("modules");
 
-		Object[] latestTestIds = ((BasicDBList) testModules)
+		Object[] latestTestIds = ((List<?>) testModules)
 				.stream()
-				.map(mod -> (BasicDBList) ((BasicDBObject) mod).get("instances"))
+				.map(mod -> (List<?>) ((Map) mod).get("instances"))
 				.filter(x -> !x.isEmpty())
 				.map(x -> x.get(x.size() - 1))
 				.toArray();
@@ -317,12 +307,12 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Override
 	public void createIndexes(){
-		DBCollection collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new BasicDBObject("planName", 1));
-		collection.createIndex(new BasicDBObject("description", 1));
-		collection.createIndex(new BasicDBObject("started", 1));
-		collection.createIndex(new BasicDBObject("owner", 1));
-		collection.createIndex(new BasicDBObject("publish", 1));
-		collection.createIndex(BasicDBObjectBuilder.start("$**", "text").get());
+		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
+		collection.createIndex(new Document("planName", 1));
+		collection.createIndex(new Document("description", 1));
+		collection.createIndex(new Document("started", 1));
+		collection.createIndex(new Document("owner", 1));
+		collection.createIndex(new Document("publish", 1));
+		collection.createIndex(new Document("$**", "text"));
 	}
 }

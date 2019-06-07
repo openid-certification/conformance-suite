@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.security;
 import java.lang.reflect.Type;
 import java.util.Date;
 
+import org.bson.Document;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
@@ -20,8 +21,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
 
 public class MongoDBRegisteredClientService implements RegisteredClientService {
 
@@ -55,8 +54,8 @@ public class MongoDBRegisteredClientService implements RegisteredClientService {
 	@Override
 	public RegisteredClient getByIssuer(String issuer) {
 		logger.info("Looking up client for issuer: " + issuer);
-		BasicDBObject dbObject = mongoTemplate.findById(issuer, BasicDBObject.class, COLLECTION);
-		if (dbObject != null && dbObject.containsField("client_json")) {
+		Document dbObject = mongoTemplate.findById(issuer, Document.class, COLLECTION);
+		if (dbObject != null && dbObject.containsKey("client_json")) {
 			logger.info("Found client, attempting to deserialize");
 			RegisteredClient client = gson.fromJson((String) dbObject.get("client_json"), new TypeToken<RegisteredClient>(){}.getType());
 			logger.info("Returning client: " + client.toString());
@@ -69,11 +68,11 @@ public class MongoDBRegisteredClientService implements RegisteredClientService {
 
 	@Override
 	public void save(String issuer, RegisteredClient client) {
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-			.add("_id", issuer)
-			.add("client_json", gson.toJson(client))
-			.add("time", new Date().getTime());
+		Document document = new Document()
+			.append("_id", issuer)
+			.append("client_json", gson.toJson(client))
+			.append("time", new Date().getTime());
 
-		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+		mongoTemplate.insert(document, COLLECTION);
 	}
 }

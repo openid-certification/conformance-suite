@@ -3,9 +3,9 @@ package io.fintechlabs.testframework.token;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -13,12 +13,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
-import com.mongodb.util.JSON;
+import com.google.common.collect.Lists;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.IndexOptions;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
@@ -45,20 +42,15 @@ public class DBTokenService implements TokenService {
 		byte[] tokenBytes = new byte[TOKEN_BYTES];
 		new SecureRandom().nextBytes(tokenBytes);
 
-		BasicDBObject token = (BasicDBObject) BasicDBObjectBuilder.start()
-				.add("_id", id)
-				.add("owner", authenticationFacade.getPrincipal())
-				.add("info", JSON.parse(authenticationFacade.getUserInfo().toJson().toString()))
-				.add("token", Base64Utils.encodeToString(tokenBytes))
-				.add("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS)
-				.get();
+		Document token = new Document()
+				.append("_id", id)
+				.append("owner", authenticationFacade.getPrincipal())
+				.append("info", Document.parse(authenticationFacade.getUserInfo().toJson().toString()))
+				.append("token", Base64Utils.encodeToString(tokenBytes))
+				.append("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS);
 
-		WriteResult result = mongoTemplate.getCollection(COLLECTION).insert(token);
-		if (result.wasAcknowledged()) {
-			return token.toMap();
-		} else {
-			return null;
-		}
+		mongoTemplate.insert(token, COLLECTION);
+		return token;
 	}
 
 	@Override
@@ -67,7 +59,7 @@ public class DBTokenService implements TokenService {
 		Criteria criteria = new Criteria("_id").is(id);
 		criteria.and("owner").is(authenticationFacade.getPrincipal());
 		Query query = new Query(criteria);
-		return mongoTemplate.getCollection(COLLECTION).remove(query.getQueryObject()).wasAcknowledged();
+		return mongoTemplate.remove(query, COLLECTION).wasAcknowledged();
 	}
 
 	@Override
@@ -80,8 +72,7 @@ public class DBTokenService implements TokenService {
 				.include("_id")
 				.include("expires");
 
-		List<DBObject> results = mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject(), query.getFieldsObject()).toArray();
-		return results.stream().map(DBObject::toMap).collect(Collectors.toList());
+		return Lists.newArrayList(mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).projection(query.getFieldsObject()));
 	}
 
 	@Override
@@ -90,19 +81,14 @@ public class DBTokenService implements TokenService {
 		Criteria criteria = new Criteria("token").is(token);
 		Query query = new Query(criteria);
 
-		DBObject result = mongoTemplate.getCollection(COLLECTION).findOne(query.getQueryObject());
-		if (result != null) {
-			return result.toMap();
-		} else {
-			return null;
-		}
+		return mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).first();
 	}
 
 	@Override
 	public void createIndexes() {
 
-		DBCollection collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new BasicDBObject("owner", 1));
-		collection.createIndex(new BasicDBObject("token", 1), new BasicDBObject("unique", true));
+		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
+		collection.createIndex(new Document("owner", 1));
+		collection.createIndex(new Document("token", 1), new IndexOptions().unique(true));
 	}
 }
