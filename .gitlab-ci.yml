@@ -389,9 +389,12 @@ deployment_server_test_review:
       chart/
 
     MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} -o template --template="{{(index .items 0).metadata.name}}"`
+    echo -n "Waiting for mongodb to start"
+    while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
+    echo "Inserting CI token"
     kubectl exec $MONGO_POD -- \
       mongo mongodb://localhost/test_suite --eval \
-        "db.API_TOKEN.insert({ _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null })"
+        "db.API_TOKEN.update({ _id: \"ci_token\" }, { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null }, { upsert: true })"
   }
 
   function install_dependencies() {
