@@ -77,15 +77,16 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 						throw error("Registration Endpoint did not return a JSON object");
 					}
 
-					logSuccess("Parsed registration endpoint response", jsonRoot.getAsJsonObject());
+					JsonObject client = jsonRoot.getAsJsonObject();
+					logSuccess("Parsed registration endpoint response", client);
 
-					env.putObject("client", jsonRoot.getAsJsonObject());
+					env.putObject("client", client);
 
-					if (jsonRoot.getAsJsonObject().has("registration_client_uri") &&
-						jsonRoot.getAsJsonObject().has("registration_access_token")) {
+					if (client.has("registration_client_uri") &&
+						client.has("registration_access_token")) {
 
-						String registrationClientUri = OIDFJSON.getString(jsonRoot.getAsJsonObject().get("registration_client_uri"));
-						String registrationAccessToken = OIDFJSON.getString(jsonRoot.getAsJsonObject().get("registration_access_token"));
+						String registrationClientUri = OIDFJSON.getString(client.get("registration_client_uri"));
+						String registrationAccessToken = OIDFJSON.getString(client.get("registration_access_token"));
 
 						if (!Strings.isNullOrEmpty(registrationClientUri) &&
 							!Strings.isNullOrEmpty(registrationAccessToken)) {
