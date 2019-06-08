@@ -569,13 +569,6 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['FAPI-CIBA']:
-            if re.match(r'.*-ping-.*', m):
-                # ping tests are pending, see https://gitlab.com/fintechlabs/fapi-conformance-suite/issues/389
-                print("Ignoring untested module: "+m)
-                untested_test_modules.remove(m)
-                continue
-
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
             if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) ):
