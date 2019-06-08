@@ -25,7 +25,10 @@ public class FAPICheckKeyAlgInClientJWKs extends AbstractCondition {
 			JsonObject keyObj = key.getAsJsonObject();
 
 			if (!keyObj.has("alg")) {
-				throw error("alg not found in key", args("key", key));
+				throw error("'alg' not found in client JWKS provided in the test configuration - this is "+
+						"required to set the request object signing algorithm the conformance suite will use, and "+
+						"should be set to PS256 or ES256",
+					args("key", key));
 			}
 
 			String alg = OIDFJSON.getString(keyObj.getAsJsonPrimitive("alg"));
