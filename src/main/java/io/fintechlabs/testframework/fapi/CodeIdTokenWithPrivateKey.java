@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnF
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -61,7 +62,6 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
@@ -137,7 +137,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		// get the second client and second JWKs Key
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
@@ -145,7 +145,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 		eventLog.startBlock("Loading second client key");
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();

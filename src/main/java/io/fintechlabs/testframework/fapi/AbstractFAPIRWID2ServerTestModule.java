@@ -48,7 +48,7 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
@@ -140,7 +140,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		exposeEnvString("client_id");
 
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
@@ -162,7 +162,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// get the second client's JWKs
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		env.unmapKey("client");
@@ -366,7 +366,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			//exposeEnvString("client_id");
 
-			callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 

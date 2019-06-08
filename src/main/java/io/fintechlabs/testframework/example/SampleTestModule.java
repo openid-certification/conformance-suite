@@ -103,7 +103,7 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
-		//require(ExtractJWKsFromClientConfiguration.class);
+		//require(ExtractJWKsFromStaticClientConfiguration.class);
 
 		//require(GenerateJWKsFromClientSecret.class);
 

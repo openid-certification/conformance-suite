@@ -42,7 +42,7 @@ import io.fintechlabs.testframework.condition.as.ValidateRedirectUri;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectClaims;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectExp;
 import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -134,7 +134,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		// for signing request objects
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

@@ -148,7 +148,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 
 		exposeEnvString("client_id");
 
-		//require(ExtractJWKsFromClientConfiguration.class);
+		//require(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 

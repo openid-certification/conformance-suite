@@ -58,7 +58,7 @@ public class TokenRevocationAS extends AbstractTestModule {
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(ExtractJWKsFromClientConfiguration.class, "HEART-OAuth2-2.1.5");
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class, "HEART-OAuth2-2.1.5");
 
 		callAndStopOnFailure(CreateJwksUri.class);
 		exposeEnvString("jwks_uri");
