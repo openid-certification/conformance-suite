@@ -31,6 +31,7 @@ import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgainstRequest;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.VerifyNoSHash;
@@ -134,6 +135,8 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
+
+		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
 
 		performProfileIdTokenValidation();
 

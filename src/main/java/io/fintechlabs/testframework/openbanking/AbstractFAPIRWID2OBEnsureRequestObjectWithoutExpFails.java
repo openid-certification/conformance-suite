@@ -13,8 +13,9 @@ import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromToken
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
+import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaims;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRequestObjectWithoutExpFails;
 
 public abstract class AbstractFAPIRWID2OBEnsureRequestObjectWithoutExpFails extends AbstractFAPIRWID2EnsureRequestObjectWithoutExpFails {
@@ -40,16 +41,16 @@ public abstract class AbstractFAPIRWID2OBEnsureRequestObjectWithoutExpFails exte
 	@Override
 	protected void performProfileIdTokenValidation() {
 		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
-
-		if ( whichClient == 2 ) {
-			callAndContinueOnFailure(ValidateIdTokenACRClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
-		}
-
 	}
 
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+		if (whichClient == 1) {
+			callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
+		} else {
+			callAndStopOnFailure(OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest.class);
+		}
 	}
 
 	protected abstract void createClientCredentialsRequest();
