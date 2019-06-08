@@ -2,6 +2,18 @@ package io.fintechlabs.testframework.testmodule;
 
 import com.google.gson.JsonElement;
 
+/**
+ * Wrappers around the GSON getAsXXXX methods
+ *
+ * The 'getAs' methods automatically coerce types, for example if 'getAsNumber' finds a string, it will automatically
+ * convert it to a number. This is not desirable behaviour when we're trying to write a conformance suite that
+ * checks if the returned values are actually the correct type (for example it's pretty wrong to return 'expires_in'
+ * as a string, it should always be a number.
+ *
+ * The 'getAs' methods should never be directly used in our code, these wrappers should always be used.
+ *
+ * See https://gitlab.com/openid/conformance-suite/issues/398
+ */
 public final class OIDFJSON {
 
 	public static Number getNumber(JsonElement json) {
