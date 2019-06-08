@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan",
-	displayName = "FAPI-RW-ID2-OB: with private key and mtls holder of key Test Plan",
-	profile = "FAPI-RW-ID2-OB",
+	displayName = "FAPI-RW-ID2-OpenBankingUK: Authorization server test using private_key_jwt client authentication",
+	profile = "FAPI-RW-ID2-OpenBankingUK-OpenID-Provider-Authorization-Server-Test",
 	testModuleNames = {
 		"fapi-rw-id2-ob-discovery-end-point-verification",
 		"fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key",

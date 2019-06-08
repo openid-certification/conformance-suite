@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-with-mtls-test-plan",
-	displayName = "FAPI-RW-ID2: with mtls Test Plan",
-	profile = "FAPI-RW-ID2",
+	displayName = "FAPI-RW-ID2: Authorization server test using mtls client authentication",
+	profile = "FAPI-RW-ID2-OpenID-Provider-Authorization-Server-Test",
 	testModuleNames = {
 		"fapi-rw-id2-discovery-end-point-verification",
 		"fapi-rw-id2-with-mtls",
