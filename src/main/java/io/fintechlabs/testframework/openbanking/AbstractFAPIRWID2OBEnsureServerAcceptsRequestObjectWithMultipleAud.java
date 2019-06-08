@@ -2,7 +2,7 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddAcrScaClaimToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
@@ -53,7 +53,7 @@ public abstract class AbstractFAPIRWID2OBEnsureServerAcceptsRequestObjectWithMul
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
 
 		if ( whichClient == 2) {
-			callAndStopOnFailure(AddAcrScaClaimToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest.class);
 		}
 
 	}
