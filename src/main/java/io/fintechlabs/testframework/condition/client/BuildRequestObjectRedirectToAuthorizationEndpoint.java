@@ -22,7 +22,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 		"response_type",
 		"client_id",
 		"scope",
-		"redirect_uri"
+		"redirect_uri",
+		"prompt"
 	});
 
 	@Override
