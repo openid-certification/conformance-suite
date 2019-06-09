@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -56,7 +57,7 @@ import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromRes
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
@@ -179,7 +180,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 
-		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -488,8 +489,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performProfileIdTokenValidation() {
-
-		// No custom to validate profile_id_token
+		// Nothing custom to validate in id_token
 	}
 
 	protected void performTokenEndpointIdTokenExtraction() {
@@ -506,12 +506,19 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
 		if ( whichClient != 2 ) {
-			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 		}
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+
+		if (whichClient == 2) {
+			// This header is no longer mentioned in the standard, but for completeness
+			// we try sending it in one case to make sure it doesn't result in a request
+			// from an older client being rejected.
+			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+		}
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 

@@ -32,7 +32,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 	private AddFAPIFinancialIdToResourceEndpointRequest cond;
 
-	private JsonObject client;
+	private JsonObject resourceConfig;
 
 	private String financialId;
 
@@ -49,8 +49,8 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 		// create a random financial ID so we know it's getting copied
 		financialId = RandomStringUtils.randomAlphanumeric(30);
 
-		client = new JsonObject();
-		client.addProperty("fapi_financial_id", financialId);
+		resourceConfig = new JsonObject();
+		resourceConfig.addProperty("institution_id", financialId);
 
 
 	}
@@ -60,7 +60,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		env.putObject("client", client);
+		env.putObject("resource", resourceConfig);
 
 		cond.evaluate(env);
 
@@ -75,7 +75,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate_existingHeaders() {
 
-		env.putObject("client", client);
+		env.putObject("resource", resourceConfig);
 		env.putObject("resource_endpoint_request_headers",	new JsonObject());
 
 		cond.evaluate(env);
@@ -91,7 +91,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test
 	public void testEvaluate_existingHeadersOverwrite() {
 
-		env.putObject("client", client);
+		env.putObject("resource", resourceConfig);
 		env.putObject("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
 
 		cond.evaluate(env);
@@ -108,7 +108,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noFinancialId() {
 
-		env.putObject("client", new JsonObject());
+		env.putObject("resource", new JsonObject());
 
 		cond.evaluate(env);
 
