@@ -65,12 +65,18 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private TestInstanceEventLog log;
 	private Set<String> requirements;
 	private ConditionResult conditionResultOnFailure;
+	private boolean logged = false;
 
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		this.testId = testId;
 		this.log = log;
 		this.conditionResultOnFailure = conditionResultOnFailure;
 		this.requirements = Sets.newHashSet(requirements);
+	}
+
+	@Override
+	public boolean logged() {
+		return logged;
 	}
 
 	/**
@@ -87,14 +93,17 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 	protected void log(JsonObject obj) {
 		log.log(getMessage(), obj);
+		logged = true;
 	}
 
 	protected void log(String msg) {
 		log.log(getMessage(), msg);
+		logged = true;
 	}
 
 	protected void log(Map<String, Object> map) {
 		log.log(getMessage(), map);
+		logged = true;
 	}
 
 	protected void log(String msg, JsonObject in) {
