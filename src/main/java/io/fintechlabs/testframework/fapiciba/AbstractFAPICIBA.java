@@ -232,8 +232,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 			return "done";
 		});
-
-		return;
 	}
 
 	protected void performPreAuthorizationSteps() {

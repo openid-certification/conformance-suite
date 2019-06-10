@@ -208,14 +208,6 @@ public class LogApi {
 		return ResponseEntity.ok().body(results);
 	}
 
-	/**
-	 * @param id
-	 * @return
-	 */
-	private List<DBObject> getTestResults(String id) {
-		return getTestResults(id, null);
-	}
-
 	private List<DBObject> getTestResults(String id, Long since) {
 		return getTestResults(id, since, false);
 	}

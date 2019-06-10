@@ -140,6 +140,9 @@ def color(text, **user_styles):
     return '\033[0m{}\033[0m'.format(color_text)
 
 
+def redbg(text):
+    return color(text, bold=True, bg_red=True)
+
 def failure(text):
     return color(text, bold=True, fg_red=True)
 
@@ -151,6 +154,13 @@ def warning(text):
 def success(text):
     return color(text, fg_green=True)
 
+
+def expected_warning(text):
+    return color(text, fg_pink=True)
+
+
+def expected_failure(text):
+    return color(text, fg_light_cyan=True)
 
 # Returns object contains 'plan_did_not_complete' and 'detail_plan_result', ie.
 # 'plan_did_not_complete' = NOT_COMPLETE
@@ -197,7 +207,9 @@ def show_plan_results(plan_result, expected_failures_json):
         if module in untested_test_modules:
             untested_test_modules.remove(module)
 
+        status_coloured = info['status']
         if info['status'] != 'FINISHED':
+            status_coloured = redbg(status_coloured)
             incomplete += 1
         if 'result' not in info:
             info['result'] = 'UNKNOWN'
@@ -220,7 +232,7 @@ def show_plan_results(plan_result, expected_failures_json):
 
         counts = result['counts']
         print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
-              format(module, module_id, info['status'], result_coloured, len(logs),
+              format(module, module_id, status_coloured, result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
         test_result = summary_unexpected_failures_test_module(result, test_name, module_id)
@@ -358,8 +370,8 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
 
     has_unexpected_failures = False
     if len(expected_failures) > 0:
-        print(failure("Expected failure: "))
-        print_failure_warning(expected_failures, 'failure', '\t')
+        print(expected_failure("Expected failure: "))
+        print_failure_warning(expected_failures, 'failure', '\t', expected=True)
 
     if len(unexpected_failures) > 0:
         has_unexpected_failures = True
@@ -368,12 +380,12 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
 
     if len(expected_failures_did_not_happen) > 0:
         has_unexpected_failures = True
-        print(failure("Expected failure dit not happen: "))
+        print(failure("Expected failure did not happen: "))
         print_failure_warning(expected_failures_did_not_happen, 'failure', '\t')
 
     if len(expected_warnings) > 0:
-        print(warning("Expected warning: "))
-        print_failure_warning(expected_warnings, 'warning', '\t')
+        print(expected_warning("Expected warning: "))
+        print_failure_warning(expected_warnings, 'warning', '\t', expected=True)
 
     if len(unexpected_warnings) > 0:
         has_unexpected_failures = True
@@ -436,12 +448,21 @@ def output_summary_test_plan_by_unexpected_type(overall_test_results, key, unexp
             print_failure_warning(result[key], unexpected_type, '\t\t\t')
 
 
-def print_failure_warning(failure_warning_list, status, tab_format):
+def print_failure_warning(failure_warning_list, status, tab_format, expected=False):
     for failure_warning in failure_warning_list:
+        msg = "{}Block name: '{}' - Condition: '{}'".format(tab_format,
+                                                            failure_warning['current_block'],
+                                                            failure_warning['src'])
         if (status == 'failure'):
-            print(failure("{}Block name: '{}' - Condition: '{}'".format(tab_format, failure_warning['current_block'], failure_warning['src'])))
+            if expected:
+                print(expected_failure(msg))
+            else:
+                print(failure(msg))
         else:
-            print(warning("{}Block name: '{}' - Condition: '{}'".format(tab_format, failure_warning['current_block'], failure_warning['src'])))
+            if expected:
+                print(expected_warning(msg))
+            else:
+                print(warning(msg))
 
 
 def parser_args_cli():

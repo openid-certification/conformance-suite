@@ -185,7 +185,7 @@
 
 					$.each(data, function(i, item) {
 
-					    var existing = $('[data-item-entry-id="'+item._id+'"]');
+					    var existing = $(`[data-item-entry-id='${item._id}']`);
 
 					    // check to see if we've seen it before
 					    if (existing.length == 0) {
@@ -304,7 +304,7 @@
 					}
 
 					// see if we've already rendered this
-					var existing = $('#logDetail .header [data-instance-id="'+testId+'"]');
+					var existing = $(`#logDetail .header [data-instance-id='${testId}']`);
 
 					if (existing.length == 0) {
 	                    $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({

@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan",
-	displayName = "FAPI-RW-ID2-OB: client test (with private_key_jwt and MTLS) Test Plan",
-	profile = "FAPI-RW-ID2-OB",
+	displayName = "FAPI-RW-ID2-OpenBankingUK: Relying Party (client test) using private_key_jwt client authentication",
+	profile = "FAPI-RW-ID2-OpenBankingUK-Relying-Party-Client-Test",
 	testModuleNames = {
 		"fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key",
 		"fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-missing-athash",
