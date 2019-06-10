@@ -12,6 +12,8 @@ import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestR
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2UserRejectsAuthentication;
 
@@ -37,7 +39,11 @@ public abstract class AbstractFAPIRWID2OBUserRejectsAuthentication extends Abstr
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-
+		if (whichClient == 1) {
+			callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
+		} else {
+			callAndStopOnFailure(OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest.class);
+		}
 	}
 
 	protected abstract void createClientCredentialsRequest();

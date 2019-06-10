@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningA
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgainstRequest;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
@@ -26,6 +27,8 @@ public abstract class AbstractFAPIRWID2PerformTokenEndpoint extends AbstractFAPI
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
+
+		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
 
 		performProfileIdTokenValidation();
 

@@ -4,7 +4,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class AddAcrScaClaimToAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
+public class OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
