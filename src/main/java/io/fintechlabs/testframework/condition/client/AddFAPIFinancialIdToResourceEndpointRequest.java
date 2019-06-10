@@ -11,14 +11,13 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "client")
+	@PreEnvironment(required = { "resource" })
 	@PostEnvironment(required = "resource_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 
-		// get the configured financial ID
-		String financialId = env.getString("client", "fapi_financial_id");
-		if (Strings.isNullOrEmpty(financialId)) {
-			throw error("Couldn't find financial ID");
+		String institutionId = env.getString("resource", "institution_id");
+		if (Strings.isNullOrEmpty(institutionId)) {
+			throw error("institution_id not found under resource in test configuration");
 		}
 
 		// get the previous headers if they exist
@@ -27,7 +26,7 @@ public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractConditi
 			headers = new JsonObject();
 		}
 
-		headers.addProperty("x-fapi-financial-id", financialId);
+		headers.addProperty("x-fapi-financial-id", institutionId);
 
 		env.putObject("resource_endpoint_request_headers", headers);
 

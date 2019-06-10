@@ -53,7 +53,7 @@ import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
@@ -80,8 +80,8 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
-		"client.fapi_financial_id",
-		"resource.resourceUrl"
+		"resource.resourceUrl",
+		"resource.institution_id"
 	}
 )
 public class CodeIdTokenWithPKCE extends AbstractTestModule {
@@ -295,7 +295,7 @@ public class CodeIdTokenWithPKCE extends AbstractTestModule {
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 			exposeEnvString("fapi_interaction_id");
 
-			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 

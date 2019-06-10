@@ -69,7 +69,7 @@ import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
@@ -388,7 +388,7 @@ public class CodeIdTokenWithMTLS extends AbstractTestModule {
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 			exposeEnvString("fapi_interaction_id");
 
-			callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-6");
 

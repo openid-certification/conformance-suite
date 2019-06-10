@@ -12,24 +12,17 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class GenerateResourceEndpointRequestHeaders extends AbstractCondition {
+public class FAPIGenerateResourceEndpointRequestHeaders extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "resource" })
 	@PostEnvironment(required = "resource_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 
 		Date loginDate = new Date(); // User just logged in
 
-		String institutionId = env.getString("resource", "institution_id");
-		if (Strings.isNullOrEmpty(institutionId)) {
-			throw error("Institution ID not found in resource configuration");
-		}
-
 		JsonObject headers = new JsonObject();
 
 		headers.addProperty("x-fapi-auth-date", DateUtils.formatDate(loginDate));
-		headers.addProperty("x-fapi-financial-id", institutionId);
 
 		env.putObject("resource_endpoint_request_headers", headers);
 

@@ -82,7 +82,7 @@ import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenAuth
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateRtHash;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.GenerateResourceEndpointRequestHeaders;
+import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
@@ -214,7 +214,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 
-		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 		setStatus(Status.CONFIGURED);
 
@@ -767,7 +767,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
 
-		callAndStopOnFailure(GenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
