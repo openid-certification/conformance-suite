@@ -488,6 +488,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		performPostAuthorizationResponse();
 	}
 
+	/** This should perform any actions that are specific to whichever of ping/poll/push is being tested */
 	protected abstract void modeSpecificAuthorizationEndpointRequest();
 
 	protected abstract void waitForAuthenticationToComplete(long delaySeconds);
