@@ -21,6 +21,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,8 +40,8 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 	private class OurErrorHandler extends DefaultResponseErrorHandler {
 		@Override
 		public boolean hasError(ClientHttpResponse response) throws IOException {
-			// Treat nothing as an error, so spring never throws an exception due to the http status code
-			// meaning the rest of our code can handle http status codes how it likes
+			// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+			// status code meaning the rest of our code can handle http status codes how it likes
 			return false;
 		}
 	}
@@ -88,8 +89,10 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 				jsonString = response.getBody();
 
 			} catch (RestClientResponseException e) {
-
-				throw error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("RestClientResponseException occurred whilst calling token endpoint",
+					e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			} catch (RestClientException e) {
+				return handleResponseException(env, e);
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {
@@ -115,6 +118,10 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 			throw error("Error creating HTTP Client", e);
 		}
 
+	}
+
+	protected Environment handleResponseException(Environment env, RestClientException e) {
+		throw error("RestClientException happened whilst calling token endpoint", ex(e));
 	}
 
 }

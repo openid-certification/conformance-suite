@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
+import io.fintechlabs.testframework.condition.client.CallTokenEndpointAllowingTLSFailure;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
@@ -62,13 +62,20 @@ public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends Abs
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
+		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
+		if (sslError) {
+			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
+			// is required, so there's no further checks to do
+		} else {
+			// otherwise we expect a well-formed 'invalid_client' error
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
 
 		fireTestFinished();
 	}
