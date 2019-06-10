@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapi;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -18,8 +19,8 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.client.RemoveRedirectUriFromAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-r-ensure-redirect-uri-in-authorization-request",
@@ -31,7 +32,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.scope"
 	}
 )
-public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule {
+public class EnsureRedirectUriInAuthorizationRequest extends AbstractRedirectServerTestModule {
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
@@ -97,19 +98,20 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractTestModule 
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("redirect_uri_missing_error"));
+		performRedirectAndWaitForErrorCallback();
 	}
 
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
+	}
+
+	@Override
+	protected void processCallback() {
+
+		fireTestFailure();
+		throw new TestFailureException(new ConditionError(getId(), "Couldn't ever got the callback response"));
+	}
 }

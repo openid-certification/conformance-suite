@@ -34,7 +34,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 	}
 
-	protected void performRedirect() {
+	protected final void performRedirect() {
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
@@ -44,6 +44,29 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 		setStatus(Status.WAITING);
 
 		browser.goToUrl(redirectTo);
+	}
+
+	protected final void performRedirectAndWaitForErrorCallback() {
+		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+
+		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
+			"redirect_to", redirectTo,
+			"http", "redirect"));
+
+		setStatus(Status.WAITING);
+
+		createPlaceholder();
+
+		waitForPlaceholders();
+
+		browser.goToUrl(redirectTo, env.getString("error_callback_placeholder"));
+	}
+
+	protected void createPlaceholder() {
+
+		// Use for create new placeholder in subclass
+		fireTestFailure();
+		throw new TestFailureException(getId(), "Placeholder must be created for test " + getName());
 	}
 
 	@UserFacing

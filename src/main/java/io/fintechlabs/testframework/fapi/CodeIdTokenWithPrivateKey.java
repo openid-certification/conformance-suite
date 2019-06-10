@@ -1,9 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -13,13 +9,9 @@ import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClient
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -82,15 +74,11 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-private-key",
@@ -107,7 +95,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"resource.resourceUrl"
 	}
 )
-public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
+public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPrivateKey.class);
 
@@ -225,82 +213,28 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.testmodule.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, com.google.gson.JsonObject)
-	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
-
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-
-			if (env.isKeyMapped("client")) {
-				// we're doing the second client
-				return handleSecondClientImplicitSubmission(requestParts);
-			} else {
-				// we're doing the first client
-				return handleImplicitSubmission(requestParts);
-			}
-
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
-	}
-
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
-
-		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
-
+	protected void processCallback() {
 		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		setStatus(Status.WAITING);
-
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-	}
-
-	private Object handleImplicitSubmission(JsonObject requestParts) {
-
-		// process the callback
-		setStatus(Status.RUNNING);
-
-		JsonElement body = requestParts.get("body");
-
-		if (body != null) {
-			String hash = OIDFJSON.getString(body);
-
-			logger.info("Hash: " + hash);
-
-			env.putString("implicit_hash", hash);
+		if (env.isKeyMapped("client")) {
+			// we're doing the second client
+			handleSecondClientAuthorizationResult();
 		} else {
-			logger.warn("No hash submitted");
-
-			env.putString("implicit_hash", ""); // Clear any old value
+			// we're doing the first client
+			handleAuthorizationResult();
 		}
 
-		callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+	}
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+	private void handleAuthorizationResult() {
 
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
@@ -422,83 +356,50 @@ public class CodeIdTokenWithPrivateKey extends AbstractTestModule {
 
 		call(condition(BuildPlainRedirectToAuthorizationEndpoint.class));
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to url", "redirect_to", redirectTo));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
-
-		return redirectToLogDetailPage();
+		performRedirect();
 
 	}
 
-	private Object handleSecondClientImplicitSubmission(JsonObject requestParts) {
+	private void handleSecondClientAuthorizationResult() {
 
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-			JsonElement body = requestParts.get("body");
+		// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
 
-			if (body != null) {
-				String hash = OIDFJSON.getString(body);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-				logger.info("Hash: " + hash);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-				env.putString("implicit_hash", hash);
-			} else {
-				logger.warn("No hash submitted");
+		eventLog.startBlock("Attempt to use authorization code obtained by client 2 with a client assertion for client 1");
 
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 
-			// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
+		call(condition(AddCodeVerifierToTokenEndpointRequest.class));
 
-			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
 
-			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 
-			eventLog.startBlock("Attempt to use authorization code obtained by client 2 with a client assertion for client 1");
+		// put everything back where we found it
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		eventLog.endBlock();
 
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-
-			call(condition(AddCodeVerifierToTokenEndpointRequest.class));
-
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-
-			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
-
-			// put everything back where we found it
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			eventLog.endBlock();
-
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		fireTestFinished();
 	}
 
 }
