@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
@@ -34,5 +35,17 @@ public class FAPICIBAPingEnsureBackchannelAuthorizationRequestWithoutRequestFail
 		callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 
 		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
+	}
+
+	@Override
+	protected void performPostAuthorizationResponse() {
+
+		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
+		if (httpStatus != HttpStatus.SC_OK) {
+			// validate error and then finish the test
+			super.performPostAuthorizationResponse();
+		} else {
+			callAutomatedEndpoint();
+		}
 	}
 }

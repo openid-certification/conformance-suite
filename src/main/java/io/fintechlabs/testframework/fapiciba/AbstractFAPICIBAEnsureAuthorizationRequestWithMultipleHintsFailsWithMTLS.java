@@ -1,8 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddMultipleHintsToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
 
 public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
@@ -25,15 +24,4 @@ public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHint
 		performProfileAuthorizationEndpointSetup();
 
 	}
-
-	@Override
-	protected void waitForAuthenticationToComplete(long delaySeconds) {
-		/* Nothing to do */
-	}
-
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		/* Nothing to do */
-	}
-
 }

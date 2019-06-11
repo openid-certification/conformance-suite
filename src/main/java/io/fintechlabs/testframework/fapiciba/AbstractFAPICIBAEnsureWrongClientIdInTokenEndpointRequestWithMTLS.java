@@ -28,8 +28,6 @@ public abstract class AbstractFAPICIBAEnsureWrongClientIdInTokenEndpointRequestW
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
-
-		fireTestFinished();
 	}
 
 	@Override
@@ -37,10 +35,4 @@ public abstract class AbstractFAPICIBAEnsureWrongClientIdInTokenEndpointRequestW
 		//Not called in this test
 
 	}
-
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		//Not called in this test
-	}
-
 }

@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -31,9 +32,21 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPingEnsureWrongClientIdInTokenEndpointRequestWithMTLS extends AbstractFAPICIBAEnsureWrongClientIdInTokenEndpointRequestWithMTLS {
 
 	@Override
+	protected void performPostAuthorizationResponse() {
+		super.performPostAuthorizationResponse();
+
+		callAutomatedEndpoint();
+	}
+
+	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 
 		callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
+	}
+
+	@Override
+	protected void processNotificationCallback(JsonObject requestParts) {
+		fireTestFinished();
 	}
 }

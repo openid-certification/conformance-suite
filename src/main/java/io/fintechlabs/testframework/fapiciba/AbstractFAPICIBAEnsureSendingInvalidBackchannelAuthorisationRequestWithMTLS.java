@@ -2,11 +2,8 @@ package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus400;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
-import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint;
-import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromBackchannelAuthenticationEndpoint;
-import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
 
 // Send invalid request to backchannel authorisation endpoint and the response is invalid_request
 public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS extends AbstractFAPICIBAWithMTLS {
@@ -43,6 +40,7 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
-		//Not called in this test
+		fireTestFailure();
+		throw new ConditionError(getId(), "Notification endpoint was called while it shouldn't");
 	}
 }

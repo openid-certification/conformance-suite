@@ -1,10 +1,8 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddIatValueIsWeekInPastToRequestObject;
-import io.fintechlabs.testframework.condition.client.EnsureErrorFromBackchannelAuthenticationEndpointResponse;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
@@ -33,6 +31,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPingWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
+	protected void performPostAuthorizationResponse() {
+
+		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
+		if (httpStatus != HttpStatus.SC_OK) {
+			// validate error and then finish the test
+			super.performPostAuthorizationResponse();
+		} else {
+			callAutomatedEndpoint();
+		}
+	}
+
+	@Override
 	protected void createAuthorizationRequestObject() {
 
 		super.createAuthorizationRequestObject();
@@ -40,5 +50,4 @@ public class FAPICIBAPingWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends
 		callAndStopOnFailure(AddIatValueIsWeekInPastToRequestObject.class, "CIBA-7.1.1");
 
 	}
-
 }
