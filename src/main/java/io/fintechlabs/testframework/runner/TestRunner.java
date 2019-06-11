@@ -320,7 +320,13 @@ public class TestRunner implements DataUtils {
 			if (test != null) {
 				// TODO: make the override configurable to allow for conflict of re-used aliases
 
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", "Stopping test due to alias conflict", "alias", alias, "new_test_id", id));
+				String message;
+				if (TestModule.Status.FINISHED == test.getStatus() || TestModule.Status.INTERRUPTED == test.getStatus()) {
+					message = "Alias has now been claimed by another test";
+				} else {
+					message = "Stopping test due to alias conflict";
+				}
+				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", message, "alias", alias, "new_test_id", id));
 
 				test.stop(); // stop the currently-running test
 			}
