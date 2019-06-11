@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
@@ -32,8 +31,6 @@ public abstract class AbstractFAPICIBAEnsureWrongAuthenticationRequestIdInTokenE
 		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-11");
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-
-		fireTestFinished();
 	}
 
 	@Override
@@ -41,10 +38,4 @@ public abstract class AbstractFAPICIBAEnsureWrongAuthenticationRequestIdInTokenE
 		//Not called in this test
 
 	}
-
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		//Not called in this test
-	}
-
 }

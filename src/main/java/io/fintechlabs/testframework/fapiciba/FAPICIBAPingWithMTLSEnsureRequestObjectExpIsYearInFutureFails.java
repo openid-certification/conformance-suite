@@ -1,10 +1,10 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.Condition;
+import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.AddExpValueIsYearInFutureToRequestObject;
-import io.fintechlabs.testframework.condition.client.EnsureErrorFromBackchannelAuthenticationEndpointResponse;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
@@ -33,6 +33,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 public class FAPICIBAPingWithMTLSEnsureRequestObjectExpIsYearInFutureFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 
 	@Override
+	protected void performPostAuthorizationResponse() {
+
+		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
+		if (httpStatus != HttpStatus.SC_OK) {
+			// validate error and then finish the test
+			super.performPostAuthorizationResponse();
+		} else {
+			callAutomatedEndpoint();
+		}
+	}
+
+	@Override
 	protected void createAuthorizationRequestObject() {
 
 		super.createAuthorizationRequestObject();
@@ -40,5 +52,4 @@ public class FAPICIBAPingWithMTLSEnsureRequestObjectExpIsYearInFutureFails exten
 		callAndStopOnFailure(AddExpValueIsYearInFutureToRequestObject.class, "CIBA-7.1.1");
 
 	}
-
 }
