@@ -319,6 +319,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			// evaluate the condition and assign its results back to our environment
 			env = condition.evaluate(env);
+			if (!condition.logged()) {
+				eventLog.log(condition.getMessage(),
+					args("msg", "Condition ran but did not log anything"));
+			}
 
 			// check the environment to make sure the condition did what it claimed to
 			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);

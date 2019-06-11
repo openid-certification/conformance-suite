@@ -27,6 +27,13 @@ public interface Condition {
 	}
 
 	/**
+	 * Returns whether an evaluated condition wrote a message to the test log
+	 *
+	 * Call after 'evaluate' returns
+	 */
+	public boolean logged();
+
+	/**
 	 * @return a a string suitable for tagging this as a "source" in the logs, defaults to the class name
 	 */
 	default public String getMessage() {
