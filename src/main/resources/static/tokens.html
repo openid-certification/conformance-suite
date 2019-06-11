@@ -179,6 +179,10 @@
 					url: '/token',
 					dataSrc: '',
 					error: function(jqxhr, status, error) {
+						if (status == "abort") {
+							// Request was aborted (probably a reload); not an error
+							return;
+						}
 						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
 							code: jqxhr.status,
 							error: error
@@ -214,6 +218,10 @@
 							$.ajax({
 								type: 'DELETE',
 								url: '/token/' + encodeURIComponent(id),
+								beforeSend: function(jqxhr) {
+									// Prevent browser from trying to parse an empty OK response as XML
+									jqxhr.overrideMimeType("text/plain");
+								},
 								success: function() {
 									// reload the list of tokens
 									$('#tokensListing').DataTable().ajax.reload();
