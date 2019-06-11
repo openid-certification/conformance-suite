@@ -18,17 +18,14 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNo
 
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		performRedirectAndWaitForErrorCallback();
+	}
 
-		eventLog.log(getName(), "Redirecting to url " + redirectTo);
-
+	@Override
+	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-7.3-1");
 
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override
