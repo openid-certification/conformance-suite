@@ -404,7 +404,7 @@ deployment_server_test_review:
     apk add glibc-2.23-r3.apk
     rm glibc-2.23-r3.apk
 
-    curl https://kubernetes-helm.storage.googleapis.com/helm-v2.6.1-linux-amd64.tar.gz | tar zx
+    curl https://kubernetes-helm.storage.googleapis.com/helm-v2.14.0-linux-amd64.tar.gz | tar zx
     mv linux-amd64/helm /usr/bin/
     helm version --client
 
