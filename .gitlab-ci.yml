@@ -504,7 +504,7 @@ deployment_server_test_review:
       name="$name-$track"
     fi
 
-    helm delete "$name" || true
+    helm delete --purge "$name" || true
   }
 
   function set_up_for_running_test_plan() {
