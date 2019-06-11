@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
 import java.security.KeyManagementException;

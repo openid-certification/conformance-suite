@@ -1,8 +1,5 @@
 package io.fintechlabs.testframework.condition.as;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +18,8 @@ import static org.junit.Assert.assertNotNull;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateFapiInteractionIdIfNeeded_UnitTest {
