@@ -16,9 +16,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -86,9 +85,9 @@ public class Application {
 	}
 
 	@Bean
-	public EmbeddedServletContainerFactory servletContainer() {
+	public TomcatServletWebServerFactory servletContainer() {
 
-		TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+		TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
 
 		Connector ajpConnector = new Connector("AJP/1.3");
 		// ajpConnector.setProtocol("AJP/1.3");

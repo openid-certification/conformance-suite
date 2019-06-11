@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.google.gson.JsonObject;
 
@@ -11,7 +12,6 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 public class FilterUserInfoForScopes extends AbstractCondition {
 

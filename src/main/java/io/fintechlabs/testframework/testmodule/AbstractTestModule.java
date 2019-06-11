@@ -6,7 +6,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mongodb.DBObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
@@ -541,7 +540,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			}
 
 			if (getResult() == Result.UNKNOWN) {
-				List<DBObject> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
+				List<?> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
 				if (filledPlaceholders.size() > 0) {
 					// This is only necessary for placeholders filled by browsercontrol; for images uploaded by the
 					// user we set the status to review when the image is uploaded

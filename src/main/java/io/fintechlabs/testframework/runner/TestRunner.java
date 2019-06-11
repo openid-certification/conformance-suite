@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.runner;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -243,7 +242,7 @@ public class TestRunner implements DataUtils {
 
 		// see if an alias was passed in as part of the configuration and use it if available
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
-			try {
+			{
 				alias = OIDFJSON.getString(config.get("alias"));
 
 				// create an alias for the test
@@ -252,10 +251,6 @@ public class TestRunner implements DataUtils {
 					return new ResponseEntity<>(HttpStatus.CONFLICT);
 				}
 				url = baseUrl + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				// this should never happen, why is Java dumb
-				e.printStackTrace();
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 		} else {

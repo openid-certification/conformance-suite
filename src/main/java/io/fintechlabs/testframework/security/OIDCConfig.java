@@ -79,6 +79,9 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.admin.issuer}")
 	private String admin_iss;
 
+	@Autowired
+	private DummyUserFilter dummyUserFilter;
+
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(googleClientId);
@@ -169,11 +172,6 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public DummyUserFilter dummyUserFilter() {
-		return new DummyUserFilter();
-	}
-
-	@Bean
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
@@ -223,7 +221,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
-			http.addFilterBefore(dummyUserFilter(), OIDCAuthenticationFilter.class);
+			http.addFilterBefore(dummyUserFilter, OIDCAuthenticationFilter.class);
 		}
 	}
 

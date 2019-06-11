@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +13,7 @@ import java.util.Map;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -31,9 +32,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.info.DBTestInfoService;
@@ -77,8 +77,8 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<DBObject>> getLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
-		List<DBObject> results = getTestResults(id, since);
+	public ResponseEntity<List<Document>> getLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
+		List<Document> results = getTestResults(id, since);
 
 		return ResponseEntity.ok().body(results);
 	}
@@ -94,20 +94,20 @@ public class LogApi {
 	}
 
 	private ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id, boolean publicOnly) {
-		List<DBObject> results = getTestResults(id, null, publicOnly);
+		List<Document> results = getTestResults(id, null, publicOnly);
 
-		DBObject testInfo = null;
+		Document testInfo = null;
 		if (publicOnly) {
 			Criteria criteria = new Criteria();
 			criteria.and("_id").is(id);
 			criteria.and("publish").is("everything");
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(criteria.getCriteriaObject());
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(criteria.getCriteriaObject()).first();
 		} else if (authenticationFacade.isAdmin()) {
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id)).first();
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
-				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("owner", owner).get());
+				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id).append("owner", owner)).first();
 			}
 		}
 
@@ -202,21 +202,21 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/public/api/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<DBObject>> getPublicLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
-		List<DBObject> results = getPublicTestResults(id, since);
+	public ResponseEntity<List<Document>> getPublicLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
+		List<Document> results = getPublicTestResults(id, since);
 
 		return ResponseEntity.ok().body(results);
 	}
 
-	private List<DBObject> getTestResults(String id, Long since) {
+	private List<Document> getTestResults(String id, Long since) {
 		return getTestResults(id, since, false);
 	}
 
-	private List<DBObject> getPublicTestResults(String id, Long since) {
+	private List<Document> getPublicTestResults(String id, Long since) {
 		return getTestResults(id, since, true);
 	}
 
-	private List<DBObject> getTestResults(String id, Long since, boolean isPublic) {
+	private List<Document> getTestResults(String id, Long since, boolean isPublic) {
 		boolean summaryOnly;
 
 		if (isPublic) {
@@ -225,18 +225,18 @@ public class LogApi {
 			criteria.and("_id").is(id);
 			Query query = new Query(criteria);
 			query.fields().include("publish");
-			DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(query.getQueryObject());
+			Document testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(query.getQueryObject()).first();
 			if (testInfo == null)
-				return new ArrayList<DBObject>();
+				return Collections.emptyList();
 			String publish = (String) testInfo.get("publish");
 			if (publish == null)
-				return new ArrayList<DBObject>();
+				return Collections.emptyList();
 			else if (publish.equals("summary"))
 				summaryOnly = true;
 			else if (publish.equals("everything"))
 				summaryOnly = false;
 			else
-				return new ArrayList<DBObject>();
+				return Collections.emptyList();
 		} else {
 			summaryOnly = false;
 		}
@@ -263,12 +263,11 @@ public class LogApi {
 				.include("time");
 		}
 
-		List<DBObject> results = mongoTemplate.getCollection(DBEventLog.COLLECTION).find(query.getQueryObject(), query.getFieldsObject())
-			.sort(BasicDBObjectBuilder.start()
-				.add("time", 1)
-				.get())
-			.toArray();
-		return results;
+		return Lists.newArrayList(mongoTemplate
+			.getCollection(DBEventLog.COLLECTION)
+			.find(query.getQueryObject())
+			.projection(query.getFieldsObject())
+			.sort(new Document("time", 1)));
 	}
 
 	private static class SignatureOutputStream extends OutputStream {

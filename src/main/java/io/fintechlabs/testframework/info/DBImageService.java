@@ -3,9 +3,8 @@ package io.fintechlabs.testframework.info;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
-import io.fintechlabs.testframework.condition.Condition;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -15,9 +14,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
+import com.google.common.collect.Lists;
 
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.logging.DBEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
@@ -54,7 +53,7 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public DBObject fillPlaceholder(String testId, String placeholder, Map<String, Object> update, boolean assumeAdmin) {
+	public Document fillPlaceholder(String testId, String placeholder, Map<String, Object> update, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// add the placeholder condition
@@ -72,7 +71,7 @@ public class DBImageService implements ImageService {
 
 		updateCommand.unset("upload");
 
-		return mongoTemplate.findAndModify(query, updateCommand, FindAndModifyOptions.options().returnNew(true), DBObject.class, DBEventLog.COLLECTION);
+		return mongoTemplate.findAndModify(query, updateCommand, FindAndModifyOptions.options().returnNew(true), Document.class, DBEventLog.COLLECTION);
 	}
 
 	@Override
@@ -87,16 +86,15 @@ public class DBImageService implements ImageService {
 
 		search.fields().include("upload");
 
-		return mongoTemplate
+		return Lists.newArrayList(mongoTemplate
 				.getCollection(DBEventLog.COLLECTION)
-				.find(search.getQueryObject(), search.getFieldsObject())
-				.toArray().stream()
-					.map((obj) -> obj.get("upload").toString())
-					.collect(Collectors.toList());
+				.find(search.getQueryObject())
+				.projection(search.getFieldsObject())
+				.map((obj) -> obj.get("upload").toString()));
 	}
 
 	@Override
-	public List<DBObject> getFilledPlaceholders(String testId, boolean assumeAdmin) {
+	public List<Document> getFilledPlaceholders(String testId, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		// look for placeholders that have already being filled
@@ -107,14 +105,14 @@ public class DBImageService implements ImageService {
 
 		search.fields().include("upload");
 
-		return mongoTemplate
+		return Lists.newArrayList(mongoTemplate
 			.getCollection(DBEventLog.COLLECTION)
-			.find(search.getQueryObject(), search.getFieldsObject())
-			.toArray();
+			.find(search.getQueryObject())
+			.projection(search.getFieldsObject()));
 	}
 
 	@Override
-	public List<DBObject> getAllImagesForTestId(String testId, boolean assumeAdmin) {
+	public List<Document> getAllImagesForTestId(String testId, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
 		Criteria anyImages =
@@ -128,11 +126,10 @@ public class DBImageService implements ImageService {
 
 		Query search = Query.query(criteria);
 
-		return mongoTemplate.getCollection(DBEventLog.COLLECTION).find(search.getQueryObject())
-			.sort(BasicDBObjectBuilder.start()
-				.add("time", 1)
-				.get())
-			.toArray();
+		return Lists.newArrayList(mongoTemplate
+			.getCollection(DBEventLog.COLLECTION)
+			.find(search.getQueryObject())
+			.sort(new Document("time", 1)));
 	}
 
 }

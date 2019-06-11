@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 @Controller
 public class TestInfoApi {
@@ -38,14 +38,14 @@ public class TestInfoApi {
 	private TestInfoService testInfoService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<DBObject>> getAllTests() {
-		List<DBObject> testInfo = null;
+	public ResponseEntity<List<Document>> getAllTests() {
+		List<Document> testInfo = null;
 		if (authenticationFacade.isAdmin()) {
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find().toArray();
+			testInfo = Lists.newArrayList(mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find());
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
-				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(BasicDBObjectBuilder.start().add("owner", owner).get()).toArray();
+				testInfo = Lists.newArrayList(mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("owner", owner)));
 			}
 		}
 		return new ResponseEntity<>(testInfo, HttpStatus.OK);
@@ -54,13 +54,13 @@ public class TestInfoApi {
 
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getTestInfo(@PathVariable("id") String id) {
-		DBObject testInfo = null;
+		Document testInfo = null;
 		if (authenticationFacade.isAdmin()) {
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id);
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id)).first();
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
-				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(BasicDBObjectBuilder.start().add("_id", id).add("owner", owner).get());
+				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id).append("owner", owner)).first();
 			}
 		}
 		if (testInfo == null) {
@@ -111,7 +111,10 @@ public class TestInfoApi {
 			.include("publish")
 			.include("result");
 
-		DBObject testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).findOne(id, query.getFieldsObject());
+		Document testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION)
+				.find(new Document("_id", id))
+				.projection(query.getFieldsObject())
+				.first();
 
 		if (testInfo == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -5,8 +5,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
-import com.mongodb.DBCollection;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +16,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
+import com.mongodb.client.MongoCollection;
 
 import io.fintechlabs.testframework.info.TestInfoService;
 
@@ -46,16 +45,16 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, String msg) {
 
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-			.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
-			.add("testId", testId)
-			.add("src", source)
-			.add("testOwner", owner)
-			.add("time", new Date().getTime())
-			.add("blockId", blockId)
-			.add("msg", msg);
+		Document document = new Document()
+			.append("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
+			.append("testId", testId)
+			.append("src", source)
+			.append("testOwner", owner)
+			.append("time", new Date().getTime())
+			.append("blockId", blockId)
+			.append("msg", msg);
 
-		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+		mongoTemplate.insert(document, COLLECTION);
 	}
 
 	/* (non-Javadoc)
@@ -64,13 +63,13 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, JsonObject obj) {
 
-		DBObject dbObject = (DBObject) JSON.parse(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
-		dbObject.put("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
-		dbObject.put("testId", testId);
-		dbObject.put("src", source);
-		dbObject.put("testOwner", owner);
-		dbObject.put("time", new Date().getTime());
-		dbObject.put("blockId", blockId);
+		Document dbObject = Document.parse(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(obj).toString()); // don't touch the incoming object
+		dbObject.append("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32));
+		dbObject.append("testId", testId);
+		dbObject.append("src", source);
+		dbObject.append("testOwner", owner);
+		dbObject.append("time", new Date().getTime());
+		dbObject.append("blockId", blockId);
 
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
@@ -114,8 +113,8 @@ public class DBEventLog implements EventLog {
 
 	@Override
 	public void createIndexes(){
-		DBCollection eventLogCollection = mongoTemplate.getCollection(COLLECTION);
-		eventLogCollection.createIndex("testId");
-		eventLogCollection.createIndex("testOwner");
+		MongoCollection<Document> eventLogCollection = mongoTemplate.getCollection(COLLECTION);
+		eventLogCollection.createIndex(new Document("testId", 1));
+		eventLogCollection.createIndex(new Document("testOwner", 1));
 	}
 }
