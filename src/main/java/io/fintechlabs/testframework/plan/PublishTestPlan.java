@@ -26,6 +26,7 @@ public @interface PublishTestPlan {
 	 *
 	 * @deprecated use testModules() instead
 	 */
+	@Deprecated
 	String[] testModuleNames() default {};
 
 	/**
