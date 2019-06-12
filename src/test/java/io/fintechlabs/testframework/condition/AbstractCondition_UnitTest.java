@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -23,7 +23,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.ImmutableMap;

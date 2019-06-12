@@ -1,12 +1,10 @@
 package io.fintechlabs.testframework.logging;
 
-import org.springframework.core.convert.converter.Converter;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.mongodb.BasicDBList;
-import com.mongodb.util.JSON;
+import org.springframework.core.convert.converter.Converter;
 
 public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BasicDBList> {
 
@@ -16,11 +14,12 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, Basic
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
 	@Override
+	@SuppressWarnings("deprecation")
 	public BasicDBList convert(JsonArray source) {
 		if (source == null) {
 			return null;
 		} else {
-			return (BasicDBList) JSON.parse(gson.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source)));
+			return (BasicDBList) com.mongodb.util.JSON.parse(gson.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source)));
 
 		}
 	}

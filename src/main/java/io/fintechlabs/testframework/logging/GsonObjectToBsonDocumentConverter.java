@@ -13,7 +13,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mongodb.util.JSON;
 
 /**
  * Convert JsonObjects from GSON into a BSON Document, wrapping problematic keys with a conversion as follows:
@@ -37,11 +36,12 @@ public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, 
 	private Gson gson = new GsonBuilder().create();
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public Bson convert(JsonObject source) {
 		if (source == null) {
 			return null;
 		} else {
-			return (Bson) JSON.parse(gson.toJson(convertFieldsToStructure(source)));
+			return (Bson) com.mongodb.util.JSON.parse(gson.toJson(convertFieldsToStructure(source)));
 		}
 	}
 

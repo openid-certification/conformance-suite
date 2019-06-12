@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="fapi-conformance-suite" options="-Xlint:unchecked -Werror" />
+      <module name="fapi-conformance-suite" options="-parameters -Xlint:unchecked -Xlint:deprecation -Werror" />
     </option>
   </component>
 </project>
