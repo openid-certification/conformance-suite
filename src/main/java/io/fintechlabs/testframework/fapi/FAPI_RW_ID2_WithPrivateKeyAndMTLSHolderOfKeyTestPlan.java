@@ -33,6 +33,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-rw-id2-ensure-authorization-request-without-request-object-fails-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ensure-client-assertion-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
 		"fapi-rw-id2-ensure-response-mode-query-with-private-key-and-mtls-holder-of-key",
+		"fapi-rw-id2-ensure-authorization-request-without-state-success-with-private-key-and-mtls-holder-of-key",
 	}
 )
 public class FAPI_RW_ID2_WithPrivateKeyAndMTLSHolderOfKeyTestPlan implements TestPlan {
