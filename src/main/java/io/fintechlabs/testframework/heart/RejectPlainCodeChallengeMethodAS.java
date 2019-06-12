@@ -1,11 +1,7 @@
 package io.fintechlabs.testframework.heart;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
-
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -23,6 +19,8 @@ import io.fintechlabs.testframework.condition.client.ExpectRejectPlainCodeChalle
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
@@ -30,10 +28,8 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 /**
  * Using {@link NativeDelegatedClientAS} as a base, but with a 'plain' code challenge which should be rejected.
@@ -50,7 +46,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"tls.testPort"
 	}
 )
-public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
+public class RejectPlainCodeChallengeMethodAS extends AbstractRedirectServerTestModule {
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
@@ -122,51 +118,30 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		performRedirectAndWaitForErrorCallback();
+	}
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
+	@Override
+	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRejectPlainCodeChallengeMethodErrorPage.class);
 
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("plain_pkce_error"));
+		env.putString("error_callback_placeholder", env.getString("plain_pkce_error"));
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
-		}
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		handleAuthorizationResult();
 
 	}
 
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
+	private void handleAuthorizationResult() {
+		callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
-
-			env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
-			callAndStopOnFailure(EnsureAuthorizationEndpointError.class);
-			fireTestFinished();
-			fireTestSuccess();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		fireTestFinished();
 	}
 
 }

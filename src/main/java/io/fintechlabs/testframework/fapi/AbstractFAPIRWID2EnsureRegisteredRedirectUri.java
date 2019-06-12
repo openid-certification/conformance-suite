@@ -23,19 +23,13 @@ public abstract class AbstractFAPIRWID2EnsureRegisteredRedirectUri extends Abstr
 
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
+		performRedirectAndWaitForErrorCallback();
 	}
 
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+	}
 }

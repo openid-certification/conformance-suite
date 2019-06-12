@@ -1,9 +1,8 @@
 package io.fintechlabs.testframework.example;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +43,7 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "sample-test",
@@ -66,7 +62,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 	},
 	summary = "This is a test module summary, which describes the test module in greater detail, possibly giving the user more instructions about how to interact with this test module."
 )
-public class SampleTestModule extends AbstractTestModule {
+public class SampleTestModule extends AbstractRedirectServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(SampleTestModule.class);
 
@@ -138,113 +134,60 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		handleAuthorizationResult();
 
 	}
 
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
+	private void handleAuthorizationResult() {
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-			env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-			callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		//require(CreateClientAuthenticationAssertionClaims.class);
 
-			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		//require(SignClientAuthenticationAssertion.class);
 
-			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
-			//require(CreateClientAuthenticationAssertionClaims.class);
+		//require(AddClientAssertionToTokenEndpointRequest.class);
 
-			//require(SignClientAuthenticationAssertion.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-			//require(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-			callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
 
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
+		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
-			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateSHash.class, "FAPI-RW-5.2.2-4");
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			callAndContinueOnFailure(ValidateSHash.class, "FAPI-RW-5.2.2-4");
+		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
 
-			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
-
-			// verify the access token against a protected resource
-
-			/*
-		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-
-		callAndStopOnFailure(SetTLSTestHostToResourceEndpoint.class);
-
-		call(DisallowInsecureCipher.class, "FAPI-RW-8.5-1");
-
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-3");
-
-		call(DisallowAccessTokenInQuery.class, "FAPI-R-6.2.1-4");
-
-		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-R-6.2.1-11");
-
-		call(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-R-6.2.1-12");
-
-		call(EnsureMatchingFAPIInteractionId.class, "FAPI-R-6.2.1-12");
-
-		call(EnsureResourceResponseEncodingIsUTF8.class, "FAPI-R-6.2.1-9");
-			 */
-
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		fireTestFinished();
 	}
 
 }

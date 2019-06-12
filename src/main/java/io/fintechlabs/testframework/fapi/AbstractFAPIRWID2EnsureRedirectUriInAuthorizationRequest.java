@@ -14,19 +14,13 @@ public abstract class AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest e
 
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("redirect_uri_missing_error"));
+		performRedirectAndWaitForErrorCallback();
 	}
 
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
+	}
 }

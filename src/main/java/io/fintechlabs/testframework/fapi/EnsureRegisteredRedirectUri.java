@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapi;
 
 import com.google.gson.JsonObject;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -17,8 +18,8 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 /**
  * Tests that the AS will reject a non-registered redirect URI by
@@ -33,7 +34,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.scope"
 	}
 )
-public class EnsureRegisteredRedirectUri extends AbstractTestModule {
+public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModule {
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
@@ -95,19 +96,20 @@ public class EnsureRegisteredRedirectUri extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("redirect_uri_error"));
+		performRedirectAndWaitForErrorCallback();
 	}
 
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+	}
+
+	@Override
+	protected void processCallback() {
+
+		fireTestFailure();
+		throw new TestFailureException(new ConditionError(getId(), "Couldn't ever got the callback response"));
+	}
 }

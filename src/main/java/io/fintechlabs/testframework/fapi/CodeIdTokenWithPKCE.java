@@ -1,16 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -48,7 +41,6 @@ import io.fintechlabs.testframework.condition.client.EnsureResourceResponseConte
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
@@ -62,15 +54,11 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-pkce",
@@ -84,7 +72,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"resource.institution_id"
 	}
 )
-public class CodeIdTokenWithPKCE extends AbstractTestModule {
+public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPKCE.class);
 
@@ -187,136 +175,84 @@ public class CodeIdTokenWithPKCE extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		handleAuthorizationResult();
 
 	}
 
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
+	private void handleAuthorizationResult() {
 
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		setStatus(Status.WAITING);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-	}
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-	private Object handleImplicitSubmission(JsonObject requestParts) {
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class);
 
-			JsonElement body = requestParts.get("body");
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-			if (body != null) {
-				String hash = OIDFJSON.getString(body);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-				logger.info("Hash: " + hash);
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
 
-				env.putString("implicit_hash", hash);
-			} else {
-				logger.warn("No hash submitted");
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
+		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
-			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
-			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
-			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		skipIfMissing(new String[]{"s_hash"}, null, ConditionResult.INFO,
+			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
-			callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndContinueOnFailure(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
 
-			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
+		// verify the access token against a protected resource
 
-			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		exposeEnvString("fapi_interaction_id");
 
-			callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
+		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-			callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-R-6.2.1-11");
 
-			callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-R-6.2.1-12");
 
-			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
+		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
 
-			skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
-				ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 
-			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-R-6.2.1-4");
 
-			callAndContinueOnFailure(EnsureMinimumTokenLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
-
-			callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
-
-			// verify the access token against a protected resource
-
-			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-			exposeEnvString("fapi_interaction_id");
-
-			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
-
-			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-
-			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
-
-			callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-R-6.2.1-11");
-
-			callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-R-6.2.1-12");
-
-			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
-
-			callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
-
-			callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-R-6.2.1-4");
-
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		fireTestFinished();
 	}
 
 }

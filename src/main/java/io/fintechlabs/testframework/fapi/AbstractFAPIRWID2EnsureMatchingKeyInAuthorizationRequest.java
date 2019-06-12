@@ -13,27 +13,23 @@ public abstract class AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest e
 		createAuthorizationRequest();
 
 		// Switch to client 2 JWKs
-
 		eventLog.startBlock("Second client's keys");
 		env.mapKey("client_jwks", "client_jwks2");
 
 		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		env.unmapKey("client_jwks");
+		eventLog.endBlock();
 
-		eventLog.log(getName(), "Redirecting to url " + redirectTo);
+		performRedirectAndWaitForErrorCallback();
+	}
 
+	@Override
+	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1");
 
-		eventLog.endBlock();
-		env.unmapKey("client_jwks");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override

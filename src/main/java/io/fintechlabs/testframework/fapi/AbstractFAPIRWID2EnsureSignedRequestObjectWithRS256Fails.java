@@ -19,19 +19,14 @@ public abstract class AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails e
 
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		performRedirectAndWaitForErrorCallback();
+	}
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
+	@Override
+	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectSignedRS256RequestObjectErrorPage.class, "FAPI-RW-8.6");
 
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("request_object_unverifiable_error"));
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override

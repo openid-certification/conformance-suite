@@ -1,14 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -22,18 +13,13 @@ import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureEmptyCallbackUrlQuery;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.ExpectPKCEError;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "fapi-r-require-pkce",
@@ -45,7 +31,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.scope"
 	}
 )
-public class RequirePKCE extends AbstractTestModule {
+public class RequirePKCE extends AbstractRedirectServerTestModule {
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
@@ -99,88 +85,37 @@ public class RequirePKCE extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		callAndStopOnFailure(ExpectPKCEError.class, "FAPI-R-5.2.2-7");
-
-		setStatus(Status.WAITING);
-
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, env.getString("pkce_error"));
+		performRedirectAndWaitForErrorCallback();
 	}
-
 
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		handleAuthorizationResult();
 	}
 
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
+	private void handleAuthorizationResult() {
+		// code id_token, so response should be in the hash
+		env.mapKey("authorization_endpoint_response", "callback_params");
 
-		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
+		callAndContinueOnFailure(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		setStatus(Status.WAITING);
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
+		callAndContinueOnFailure(EnsureEmptyCallbackUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+
+		fireTestFinished();
 	}
 
-	private Object handleImplicitSubmission(JsonObject requestParts) {
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectPKCEError.class, "FAPI-R-5.2.2-7");
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
-
-			JsonElement body = requestParts.get("body");
-
-			if (body != null) {
-				String hash = OIDFJSON.getString(body);
-				env.putString("implicit_hash", hash);
-			} else {
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
-			callAndStopOnFailure(ExtractImplicitHashToCallbackResponse.class);
-
-			// We now have callback_query_params and callback_params (containing the hash) available
-
-			// code id_token, so response should be in the hash
-			env.mapKey("authorization_endpoint_response", "callback_params");
-
-			callAndContinueOnFailure(EnsureInvalidRequestError.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
-
-			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-
-			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
-
-			callAndContinueOnFailure(EnsureEmptyCallbackUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.6");
-
-			fireTestFinished();
-
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		env.putString("error_callback_placeholder", env.getString("pkce_error"));
 	}
-
 }

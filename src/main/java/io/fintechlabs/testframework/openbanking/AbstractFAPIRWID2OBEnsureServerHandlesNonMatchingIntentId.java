@@ -22,19 +22,13 @@ public abstract class AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId 
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), "Redirecting to url " + redirectTo);
-
 		env.unmapKey("mutual_tls_authentication");
 		env.unmapKey("client_jwks");
 		env.unmapKey("client");
 
 		eventLog.endBlock();
 
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
 	@Override

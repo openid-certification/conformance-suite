@@ -41,19 +41,14 @@ public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideReque
 
 		createAuthorizationRedirect();
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		performRedirectAndWaitForErrorCallback();
+	}
 
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
+	@Override
+	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestDifferentNonceInsideAndOutsideErrorPage.class, "OIDCC-6.1");
 
-		waitForPlaceholders();
-
-		browser.goToUrl(redirectTo, "request_unverifiable_error");
+		env.putString("error_callback_placeholder", "request_unverifiable_error");
 	}
 
 	@Override
