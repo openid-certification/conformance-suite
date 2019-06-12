@@ -1,8 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
 
 // Send invalid request to backchannel authorisation endpoint and the response is invalid_request
@@ -38,9 +36,4 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 
 	}
 
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		fireTestFailure();
-		throw new ConditionError(getId(), "Notification endpoint was called while it shouldn't");
-	}
 }

@@ -12,7 +12,6 @@ import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaGrantTypeToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaRequestSigningPS256ToDynamicRegistrationRequest;
-import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaTokenDeliveryModePingToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
@@ -24,12 +23,14 @@ import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNotificationEndpointToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
@@ -95,9 +96,9 @@ import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromSer
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenACRClaims;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateRtHash;
+import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetDynamicClientConfiguration;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
@@ -790,7 +791,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	/** called when the ping notification is received from the authorization server */
-	protected abstract void processNotificationCallback(JsonObject requestParts);
+	protected void processNotificationCallback(JsonObject requestParts) {
+		callAndContinueOnFailure(CIBANotificationEndpointCalledUnexpectedly.class, Condition.ConditionResult.FAILURE);
+		fireTestFinished();
+	}
 
 	@UserFacing
 	private Object handlePingCallback(JsonObject requestParts) {

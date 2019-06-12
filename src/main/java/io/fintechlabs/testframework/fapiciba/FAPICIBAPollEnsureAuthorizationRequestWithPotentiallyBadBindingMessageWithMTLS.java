@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -33,12 +31,6 @@ public class FAPICIBAPollEnsureAuthorizationRequestWithPotentiallyBadBindingMess
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		waitForPollingAuthenticationToComplete(delaySeconds);
-	}
-
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		fireTestFailure();
-		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
 	}
 
 	@Override

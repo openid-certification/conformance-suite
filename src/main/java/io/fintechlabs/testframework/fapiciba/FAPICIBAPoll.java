@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
@@ -65,12 +63,6 @@ public class FAPICIBAPoll extends AbstractFAPICIBA {
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		waitForPollingAuthenticationToComplete(delaySeconds);
-	}
-
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		fireTestFailure();
-		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
 	}
 
 	@Override

@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
 import io.fintechlabs.testframework.condition.client.SleepUntilAuthReqExpires;
@@ -52,12 +50,6 @@ public class FAPICIBAPollAuthReqIdExpiredWithMTLS extends AbstractFAPICIBAWithMT
 
 		verifyTokenEndpointResponseIsTokenExpired();
 		fireTestFinished();
-	}
-
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		fireTestFailure();
-		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
 	}
 
 	@Override
