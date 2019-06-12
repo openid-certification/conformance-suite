@@ -16,14 +16,18 @@ public class ValidateErrorUriFromTokenEndpointResponseError extends AbstractCond
 	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 		String errorUri = env.getString("token_endpoint_response", "error_uri");
-		if (!Strings.isNullOrEmpty(errorUri)) {
-			if (!isValidUriSyntax(errorUri)) {
-				throw error("'error_uri' field MUST conform to the URI-reference syntax", args("error_uri", errorUri));
-			}
-			if (!isValidErrorUriFieldFormat(errorUri)) {
-				throw error("'error_uri' field MUST NOT include characters outside the set %x21 / %x23-5B / %x5D-7E", args("error_uri", errorUri));
-			}
+		if (Strings.isNullOrEmpty(errorUri)) {
+			logSuccess("Token endpoint response did not include optional 'error_uri' field");
+			return env;
 		}
+
+		if (!isValidUriSyntax(errorUri)) {
+			throw error("'error_uri' field MUST conform to the URI-reference syntax", args("error_uri", errorUri));
+		}
+		if (!isValidErrorUriFieldFormat(errorUri)) {
+			throw error("'error_uri' field MUST NOT include characters outside the set %x21 / %x23-5B / %x5D-7E", args("error_uri", errorUri));
+		}
+
 		logSuccess("Token endpoint response error returned valid 'error_uri' field", args("error_uri", errorUri));
 		return env;
 	}
