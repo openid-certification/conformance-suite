@@ -1,16 +1,12 @@
 package io.fintechlabs.testframework.example;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -28,16 +24,11 @@ import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToToken;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "sample-implicit-test",
@@ -49,7 +40,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"client.scope"
 	}
 )
-public class SampleImplicitModule extends AbstractTestModule {
+public class SampleImplicitModule extends AbstractRedirectServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(SampleImplicitModule.class);
 
@@ -104,104 +95,38 @@ public class SampleImplicitModule extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		handleAuthorizationResult();
 
 	}
 
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
+	private void handleAuthorizationResult() {
 
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		setStatus(Status.WAITING);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-	}
+		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
 
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	private Object handleImplicitSubmission(JsonObject requestParts) {
+		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
-		getTestExecutionManager().runInBackground(() -> {
+		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			JsonElement body = requestParts.get("body");
+		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
 
-			if (body != null) {
-				String hash = OIDFJSON.getString(body);
-
-				logger.info("Hash: " + hash);
-
-				env.putString("implicit_hash", hash);
-			} else {
-				logger.warn("No hash submitted");
-
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
-
-			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
-
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-			callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-			callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI-R-5.2.2-14");
-
-			callAndContinueOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
-
-			callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
-
-			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
-
-			callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
-
-			fireTestFinished();
-
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		fireTestFinished();
 	}
 
 }

@@ -5,6 +5,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -53,7 +56,6 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -71,7 +73,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"tls.testPort"
 	}
 )
-public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
+public class FullDelegatedClientIdTokenAS extends AbstractRedirectServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(FullDelegatedClientIdTokenAS.class);
 
@@ -142,15 +144,7 @@ public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
 	/* (non-Javadoc)
@@ -160,7 +154,7 @@ public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		// dispatch based on the path
 		if (path.equals("callback")) {
-			return handleCallback(requestParts);
+			return super.handleHttp(path, req, res, session, requestParts);
 		} else if (path.equals("jwks")) {
 			return handleJwks(requestParts);
 		} else {
@@ -182,73 +176,64 @@ public class FullDelegatedClientIdTokenAS extends AbstractTestModule {
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
+	@Override
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
-			env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-			callAndStopOnFailure(CheckMatchingStateParameter.class);
+		handleAuthorizationResult();
 
-			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+	}
 
-			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+	private void handleAuthorizationResult() {
 
-			// authenticate using a signed assertion
-			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
-			callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
-			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-			callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-			// The following is for the Access Token
-			callAndStopOnFailure(CheckForAccessTokenValue.class);
+		// authenticate using a signed assertion
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class, "HEART-OAuth2-2.2.2");
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class, "HEART-OAuth2-2.2.2");
 
-			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+		// The following is for the Access Token
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-			callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-			callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
+		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
 
-			// The following is for the ID token HEART 3.1.3.6, 3.1.3.7
+		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
 
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
+		callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
 
-			callAndStopOnFailure(ValidateIdTokenSignature.class, "HEART-OIDC-3.1");
+		callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
 
-			//callAndStopOnFailure(ValidateIdToken.class);
-			callAndContinueOnFailure(ValidateIdTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");
+		// The following is for the ID token HEART 3.1.3.6, 3.1.3.7
 
-			callAndContinueOnFailure(VerifyIdTokenExpHeart.class, ConditionResult.WARNING, "HEART-OIDC-3.1");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
+
+		callAndStopOnFailure(ValidateIdTokenSignature.class, "HEART-OIDC-3.1");
+
+		//callAndStopOnFailure(ValidateIdToken.class);
+		callAndContinueOnFailure(ValidateIdTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");
+
+		callAndContinueOnFailure(VerifyIdTokenExpHeart.class, ConditionResult.WARNING, "HEART-OIDC-3.1");
 
 
-			// The following is for RefreshToken
-			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
+		// The following is for RefreshToken
+		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.4");
 
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
+		fireTestFinished();
 
 	}
 

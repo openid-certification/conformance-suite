@@ -1,9 +1,8 @@
 package io.fintechlabs.testframework.heart;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,10 +46,7 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "heart-native-delegated-client",
@@ -64,7 +60,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"tls.testPort"
 	}
 )
-public class NativeDelegatedClientAS extends AbstractTestModule {
+public class NativeDelegatedClientAS extends AbstractRedirectServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
 
@@ -138,74 +134,52 @@ public class NativeDelegatedClientAS extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
-		}
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		handleAuthorizationResult();
 
 	}
 
-	@UserFacing
-	private Object handleCallback(JsonObject requestParts) {
+	private void handleAuthorizationResult() {
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-			env.putObject("callback_params", requestParts.get("params").getAsJsonObject());
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-			callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		// handle PKCE
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
 
-			callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
 
-			// handle PKCE
-			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-			callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "HEART-OAuth2-2.1.2");
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-			callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-			callAndStopOnFailure(CheckForAccessTokenValue.class);
+		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
 
-			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
 
-			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
+		callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
 
-			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
+		callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
 
-			callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-			callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
-
-			callAndContinueOnFailure(CheckForRefreshTokenValue.class);
-
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
+		fireTestFinished();
 
 	}
 

@@ -1,16 +1,10 @@
 package io.fintechlabs.testframework.heart;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -45,7 +39,6 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
-import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -63,7 +56,7 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 		"tls.testPort"
 	}
 )
-public class InBrowserDelegatedClientAS extends AbstractTestModule {
+public class InBrowserDelegatedClientAS extends AbstractRedirectServerTestModule {
 
 	public static Logger logger = LoggerFactory.getLogger(InBrowserDelegatedClientAS.class);
 
@@ -132,106 +125,42 @@ public class InBrowserDelegatedClientAS extends AbstractTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
-
-		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
-			"redirect_to", redirectTo,
-			"http", "redirect"));
-
-		setStatus(Status.WAITING);
-
-		browser.goToUrl(redirectTo);
+		performRedirect();
 	}
 
-	/* (non-Javadoc)
-	 * @see io.fintechlabs.testframework.TestModule#handleHttp(java.lang.String, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.http.HttpSession, org.springframework.util.MultiValueMap, org.springframework.ui.Model)
-	 */
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// dispatch based on the path
+	protected void processCallback() {
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		if (path.equals("callback")) {
-			return handleCallback(requestParts);
-		} else if (path.equals(env.getString("implicit_submit", "path"))) {
-			return handleImplicitSubmission(requestParts);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-		}
+		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		handleAuthorizationResult();
 
 	}
 
-	@UserFacing
-	private ModelAndView handleCallback(JsonObject requestParts) {
-		setStatus(Status.RUNNING);
+	private void handleAuthorizationResult() {
 
-		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
+		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
-		setStatus(Status.WAITING);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		return new ModelAndView("implicitCallback",
-			ImmutableMap.of(
-				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-	}
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-	/**
-	 * @param path
-	 * @param req
-	 * @param res
-	 * @param session
-	 * @param params
-	 * @param m
-	 * @return
-	 */
-	private Object handleImplicitSubmission(JsonObject requestParts) {
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		getTestExecutionManager().runInBackground(() -> {
-			// process the callback
-			setStatus(Status.RUNNING);
+		callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
 
-			JsonElement body = requestParts.get("body");
+		callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
 
-			if (body != null) {
-				String hash = OIDFJSON.getString(body);
+		callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
 
-				logger.info("Hash: " + hash);
+		callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
 
-				env.putString("implicit_hash", hash);
-			} else {
-				logger.warn("No hash submitted");
+		callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.3");
 
-				env.putString("implicit_hash", ""); // Clear any old value
-			}
-
-			callAndStopOnFailure(ExtractImplicitHashToTokenEndpointResponse.class);
-
-			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-			callAndStopOnFailure(CheckMatchingStateParameter.class);
-
-			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-			callAndStopOnFailure(CheckForAccessTokenValue.class);
-
-			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-			callAndStopOnFailure(ParseAccessTokenAsJwt.class, "HEART-OAuth2-3.2.1");
-
-			callAndStopOnFailure(ValidateAccessTokenSignature.class, "HEART-OAuth2-3.2.1");
-
-			callAndContinueOnFailure(ValidateAccessTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OAuth2-3.2.1");
-
-			callAndContinueOnFailure(CheckForScopesInTokenResponse.class);
-
-			callAndStopOnFailure(EnsureNoRefreshToken.class, "HEART-OAuth2-2.1.3");
-
-			fireTestFinished();
-			return "done";
-		});
-
-		return redirectToLogDetailPage();
-
+		fireTestFinished();
 	}
 
 }
