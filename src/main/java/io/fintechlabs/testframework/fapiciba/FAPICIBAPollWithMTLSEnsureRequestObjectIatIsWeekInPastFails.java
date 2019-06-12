@@ -1,9 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddIatValueIsWeekInPastToRequestObject;
-import io.fintechlabs.testframework.condition.client.EnsureErrorFromBackchannelAuthenticationEndpointResponse;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestErrorBackchannelAuthenticationEndpointResponse;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -31,6 +28,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void createAuthorizationRequestObject() {

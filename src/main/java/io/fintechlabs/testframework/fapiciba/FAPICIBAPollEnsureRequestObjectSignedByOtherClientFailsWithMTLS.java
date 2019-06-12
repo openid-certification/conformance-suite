@@ -28,6 +28,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPICIBAPollEnsureRequestObjectSignedByOtherClientFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignedByOtherClientFailsWithMTLS {
 	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
+
+	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		/* Nothing to do */
 	}

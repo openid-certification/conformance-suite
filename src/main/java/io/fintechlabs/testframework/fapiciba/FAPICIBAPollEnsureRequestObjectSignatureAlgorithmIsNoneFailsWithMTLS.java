@@ -27,6 +27,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {

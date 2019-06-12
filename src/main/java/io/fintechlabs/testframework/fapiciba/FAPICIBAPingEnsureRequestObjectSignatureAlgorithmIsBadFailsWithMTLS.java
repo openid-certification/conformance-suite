@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pingCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {

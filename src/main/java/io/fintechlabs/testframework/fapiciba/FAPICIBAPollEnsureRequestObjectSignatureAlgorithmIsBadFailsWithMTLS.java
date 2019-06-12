@@ -27,6 +27,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {

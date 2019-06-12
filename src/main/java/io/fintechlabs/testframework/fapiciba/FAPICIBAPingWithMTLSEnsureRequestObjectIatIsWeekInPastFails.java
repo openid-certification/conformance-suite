@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.client.AddIatValueIsWeekInPastToRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
@@ -29,17 +28,9 @@ import org.apache.http.HttpStatus;
 	}
 )
 public class FAPICIBAPingWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
-
 	@Override
-	protected void performPostAuthorizationResponse() {
-
-		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
-		if (httpStatus != HttpStatus.SC_OK) {
-			// validate error and then finish the test
-			super.performPostAuthorizationResponse();
-		} else {
-			callAutomatedEndpoint();
-		}
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pingCleanupAfterBackchannelRequestShouldHaveFailed();
 	}
 
 	@Override

@@ -28,6 +28,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectMissingAudFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void createAuthorizationRequestObject() {

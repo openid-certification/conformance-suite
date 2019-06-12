@@ -28,6 +28,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingWithMTLSEnsureRequestObjectMissingExpFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pingCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void createAuthorizationRequestObject() {

@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -29,6 +27,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
+
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		/* Nothing to do */
