@@ -55,7 +55,7 @@ public class RejectPlainPKCE extends AbstractTestModule {
 	 * @see io.fintechlabs.testframework.testmodule.TestModule#configure(com.google.gson.JsonObject, io.fintechlabs.testframework.logging.EventLog, java.lang.String, io.fintechlabs.testframework.frontChannel.BrowserControl, java.lang.String)
 	 */
 	@Override
-	public void configure(JsonObject config, String baseUrl) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 

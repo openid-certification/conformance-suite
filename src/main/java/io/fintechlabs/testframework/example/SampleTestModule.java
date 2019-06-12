@@ -74,7 +74,7 @@ public class SampleTestModule extends AbstractTestModule {
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
 	@Override
-	public void configure(JsonObject config, String baseUrl) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
@@ -103,7 +103,7 @@ public class SampleTestModule extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
-		//require(ExtractJWKsFromClientConfiguration.class);
+		//require(ExtractJWKsFromStaticClientConfiguration.class);
 
 		//require(GenerateJWKsFromClientSecret.class);
 

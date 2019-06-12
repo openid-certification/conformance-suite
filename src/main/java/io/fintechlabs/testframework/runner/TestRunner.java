@@ -81,6 +81,26 @@ public class TestRunner implements DataUtils {
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
 	private String baseUrl;
 
+	/**
+	 * Override url for external URLs
+	 *
+	 * This conformance suite sometimes needs to make urls that are accessible externally, for example the CIBA
+	 * ping/push notification endpoints. When the developer is running the suite locally tested an authorization
+	 * server hosted in the cloud, the authorization server cannot directly reach the conformance suite, hence it
+	 * is necessary to setup a relay and when dynamically registering a client we need to override the url.
+	 *
+	 * This setting should contain the external url that will be registered with the notification server.
+	 * (If using statically created clients, this setting has no effect other than on the notification url
+	 * displayed on the test detail page.)
+	 *
+	 * There are further notes in the wiki:
+	 *
+	 * https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run#ciba-notification-endpoint
+	 *
+	 */
+	@Value("${fintechlabs.external_url_override:}")
+	public String externalUrlOverride;
+
 	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	@Autowired
@@ -237,8 +257,8 @@ public class TestRunner implements DataUtils {
 
 		support.addRunningTest(id, test);
 
-		String url;
 		String alias = "";
+		String path;
 
 		// see if an alias was passed in as part of the configuration and use it if available
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
@@ -250,12 +270,14 @@ public class TestRunner implements DataUtils {
 					// there was a failure in creating the test alias, return an error
 					return new ResponseEntity<>(HttpStatus.CONFLICT);
 				}
-				url = baseUrl + TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+				path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 			}
 
 		} else {
-			url = baseUrl + TestDispatcher.TEST_PATH + id;
+			path = TestDispatcher.TEST_PATH + id;
 		}
+		String url = baseUrl + path;
+		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + path;
 
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
@@ -287,7 +309,7 @@ public class TestRunner implements DataUtils {
 				"testName", testName));
 
 		test.getTestExecutionManager().runInBackground(() -> {
-			test.configure(config, url);
+			test.configure(config, url, externalOverrideUrlWithPath);
 
 			/* automatically start all tests */
 			if (test.getStatus() == TestModule.Status.CONFIGURED) {

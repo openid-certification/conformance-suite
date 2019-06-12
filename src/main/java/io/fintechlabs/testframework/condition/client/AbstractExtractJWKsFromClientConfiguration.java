@@ -1,30 +1,17 @@
 package io.fintechlabs.testframework.condition.client;
 
-import java.text.ParseException;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWKSet;
-
 import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
+import java.text.ParseException;
 
-	@Override
-	@PreEnvironment(required = "client")
-	@PostEnvironment(required = "client_jwks")
-	public Environment evaluate(Environment env) {
-
-		if (!env.containsObject("client")) {
-			throw error("Couldn't find client configuration");
-		}
-
-		// bump the client's internal JWK up to the root
-		JsonElement jwks = env.getElementFromObject("client", "jwks");
+public abstract class AbstractExtractJWKsFromClientConfiguration extends AbstractCondition {
+	protected void extractJwks(Environment env, String key) {
+		JsonElement jwks = env.getElementFromObject(key, "jwks");
 
 		if (jwks == null) {
 			throw error("Couldn't find JWKs in client configuration");
@@ -49,8 +36,5 @@ public class ExtractJWKsFromClientConfiguration extends AbstractCondition {
 
 		env.putObject("client_jwks", jwks.getAsJsonObject());
 		env.putObject("client_public_jwks", pubObj.getAsJsonObject());
-
-		return env;
 	}
-
 }

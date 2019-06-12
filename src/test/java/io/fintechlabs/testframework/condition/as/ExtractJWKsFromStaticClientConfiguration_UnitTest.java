@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.as;
 
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,12 +14,11 @@ import com.google.gson.JsonParser;
 import static org.junit.Assert.assertEquals;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromClientConfiguration;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ExtractJWKsFromClientConfiguration_UnitTest {
+public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -32,7 +32,7 @@ public class ExtractJWKsFromClientConfiguration_UnitTest {
 
 	private JsonObject publicJwks;
 
-	private ExtractJWKsFromClientConfiguration cond;
+	private ExtractJWKsFromStaticClientConfiguration cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -40,7 +40,7 @@ public class ExtractJWKsFromClientConfiguration_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractJWKsFromClientConfiguration();
+		cond = new ExtractJWKsFromStaticClientConfiguration();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 

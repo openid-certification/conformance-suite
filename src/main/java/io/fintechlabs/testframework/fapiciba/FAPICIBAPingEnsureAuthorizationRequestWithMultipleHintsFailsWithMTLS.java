@@ -28,6 +28,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS {
+	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pingCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {

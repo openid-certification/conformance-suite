@@ -28,6 +28,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPICIBAPollEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS extends AbstractFAPICIBAEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS {
 	@Override
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	}
+
+	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		/* Nothing to do */
 	}

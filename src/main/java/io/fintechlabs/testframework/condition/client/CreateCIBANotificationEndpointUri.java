@@ -18,6 +18,12 @@ public class CreateCIBANotificationEndpointUri extends AbstractCondition {
 			throw error("Base URL was null or empty");
 		}
 
+		// see https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run#ciba-notification-endpoint
+		String externalUrlOverride = in.getString("external_url_override");
+		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+			baseUrl = externalUrlOverride;
+		}
+
 		// calculate the redirect URI based on our given base URL
 		String notificationUri = baseUrl + "/ciba-notification-endpoint";
 		in.putString("notification_uri", notificationUri);

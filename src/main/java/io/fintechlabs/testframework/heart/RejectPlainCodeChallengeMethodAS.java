@@ -4,9 +4,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
@@ -59,7 +56,7 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractTestModule {
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
 	 */
 	@Override
-	public void configure(JsonObject config, String baseUrl) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 

@@ -66,8 +66,10 @@ function makeServerTest {
     # ciba
     TESTS="${TESTS} fapi-ciba-poll-with-mtls-test-plan authlete-fapi-ciba-mtls-poll.json"
     TESTS="${TESTS} fapi-ciba-poll-test-plan authlete-fapi-ciba-privatekey-poll.json"
-    # ping/push can't currently be part of the regression test; see https://gitlab.com/openid/conformance-suite/issues/389
-    #TESTS="${TESTS} fapi-ciba-ping-with-mtls-test-plan authlete-fapi-ciba-mtls-ping.json"
+    # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
+    # see https://gitlab.com/openid/conformance-suite/issues/389
+    TESTS="${TESTS} fapi-ciba-ping-with-mtls-test-plan authlete-fapi-ciba-mtls-ping-dcr.json"
+    # push isn't allowed in FAPI-CIBA profile
     #TESTS="${TESTS} fapi-ciba-push-with-mtls-test-plan authlete-fapi-ciba-mtls-push.json"
 
     # authlete openbanking
