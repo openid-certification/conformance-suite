@@ -414,55 +414,80 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
     for detail_plan_result in detail_plan_results:
         if detail_plan_result:
             has_unexpected_failures = True
-            print(failure('{} - {}: '.format(detail_plan_result['plan_name'], detail_plan_result['plan_config_file'])))
+            config_filename = detail_plan_result['plan_config_file']
+            print(failure('{} - {}: '.format(detail_plan_result['plan_name'], config_filename)))
             overall_test_results = detail_plan_result['overall_test_results']
             counts_unexpected = detail_plan_result['counts_unexpected']
 
             if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
                 print(failure('\tUnexpected failure: '))
-                output_summary_test_plan_by_unexpected_type(overall_test_results, 'unexpected_failures', 'failure')
+                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'unexpected_failures', 'failure')
 
             if counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] > 0:
                 print(failure('\tExpected failure did not happen: '))
-                output_summary_test_plan_by_unexpected_type(overall_test_results, 'expected_failures_did_not_happen', 'failure')
+                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'expected_failures_did_not_happen', 'failure')
 
             if counts_unexpected['UNEXPECTED_WARNINGS'] > 0:
                 print(warning('\tUnexpected warning: '))
-                output_summary_test_plan_by_unexpected_type(overall_test_results, 'unexpected_warnings', 'warning')
+                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'unexpected_warnings', 'warning')
 
             if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
                 print(warning('\tExpected warning did not happen: '))
-                output_summary_test_plan_by_unexpected_type(overall_test_results, 'expected_warnings_did_not_happen', 'warning')
+                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'expected_warnings_did_not_happen', 'warning')
 
     return has_unexpected_failures
 
 
-def output_summary_test_plan_by_unexpected_type(overall_test_results, key, unexpected_type):
+def output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, key, unexpected_type):
     for test_result in overall_test_results:
         result = test_result['test_result']
         if result[key]:
+            test_name = test_result['test_name']
             if unexpected_type == 'failure':
-                print(failure('\t\t{} ({}): '.format(test_result['test_name'], test_result['log_detail_link'])))
+                print(failure('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
             else:
-                print(warning('\t\t{} ({}): '.format(test_result['test_name'], test_result['log_detail_link'])))
-            print_failure_warning(result[key], unexpected_type, '\t\t\t')
+                print(warning('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
+            print_template = 'unexpected' in key
+            print_failure_warning(result[key], unexpected_type, '\t\t\t', config=config_filename, test=test_name, print_template=print_template)
 
 
-def print_failure_warning(failure_warning_list, status, tab_format, expected=False):
+def print_failure_warning(failure_warning_list, status, tab_format, expected=False, config=None, test=None, print_template=False):
     for failure_warning in failure_warning_list:
         msg = "{}Block name: '{}' - Condition: '{}'".format(tab_format,
                                                             failure_warning['current_block'],
                                                             failure_warning['src'])
+        json = '''
+{{
+    "test-name": "{}",
+    "configuration-filename": "{}",
+    "current-block": "{}",
+    "condition": "{}",
+    "expected-result": "{}",
+    "comment": "**CHANGE ME** explain why this failure occurs"
+}},
+'''.strip().format(test,
+                   config,
+                   failure_warning['current_block'],
+                   failure_warning['src'],
+                   status)
         if (status == 'failure'):
             if expected:
                 print(expected_failure(msg))
             else:
                 print(failure(msg))
+                if print_template:
+                    print("Template expected failure json:\n")
+                    # print json, skipping timestamp addition for easy C&P
+                    print(json+"\n", file=sys.__stdout__)
         else:
             if expected:
                 print(expected_warning(msg))
             else:
                 print(warning(msg))
+                if print_template:
+                    print("Template expected warning json:\n")
+                    # print json, skipping timestamp addition for easy C&P
+                    print(json+"\n", file=sys.__stdout__)
 
 
 def parser_args_cli():
