@@ -1,11 +1,14 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-ensure-wrong-client-id-in-backchannel-authorization-request-with-mtls",
 	displayName = "FAPI-CIBA: Poll mode ensure wrong client_id in backchannel authorization request (MTLS client authentication)",
-	summary = "This test should end with the backchannel authorization server returning an error message that must be access_denied or invalid_request",
+	summary = "This test sends the wrong client_id for the MTLS key to the backchannel authorization endpoint, and should end with the server returning an access_denied or invalid_request error",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -27,6 +30,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS extends AbstractFAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS {
+	// No private_key_jwt variant for this test, it's MTLS specific
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+	}
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {

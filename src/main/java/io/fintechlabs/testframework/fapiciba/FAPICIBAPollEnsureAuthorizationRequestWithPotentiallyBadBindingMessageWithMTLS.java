@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-ensure-authorization-request-with-potentially-bad-binding-message-with-mtls",
@@ -27,6 +28,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
 
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {

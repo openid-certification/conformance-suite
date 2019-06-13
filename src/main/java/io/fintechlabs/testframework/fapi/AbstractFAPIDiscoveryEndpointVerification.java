@@ -31,7 +31,7 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 
 	}
 
-	protected final void performEndpointVerification() {
+	protected void performEndpointVerification() {
 
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");

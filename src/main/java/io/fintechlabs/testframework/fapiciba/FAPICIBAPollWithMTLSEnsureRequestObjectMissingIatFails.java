@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.client.RemoveIatFromRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-with-mtls-ensure-request-object-missing-iat-fails",
@@ -28,6 +29,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectMissingIatFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
+
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pollCleanupAfterBackchannelRequestShouldHaveFailed();

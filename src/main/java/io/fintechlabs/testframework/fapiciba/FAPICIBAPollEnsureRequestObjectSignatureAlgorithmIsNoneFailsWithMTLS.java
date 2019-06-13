@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-ensure-request-object-signature-algorithm-is-none-fails-with-mtls",
@@ -27,6 +28,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
+
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pollCleanupAfterBackchannelRequestShouldHaveFailed();

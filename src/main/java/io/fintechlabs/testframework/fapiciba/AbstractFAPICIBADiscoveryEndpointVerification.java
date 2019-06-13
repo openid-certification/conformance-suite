@@ -12,10 +12,8 @@ public abstract class AbstractFAPICIBADiscoveryEndpointVerification extends Abst
 	protected abstract void performProfileSpecificChecks();
 
 	@Override
-	public void start() {
-		setStatus(Status.RUNNING);
-
-		performEndpointVerification();
+	protected void performEndpointVerification() {
+		super.performEndpointVerification();
 
 		callAndContinueOnFailure(CheckDiscBackchannelAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-4");
 		callAndContinueOnFailure(CheckDiscEndpointBackchannelAuthenticationRequestSigningAlgValuesSupported.class, Condition.ConditionResult.WARNING, "CIBA-4");
@@ -23,9 +21,6 @@ public abstract class AbstractFAPICIBADiscoveryEndpointVerification extends Abst
 		callAndContinueOnFailure(FAPICIBACheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE, "CIBA-4");
 
 		performProfileSpecificChecks();
-
-		fireTestFinished();
 	}
-
 
 }

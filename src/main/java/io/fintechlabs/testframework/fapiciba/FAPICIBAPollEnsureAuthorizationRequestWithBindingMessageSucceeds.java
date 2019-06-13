@@ -1,5 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
@@ -8,9 +10,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-poll",
-	displayName = "FAPI-CIBA: Poll mode",
-	summary = "This test requires two different clients registered under the FAPI-CIBA profile for the 'poll' mode. The test authenticates the user twice (using different variations on the authorisation request etc), tests that certificate bound access tokens are implemented correctly. Do not respond to the request until the test enters the 'WAITING' state.",
+	testName = "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds",
+	displayName = "FAPI-CIBA: Poll mode - test with a binding message of '1234', the server must authenticate successfully",
+	summary = "This test tries sending a binding message of '1234' to authorization endpoint request, the server must authenticate successfully.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -31,8 +33,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-
-public class FAPICIBAPoll extends AbstractFAPICIBA {
+public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds {
 	@Variant(name = "mtls")
 	public void setupMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
@@ -51,7 +52,14 @@ public class FAPICIBAPoll extends AbstractFAPICIBA {
 	}
 
 	@Override
-	protected void modeSpecificAuthorizationEndpointRequest() {
-		// Nothing extra to setup for Poll
+	protected void processNotificationCallback(JsonObject requestParts) {
+		fireTestFailure();
+		throw new ConditionError(getId(), "Notification endpoint was called during a poll test");
 	}
+
+	@Override
+	protected void modeSpecificAuthorizationEndpointRequest() {
+		/* Nothing to do for poll */
+	}
+
 }

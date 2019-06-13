@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.client.AddBadIssToRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-with-mtls-ensure-request-object-bad-iss-fails",
@@ -28,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectBadIssFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pollCleanupAfterBackchannelRequestShouldHaveFailed();

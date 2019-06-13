@@ -1,6 +1,9 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-ensure-wrong-client-id-in-token-endpoint-request-with-mtls",
@@ -27,6 +30,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollEnsureWrongClientIdInTokenEndpointRequestWithMTLS extends AbstractFAPICIBAEnsureWrongClientIdInTokenEndpointRequestWithMTLS {
+	// No private_key_jwt variant for this test, it's MTLS specific
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+	}
 
 	@Override
 	protected void performPostAuthorizationResponse() {

@@ -27,6 +27,7 @@ import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
@@ -136,6 +137,7 @@ import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -153,10 +155,18 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	private static final Logger logger = LoggerFactory.getLogger(FAPICIBAPingWithMTLS.class);
 	protected int whichClient;
 
+	Class<? extends ConditionSequence> addBackchannelClientAuthentication;
+	Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 
-	abstract void addClientAuthenticationToBackchannelRequest();
+	protected void addClientAuthenticationToBackchannelRequest() {
+		/* This function can be inlined once all CIBA test modules are using Variants */
+		call(sequence(addBackchannelClientAuthentication));
+	}
 
-	abstract void addClientAuthenticationToTokenEndpointRequest();
+	protected void addClientAuthenticationToTokenEndpointRequest() {
+		/* This function can be inlined once all CIBA test modules are using Variants */
+		call(sequence(addTokenEndpointClientAuthentication));
+	}
 
 	protected void createClientCredentialsRequest() {
 
@@ -335,7 +345,11 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		// acr_values
 		// binding_message
 		// user_code
-		// requested_expiry
+
+		if (whichClient == 2) {
+			// set a fairly standard requested expiry to verify server doesn't reject it
+			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
+		}
 
 		modeSpecificAuthorizationEndpointRequest();
 
@@ -474,6 +488,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		performPostAuthorizationResponse();
 	}
 
+	/** This should perform any actions that are specific to whichever of ping/poll/push is being tested */
 	protected abstract void modeSpecificAuthorizationEndpointRequest();
 
 	protected abstract void waitForAuthenticationToComplete(long delaySeconds);

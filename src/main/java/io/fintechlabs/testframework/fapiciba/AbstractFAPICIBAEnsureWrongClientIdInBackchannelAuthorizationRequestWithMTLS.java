@@ -40,8 +40,7 @@ public abstract class AbstractFAPICIBAEnsureWrongClientIdInBackchannelAuthorizat
 
 	@Override
 	protected void performAuthorizationRequest() {
-		// Switch to client 2 client
-		eventLog.startBlock("Swapping to Client2");
+		eventLog.startBlock("Swapping to client_id for second client, but with JWKS and MTLS settings for first client");
 		env.mapKey("client", "client2");
 
 		super.performAuthorizationRequest();

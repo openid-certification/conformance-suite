@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.client.AddIatValueIsWeekInPastToRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
@@ -28,6 +29,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+
+	@Variant(name = "mtls")
+	public void setupMTLS() {
+		// FIXME: add private key variant
+	}
+
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pollCleanupAfterBackchannelRequestShouldHaveFailed();

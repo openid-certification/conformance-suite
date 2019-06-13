@@ -1,5 +1,8 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import io.fintechlabs.testframework.condition.client.AddRequestedExp30sToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
+import io.fintechlabs.testframework.condition.client.SleepUntilAuthReqExpires;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
@@ -8,9 +11,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-poll",
-	displayName = "FAPI-CIBA: Poll mode",
-	summary = "This test requires two different clients registered under the FAPI-CIBA profile for the 'poll' mode. The test authenticates the user twice (using different variations on the authorisation request etc), tests that certificate bound access tokens are implemented correctly. Do not respond to the request until the test enters the 'WAITING' state.",
+	testName = "fapi-ciba-poll-auth-req-id-expired",
+	displayName = "FAPI-CIBA: Poll mode - user fails to authenticate",
+	summary = "This test should end with the token endpoint returning an expired_token error. The user MUST NOT authenticate. requested_expiry is used to request a 30 second expiration time for the authentication request.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -31,8 +34,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-
-public class FAPICIBAPoll extends AbstractFAPICIBA {
+public class FAPICIBAPollAuthReqIdExpired extends AbstractFAPICIBA {
 	@Variant(name = "mtls")
 	public void setupMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
@@ -46,8 +48,30 @@ public class FAPICIBAPoll extends AbstractFAPICIBA {
 	}
 
 	@Override
+	protected void callAutomatedEndpoint() {
+		// Override behavior: Don't call automated endpoint, the user must not try to authenticate
+	}
+
+	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
-		waitForPollingAuthenticationToComplete(delaySeconds);
+		setStatus(Status.WAITING);
+		callAndStopOnFailure(SleepUntilAuthReqExpires.class);
+		setStatus(Status.RUNNING);
+
+		eventLog.startBlock(currentClientString() + "Calling token endpoint expecting a token expired error");
+		callTokenEndpointForCibaGrant();
+		eventLog.endBlock();
+
+		callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
+
+		verifyTokenEndpointResponseIsTokenExpired();
+		fireTestFinished();
+	}
+
+	@Override
+	protected void createAuthorizationRequest() {
+		super.createAuthorizationRequest();
+		callAndStopOnFailure(AddRequestedExp30sToAuthorizationEndpointRequest.class, "CIBA-11");
 	}
 
 	@Override
