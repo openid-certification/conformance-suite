@@ -15,7 +15,7 @@ public interface TestPlanService {
 	 */
 	void updateTestPlanWithModule(String planId, String testName, String id);
 
-	void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary, String publish);
+	void createTestPlan(String id, String planName, String variant, JsonObject config, String description, String[] testModules, String summary, String publish);
 
 	/**
 	 * @param id
@@ -53,6 +53,12 @@ public interface TestPlanService {
 	 * @return true for success; false if not allowed
 	 */
 	boolean publishTestPlan(String id, String publish);
+
+	/**
+	 * Gets the test variant to apply for all tests in the the plan
+	 * @param planId Plan ID
+	 */
+	String getTestPlanVariant(String planId);
 
 	void createIndexes();
 }

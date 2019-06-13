@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class TestPlanApi implements DataUtils {
 	private SavedConfigurationService savedConfigurationService;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, Object>> createTestPlan(@RequestParam("planName") String planName, @RequestBody JsonObject config, Model m) {
+	public ResponseEntity<Map<String, Object>> createTestPlan(@RequestParam("planName") String planName, @RequestParam(value = "variant", required = false) String variant, @RequestBody JsonObject config, Model m) {
 
 		String id = RandomStringUtils.randomAlphanumeric(13);
 
@@ -74,12 +75,18 @@ public class TestPlanApi implements DataUtils {
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName);
 
-		planService.createTestPlan(id, planName, config, description, holder.testModuleNames, holder.a.summary(), publish);
+		String[] testModuleNames = holder.testModuleNames;
+		if (!Strings.isNullOrEmpty(variant)) {
+
+			testModuleNames = holder.filterTestModule(variant);
+		}
+
+		planService.createTestPlan(id, planName, variant, config, description, testModuleNames, holder.a.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
 		map.put("id", id);
-		map.put("modules", holder.testModuleNames);
+		map.put("modules", testModuleNames);
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
 	}
@@ -156,7 +163,12 @@ public class TestPlanApi implements DataUtils {
 				"profile", e.a.profile(),
 				"moduleNames", e.testModuleNames,
 				"configurationFields", e.a.configurationFields(),
-				"summary", e.a.summary()))
+				"summary", e.a.summary(),
+				"variants", Arrays.stream(e.a.variants())
+					.map((v) -> args(
+						"name", v
+					)).collect(Collectors.toList())
+			))
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
@@ -210,7 +222,21 @@ public class TestPlanApi implements DataUtils {
 			}
 		}
 
+		public String[] filterTestModule(String variant) {
+			if (a.testModules().length > 0) {
+				return Arrays.stream(a.testModules())
+					.filter(test -> Arrays.stream(test.getDeclaredMethods())
+						.filter((m) -> m.isAnnotationPresent(Variant.class))
+						.map((m) -> m.getDeclaredAnnotation(Variant.class).name())
+						.collect(Collectors.toList())
+						.contains(variant))
+					.map(test -> test.getDeclaredAnnotation(PublishTestModule.class).testName())
+					.toArray(String[]::new);
+			} else {
 
+				return this.testModuleNames;
+			}
+		}
 	}
 
 
