@@ -6,9 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ping-with-mtls-ciba-notification-endpoint-response-401-and-token-endpoint-returns-ok",
-	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - ciba-notification-endpoint returned a HTTP 401 Unauthorized response, token_endpoint returns OK.",
-	summary = "This test should process a successful PING mode flow, ciba-notification-endpoint will return a HTTP 401 Unauthorized response and the token_endpoint returns a HTTP 200 OK response.",
+	testName = "fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-401",
+	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - backchannel notificatione endpoint returns a HTTP 401 Unauthorized response",
+	summary = "The client's backchannel_notification_endpoint returns a HTTP 401 Unauthorized response and the authentication flow must still complete normally.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,7 +29,7 @@ import org.springframework.http.ResponseEntity;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPingNotificationEndpointReturns401AndTokenEndpointReturnsOK extends FAPICIBAPingWithMTLS {
+public class FAPICIBAPingNotificationEndpointReturns401 extends FAPICIBAPingWithMTLS {
 
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {
@@ -38,11 +38,10 @@ public class FAPICIBAPingNotificationEndpointReturns401AndTokenEndpointReturnsOK
 		return new ResponseEntity<Object>("CIBA Notification Endpoint returns a HTTP 401 Unauthorized response, even though the token is valid.", HttpStatus.UNAUTHORIZED);
 	}
 
-	@Override
-	protected void processNotificationCallback(JsonObject requestParts) {
-		processPingNotificationCallback(requestParts);
-
-		handleSuccessfulTokenEndpointResponse();
+	protected void performPostAuthorizationFlow() {
+		// just check access token, don't go on and try second client
+		requestProtectedResource();
+		fireTestFinished();
 	}
 
 }

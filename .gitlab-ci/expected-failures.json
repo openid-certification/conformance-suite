@@ -22,6 +22,30 @@
     "expected-result": "failure"
   },
   {
+    "test-name": "fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-has-body",
+    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+    "current-block": "Verify notification callback",
+    "condition": "EnsureIncomingTlsSecureCipher",
+    "expected-result": "failure",
+    "comment": "known about; Authlete haven't implemented FAPI-CIBA yet"
+  },
+  {
+    "test-name": "fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-401",
+    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+    "current-block": "Verify notification callback",
+    "condition": "EnsureIncomingTlsSecureCipher",
+    "expected-result": "failure",
+    "comment": "known about; Authlete haven't implemented FAPI-CIBA yet"
+  },
+  {
+    "test-name": "fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-403",
+    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+    "current-block": "Verify notification callback",
+    "condition": "EnsureIncomingTlsSecureCipher",
+    "expected-result": "failure",
+    "comment": "known about; Authlete haven't implemented FAPI-CIBA yet"
+  },
+  {
     "test-name": "fapi-ciba-ping-with-mtls",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Second client: Verify notification callback",
