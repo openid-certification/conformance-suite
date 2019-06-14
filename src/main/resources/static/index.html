@@ -786,12 +786,20 @@
 
 			// collapse empty sections
 			$('.config-form-container').each(function() {
-				if ($(this).children(':visible').not('.config-form-container-header').length === 0) {
+				var hasAtLeastOneDisplayElement = false;
+				$(this).children().not('.config-form-container-header').each(function() {
+					if ($(this).css("display") !== "none") {
+						hasAtLeastOneDisplayElement = true;
+						// found at least one visible element, break the loop
+						return false;
+					}
+				});
+
+				if (hasAtLeastOneDisplayElement) {
+					$('.config-form-container-header', this).show();
+				} else {
 					// there are no visible elements anymore, hide the header
 					$('.config-form-container-header', this).hide();
-				} else {
-					// otherwise, hide the header
-					$('.config-form-container-header', this).show();
 				}
 			});
 		}
