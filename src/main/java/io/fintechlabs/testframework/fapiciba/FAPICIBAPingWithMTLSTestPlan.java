@@ -36,6 +36,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-ensure-wrong-client-id-in-token-endpoint-request-with-mtls",
 		"fapi-ciba-ping-ensure-wrong-client-id-in-backchannel-authorization-request-with-mtls",
 		"fapi-ciba-ping-ensure-wrong-auth-req-id-in-token-endpoint-request-with-mtls",
+		"fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-has-body",
+		"fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-401",
+		"fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-403",
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
