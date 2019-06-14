@@ -11,3 +11,5 @@ trim_trailing_whitespace=true
 indent_style=space
 [*.json]
 indent_style=space
+[*.html]
+indent_style=space
