@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class AddNotificationEndpointToDynamicRegistrationRequest extends AbstractCondition {
+public class AddCIBANotificationEndpointToDynamicRegistrationRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "dynamic_registration_request", strings = "notification_uri")

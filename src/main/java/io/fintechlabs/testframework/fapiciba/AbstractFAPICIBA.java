@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback
 import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCIBANotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaGrantTypeToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaRequestSigningPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaTokenDeliveryModePingToDynamicRegistrationRequest;
@@ -25,13 +26,14 @@ import io.fintechlabs.testframework.condition.client.AddIdTokenSigningAlgPS256To
 import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddNotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodPrivateKeyJwtToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
@@ -140,6 +142,7 @@ import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
@@ -176,6 +179,25 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	/* for subclasses to fill in */
 	Class<? extends ConditionSequence> addBackchannelClientAuthentication;
 	Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
+
+	public static class PrivateKeyJwtRegistration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(AddTokenEndpointAuthMethodPrivateKeyJwtToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+			callAndContinueOnFailure(AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE);
+		}
+	}
+	public static class MtlsRegistration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+
+		}
+	}
+
 
 	protected void addClientAuthenticationToBackchannelRequest() {
 		/* This function can be inlined once all CIBA test modules are using Variants */
@@ -205,15 +227,19 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
 		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class, "OBRW-4.3.1");
-		callAndStopOnFailure(AddNotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
 		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
+
 		// TODO: for now this only works for 'ping'
 		callAndStopOnFailure(AddCibaTokenDeliveryModePingToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddCIBANotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
+
 		callAndStopOnFailure(AddCibaRequestSigningPS256ToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddEmptyResponseTypesArrayToDynamicRegistrationRequest.class);
-		callAndStopOnFailure(AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest.class);
+
+		call(sequence(addTokenEndpointAuthToRegistrationRequest));
+
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
@@ -966,24 +992,28 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	public void setupPingMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.PING;
 	}
 
 	public void setupPingPrivateKeyJwt() {
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
 		testType = TestType.PING;
 	}
 
 	public void setupPollMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.POLL;
 	}
 
 	public void setupPollPrivateKeyJwt() {
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
 		testType = TestType.POLL;
 	}
 
