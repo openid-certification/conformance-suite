@@ -1,9 +1,8 @@
 package io.fintechlabs.testframework.fapi;
 
-import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.*;
-import io.fintechlabs.testframework.condition.common.*;
+import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
+import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -30,7 +29,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2RefreshTokenTestModule {
-
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
