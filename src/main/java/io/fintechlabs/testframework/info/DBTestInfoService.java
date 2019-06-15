@@ -69,13 +69,14 @@ public class DBTestInfoService implements TestInfoService {
 			});
 
 	@Override
-	public void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
+	public void createTest(String id, String testName, String variant, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 			.add("_id", id)
 			.add("testId", id)
 			.add("testName", testName)
+			.add("variant", variant)
 			.add("started", started.toString())
 			.add("config", config)
 			.add("description", description) // for this instance

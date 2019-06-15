@@ -217,8 +217,9 @@ public class TestRunner implements DataUtils {
 	}
 
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestParam(name = "plan", required = false) String planId, @RequestBody(required = false) JsonObject testConfig, Model m) {
+	public ResponseEntity<Map<String, String>> createTest(@RequestParam("test") String testName, @RequestParam(name = "plan", required = false) String planId, @RequestParam(name = "variant", required = false) String variant, @RequestBody(required = false) JsonObject testConfig, Model m) {
 		final JsonObject config;
+		final String testVariant;
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
@@ -228,6 +229,7 @@ public class TestRunner implements DataUtils {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 			// if the test is part of a plan, the configuration comes from the plan
+			testVariant = planService.getTestPlanVariant(planId);
 			config = planService.getModuleConfig(planId, testName);
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -235,6 +237,7 @@ public class TestRunner implements DataUtils {
 		} else {
 			// we're starting an individual test module
 			config = testConfig;
+			testVariant = variant;
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
@@ -244,7 +247,7 @@ public class TestRunner implements DataUtils {
 
 		}
 
-		TestModule test = createTestModule(testName, id, config);
+		TestModule test = createTestModule(testName, id, config, testVariant);
 
 		if (test == null) {
 			// return an error
@@ -294,7 +297,7 @@ public class TestRunner implements DataUtils {
 		}
 
 		// record that this test was started
-		testInfo.createTest(id, testName, url, config, alias, Instant.now(), planId, description, summary, publish);
+		testInfo.createTest(id, testName, testVariant, url, config, alias, Instant.now(), planId, description, summary, publish);
 
 
 		// log the test creation event in the event log
@@ -306,7 +309,8 @@ public class TestRunner implements DataUtils {
 				"alias", alias,
 				"planId", planId,
 				"description", description,
-				"testName", testName));
+				"testName", testName,
+				"variant", testVariant));
 
 		test.getTestExecutionManager().runInBackground(() -> {
 			test.configure(config, url, externalOverrideUrlWithPath);
@@ -467,7 +471,7 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	private TestModule createTestModule(String testName, String id, JsonObject config) {
+	private TestModule createTestModule(String testName, String id, JsonObject config, String variantName) {
 
 		TestModuleHolder holder = getTestModules().get(testName);
 
@@ -494,9 +498,13 @@ public class TestRunner implements DataUtils {
 
 
 			// see if we're running a variant
+			// in case, run test in the pipeline
+			if (Strings.isNullOrEmpty(variantName) && config.has("variant") && config.get("variant").isJsonPrimitive()) {
 
-			if (config.has("variant") && config.get("variant").isJsonPrimitive()) {
-				String variantName = config.get("variant").getAsString();
+				variantName = OIDFJSON.getString(config.get("variant"));
+			}
+
+			if (!Strings.isNullOrEmpty(variantName)) {
 
 				Method variantMethod = getVariant(module.getClass(), variantName);
 

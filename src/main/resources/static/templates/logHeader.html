@@ -7,40 +7,44 @@
 
                 <div class="col-md-8"> <!-- main info -->
                     <div class="row">
-                        <div class="col-md-1">Test Name:</div>
-                        <div class="col-md-11"><%- test.testName %></div>
+                        <div class="col-md-2">Test Name:</div>
+                        <div class="col-md-10"><%- test.testName %></div>
+                    </div>
+					<div class="row">
+						<div class="col-md-2">Variant:</div>
+						<div class="col-md-10"><%- test.variant %></div>
+					</div>
+                    <div class="row">
+                        <div class="col-md-2">Test ID:</div>
+                        <div class="col-md-10"><%- test.testId %></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">Test ID:</div>
-                        <div class="col-md-11"><%- test.testId %></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-1">Created:</div>
-                        <div class="col-md-11"><%- new Date(test.started) %></div>
+                        <div class="col-md-2">Created:</div>
+                        <div class="col-md-10"><%- new Date(test.started) %></div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-1">Description:</div>
-                        <div class="col-md-11"><%- test.description %></div>
+                        <div class="col-md-2">Description:</div>
+                        <div class="col-md-10"><%- test.description %></div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-1">Test Version:</div>
-                        <div class="col-md-11"><%- test.version %></div>
+                        <div class="col-md-2">Test Version:</div>
+                        <div class="col-md-10"><%- test.version %></div>
                     </div>
 
                     <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <div class="row">
-                        <div class="col-md-1">Test Owner:</div>
-                        <div class="col-md-11">
+                        <div class="col-md-2">Test Owner:</div>
+                        <div class="col-md-10">
                             <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
                         </div>
                     </div>
                     <% } %>
                     <% if (test.planId) { %>
                     <div class="row">
-                        <div class="col-md-1">Plan ID:</div>
-                        <div class="col-md-11"><%- test.planId %></div>
+                        <div class="col-md-2">Plan ID:</div>
+                        <div class="col-md-10"><%- test.planId %></div>
                     </div>
                     <% } %>
 
@@ -55,8 +59,8 @@
 
                     <div class="row">
                         <!-- calculated test results -->
-                        <div class="col-md-1">Results:</div>
-                        <div class="col-md-11 labelCollection" id="testResultSummary">
+                        <div class="col-md-2">Results:</div>
+                        <div class="col-md-10 labelCollection" id="testResultSummary">
 
                         </div>
                     </div>

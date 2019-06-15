@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 public interface TestInfoService {
 
-	void createTest(String id, String testName, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
+	void createTest(String id, String testName, String variant, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
 
 	/**
 	 * Update the result of a test in the database

@@ -12,7 +12,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBAPoll.class,
 		FAPICIBAPollAuthReqIdExpired.class,
 		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
-	}
+	},
+	variants = { "mtls", "private-key-jwt-and-mtls-holder-of-key" }
 )
 public class FAPICIBAPollTestPlan implements TestPlan {
 

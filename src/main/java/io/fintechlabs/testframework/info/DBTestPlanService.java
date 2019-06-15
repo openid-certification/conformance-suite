@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Strings;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,13 +77,14 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, io.fintechlabs.testframework.plan.TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, JsonObject config, String description, String[] testModules, String summary, String publish) {
+	public void createTestPlan(String id, String planName, String variant, JsonObject config, String description, String[] testModules, String summary, String publish) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
 			.add("_id", id)
 			.add("planName", planName)
+			.add("variant", variant)
 			.add("config", config)
 			.add("started", Instant.now().toString())
 			.add("owner", owner)
@@ -303,6 +305,19 @@ public class DBTestPlanService implements TestPlanService {
 		mongoTemplate.updateMulti(query, update, DBTestInfoService.COLLECTION);
 
 		return true;
+	}
+
+	@Override
+	public String getTestPlanVariant(String planId) {
+		Map testPlan = getTestPlan(planId);
+
+		if (testPlan != null && testPlan.containsKey("variant") && testPlan.get("variant") != null
+			&& !Strings.isNullOrEmpty(testPlan.get("variant").toString())) {
+
+			return testPlan.get("variant").toString();
+		}
+
+		return null;
 	}
 
 	@Override

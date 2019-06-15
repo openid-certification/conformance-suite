@@ -101,16 +101,19 @@
                         data-width="auto" data-height="auto"
                         type="checkbox" id="singleTestSelector">
                 </div>
-                <div class="col-md-11" id="testSelector">
+                <div class="col-md-9" id="testSelector">
                     <select id="testSelect" class="form-control">
                         <option value="select">--- Select A Test ----</option>
                     </select>
                 </div>
-                <div class="col-md-11 collapse" id="planSelector">
+                <div class="col-md-9 collapse" id="planSelector">
                     <select id="planSelect" class="form-control">
                         <option value="select">--- Select A Test Plan ----</option>
                     </select>
                 </div>
+				<div class="col-md-2">
+					<select class="form-control" id="variantSelector" ></select>
+				</div>
             </div>
 
 			<div class="row">
@@ -608,8 +611,15 @@
 				// Stash the config in case we are unable to create the test
 				saveConfig({ config: $('#config').val(), testName: testName });
 
+				var createUrl = '/runner/?test=' + encodeURIComponent(testName);
+				if (hasVariants(testName)) {
+					var selectedVariant = $('#variantSelector').val();
+
+					createUrl += '&variant=' + encodeURIComponent(selectedVariant);
+				}
+
 				$.ajax({
-					url: '/runner/?test=' + encodeURIComponent(testName),
+					url: createUrl,
 					type: 'POST',
 					contentType: 'application/json',
 					data: $('#config').val(),
@@ -652,8 +662,15 @@
 				// Stash the config in case we are unable to create the test
 				saveConfig({ config: $('#config').val(), planName: planName });
 
+				var createUrl = '/plan?planName=' + encodeURIComponent(planName);
+				if (hasVariants(planName)) {
+					var selectedVariant = $('#variantSelector').val();
+
+					createUrl += '&variant=' + encodeURIComponent(selectedVariant);
+				}
+
                 $.ajax({
-                	   url: '/plan?planName=' + encodeURIComponent(planName),
+                	   url: createUrl,
                 	   type: 'POST',
                 	   contentType: 'application/json',
                 	   data: $('#config').val(),
@@ -674,10 +691,17 @@
 			});
 
 			// update field visibility when the selectors change
-			$('#testSelect').on('change', updateConfigFieldVisibility);
-			$('#planSelect').on('change', updateConfigFieldVisibility);
+			$('#testSelect').on('change', function(_) {
+				updateVariants();
+				updateConfigFieldVisibility();
+			});
+			$('#planSelect').on('change', function(_) {
+				updateVariants();
+				updateConfigFieldVisibility();
+			});
 
 			// update the config visibility right now
+			updateVariants();
 			updateConfigFieldVisibility();
 
 			$('#refresh').click(function(event) {
@@ -705,7 +729,10 @@
 			updateFormElementsFromJSON();
 
 			// update the test/plan components on the toggle switch
-			$('#singleTestSelector').on('change', updateSingleTestSelector);
+			$('#singleTestSelector').on('change', function (_) {
+				updateVariants();
+				updateSingleTestSelector();
+			});
 			// refresh right now
 			updateSingleTestSelector();
 
@@ -728,6 +755,17 @@
                 $('#createPlanBtn').show();
             }
             updateConfigFieldVisibility();
+		}
+
+		function hasVariants(name) {
+			if ($('#singleTestSelector').is(':checked')) {
+
+				return FAPI_UI.availableTests[name].variants && FAPI_UI.availableTests[name].variants.length > 0;
+			} else {
+
+				return FAPI_UI.availablePlans[name].variants && FAPI_UI.availablePlans[name].variants.length > 0;
+			}
+
 		}
 
 		function updateConfigFieldVisibility() {
@@ -802,6 +840,39 @@
 					$('.config-form-container-header', this).hide();
 				}
 			});
+		}
+
+		function updateVariants() {
+			if ($('#singleTestSelector').is(':checked')) {
+				// single test selected
+				var map = FAPI_UI.availableTests;
+				var itemSelected = $('#testSelect').val();
+
+			} else {
+				// multi test selected
+				var map = FAPI_UI.availablePlans;
+				var itemSelected = $('#planSelect').val();
+			}
+
+			$('#variantSelector').find('option').remove();
+			if (map[itemSelected] && map[itemSelected].variants && map[itemSelected].variants.length > 0) {
+
+				// update the variant display
+				_.each(map[itemSelected].variants, function(variant) {
+
+					$('#variantSelector').append(FAPI_UI.logTemplates.TEST_OPTION({
+
+						val: variant.name,
+						display: variant.name
+					}));
+				});
+
+				$('#variantSelector').show();
+			} else {
+
+				// don't show the variant if there's none to show
+				$('#variantSelector').hide();
+			}
 		}
 
 		/**
