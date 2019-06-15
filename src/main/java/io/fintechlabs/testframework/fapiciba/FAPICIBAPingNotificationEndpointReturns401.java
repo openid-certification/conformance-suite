@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -30,6 +31,11 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 public class FAPICIBAPingNotificationEndpointReturns401 extends FAPICIBAPingWithMTLS {
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		// FIXME: add other variants
+		super.setupPingMTLS();
+	}
 
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {

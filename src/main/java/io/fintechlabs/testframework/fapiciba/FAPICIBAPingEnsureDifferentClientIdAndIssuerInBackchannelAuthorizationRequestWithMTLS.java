@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-ensure-different-client-id-and-issuer-in-backchannel-authorization-request-with-mtls",
@@ -29,6 +30,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS extends AbstractFAPICIBAEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS {
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		// FIXME: add other variants
+		super.setupPingMTLS();
+	}
+
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");

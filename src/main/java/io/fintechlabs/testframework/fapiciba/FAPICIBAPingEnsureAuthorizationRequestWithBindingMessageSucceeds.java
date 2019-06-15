@@ -5,9 +5,8 @@ import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenT
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
-import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
-import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
@@ -34,16 +33,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds {
-	public void setupMTLS() {
-		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-	}
-
-	@Override
-	public void configure(JsonObject config, String baseUrl, String overrideUrl) {
-		// FIXME: temporary until this supports variants
-		setupMTLS();
-		super.configure(config, baseUrl, overrideUrl);
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		super.setupPingMTLS();
+		// FIXME: add other variants
+		super.setupPingMTLS();
 	}
 
 	@Override
