@@ -41,6 +41,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureClientIdInTokenEndpointWithMTLS.class,
 		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS.class,
 		FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithMTLS.class,
+		
+		//Refresh token tests
+		FAPIRWID2RefreshTokenWithMTLS.class
 	}
 )
 public class FAPI_RW_ID2_WithMTLSTestPlan implements TestPlan {

@@ -21,7 +21,8 @@ public class EnsureAccessTokenContainsAllowedCharactersOnly extends AbstractCond
 
 		Pattern validPattern = Pattern.compile(VSCHAR_PATTERN);
 		if (!validPattern.matcher(accessToken).matches()) {
-			throw error("Access token contains illegal characters", args("access_token", accessToken));
+			throw error("Access token contains illegal characters. As per RFC-6749, only characters between %x20 and %x7E are allowed.",
+						args("access_token", accessToken));
 		}
 		logSuccess("Access token does not contain any illegal characters");
 		return env;

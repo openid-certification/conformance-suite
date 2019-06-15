@@ -34,20 +34,15 @@ import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderFo
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
-import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
+import io.fintechlabs.testframework.condition.client.WaitForOneSecond;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
-import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.common.DisallowTLS10;
-import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
@@ -73,16 +68,15 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 	protected void sendRefreshTokenRequestAndCheckIdTokenClaims() {
 		addIdTokenClaimsToEnv("first_id_token_claims");
-		callAndStopOnFailure(ExtractRefreshTokenFromTokenResponse.class);
-
-		try {
-			refreshTokenRequest();
-			//compare only when refresh response contains an id_token
-			if(addIdTokenClaimsToEnv("second_id_token_claims")) {
-				callAndContinueOnFailure(CompareIdTokenClaims.class, "OIDCC-12.2");
-			}
-		} catch (InterruptedException e) {
-			logger.error("Error during refresh token call", e);
+		callAndStopOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
+		//stop if no refresh token is returned
+		if(env.getString("refresh_token") == null) {
+			fireTestFinished();
+		}
+		refreshTokenRequest();
+		//compare only when refresh response contains an id_token
+		if(addIdTokenClaimsToEnv("second_id_token_claims")) {
+			callAndContinueOnFailure(CompareIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-12.2");
 		}
 	}
 
@@ -95,7 +89,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		return false;
 	}
 
-	protected void refreshTokenRequest() throws InterruptedException {
+	protected void refreshTokenRequest() {
 		eventLog.startBlock(currentClientString() + "Refresh Token Request");
 		env.putString("scope", env.getString("client", "scope"));
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
@@ -103,13 +97,13 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		addClientAuthenticationToTokenEndpointRequest();
 
 		//wait 1 second to make sure that iat values will be different
-		Thread.sleep(1000);
+		callAndStopOnFailure(WaitForOneSecond.class);
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 
-		callAndContinueOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class);
-		callAndStopOnFailure(EnsureAccessTokenContainsAllowedCharactersOnly.class);
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
+		callAndContinueOnFailure(EnsureAccessTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.12");
 
 		String secondAccessToken = env.getString("token_endpoint_response", "access_token");
 		env.putString("second_access_token", secondAccessToken);
@@ -120,13 +114,8 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
 		env.removeObject("refresh_token");
-		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class);
-
-		if (whichClient == 1) {
-			env.putString("refresh_token_for_client_1", env.getString("refresh_token"));
-			logger.debug("refresh_token_for_client_1=" + env.getString("refresh_token_for_client_1"));
-		}
-
+		callAndStopOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
+		
 		eventLog.endBlock();
 	}
 
@@ -143,18 +132,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 	}
 
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
-		addIdTokenClaimsToEnv("first_id_token_claims");
-
-		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
-
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
-
-		performProfileIdTokenValidation();
-
+	protected void performStandardIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
@@ -174,6 +152,20 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	@Override
+	protected void performPostAuthorizationFlow() {
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+		addIdTokenClaimsToEnv("first_id_token_claims");
+
+		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
+
+		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
+
+		performProfileIdTokenValidation();
+
+		performStandardIdTokenValidation();
 
 		if (whichClient == 1) {
 			// call the token endpoint and complete the flow
@@ -184,29 +176,8 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			String firstAccessToken = env.getString("token_endpoint_response", "access_token");
 			env.putString("first_access_token", firstAccessToken);
 
-			eventLog.startBlock("Accounts request endpoint TLS test");
-			env.mapKey("tls", "accounts_request_endpoint_tls");
-			callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-			callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-			eventLog.endBlock();
-
-
-			eventLog.startBlock("Accounts resource endpoint TLS test");
-			env.mapKey("tls", "accounts_resource_endpoint_tls");
-			callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-			callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-			env.unmapKey("tls");
-			eventLog.endBlock();
-
 			sendRefreshTokenRequestAndCheckIdTokenClaims();
 
-			/*
 			requestProtectedResource();
 
 			callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
@@ -218,7 +189,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
 			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-			*/
+
 			// Try the second client
 
 			whichClient = 2;
@@ -262,7 +233,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			sendRefreshTokenRequestAndCheckIdTokenClaims();
 
-			////requestProtectedResource();
+			requestProtectedResource();
 
 			// Switch back to client 1
 			////eventLog.startBlock("Try Client1 Crypto Keys with Client2 token");
@@ -272,37 +243,14 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			// Try client 2's access token with client 1's keys
 
-			////callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
+			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
 
-			////setStatus(Status.WAITING);
-			////eventLog.endBlock();
-
-			////eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
-			// Re-map to Client 2 keys
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-			/*
-			// Check access_token still works
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-			callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-13");
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-
-
-			// The AS 'SHOULD' have revoked the access token; try it again".
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
+			setStatus(Status.WAITING);
 			eventLog.endBlock();
-			*/
 
-			// try client 1's refresh_token with client 2
-			eventLog.startBlock("Attempting to use refresh_token issued to client 1 with client 2");
-			env.putString("refresh_token", env.getString("refresh_token_for_client_1"));
+
+			// try client 2's refresh_token with client 1
+			eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
 			refreshTokenRequestExpectingError();
 			eventLog.endBlock();
 			fireTestFinished();
