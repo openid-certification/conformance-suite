@@ -171,10 +171,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected TestType testType;
 
 	/* to be used in @Variant definitions */
-	protected final String variant_ping_mtls = "ping-mtls";
-	protected final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
-	protected final String variant_poll_mtls = "poll-mtls";
-	protected final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
+	public static final String variant_ping_mtls = "ping-mtls";
+	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
+	public static final String variant_poll_mtls = "poll-mtls";
+	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
 
 	/* for subclasses to fill in */
 	Class<? extends ConditionSequence> addBackchannelClientAuthentication;

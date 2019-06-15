@@ -49,6 +49,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		// FAPI specific
 		FAPICIBAPollEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS.class,
+	},
+	variants = {
+		FAPICIBA.variant_poll_mtls,
 	}
 )
 public class FAPICIBAPollWithMTLSTestPlan implements TestPlan {

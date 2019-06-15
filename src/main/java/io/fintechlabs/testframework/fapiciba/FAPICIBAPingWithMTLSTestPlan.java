@@ -39,6 +39,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-has-body",
 		"fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-401",
 		"fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-403",
+	},
+	variants = {
+		FAPICIBA.variant_ping_mtls,
 	}
 )
 public class FAPICIBAPingWithMTLSTestPlan implements TestPlan {
