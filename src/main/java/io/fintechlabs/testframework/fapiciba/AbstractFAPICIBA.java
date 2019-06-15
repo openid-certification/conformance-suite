@@ -82,7 +82,6 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
-import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
@@ -596,17 +595,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
 
 		callAndStopOnFailure(EnsureErrorTokenEndpointSlowdownOrAuthorizationPending.class);
-
-		eventLog.endBlock();
-	}
-
-	protected void verifyTokenEndpointResponseIsAccessDenied() {
-		eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
-
-		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
-
-		env.putObject("callback_params", env.getObject("token_endpoint_response"));
-		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class);
 
 		eventLog.endBlock();
 	}

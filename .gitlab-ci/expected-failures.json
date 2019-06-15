@@ -105,7 +105,7 @@
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-user-rejects-authentication-with-mtls",
+    "test-name": "fapi-ciba-user-rejects-authentication",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Verify notification callback",
     "condition": "EnsureIncomingTlsSecureCipher",

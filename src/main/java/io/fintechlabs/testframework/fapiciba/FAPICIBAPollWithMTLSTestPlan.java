@@ -11,7 +11,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		// Normal well behaved client cases
 		FAPICIBAPollDiscoveryEndpointVerification.class,
 		FAPICIBA.class,
-		FAPICIBAPollUserRejectsAuthenticationWithMTLS.class,
+		FAPICIBAUserRejectsAuthentication.class,
 		FAPICIBAPollMultipleCallToTokenEndpointWithMTLS.class,
 		FAPICIBAAuthReqIdExpired.class,
 		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
