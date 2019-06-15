@@ -29,9 +29,11 @@ class Conformance(object):
             raise Exception("get_all_test_modules failed - HTTP {:d} {}".format(response.status_code, response.content))
         return json.loads(response.content.decode('utf-8'))
 
-    def create_test_plan(self, name, configuration):
+    def create_test_plan(self, name, configuration, variant=None):
         api_url = '{0}plan'.format(self.api_url_base)
         payload = {'planName': name}
+        if variant != None:
+            payload['variant'] = variant
         response = self.requests_session.post(api_url, params=payload, data=configuration)
 
         if response.status_code != 201:

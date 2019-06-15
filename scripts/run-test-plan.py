@@ -39,7 +39,11 @@ def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     with open(config_file) as f:
         json_config = f.read()
-    test_plan_info = conformance.create_test_plan(test_plan, json_config)
+    if ':' in test_plan:
+        (test_plan_name, variant) = test_plan.split(':', 1)
+        test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
+    else:
+        test_plan_info = conformance.create_test_plan(test_plan, json_config)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
     test_ids = {}  # key is module name
