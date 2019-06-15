@@ -69,6 +69,7 @@ function makeServerTest {
     # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
     # see https://gitlab.com/openid/conformance-suite/issues/389
     TESTS="${TESTS} fapi-ciba-ping-with-mtls-test-plan authlete-fapi-ciba-mtls-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-test-plan authlete-fapi-ciba-privatekey-ping-dcr.json"
     # push isn't allowed in FAPI-CIBA profile
     #TESTS="${TESTS} fapi-ciba-push-with-mtls-test-plan authlete-fapi-ciba-mtls-push.json"
 
