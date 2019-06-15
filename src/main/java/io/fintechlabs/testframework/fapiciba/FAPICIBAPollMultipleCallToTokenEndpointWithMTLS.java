@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPollMultipleCallToTokenEndpointWithMTLS extends AbstractFAPICIBAWithMTLS {
-	@Variant(name = "mtls")
+	@Variant(name = FAPICIBA.variant_poll_mtls)
 	public void setupMTLS() {
 		// FIXME: add private key variant
 	}

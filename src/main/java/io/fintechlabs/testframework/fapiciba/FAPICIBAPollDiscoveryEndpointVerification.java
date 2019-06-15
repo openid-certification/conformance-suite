@@ -38,11 +38,11 @@ public class FAPICIBAPollDiscoveryEndpointVerification extends AbstractFAPICIBAD
 		}
 	}
 
-	@Variant(name = "mtls")
+	@Variant(name = FAPICIBA.variant_poll_mtls)
 	public void setupMTLS() {
 		variantChecks = MtlsChecks.class;
 	}
-	@Variant(name = "private-key-jwt-and-mtls-holder-of-key")
+	@Variant(name = FAPICIBA.variant_poll_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		variantChecks = PrivateKeyJWTChecks.class;
 	}
