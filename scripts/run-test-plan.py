@@ -66,10 +66,12 @@ def run_test_plan(test_plan, config_file):
                 # If it's a client test, we need to run the client
                 if re.match(r'(fapi-rw-id2-client-.*)', module):
                     os.putenv('CLIENTTESTMODE', 'fapi-rw')
+                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
                 if re.match(r'(fapi-rw-id2-ob-client-.*)', module):
                     os.putenv('CLIENTTESTMODE', 'fapi-ob')
+                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
                 conformance.wait_for_state(module_id, ["FINISHED"])
@@ -507,7 +509,6 @@ if __name__ == '__main__':
     if 'CONFORMANCE_SERVER' in os.environ:
         api_url_base = os.environ['CONFORMANCE_SERVER']
         token = os.environ['CONFORMANCE_TOKEN']
-        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
     else:
         # local development settings
         api_url_base = 'https://localhost:8443/'
@@ -515,7 +516,6 @@ if __name__ == '__main__':
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
-        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
 
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation
