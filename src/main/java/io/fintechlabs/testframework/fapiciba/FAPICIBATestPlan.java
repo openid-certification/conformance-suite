@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "FAPI-CIBA: test plan",
 	profile = "FAPI-CIBA",
 	testModules = {
-//		FAPICIBAPollDiscoveryEndpointVerification.class,
+		FAPICIBADiscoveryEndpointVerification.class,
 		FAPICIBA.class,
 		FAPICIBAAuthReqIdExpired.class,
 		FAPICIBAUserRejectsAuthentication.class,

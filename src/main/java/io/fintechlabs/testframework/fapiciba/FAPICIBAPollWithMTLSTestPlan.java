@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "FAPI-CIBA",
 	testModules = {
 		// Normal well behaved client cases
-		FAPICIBAPollDiscoveryEndpointVerification.class,
+		FAPICIBADiscoveryEndpointVerification.class,
 		FAPICIBA.class,
 		FAPICIBAUserRejectsAuthentication.class,
 		FAPICIBAPollMultipleCallToTokenEndpointWithMTLS.class,
