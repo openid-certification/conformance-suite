@@ -112,7 +112,7 @@
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-auth-req-id-expired-with-mtls",
+    "test-name": "fapi-ciba-auth-req-id-expired",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Verify notification callback",
     "condition": "EnsureIncomingTlsSecureCipher",

@@ -13,7 +13,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBA.class,
 		FAPICIBAPollUserRejectsAuthenticationWithMTLS.class,
 		FAPICIBAPollMultipleCallToTokenEndpointWithMTLS.class,
-		FAPICIBAPollAuthReqIdExpired.class,
+		FAPICIBAAuthReqIdExpired.class,
 		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 
 		// Possible failure case

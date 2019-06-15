@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "FAPI-CIBA",
 	testModuleNames = {
 		"fapi-ciba-ping-discovery-end-point-verification",
-		"fapi-ciba-ping-with-mtls",
+		"fapi-ciba",
 		"fapi-ciba-ping-user-rejects-authentication-with-mtls",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-missing-aud-fails",
 		"fapi-ciba-ping-with-mtls-ensure-request-object-bad-aud-fails",
@@ -29,7 +29,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		"fapi-ciba-ping-ensure-request-object-signed-by-other-client-fails-with-mtls",
 		"fapi-ciba-ping-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
 		"fapi-ciba-ping-ensure-authorization-request-with-potentially-bad-binding-message-with-mtls",
-		"fapi-ciba-ping-auth-req-id-expired-with-mtls",
+		"fapi-ciba-auth-req-id-expired",
 		"fapi-ciba-ping-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
 		"fapi-ciba-ping-multiple-call-to-token-endpoint-with-mtls",
 		"fapi-ciba-ping-ensure-different-client-id-and-issuer-in-backchannel-authorization-request-with-mtls",

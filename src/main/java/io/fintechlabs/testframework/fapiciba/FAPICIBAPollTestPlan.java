@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModules = {
 		FAPICIBAPollDiscoveryEndpointVerification.class,
 		FAPICIBA.class,
-		FAPICIBAPollAuthReqIdExpired.class,
+		FAPICIBAAuthReqIdExpired.class,
 		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 	},
 	variants = { "mtls", "private-key-jwt-and-mtls-holder-of-key" }
