@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-has-body",
+	testName = "fapi-ciba-ping-backchannel-notification-endpoint-response-has-body",
 	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - backchannel notification-endpoint returns HTTP 200 OK response with a body",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 200 OK response with a body, the token endpoint should then return successfully as normal. If the token endpoint does not return success, this test will fail with a warning.",
 	profile = "FAPI-CIBA",
@@ -32,12 +32,15 @@ import org.springframework.http.ResponseEntity;
 		"resource.resourceUrl"
 	}
 )
+// FIXME: mark test as Ping specific
+public class FAPICIBAPingNotificationEndpointReturnsABody extends AbstractFAPICIBA {
 
-public class FAPICIBAPingNotificationEndpointReturnsABody extends FAPICIBAPingWithMTLS {
-	@Variant(name = FAPICIBA.variant_ping_mtls)
-	public void setupPingMTLS() {
-		// FIXME: add other variants
-		super.setupPingMTLS();
+	@Variant(name = variant_ping_mtls)
+	public void setupPingMTLS() { super.setupPingMTLS(); }
+
+	@Variant(name = variant_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupPingPrivateKeyJwt();
 	}
 
 	@Override

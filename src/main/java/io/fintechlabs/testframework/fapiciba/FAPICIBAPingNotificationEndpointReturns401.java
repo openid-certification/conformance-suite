@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ping-with-mtls-backchannel-notification-endpoint-response-401",
+	testName = "fapi-ciba-ping-backchannel-notification-endpoint-response-401",
 	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - backchannel notificatione endpoint returns a HTTP 401 Unauthorized response",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 401 Unauthorized response and the authentication flow must still complete normally.",
 	profile = "FAPI-CIBA",
@@ -30,12 +30,17 @@ import org.springframework.http.ResponseEntity;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPingNotificationEndpointReturns401 extends FAPICIBAPingWithMTLS {
-	@Variant(name = FAPICIBA.variant_ping_mtls)
-	public void setupPingMTLS() {
-		// FIXME: add other variants
-		super.setupPingMTLS();
+// FIXME: mark test as Ping specific
+public class FAPICIBAPingNotificationEndpointReturns401 extends AbstractFAPICIBA {
+
+	@Variant(name = variant_ping_mtls)
+	public void setupPingMTLS() { super.setupPingMTLS(); }
+
+	@Variant(name = variant_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupPingPrivateKeyJwt();
 	}
+
 
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {
