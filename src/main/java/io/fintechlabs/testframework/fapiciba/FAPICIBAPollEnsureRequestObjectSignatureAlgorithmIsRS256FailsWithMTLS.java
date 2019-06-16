@@ -29,8 +29,9 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 public class FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS extends AbstractFAPICIBAEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS {
 	@Variant(name = FAPICIBA.variant_poll_mtls)
-	public void setupMTLS() {
-		// FIXME: add private key variant
+	public void setupPollMTLS() {
+		// FIXME: add other variants
+		super.setupPollMTLS();
 	}
 
 	@Override

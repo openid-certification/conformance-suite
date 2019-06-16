@@ -30,8 +30,9 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectMissingIatFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
 	@Variant(name = FAPICIBA.variant_poll_mtls)
-	public void setupMTLS() {
-		// FIXME: add private key variant
+	public void setupPollMTLS() {
+		// FIXME: add other variants
+		super.setupPollMTLS();
 	}
 
 	@Override
