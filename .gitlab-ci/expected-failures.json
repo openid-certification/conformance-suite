@@ -35,20 +35,6 @@
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-ensure-wrong-client-id-in-token-endpoint-request-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Swapping to Client2 and calling token endpoint",
-    "condition": "CIBANotificationEndpointCalledUnexpectedly",
-    "expected-result": "failure"
-  },
-  {
-    "test-name": "fapi-ciba-ping-ensure-wrong-auth-req-id-in-token-endpoint-request-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Swapping to Client2, Jwks2, tls2 and calling token endpoint",
-    "condition": "CIBANotificationEndpointCalledUnexpectedly",
-    "expected-result": "failure"
-  },
-  {
     "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
@@ -160,22 +146,6 @@
     "test-name":"fapi-ciba-ping-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
-    "condition": "TEST-RUNNER",
-    "comment": "Known issue with conformance suite not waiting for ping if back auth request succeeds",
-    "expected-result": "failure"
-  },
-  {
-    "test-name":"fapi-ciba-ping-ensure-wrong-client-id-in-token-endpoint-request-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Swapping to Client2 and calling token endpoint",
-    "condition": "TEST-RUNNER",
-    "comment": "Known issue with conformance suite not waiting for ping if back auth request succeeds",
-    "expected-result": "failure"
-  },
-  {
-    "test-name":"fapi-ciba-ping-ensure-wrong-auth-req-id-in-token-endpoint-request-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Swapping to Client2, Jwks2, tls2 and calling token endpoint",
     "condition": "TEST-RUNNER",
     "comment": "Known issue with conformance suite not waiting for ping if back auth request succeeds",
     "expected-result": "failure"
