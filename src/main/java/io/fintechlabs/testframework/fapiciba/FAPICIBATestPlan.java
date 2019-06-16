@@ -13,11 +13,14 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBA.class,
 		FAPICIBAUserRejectsAuthentication.class,
 		FAPICIBAPollMultipleCallToTokenEndpointWithMTLS.class,
+		FAPICIBAPingMultipleCallToTokenEndpointWithMTLS.class,
 		FAPICIBAAuthReqIdExpired.class,
 		FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
+		FAPICIBAPingEnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 
 		// Possible failure case
 		FAPICIBAPollEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS.class,
+		FAPICIBAPingEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS.class,
 
 		// Negative tests for request objects
 		FAPICIBAPollWithMTLSEnsureRequestObjectMissingAudFails.class,
@@ -35,17 +38,37 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS.class,
 		FAPICIBAPollEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS.class,
 		FAPICIBAPollEnsureRequestObjectSignedByOtherClientFailsWithMTLS.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectMissingAudFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectBadAudFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectMissingIssFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectBadIssFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectMissingExpFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectExpiredExpFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectExpIsYearInFutureFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectMissingIatFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectIatIsWeekInPastFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectIatIsHourInFutureFails.class,
+		FAPICIBAPingWithMTLSEnsureRequestObjectMissingJtiFails.class,
+		FAPICIBAPingEnsureRequestObjectSignatureAlgorithmIsNoneFailsWithMTLS.class,
+		FAPICIBAPingEnsureRequestObjectSignatureAlgorithmIsBadFailsWithMTLS.class,
+		FAPICIBAPingEnsureRequestObjectSignatureAlgorithmIsRS256FailsWithMTLS.class,
+		FAPICIBAPingEnsureRequestObjectSignedByOtherClientFailsWithMTLS.class,
 
 		// Negative tests for hints
 		FAPICIBAPollEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS.class,
+		FAPICIBAPingEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS.class,
 
 		// Negative tests for token endpoint
 		FAPICIBAPollEnsureWrongAuthenticationRequestIdInTokenEndpointRequestWithMTLS.class,
+		FAPICIBAPingEnsureWrongAuthenticationRequestIdInTokenEndpointRequestWithMTLS.class,
 
 		// MTLS specific tests - not possible to test with private_key_jwt
 		FAPICIBAPollEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS.class,
 		FAPICIBAPollEnsureWrongClientIdInTokenEndpointRequestWithMTLS.class,
 		FAPICIBAPollEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS.class,
+		FAPICIBAPingEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS.class,
+		FAPICIBAPingEnsureWrongClientIdInTokenEndpointRequestWithMTLS.class,
+		FAPICIBAPingEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS.class,
 
 		// Ping specific tests, not applicable to poll
 		FAPICIBAPingNotificationEndpointReturnsABody.class,
@@ -54,6 +77,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		// FAPI specific
 		FAPICIBAPollEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS.class,
+		FAPICIBAPingEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS.class,
 
 	},
 	variants = {
