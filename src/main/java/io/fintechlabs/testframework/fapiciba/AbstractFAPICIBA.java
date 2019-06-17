@@ -167,18 +167,20 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		PING,
 		POLL
 	}
-	protected TestType testType;
 
-	/* to be used in @Variant definitions */
+	// to be used in @Variant definitions
 	public static final String variant_ping_mtls = "ping-mtls";
 	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
 	public static final String variant_poll_mtls = "poll-mtls";
 	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
 
-	/* for subclasses to fill in */
-	Class<? extends ConditionSequence> addBackchannelClientAuthentication;
-	Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
+	// for variants to fill in by calling the setup... family of methods
+	private Class<? extends ConditionSequence> addBackchannelClientAuthentication;
+	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
+	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
+	// authenticate
+	protected TestType testType;
 
 	public static class PrivateKeyJwtRegistration extends AbstractConditionSequence
 	{
