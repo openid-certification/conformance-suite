@@ -35,7 +35,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 public class FAPICIBAPingEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds {
 	@Variant(name = FAPICIBA.variant_ping_mtls)
 	public void setupPingMTLS() {
-		super.setupPingMTLS();
 		// FIXME: add other variants
 		super.setupPingMTLS();
 	}
