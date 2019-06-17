@@ -106,75 +106,6 @@ var FAPI_UI = {
 
 		},
 
-		loadPublicLogDetailTemplates: function() {
-			return $.when(
-					$.get('templates/publicLogHeader.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_LOG_START = _.template(data);
-					}),
-
-					$.get('templates/publicLogEntry.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_LOG_DETAIL = _.template(data);
-					}),
-
-					$.get('templates/source.html', function(data) {
-						FAPI_UI.logTemplates.SOURCE = _.template(data);
-					}),
-
-					$.get('templates/message.html', function(data) {
-						FAPI_UI.logTemplates.MESSAGE = _.template(data);
-					}),
-
-					$.get('templates/requirements.html', function(data) {
-						FAPI_UI.logTemplates.REQUIREMENTS = _.template(data);
-					}),
-
-					$.get('templates/result.html', function(data) {
-						FAPI_UI.logTemplates.RESULT = _.template(data);
-					}),
-
-					$.get('templates/time.html', function(data) {
-						FAPI_UI.logTemplates.TIME = _.template(data);
-					}),
-
-					$.get('templates/more.html', function(data) {
-						FAPI_UI.logTemplates.MORE = _.template(data);
-					}),
-
-					$.get('templates/moreButton.html', function(data) {
-						FAPI_UI.logTemplates.MORE_BUTTON = _.template(data);
-					}),
-
-					$.get('templates/exported.html', function(data) {
-						FAPI_UI.logTemplates.EXPORTED = _.template(data);
-					}),
-
-					$.get('templates/browser.html', function(data) {
-						FAPI_UI.logTemplates.BROWSER = _.template(data);
-					}),
-
-					$.get('templates/http.html', function(data) {
-						FAPI_UI.logTemplates.HTTP = _.template(data);
-					}),
-
-					$.get('templates/finalError.html', function(data) {
-						FAPI_UI.logTemplates.FINAL_ERROR = _.template(data);
-					}),
-
-					$.get('templates/statusAndResult.html', function(data) {
-						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-					}),
-
-					$.get('templates/resultsSummary.html', function(data) {
-						FAPI_UI.logTemplates.SUMMARY = _.template(data);
-					}),
-
-					$.get('templates/startBlock.html', function(data) {
-						FAPI_UI.logTemplates.START_BLOCK = _.template(data);
-					})
-			);
-
-		},
-
 		loadLogListTemplates: function() {
 			return $.when(
 					$.get('templates/configButton.html', function(data) {
@@ -195,27 +126,6 @@ var FAPI_UI = {
 
 					$.get('templates/planDetailButton.html', function(data) {
 						FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-					}),
-
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					})
-			);
-
-		},
-
-		loadPublicLogListTemplates: function() {
-			return $.when(
-					$.get('templates/date.html', function(data) {
-						FAPI_UI.logTemplates.DATE = _.template(data);
-					}),
-
-					$.get('templates/publicLogDetailButton.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_LOG_DETAIL = _.template(data);
-					}),
-
-					$.get('templates/publicPlanDetailButton.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_PLAN_DETAIL = _.template(data);
 					}),
 
 					$.get('templates/userinfo.html', function(data) {
@@ -250,23 +160,6 @@ var FAPI_UI = {
 
 		},
 
-		loadPublicPlanTemplates: function() {
-			return $.when(
-					$.get('templates/publicPlan.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_PLAN_START = _.template(data);
-					}),
-
-					$.get('templates/statusAndResult.html', function(data) {
-						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-					}),
-
-					$.get('templates/testVersion.html', function(data) {
-						FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
-					})
-			);
-
-		},
-
 		loadPlanListTemplates: function() {
 			return $.when(
 					$.get('templates/configButton.html', function(data) {
@@ -287,26 +180,6 @@ var FAPI_UI = {
 
 					$.get('templates/owner.html', function(data) {
 						FAPI_UI.logTemplates.OWNER = _.template(data);
-					}),
-
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					})
-			);
-		},
-
-		loadPublicPlanListTemplates: function() {
-			return $.when(
-					$.get('templates/date.html', function(data) {
-						FAPI_UI.logTemplates.DATE = _.template(data);
-					}),
-
-					$.get('templates/publicPlanDetailButton.html', function(data) {
-						FAPI_UI.logTemplates.PUBLIC_PLAN_DETAIL = _.template(data);
-					}),
-
-					$.get('templates/planModules.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
 					}),
 
 					$.get('templates/userinfo.html', function(data) {
@@ -384,14 +257,20 @@ var FAPI_UI = {
 
 		getUserInfo : function() {
 			// get the current user info
-			return $.getJSON({
+			var done = $.Deferred();
+			$.getJSON({
 				url: '/currentuser',
 				context: this
 			}).done(function(userInfo) {
 				this.currentUser = userInfo;
 				$('#userInfoHolder').html(FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo}));
 				$('[data-toggle="tooltip"]').tooltip();
+			}).fail(function() {
+				// User is not logged in; don't fill in the user info holder
+			}).always(function() {
+				done.resolve();
 			});
+			return done.promise();
 		},
 
 		getStatusHelp : function(value) {

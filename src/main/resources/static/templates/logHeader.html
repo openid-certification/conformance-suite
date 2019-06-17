@@ -33,7 +33,7 @@
                         <div class="col-md-10"><%- test.version %></div>
                     </div>
 
-                    <% if (FAPI_UI.currentUser.isAdmin) { %>
+                    <% if (!public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                     <div class="row">
                         <div class="col-md-2">Test Owner:</div>
                         <div class="col-md-10">
@@ -67,11 +67,16 @@
                 </div>
 
                 <div class="col-md-2"> <!-- controls -->
+                    <% if (!public) { %>
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Repeat Test</button>
                     <button class="btn btn-default btn-block" id="uploadBtn"><span class="glyphicon glyphicon-picture"></span> Upload Images <span class="badge" id="uploadCount"></span></button>
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
+                    <% } %>
+                    <% if (!public || test.publish == "everything") { %>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                    <% } %>
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
+                    <% if (!public) { %>
                     <button class="btn btn-default btn-block collapse" id="nextPlanBtn"><span class="glyphicon glyphicon-fast-forward"></span> Continue Plan</button>
                     <% if (!test.publish) { %>
                     <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
@@ -80,12 +85,14 @@
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
                         <% } %>
-                    <a href="publicLogDetail.html?log=<%- encodeURIComponent(test.testId) %>" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
+                    <a href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
+                    <% } %>
                     <% } %>
                 </div>
 
               </div>
             </div>
+            <% if (!public) { %>
             <div class="container-fluid well well-sm collapse" id="runningTestInformation">
               <div id="runningTestError" class="collapse"></div>
               <div class="alert alert-info" id="runningTestActive"><b>This test is currently running.</b> Values exported from the test are available below along with any URLs that need to be visited interactively.</div>
@@ -113,3 +120,4 @@
               <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
               <b>This test is no longer running.</b> This log has been archived and can be viewed or downloaded.
             </div>
+            <% } %>

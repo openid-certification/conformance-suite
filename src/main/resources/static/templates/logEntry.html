@@ -38,6 +38,7 @@
                         <% } %>
                     </div>
 
+                    <% if (!public) { %>
                     <div class="col-md-1">
                         <% if (item.testOwner
                                 && (item.testOwner.iss != FAPI_UI.currentUser.iss
@@ -45,7 +46,7 @@
                             <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
                         <% } %>
                     </div>
-
+                    <% } %>
                 </div>
 
                 <div class="row"><!-- more button / requirements / message -->
@@ -67,7 +68,7 @@
 								</div>
 							</div>
                         <% } %>
-		                <% if (item.upload) { %>
+		                <% if (!public && item.upload) { %>
 	        			        <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
     	            			    		<div class="col-md-12">
     	                     		   <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>

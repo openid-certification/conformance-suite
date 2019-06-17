@@ -135,12 +135,15 @@
 		 *
 		 */
 		$(document).ready(function() {
+			var urlParams = new URLSearchParams(window.location.search);
+			var public = Boolean(urlParams.get('public'));
+
 			FAPI_UI.showBusy();
 			FAPI_UI.loadLogListTemplates()
 			.then(function() {
 				return FAPI_UI.getUserInfo();
 			}).then(function() {
-				return loadAvailableLogs();
+				return loadAvailableLogs(public);
 			}).always(function() {
 				FAPI_UI.hideBusy();
 			});
@@ -161,11 +164,11 @@
 		/**
 		 *
 		 */
-		function loadAvailableLogs() {
+		function loadAvailableLogs(public) {
 			return $('#logsListing').DataTable({
 				serverSide: true,
 				ajax: {
-					url: '/log',
+					url: public ? '/public/api/log' : '/log',
 					cache: true,
 					data: function(data) {
 						// Translate query parameters into a simpler schema
@@ -191,17 +194,18 @@
 						title: 'Instance ID',
 						data: 'testId',
 						render: {
-							display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data }); }
+							display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data, public: public }); }
 						}
 					},
 					{
 						title: 'Config',
-						data: 'config',
+						data: null,
 						render: {
 							display: function() { return FAPI_UI.logTemplates.CONFIG(); }
 						},
 						createdCell: function(cell) { $(cell).addClass('configColumn'); },
-						orderable: false
+						orderable: false,
+						visible: !public
 					},
 					{ title: 'Name', data: 'testName' },
 					{ title: 'Description', data: 'description', defaultContent: '' },
@@ -219,7 +223,7 @@
 						render: {
 							display: function(data) {
 								if (data)
-									return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data });
+									return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public });
 								else
 									return '';
 							}
@@ -247,7 +251,7 @@
 						render: {
 							display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
 						},
-						visible: FAPI_UI.currentUser.isAdmin
+						visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
 					}
 				],
 				createdRow: function(row, data) {
