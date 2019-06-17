@@ -76,37 +76,8 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_noErrorNoOptionalFieldsWrongState() {
-		addState(stateWrong);
-		doTestString(errorNoneNoOptionalFields);
-	}
-
-	/**
-	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_noErrorAllOptionalFieldsWrongState() {
-		addState(stateWrong);
-		doTestString(errorNoneAllOptionalFields);
-	}
-
-	/**
-	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
-	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorMissing() {
 		doTestString(errorErrorMissing);
-	}
-
-	/**
-	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_stateMissing() {
-		doTestString(errorStateMissing);
 	}
 
 	/**

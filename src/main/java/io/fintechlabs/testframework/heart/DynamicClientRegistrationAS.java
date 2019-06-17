@@ -1,7 +1,23 @@
 package io.fintechlabs.testframework.heart;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.*;
+import io.fintechlabs.testframework.condition.client.AddRedirectUriToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
+import io.fintechlabs.testframework.condition.client.CheckRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.EnsureAuthorizationCodeGrantTypeInClient;
+import io.fintechlabs.testframework.condition.client.EnsureCodeResponseTypeInClient;
+import io.fintechlabs.testframework.condition.client.EnsureDynamicRegistrationEndpointRequiresRedirectUri;
+import io.fintechlabs.testframework.condition.client.EnsureImplicitGrantTypeInClient;
+import io.fintechlabs.testframework.condition.client.EnsureTokenResponseTypeInClient;
+import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GetDynamicClientConfiguration;
+import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.condition.client.SetDynamicRegistrationRequestGrantTypeToAuthorizationCode;
+import io.fintechlabs.testframework.condition.client.SetDynamicRegistrationRequestGrantTypeToImplicit;
+import io.fintechlabs.testframework.condition.client.UnregisterDynamicallyRegisteredClient;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
