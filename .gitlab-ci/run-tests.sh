@@ -63,16 +63,6 @@ function makeClientTest {
 }
 
 function makeServerTest {
-    # ciba
-    TESTS="${TESTS} fapi-ciba-test-plan:poll-mtls authlete-fapi-ciba-mtls-poll.json"
-    TESTS="${TESTS} fapi-ciba-test-plan:poll-private_key_jwt authlete-fapi-ciba-privatekey-poll.json"
-    # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
-    # see https://gitlab.com/openid/conformance-suite/issues/389
-    TESTS="${TESTS} fapi-ciba-test-plan:ping-mtls authlete-fapi-ciba-mtls-ping-dcr.json"
-    TESTS="${TESTS} fapi-ciba-test-plan:ping-private_key_jwt authlete-fapi-ciba-privatekey-ping-dcr.json"
-    # push isn't allowed in FAPI-CIBA profile
-    #TESTS="${TESTS} fapi-ciba-push-with-mtls-test-plan authlete-fapi-ciba-mtls-push.json"
-
     # authlete openbanking
     TESTS="${TESTS} fapi-rw-id2-ob-with-mtls-test-plan authlete-fapi-rw-id2-ob-mtls.json"
     TESTS="${TESTS} fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan authlete-fapi-rw-id2-ob-privatekey.json"
@@ -99,10 +89,23 @@ function makeServerTest {
     TESTS="${TESTS} fapi-rw-id2-with-private-key-and-mtls-holder-of-key-test-plan authlete-fapi-rw-id2-privatekey-for-instructions.json"
 }
 
+function makeCIBATest {
+    # ciba
+    TESTS="${TESTS} fapi-ciba-test-plan:poll-mtls authlete-fapi-ciba-mtls-poll.json"
+    TESTS="${TESTS} fapi-ciba-test-plan:poll-private_key_jwt authlete-fapi-ciba-privatekey-poll.json"
+    # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
+    # see https://gitlab.com/openid/conformance-suite/issues/389
+    TESTS="${TESTS} fapi-ciba-test-plan:ping-mtls authlete-fapi-ciba-mtls-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-test-plan:ping-private_key_jwt authlete-fapi-ciba-privatekey-ping-dcr.json"
+    # push isn't allowed in FAPI-CIBA profile
+    #TESTS="${TESTS} fapi-ciba-push-with-mtls-test-plan authlete-fapi-ciba-mtls-push.json"
+}
+
 if [ "$#" -eq 0 ]; then
     TESTS="${TESTS} --show-untested-test-modules all"
     echo "Run all tests"
     makeServerTest
+    makeCIBATest
     makeClientTest
 elif [[ ("$#" -eq 1 ) &&  ("$1" = "--client-tests-only" ) ]]; then
     TESTS="${TESTS} --show-untested-test-modules client"
@@ -112,8 +115,12 @@ elif [[ ("$#" -eq 1) && ("$1" = "--server-tests-only") ]]; then
     TESTS="${TESTS} --show-untested-test-modules server"
     echo "Run server tests"
     makeServerTest
+elif [[ ("$#" -eq 1) && ("$1" = "--ciba-tests-only") ]]; then
+    TESTS="${TESTS} --show-untested-test-modules ciba"
+    echo "Run ciba tests"
+    makeCIBATest
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only]"
     exit 1
 fi
 

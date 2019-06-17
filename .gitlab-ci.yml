@@ -324,6 +324,15 @@ deployment_server_test_review:
     - set_up_for_running_test_plan
     - run_server_test_plan
 
+deployment_ciba_test_review:
+  <<: *deployment_test_review
+  script:
+    - check_kube_domain
+    - install_dependencies
+    - ensure_namespace
+    - set_up_for_running_test_plan
+    - run_ciba_test_plan
+
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
@@ -536,6 +545,11 @@ deployment_server_test_review:
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --server-tests-only
   }
+
+  function run_ciba_test_plan() {
+      echo "Running automated tests against $CONFORMANCE_SERVER"
+      ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only
+    }
 
 before_script:
   - *auto_devops
