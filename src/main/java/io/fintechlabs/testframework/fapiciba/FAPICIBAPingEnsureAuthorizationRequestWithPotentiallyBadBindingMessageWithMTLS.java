@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenT
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-ensure-authorization-request-with-potentially-bad-binding-message-with-mtls",
@@ -31,6 +32,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithPotentiallyBadBindingMessageWithMTLS {
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		// FIXME: add other variants
+		super.setupPingMTLS();
+	}
 
 	@Override
 	protected void waitForAuthenticationToComplete(long delaySeconds) {

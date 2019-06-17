@@ -10,11 +10,13 @@ import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback
 import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddCIBANotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaGrantTypeToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaRequestSigningPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaTokenDeliveryModePingToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -24,13 +26,14 @@ import io.fintechlabs.testframework.condition.client.AddIdTokenSigningAlgPS256To
 import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
-import io.fintechlabs.testframework.condition.client.AddNotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodPrivateKeyJwtToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
+import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
@@ -67,6 +70,8 @@ import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpo
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.client.CreateDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
+import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
@@ -79,7 +84,6 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
-import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
@@ -110,6 +114,7 @@ import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpo
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
+import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestId;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdExpiresIn;
@@ -134,10 +139,14 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
-import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
+import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -152,11 +161,42 @@ import javax.servlet.http.HttpSession;
 
 public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
-	private static final Logger logger = LoggerFactory.getLogger(FAPICIBAPingWithMTLS.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractFAPICIBA.class);
 	protected int whichClient;
+	protected enum TestType {
+		PING,
+		POLL
+	}
+	protected TestType testType;
 
+	/* to be used in @Variant definitions */
+	public static final String variant_ping_mtls = "ping-mtls";
+	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
+	public static final String variant_poll_mtls = "poll-mtls";
+	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
+
+	/* for subclasses to fill in */
 	Class<? extends ConditionSequence> addBackchannelClientAuthentication;
 	Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
+
+	public static class PrivateKeyJwtRegistration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(AddTokenEndpointAuthMethodPrivateKeyJwtToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+			callAndContinueOnFailure(AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE);
+		}
+	}
+	public static class MtlsRegistration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+
+		}
+	}
+
 
 	protected void addClientAuthenticationToBackchannelRequest() {
 		/* This function can be inlined once all CIBA test modules are using Variants */
@@ -186,15 +226,19 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
 		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class, "OBRW-4.3.1");
-		callAndStopOnFailure(AddNotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
 		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
+
 		// TODO: for now this only works for 'ping'
 		callAndStopOnFailure(AddCibaTokenDeliveryModePingToDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddCIBANotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
+
 		callAndStopOnFailure(AddCibaRequestSigningPS256ToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddEmptyResponseTypesArrayToDynamicRegistrationRequest.class);
-		callAndStopOnFailure(AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest.class);
+
+		call(sequence(addTokenEndpointAuthToRegistrationRequest));
+
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
@@ -488,11 +532,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		performPostAuthorizationResponse();
 	}
 
-	/** This should perform any actions that are specific to whichever of ping/poll/push is being tested */
-	protected abstract void modeSpecificAuthorizationEndpointRequest();
-
-	protected abstract void waitForAuthenticationToComplete(long delaySeconds);
-
 	protected void waitForPollingAuthenticationToComplete(long delaySeconds) {
 		int attempts = 0;
 		while (attempts++ < 20) {
@@ -581,17 +620,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
 
 		callAndStopOnFailure(EnsureErrorTokenEndpointSlowdownOrAuthorizationPending.class);
-
-		eventLog.endBlock();
-	}
-
-	protected void verifyTokenEndpointResponseIsAccessDenied() {
-		eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
-
-		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
-
-		env.putObject("callback_params", env.getObject("token_endpoint_response"));
-		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class);
 
 		eventLog.endBlock();
 	}
@@ -805,12 +833,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	}
 
-	/** called when the ping notification is received from the authorization server */
-	protected void processNotificationCallback(JsonObject requestParts) {
-		callAndContinueOnFailure(CIBANotificationEndpointCalledUnexpectedly.class, Condition.ConditionResult.FAILURE);
-		fireTestFinished();
-	}
-
 	@UserFacing
 	protected Object handlePingCallback(JsonObject requestParts) {
 		getTestExecutionManager().runInBackground(() -> {
@@ -874,7 +896,9 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		env.mapKey("client_request", envKey);
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		// FIXME: disable this for now as Authlete doesn't support FAPI-CIBA yet and adding an exception for every
+		// single ping mode test is getting tedious
+		// callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
 		env.unmapKey("client_request");
 
@@ -912,6 +936,86 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 				verifyTokenEndpointResponseIsPendingOrSlowDown();
 			}
 		}
+	}
+
+	protected void waitForAuthenticationToComplete(long delaySeconds) {
+		switch (testType) {
+			case PING:
+				// for Ping mode:
+				callAndStopOnFailure(TellUserToDoCIBAAuthentication.class);
+
+				setStatus(Status.WAITING);
+				break;
+			case POLL:
+				waitForPollingAuthenticationToComplete(delaySeconds);
+				break;
+			default:
+				throw new RuntimeException("unknown testType");
+		}
+
+	}
+
+	/** called when the ping notification is received from the authorization server */
+	protected void processNotificationCallback(JsonObject requestParts) {
+		switch (testType) {
+			case PING:
+				processPingNotificationCallback(requestParts);
+				handleSuccessfulTokenEndpointResponse();
+				break;
+			case POLL:
+				callAndContinueOnFailure(CIBANotificationEndpointCalledUnexpectedly.class, Condition.ConditionResult.FAILURE);
+				fireTestFinished();
+			default:
+				throw new RuntimeException("unknown testType");
+		}
+	}
+
+	/** This should perform any actions that are specific to whichever of ping/poll/push is being tested */
+	protected void modeSpecificAuthorizationEndpointRequest() {
+		switch (testType) {
+			case PING:
+				if ( whichClient == 2 ) {
+					callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
+				} else {
+					callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
+				}
+
+				callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
+				break;
+			case POLL:
+				break;
+			default:
+				throw new RuntimeException("unknown testType");
+		}
+
+	}
+
+	public void setupPingMTLS() {
+		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
+		testType = TestType.PING;
+	}
+
+	public void setupPingPrivateKeyJwt() {
+		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
+		testType = TestType.PING;
+	}
+
+	public void setupPollMTLS() {
+		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
+		testType = TestType.POLL;
+	}
+
+	public void setupPollPrivateKeyJwt() {
+		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
+		testType = TestType.POLL;
 	}
 
 }

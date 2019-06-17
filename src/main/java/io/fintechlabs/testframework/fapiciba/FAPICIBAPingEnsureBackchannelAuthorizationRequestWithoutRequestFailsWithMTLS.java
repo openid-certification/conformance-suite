@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-ensure-backchannel-authorization-request-without-request-fails-with-mtls",
@@ -29,6 +30,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS extends AbstractFAPICIBAEnsureBackchannelAuthorizationRequestWithoutRequestFailsWithMTLS  {
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		// FIXME: add other variants
+		super.setupPingMTLS();
+	}
+
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pingCleanupAfterBackchannelRequestShouldHaveFailed();

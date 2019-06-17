@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.client.AddBadAudToRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-with-mtls-ensure-request-object-bad-aud-fails",
@@ -28,6 +29,12 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPICIBAPingWithMTLSEnsureRequestObjectBadAudFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		// FIXME: add other variants
+		super.setupPingMTLS();
+	}
+
 	@Override
 	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
 		pingCleanupAfterBackchannelRequestShouldHaveFailed();

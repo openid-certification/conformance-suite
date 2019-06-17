@@ -34,13 +34,13 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds {
-	@Variant(name = "mtls")
+	@Variant(name = FAPICIBA.variant_poll_mtls)
 	public void setupMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 	}
 
-	@Variant(name = "private-key-jwt-and-mtls-holder-of-key")
+	@Variant(name = FAPICIBA.variant_poll_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
