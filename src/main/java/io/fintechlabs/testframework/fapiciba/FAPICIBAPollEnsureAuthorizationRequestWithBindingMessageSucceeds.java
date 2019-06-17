@@ -2,10 +2,6 @@ package io.fintechlabs.testframework.fapiciba;
 
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
-import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
-import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
-import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -34,16 +30,14 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds {
-	@Variant(name = FAPICIBA.variant_poll_mtls)
-	public void setupMTLS() {
-		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+	@Variant(name = variant_poll_mtls)
+	public void setupPollMTLS() {
+		super.setupPollMTLS();
 	}
 
-	@Variant(name = FAPICIBA.variant_poll_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	@Variant(name = variant_poll_privatekeyjwt)
+	public void setupPollPrivateKeyJwt() {
+		super.setupPollPrivateKeyJwt();
 	}
 
 	@Override
