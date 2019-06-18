@@ -29,10 +29,10 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPollWithMTLSEnsureRequestObjectMissingIssFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
-	@Variant(name = FAPICIBA.variant_poll_mtls)
-	public void setupPollMTLS() {
+	@Variant(name = FAPICIBA.variant_openbankinguk_poll_mtls)
+	public void setupOpenBankingUkPollMTLS() {
 		// FIXME: add other variants
-		super.setupPollMTLS();
+		super.setupOpenBankingUkPollMTLS();
 	}
 
 	@Override
