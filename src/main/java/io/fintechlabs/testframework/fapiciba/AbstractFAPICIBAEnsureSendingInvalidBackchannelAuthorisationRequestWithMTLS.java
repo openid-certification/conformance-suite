@@ -23,6 +23,8 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 			// notification arriving later, potentially when the user has started another test, which would be
 			// confusing - complete the process
 			callAutomatedEndpoint();
+
+			setStatus(Status.WAITING);
 		}
 	}
 
