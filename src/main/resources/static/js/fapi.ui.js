@@ -259,7 +259,7 @@ var FAPI_UI = {
 			// get the current user info
 			var done = $.Deferred();
 			$.getJSON({
-				url: '/currentuser',
+				url: '/api/currentuser',
 				context: this
 			}).done(function(userInfo) {
 				this.currentUser = userInfo;

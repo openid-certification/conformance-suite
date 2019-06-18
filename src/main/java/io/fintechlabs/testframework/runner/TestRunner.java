@@ -65,17 +65,18 @@ import io.fintechlabs.testframework.testmodule.TestModule;
 
 /**
  *
- * GET /runner/available: list of available tests
- * GET /runner/running: list of running tests
- * POST /runner: create test
- * GET /runner/id: get test status
- * POST /runner/id: start test
- * DELETE /runner/id: cancel test
- * GET /runner/browser/id: get front-channel external URLs
- * POST /runner/browser/id/visit: mark front-channel external URL as visited
+ * GET /api/runner/available: list of available tests
+ * GET /api/runner/running: list of running tests
+ * POST /api/runner: create test
+ * GET /api/runner/id: get test status
+ * POST /api/runner/id: start test
+ * DELETE /api/runner/id: cancel test
+ * GET /api/runner/browser/id: get front-channel external URLs
+ * POST /api/runner/browser/id/visit: mark front-channel external URL as visited
  *
  */
 @Controller
+@RequestMapping(value = "/api")
 public class TestRunner implements DataUtils {
 
 	@Value("${fintechlabs.base_url:http://localhost:8080}")

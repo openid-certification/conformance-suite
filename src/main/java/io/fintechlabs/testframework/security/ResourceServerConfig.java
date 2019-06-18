@@ -89,13 +89,13 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
 	private RequestMatcher getMatcher() {
 		return new OrRequestMatcher(
-			new AntPathRequestMatcher("/currentuser"),
-			new AntPathRequestMatcher("/runner/**"),
-			new AntPathRequestMatcher("/log/**"),
-			new AntPathRequestMatcher("/info/**"),
-			new AntPathRequestMatcher("/plan/**"),
-			new AntPathRequestMatcher("/token/**"),
-			new AntPathRequestMatcher("/lastconfig")
+			new AntPathRequestMatcher("/api/currentuser"),
+			new AntPathRequestMatcher("/api/runner/**"),
+			new AntPathRequestMatcher("/api/log/**"),
+			new AntPathRequestMatcher("/api/info/**"),
+			new AntPathRequestMatcher("/api/plan/**"),
+			new AntPathRequestMatcher("/api/token/**"),
+			new AntPathRequestMatcher("/api/lastconfig")
 			);
 	}
 

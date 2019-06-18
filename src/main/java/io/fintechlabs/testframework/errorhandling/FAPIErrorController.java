@@ -16,7 +16,7 @@ public class FAPIErrorController extends AbstractErrorController {
 		super(errorAttributes);
 	}
 
-	@RequestMapping(value = "/error")
+	@RequestMapping(value = "/api/error")
 	public ModelAndView handleError(HttpServletRequest request) {
 		Map<String, Object> map = getErrorAttributes(request, false);
 		return new ModelAndView("error", map);
@@ -24,6 +24,6 @@ public class FAPIErrorController extends AbstractErrorController {
 
 	@Override
 	public String getErrorPath() {
-		return "/error";
+		return "/api/error";
 	}
 }

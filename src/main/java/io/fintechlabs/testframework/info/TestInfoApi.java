@@ -24,8 +24,10 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
+@RequestMapping(value = "/api")
 public class TestInfoApi {
 
 	@Autowired
@@ -92,7 +94,7 @@ public class TestInfoApi {
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/public/api/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/public/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getPublicTestInfo(@PathVariable("id") String id) {
 
 		Query query = new Query();

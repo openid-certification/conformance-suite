@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 @Controller
+@RequestMapping(value = "/api")
 public class UserInfoUIController {
 
 	@Autowired

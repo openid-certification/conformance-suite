@@ -15,8 +15,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
+@RequestMapping(value = "/api")
 public class TokenApi {
 
 	@Autowired
