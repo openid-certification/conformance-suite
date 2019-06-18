@@ -55,9 +55,9 @@ import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
-import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
@@ -182,6 +182,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 
 		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
+		// (even pure FAPI-RW, as it's hard to arrange otherwise).
+		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -512,18 +516,15 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		if ( whichClient != 2 ) {
 			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
+			// (even pure FAPI-RW, as it's hard to arrange otherwise).
+			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 		}
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-
-		if (whichClient == 2) {
-			// This header is no longer mentioned in the standard, but for completeness
-			// we try sending it in one case to make sure it doesn't result in a request
-			// from an older client being rejected.
-			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
-		}
 
 		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
