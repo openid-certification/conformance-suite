@@ -164,11 +164,11 @@
 	</div>
 
 	<script type="text/javascript">
-		function getLogs(testId) {
+		function getLogs(testId, public) {
 
 			return $.ajax({
 				type: 'GET',
-				url: "/log/" + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
+				url: (public ? '/public/api/log/' : '/log/') + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
 				data: {},
 				success: function(data) {
 
@@ -198,7 +198,8 @@
 	                        } else {
 		                        // render the base element
 		                        var el = $(FAPI_UI.logTemplates.LOG_DETAIL({
-		                            item: item
+		                            item: item,
+		                            public: public
 		                        }));
 	                        }
 
@@ -287,11 +288,11 @@
 			});
 		}
 
-		function getHeader(testId) {
+		function getHeader(testId, public) {
 			// this is the page header, fill it in with log details
 			return $.ajax({
 				type: 'GET',
-				url: '/info/' + encodeURIComponent(testId),
+				url: (public ? '/public/api/info/' : '/info/') + encodeURIComponent(testId),
 				data: {},
 				success: function(data) {
 
@@ -308,7 +309,8 @@
 
 					if (existing.length == 0) {
 	                    $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({
-	                        test: data
+	                        test: data,
+	                        public: public
 	                    }));
 
 	                    $('#logDetail .header [data-toggle="tooltip"]').tooltip({
@@ -317,7 +319,7 @@
 
 	                    $('#downloadBtn').click(function(evt) {
 	                        evt.preventDefault();
-	                        window.open('/log/export/' + encodeURIComponent(testId));
+	                        window.open((public ? '/public/api/log/export/' : '/log/export/') + encodeURIComponent(testId));
 	                    });
 
 	                    $('#uploadBtn').click(function(evt) {
@@ -399,7 +401,9 @@
 	                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId));
 	                        });
 	                        $('#planBtn').show();
+	                    }
 
+	                    if (!public && data.planId) {
 	                        $.ajax({
 	                            url: '/plan/' + encodeURIComponent(data.planId),
 	                            type: 'GET',
@@ -453,7 +457,7 @@
 								           data: JSON.stringify({ publish: publish }),
 								           success: function(data) {
 								               // redirect to the published version or reload
-								               window.location.assign((publish ? '/publicLogDetail.html' : '/log-detail.html') + '?log=' + encodeURIComponent(testId));
+								               window.location.assign('/log-detail.html?log=' + encodeURIComponent(testId) + (publish ? '&public=true' : ''));
 								           },
 								           error: function(jqxhr, status, error) {
 								               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -643,9 +647,9 @@
 		function reload(testId) {
             return $.when()
             .then(function() {
-                return getHeader(testId);
+                return getHeader(testId, false);
             }).then(function() {
-                return getLogs(testId);
+                return getLogs(testId, false);
             }).then(function() {
                 return getActive(testId);
             });
@@ -678,6 +682,7 @@
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var testId = urlParams.get('log');
+			var public = Boolean(urlParams.get('public'));
 
 			FAPI_UI.showBusy();
 
@@ -685,14 +690,16 @@
 			.then(function() {
 				return FAPI_UI.getUserInfo();
 			}).then(function() {
-				return getHeader(testId); // render the header, which includes test info
+				return getHeader(testId, public); // render the header, which includes test info
 			}).then(function() {
-				return getLogs(testId); // render the log entries themselves
+				return getLogs(testId, public); // render the log entries themselves
 			}).then(function() {
-				return getActive(testId); // check to see if the test is currently active
+				if (!public)
+					return getActive(testId); // check to see if the test is currently active
 			}).always(function() {
 				FAPI_UI.hideBusy();
-				startReloader(testId); // periodically reload the page as long as the test is active
+				if (!public)
+					startReloader(testId); // periodically reload the page as long as the test is active
 			});
 
 			var clipboard = new ClipboardJS('.btn-clipboard');

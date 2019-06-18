@@ -135,13 +135,16 @@
 		 *
 		 */
 		$(document).ready(function() {
+			var urlParams = new URLSearchParams(window.location.search);
+			var public = Boolean(urlParams.get('public'));
+
 			FAPI_UI.showBusy();
 
 			FAPI_UI.loadPlanListTemplates()
 			.then(function() {
 				return FAPI_UI.getUserInfo();
 			}).then(function() {
-				return loadAvailablePlans();
+				return loadAvailablePlans(public);
 			}).always(function() {
 				FAPI_UI.hideBusy();
 			});
@@ -163,11 +166,11 @@
 		/**
 		 *
 		 */
-		function loadAvailablePlans() {
+		function loadAvailablePlans(public) {
 			return $('#plansListing').DataTable({
 				serverSide: true,
 				ajax: {
-					url: '/plan',
+					url: public ? '/public/api/plan' : '/plan',
 					cache: true,
 					data: function(data) {
 						// Translate query parameters into a simpler schema
@@ -193,17 +196,18 @@
 						title: 'Instance ID',
 						data: '_id',
 						render: {
-							display: function(data) { return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data }); }
+							display: function(data) { return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public }); }
 						}
 					},
 					{
 						title: 'Config',
-						data: 'config',
+						data: null,
 						render: {
 							display: function() { return FAPI_UI.logTemplates.CONFIG(); }
 						},
 						createdCell: function(cell) { $(cell).addClass('configColumn'); },
-						orderable: false
+						orderable: false,
+						visible: !public
 					},
 					{ title: 'Name', data: 'planName' },
 					{ title: 'Description', data: 'description', defaultContent: '' },
@@ -228,7 +232,7 @@
 						render: {
 							display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
 						},
-						visible: FAPI_UI.currentUser.isAdmin
+						visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
 					}
 				],
 				createdRow: function(row, data) {
@@ -245,13 +249,13 @@
 		                container: 'body'
 		            });
 
-					fetchTestResults($('#plansListing').DataTable());
+					fetchTestResults($('#plansListing').DataTable(), public);
 				},
 				order: [[4, "desc"]] // sort by the "date" column, descending, by default
 			});
 		}
 
-		function fetchTestResults(dt) {
+		function fetchTestResults(dt, public) {
 			// for every visible row
 			dt.rows(':visible').every(function (index) {
 				var row = dt.row(index);
@@ -266,7 +270,7 @@
 						// get this instance's status
 						$.ajax({
 							type: 'GET',
-							url: '/info/' + encodeURIComponent(testId),
+							url: (public ? '/public/api/info/' : '/info/') + encodeURIComponent(testId),
 							data: {},
 							success: function(data) {
 								el.data('instance', ''); // clear the data attribute so we don't re-fetch

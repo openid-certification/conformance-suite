@@ -33,7 +33,7 @@
                         <div class="col-md-11"><%- plan.started %></div>
                     </div>
 
-                    <% if (FAPI_UI.currentUser.isAdmin) { %>
+                    <% if (!public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                     <div class="row">
                         <div class="col-md-1">Test Owner:</div>
                         <div class="col-md-11">
@@ -52,6 +52,7 @@
 					<% } %>
                 </div>
 
+                <% if (!public) { %>
                 <div class="col-md-2">
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
                     <% if (!plan.publish) { %>
@@ -61,10 +62,10 @@
                         <% if (FAPI_UI.currentUser.isAdmin) { %>
                     <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
                         <% } %>
-                    <a href="publicPlanDetail.html?plan=<%- plan._id %>" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
+                    <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
                     <% } %>
                 </div>
-
+                <% } %>
             </div>
         </div>
 
@@ -76,9 +77,13 @@
 
                 </div>
                 <div class="col-md-2">
+                    <% if (!public) { %>
                     <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>"><span class="glyphicon glyphicon-play"></span> Run New Test</button>
-					<a class="btn btn-default btn-block collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>
+                    <% } %>
+					<a class="btn btn-default btn-block collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>
+                    <% if (!public || plan.publish == "everything") { %>
                     <button class="btn btn-default btn-block collapse downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
+                    <% } %>
                 </div>
                 <div class="col-md-8">
                     <div class="row">

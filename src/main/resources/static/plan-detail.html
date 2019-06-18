@@ -159,14 +159,13 @@
 
 	<script type="text/javascript">
 
-	   function getPlan(planId) {
-
+	   function getPlan(planId, public) {
 		   return $.ajax({
 			   type: 'GET',
-			   url: '/plan/' + encodeURIComponent(planId),
+			   url: (public ? '/public/api/plan/' : '/plan/') + encodeURIComponent(planId),
 			   data: {},
 			   success: function(data) {
-				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({plan: data}));
+				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public }));
 
 				   // wire up configuration button
                    $('#showConfigBtn').click(function(evt) {
@@ -202,7 +201,7 @@
 						  // wire up the download button
                           $('.downloadBtn', _self).click(function(evt) {
                               evt.preventDefault();
-                              window.open('/log/export/' + encodeURIComponent(testId));
+                              window.open((public ? '/public/api/log/export/' : '/log/export/') + encodeURIComponent(testId));
                           });
                           $('.downloadBtn', _self).show();
                           // show the view button
@@ -211,7 +210,7 @@
                           console.log('Fetching |' + testId + '|');
 	                      $.ajax({
 	                          type: 'GET',
-	                          url: '/info/' + encodeURIComponent(testId),
+	                          url: (public ? '/public/api/info/' : '/info/') + encodeURIComponent(testId),
 	                          data: {},
 	                          success: function(data) {
 	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
@@ -219,7 +218,8 @@
 	                          },
 	                          error: function(jqxhr, status, error) {
 	                              if (jqxhr.status == 404) {
-	                                  // If an admin has re-run the test we won't be able to fetch the status (error 404).
+	                                  // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
+	                                  // we won't be able to fetch the status (error 404).
 	                                  // Just ignore it.
 	                              } else {
 	                                  FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -250,7 +250,7 @@
 				           data: JSON.stringify({ publish: publish }),
 				           success: function(data) {
 				               // redirect to the published version or reload
-				               window.location.assign((publish ? '/publicPlanDetail.html' : '/plan-detail.html') + '?plan=' + encodeURIComponent(planId));
+				               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
 				           },
 				           error: function(jqxhr, status, error) {
 				               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -301,6 +301,7 @@
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var planId = urlParams.get('plan');
+			var public = Boolean(urlParams.get('public'));
 
 			FAPI_UI.showBusy();
 
@@ -308,7 +309,7 @@
 			.then(function() {
 				return FAPI_UI.getUserInfo() // Then get the current user info
 			}).then(function() {
-				return getPlan(planId); // Only once the user is loaded, then render the plan info
+				return getPlan(planId, public); // Only once the user is loaded, then render the plan info
 			}).always(function() {
 				FAPI_UI.hideBusy();
 			});
