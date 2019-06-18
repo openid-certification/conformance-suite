@@ -7,6 +7,7 @@ import io.fintechlabs.testframework.condition.client.AddIncorrectNonceToAuthoriz
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
+import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
@@ -79,6 +80,7 @@ public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideReque
 			 * - It must have the correct state we supplied
 			 */
 
+			callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 			fireTestFinished();

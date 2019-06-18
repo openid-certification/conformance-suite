@@ -1,24 +1,15 @@
 package io.fintechlabs.testframework.fapi;
 
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckAuthorizationResponseWhenResponseModeQuery;
+import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.ExpectResponseModeQueryErrorPage;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToCallbackResponse;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseModeToQuery;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
-import io.fintechlabs.testframework.testmodule.UserFacing;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 public abstract class AbstractFAPIRWID2EnsureResponseModeQuery extends AbstractFAPIRWID2ServerTestModule {
 
@@ -61,6 +52,8 @@ public abstract class AbstractFAPIRWID2EnsureResponseModeQuery extends AbstractF
 		JsonObject authorizationEndpointResponse = env.getObject("authorization_endpoint_response");
 
 		if (authorizationEndpointResponse.has("error")) {
+
+			callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 

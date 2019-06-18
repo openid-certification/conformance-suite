@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.DetectWhetherErrorResponseIsInQueryOrFragment;
 import io.fintechlabs.testframework.condition.client.EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlFragment;
@@ -52,6 +53,8 @@ public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends Abstr
 		 * - must have the correct state we supplied
 		 */
 		callAndContinueOnFailure(EnsureUnsupportedResponseTypeErrorFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 
 		eventLog.endBlock();

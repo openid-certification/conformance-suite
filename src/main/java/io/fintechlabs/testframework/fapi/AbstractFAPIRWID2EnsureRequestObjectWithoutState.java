@@ -11,6 +11,7 @@ import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
+import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
@@ -100,6 +101,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
+			// state can be absented if authorization request did not send state in the request object
 			call(condition(CheckMatchingStateParameter.class)
 				.skipIfElementMissing("callback_params", "state")
 				.onSkip(Condition.ConditionResult.INFO)
@@ -115,6 +117,10 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 			 * - It must be a 'invalid_request_object', 'invalid_request' or 'access_denied' error
 			 * - It must have the correct state we supplied
 			 */
+
+			// state can be absented if authorization request did not send state in the request object
+			skipIfElementMissing("authorization_endpoint_response",  "state", Condition.ConditionResult.INFO,
+				CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 			callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");

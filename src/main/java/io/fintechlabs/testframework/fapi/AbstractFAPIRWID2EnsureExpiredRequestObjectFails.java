@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapi;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddExpiredExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectExpiredRequestObjectClaimErrorPage;
@@ -48,6 +49,7 @@ public abstract class AbstractFAPIRWID2EnsureExpiredRequestObjectFails extends A
 		 * - It must have the correct state we supplied
 		 */
 
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
