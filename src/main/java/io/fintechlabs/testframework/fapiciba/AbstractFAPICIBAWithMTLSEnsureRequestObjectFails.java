@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenT
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 
-public abstract class AbstractFAPICIBAWithMTLSEnsureRequestObjectFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
+public abstract class AbstractFAPICIBAWithMTLSEnsureRequestObjectFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
 	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
