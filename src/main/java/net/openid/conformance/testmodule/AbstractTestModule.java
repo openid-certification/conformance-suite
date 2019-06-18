@@ -931,4 +931,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		});
 	}
 
+	@Override
+	public void checkLockReleased() {
+		if (env.getLock().isHeldByCurrentThread()) {
+			throw new TestFailureException(getId(), "The test module has incorrectly left the lock held, this is a bug in the test module");
+		}
+	}
+
+	@Override
+	public void forceReleaseLock() {
+		clearLockIfHeld();
+	}
 }

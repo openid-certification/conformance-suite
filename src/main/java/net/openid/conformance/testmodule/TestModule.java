@@ -205,4 +205,19 @@ public interface TestModule {
 	/** Handle a fatal exception */
 	void handleException(TestInterruptedException error, String source);
 
+	/**
+	 * Force the lock to be released, if held.
+	 *
+	 * This should only be used in failure paths to cleanup. Must be called from the thread that might hold the lock.
+	 */
+	void forceReleaseLock();
+
+	/**
+	 * Check if the lock is held. Throws a TestFailureException if it is.
+	 *
+	 * This can be used to verify that a test module has correctly released it's lock when it has completed running
+	 * on a thread, and hence make sure we avoid any situation where a test deadlocks because the next operation
+	 * runs on a different thread and cannot obtain the lock.
+	 */
+	void checkLockReleased();
 }
