@@ -29,9 +29,9 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 public class FAPICIBAPollEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS extends AbstractFAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequestWithMTLS {
 	// No private_key_jwt variant for this test, it's MTLS specific
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
+	@Variant(name = variant_openbankinguk_poll_mtls)
+	public void setupOpenBankingUkPollMTLS() {
+		super.setupOpenBankingUkPollMTLS();
 	}
 
 	@Override

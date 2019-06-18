@@ -61,23 +61,23 @@ public class FAPICIBADiscoveryEndpointVerification extends AbstractFAPIDiscovery
 		}
 	}
 
-	@Variant(name = FAPICIBA.variant_poll_mtls)
-	public void setupPollMTLS() {
+	@Variant(name = FAPICIBA.variant_openbankinguk_poll_mtls)
+	public void setupOpenBankingUkPollMTLS() {
 		variantAuthChecks = MtlsChecks.class;
 		variantModeChecks = PollChecks.class;
 	}
-	@Variant(name = FAPICIBA.variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
+	@Variant(name = FAPICIBA.variant_openbankinguk_poll_privatekeyjwt)
+	public void setupOpenBankingUkPollPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
 		variantModeChecks = PollChecks.class;
 	}
-	@Variant(name = FAPICIBA.variant_ping_mtls)
-	public void setupPingMTLS() {
+	@Variant(name = FAPICIBA.variant_openbankinguk_ping_mtls)
+	public void setupOpenBankingUkPingMTLS() {
 		variantAuthChecks = MtlsChecks.class;
 		variantModeChecks = PingChecks.class;
 	}
-	@Variant(name = FAPICIBA.variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
+	@Variant(name = FAPICIBA.variant_openbankinguk_ping_privatekeyjwt)
+	public void setupOpenBankingUkPingPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
 		variantModeChecks = PingChecks.class;
 	}

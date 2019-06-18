@@ -29,10 +29,10 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPingWithMTLSEnsureRequestObjectBadAudFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
-	@Variant(name = FAPICIBA.variant_ping_mtls)
-	public void setupPingMTLS() {
+	@Variant(name = FAPICIBA.variant_openbankinguk_ping_mtls)
+	public void setupOpenBankingUkPingMTLS() {
 		// FIXME: add other variants
-		super.setupPingMTLS();
+		super.setupOpenBankingUkPingMTLS();
 	}
 
 	@Override

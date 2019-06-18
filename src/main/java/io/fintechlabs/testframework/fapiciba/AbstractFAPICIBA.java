@@ -169,10 +169,17 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	// to be used in @Variant definitions
+	/*
+	// TODO: split out openbanking-specific steps
 	public static final String variant_ping_mtls = "ping-mtls";
 	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
 	public static final String variant_poll_mtls = "poll-mtls";
 	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
+	*/
+	public static final String variant_openbankinguk_ping_mtls = "openbankinguk-ping-mtls";
+	public static final String variant_openbankinguk_ping_privatekeyjwt = "openbankinguk-ping-private_key_jwt";
+	public static final String variant_openbankinguk_poll_mtls = "openbankinguk-poll-mtls";
+	public static final String variant_openbankinguk_poll_privatekeyjwt = "openbankinguk-poll-private_key_jwt";
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> addBackchannelClientAuthentication;
@@ -992,28 +999,28 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	}
 
-	public void setupPingMTLS() {
+	public void setupOpenBankingUkPingMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.PING;
 	}
 
-	public void setupPingPrivateKeyJwt() {
+	public void setupOpenBankingUkPingPrivateKeyJwt() {
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
 		testType = TestType.PING;
 	}
 
-	public void setupPollMTLS() {
+	public void setupOpenBankingUkPollMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.POLL;
 	}
 
-	public void setupPollPrivateKeyJwt() {
+	public void setupOpenBankingUkPollPrivateKeyJwt() {
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
