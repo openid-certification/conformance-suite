@@ -22,7 +22,7 @@ class Conformance(object):
 
     def get_all_test_modules(self):
         """ Returns an array containing a dictionary per test module """
-        api_url = '{0}runner/available'.format(self.api_url_base)
+        api_url = '{0}api/runner/available'.format(self.api_url_base)
         response = self.requests_session.get(api_url)
 
         if response.status_code != 200:
@@ -30,7 +30,7 @@ class Conformance(object):
         return json.loads(response.content.decode('utf-8'))
 
     def create_test_plan(self, name, configuration, variant=None):
-        api_url = '{0}plan'.format(self.api_url_base)
+        api_url = '{0}api/plan'.format(self.api_url_base)
         payload = {'planName': name}
         if variant != None:
             payload['variant'] = variant
@@ -41,7 +41,7 @@ class Conformance(object):
         return json.loads(response.content.decode('utf-8'))
 
     def create_test(self, test_name, configuration):
-        api_url = '{0}runner'.format(self.api_url_base)
+        api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name}
         response = self.requests_session.post(api_url, params=payload, data=configuration)
 
@@ -50,7 +50,7 @@ class Conformance(object):
         return json.loads(response.content.decode('utf-8'))
 
     def create_test_from_plan(self, plan_id, test_name):
-        api_url = '{0}runner'.format(self.api_url_base)
+        api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name, 'plan': plan_id}
         response = self.requests_session.post(api_url, params=payload)
 
@@ -59,7 +59,7 @@ class Conformance(object):
         return json.loads(response.content.decode('utf-8'))
 
     def get_module_info(self, module_id):
-        api_url = '{0}info/{1}'.format(self.api_url_base, module_id)
+        api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)
         response = self.requests_session.get(api_url)
 
         if response.status_code != 200:
@@ -67,7 +67,7 @@ class Conformance(object):
         return json.loads(response.content.decode('utf-8'))
 
     def get_test_log(self, module_id):
-        api_url = '{0}log/{1}'.format(self.api_url_base, module_id)
+        api_url = '{0}api/log/{1}'.format(self.api_url_base, module_id)
         response = self.requests_session.get(api_url)
 
         if response.status_code != 200:
@@ -75,7 +75,7 @@ class Conformance(object):
         return json.loads(response.content.decode('utf-8'))
 
     def start_test(self, module_id):
-        api_url = '{0}runner/{1}'.format(self.api_url_base, module_id)
+        api_url = '{0}api/runner/{1}'.format(self.api_url_base, module_id)
         response = self.requests_session.post(api_url)
 
         if response.status_code != 200:

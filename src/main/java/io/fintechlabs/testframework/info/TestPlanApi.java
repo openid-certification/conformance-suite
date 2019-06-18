@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.base.Strings;
@@ -38,6 +39,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 
 @Controller
+@RequestMapping(value = "/api")
 public class TestPlanApi implements DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(TestPlanApi.class);
@@ -240,7 +242,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 
-	@GetMapping(value = "/public/api/plan")
+	@GetMapping(value = "/public/plan")
 	public ResponseEntity<Object> getPublicPlans(PaginationRequest page) {
 
 		Map response = planService.getPaginatedPublicPlans(page);
@@ -249,7 +251,7 @@ public class TestPlanApi implements DataUtils {
 
 	}
 
-	@GetMapping(value = "/public/api/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/public/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getPublicPlan(@PathVariable("id") String id) {
 
 		Map testPlan = planService.getPublicPlan(id);

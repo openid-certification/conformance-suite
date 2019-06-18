@@ -88,9 +88,9 @@
 			var placeholder = urlParams.get('placeholder');
 
 			if (placeholder) {
-				var url = "/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(placeholder);
+				var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(placeholder);
 			} else {
-				var url = "/log/" + encodeURIComponent(testId) + '/images'
+				var url = "/api/log/" + encodeURIComponent(testId) + '/images'
 			}
 
 			$.ajax({
@@ -111,7 +111,7 @@
 	function loadImagesForLog(testId) {
 		return $.ajax({
 			type: 'GET',
-			url: '/log/' + encodeURIComponent(testId) + '/images',
+			url: '/api/log/' + encodeURIComponent(testId) + '/images',
 			success: function(data) {
 				_.each(data, function(item) {
 					// check to see if it's an "upload required" or an existing image
@@ -155,7 +155,7 @@
 					$('.uploadBtn', el).click(function(evt) {
 						evt.preventDefault();
 
-						var url = "/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
+						var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
 
 						$.ajax({
 							type: 'POST',
@@ -204,7 +204,7 @@
 
 					var desc = $('#additionalUploader #uploadDescription').val();
 
-					var url = "/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
+					var url = "/api/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
 
 					$.ajax({
 						type: 'POST',
@@ -281,7 +281,7 @@
 	function getHeader(testId) {
 		return $.ajax({
 			type: 'GET',
-			url: '/info/' + encodeURIComponent(testId),
+			url: '/api/info/' + encodeURIComponent(testId),
 			data: {},
 			success: function(data) {
 				$('#testInfo').html(FAPI_UI.logTemplates.UPLOAD_HEADER({test: data}));

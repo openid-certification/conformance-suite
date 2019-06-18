@@ -459,7 +459,7 @@
 		});
 
 		function loadAvailableTests() {
-			return $.getJSON('/runner/available', function(data) {
+			return $.getJSON('/api/runner/available', function(data) {
                 // save the list of available tests and associated info for later
                 FAPI_UI.availableTests = _.keyBy(data, 'testName');
                 //console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
@@ -490,7 +490,7 @@
 		}
 
 		function loadAvailablePlans() {
-			return $.getJSON('/plan/available', function(data) {
+			return $.getJSON('/api/plan/available', function(data) {
 				FAPI_UI.availablePlans = _.keyBy(data, 'planName');
 
 				// sort the plans into groups by profile
@@ -559,7 +559,7 @@
 
 			// Otherwise, try to get a config from the server
 
-			return $.getJSON('/lastconfig', function(data) {
+			return $.getJSON('/api/lastconfig', function(data) {
 
 				if (data.config) {
 					// we found a configuration file, load it up
@@ -611,7 +611,7 @@
 				// Stash the config in case we are unable to create the test
 				saveConfig({ config: $('#config').val(), testName: testName });
 
-				var createUrl = '/runner/?test=' + encodeURIComponent(testName);
+				var createUrl = '/api/runner/?test=' + encodeURIComponent(testName);
 				if (hasVariants(testName)) {
 					var selectedVariant = $('#variantSelector').val();
 
@@ -662,7 +662,7 @@
 				// Stash the config in case we are unable to create the test
 				saveConfig({ config: $('#config').val(), planName: planName });
 
-				var createUrl = '/plan?planName=' + encodeURIComponent(planName);
+				var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
 				if (hasVariants(planName)) {
 					var selectedVariant = $('#variantSelector').val();
 
@@ -879,7 +879,7 @@
 		 *
 		 */
 		function updateRunningTable() {
-			return $.getJSON('/runner/running', function(data) {
+			return $.getJSON('/api/runner/running', function(data) {
 				//console.log('running: ', JSON.stringify(data));
 				$('#running-tests').html('');
 
@@ -903,7 +903,7 @@
 		}
 
 		function getRunningTest(testId) {
-			return $.getJSON('/runner/' + encodeURIComponent(testId), function(data) {
+			return $.getJSON('/api/runner/' + encodeURIComponent(testId), function(data) {
 
 				var runningTest = $(FAPI_UI.logTemplates.RUNNING_TEST({
 					test: data
@@ -913,7 +913,7 @@
 
 				$('.downloadBtn', runningTest).click(function(evt) {
 					evt.preventDefault();
-					window.open('/log/' + encodeURIComponent(testId) + '?dl=true');
+					window.open('/api/log/' + encodeURIComponent(testId) + '?dl=true');
 				});
 			}).then(function() {
 
@@ -921,7 +921,7 @@
 
 				return $.ajax({
                     type: 'GET',
-                    url: '/info/' + encodeURIComponent(testId),
+                    url: '/api/info/' + encodeURIComponent(testId),
                     data: {},
                     success: function(data) {
                         $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));

@@ -176,7 +176,7 @@
 		function loadTokens() {
 			return $('#tokensListing').DataTable({
 				ajax: {
-					url: '/token',
+					url: '/api/token',
 					dataSrc: '',
 					error: function(jqxhr, status, error) {
 						if (status == "abort") {
@@ -217,7 +217,7 @@
 							evt.preventDefault();
 							$.ajax({
 								type: 'DELETE',
-								url: '/token/' + encodeURIComponent(id),
+								url: '/api/token/' + encodeURIComponent(id),
 								beforeSend: function(jqxhr) {
 									// Prevent browser from trying to parse an empty OK response as XML
 									jqxhr.overrideMimeType("text/plain");
@@ -244,7 +244,7 @@
 		function newToken(permanent) {
 			$.ajax({
 				type: 'POST',
-				url: '/token',
+				url: '/api/token',
 				contentType: 'application/json',
 				data: JSON.stringify({ permanent: permanent }),
 				success: function(data) {

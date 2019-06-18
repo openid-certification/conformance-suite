@@ -28,6 +28,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -42,6 +43,7 @@ import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.security.KeyManager;
 
 @Controller
+@RequestMapping(value = "/api")
 public class LogApi {
 
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
@@ -88,7 +90,7 @@ public class LogApi {
 		return export(id, false);
 	}
 
-	@GetMapping(value = "/public/api/log/export/{id}", produces = "application/x-gtar")
+	@GetMapping(value = "/public/log/export/{id}", produces = "application/x-gtar")
 	public ResponseEntity<StreamingResponseBody> exportPublic(@PathVariable("id") String id) {
 		return export(id, true);
 	}
@@ -180,7 +182,7 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
-	@GetMapping(value = "/public/api/log")
+	@GetMapping(value = "/public/log")
 	public ResponseEntity<Object> getAllPublicTests(PaginationRequest page) {
 
 		Criteria criteria = new Criteria();
@@ -201,7 +203,7 @@ public class LogApi {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/public/api/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/public/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Document>> getPublicLogResults(@PathVariable("id") String id, @RequestParam(value = "since", required = false) Long since) {
 		List<Document> results = getPublicTestResults(id, since);
 

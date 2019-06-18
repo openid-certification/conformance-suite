@@ -170,7 +170,7 @@
 			return $('#plansListing').DataTable({
 				serverSide: true,
 				ajax: {
-					url: public ? '/public/api/plan' : '/plan',
+					url: public ? '/api/public/plan' : '/api/plan',
 					cache: true,
 					data: function(data) {
 						// Translate query parameters into a simpler schema
@@ -270,7 +270,7 @@
 						// get this instance's status
 						$.ajax({
 							type: 'GET',
-							url: (public ? '/public/api/info/' : '/info/') + encodeURIComponent(testId),
+							url: (public ? '/api/public/info/' : '/api/info/') + encodeURIComponent(testId),
 							data: {},
 							success: function(data) {
 								el.data('instance', ''); // clear the data attribute so we don't re-fetch

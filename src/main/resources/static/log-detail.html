@@ -168,7 +168,7 @@
 
 			return $.ajax({
 				type: 'GET',
-				url: (public ? '/public/api/log/' : '/log/') + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
+				url: (public ? '/api/public/log/' : '/api/log/') + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
 				data: {},
 				success: function(data) {
 
@@ -292,7 +292,7 @@
 			// this is the page header, fill it in with log details
 			return $.ajax({
 				type: 'GET',
-				url: (public ? '/public/api/info/' : '/info/') + encodeURIComponent(testId),
+				url: (public ? '/api/public/info/' : '/api/info/') + encodeURIComponent(testId),
 				data: {},
 				success: function(data) {
 
@@ -319,7 +319,7 @@
 
 	                    $('#downloadBtn').click(function(evt) {
 	                        evt.preventDefault();
-	                        window.open((public ? '/public/api/log/export/' : '/log/export/') + encodeURIComponent(testId));
+	                        window.open((public ? '/api/public/log/export/' : '/api/log/export/') + encodeURIComponent(testId));
 	                    });
 
 	                    $('#uploadBtn').click(function(evt) {
@@ -355,7 +355,7 @@
                             FAPI_UI.showBusy('Stopping test...');
 
                             $.ajax({
-                                url: '/runner/' + encodeURIComponent(testId),
+                                url: '/api/runner/' + encodeURIComponent(testId),
                                 type: 'DELETE',
                                 error: function(jqxhr, status, error) {
                                     FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -378,7 +378,7 @@
                             FAPI_UI.showBusy('Starting test...');
 
                             $.ajax({
-                                url: '/runner/' + encodeURIComponent(testId),
+                                url: '/api/runner/' + encodeURIComponent(testId),
                                 type: 'POST',
                                 error: function(jqxhr, status, error) {
                                     FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -405,7 +405,7 @@
 
 	                    if (!public && data.planId) {
 	                        $.ajax({
-	                            url: '/plan/' + encodeURIComponent(data.planId),
+	                            url: '/api/plan/' + encodeURIComponent(data.planId),
 	                            type: 'GET',
 	                            success: function(planData) {
 
@@ -423,7 +423,7 @@
 	                                        FAPI_UI.showBusy('Creating a new test for ' + nextModule + '...');
 
 	                                        $.ajax({
-	                                            url: '/runner/?test=' + encodeURIComponent(nextModule) + '&plan=' + encodeURIComponent(data.planId),
+	                                            url: '/api/runner/?test=' + encodeURIComponent(nextModule) + '&plan=' + encodeURIComponent(data.planId),
 	                                            type: 'POST',
 	                                            contentType: 'application/json',
 	                                            success: function(data, status) {
@@ -452,7 +452,7 @@
 
 								       $.ajax({
 								           type: 'POST',
-								           url: '/info/' + encodeURIComponent(testId) + '/publish',
+								           url: '/api/info/' + encodeURIComponent(testId) + '/publish',
 								           contentType: 'application/json',
 								           data: JSON.stringify({ publish: publish }),
 								           success: function(data) {
@@ -507,7 +507,7 @@
 			// try to load up the active test information if it's available, otherwise cut out some controls
 			return $.ajax({
 				type: 'GET',
-				url: '/runner/' + encodeURIComponent(testId),
+				url: '/api/runner/' + encodeURIComponent(testId),
 				success: function(data) {
 					// show the overall container
 					$('#runningTestInformation').show();
@@ -566,7 +566,7 @@
 							if (win) {
 								win.focus();
 								$.ajax({
-									url: '/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+									url: '/api/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
 									type: 'POST',
 									error: function(jqxhr, status, error) {
 										FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -658,7 +658,7 @@
 		function runTest(testName, planId, config, oldTestId) {
 			FAPI_UI.showBusy('Creating a clone of this test...');
 			$.ajax({
-				url: '/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : ''),
+				url: '/api/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : ''),
 				type: 'POST',
 				contentType: 'application/json',
 				// pass config if necessary, which it isn't if the test is part of a plan
