@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -40,6 +44,8 @@ public class TestInfoApi {
 	private TestInfoService testInfoService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get information of all tests", notes = "Will return all tests if user is admin role, otherwise owner's tests will be returned")
+	@ApiResponse(code = 200, message = "Retrieved successfully")
 	public ResponseEntity<List<Document>> getAllTests() {
 		List<Document> testInfo = null;
 		if (authenticationFacade.isAdmin()) {
@@ -55,7 +61,12 @@ public class TestInfoApi {
 	}
 
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getTestInfo(@PathVariable("id") String id) {
+	@ApiOperation(value = "Get test information by test id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find test information for provided testId")
+	})
+	public ResponseEntity<Object> getTestInfo(@ApiParam(value = "Id of test") @PathVariable("id") String id) {
 		Document testInfo = null;
 		if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id)).first();
@@ -74,7 +85,13 @@ public class TestInfoApi {
 	}
 
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> publishTestInfo(@PathVariable("id") String id, @RequestBody JsonObject config) {
+	@ApiOperation(value = "Publish a test information")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Published successfully"),
+		@ApiResponse(code = 400, message = "'publish' field is missing or its value is not JsonPrimitive"),
+		@ApiResponse(code = 403, message = "'publish' value is not valid")
+	})
+	public ResponseEntity<Object> publishTestInfo(@ApiParam(value = "Id of test that you want to publish")@PathVariable("id") String id, @ApiParam(value = "Configuration Json") @RequestBody JsonObject config) {
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
@@ -95,7 +112,12 @@ public class TestInfoApi {
 	}
 
 	@GetMapping(value = "/public/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getPublicTestInfo(@PathVariable("id") String id) {
+	@ApiOperation(value = "Get published test information by test id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find test information for provided testId")
+	})
+	public ResponseEntity<Object> getPublicTestInfo(@ApiParam(value = "Id of test") @PathVariable("id") String id) {
 
 		Query query = new Query();
 		query.fields()

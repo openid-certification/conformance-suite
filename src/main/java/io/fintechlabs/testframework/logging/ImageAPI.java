@@ -5,6 +5,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +54,14 @@ public class ImageAPI {
 	private ImageService imageService;
 
 	@PostMapping(path = "/log/{id}/images")
+	@ApiOperation(value = "Upload image for a test log")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Uploaded image successfully"),
+		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
-		@PathVariable(name = "id") String testId,
-		@RequestParam(name = "description", required = false) String description) throws IOException {
+		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
+		@ApiParam(value = "Description for image") @RequestParam(name = "description", required = false) String description) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -85,9 +94,15 @@ public class ImageAPI {
 	}
 
 	@PostMapping(path = "/log/{id}/images/{placeholder}")
-	public ResponseEntity<Object> uploadImageToExistingLogEntry(@RequestBody String encoded,
-		@PathVariable(name = "id") String testId,
-		@PathVariable(name = "placeholder") String placeholder) throws IOException {
+	@ApiOperation(value = "Upload the image to existing log entry")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Uploaded image successfully"),
+		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+	})
+	public ResponseEntity<Object> uploadImageToExistingLogEntry(
+		@ApiParam(value = "Image should be encoded as a string") @RequestBody String encoded,
+		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
+		@ApiParam(value = "Placeholder which created when the test run") @PathVariable(name = "placeholder") String placeholder) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -110,7 +125,12 @@ public class ImageAPI {
 	}
 
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<Object> getAllImages(@PathVariable(name = "id") String testId) {
+	@ApiOperation(value = "Get all the images for a test")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully"),
+		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+	})
+	public ResponseEntity<Object> getAllImages(@ApiParam(value = "ID of test") @PathVariable(name = "id") String testId) {
 
 		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
 

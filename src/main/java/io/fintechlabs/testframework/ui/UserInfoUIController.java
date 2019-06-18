@@ -3,12 +3,16 @@ package io.fintechlabs.testframework.ui;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
@@ -25,7 +29,11 @@ public class UserInfoUIController {
 	 *
 	 * @return
 	 */
-	@RequestMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get current user information")
+	@ApiResponses({
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<Object> getCurrentUserInfo() {
 		Map<String, Object> map = new HashMap<>();
 
