@@ -2,48 +2,17 @@
 
 set -e
 function cleanup {
-    if [ -n "${PORT_FORWARD_PID}" ]; then
-      echo "Killing kubectl port-forward"
-      kill ${PORT_FORWARD_PID} || true
-    fi
     echo -e "\n\n`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh exiting\n\n"
 }
 trap cleanup EXIT
 
 echo -e "\n\n`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh starting\n\n"
 
-if [ -n "${CONFORMANCE_K8_NAMESPACE}" ]; then
-    # to run tests against a cloud environment, you need to:
-    # 1. install the gcloud tools
-    # 2. gcloud auth login
-    # 3. gcloud config set project conformance-suite
-    # 4. gcloud container clusters  get-credentials conformance-suite-cluster-1 --zone us-central1-a
-    # Then before running run-tests.sh do "source demo-environ.sh" (or whichever environment you want to run against)
-    # to run against your local deployment, just don't do the 'source' command
-
-    # This is just here so the cluster status before the tests run is recorded/available for diagnostics
-    echo "Running kubectl get all for conformance suite namespace:"
-    echo
-    kubectl --namespace=${CONFORMANCE_K8_NAMESPACE} get all
-    echo
-
-    POD=`kubectl --namespace=${CONFORMANCE_K8_NAMESPACE} get pod -l app=${CONFORMANCE_K8_APPNAME} -o template --template="{{(index .items 0).metadata.name}}"`
-    echo "Pod is: '$POD' - establishing port forward..."
-
-    n=0
-    while :; do
-        kubectl --namespace=${CONFORMANCE_K8_NAMESPACE} port-forward $POD ${CONFORMANCE_MICROAUTH_LOCAL_PORT}:${CONFORMANCE_MICROAUTH_REMOTE_PORT} &
-        PORT_FORWARD_PID=$!
-        ./wait-for.sh localhost:${CONFORMANCE_MICROAUTH_LOCAL_PORT} && break
-        # failed; it's possible the pod hadn't started, wait-for.sh already delayed 15 seconds so hopefully it might work if we try again
-        # eg. https://gitlab.com/fintechlabs/fapi-conformance-suite/-/jobs/140077859
-        if [ $n -ge 5 ]; then
-            echo "Port forward not established after $n attempts; giving up"
-            exit 1
-        fi
-        n=$[$n+1]
-    done
-fi
+# to run tests against a cloud environment, you need to:
+# 1. create an API token
+# 2. set the CONFORMANCE_TOKEN environment variable to the token
+# 3. do "source demo-environ.sh" (or whichever environment you want to run against)
+# (to run against your local deployment, just don't do the 'source' command)
 
 source node-client-setup.sh
 export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'

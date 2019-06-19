@@ -12,6 +12,5 @@ ENTRYPOINT java \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
   -D"oidc.gitlab.clientid=${OIDC_GITLAB_CLIENTID}" \
   -D"oidc.gitlab.secret=${OIDC_GITLAB_SECRET}" \
-  -D"oauth.introspection_url=http://${MICROAUTH_HOST}:9001/introspect" \
   $JAVA_EXTRA_ARGS \
  -jar /server/fapi-test-suite.jar

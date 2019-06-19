@@ -117,7 +117,9 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 	public ResourceServerTokenServices tokenServices() {
 
 		ApiTokenService tokenService = new ApiTokenService();
-		tokenService.setFallbackService(introspectingTokenServices());
+
+		// Static introspection is disabled for now - it can be added to the chain as a fallback here:
+		//tokenService.setFallbackService(introspectingTokenServices());
 
 		return tokenService;
 	}
