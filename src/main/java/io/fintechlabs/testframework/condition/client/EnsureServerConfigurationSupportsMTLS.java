@@ -14,7 +14,7 @@ public class EnsureServerConfigurationSupportsMTLS extends AbstractCondition {
 
 	public static final List<String> MTLS_AUTH_METHODS = ImmutableList.of(
 		"tls_client_auth",
-		"pub_key_tls_client_auth");
+		"self_signed_tls_client_auth");
 
 	@Override
 	@PreEnvironment(required = "server")
