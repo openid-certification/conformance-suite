@@ -1,13 +1,17 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddIatValueIsWeekInPastToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
+import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
-	displayName = "FAPI-CIBA: 'iat' value in request object is a week in the past, should return an error",
-	summary = "This test should return an error that the 'iat' value in request object from back channel authentication endpoint request is a week in the past",
+	testName = "fapi-ciba-ensure-request-object-signature-algorithm-is-none-fails",
+	displayName = "FAPI-CIBA: Ensure request_object signature algorithm is none fails",
+	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -28,7 +32,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAEnsureRequestObjectSignatureAlgorithmIsNoneFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
 	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
@@ -71,10 +75,18 @@ public class FAPICIBAEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAP
 	}
 
 	@Override
-	protected void createAuthorizationRequestObject() {
-		super.createAuthorizationRequestObject();
+	protected void performAuthorizationRequest() {
+		createAuthorizationRequestObject();
 
-		callAndStopOnFailure(AddIatValueIsWeekInPastToRequestObject.class, "CIBA-7.1.1");
+		// aud, iss are added by SignRequestObject
+		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class, "CIBA-7.2");
 
+		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
+
+		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
+		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
+
+		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 	}
+
 }

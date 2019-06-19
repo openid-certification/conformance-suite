@@ -33,23 +33,43 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 public class FAPICIBAMultipleCallToTokenEndpoint extends AbstractFAPICIBA {
 
-	@Variant(name = variant_openbankinguk_ping_mtls)
+	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
+		super.setupPingMTLS();
+	}
+
+	@Variant(name = variant_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupPingPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_poll_mtls)
+	public void setupPollMTLS() {
+		super.setupPollMTLS();
+	}
+
+	@Variant(name = variant_poll_privatekeyjwt)
+	public void setupPollPrivateKeyJwt() {
+		super.setupPollPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_ping_mtls)
+	public void setupOpenBankingUkPingMTLS() {
 		super.setupOpenBankingUkPingMTLS();
 	}
 
 	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
+	public void setupOpenBankingUkPingPrivateKeyJwt() {
 		super.setupOpenBankingUkPingPrivateKeyJwt();
 	}
 
 	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupPollMTLS() {
+	public void setupOpenBankingUkPollMTLS() {
 		super.setupOpenBankingUkPollMTLS();
 	}
 
 	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
+	public void setupOpenBankingUkPollPrivateKeyJwt() {
 		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
@@ -69,6 +89,8 @@ public class FAPICIBAMultipleCallToTokenEndpoint extends AbstractFAPICIBA {
 				// Try to fulfil the flow when back channel endpoint return status 200
 				// https://gitlab.com/openid/conformance-suite/merge_requests/580
 				super.callAutomatedEndpoint();
+
+				setStatus(Status.WAITING);
 
 				break;
 

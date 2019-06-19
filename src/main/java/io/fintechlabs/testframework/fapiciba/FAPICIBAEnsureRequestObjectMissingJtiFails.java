@@ -1,13 +1,13 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddIatValueIsWeekInPastToRequestObject;
+import io.fintechlabs.testframework.condition.client.RemoveJtiFromRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
-	displayName = "FAPI-CIBA: 'iat' value in request object is a week in the past, should return an error",
-	summary = "This test should return an error that the 'iat' value in request object from back channel authentication endpoint request is a week in the past",
+	testName = "fapi-ciba-ensure-request-object-missing-jti-fails",
+	displayName = "FAPI-CIBA: Missing 'jti' value in request object, should return an error",
+	summary = "This test should return an error that the 'jti' value in request object from back channel authentication endpoint request is missing",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAEnsureRequestObjectMissingJtiFails  extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
 	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
@@ -74,7 +74,6 @@ public class FAPICIBAEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAP
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
 
-		callAndStopOnFailure(AddIatValueIsWeekInPastToRequestObject.class, "CIBA-7.1.1");
-
+		callAndStopOnFailure(RemoveJtiFromRequestObject.class, "CIBA-7.1.1");
 	}
 }
