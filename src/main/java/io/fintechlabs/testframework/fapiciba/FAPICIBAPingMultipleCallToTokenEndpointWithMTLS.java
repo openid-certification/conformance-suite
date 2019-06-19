@@ -50,6 +50,8 @@ public class FAPICIBAPingMultipleCallToTokenEndpointWithMTLS extends AbstractFAP
 		callAndStopOnFailure(TellUserToDoCIBAAuthentication.class);
 
 		super.callAutomatedEndpoint();
+
+		setStatus(Status.WAITING);
 	}
 
 	@Override

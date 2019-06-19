@@ -42,6 +42,8 @@ public class FAPICIBAPingEnsureWrongClientIdInTokenEndpointRequestWithMTLS exten
 		super.performPostAuthorizationResponse();
 
 		callAutomatedEndpoint();
+
+		setStatus(Status.WAITING);
 	}
 
 	@Override
