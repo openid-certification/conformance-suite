@@ -29,6 +29,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPingWithMTLSEnsureRequestObjectExpIsYearInFutureFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+
+	@Variant(name = FAPICIBA.variant_ping_mtls)
+	public void setupPingMTLS() {
+		super.setupPingMTLS();
+	}
+
 	@Variant(name = FAPICIBA.variant_openbankinguk_ping_mtls)
 	public void setupOpenBankingUkPingMTLS() {
 		// FIXME: add other variants

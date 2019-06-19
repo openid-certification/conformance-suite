@@ -164,13 +164,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	// to be used in @Variant definitions
-	/*
-	// TODO: split out openbanking-specific steps
 	public static final String variant_ping_mtls = "ping-mtls";
 	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
 	public static final String variant_poll_mtls = "poll-mtls";
 	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
-	*/
 	public static final String variant_openbankinguk_ping_mtls = "openbankinguk-ping-mtls";
 	public static final String variant_openbankinguk_ping_privatekeyjwt = "openbankinguk-ping-private_key_jwt";
 	public static final String variant_openbankinguk_poll_mtls = "openbankinguk-poll-mtls";

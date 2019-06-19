@@ -33,6 +33,16 @@ import org.springframework.http.ResponseEntity;
 // FIXME: mark test as Ping specific
 public class FAPICIBAPingNotificationEndpointReturns403 extends AbstractFAPICIBA {
 
+	@Variant(name = variant_ping_mtls)
+	public void setupPingMTLS() {
+		super.setupPingMTLS();
+	}
+
+	@Variant(name = variant_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupPingPrivateKeyJwt();
+	}
+
 	@Variant(name = variant_openbankinguk_ping_mtls)
 	public void setupOpenBankingUkPingMTLS() { super.setupOpenBankingUkPingMTLS(); }
 
