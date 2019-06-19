@@ -332,7 +332,7 @@
 	                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
 								$('#reRunTestModal').modal('show');
 							} else {
-	                        	runTest(data.testName, data.planId, data.config, testId);
+	                        	runTest(data.testName, data.variant, data.planId, data.config, testId);
 							}
 	                    });
 
@@ -483,7 +483,7 @@
 
 						$('#reRunTestModalBtn').click(function(evt) {
 							evt.preventDefault();
-							runTest(data.testName, data.planId, data.config, testId);
+							runTest(data.testName, data.variant, data.planId, data.config, testId);
 						});
 					}
 
@@ -655,10 +655,16 @@
             });
 		}
 
-		function runTest(testName, planId, config, oldTestId) {
+		function runTest(testName, testVariant, planId, config, oldTestId) {
+            var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : '');
+
+            if(testVariant && testVariant !== "null" && testVariant !== "undefined" ){
+                runTestUrl += '&variant=' + encodeURIComponent(testVariant);
+            }
+
 			FAPI_UI.showBusy('Creating a clone of this test...');
 			$.ajax({
-				url: '/api/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : ''),
+				url: runTestUrl,
 				type: 'POST',
 				contentType: 'application/json',
 				// pass config if necessary, which it isn't if the test is part of a plan
