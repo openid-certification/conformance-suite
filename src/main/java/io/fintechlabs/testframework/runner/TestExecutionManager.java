@@ -36,6 +36,8 @@ public class TestExecutionManager {
 			} catch (TestFailureException e) {
 				throw e;
 			} catch (Exception e) {
+				// we /must/ throw a TestFailureException here, so that when TestRunner calls future.get() and
+				// an exception is caught, it can map the exception back to the test
 				throw new TestFailureException(testId, e);
 			}
 			return returnObj;

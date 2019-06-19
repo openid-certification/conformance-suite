@@ -19,6 +19,7 @@ extensions_to_check = [
     'java',
     'py',
     'js',
+    'json',
     'html',
     'css',
     'txt',

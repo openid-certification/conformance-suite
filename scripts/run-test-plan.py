@@ -617,6 +617,10 @@ if __name__ == '__main__':
 
         detail_plan_results.append(plan_result['detail_plan_result'])
 
+    if did_not_complete:
+        print(failure("** Exiting with failure - some tests did not run to completion **"))
+        sys.exit(1)
+
     has_duplicate = False
     has_invalid = False
     for expected_failure_obj in expected_failures_list:
@@ -655,10 +659,6 @@ if __name__ == '__main__':
                                                          entry['condition'],
                                                          entry['expected-result'])
                 print(entry_invalid_json + "\n", file=sys.__stdout__)
-
-    if did_not_complete:
-        print(failure("** Exiting with failure - some tests did not run completion **"))
-        sys.exit(1)
 
     has_unexpected_failures = summary_unexpected_failures_all_test_plan(detail_plan_results)
     if has_unexpected_failures:

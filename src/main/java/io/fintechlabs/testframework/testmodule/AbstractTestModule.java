@@ -730,7 +730,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 
 	/**
-	 * Clear the lock. We we don't have it in the current thread, throw an exception.
+	 * Clear the lock. If we don't have it in the current thread, throw an exception.
 	 */
 	protected void clearLock(){
 		env.getLock().unlock();
