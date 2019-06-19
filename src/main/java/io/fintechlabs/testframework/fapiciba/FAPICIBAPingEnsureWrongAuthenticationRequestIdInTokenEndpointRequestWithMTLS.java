@@ -42,6 +42,8 @@ public class FAPICIBAPingEnsureWrongAuthenticationRequestIdInTokenEndpointReques
 		super.performPostAuthorizationResponse();
 
 		callAutomatedEndpoint();
+
+		setStatus(Status.WAITING);
 	}
 
 	@Override
