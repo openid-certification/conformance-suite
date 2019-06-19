@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
-	displayName = "FAPI-CIBA: Poll mode - 'iat' value in request object is a week in the past, should return an error (MTLS client authentication)",
+	testName = "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+	displayName = "FAPI-CIBA: 'iat' value in request object is a week in the past, should return an error",
 	summary = "This test should return an error that the 'iat' value in request object from back channel authentication endpoint request is a week in the past",
 	profile = "FAPI-CIBA",
 	configurationFields = {
@@ -28,8 +28,9 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAPollWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAWithMTLSEnsureRequestObjectFails {
+public class FAPICIBAEnsureRequestObjectIatIsWeekInPastFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
+<<<<<<< HEAD:src/main/java/io/fintechlabs/testframework/fapiciba/FAPICIBAPollWithMTLSEnsureRequestObjectIatIsWeekInPastFails.java
 	@Variant(name = FAPICIBA.variant_poll_mtls)
 	public void setupPollMTLS() {
 		super.setupPollMTLS();
@@ -38,26 +39,33 @@ public class FAPICIBAPollWithMTLSEnsureRequestObjectIatIsWeekInPastFails extends
 	@Variant(name = FAPICIBA.variant_openbankinguk_poll_mtls)
 	public void setupOpenBankingUkPollMTLS() {
 		// FIXME: add other variants
+=======
+	@Variant(name = variant_openbankinguk_ping_mtls)
+	public void setupPingMTLS() {
+		super.setupOpenBankingUkPingMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupOpenBankingUkPingPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_poll_mtls)
+	public void setupPollMTLS() {
+>>>>>>> Add private_key_jwt version of some new CIBA tests:src/main/java/io/fintechlabs/testframework/fapiciba/FAPICIBAEnsureRequestObjectIatIsWeekInPastFails.java
 		super.setupOpenBankingUkPollMTLS();
 	}
 
-	@Override
-	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
-		pollCleanupAfterBackchannelRequestShouldHaveFailed();
+	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
+	public void setupPollPrivateKeyJwt() {
+		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
 	@Override
 	protected void createAuthorizationRequestObject() {
-
 		super.createAuthorizationRequestObject();
 
 		callAndStopOnFailure(AddIatValueIsWeekInPastToRequestObject.class, "CIBA-7.1.1");
 
 	}
-
-	@Override
-	protected void modeSpecificAuthorizationEndpointRequest() {
-		/* Nothing to do */
-	}
-
 }
