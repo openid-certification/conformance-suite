@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class CheckBackchannelUserCodeParameterSupported extends AbstractCondition {
 
@@ -13,19 +12,16 @@ public class CheckBackchannelUserCodeParameterSupported extends AbstractConditio
 	public Environment evaluate(Environment env) {
 
 		JsonElement element = env.getElementFromObject("server", "backchannel_user_code_parameter_supported");
-		if (element == null || element.isJsonObject()) {
-			throw error("backchannel_user_code_parameter_supported in server was missing");
+		if (element == null) {
+			logSuccess("backchannel_user_code_parameter_supported is not present");
+			return env;
 		}
 
-		if (!element.getAsJsonPrimitive().isBoolean()) {
+		if (element.isJsonObject() || !element.getAsJsonPrimitive().isBoolean()) {
 			throw error("Type of backchannel_user_code_parameter_supported must be boolean.");
 		}
 
-		if (!OIDFJSON.getBoolean(element)) {
-			throw error("backchannel_user_code_parameter_supported must be 'true'", args("actual", OIDFJSON.getBoolean(element)));
-		}
-
-		logSuccess("backchannel_user_code_parameter_supported was 'true'");
+		logSuccess("backchannel_user_code_parameter_supported is a valid boolean");
 
 		return env;
 	}
