@@ -26,6 +26,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPollEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS {
+
+	@Variant(name = FAPICIBA.variant_poll_mtls)
+	public void setupPollMTLS() {
+		super.setupPollMTLS();
+	}
+
 	@Variant(name = FAPICIBA.variant_openbankinguk_poll_mtls)
 	public void setupOpenBankingUkPollMTLS() {
 		// FIXME: add other variants

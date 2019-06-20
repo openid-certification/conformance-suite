@@ -30,6 +30,17 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBAPollEnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAEnsureAuthorizationRequestWithBindingMessageSucceeds {
+
+	@Variant(name = FAPICIBA.variant_poll_mtls)
+	public void setupPollMTLS() {
+		super.setupPollMTLS();
+	}
+
+	@Variant(name = FAPICIBA.variant_poll_privatekeyjwt)
+	public void setupPollPrivateKeyJwt() {
+		super.setupPollPrivateKeyJwt();
+	}
+
 	@Variant(name = variant_openbankinguk_poll_mtls)
 	public void setupOpenBankingUkPollMTLS() {
 		super.setupOpenBankingUkPollMTLS();

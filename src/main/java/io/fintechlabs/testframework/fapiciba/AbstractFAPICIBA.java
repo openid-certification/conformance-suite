@@ -35,13 +35,11 @@ import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodP
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
-import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -53,7 +51,6 @@ import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdIn
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
-import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointCacheHeaders;
@@ -67,14 +64,12 @@ import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpointUri;
-import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
 import io.fintechlabs.testframework.condition.client.CreateDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
@@ -86,7 +81,6 @@ import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthentica
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
@@ -110,7 +104,6 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
@@ -141,6 +134,8 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
+import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsMTLS;
+import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsPrivateKeyJwt;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
@@ -169,13 +164,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	// to be used in @Variant definitions
-	/*
-	// TODO: split out openbanking-specific steps
 	public static final String variant_ping_mtls = "ping-mtls";
 	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
 	public static final String variant_poll_mtls = "poll-mtls";
 	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
-	*/
 	public static final String variant_openbankinguk_ping_mtls = "openbankinguk-ping-mtls";
 	public static final String variant_openbankinguk_ping_privatekeyjwt = "openbankinguk-ping-private_key_jwt";
 	public static final String variant_openbankinguk_poll_mtls = "openbankinguk-poll-mtls";
@@ -185,6 +177,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	private Class<? extends ConditionSequence> addBackchannelClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
+	private Class<? extends ConditionSequence> additionalClientRegistrationSteps;
+	private Class<? extends ConditionSequence> preAuthorizationSteps;
+	private Class<? extends ConditionSequence> additionalProfileAuthorizationEndpointSetupSteps;
+	private Class<? extends ConditionSequence> additionalProfileIdTokenValidationSteps;
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
 	protected TestType testType;
@@ -197,6 +193,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 			callAndContinueOnFailure(AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest.class, Condition.ConditionResult.FAILURE);
 		}
 	}
+
 	public static class MtlsRegistration extends AbstractConditionSequence
 	{
 		@Override
@@ -206,6 +203,31 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		}
 	}
 
+	public static class OpenBankingUkClientRegistrationSteps extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class, "OBRW-4.3.1");
+		}
+	}
+
+	public static class OpenBankingUkProfileAuthorizationEndpointSetupSteps extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			// Not sure there's a defined way to do these two in CIBA
+//		FIXME	callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+		}
+	}
+
+	public static class OpenBankingUkProfileIdTokenValidationSteps extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			// FIXME: CIBA has no way to request the OB intent id...
+//			callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+		}
+	}
 
 	protected void addClientAuthenticationToBackchannelRequest() {
 		/* This function can be inlined once all CIBA test modules are using Variants */
@@ -217,14 +239,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		call(sequence(addTokenEndpointClientAuthentication));
 	}
 
-	protected void createClientCredentialsRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-
-		addClientAuthenticationToTokenEndpointRequest();
-	}
-
 	public void registerClient() {
 
 		callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
@@ -234,7 +248,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
-		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class, "OBRW-4.3.1");
 		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
 
@@ -247,6 +260,9 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndStopOnFailure(AddEmptyResponseTypesArrayToDynamicRegistrationRequest.class);
 
 		call(sequence(addTokenEndpointAuthToRegistrationRequest));
+
+		if (additionalClientRegistrationSteps != null)
+			call(sequence(additionalClientRegistrationSteps));
 
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
@@ -370,14 +386,8 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	protected void performPreAuthorizationSteps() {
-		eventLog.startBlock(currentClientString() + "Use client_credentials grant to obtain OpenBanking UK intent_id");
-
-		/* get an openbanking intent id */
-		requestClientCredentialsGrant();
-
-		createAccountRequest();
-
-		eventLog.endBlock();
+		if (preAuthorizationSteps != null)
+			call(sequence(preAuthorizationSteps));
 	}
 
 	/** Return which client is in use, for use in block identifiers */
@@ -574,38 +584,9 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		throw new TestFailureException(new ConditionError(getId(), "User did not authenticate before timeout"));
 	}
 
-	protected void requestClientCredentialsGrant() {
-		createClientCredentialsRequest();
-
-		callAndStopOnFailure(CallTokenEndpoint.class);
-
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
-
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
-		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-	}
-
-	protected void createAccountRequest() {
-
-		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
-
-		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
-
-		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
-
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
-
-		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
-	}
-
 	protected void performProfileAuthorizationEndpointSetup() {
-		// Not sure there's a defined way to do these two in CIBA
-//	FIXME	callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+		if (additionalProfileAuthorizationEndpointSetupSteps != null)
+			call(sequence(additionalProfileAuthorizationEndpointSetupSteps));
 
 		if ( whichClient == 2) {
 			callAndStopOnFailure(AddAcrValuesScaToAuthorizationEndpointRequest.class);
@@ -858,8 +839,8 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	protected void performProfileIdTokenValidation() {
-		// FIXME: CIBA has no way to request the OB intent id...
-//		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+		if (additionalProfileIdTokenValidationSteps != null)
+			call(sequence(additionalProfileIdTokenValidationSteps));
 
 		if ( whichClient == 2 ) {
 			callAndContinueOnFailure(FAPICIBAValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
@@ -999,32 +980,64 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	}
 
-	public void setupOpenBankingUkPingMTLS() {
+	public void setupPingMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.PING;
+	}
+
+	public void setupPingPrivateKeyJwt() {
+		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
+		testType = TestType.PING;
+	}
+
+	public void setupPollMTLS() {
+		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
+		testType = TestType.POLL;
+	}
+
+	public void setupPollPrivateKeyJwt() {
+		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
+		testType = TestType.POLL;
+	}
+
+	public void setupOpenBankingUkPingMTLS() {
+		setupPingMTLS();
+		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
+		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsMTLS.class;
+		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
+		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
 
 	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
-		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
-		testType = TestType.PING;
+		setupPingPrivateKeyJwt();
+		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
+		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsPrivateKeyJwt.class;
+		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
+		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
 
 	public void setupOpenBankingUkPollMTLS() {
-		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
-		testType = TestType.POLL;
+		setupPollMTLS();
+		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
+		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsMTLS.class;
+		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
+		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
 
 	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
-		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
-		testType = TestType.POLL;
+		setupPollPrivateKeyJwt();
+		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
+		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsPrivateKeyJwt.class;
+		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
+		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
 
 }

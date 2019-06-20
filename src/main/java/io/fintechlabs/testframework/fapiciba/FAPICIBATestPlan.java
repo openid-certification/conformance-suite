@@ -81,6 +81,10 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 	},
 	variants = {
+		FAPICIBA.variant_ping_mtls,
+		FAPICIBA.variant_ping_privatekeyjwt,
+		FAPICIBA.variant_poll_mtls,
+		FAPICIBA.variant_poll_privatekeyjwt,
 		FAPICIBA.variant_openbankinguk_ping_mtls,
 		FAPICIBA.variant_openbankinguk_ping_privatekeyjwt,
 		FAPICIBA.variant_openbankinguk_poll_mtls,
