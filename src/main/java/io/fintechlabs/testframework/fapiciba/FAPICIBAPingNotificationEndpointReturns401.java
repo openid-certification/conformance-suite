@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-backchannel-notification-endpoint-response-401",
-	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - backchannel notificatione endpoint returns a HTTP 401 Unauthorized response",
+	displayName = "FAPI-CIBA: Ping mode - backchannel notificatione endpoint returns a HTTP 401 Unauthorized response",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 401 Unauthorized response and the authentication flow must still complete normally.",
 	profile = "FAPI-CIBA",
 	configurationFields = {

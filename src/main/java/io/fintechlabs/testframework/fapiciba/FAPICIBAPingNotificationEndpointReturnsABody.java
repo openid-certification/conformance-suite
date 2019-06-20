@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-backchannel-notification-endpoint-response-has-body",
-	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - backchannel notification-endpoint returns HTTP 200 OK response with a body",
+	displayName = "FAPI-CIBA: Ping mode - backchannel notification-endpoint returns HTTP 200 OK response with a body",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 200 OK response with a body, the token endpoint should then return successfully as normal. If the token endpoint does not return success, this test will fail with a warning.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
