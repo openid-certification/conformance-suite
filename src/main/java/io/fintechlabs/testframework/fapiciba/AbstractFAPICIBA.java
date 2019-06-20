@@ -741,14 +741,11 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 			eventLog.endBlock();
 
-			eventLog.startBlock("Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked");
+			eventLog.startBlock("Attempting reuse of client2's auth_req_id (which should fail)");
 			// Re-map to Client 2 keys
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			// Check access_token still works
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class,  "CIBA-11");
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
@@ -758,8 +755,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "CIBA-11");
 
-			// The AS 'SHOULD' have revoked the access token; try it again".
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
 			eventLog.endBlock();
 
 			fireTestFinished();
