@@ -25,12 +25,6 @@ resources:
 # the external API; this is useful on the cloud production
 # environments but you may want to disable it if deploying internally
 javaArgs: "-Xmx512M -Dfintechlabs.show_external_ip_address=true"
-microauth:
-  resources:
-    limits:
-      memory: 128Mi
-    requests:
-      cpu: 100m
 mongodb:
   image:
     tag: 3.6

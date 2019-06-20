@@ -83,23 +83,6 @@ test:
   only:
     - branches
 
-build_microauth:
-  stage: build
-  image: docker:git
-  services:
-    - docker:dind
-  script:
-    - install_build_dependencies
-    - docker build -t microauth microauth/
-    - if [ -n "$GCP_PROJECT_ID" ]; then
-    -   docker tag microauth "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
-    -   echo "$GCLOUD_SERVICE_KEY" | base64 -d > ${HOME}/gcloud-service-key.json
-    -   ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
-    -   ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:microauth-$CI_APPLICATION_TAG"
-    - fi
-  only:
-    - branches
-
 check-trailing-whitespace:
   stage: build
   image: docker:git
@@ -386,9 +369,6 @@ deployment_ciba_test_review:
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
       --set image.tag="$CI_APPLICATION_TAG" \
       --set image.pullPolicy=IfNotPresent \
-      --set microauth.image.repository="$CI_APPLICATION_REPOSITORY" \
-      --set microauth.image.tag="microauth-$CI_APPLICATION_TAG" \
-      --set microauth.image.pullPolicy=IfNotPresent \
       --set application.track="$track" \
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
@@ -401,6 +381,7 @@ deployment_ciba_test_review:
     echo -n "Waiting for mongodb to start"
     while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
     echo "Inserting CI token"
+    CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n' )
     kubectl exec $MONGO_POD -- \
       mongo mongodb://localhost/test_suite --eval \
         "db.API_TOKEN.update({ _id: \"ci_token\" }, { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null }, { upsert: true })"
@@ -526,9 +507,9 @@ deployment_ciba_test_review:
     cd ..
     GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:openid/conformance-suite-private.git
     cd conformance-suite-private
-    kubectl -n "$KUBE_NAMESPACE" get secret microauth -o yaml > microauth-credentials
     export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
-    export CONFORMANCE_TOKEN="${CI_TOKEN}"
+    MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} -o template --template="{{(index .items 0).metadata.name}}"`
+    export CONFORMANCE_TOKEN=$(kubectl -n ${KUBE_NAMESPACE} exec ${MONGO_POD} -- mongo --quiet mongodb://localhost/test_suite --eval "db.API_TOKEN.findOne({ _id: \"ci_token\" }).token")
   }
 
   function run_all_test_plan() {

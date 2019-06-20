@@ -11,14 +11,6 @@ services:
      - "8443:8443"
     depends_on:
      - server
-  microauth:
-    build:
-      context: ./microauth
-    volumes:
-      - ./microauth/authorizationServer.js:/server/authorizationServer.js
-    ports:
-      - "9001:9001"
-    command: node ./authorizationServer.js
   server:
     build:
       context: ./server-dev
@@ -27,7 +19,6 @@ services:
     command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true --fintechlabs.startredir=true
     links:
      - mongodb:mongodb
-     - microauth:microauth
     depends_on:
      - mongodb
     logging:
