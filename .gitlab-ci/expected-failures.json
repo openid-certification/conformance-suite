@@ -1,12 +1,5 @@
 [
   {
-    "test-name": "fapi-ciba",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning"
-  },
-  {
     "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
@@ -21,20 +14,6 @@
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba",
-    "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning"
-  },
-  {
-    "test-name": "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds",
-    "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning"
-  },
-  {
     "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
@@ -201,27 +180,6 @@
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
     "expected-result": "failure"
-  },
-  {
-    "test-name": "fapi-ciba",
-    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning"
-  },
-  {
-    "test-name": "fapi-ciba-poll-ensure-authorization-request-with-binding-message-succeeds",
-    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning"
-  },
-  {
-    "test-name": "fapi-ciba-ping-ensure-authorization-request-with-binding-message-succeeds-with-mtls",
-    "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning"
   },
   {
     "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
@@ -404,13 +362,5 @@
     "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
     "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
     "expected-result": "warning"
-  },
-  {
-    "test-name": "fapi-ciba",
-    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
-    "current-block": "Attempting reuse of client2's auth_req_id (which should fail) then testing if access token is revoked",
-    "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
-    "expected-result": "warning",
-    "comment": "Authlete doesn't invalidate access tokens when auth_req_id is reused"
   }
 ]
