@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestUriParameterSupported;
@@ -33,6 +34,10 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
+
+		// FAPI-RW ID2 servers are required to return acrs, which means they must support requesting the acr claim,
+		// hence must support the claims parameter
+		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
 
 		performProfileSpecificChecks();
 
