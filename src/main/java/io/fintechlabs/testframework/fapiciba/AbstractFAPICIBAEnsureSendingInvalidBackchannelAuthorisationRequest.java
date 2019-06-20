@@ -5,8 +5,23 @@ import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAu
 import org.apache.http.HttpStatus;
 
 // Send invalid request to backchannel authorisation endpoint and the response is invalid_request
-public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS extends AbstractFAPICIBAWithMTLS {
-	protected abstract void cleanupAfterBackchannelRequestShouldHaveFailed();
+public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest extends AbstractFAPICIBA {
+
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		switch (testType) {
+
+			case PING:
+				pingCleanupAfterBackchannelRequestShouldHaveFailed();
+				break;
+
+			case POLL:
+				pollCleanupAfterBackchannelRequestShouldHaveFailed();
+				break;
+
+			default:
+				throw new RuntimeException("unknown testType");
+		}
+	}
 
 	protected void pollCleanupAfterBackchannelRequestShouldHaveFailed() {
 		// no cleanup necessary, just finish

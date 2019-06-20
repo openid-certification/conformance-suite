@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
@@ -9,7 +8,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 
-public abstract class AbstractFAPICIBAEnsureWrongClientIdInTokenEndpointRequestWithMTLS extends AbstractFAPICIBAWithMTLS {
+public abstract class AbstractFAPICIBAEnsureWrongClientIdInTokenEndpointRequestWithMTLS extends AbstractFAPICIBA {
 
 	@Override
 	protected void performPostAuthorizationResponse() {

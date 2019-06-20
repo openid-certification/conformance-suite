@@ -12,7 +12,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
 
-public abstract class AbstractFAPICIBAEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS extends AbstractFAPICIBAWithMTLS {
+public abstract class AbstractFAPICIBAEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequestWithMTLS extends AbstractFAPICIBA {
 
 	@Override
 	protected void performPostAuthorizationResponse() {

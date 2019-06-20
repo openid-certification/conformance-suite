@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 
-public abstract class AbstractFAPICIBAEnsureWrongAuthenticationRequestIdInTokenEndpointRequestWithMTLS extends AbstractFAPICIBAWithMTLS {
+public abstract class AbstractFAPICIBAEnsureWrongAuthenticationRequestIdInTokenEndpointRequestWithMTLS extends AbstractFAPICIBA {
 
 	@Override
 	protected void performPostAuthorizationResponse() {

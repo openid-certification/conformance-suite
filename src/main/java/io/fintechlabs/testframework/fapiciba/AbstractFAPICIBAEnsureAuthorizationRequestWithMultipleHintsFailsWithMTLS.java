@@ -4,7 +4,7 @@ import io.fintechlabs.testframework.condition.client.AddMultipleHintsToAuthoriza
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
 
-public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequestWithMTLS {
+public abstract class AbstractFAPICIBAEnsureAuthorizationRequestWithMultipleHintsFailsWithMTLS extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
 	@Override
 	protected void createAuthorizationRequest() {

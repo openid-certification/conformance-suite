@@ -35,85 +35,169 @@
     "expected-result": "warning"
   },
   {
-    "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-exp-is-year-in-future-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-poll-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-with-mtls-ensure-request-object-iat-is-week-in-past-fails",
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "ValidateErrorResponseFromBackchannelAuthenticationEndpoint",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+    "current-block": "Call backchannel authentication endpoint",
+    "condition": "CheckBackchannelAuthenticationEndpointHttpStatus400",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-request-object-iat-is-week-in-past-fails",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
     "current-block": "Call backchannel authentication endpoint",
     "condition": "CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest",
     "expected-result": "failure"
@@ -140,15 +224,29 @@
     "expected-result": "warning"
   },
   {
-    "test-name": "fapi-ciba-poll-ensure-authorization-request-with-potentially-bad-binding-message-with-mtls",
+    "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
     "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
     "current-block": "Resource server endpoint tests",
     "condition": "ExpectBindingMessageCorrectDisplay",
     "expected-result": "failure"
   },
   {
-    "test-name": "fapi-ciba-ping-ensure-authorization-request-with-potentially-bad-binding-message-with-mtls",
+    "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
     "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+    "current-block": "Resource server endpoint tests",
+    "condition": "ExpectBindingMessageCorrectDisplay",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+    "current-block": "Resource server endpoint tests",
+    "condition": "ExpectBindingMessageCorrectDisplay",
+    "expected-result": "failure"
+  },
+  {
+    "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+    "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
     "current-block": "Resource server endpoint tests",
     "condition": "ExpectBindingMessageCorrectDisplay",
     "expected-result": "failure"
