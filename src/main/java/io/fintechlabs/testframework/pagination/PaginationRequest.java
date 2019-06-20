@@ -93,7 +93,7 @@ public class PaginationRequest {
 		// Update the criteria with search term, if any
 		if (search != null && !search.isEmpty()) {
 			// Mongo requires text search to come first in the pipeline
-			pipeline.add(0, new Document("$match", new Document("$text", new Document("$search", search))));
+			pipeline.add(0, new Document("$match", new Document("$text", new Document("$search", "\"" + search + "\""))));
 
 			// Count the filtered results
 			filteredCount = aggregateCount(collection, pipeline);
