@@ -398,7 +398,7 @@
 	                    if (data.planId) {
 	                        $('#planBtn').click(function(evt) {
 	                            evt.preventDefault();
-	                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId));
+	                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId) + (public ? '&public=true' : ''));
 	                        });
 	                        $('#planBtn').show();
 	                    }
