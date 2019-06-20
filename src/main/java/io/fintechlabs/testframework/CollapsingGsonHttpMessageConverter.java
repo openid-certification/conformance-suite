@@ -4,6 +4,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.fintechlabs.testframework.serializers.SpringfoxApiListingJsonSerializer;
+import io.fintechlabs.testframework.serializers.SpringfoxJsonSerializer;
 import org.bson.Document;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
@@ -13,6 +15,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import springfox.documentation.service.ApiListing;
+import springfox.documentation.spring.web.json.Json;
 
 public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 
@@ -87,6 +91,10 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 					}
 				}
 			})
+			// needed for making calls to /v2/api-docs
+			.registerTypeAdapter(Json.class, new SpringfoxJsonSerializer())
+			// needed for making calls to /swagger-ui.html
+			.registerTypeAdapter(ApiListing.class, new SpringfoxApiListingJsonSerializer())
 			.create();
 	}
 

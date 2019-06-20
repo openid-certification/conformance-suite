@@ -9,7 +9,13 @@ import java.util.stream.Collectors;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +59,16 @@ public class TestPlanApi implements DataUtils {
 	private SavedConfigurationService savedConfigurationService;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, Object>> createTestPlan(@RequestParam("planName") String planName, @RequestParam(value = "variant", required = false) String variant, @RequestBody JsonObject config, Model m) {
+	@ApiOperation(value = "Create test plan")
+	@ApiResponses(value = {
+		@ApiResponse(code = 201, message = "Created test plan successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find test plan for provided plan name")
+	})
+	public ResponseEntity<Map<String, Object>> createTestPlan(
+		@ApiParam(value = "Plan name") @RequestParam("planName") String planName,
+		@ApiParam(value = "Kind of test variation") @RequestParam(value = "variant", required = false) String variant,
+		@ApiParam(value = "Configuration json") @RequestBody JsonObject config,
+		Model m) {
 
 		String id = RandomStringUtils.randomAlphanumeric(13);
 
@@ -94,6 +109,10 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get a list of test plan with paging")
+	@ApiResponses({
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<Object> getTestPlansForCurrentUser(PaginationRequest page) {
 
 		Map response = planService.getPaginatedPlansForCurrentUser(page);
@@ -102,7 +121,12 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getTestPlan(@PathVariable("id") String id) {
+	@ApiOperation(value = "Get test plan information by plan id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find test plan for provided plan Id")
+	})
+	public ResponseEntity<Object> getTestPlan(@ApiParam(value = "Id of test plan") @PathVariable("id") String id) {
 
 		Map testPlan = planService.getTestPlan(id);
 
@@ -115,7 +139,13 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@PostMapping(value = "/plan/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> publishTestPlan(@PathVariable("id") String id, @RequestBody JsonObject config) {
+	@ApiOperation(value = "Publish a test plan by plan Id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Published test plan successfully"),
+		@ApiResponse(code = 400, message = "'public' field is missing or its value is not JsonPrimitive"),
+		@ApiResponse(code = 403, message = "'publish' value is not valid or couldn't find test plan by provided plan Id")
+	})
+	public ResponseEntity<Object> publishTestPlan(@ApiParam(value = "Id of test plan that you want publish") @PathVariable("id") String id, @ApiParam(value = "Configuration Json") @RequestBody JsonObject config) {
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
@@ -136,7 +166,12 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/info/{planName}")
-	public ResponseEntity<Object> getTestPlanInfo(@PathVariable("planName") String planName) {
+	@ApiOperation(value = "Get test plan information by plan name")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find test plan for provided plan name")
+	})
+	public ResponseEntity<Object> getTestPlanInfo(@ApiParam(value = "Plan name, use to identify a specific TestPlan ") @PathVariable("planName") String planName) {
 		TestPlanHolder holder = getTestPlans().get(planName);
 
 		if (holder != null) {
@@ -156,6 +191,10 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/available")
+	@ApiOperation(value = "Get a list of available test plan")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<Object> getAvailableTestPlans() {
 		Set<Map<String, ?>> available = getTestPlans()
 			.values().stream()
@@ -243,6 +282,10 @@ public class TestPlanApi implements DataUtils {
 
 
 	@GetMapping(value = "/public/plan")
+	@ApiOperation(value = "Get a list of test plan that published)")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<Object> getPublicPlans(PaginationRequest page) {
 
 		Map response = planService.getPaginatedPublicPlans(page);
@@ -252,7 +295,12 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/public/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getPublicPlan(@PathVariable("id") String id) {
+	@ApiOperation(value = "Get information of published test plan by plan id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Retrieved successfully"),
+		@ApiResponse(code = 404, message = "Could find test plan for provided plan Id")
+	})
+	public ResponseEntity<Object> getPublicPlan(@ApiParam(value = "Id of plan") @PathVariable("id") String id) {
 
 		Map testPlan = planService.getPublicPlan(id);
 

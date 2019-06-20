@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>API Document Conformance Suite</title>
+	<link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/swagger-api/swagger-ui/master/dist/swagger-ui.css" >
+	<link rel="stylesheet" type="text/css" href="css/layout.css">
+	<style>
+		html
+		{
+			box-sizing: border-box;
+			overflow: -moz-scrollbars-vertical;
+			overflow-y: scroll;
+		}
+
+		*,
+		*:before,
+		*:after
+		{
+			box-sizing: inherit;
+		}
+
+		body
+		{
+			margin:0;
+			background: #fafafa;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="pageHeader container-fluid">
+		<div class="row-fluid">
+			<div class="col-md-8">
+				<a href="index.html"><img src="/images/openid.png"></a>
+			</div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+	<div id="swagger-ui"></div>
+
+	<script src="https://cdn.rawgit.com/swagger-api/swagger-ui/master/dist/swagger-ui-bundle.js"> </script>
+	<script src="https://cdn.rawgit.com/swagger-api/swagger-ui/master/dist/swagger-ui-standalone-preset.js"> </script>
+	<script>
+		window.onload = function() {
+			// Begin Swagger UI call region
+			const ui = SwaggerUIBundle({
+				url: "/v2/api-docs",
+				dom_id: '#swagger-ui',
+				deepLinking: true,
+				presets: [
+					SwaggerUIBundle.presets.apis,
+					SwaggerUIStandalonePreset
+				],
+				plugins: [
+					SwaggerUIBundle.plugins.DownloadUrl
+				],
+				layout: "StandaloneLayout"
+			})
+			// End Swagger UI call region
+			window.ui = ui
+		}
+	</script>
+
+	<footer class="pageFooter">
+		<span class="muted">OpenID Foundation conformance suite</span>
+	</footer>
+</body>
+</html>

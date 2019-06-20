@@ -1,5 +1,9 @@
 package io.fintechlabs.testframework.token;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,13 +32,22 @@ public class TokenApi {
 	private AuthenticationFacade authenticationFacade;
 
 	@GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get a list of existing tokens")
+	@ApiResponses({
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<Object> getAllTokens() {
 
 		return new ResponseEntity<>(tokenService.getAllTokens(), HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/token", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> createToken(@RequestBody JsonObject request) {
+	@ApiOperation(value = "Create new token")
+	@ApiResponses({
+		@ApiResponse(code = 201, message = "Created token successfully"),
+		@ApiResponse(code = 403, message = "In order to create token, You must be an admin")
+	})
+	public ResponseEntity<Object> createToken(@ApiParam(value = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {
 
 		if (authenticationFacade.isAdmin())
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -52,7 +65,12 @@ public class TokenApi {
 	}
 
 	@DeleteMapping(value = "/token/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> deleteToken(@PathVariable("id") String id) {
+	@ApiOperation(value = "Delete existing token by token Id")
+	@ApiResponses({
+		@ApiResponse(code = 200, message = "Deleted token successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find provided token Id")
+	})
+	public ResponseEntity<Object> deleteToken(@ApiParam(value = "Id of token, use to identify a specific token") @PathVariable("id") String id) {
 
 		if (tokenService.deleteToken(id)) {
 			return new ResponseEntity<>(HttpStatus.OK);

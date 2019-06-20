@@ -1,5 +1,8 @@
 package io.fintechlabs.testframework.info;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,10 @@ public class SavedConfigurationApi {
 	private SavedConfigurationService savedConfigurationService;
 
 	@GetMapping(value = "/lastconfig", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get last configuration of current user")
+	@ApiResponses({
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<Object> getLastConfig() {
 
 		Document config = savedConfigurationService.getLastConfigForCurrentUser();
