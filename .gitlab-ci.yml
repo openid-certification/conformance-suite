@@ -381,6 +381,7 @@ deployment_ciba_test_review:
     echo -n "Waiting for mongodb to start"
     while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
     echo "Inserting CI token"
+    CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n' )
     kubectl exec $MONGO_POD -- \
       mongo mongodb://localhost/test_suite --eval \
         "db.API_TOKEN.update({ _id: \"ci_token\" }, { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null }, { upsert: true })"
@@ -507,7 +508,8 @@ deployment_ciba_test_review:
     GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:openid/conformance-suite-private.git
     cd conformance-suite-private
     export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
-    export CONFORMANCE_TOKEN="${CI_TOKEN}"
+    MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} -o template --template="{{(index .items 0).metadata.name}}"`
+    export CONFORMANCE_TOKEN=$(kubectl -n ${KUBE_NAMESPACE} exec ${MONGO_POD} -- mongo --quiet mongodb://localhost/test_suite --eval "db.API_TOKEN.findOne({ _id: \"ci_token\" }).token")
   }
 
   function run_all_test_plan() {
