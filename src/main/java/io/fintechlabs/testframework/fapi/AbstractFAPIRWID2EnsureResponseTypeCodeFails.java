@@ -42,8 +42,8 @@ public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends Abstr
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint error response");
 
-		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
+		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
 
 		// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
 		callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);
