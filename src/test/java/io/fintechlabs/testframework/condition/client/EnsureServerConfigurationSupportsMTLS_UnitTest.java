@@ -51,7 +51,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 		JsonArray methods = new JsonArray();
 		methods.add("client_secret_basic");
 		methods.add("tls_client_auth");
-		methods.add("pub_key_tls_client_auth");
+		methods.add("self_signed_tls_client_auth");
 
 		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
@@ -81,7 +81,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 	public void testEvaluate_supportsPublicKeyOnly() {
 
 		JsonArray methods = new JsonArray();
-		methods.add("pub_key_tls_client_auth");
+		methods.add("self_signed_tls_client_auth");
 
 		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
