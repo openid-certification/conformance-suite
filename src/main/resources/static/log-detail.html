@@ -695,6 +695,10 @@
 			FAPI_UI.loadLogDetailTemplates() // Load the templates
 			.then(function() {
 				return FAPI_UI.getUserInfo();
+            }).then(function() {
+                // Redirect if login is required
+                if (!public && !FAPI_UI.currentUser)
+                    window.location.assign('/login.html')
 			}).then(function() {
 				return getHeader(testId, public); // render the header, which includes test info
 			}).then(function() {

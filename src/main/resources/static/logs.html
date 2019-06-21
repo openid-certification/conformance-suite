@@ -142,6 +142,10 @@
 			FAPI_UI.loadLogListTemplates()
 			.then(function() {
 				return FAPI_UI.getUserInfo();
+            }).then(function() {
+                // Redirect if login is required
+                if (!public && !FAPI_UI.currentUser)
+                    window.location.assign('/login.html')
 			}).then(function() {
 				return loadAvailableLogs(public);
 			}).always(function() {
