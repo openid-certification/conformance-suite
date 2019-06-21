@@ -81,7 +81,7 @@ public abstract class AbstractFAPIRWID2OBEnsureAuthorizationCodeIsBoundToClient 
 
 		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-12");
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 	}
