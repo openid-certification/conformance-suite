@@ -45,7 +45,9 @@ public class TestInfoApi {
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get information of all tests", notes = "Will return all tests if user is admin role, otherwise owner's tests will be returned")
-	@ApiResponse(code = 200, message = "Retrieved successfully")
+	@ApiResponses({
+		@ApiResponse(code = 200, message = "Retrieved successfully")
+	})
 	public ResponseEntity<List<Document>> getAllTests() {
 		List<Document> testInfo = null;
 		if (authenticationFacade.isAdmin()) {

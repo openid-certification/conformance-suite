@@ -46,8 +46,10 @@
 			// Begin Swagger UI call region
 			const ui = SwaggerUIBundle({
 				url: "/v2/api-docs",
+				validatorUrl : null,
 				dom_id: '#swagger-ui',
 				deepLinking: true,
+				defaultModelsExpandDepth: -1,
 				presets: [
 					SwaggerUIBundle.presets.apis,
 					SwaggerUIStandalonePreset
