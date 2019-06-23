@@ -991,6 +991,42 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	}
 
+	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
+		switch (testType) {
+
+			case PING:
+				pingCleanupAfterBackchannelRequestShouldHaveFailed();
+				break;
+
+			case POLL:
+				pollCleanupAfterBackchannelRequestShouldHaveFailed();
+				break;
+
+			default:
+				throw new RuntimeException("unknown testType");
+		}
+	}
+
+	protected void pollCleanupAfterBackchannelRequestShouldHaveFailed() {
+		// no cleanup necessary, just finish
+		fireTestFinished();
+	}
+
+	protected void pingCleanupAfterBackchannelRequestShouldHaveFailed() {
+		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
+		if (httpStatus != org.apache.http.HttpStatus.SC_OK) {
+			// error as expected, go on and complete test as normal
+			fireTestFinished();
+		} else {
+			// no error - we don't want to leave a authorization request in progress (as it would result in a ping
+			// notification arriving later, potentially when the user has started another test, which would be
+			// confusing - complete the process
+			callAutomatedEndpoint();
+
+			setStatus(Status.WAITING);
+		}
+	}
+
 	public void setupPingMTLS() {
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;

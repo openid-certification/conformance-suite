@@ -2,46 +2,9 @@ package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
-import org.apache.http.HttpStatus;
 
 // Send invalid request to backchannel authorisation endpoint and the response is invalid_request
 public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest extends AbstractFAPICIBA {
-
-	protected void cleanupAfterBackchannelRequestShouldHaveFailed() {
-		switch (testType) {
-
-			case PING:
-				pingCleanupAfterBackchannelRequestShouldHaveFailed();
-				break;
-
-			case POLL:
-				pollCleanupAfterBackchannelRequestShouldHaveFailed();
-				break;
-
-			default:
-				throw new RuntimeException("unknown testType");
-		}
-	}
-
-	protected void pollCleanupAfterBackchannelRequestShouldHaveFailed() {
-		// no cleanup necessary, just finish
-		fireTestFinished();
-	}
-
-	protected void pingCleanupAfterBackchannelRequestShouldHaveFailed() {
-		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
-		if (httpStatus != HttpStatus.SC_OK) {
-			// error as expected, go on and complete test as normal
-			fireTestFinished();
-		} else {
-			// no error - we don't want to leave a authorization request in progress (as it would result in a ping
-			// notification arriving later, potentially when the user has started another test, which would be
-			// confusing - complete the process
-			callAutomatedEndpoint();
-
-			setStatus(Status.WAITING);
-		}
-	}
 
 	@Override
 	protected void performAuthorizationFlow() {

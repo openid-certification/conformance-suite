@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
 	testName = "fapi-ciba-ping-backchannel-notification-endpoint-response-403",
-	displayName = "FAPI-CIBA: Ping mode (MTLS client authentication) - backchannel notificatione endpoint returns a HTTP 403 Forbidden response",
+	displayName = "FAPI-CIBA: Ping mode - backchannel notificatione endpoint returns a HTTP 403 Forbidden response",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 403 Forbidden and the authentication flow must still complete normally.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
