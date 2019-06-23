@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 @PublishTestModule(
 	testName = "fapi-ciba-multiple-call-to-token-endpoint",
 	displayName = "FAPI-CIBA: Call token endpoint multiple times in a short space of time",
-	summary = "This test should end with the token endpoint server showing an error message: authorization_pending or slow_down or 503 Retry later",
+	summary = "This test should end with the token endpoint server showing an error message: authorization_pending or slow_down or invalid_request or 503 Retry later",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",

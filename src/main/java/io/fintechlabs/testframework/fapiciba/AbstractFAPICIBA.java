@@ -71,6 +71,7 @@ import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificat
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
+import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
@@ -636,6 +637,16 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		eventLog.endBlock();
 	}
 
+	protected void verifyTokenEndpointResponseIsInvalidRequest() {
+		eventLog.startBlock(currentClientString() + "Verify token endpoint response is invalid_request");
+
+		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
+
+		callAndStopOnFailure(EnsureErrorTokenEndpointInvalidRequest.class);
+
+		eventLog.endBlock();
+	}
+
 	protected void checkStatusCode400AndValidateErrorFromTokenEndpointResponse() {
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, "OIDCC-3.1.3.4");
 		validateErrorFromTokenEndpointResponse();
@@ -907,7 +918,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected void multipleCallToTokenEndpointAndVerifyResponse(){
 		int attempts = 0;
 		while (attempts++ < 20) {
-			eventLog.startBlock(currentClientString() + "Calling token endpoint expecting one of errors of authorization_pending, slow_down, or 503 error");
+			eventLog.startBlock(currentClientString() + "Calling token endpoint expecting one of errors of authorization_pending, slow_down, invalid_request, or 503 error");
 			callTokenEndpointForCibaGrant();
 			eventLog.endBlock();
 
@@ -918,6 +929,11 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 				verifyTokenEndpointResponseIs503Error();
 				return;
 			} else {
+				String tokenEndpointError = env.getString("token_endpoint_response", "error");
+				if ("invalid_request".equals(tokenEndpointError)) {
+					verifyTokenEndpointResponseIsInvalidRequest();
+					return;
+				}
 				verifyTokenEndpointResponseIsPendingOrSlowDown();
 			}
 		}
