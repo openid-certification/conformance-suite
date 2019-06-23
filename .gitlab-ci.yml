@@ -33,6 +33,7 @@ variables:
   PRODUCTION_HOST: www
   STAGING_HOST: staging
   DEMO_HOST: demo
+  LM_JAVA_VERSION: 11
 
 stages:
   - build
@@ -41,8 +42,12 @@ stages:
   - staging
   - canary
   - production
-  - autotest
+  - test
   - cleanup
+
+include:
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/License-Management.gitlab-ci.yml
 
 build:
   stage: build
@@ -238,7 +243,7 @@ production:
     kubernetes: active
 
 .deployment_test: &deployment_test
-  stage: autotest
+  stage: test
   image: python:alpine
   script:
     - check_kube_domain
@@ -278,7 +283,7 @@ deployment_test_demo:
     kubernetes: active
 
 .deployment_test_review: &deployment_test_review
-  stage: autotest
+  stage: test
   image: python:alpine
   environment:
     name: review/$CI_COMMIT_REF_NAME
