@@ -445,7 +445,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-12");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-11");
 
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
@@ -477,7 +477,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
 		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-12");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-11");
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 

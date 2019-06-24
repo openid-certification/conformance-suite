@@ -19,7 +19,9 @@ public class ValidateJsonBoolean extends AbstractCondition {
 			}
 		} else {
 			if (parameterValue.isJsonPrimitive()) {
-				if (OIDFJSON.getBoolean(parameterValue) != requiredValue) {
+				if (!parameterValue.getAsJsonPrimitive().isBoolean()) {
+					errorMessage = environmentVariable + ": incorrect type, must be a boolean.";
+				} else if (OIDFJSON.getBoolean(parameterValue) != requiredValue) {
 					errorMessage = environmentVariable + " must be: " + requiredValue;
 				}
 			} else {

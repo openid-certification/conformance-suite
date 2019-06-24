@@ -45,7 +45,7 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
-			.skipIfElementMissing("server", "userinfo_endpoint")
+			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.onSkip(Condition.ConditionResult.INFO)
 			.requirement("FAPI-RW-8.6")
