@@ -84,7 +84,15 @@ public class FAPICIBAEnsureAuthorizationRequestWithPotentiallyBadBindingMessage 
 	}
 
 	@Override
-	protected void performValidateAuthorizationResponse() {
+	protected void performAuthorizationFlow() {
+
+		performPreAuthorizationSteps();
+
+		eventLog.startBlock(currentClientString() + "Call backchannel authentication endpoint");
+
+		createAuthorizationRequest();
+
+		performAuthorizationRequest();
 
 		JsonObject callbackParams = env.getObject("backchannel_authentication_endpoint_response");
 
@@ -97,7 +105,13 @@ public class FAPICIBAEnsureAuthorizationRequestWithPotentiallyBadBindingMessage 
 			fireTestFinished();
 
 		} else {
-			super.performValidateAuthorizationResponse();
+
+			performValidateAuthorizationResponse();
+
+			eventLog.endBlock();
+
+			performPostAuthorizationResponse();
+
 		}
 	}
 
