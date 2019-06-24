@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -13,6 +14,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
+
+	@Value("${fintechlabs.version}")
+	private String version;
 
 	@Bean
 	public Docket api() {
@@ -28,7 +32,7 @@ public class SwaggerConfig {
 		return new ApiInfoBuilder()
 			.title("OpenID Conformance suite Rest APIs")
 			.description("This page list all the rest APIs for OpenID Conformance suite.")
-			.version("3.0.6")
+			.version(version)
 			.build();
 	}
 
