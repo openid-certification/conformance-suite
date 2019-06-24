@@ -36,7 +36,7 @@ public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 
 		cond.evaluate(env);
 
-		Integer expectedRequestedExpiry = 30;
-		assertEquals(env.getInteger("authorization_endpoint_request", "requested_expiry"), expectedRequestedExpiry);
+		String expectedRequestedExpiry = "30";
+		assertEquals(env.getString("authorization_endpoint_request", "requested_expiry"), expectedRequestedExpiry);
 	}
 }

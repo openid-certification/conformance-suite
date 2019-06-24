@@ -5,10 +5,11 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
+import org.springframework.util.StringUtils;
 
 public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequest extends AbstractCondition {
 
-	protected abstract Integer getExpectedRequestedExpiry();
+	protected abstract String getExpectedRequestedExpiry();
 
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_request"} )
@@ -17,8 +18,8 @@ public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequest exte
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		Integer requestedExpiry = getExpectedRequestedExpiry();
-		if (requestedExpiry == null || requestedExpiry.intValue() == 0) {
+		String requestedExpiry = getExpectedRequestedExpiry();
+		if (StringUtils.isEmpty(requestedExpiry)) {
 			throw error("requested_expiry missing/empty");
 		}
 
