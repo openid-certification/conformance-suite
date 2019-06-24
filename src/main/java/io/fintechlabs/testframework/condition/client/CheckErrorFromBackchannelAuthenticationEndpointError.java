@@ -10,7 +10,7 @@ import java.util.List;
 
 public class CheckErrorFromBackchannelAuthenticationEndpointError extends AbstractCondition {
 
-	private static final List<String> EXPECTED_VALUES = ImmutableList.of("access_denied", "invalid_request");
+	private static final List<String> EXPECTED_VALUES = ImmutableList.of("access_denied", "invalid_request", "invalid_client");
 
 	@Override
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response")

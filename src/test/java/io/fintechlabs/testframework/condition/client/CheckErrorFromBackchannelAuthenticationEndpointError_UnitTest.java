@@ -43,16 +43,16 @@ public class CheckErrorFromBackchannelAuthenticationEndpointError_UnitTest {
 		cond.evaluate(env);
 	}
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseInvalidRequestObject() {
-		env.putObject("backchannel_authentication_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
+	@Test
+	public void testEvaluate_caseInvalidClient() {
+		env.putObject("backchannel_authentication_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
 		cond.evaluate(env);
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseInvalidClient() {
-		env.putObject("backchannel_authentication_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+	public void testEvaluate_caseInvalidRequestObject() {
+		env.putObject("backchannel_authentication_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
 		cond.evaluate(env);
 	}

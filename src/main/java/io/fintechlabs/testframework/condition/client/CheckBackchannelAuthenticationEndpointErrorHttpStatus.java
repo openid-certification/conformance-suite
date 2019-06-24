@@ -39,9 +39,16 @@ public class CheckBackchannelAuthenticationEndpointErrorHttpStatus extends Abstr
 
 				throw error("Invalid http status with error access_denied", args("actual", httpStatus, "expected", httpStatusExpected));
 			}
+		} else if (error.equals("invalid_client")) {
+
+			httpStatusExpected = HttpStatus.SC_UNAUTHORIZED;
+			if (httpStatus != HttpStatus.SC_UNAUTHORIZED) {
+
+				throw error("Invalid http status with error invalid_client", args("actual", httpStatus, "expected", httpStatusExpected));
+			}
 		} else {
 
-			throw error("http status was not matching 400 or 403", args("actual", httpStatus));
+			throw error("http status was not matching 400 or 401 or 403", args("actual", httpStatus));
 		}
 
 		logSuccess("Backchannel authentication endpoint http status code was " + httpStatusExpected);
