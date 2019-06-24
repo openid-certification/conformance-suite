@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJ
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.common.EnsureMinimumClientSecretEntropy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,6 +126,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectSer
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		callAndContinueOnFailure(EnsureMinimumClientSecretEntropy.class, ConditionResult.FAILURE, "RFC6819-5.1.4.2-2", "RFC6749-10.10");
 
 		exposeEnvString("client_id");
 
