@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class EnsureMinimumTokenLength extends AbstractCondition {
+public class EnsureMinimumAccessTokenLength extends AbstractCondition {
 
 	private final double requiredLength = 128;
 
