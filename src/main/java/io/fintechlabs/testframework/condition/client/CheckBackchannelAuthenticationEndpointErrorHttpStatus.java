@@ -48,7 +48,7 @@ public class CheckBackchannelAuthenticationEndpointErrorHttpStatus extends Abstr
 			}
 		} else {
 
-			throw error("http status was not matching 400 or 401 or 403", args("actual", httpStatus));
+			throw error("http status was not matching 400 or 403 or 401", args("actual", httpStatus));
 		}
 
 		logSuccess("Backchannel authentication endpoint http status code was " + httpStatusExpected);
