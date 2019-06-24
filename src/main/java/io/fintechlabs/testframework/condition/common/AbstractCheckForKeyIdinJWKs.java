@@ -8,13 +8,16 @@ public abstract class AbstractCheckForKeyIdinJWKs extends AbstractCondition {
 
 	protected Environment checkForKeyIdInJWKs(Environment env, String envJWKsKey) {
 		JsonElement keys = env.getElementFromObject(envJWKsKey, "keys");
-		if (keys == null || !keys.isJsonArray()) {
-			throw error("keys array not found in JWKs");
+		if (keys == null) {
+			throw error("keys entry not found in JWKs");
+		}
+		if (!keys.isJsonArray()) {
+			throw error("keys entry in JWKs is not an array", args("keys", keys));
 		}
 
 		for (JsonElement key : keys.getAsJsonArray()) {
 			if (!key.isJsonObject()) {
-				throw error("invalid key in JWKs", args("key", key));
+				throw error("invalid key in JWKs, not a JSON object", args("key", key));
 			}
 
 			if (!key.getAsJsonObject().has("kid")) {
