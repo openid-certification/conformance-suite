@@ -51,7 +51,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 
 public class FAPICIBA extends AbstractFAPICIBA {
-	protected int whichClient = 1;
 
 	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
@@ -93,10 +92,35 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
+	boolean isSecondClient() {
+		return env.isKeyMapped("client");
+	}
+
+	protected void switchToSecondClient() {
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("client_public_jwks", "client_public_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+	}
+
+	protected void unmapClient() {
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		env.unmapKey("client_public_jwks");
+		env.unmapKey("mutual_tls_authentication");
+	}
+
+	protected String currentClientString() {
+		if (isSecondClient()) {
+			return "Second client: ";
+		}
+		return "";
+	}
+
 	protected void performProfileAuthorizationEndpointSetup() {
 		super.performProfileAuthorizationEndpointSetup();
 
-		if ( whichClient == 2) {
+		if (isSecondClient()) {
 			callAndStopOnFailure(AddAcrValuesScaToAuthorizationEndpointRequest.class);
 		}
 
@@ -112,17 +136,6 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
 		callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-	}
-
-	protected void setupAndValidateConfigurationOfSecondClient() {
-		// Try the second client
-		whichClient = 2;
-
-		// get the second client's JWKs
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("client_public_jwks", "client_public_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 	}
 
 	protected void checkAccountResourceEndpointTLS() {
@@ -147,15 +160,8 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 	}
 
-	protected String currentClientString() {
-		if (whichClient == 2) {
-			return "Second client: ";
-		}
-		return "";
-	}
-
 	protected void modeSpecificAuthorizationEndpointRequest() {
-		if (testType == TestType.PING && whichClient == 2) {
+		if (testType == TestType.PING && isSecondClient()) {
 			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
 			callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
 		} else {
@@ -165,7 +171,7 @@ public class FAPICIBA extends AbstractFAPICIBA {
 
 	protected void performPostAuthorizationFlow(boolean finishTest) {
 
-		if (whichClient == 1) {
+		if (!isSecondClient()) {
 
 			checkAccountRequestEndpointTLS();
 
@@ -175,20 +181,18 @@ public class FAPICIBA extends AbstractFAPICIBA {
 
 			verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
 
-			setupAndValidateConfigurationOfSecondClient();
+			switchToSecondClient();
 
 			performAuthorizationFlow();
 
 		} else {
 
-			// call the token endpoint and complete the flow
+			// check access token works
 			requestProtectedResource();
 
 			// Switch back to client 1
-			eventLog.startBlock("Try Client1 Crypto Keys with Client2 token");
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			env.unmapKey("mutual_tls_authentication");
+			eventLog.startBlock("Use client1's TLS cert with client2's access token (which should fail)");
+			unmapClient();
 
 			// Try client 2's access token with client 1's keys
 			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
@@ -196,10 +200,7 @@ public class FAPICIBA extends AbstractFAPICIBA {
 			eventLog.endBlock();
 
 			eventLog.startBlock("Attempting reuse of client2's auth_req_id (which should fail)");
-			// Re-map to Client 2 keys
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+			switchToSecondClient();
 
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class,  "CIBA-11");
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
@@ -218,7 +219,7 @@ public class FAPICIBA extends AbstractFAPICIBA {
 	protected void performProfileIdTokenValidation() {
 		super.performProfileIdTokenValidation();
 
-		if ( whichClient == 2 ) {
+		if (isSecondClient()) {
 			callAndContinueOnFailure(FAPICIBAValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
 		}
 
@@ -227,7 +228,7 @@ public class FAPICIBA extends AbstractFAPICIBA {
 	protected void createAuthorizationRequest() {
 		super.createAuthorizationRequest();
 
-		if (whichClient == 2) {
+		if (isSecondClient()) {
 			// set a fairly standard requested expiry to verify server doesn't reject it
 			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
 		}
