@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.time.Instant;
 
-public class AddExpValueIsYearInFutureToRequestObject extends AbstractCondition {
+public class AddExpValueIs70MinutesInFutureToRequestObject extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "request_object_claims")
@@ -17,13 +17,13 @@ public class AddExpValueIsYearInFutureToRequestObject extends AbstractCondition 
 
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
-		Instant exp = Instant.now().plusSeconds(60 * 60 * 24 * 365);
+		Instant exp = Instant.now().plusSeconds(70 * 60);
 
 		requestObjectClaims.addProperty("exp", exp.getEpochSecond());
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		logSuccess("Added invalid exp value to request object which is a year in the future", args("request_object_claims", requestObjectClaims, "iat_is_one_year_in_the_future", exp));
+		logSuccess("Added invalid exp value to request object which is 70 minutes in the future", args("request_object_claims", requestObjectClaims, "iat_is_70_minutes_in_the_future", exp));
 
 		return env;
 

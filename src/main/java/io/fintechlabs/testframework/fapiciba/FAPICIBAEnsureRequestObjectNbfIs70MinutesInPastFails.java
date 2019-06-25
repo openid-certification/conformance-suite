@@ -1,13 +1,14 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddExpValueIsYearInFutureToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddNbfValueIs10MinutesInFutureToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddNbfValueIs70MinutesInPastToRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ensure-request-object-exp-is-year-in-future-fails",
-	displayName = "FAPI-CIBA: 'exp' value in request object is a year in the future, should return an error",
-	summary = "This test should return an error that the 'exp' value in request object from back channel authentication endpoint request is a year in the future",
+	testName = "fapi-ciba-ensure-request-object-nbf-is-70-minutes-in-past-fails",
+	displayName = "FAPI-CIBA: 'nbf' value in request object is 70 minutes in the past, should return an error",
+	summary = "This test should return an error that the 'nbf' value in request object from back channel authentication endpoint request is 70 minutes in the past",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -28,7 +29,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAEnsureRequestObjectExpIsYearInFutureFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAEnsureRequestObjectNbfIs70MinutesInPastFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
 	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
@@ -73,7 +74,7 @@ public class FAPICIBAEnsureRequestObjectExpIsYearInFutureFails extends AbstractF
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(AddExpValueIsYearInFutureToRequestObject.class, "CIBA-7.1.1");
+		callAndStopOnFailure(AddNbfValueIs70MinutesInPastToRequestObject.class, "CIBAProfile-5.2.2-9");
 	}
 
 }

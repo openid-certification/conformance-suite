@@ -1,13 +1,13 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddIatValueIsHourInFutureToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddNbfValueIs10MinutesInFutureToRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ensure-request-object-iat-is-hour-in-future-fails",
-	displayName = "FAPI-CIBA: 'iat' value in request object is 1 hour in the future, should return an error",
-	summary = "This test should return an error that the 'iat' value in request object from back channel authentication endpoint request is 1 hour in the future",
+	testName = "fapi-ciba-ensure-request-object-nbf-is-10-minutes-in-future-fails",
+	displayName = "FAPI-CIBA: 'nbf' value in request object is 10 minutes in the future, should return an error",
+	summary = "This test should return an error that the 'nbf' value in request object from back channel authentication endpoint request is 10 minutes in the future",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAEnsureRequestObjectIatIsHourInFutureFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAEnsureRequestObjectNbfIs10MinutesInFutureFails extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
 
 	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
@@ -73,8 +73,7 @@ public class FAPICIBAEnsureRequestObjectIatIsHourInFutureFails extends AbstractF
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-
-		callAndStopOnFailure(AddIatValueIsHourInFutureToRequestObject.class, "CIBA-7.1.1");
-
+		callAndStopOnFailure(AddNbfValueIs10MinutesInFutureToRequestObject.class, "CIBAProfile-5.2.2-9");
 	}
+
 }
