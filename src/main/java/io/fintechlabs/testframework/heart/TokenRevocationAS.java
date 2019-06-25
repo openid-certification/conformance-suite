@@ -91,8 +91,8 @@ public class TokenRevocationAS extends AbstractTestModule {
 		exposeEnvString("client_id");
 
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		expose("resourceUrl",env.getString("resoruce","resourceUrl"));
-		expose("resourceMethod",env.getString("resoruce","resourceMethod"));
+		expose("resourceUrl",env.getString("resource","resourceUrl"));
+		expose("resourceMethod",env.getString("resource","resourceMethod"));
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
