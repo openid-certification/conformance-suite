@@ -308,10 +308,6 @@
 			FAPI_UI.loadPlanTemplates() // Load the templates
 			.then(function() {
 				return FAPI_UI.getUserInfo() // Then get the current user info
-            }).then(function() {
-                // Redirect if login is required
-                if (!public && !FAPI_UI.currentUser)
-                    window.location.assign('/login.html')
 			}).then(function() {
 				return getPlan(planId, public); // Only once the user is loaded, then render the plan info
 			}).always(function() {
