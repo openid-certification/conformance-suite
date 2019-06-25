@@ -1,6 +1,8 @@
 package io.fintechlabs.testframework.security;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.RegisteredClient;
@@ -26,6 +28,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -202,7 +208,10 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/api/public/**", "/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html")
+					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/api/public/**")
+					.permitAll()
+				.and().authorizeRequests()
+					.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))
 					.permitAll()
 				.anyRequest()
 					.authenticated()
@@ -225,5 +234,15 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		}
 	}
 
+	private RequestMatcher publicRequestMatcher(String... patterns) {
+
+		return new AndRequestMatcher(
+				new OrRequestMatcher(
+						Arrays.asList(patterns)
+								.stream()
+								.map(AntPathRequestMatcher::new)
+								.collect(Collectors.toList())),
+				new PublicRequestMatcher());
+	}
 
 }
