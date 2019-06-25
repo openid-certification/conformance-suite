@@ -59,10 +59,4 @@ public class FAPICIBAPingNotificationEndpointReturns403 extends AbstractFAPICIBA
 		return new ResponseEntity<Object>("CIBA Notification Endpoint returns a HTTP 403 Forbidden response error, even though the token is valid.", HttpStatus.FORBIDDEN);
 	}
 
-	protected void performPostAuthorizationFlow() {
-		// just check access token, don't go on and try second client
-		requestProtectedResource();
-		fireTestFinished();
-	}
-
 }

@@ -59,10 +59,4 @@ public class FAPICIBAPingNotificationEndpointReturns401 extends AbstractFAPICIBA
 		return new ResponseEntity<Object>("CIBA Notification Endpoint returns a HTTP 401 Unauthorized response, even though the token is valid.", HttpStatus.UNAUTHORIZED);
 	}
 
-	protected void performPostAuthorizationFlow() {
-		// just check access token, don't go on and try second client
-		requestProtectedResource();
-		fireTestFinished();
-	}
-
 }

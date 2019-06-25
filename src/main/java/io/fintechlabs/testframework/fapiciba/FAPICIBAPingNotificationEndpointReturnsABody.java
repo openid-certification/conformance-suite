@@ -75,10 +75,4 @@ public class FAPICIBAPingNotificationEndpointReturnsABody extends AbstractFAPICI
 
 	}
 
-	protected void performPostAuthorizationFlow() {
-		// just check access token, don't go on and try second client
-		requestProtectedResource();
-		fireTestFinished();
-	}
-
 }

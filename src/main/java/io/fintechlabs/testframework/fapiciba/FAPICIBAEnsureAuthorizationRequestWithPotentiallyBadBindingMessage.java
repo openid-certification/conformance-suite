@@ -116,15 +116,9 @@ public class FAPICIBAEnsureAuthorizationRequestWithPotentiallyBadBindingMessage 
 	}
 
 	@Override
-	protected void performPostAuthorizationFlow() {
-
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
+	protected void performPostAuthorizationFlow(boolean finishTest) {
 
 		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
 
 		setStatus(Status.WAITING);
 
