@@ -23,15 +23,6 @@ public @interface PublishTestPlan {
 	/**
 	 * Get the ordered list of test modules that are part
 	 * of this plan.
-	 *
-	 * @deprecated use testModules() instead
-	 */
-	@Deprecated
-	String[] testModuleNames() default {};
-
-	/**
-	 * Get the ordered list of test modules that are part
-	 * of this plan.
 	 */
 	Class<? extends TestModule>[] testModules() default {};
 

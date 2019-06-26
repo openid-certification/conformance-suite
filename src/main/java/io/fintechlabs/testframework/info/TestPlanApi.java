@@ -246,8 +246,6 @@ public class TestPlanApi implements DataUtils {
 		public PublishTestPlan a;
 		public String[] testModuleNames;
 
-		// TODO: remove use of deprecated testModuleNames
-		@SuppressWarnings("deprecation")
 		public TestPlanHolder(Class<? extends TestPlan> c, PublishTestPlan a) {
 			this.c = c;
 			this.a = a;
@@ -256,10 +254,6 @@ public class TestPlanApi implements DataUtils {
 				this.testModuleNames = Arrays.stream(a.testModules())
 					.map((m) -> m.getDeclaredAnnotation(PublishTestModule.class).testName())
 					.toArray(String[]::new);
-			} else {
-				// TODO: remove use of deprecated testModuleNames; this falls back to the old path is the testModules
-				// annotation isn't present
-				this.testModuleNames = a.testModuleNames();
 			}
 		}
 
