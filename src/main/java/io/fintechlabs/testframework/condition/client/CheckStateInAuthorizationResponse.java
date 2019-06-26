@@ -35,7 +35,7 @@ public class CheckStateInAuthorizationResponse extends AbstractCondition {
 				return env;
 			} else if (Strings.isNullOrEmpty(actual) && !Strings.isNullOrEmpty(error) && error.equals("invalid_request_object")) {
 
-				logSuccess("State can not be returned when error is 'invalid_request_object'");
+				logSuccess("State is missing from response; this is permitted when the returned error is 'invalid_request_object' and the state was contained in the request object");
 
 				return env;
 			} else {
