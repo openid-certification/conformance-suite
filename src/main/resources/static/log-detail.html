@@ -168,7 +168,7 @@
 
 			return $.ajax({
 				type: 'GET',
-				url: (public ? '/api/public/log/' : '/api/log/') + encodeURIComponent(testId) + ( FAPI_UI.latestTestEntry > 0 ? '?since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
+				url: '/api/log/' + encodeURIComponent(testId) + '?public=' + public + ( FAPI_UI.latestTestEntry > 0 ? '&since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''),
 				data: {},
 				success: function(data) {
 
@@ -292,7 +292,7 @@
 			// this is the page header, fill it in with log details
 			return $.ajax({
 				type: 'GET',
-				url: (public ? '/api/public/info/' : '/api/info/') + encodeURIComponent(testId),
+				url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
 				data: {},
 				success: function(data) {
 
@@ -319,7 +319,7 @@
 
 	                    $('#downloadBtn').click(function(evt) {
 	                        evt.preventDefault();
-	                        window.open((public ? '/api/public/log/export/' : '/api/log/export/') + encodeURIComponent(testId));
+	                        window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
 	                    });
 
 	                    $('#uploadBtn').click(function(evt) {

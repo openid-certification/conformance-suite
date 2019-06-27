@@ -68,19 +68,40 @@ public class LogApi {
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get all test logs with paging", notes = "Return all test logs if user is admin, otherwise owner's test log will be returned")
+	@ApiOperation(value = "Get all test logs with paging", notes = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
-	public ResponseEntity<Object> getAllTests(PaginationRequest page) {
+	public ResponseEntity<Object> getAllTests(
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
+		PaginationRequest page) {
 
-		Criteria criteria = new Criteria();
+		Map response;
 
-		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		if (publicOnly) {
+			Criteria criteria = new Criteria();
+			criteria.and("publish").in("summary", "everything");
+
+			Field fields = new Field()
+				.include("_id")
+				.include("testId")
+				.include("testName")
+				.include("started")
+				.include("description")
+				.include("planId")
+				.include("status")
+				.include("result");
+
+			response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria, fields);
+		} else {
+			Criteria criteria = new Criteria();
+
+			if (!authenticationFacade.isAdmin()) {
+				criteria.and("owner").is(authenticationFacade.getPrincipal());
+			}
+
+			response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria);
 		}
-
-		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -93,8 +114,9 @@ public class LogApi {
 	})
 	public ResponseEntity<List<Document>> getLogResults(
 		@ApiParam(value = "Id of test") @PathVariable("id") String id,
-		@ApiParam(value = "Since when test created") @RequestParam(value = "since", required = false) Long since) {
-		List<Document> results = getTestResults(id, since);
+		@ApiParam(value = "Since when test created") @RequestParam(value = "since", required = false) Long since,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		List<Document> results = getTestResults(id, since, publicOnly);
 
 		return ResponseEntity.ok().body(results);
 	}
@@ -105,21 +127,9 @@ public class LogApi {
 		@ApiResponse(code = 200, message = "Exported successfully"),
 		@ApiResponse(code = 404, message = "Couldn't find given test Id")
 	})
-	public ResponseEntity<StreamingResponseBody> export(@ApiParam(value = "Id of test") @PathVariable("id") String id) {
-		return export(id, false);
-	}
-
-	@GetMapping(value = "/public/log/export/{id}", produces = "application/x-gtar")
-	@ApiOperation(value = "Export public test logs by test id")
-	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Exported successfully"),
-		@ApiResponse(code = 404, message = "Couldn't find given test Id")
-	})
-	public ResponseEntity<StreamingResponseBody> exportPublic(@ApiParam(value = "Id of test") @PathVariable("id") String id) {
-		return export(id, true);
-	}
-
-	private ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id, boolean publicOnly) {
+	public ResponseEntity<StreamingResponseBody> export(
+		@ApiParam(value = "Id of test") @PathVariable("id") String id,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
 		Document testInfo = null;
@@ -204,52 +214,6 @@ public class LogApi {
 		};
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
-	}
-
-	@GetMapping(value = "/public/log")
-	@ApiOperation(value = "Get all published tests")
-	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully")
-	})
-	public ResponseEntity<Object> getAllPublicTests(PaginationRequest page) {
-
-		Criteria criteria = new Criteria();
-		criteria.and("publish").in("summary", "everything");
-
-		Field fields = new Field()
-			.include("_id")
-			.include("testId")
-			.include("testName")
-			.include("started")
-			.include("description")
-			.include("planId")
-			.include("status")
-			.include("result");
-
-		Map response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria, fields);
-
-		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
-
-	@GetMapping(value = "/public/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get test results of given test id")
-	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully")
-	})
-	public ResponseEntity<List<Document>> getPublicLogResults(
-		@ApiParam(value = "Id of test") @PathVariable("id") String id,
-		@ApiParam(value = "Since when test created") @RequestParam(value = "since", required = false) Long since) {
-		List<Document> results = getPublicTestResults(id, since);
-
-		return ResponseEntity.ok().body(results);
-	}
-
-	private List<Document> getTestResults(String id, Long since) {
-		return getTestResults(id, since, false);
-	}
-
-	private List<Document> getPublicTestResults(String id, Long since) {
-		return getTestResults(id, since, true);
 	}
 
 	private List<Document> getTestResults(String id, Long since, boolean isPublic) {

@@ -113,9 +113,13 @@ public class TestPlanApi implements DataUtils {
 	@ApiResponses({
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
-	public ResponseEntity<Object> getTestPlansForCurrentUser(PaginationRequest page) {
+	public ResponseEntity<Object> getTestPlansForCurrentUser(
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
+		PaginationRequest page) {
 
-		Map response = planService.getPaginatedPlansForCurrentUser(page);
+		Map response = publicOnly
+				? planService.getPaginatedPublicPlans(page)
+				: planService.getPaginatedPlansForCurrentUser(page);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -126,9 +130,13 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(code = 200, message = "Retrieved successfully"),
 		@ApiResponse(code = 404, message = "Couldn't find test plan for provided plan Id")
 	})
-	public ResponseEntity<Object> getTestPlan(@ApiParam(value = "Id of test plan") @PathVariable("id") String id) {
+	public ResponseEntity<Object> getTestPlan(
+		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
-		Map testPlan = planService.getTestPlan(id);
+		Map testPlan = publicOnly
+				? planService.getPublicPlan(id)
+				: planService.getTestPlan(id);
 
 		if (testPlan != null) {
 			return new ResponseEntity<>(testPlan, HttpStatus.OK);
@@ -272,38 +280,6 @@ public class TestPlanApi implements DataUtils {
 				return this.testModuleNames;
 			}
 		}
-	}
-
-
-	@GetMapping(value = "/public/plan")
-	@ApiOperation(value = "Get a list of test plan that published)")
-	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully")
-	})
-	public ResponseEntity<Object> getPublicPlans(PaginationRequest page) {
-
-		Map response = planService.getPaginatedPublicPlans(page);
-
-		return new ResponseEntity<>(response, HttpStatus.OK);
-
-	}
-
-	@GetMapping(value = "/public/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get information of published test plan by plan id")
-	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 404, message = "Could find test plan for provided plan Id")
-	})
-	public ResponseEntity<Object> getPublicPlan(@ApiParam(value = "Id of plan") @PathVariable("id") String id) {
-
-		Map testPlan = planService.getPublicPlan(id);
-
-		if (testPlan != null) {
-			return new ResponseEntity<>(testPlan, HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-
 	}
 
 }
