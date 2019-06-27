@@ -14,10 +14,10 @@ public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 		double entropy = bitsPerCharacter * (double) s.length();
 
 		if (entropy > requiredEntropy) {
-			logSuccess("Calculated entropy", args("expected", requiredEntropy, "actual", entropy));
+			logSuccess("Calculated shannon entropy seems sufficient", args("expected", requiredEntropy, "actual", entropy));
 			return env;
 		} else {
-			throw error("Minimum entropy not met", args("expected", requiredEntropy, "actual", entropy));
+			throw error("Calculated shannon entropy does not seem to meet minimum required entropy", args("expected", requiredEntropy, "actual", entropy));
 		}
 
 	}

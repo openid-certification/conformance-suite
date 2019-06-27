@@ -25,7 +25,7 @@ import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
@@ -184,7 +184,7 @@ public class SampleTestModule extends AbstractRedirectServerTestModule {
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-		callAndStopOnFailure(EnsureMinimumTokenEntropy.class, "FAPI-R-5.2.2-16");
+		callAndStopOnFailure(EnsureMinimumAccessTokenEntropy.class, "FAPI-R-5.2.2-16");
 
 
 		fireTestFinished();
