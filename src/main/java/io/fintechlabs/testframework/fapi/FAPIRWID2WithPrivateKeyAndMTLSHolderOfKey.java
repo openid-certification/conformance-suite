@@ -46,4 +46,15 @@ public class FAPIRWID2WithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
+	@Override
+	protected void generateNewClientAssertion() {
+
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+
+	}
+
 }
