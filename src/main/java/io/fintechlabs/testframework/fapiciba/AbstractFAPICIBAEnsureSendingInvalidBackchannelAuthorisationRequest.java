@@ -30,10 +30,4 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 		//Not called in this test
 	}
 
-	protected void performPostAuthorizationFlow() {
-		// we shouldn't get here anyway, but if we do, just check access token, don't go on and try second client
-		requestProtectedResource();
-		fireTestFinished();
-	}
-
 }

@@ -7,7 +7,6 @@ import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
 import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
 import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
-import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCIBANotificationEndpointToDynamicRegistrationRequest;
@@ -28,7 +27,6 @@ import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodPrivateKeyJwtToDynamicRegistrationRequest;
@@ -36,7 +34,6 @@ import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodS
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
@@ -44,7 +41,6 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnF
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus400;
-import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -66,11 +62,9 @@ import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthentica
 import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpointUri;
 import io.fintechlabs.testframework.condition.client.CreateDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CreateEmptyAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
@@ -93,7 +87,6 @@ import io.fintechlabs.testframework.condition.client.ExtractRtHash;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenACRClaims;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateRtHash;
 import io.fintechlabs.testframework.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
@@ -105,8 +98,6 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -129,11 +120,7 @@ import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHea
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.common.DisallowTLS10;
-import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
-import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsMTLS;
 import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsPrivateKeyJwt;
@@ -158,7 +145,6 @@ import javax.servlet.http.HttpSession;
 public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractFAPICIBA.class);
-	protected int whichClient;
 	protected enum TestType {
 		PING,
 		POLL
@@ -305,8 +291,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 
-		whichClient = 1;
-
 		// Set up the client configuration
 		if (env.getElementFromObject("config", "client.client_id") != null) {
 			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
@@ -393,9 +377,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	/** Return which client is in use, for use in block identifiers */
 	protected String currentClientString() {
-		if (whichClient == 2) {
-			return "Second client: ";
-		}
 		return "";
 	}
 
@@ -409,11 +390,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		// acr_values
 		// binding_message
 		// user_code
-
-		if (whichClient == 2) {
-			// set a fairly standard requested expiry to verify server doesn't reject it
-			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
-		}
 
 		modeSpecificAuthorizationEndpointRequest();
 
@@ -588,11 +564,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected void performProfileAuthorizationEndpointSetup() {
 		if (additionalProfileAuthorizationEndpointSetupSteps != null)
 			call(sequence(additionalProfileAuthorizationEndpointSetupSteps));
-
-		if ( whichClient == 2) {
-			callAndStopOnFailure(AddAcrValuesScaToAuthorizationEndpointRequest.class);
-		}
-
 	}
 
 	protected void callTokenEndpointForCibaGrant() {
@@ -717,106 +688,17 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		performPostAuthorizationFlow();
+		performPostAuthorizationFlow(true);
 	}
 
-	protected void performPostAuthorizationFlow() {
+	protected void performPostAuthorizationFlow(boolean finishTest) {
 
-		if (whichClient == 1) {
+		requestProtectedResource();
 
-			checkAccountRequestEndpointTLS();
-
-			checkAccountResourceEndpointTLS();
-
-			requestProtectedResource();
-
-			verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
-
-			setupAndValidateConfigurationOfSecondClient();
-
-			performAuthorizationFlow();
-
-		} else {
-
-			// call the token endpoint and complete the flow
-			requestProtectedResource();
-
-			// Switch back to client 1
-			eventLog.startBlock("Try Client1 Crypto Keys with Client2 token");
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			env.unmapKey("mutual_tls_authentication");
-
-			// Try client 2's access token with client 1's keys
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
-
-			eventLog.endBlock();
-
-			eventLog.startBlock("Attempting reuse of client2's auth_req_id (which should fail)");
-			// Re-map to Client 2 keys
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class,  "CIBA-11");
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "CIBA-11");
-
-			eventLog.endBlock();
-
+		if (finishTest) {
 			fireTestFinished();
 		}
 	}
-
-	protected void setupAndValidateConfigurationOfSecondClient() {
-		// Try the second client
-		whichClient = 2;
-
-		// get the second client's JWKs
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("client_public_jwks", "client_public_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-	}
-
-	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-	}
-
-	protected void checkAccountResourceEndpointTLS() {
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkAccountRequestEndpointTLS() {
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		checkEndpointTLS();
-		eventLog.endBlock();
-	}
-
-	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-	}
-
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -847,11 +729,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected void performProfileIdTokenValidation() {
 		if (additionalProfileIdTokenValidationSteps != null)
 			call(sequence(additionalProfileIdTokenValidationSteps));
-
-		if ( whichClient == 2 ) {
-			callAndContinueOnFailure(FAPICIBAValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
-		}
-
 	}
 
 	protected void callAutomatedEndpoint() {
@@ -863,7 +740,6 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
-
 
 		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
@@ -975,12 +851,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		switch (testType) {
 			case PING:
-				if ( whichClient == 2 ) {
-					callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
-				} else {
-					callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
-				}
-
+				callAndStopOnFailure(CreateRandomClientNotificationToken.class, "CIBA-7.1");
 				callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
 				break;
 			case POLL:
