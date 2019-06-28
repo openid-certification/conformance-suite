@@ -29,6 +29,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -68,9 +69,33 @@ public class TestInfoApi {
 		@ApiResponse(code = 200, message = "Retrieved successfully"),
 		@ApiResponse(code = 404, message = "Couldn't find test information for provided testId")
 	})
-	public ResponseEntity<Object> getTestInfo(@ApiParam(value = "Id of test") @PathVariable("id") String id) {
+	public ResponseEntity<Object> getTestInfo(
+		@ApiParam(value = "Id of test") @PathVariable("id") String id,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+
 		Document testInfo = null;
-		if (authenticationFacade.isAdmin()) {
+		if (publicOnly) {
+			Query query = new Query();
+			query.fields()
+				.include("_id")
+				.include("testId")
+				.include("testName")
+				.include("started")
+				.include("description")
+				.include("alias")
+				.include("owner")
+				.include("planId")
+				.include("status")
+				.include("version")
+				.include("summary")
+				.include("publish")
+				.include("result");
+
+			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION)
+					.find(new Document("_id", id))
+					.projection(query.getFieldsObject())
+					.first();
+		} else if (authenticationFacade.isAdmin()) {
 			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id)).first();
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
@@ -111,43 +136,6 @@ public class TestInfoApi {
 		map.put("publish", publish);
 
 		return new ResponseEntity<>(map, HttpStatus.OK);
-	}
-
-	@GetMapping(value = "/public/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get published test information by test id")
-	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 404, message = "Couldn't find test information for provided testId")
-	})
-	public ResponseEntity<Object> getPublicTestInfo(@ApiParam(value = "Id of test") @PathVariable("id") String id) {
-
-		Query query = new Query();
-		query.fields()
-			.include("_id")
-			.include("testId")
-			.include("testName")
-			.include("started")
-			.include("description")
-			.include("alias")
-			.include("owner")
-			.include("planId")
-			.include("status")
-			.include("version")
-			.include("summary")
-			.include("publish")
-			.include("result");
-
-		Document testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION)
-				.find(new Document("_id", id))
-				.projection(query.getFieldsObject())
-				.first();
-
-		if (testInfo == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else {
-			return new ResponseEntity<>(testInfo, HttpStatus.OK);
-		}
-
 	}
 
 }

@@ -162,7 +162,7 @@
 	   function getPlan(planId, public) {
 		   return $.ajax({
 			   type: 'GET',
-			   url: (public ? '/api/public/plan/' : '/api/plan/') + encodeURIComponent(planId),
+			   url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
 			   data: {},
 			   success: function(data) {
 				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public }));
@@ -201,7 +201,7 @@
 						  // wire up the download button
                           $('.downloadBtn', _self).click(function(evt) {
                               evt.preventDefault();
-                              window.open((public ? '/api/public/log/export/' : '/api/log/export/') + encodeURIComponent(testId));
+                              window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
                           });
                           $('.downloadBtn', _self).show();
                           // show the view button
@@ -210,7 +210,7 @@
                           console.log('Fetching |' + testId + '|');
 	                      $.ajax({
 	                          type: 'GET',
-	                          url: (public ? '/api/public/info/' : '/api/info/') + encodeURIComponent(testId),
+	                          url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
 	                          data: {},
 	                          success: function(data) {
 	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));

@@ -168,7 +168,7 @@
 			return $('#logsListing').DataTable({
 				serverSide: true,
 				ajax: {
-					url: public ? '/api/public/log' : '/api/log',
+					url: '/api/log' + (public ? '?public=true' : ''),
 					cache: true,
 					data: function(data) {
 						// Translate query parameters into a simpler schema

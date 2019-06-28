@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.security;
 
 import javax.servlet.Filter;
+import javax.ws.rs.HttpMethod;
 
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
@@ -21,6 +22,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -56,6 +58,10 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 			.and()
 				.csrf().disable()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
+			.and()
+				.authorizeRequests()
+					.requestMatchers(getPublicMatcher())
+					.permitAll()
 			.and()
 				.authorizeRequests()
 					.requestMatchers(getMatcher())
@@ -97,6 +103,18 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 			new AntPathRequestMatcher("/api/token/**"),
 			new AntPathRequestMatcher("/api/lastconfig")
 			);
+	}
+
+	private RequestMatcher getPublicMatcher() {
+		return new AndRequestMatcher(
+			new OrRequestMatcher(
+				new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET.toString()),
+				new AntPathRequestMatcher("/api/log", HttpMethod.GET.toString()),
+				new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET.toString()),
+				new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET.toString()),
+				new AntPathRequestMatcher("/api/plan", HttpMethod.GET.toString()),
+				new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET.toString())),
+			new PublicRequestMatcher());
 	}
 
 	/**

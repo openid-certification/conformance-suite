@@ -9,6 +9,8 @@ public interface AuthenticationFacade {
 
 	boolean isAdmin();
 
+	boolean isUser();
+
 	ImmutableMap<String, String> getPrincipal();
 
 	String getDisplayName();

@@ -6,6 +6,7 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
@@ -66,6 +67,14 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		return null;
 	}
 
+	private boolean hasAuthority(GrantedAuthority authority) {
+		Authentication a = getAuthentication();
+		if (a != null) {
+			return a.getAuthorities().contains(authority);
+		}
+		return false;
+	}
+
 	/**
 	 * Check to see if the current logged in user has the ROLE_ADMIN authority defined in
 	 * GoogleHostedDomainAdminAuthoritiesMapper
@@ -76,11 +85,12 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	 */
 	@Override
 	public boolean isAdmin() {
-		Authentication a = getAuthentication();
-		if (a != null) {
-			return a.getAuthorities().contains(GoogleHostedDomainAdminAuthoritiesMapper.ROLE_ADMIN);
-		}
-		return false;
+		return hasAuthority(GoogleHostedDomainAdminAuthoritiesMapper.ROLE_ADMIN);
+	}
+
+	@Override
+	public boolean isUser() {
+		return hasAuthority(GoogleHostedDomainAdminAuthoritiesMapper.ROLE_USER);
 	}
 
 	@Override
