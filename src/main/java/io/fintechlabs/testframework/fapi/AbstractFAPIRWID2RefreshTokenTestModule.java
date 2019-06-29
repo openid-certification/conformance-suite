@@ -4,13 +4,16 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
+import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
+import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
@@ -18,10 +21,12 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenValuesAreDifferent;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
+import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -35,6 +40,7 @@ import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderFor
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
@@ -73,6 +79,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		if(env.getString("refresh_token") == null) {
 			fireTestFinished();
 		}
+		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		refreshTokenRequest();
 		//compare only when refresh response contains an id_token
 		if(addIdTokenClaimsToEnv("second_id_token_claims")) {
@@ -91,8 +98,10 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 	protected void refreshTokenRequest() {
 		eventLog.startBlock(currentClientString() + "Refresh Token Request");
-		env.putString("scope", env.getString("client", "scope"));
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
+		if (whichClient == 1) {
+			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
+		}
 
 		addClientAuthenticationToTokenEndpointRequest();
 
@@ -102,8 +111,15 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		callAndContinueOnFailure(EnsureMinimumTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
+
+		callAndContinueOnFailure(CheckTokenTypeIsBearer.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.2-1");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 		callAndContinueOnFailure(EnsureAccessTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.12");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+
+		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
 
 		String secondAccessToken = env.getString("token_endpoint_response", "access_token");
 		env.putString("second_access_token", secondAccessToken);
@@ -120,8 +136,10 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 	}
 
 	protected void refreshTokenRequestExpectingError() {
-		env.putString("scope", env.getString("client", "scope"));
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
+		if (whichClient == 1) {
+			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
+		}
 
 		addClientAuthenticationToTokenEndpointRequest();
 

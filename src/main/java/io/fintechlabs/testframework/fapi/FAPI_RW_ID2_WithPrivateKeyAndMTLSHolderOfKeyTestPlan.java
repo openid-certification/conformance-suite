@@ -45,9 +45,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		// Private key specific tests
 		FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey.class,
 		FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
-		
+
 		//Refresh token tests
-		FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey.class		
+		FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey.class
 	}
 )
 public class FAPI_RW_ID2_WithPrivateKeyAndMTLSHolderOfKeyTestPlan implements TestPlan {
