@@ -402,10 +402,13 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			eventLog.endBlock();
 
 			eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
+
 			// Re-map to Client 2 keys
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+
+			generateNewClientAssertion();
 
 			// Check access_token still works
 			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
@@ -425,6 +428,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			fireTestFinished();
 		}
+	}
+
+	protected void generateNewClientAssertion() {
+		// Generate a new client_assertion to test client authentication failure (400 invalid_grant) due to re-use of the authorization code
+		// Only use for private_key_jwt
 	}
 
 	protected abstract void createAuthorizationCodeRequest();

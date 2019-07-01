@@ -42,4 +42,15 @@ public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithPrivate
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
+	@Override
+	protected void generateNewClientAssertion() {
+
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+
+		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
+
+		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+
+	}
+
 }
