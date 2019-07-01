@@ -14,7 +14,7 @@ import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResou
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
@@ -50,6 +50,7 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
@@ -103,6 +104,7 @@ public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class); // FIXME: this is OB-specific
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		setStatus(Status.CONFIGURED);
@@ -240,7 +242,7 @@ public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-R-6.2.1-11");
 

@@ -1,27 +1,7 @@
 package io.fintechlabs.testframework.condition.client;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Collections;
-
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
@@ -29,65 +9,24 @@ import io.fintechlabs.testframework.testmodule.Environment;
 /**
  * This is to call a generic resource server endpoint with a Bearer Token.
  */
-public class CallProtectedResourceWithBearerToken extends AbstractCondition {
+public class CallProtectedResourceWithBearerToken extends AbstractCallProtectedResource {
 
 	@Override
-	@PreEnvironment(required = { "access_token", "resource" })
+	@PreEnvironment(required = { "access_token", "resource" }, strings = "protected_resource_url")
 	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString("access_token", "value");
-		if (Strings.isNullOrEmpty(accessToken)) {
-			throw error("Access token not found");
-		}
+		return callProtectedResource(env);
+	}
 
-		String tokenType = env.getString("access_token", "type");
-		if (Strings.isNullOrEmpty(tokenType)) {
-			throw error("Token type not found");
-		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
-			throw error("Access token is not a bearer token", args("token_type", tokenType));
-		}
+	@Override
+	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders) {
 
-		String resourceUri = env.getString("resource", "resourceUrl");
+		env.putObject("resource_endpoint_response_code", responseCode);
+		env.putString("resource_endpoint_response", responseBody);
+		env.putObject("resource_endpoint_response_headers", responseHeaders);
 
-		if(Strings.isNullOrEmpty(resourceUri)){
-			throw error("Missing Resource URL");
-		}
-
-		HttpMethod resourceMethod = HttpMethod.GET;
-		String configuredMethod = env.getString("resource","resourceMethod");
-		if (!Strings.isNullOrEmpty(configuredMethod)) {
-			resourceMethod = HttpMethod.valueOf(configuredMethod);
-		}
-
-		try {
-			RestTemplate restTemplate = createRestTemplate(env);
-
-			HttpHeaders headers = new HttpHeaders();
-
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
-			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
-
-			HttpEntity<?> request = new HttpEntity<>(headers);
-
-			ResponseEntity<String> response = restTemplate.exchange(resourceUri, resourceMethod, request, String.class);
-			JsonObject responseCode = new JsonObject();
-			responseCode.addProperty("code", response.getStatusCodeValue());
-			String responseBody = response.getBody();
-			JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
-
-			env.putObject("resource_endpoint_response_code", responseCode);
-			env.putString("resource_endpoint_response", responseBody);
-			env.putObject("resource_endpoint_response_headers", responseHeaders);
-
-			logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
-			return env;
-		}catch (RestClientResponseException e) {
-			throw error("Error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
-		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			throw error("Error creating HTTP client", e);
-		}
-
+		logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
+		return env;
 	}
 }

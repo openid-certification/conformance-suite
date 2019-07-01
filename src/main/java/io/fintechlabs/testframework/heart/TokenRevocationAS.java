@@ -21,6 +21,7 @@ import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
@@ -93,6 +94,7 @@ public class TokenRevocationAS extends AbstractTestModule {
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		expose("resourceUrl",env.getString("resource","resourceUrl"));
 		expose("resourceMethod",env.getString("resource","resourceMethod"));
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

@@ -34,10 +34,10 @@ import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodP
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -99,6 +99,7 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.condition.client.UnregisterDynamicallyRegisteredClient;
@@ -255,6 +256,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class); // FIXME: this is OB-specific
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
@@ -786,7 +788,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
