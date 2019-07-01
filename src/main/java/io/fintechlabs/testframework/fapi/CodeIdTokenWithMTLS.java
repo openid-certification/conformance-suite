@@ -241,6 +241,9 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
+		// code id_token, so response should be in the hash
+		env.mapKey("authorization_endpoint_response", "callback_params");
+
 		if (env.isKeyMapped("client")) {
 			// we're doing the second client
 			handleSecondClientAuthorizationResult();

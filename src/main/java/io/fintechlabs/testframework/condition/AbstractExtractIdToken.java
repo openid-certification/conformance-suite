@@ -16,7 +16,7 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 
 		JsonElement idTokenElement = env.getElementFromObject(key, "id_token");
 		if (idTokenElement == null || !idTokenElement.isJsonPrimitive()) {
-			throw error("Couldn't find an ID Token in response");
+			throw error("Couldn't find an ID Token in "+key);
 		}
 
 		String idTokenString = env.getString(key, "id_token");
@@ -36,12 +36,12 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 			// save the parsed ID token
 			env.putObject("id_token", o);
 
-			logSuccess("Found and parsed the ID Token", o);
+			logSuccess("Found and parsed the ID Token from "+key, o);
 
 			return env;
 
 		} catch (ParseException e) {
-			throw error("Couldn't parse JWT", e, args("id_token_string", idTokenString));
+			throw error("Couldn't parse id_token from "+key+" as a JWT", e, args("id_token_string", idTokenString));
 		}
 
 	}
