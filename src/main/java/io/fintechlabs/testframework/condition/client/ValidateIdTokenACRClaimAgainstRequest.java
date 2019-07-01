@@ -14,6 +14,16 @@ public class ValidateIdTokenACRClaimAgainstRequest extends AbstractCondition {
 	@PreEnvironment(required = { "id_token",  "authorization_endpoint_request" })
 	public Environment evaluate(Environment env) {
 
+		// Read what the server has sent us
+		JsonElement idTokenAcrClaim = env.getElementFromObject("id_token", "claims.acr");
+
+		// Do validation; regardless of what we requested if an acr is returned it must be a string
+		if (idTokenAcrClaim != null) {
+			if (!idTokenAcrClaim.isJsonPrimitive() || !idTokenAcrClaim.getAsJsonPrimitive().isString()) {
+				throw error("acr value in id_token must be a string", args("id_token", env.getObject("id_token")));
+			}
+		}
+
 		JsonElement requestedAcrValue = env.getElementFromObject("authorization_endpoint_request", "claims.id_token.acr.value");
 		JsonElement requestedAcrValues = env.getElementFromObject("authorization_endpoint_request", "claims.id_token.acr.values");
 		ArrayList<String> requestedValues = new ArrayList<String>();
@@ -25,16 +35,15 @@ public class ValidateIdTokenACRClaimAgainstRequest extends AbstractCondition {
 		} else if (requestedAcrValue != null) {
 			requestedValues.add(OIDFJSON.getString(requestedAcrValue));
 		} else {
-			logSuccess("Nothing to check; no acr claim in request object");
+			logSuccess("Nothing to check; the conformance suite did not request an acr claim in request object");
 			return env;
 		}
 
-		// Read what the server has sent us
-		JsonElement idTokenAcrClaim = env.getElementFromObject("id_token", "claims.acr");
-		if (idTokenAcrClaim == null || !idTokenAcrClaim.isJsonPrimitive()) {
-			throw error("Missing or invalid acr value in id_token",
+		if (idTokenAcrClaim == null) {
+			throw error("One or more acr values were requested as an 'essential: true' claim so, as the authentication succeeded, the acr used MUST be returned in the id_token",
 				args("id_token", env.getObject("id_token"), "expected", requestedValues));
 		}
+
 		String idTokenValue = OIDFJSON.getString(idTokenAcrClaim);
 
 		for (String singleAcrValue : requestedValues) {
