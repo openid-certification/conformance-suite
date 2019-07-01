@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.time.Instant;
 
-public class AddIatValueIsWeekInPastToRequestObject extends AbstractCondition {
+public class AddNbfValueIs70MinutesInPastToRequestObject extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "request_object_claims")
@@ -17,13 +17,13 @@ public class AddIatValueIsWeekInPastToRequestObject extends AbstractCondition {
 
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
-		Instant iat = Instant.now().minusSeconds(60 * 60 * 24 * 7);
+		Instant nbf = Instant.now().minusSeconds(70 * 60);
 
-		requestObjectClaims.addProperty("iat", iat.getEpochSecond());
+		requestObjectClaims.addProperty("nbf", nbf.getEpochSecond());
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		logSuccess("Added iat value to request object which is a week in the past", args("request_object_claims", requestObjectClaims, "iat_is_week_in_the_past", iat));
+		logSuccess("Added invalid nbf value to request object which is 70 minutes in the past", args("request_object_claims", requestObjectClaims, "nbf_is_70_minutes_in_the_past", nbf));
 
 		return env;
 

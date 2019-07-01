@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 import java.time.Instant;
 
-public class AddIatValueIsHourInFutureToRequestObject extends AbstractCondition {
+public class AddNbfValueIs10MinutesInFutureToRequestObject extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "request_object_claims")
@@ -17,13 +17,13 @@ public class AddIatValueIsHourInFutureToRequestObject extends AbstractCondition 
 
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
-		Instant iat = Instant.now().plusSeconds(60 * 60);
+		Instant nbf = Instant.now().plusSeconds(10 * 60);
 
-		requestObjectClaims.addProperty("iat", iat.getEpochSecond());
+		requestObjectClaims.addProperty("nbf", nbf.getEpochSecond());
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		logSuccess("Added invalid iat value to request object which is 1 hour in the future", args("request_object_claims", requestObjectClaims, "iat_is_hour_in_the_future", iat));
+		logSuccess("Added invalid nbf value to request object which is 10 minutes in the future", args("request_object_claims", requestObjectClaims, "nbf_is_10_minutes_in_the_future", nbf));
 
 		return env;
 

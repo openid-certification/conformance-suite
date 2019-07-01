@@ -16,7 +16,7 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AddExpValueIsYearInFutureToRequestObject_UnitTest {
+public class AddNbfValueIs70MinutesInPastToRequestObject_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -24,16 +24,16 @@ public class AddExpValueIsYearInFutureToRequestObject_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddExpValueIsYearInFutureToRequestObject cond;
+	private AddNbfValueIs70MinutesInPastToRequestObject cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddExpValueIsYearInFutureToRequestObject();
+		cond = new AddNbfValueIs70MinutesInPastToRequestObject();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test
-	public void testEvaluate_presentExpValue() {
+	public void testEvaluate_presentNbfValue() {
 
 		JsonObject requestObjectClaims = new JsonObject();
 
@@ -41,14 +41,14 @@ public class AddExpValueIsYearInFutureToRequestObject_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.getObject("request_object_claims").has("exp")).isTrue();
+		assertThat(env.getObject("request_object_claims").has("nbf")).isTrue();
 
 	}
 
 	@Test
-	public void testEvaluate_expValueIsOneYearInTheFuture() {
+	public void testEvaluate_nbfValueIs70MinutesInThePast() {
 
-		long expExpect = 60 * 60 * 24 * 365;
+		long nbfExpect = 70 * 60;
 
 		JsonObject requestObjectClaims = new JsonObject();
 
@@ -56,7 +56,7 @@ public class AddExpValueIsYearInFutureToRequestObject_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.getLong("request_object_claims", "exp") - Instant.now().getEpochSecond()).isEqualTo(expExpect);
+		assertThat(Instant.now().getEpochSecond() - env.getLong("request_object_claims", "nbf")).isEqualTo(nbfExpect);
 
 	}
 

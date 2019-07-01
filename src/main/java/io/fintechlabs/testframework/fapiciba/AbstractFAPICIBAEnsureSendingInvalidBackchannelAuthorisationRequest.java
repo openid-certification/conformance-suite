@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
 
@@ -30,4 +31,10 @@ public abstract class AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisati
 		//Not called in this test
 	}
 
+	@Override
+	protected void processNotificationCallback(JsonObject requestParts) {
+		// we've already done the testing; we just approved the authentication so that we don't leave an
+		// in-progress authentication lying around that would sometime later send an 'expired' ping
+		fireTestFinished();
+	}
 }

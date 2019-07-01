@@ -16,7 +16,7 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AddIatValueIsWeekInPastToRequestObject_UnitTest {
+public class AddExpValueIs70MinutesInFutureToRequestObject_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -24,16 +24,16 @@ public class AddIatValueIsWeekInPastToRequestObject_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddIatValueIsWeekInPastToRequestObject cond;
+	private AddExpValueIs70MinutesInFutureToRequestObject cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddIatValueIsWeekInPastToRequestObject();
+		cond = new AddExpValueIs70MinutesInFutureToRequestObject();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test
-	public void testEvaluate_presentIatValue() {
+	public void testEvaluate_presentExpValue() {
 
 		JsonObject requestObjectClaims = new JsonObject();
 
@@ -41,14 +41,14 @@ public class AddIatValueIsWeekInPastToRequestObject_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(env.getObject("request_object_claims").has("iat")).isTrue();
+		assertThat(env.getObject("request_object_claims").has("exp")).isTrue();
 
 	}
 
 	@Test
-	public void testEvaluate_iatValueIsOneWeekInThePast() {
+	public void testEvaluate_expValueIs70MinutesInTheFuture() {
 
-		long iatExpect = 60 * 60 * 24 * 7;
+		long expExpect = 70 * 60;
 
 		JsonObject requestObjectClaims = new JsonObject();
 
@@ -56,7 +56,7 @@ public class AddIatValueIsWeekInPastToRequestObject_UnitTest {
 
 		cond.evaluate(env);
 
-		assertThat(Instant.now().getEpochSecond() - env.getLong("request_object_claims", "iat")).isEqualTo(iatExpect);
+		assertThat(env.getLong("request_object_claims", "exp") - Instant.now().getEpochSecond()).isEqualTo(expExpect);
 
 	}
 
