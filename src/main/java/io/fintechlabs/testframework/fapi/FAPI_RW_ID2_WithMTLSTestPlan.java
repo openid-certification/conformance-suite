@@ -29,7 +29,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureExpiredRequestObjectFailsWithMTLS.class,
 		FAPIRWID2EnsureRequestObjectWithBadAudFailsWithMTLS.class,
 		FAPIRWID2EnsureSignedRequestObjectWithRS256FailsWithMTLS.class,
-		EnsureRequestObjectSignatureAlgorithmIsNotNull.class,
 		FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS.class,
 		FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithMTLS.class,
 

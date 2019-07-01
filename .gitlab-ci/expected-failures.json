@@ -474,5 +474,29 @@
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallAccountsEndpointWithBearerTokenExpectingError",
         "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2-ensure-client-assertion-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
+        "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckTokenEndpointHttpStatus401Or400",
+        "expected-result": "failure",
+        "comment": "This test returned the error that was invalid_request, but the http response status was 401"
+    },
+    {
+        "test-name": "fapi-rw-id2-ensure-client-assertion-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
+        "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckTokenEndpointHttpStatus401Or400",
+        "expected-result": "failure",
+        "comment": "This test returned the error that was invalid_request, but the http response status was 401"
+    },
+    {
+        "test-name": "fapi-rw-id2-ob-ensure-client-assertion-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckTokenEndpointHttpStatus401Or400",
+        "expected-result": "failure",
+        "comment": "This test returned the error that was invalid_request, but the http response status was 401"
     }
 ]
