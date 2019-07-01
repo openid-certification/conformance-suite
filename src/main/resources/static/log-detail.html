@@ -658,7 +658,7 @@
 		function runTest(testName, testVariant, planId, config, oldTestId) {
             var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : '');
 
-            if(testVariant && testVariant !== "null" && testVariant !== "undefined" ){
+            if (testVariant !== null && testVariant !== undefined) {
                 runTestUrl += '&variant=' + encodeURIComponent(testVariant);
             }
 
