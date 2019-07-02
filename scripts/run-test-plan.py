@@ -221,7 +221,7 @@ def show_plan_results(plan_result, expected_failures_list):
             info['result'] = 'UNKNOWN'
 
         test_name = info['testName']
-        result = analyze_result_logs(test_name, plan_result['config_file'], logs, expected_failures_list, counts_unexpected)
+        result = analyze_result_logs(test_name, plan_result, logs, expected_failures_list, counts_unexpected)
 
         if module_id in test_time_taken:
             test_time = test_time_taken[module_id]
@@ -300,7 +300,7 @@ def show_plan_results(plan_result, expected_failures_list):
 #   'unexpected_warnings': list all unexpected warnings condition
 #   'expected_warnings_did_not_happen': list all expected warnings condition did not happen
 #   'counts': contains number of success condition, number of warning condition and number of failure condition
-def analyze_result_logs(test_name, config_filename, logs, expected_failures_list, counts_unexpected):
+def analyze_result_logs(test_name, plan_result, logs, expected_failures_list, counts_unexpected):
     counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
     expected_failures = []
     unexpected_failures = []
@@ -309,6 +309,12 @@ def analyze_result_logs(test_name, config_filename, logs, expected_failures_list
     expected_warnings = []
     unexpected_warnings = []
     expected_warnings_did_not_happen = []
+
+    test_plan = plan_result['test_plan']
+    config_filename = plan_result['config_file']
+    variant = None
+    if ':' in test_plan:
+        (test_plan_name, variant) = test_plan.split(':', 1)
 
     block_msg = ''
     for log_entry in logs:
@@ -330,8 +336,17 @@ def analyze_result_logs(test_name, config_filename, logs, expected_failures_list
                 expected_block = expected_failure_obj['current-block']
                 expected_result = expected_failure_obj['expected-result']
                 flag = expected_failure_obj['flag']
+                try:
+                    expected_variant = expected_failure_obj['variant']
+                except:
+                    expected_variant = None
 
-                if (flag == 'none' and expected_test_name == test_name and expected_config_filename == config_filename and expected_block == block_msg and expected_condition == log_entry['src']):
+                if (flag == 'none'
+                    and expected_test_name == test_name
+                    and expected_variant == variant
+                    and expected_config_filename == config_filename
+                    and expected_block == block_msg
+                    and expected_condition == log_entry['src']):
 
                     log_entry_exist_in_expected_list = True
 
@@ -368,8 +383,12 @@ def analyze_result_logs(test_name, config_filename, logs, expected_failures_list
         expected_test_name = expected_failure_obj['test-name']
         expected_config_filename = expected_failure_obj['configuration-filename']
         flag = expected_failure_obj['flag']
+        try:
+            expected_variant = expected_failure_obj['variant']
+        except:
+            expected_variant = None
 
-        if (flag == 'none' and expected_test_name == test_name and expected_config_filename == config_filename):
+        if (flag == 'none' and expected_test_name == test_name and expected_variant == variant and expected_config_filename == config_filename):
             expected_result = expected_failure_obj['expected-result']
             expected_block = expected_failure_obj['current-block']
             expected_condition = expected_failure_obj['condition']
@@ -452,30 +471,34 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
         if detail_plan_result:
             has_unexpected_failures = True
             config_filename = detail_plan_result['plan_config_file']
-            print(failure('{} - {}: '.format(detail_plan_result['plan_name'], config_filename)))
+            test_plan = detail_plan_result['plan_name']
+            print(failure('{} - {}: '.format(test_plan, config_filename)))
             overall_test_results = detail_plan_result['overall_test_results']
             counts_unexpected = detail_plan_result['counts_unexpected']
+            variant = None
+            if ':' in test_plan:
+                (test_plan_name, variant) = test_plan.split(':', 1)
 
             if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
                 print(failure('\tUnexpected failure: '))
-                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'unexpected_failures', 'failure')
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'unexpected_failures', 'failure')
 
             if counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] > 0:
                 print(failure('\tExpected failure did not happen: '))
-                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'expected_failures_did_not_happen', 'failure')
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_failures_did_not_happen', 'failure')
 
             if counts_unexpected['UNEXPECTED_WARNINGS'] > 0:
                 print(warning('\tUnexpected warning: '))
-                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'unexpected_warnings', 'warning')
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'unexpected_warnings', 'warning')
 
             if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
                 print(warning('\tExpected warning did not happen: '))
-                output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, 'expected_warnings_did_not_happen', 'warning')
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_warnings_did_not_happen', 'warning')
 
     return has_unexpected_failures
 
 
-def output_summary_test_plan_by_unexpected_type(config_filename, overall_test_results, key, unexpected_type):
+def output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, key, unexpected_type):
     for test_result in overall_test_results:
         result = test_result['test_result']
         if result[key]:
@@ -485,10 +508,10 @@ def output_summary_test_plan_by_unexpected_type(config_filename, overall_test_re
             else:
                 print(warning('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
             print_template = 'unexpected' in key
-            print_failure_warning(result[key], unexpected_type, '\t\t\t', config=config_filename, test=test_name, print_template=print_template)
+            print_failure_warning(result[key], unexpected_type, '\t\t\t', variant=variant, config=config_filename, test=test_name, print_template=print_template)
 
 
-def print_failure_warning(failure_warning_list, status, tab_format, expected=False, config=None, test=None, print_template=False):
+def print_failure_warning(failure_warning_list, status, tab_format, variant=None, expected=False, config=None, test=None, print_template=False):
     for failure_warning in failure_warning_list:
         msg = "{}Block name: '{}' - Condition: '{}'".format(tab_format,
                                                             failure_warning['current_block'],
@@ -496,6 +519,7 @@ def print_failure_warning(failure_warning_list, status, tab_format, expected=Fal
         json = '''
 {{
     "test-name": "{}",
+    "variant": "{}",
     "configuration-filename": "{}",
     "current-block": "{}",
     "condition": "{}",
@@ -503,6 +527,7 @@ def print_failure_warning(failure_warning_list, status, tab_format, expected=Fal
     "comment": "**CHANGE ME** explain why this failure occurs"
 }},
 '''.strip().format(test,
+                   variant,
                    config,
                    failure_warning['current_block'],
                    failure_warning['src'],
@@ -632,6 +657,7 @@ if __name__ == '__main__':
     json = '''
 {{
     "test-name": "{}",
+    "variant": "{}",
     "configuration-filename": "{}",
     "current-block": "{}",
     "condition": "{}",
@@ -641,8 +667,14 @@ if __name__ == '__main__':
     if has_duplicate:
         print(warning("** Some entries in the json is duplicated **"))
         for entry in expected_failures_list:
+            try:
+                variant = entry['variant']
+            except:
+                variant = None
+
             if entry['flag'] == 'duplicate':
                 entry_duplicate_json = json.strip().format(entry['test-name'],
+                                                           variant,
                                                            entry['configuration-filename'],
                                                            entry['current-block'],
                                                            entry['condition'],
@@ -653,7 +685,13 @@ if __name__ == '__main__':
         print(warning("** Some entries in the json not found in any test module of the system **"))
         for entry in expected_failures_list:
             if entry['flag'] == 'none':
+                try:
+                    variant = entry['variant']
+                except:
+                    variant = None
+
                 entry_invalid_json = json.strip().format(entry['test-name'],
+                                                         variant,
                                                          entry['configuration-filename'],
                                                          entry['current-block'],
                                                          entry['condition'],
