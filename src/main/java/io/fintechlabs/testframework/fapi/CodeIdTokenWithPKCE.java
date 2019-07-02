@@ -50,7 +50,7 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
@@ -104,7 +104,7 @@ public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class); // FIXME: this is OB-specific
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		setStatus(Status.CONFIGURED);

@@ -52,6 +52,11 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			resourceMethod = HttpMethod.valueOf(configuredMethod);
 		}
 
+		return callProtectedResource(env, resourceUri, resourceMethod, accessToken);
+	}
+
+	protected Environment callProtectedResource(Environment env, String resourceUri, HttpMethod resourceMethod, String accessToken) {
+
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
 		try {

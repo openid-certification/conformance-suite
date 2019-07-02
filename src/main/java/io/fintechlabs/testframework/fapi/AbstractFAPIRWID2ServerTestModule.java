@@ -68,7 +68,7 @@ import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
@@ -178,10 +178,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class); // FIXME: this is OB-specific
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
+		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
 
 		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
