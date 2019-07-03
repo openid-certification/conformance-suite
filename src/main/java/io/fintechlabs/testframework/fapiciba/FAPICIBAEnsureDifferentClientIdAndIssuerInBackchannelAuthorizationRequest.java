@@ -61,6 +61,13 @@ public class FAPICIBAEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationR
 	}
 
 	@Override
+	protected void configClient() {
+		setupClient1();
+
+		setupClient2();
+	}
+
+	@Override
 	protected void performAuthorizationRequest() {
 		createAuthorizationRequestObject();
 
@@ -110,5 +117,12 @@ public class FAPICIBAEnsureDifferentClientIdAndIssuerInBackchannelAuthorizationR
 		callAndContinueOnFailure(CheckBackchannelAuthenticationEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 
 		callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+	}
+
+	@Override
+	protected void cleanUpPingTestResources() {
+		unregisterClient1();
+
+		unregisterClient2();
 	}
 }

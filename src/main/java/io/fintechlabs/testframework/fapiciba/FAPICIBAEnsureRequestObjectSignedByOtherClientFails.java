@@ -75,6 +75,13 @@ public class FAPICIBAEnsureRequestObjectSignedByOtherClientFails extends Abstrac
 	}
 
 	@Override
+	protected void configClient() {
+		setupClient1();
+
+		setupClient2();
+	}
+
+	@Override
 	protected void performAuthorizationRequest() {
 		createAuthorizationRequestObject();
 
@@ -95,5 +102,12 @@ public class FAPICIBAEnsureRequestObjectSignedByOtherClientFails extends Abstrac
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 
 		eventLog.endBlock();
+	}
+
+	@Override
+	protected void cleanUpPingTestResources() {
+		unregisterClient1();
+
+		unregisterClient2();
 	}
 }

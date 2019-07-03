@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
@@ -52,8 +53,10 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noErrors(){
-		env.putString("registration_access_token", "reg.access.token");
-		env.putString("registration_client_uri", "https://good.example.com/deregister");
+		JsonObject client = new JsonObject();
+		client.addProperty("registration_access_token", "reg.access.token");
+		client.addProperty("registration_client_uri", "https://good.example.com/deregister");
+		env.putObject("client", client);
 		cond.evaluate(env);
 		hoverfly.verify(service("good.example.com")
 			.delete("/deregister")
@@ -65,8 +68,10 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badResponse(){
-		env.putString("registration_access_token", "reg.access.token");
-		env.putString("registration_client_uri", "https://bad.example.com/deregister");
+		JsonObject client = new JsonObject();
+		client.addProperty("registration_access_token", "reg.access.token");
+		client.addProperty("registration_client_uri", "https://bad.example.com/deregister");
+		env.putObject("client", client);
 		cond.evaluate(env);
 	}
 
