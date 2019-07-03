@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAlgorithmAsRS256;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointErrorHttpStatus;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint;
@@ -10,9 +11,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ensure-wrong-client-id-in-backchannel-authorization-request",
-	displayName = "FAPI-CIBA: Ensure wrong client_id in backchannel authorization request",
-	summary = "This test sends the wrong client_id for the MTLS key to the backchannel authorization endpoint, and should end with the server returning an access_denied or invalid_request or invalid_client error",
+	testName = "fapi-ciba-ensure-client-assertion-signature-algorithm-in-backchannel-authorization-request-is-RS256-fails",
+	displayName = "FAPI-CIBA: Ensure client_assertion signature algorithm in backchannel authorization request is RS256 fails",
+	summary = "This test passed client_assertion that was signed with algorithm as RS256 to the backchannel authorization endpoint, and should end with the server returning an access_denied or invalid_request or invalid_client error.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -33,44 +34,33 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequest extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAEnsureClientAssertionSignatureAlgorithmInBackchannelAuthorizationRequestIsRS256Fails extends AbstractFAPICIBA {
 
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
+	@Variant(name = variant_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupPingPrivateKeyJwt();
 	}
 
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
+	@Variant(name = variant_poll_privatekeyjwt)
+	public void setupPollPrivateKeyJwt() {
+		super.setupPollPrivateKeyJwt();
 	}
 
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
+	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
+	public void setupOpenBankingUkPingPrivateKeyJwt() {
+		super.setupOpenBankingUkPingPrivateKeyJwt();
 	}
 
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-	}
-
-	@Override
-	protected void configClient() {
-		setupClient1();
-
-		setupClient2();
+	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
+	public void setupOpenBankingUkPollPrivateKeyJwt() {
+		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
 	@Override
-	protected void performAuthorizationRequest() {
-		eventLog.startBlock("Swapping to client_id for second client, but with JWKS and MTLS settings for first client");
-		env.mapKey("client", "client2");
+	protected void addClientAuthenticationToBackchannelRequest() {
+		callAndStopOnFailure(AddAlgorithmAsRS256.class, "FAPI-RW-8.6");
 
-		super.performAuthorizationRequest();
-
-		env.unmapKey("client");
-		eventLog.endBlock();
+		super.addClientAuthenticationToBackchannelRequest();
 	}
 
 	@Override
@@ -104,9 +94,13 @@ public class FAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequest extend
 	}
 
 	@Override
-	protected void cleanUpPingTestResources() {
-		unregisterClient1();
+	protected void waitForAuthenticationToComplete(long delaySeconds) {
+		//Not called in this test
+	}
 
-		unregisterClient2();
+	protected void performPostAuthorizationFlow() {
+		// we shouldn't get here anyway, but if we do, just check access token, don't go on and try second client
+		requestProtectedResource();
+		fireTestFinished();
 	}
 }

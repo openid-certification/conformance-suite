@@ -48,6 +48,12 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBAEnsureWrongClientIdInTokenEndpointRequest.class,
 		FAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequest.class,
 
+		// private_key_jwt specific tests - not possible to test with mtls
+		FAPICIBAEnsureWithoutClientAssertionInTokenEndpointFails.class,
+		FAPICIBAEnsureWithoutClientAssertionInBackchannelAuthorizationRequestFails.class,
+		FAPICIBAEnsureClientAssertionSignatureAlgorithmInBackchannelAuthorizationRequestIsRS256Fails.class,
+		FAPICIBAEnsureClientAssertionSignatureAlgorithmInTokenEndpointRequestIsRS256Fails.class,
+
 		// Ping specific tests, not applicable to poll
 		FAPICIBAPingNotificationEndpointReturnsABody.class,
 		FAPICIBAPingNotificationEndpointReturns401.class,
