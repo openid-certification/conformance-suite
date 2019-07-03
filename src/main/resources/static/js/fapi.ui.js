@@ -384,7 +384,7 @@ var FAPI_UI = {
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
 			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
-			"CIBAProfile-" : "https://bitbucket.org/openid/fapi/src/master/Financial_API_WD_CIBA.md#",
+			"FAPI-CIBA-" : "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.",
 			"OB-" : "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#",
 			"OBRW-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2#",
 			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",

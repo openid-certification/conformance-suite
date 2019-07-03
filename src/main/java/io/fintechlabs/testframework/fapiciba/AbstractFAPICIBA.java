@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAu
 import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddBindingMessageToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddCIBANotificationEndpointToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaGrantTypeToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddCibaRequestSigningPS256ToDynamicRegistrationRequest;
@@ -390,6 +391,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		// acr_values
 		// binding_message
 		// user_code
+
+		// FIXME: this will need tweaking for OB tests; we don't need a binding message there as the
+		// intent id contains sufficient context
+		callAndStopOnFailure(AddBindingMessageToAuthorizationEndpointRequest.class, "FAPI-CIBA-5.2.2-2");
 
 		modeSpecificAuthorizationEndpointRequest();
 

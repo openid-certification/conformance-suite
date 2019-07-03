@@ -73,7 +73,7 @@ public class FAPICIBAEnsureRequestObjectNbfIs10MinutesInFutureFails extends Abst
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(AddNbfValueIs10MinutesInFutureToRequestObject.class, "CIBAProfile-5.2.2-9");
+		callAndStopOnFailure(AddNbfValueIs10MinutesInFutureToRequestObject.class, "FAPI-CIBA-5.2.2-9");
 	}
 
 }
