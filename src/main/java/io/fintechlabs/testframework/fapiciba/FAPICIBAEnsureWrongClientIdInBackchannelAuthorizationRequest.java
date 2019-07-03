@@ -56,6 +56,13 @@ public class FAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequest extend
 	}
 
 	@Override
+	protected void configClient() {
+		setupClient1();
+
+		setupClient2();
+	}
+
+	@Override
 	protected void performAuthorizationRequest() {
 		eventLog.startBlock("Swapping to client_id for second client, but with JWKS and MTLS settings for first client");
 		env.mapKey("client", "client2");
@@ -96,4 +103,10 @@ public class FAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequest extend
 
 	}
 
+	@Override
+	protected void cleanUpPingTestResources() {
+		unregisterClient1();
+
+		unregisterClient2();
+	}
 }

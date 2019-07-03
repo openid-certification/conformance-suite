@@ -101,6 +101,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
+import io.fintechlabs.testframework.condition.client.UnregisterDynamicallyRegisteredClient;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestId;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdExpiresIn;
@@ -227,6 +228,105 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		call(sequence(addTokenEndpointClientAuthentication));
 	}
 
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		env.putString("base_url", baseUrl);
+		env.putString("external_url_override", externalUrlOverride);
+		env.putObject("config", config);
+
+		callAndStopOnFailure(CreateCIBANotificationEndpointUri.class);
+
+		// this is inserted by the create call above, expose it to the test environment for publication
+		exposeEnvString("notification_uri");
+
+		// Make sure we're calling the right server configuration
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		// make sure the server configuration passes some basic sanity checks
+		callAndStopOnFailure(CheckServerConfiguration.class);
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
+
+		callAndStopOnFailure(FetchServerKeys.class);
+		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+
+		// Set up the client configuration
+		configClient();
+
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
+		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
+
+		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+
+		setStatus(Status.CONFIGURED);
+
+		fireSetupDone();
+	}
+
+	protected void configClient() {
+		// Most tests just use one client
+		// if any test want to use two client then override this method and config for two clients
+		setupClient1();
+	}
+
+	protected void setupClient1() {
+		if (env.getElementFromObject("config", "client.client_id") != null) {
+			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
+			callAndStopOnFailure(GetStaticClientConfiguration.class);
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		} else {
+			eventLog.startBlock("First client: No client_id in configuration, registering client using dynamic client registration");
+			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			registerClient();
+		}
+
+		exposeEnvString("client_id");
+
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+
+		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
+		eventLog.endBlock();
+	}
+
+	protected void setupClient2() {
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("client_public_jwks", "client_public_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+
+		if (env.getElementFromObject("config", "client2.client_id") != null) {
+			eventLog.startBlock("Verify Second client: client_id supplied, assume static client configuration");
+			callAndStopOnFailure(GetStaticClient2Configuration.class);
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		} else {
+			eventLog.startBlock("Second client: No client_id in configuration, registering client using dynamic client registration");
+			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			registerClient();
+		}
+
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		// validate the secondary MTLS keys
+		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		env.unmapKey("client_public_jwks");
+		env.unmapKey("mutual_tls_authentication");
+
+		eventLog.endBlock();
+	}
+
 	public void registerClient() {
 
 		callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
@@ -261,101 +361,33 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
 		// copy it across.
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
-
-		// TODO: at the end of the test, delete the client
-		// IF management interface, delete the client to clean up
-//		skipIfMissing(null,
-//			new String[] {"registration_client_uri", "registration_access_token"},
-//			Condition.ConditionResult.INFO,
-//			UnregisterDynamicallyRegisteredClient.class);
 	}
 
-	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
-		env.putString("base_url", baseUrl);
-		env.putString("external_url_override", externalUrlOverride);
-		env.putObject("config", config);
+	public void unregisterClient1() {
+		eventLog.startBlock("Unregister dynamically registered client");
 
-		callAndStopOnFailure(CreateCIBANotificationEndpointUri.class);
+		// IF management interface, delete the client to clean up
+		skipIfMissing(new String[] {"client"},
+			new String[] {"registration_client_uri", "registration_access_token"},
+			Condition.ConditionResult.INFO,
+			UnregisterDynamicallyRegisteredClient.class);
 
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("notification_uri");
-
-		// Make sure we're calling the right server configuration
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-
-		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-
-		callAndStopOnFailure(FetchServerKeys.class);
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
-
-		// Set up the client configuration
-		if (env.getElementFromObject("config", "client.client_id") != null) {
-			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
-			callAndStopOnFailure(GetStaticClientConfiguration.class);
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		} else {
-			eventLog.startBlock("First client: No client_id in configuration, registering client using dynamic client registration");
-			callAndStopOnFailure(GetDynamicClientConfiguration.class);
-			registerClient();
-		}
-
-		exposeEnvString("client_id");
-
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-
-		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 		eventLog.endBlock();
+	}
 
-		// It might be more sensible to do this only if/when the test needs a second client
+	public void unregisterClient2() {
+		eventLog.startBlock("Unregister dynamically registered client2");
+
 		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("client_public_jwks", "client_public_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
-		if (env.getElementFromObject("config", "client2.client_id") != null) {
-			eventLog.startBlock("Verify Second client: client_id supplied, assume static client configuration");
-			callAndStopOnFailure(GetStaticClient2Configuration.class);
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		} else {
-			eventLog.startBlock("Second client: No client_id in configuration, registering client using dynamic client registration");
-			callAndStopOnFailure(GetDynamicClient2Configuration.class);
-			registerClient();
-		}
-
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
-
-		// validate the secondary MTLS keys
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		skipIfMissing(new String[] {"client2"},
+			new String[] {"registration_client_uri", "registration_access_token"},
+			Condition.ConditionResult.INFO,
+			UnregisterDynamicallyRegisteredClient.class);
 
 		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		env.unmapKey("client_public_jwks");
-		env.unmapKey("mutual_tls_authentication");
 
 		eventLog.endBlock();
-
-		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
-
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
-
-		setStatus(Status.CONFIGURED);
-
-		fireSetupDone();
 	}
 
 	@Override
@@ -701,6 +733,8 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		requestProtectedResource();
 
 		if (finishTest) {
+			cleanUpPingTestResources();
+
 			fireTestFinished();
 		}
 	}
@@ -892,6 +926,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
 		if (httpStatus != org.apache.http.HttpStatus.SC_OK) {
 			// error as expected, go on and complete test as normal
+			cleanUpPingTestResources();
 			fireTestFinished();
 		} else {
 			// no error - we don't want to leave a authorization request in progress (as it would result in a ping
@@ -901,6 +936,11 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 			setStatus(Status.WAITING);
 		}
+	}
+
+	/** This should be performed before finishing test for each client to unregister dynamic client at AS*/
+	protected void cleanUpPingTestResources() {
+		unregisterClient1();
 	}
 
 	public void setupPingMTLS() {

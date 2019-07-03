@@ -58,6 +58,13 @@ public class FAPICIBAEnsureWrongClientIdInTokenEndpointRequest extends AbstractF
 	}
 
 	@Override
+	protected void configClient() {
+		setupClient1();
+
+		setupClient2();
+	}
+
+	@Override
 	protected void performPostAuthorizationResponse() {
 
 		eventLog.startBlock(currentClientString() + "Swapping to Client2 and calling token endpoint");
@@ -82,7 +89,14 @@ public class FAPICIBAEnsureWrongClientIdInTokenEndpointRequest extends AbstractF
 	protected void processNotificationCallback(JsonObject requestParts) {
 		// we've already done the testing; we just approved the authentication so that we don't leave an
 		// in-progress authentication lying around that would sometime later send an 'expired' ping
+		cleanUpPingTestResources();
 		fireTestFinished();
 	}
 
+	@Override
+	protected void cleanUpPingTestResources() {
+		unregisterClient1();
+
+		unregisterClient2();
+	}
 }

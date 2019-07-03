@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.condition.client;
 import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +28,12 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 	@PreEnvironment(strings = {"registration_client_uri", "registration_access_token"})
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString("registration_access_token");
-		if (Strings.isNullOrEmpty("registration_access_token")){
+		String accessToken = env.getString("client", "registration_access_token");
+		if (Strings.isNullOrEmpty(accessToken)){
 			throw error("Couldn't find registration access token.");
 		}
 
-		String registrationClientUri = env.getString("registration_client_uri");
+		String registrationClientUri = env.getString("client", "registration_client_uri");
 		if (Strings.isNullOrEmpty(registrationClientUri)){
 			throw error("Couldn't find registration client uri");
 		}

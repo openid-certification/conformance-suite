@@ -212,6 +212,9 @@ public class FAPICIBA extends AbstractFAPICIBA {
 
 			eventLog.endBlock();
 
+			unmapClient();
+
+			cleanUpPingTestResources();
 			fireTestFinished();
 		}
 	}
@@ -234,5 +237,17 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		}
 	}
 
+	@Override
+	protected void configClient() {
+		setupClient1();
 
+		setupClient2();
+	}
+
+	@Override
+	protected void cleanUpPingTestResources() {
+		unregisterClient1();
+
+		unregisterClient2();
+	}
 }

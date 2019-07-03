@@ -110,6 +110,7 @@ public class FAPICIBAMultipleCallToTokenEndpoint extends AbstractFAPICIBA {
 	protected void processNotificationCallback(JsonObject requestParts) {
 		switch (testType) {
 			case PING:
+				cleanUpPingTestResources();
 				fireTestFinished();
 				break;
 

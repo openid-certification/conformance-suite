@@ -146,6 +146,7 @@ public class FAPICIBAUserRejectsAuthentication extends AbstractFAPICIBA {
 		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class);
 
 		eventLog.endBlock();
+		cleanUpPingTestResources();
 		fireTestFinished();
 	}
 
