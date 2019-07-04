@@ -686,7 +686,14 @@ public class TestRunner implements DataUtils {
 			if (test != null) {
 				logger.error("Caught an error in TestRunner while running the test, stopping the test: " + error.getMessage());
 				test.stop();
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
+
+				if (error.getCause() instanceof ConditionError) {
+					Map<String, Object> event = new HashMap<>();
+					event.put("msg", "The failure  means the test cannot continue. Stopping test.");
+					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error, event));
+				} else {
+					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
+				}
 
 				// Any form of exception from a test counts as a failure
 				test.fireTestFailure();
