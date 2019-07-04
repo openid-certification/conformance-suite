@@ -27,6 +27,7 @@ import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBe
 import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -89,6 +90,7 @@ public class PlainRS extends AbstractTestModule {
 
 		// Set up the resource configuration
 		callAndStopOnFailure(GetStaticResourceConfiguration.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		callAndStopOnFailure(ExtractJWKsFromResourceConfiguration.class, "HEART-OAuth2-2.1.5");

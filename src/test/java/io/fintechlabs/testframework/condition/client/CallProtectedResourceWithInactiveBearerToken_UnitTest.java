@@ -92,7 +92,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 	public void testEvaluate_resourceServerAccepts() {
 
 		env.putObject("access_token", bearerToken);
-		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.putString("protected_resource_url", "http://example.com/resource");
 
 		cond.evaluate(env);
 
@@ -114,7 +114,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 	public void testEvaluate_resourceServerAcceptsPost() {
 
 		env.putObject("access_token", bearerToken);
-		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.putString("protected_resource_url", "http://example.com/resource");
 		env.getObject("resource").addProperty("resourceMethod","POST");
 
 		cond.evaluate(env);
@@ -137,7 +137,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 	public void testEvaluate_noError() {
 
 		env.putObject("access_token", inactiveBearerToken);
-		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.putString("protected_resource_url", "http://example.com/resource");
 
 		cond.evaluate(env);
 
@@ -150,7 +150,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 	public void testEvaluate_noErrorPost() {
 
 		env.putObject("access_token", inactiveBearerToken);
-		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.putString("protected_resource_url", "http://example.com/resource");
 		env.getObject("resource").addProperty("resourceMethod", "POST");
 
 		cond.evaluate(env);
@@ -164,7 +164,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 	public void testEvaluate_badServer() {
 
 		env.putObject("access_token", bearerToken);
-		env.getObject("resource").addProperty("resourceUrl", "http://invalid.org/");
+		env.putString("protected_resource_url", "http://invalid.org/");
 
 		cond.evaluate(env);
 
@@ -176,7 +176,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		env.getObject("resource").addProperty("resourceUrl", "http://example.com/resource");
+		env.putString("protected_resource_url", "http://example.com/resource");
 
 		cond.evaluate(env);
 

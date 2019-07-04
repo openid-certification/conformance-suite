@@ -34,10 +34,10 @@ import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodP
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCalledUnexpectedly;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -99,6 +99,8 @@ import io.fintechlabs.testframework.condition.client.GetDynamicServerConfigurati
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.condition.client.UnregisterDynamicallyRegisteredClient;
@@ -163,6 +165,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	public static final String variant_openbankinguk_poll_privatekeyjwt = "openbankinguk-poll-private_key_jwt";
 
 	// for variants to fill in by calling the setup... family of methods
+	private Class<? extends ConditionSequence> resourceConfiguration;
 	private Class<? extends ConditionSequence> addBackchannelClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
@@ -173,6 +176,22 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
 	protected TestType testType;
+
+	public static class FAPIResourceConfiguration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		}
+	}
+
+	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
+		}
+	}
 
 	public static class PrivateKeyJwtRegistration extends AbstractConditionSequence
 	{
@@ -255,9 +274,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		call(sequence(resourceConfiguration));
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-		callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
+		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
 
 		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
@@ -786,7 +806,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
@@ -944,6 +964,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	public void setupPingMTLS() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
@@ -951,6 +972,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	public void setupPingPrivateKeyJwt() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
@@ -958,6 +980,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	public void setupPollMTLS() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
 		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
@@ -965,6 +988,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	}
 
 	public void setupPollPrivateKeyJwt() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
 		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
@@ -973,6 +997,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupOpenBankingUkPingMTLS() {
 		setupPingMTLS();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
 		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsMTLS.class;
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
@@ -981,6 +1006,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupOpenBankingUkPingPrivateKeyJwt() {
 		setupPingPrivateKeyJwt();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
 		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsPrivateKeyJwt.class;
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
@@ -989,6 +1015,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupOpenBankingUkPollMTLS() {
 		setupPollMTLS();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
 		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsMTLS.class;
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
@@ -997,6 +1024,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupOpenBankingUkPollPrivateKeyJwt() {
 		setupPollPrivateKeyJwt();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
 		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsPrivateKeyJwt.class;
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
