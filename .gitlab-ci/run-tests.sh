@@ -60,10 +60,15 @@ function makeServerTest {
 
 function makeCIBATest {
     # ciba
+    TESTS="${TESTS} fapi-ciba-test-plan:poll-mtls authlete-fapi-ciba-mtls-poll.json"
+    TESTS="${TESTS} fapi-ciba-test-plan:poll-private_key_jwt authlete-fapi-ciba-privatekey-poll.json"
     TESTS="${TESTS} fapi-ciba-test-plan:openbankinguk-poll-mtls authlete-fapi-ciba-mtls-poll.json"
     TESTS="${TESTS} fapi-ciba-test-plan:openbankinguk-poll-private_key_jwt authlete-fapi-ciba-privatekey-poll.json"
+
     # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
     # see https://gitlab.com/openid/conformance-suite/issues/389
+    TESTS="${TESTS} fapi-ciba-test-plan:ping-mtls authlete-fapi-ciba-mtls-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-test-plan:ping-private_key_jwt authlete-fapi-ciba-privatekey-ping-dcr.json"
     TESTS="${TESTS} fapi-ciba-test-plan:openbankinguk-ping-mtls authlete-fapi-ciba-mtls-ping-dcr.json"
     TESTS="${TESTS} fapi-ciba-test-plan:openbankinguk-ping-private_key_jwt authlete-fapi-ciba-privatekey-ping-dcr.json"
     # push isn't allowed in FAPI-CIBA profile
