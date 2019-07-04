@@ -13,7 +13,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
-public class CallProtectedResourceWithBearerTokenExpectingError extends AbstractCallProtectedResource {
+public class CallProtectedResourceWithBearerTokenExpectingError extends AbstractCallProtectedResourceWithBearerToken {
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource" }, strings = "protected_resource_url")

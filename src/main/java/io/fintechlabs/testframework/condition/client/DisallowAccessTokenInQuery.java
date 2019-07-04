@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
 import org.apache.http.HttpStatus;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,12 +19,12 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 	}
 
 	@Override
-	protected Environment callProtectedResource(Environment env, String resourceUri, HttpMethod resourceMethod, String accessToken) {
+	protected String getUri(Environment env) {
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(resourceUri);
-		builder.queryParam("access_token", accessToken);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(super.getUri(env));
+		builder.queryParam("access_token", getAccessToken(env));
 
-		return super.callProtectedResource(env, builder.toUriString(), resourceMethod, accessToken);
+		return builder.toUriString();
 	}
 
 	@Override

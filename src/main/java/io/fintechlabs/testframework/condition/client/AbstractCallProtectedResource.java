@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
-	protected Environment callProtectedResource(Environment env) {
+	protected String getAccessToken(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
@@ -40,11 +40,21 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			throw error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
+		return accessToken;
+	}
+
+	protected String getUri(Environment env) {
+
 		String resourceUri = env.getString("protected_resource_url");
 
 		if (Strings.isNullOrEmpty(resourceUri)){
 			throw error("Missing Resource URL");
 		}
+
+		return resourceUri;
+	}
+
+	protected HttpMethod getMethod(Environment env) {
 
 		HttpMethod resourceMethod = HttpMethod.GET;
 		String configuredMethod = env.getString("resource", "resourceMethod");
@@ -52,25 +62,29 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			resourceMethod = HttpMethod.valueOf(configuredMethod);
 		}
 
-		return callProtectedResource(env, resourceUri, resourceMethod, accessToken);
+		return resourceMethod;
 	}
 
-	protected Environment callProtectedResource(Environment env, String resourceUri, HttpMethod resourceMethod, String accessToken) {
+	protected HttpHeaders getHeaders(Environment env) {
 
-		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+		return new HttpHeaders();
+	}
+
+	protected Environment callProtectedResource(Environment env) {
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			HttpHeaders headers = requestHeaders == null ? new HttpHeaders() : headersFromJson(requestHeaders);
+			HttpHeaders headers = getHeaders(env);
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
-			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
+			if (headers.getAccept().isEmpty()) {
+				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+				headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			}
 
 			HttpEntity<?> request = new HttpEntity<>(headers);
 
-			ResponseEntity<String> response = restTemplate.exchange(resourceUri, resourceMethod, request, String.class);
+			ResponseEntity<String> response = restTemplate.exchange(getUri(env), getMethod(env), request, String.class);
 			JsonObject responseCode = new JsonObject();
 			responseCode.addProperty("code", response.getStatusCodeValue());
 			String responseBody = response.getBody();

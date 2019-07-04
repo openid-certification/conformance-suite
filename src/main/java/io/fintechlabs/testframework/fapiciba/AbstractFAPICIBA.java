@@ -37,7 +37,7 @@ import io.fintechlabs.testframework.condition.client.CIBANotificationEndpointCal
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CallDynamicRegistrationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -806,7 +806,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 

@@ -5,7 +5,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -151,11 +151,11 @@ public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideReque
 
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
 
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
-		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 
 		fireTestFinished();
 	}

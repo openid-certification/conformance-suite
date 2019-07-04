@@ -12,7 +12,7 @@ import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndp
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
@@ -343,11 +343,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 
-			callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
+			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
 
 			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 
 			// Try the second client
 
@@ -413,7 +413,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			generateNewClientAssertion();
 
 			// Check access_token still works
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 
 			callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-13");
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
@@ -536,7 +536,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 

@@ -22,7 +22,7 @@ import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResou
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
@@ -317,7 +317,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-6");
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class, "FAPI-R-6.2.1-11");
 

@@ -13,7 +13,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
  * We should return the env if we catch a 401 back from the resource server, and throw
  * a {@link io.fintechlabs.testframework.condition.ConditionError} if it comes back ok.
  */
-public class CallProtectedResourceWithInactiveBearerToken extends AbstractCallProtectedResource {
+public class CallProtectedResourceWithInactiveBearerToken extends AbstractCallProtectedResourceWithBearerToken {
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource" }, strings = "protected_resource_url")

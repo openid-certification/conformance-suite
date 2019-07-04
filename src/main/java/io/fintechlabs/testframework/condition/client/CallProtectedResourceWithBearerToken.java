@@ -9,7 +9,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 /**
  * This is to call a generic resource server endpoint with a Bearer Token.
  */
-public class CallProtectedResourceWithBearerToken extends AbstractCallProtectedResource {
+public class CallProtectedResourceWithBearerToken extends AbstractCallProtectedResourceWithBearerToken {
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource" }, strings = "protected_resource_url")

@@ -4,7 +4,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -131,11 +131,11 @@ public class FAPICIBA extends AbstractFAPICIBA {
 
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
 
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
-		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 	}
 
 	protected void checkAccountResourceEndpointTLS() {
