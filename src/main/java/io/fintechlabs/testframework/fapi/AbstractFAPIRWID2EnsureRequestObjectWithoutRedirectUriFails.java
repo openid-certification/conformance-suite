@@ -3,9 +3,9 @@ package io.fintechlabs.testframework.fapi;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingRedirectUriErrorPage;
 import io.fintechlabs.testframework.condition.client.RemoveRedirectUriFromRequestObject;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
@@ -54,7 +54,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutRedirectUriFail
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
 	}
 
