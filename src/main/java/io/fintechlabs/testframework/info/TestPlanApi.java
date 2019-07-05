@@ -94,8 +94,12 @@ public class TestPlanApi implements DataUtils {
 
 		String[] testModuleNames = holder.testModuleNames;
 		if (!Strings.isNullOrEmpty(variant)) {
-
 			testModuleNames = holder.filterTestModule(variant);
+		} else {
+			// if a test plan has variants, the user must pick one
+			if (holder.a.variants().length > 0) {
+				throw new RuntimeException("Test plan '"+planName+"' has variants, configuration json must contain 'variant'");
+			}
 		}
 
 		planService.createTestPlan(id, planName, variant, config, description, testModuleNames, holder.a.summary(), publish);
@@ -268,15 +272,25 @@ public class TestPlanApi implements DataUtils {
 		public String[] filterTestModule(String variant) {
 			if (a.testModules().length > 0) {
 				return Arrays.stream(a.testModules())
-					.filter(test -> Arrays.stream(test.getDeclaredMethods())
-						.filter((m) -> m.isAnnotationPresent(Variant.class))
-						.map((m) -> m.getDeclaredAnnotation(Variant.class).name())
-						.collect(Collectors.toList())
-						.contains(variant))
+					.filter(test -> {
+						boolean isExist = Arrays.stream(test.getDeclaredMethods())
+							.filter((m) -> m.isAnnotationPresent(Variant.class))
+							.map((m) -> m.getDeclaredAnnotation(Variant.class).name())
+							.collect(Collectors.toList())
+							.contains(variant);
+						if (!isExist) {
+							if (Arrays.stream(test.getDeclaredAnnotation(PublishTestModule.class).notApplicableForVariants()).anyMatch(v -> v.equals(variant))) {
+								return false;
+							}
+							String testModuleName = test.getDeclaredAnnotation(PublishTestModule.class).testName();
+							String testPlanName = a.testPlanName();
+							throw new RuntimeException("Variant '"+variant+"' not found in test module '"+testModuleName+"' of test plan '"+testPlanName+"'");
+						}
+						return true;
+					})
 					.map(test -> test.getDeclaredAnnotation(PublishTestModule.class).testName())
 					.toArray(String[]::new);
 			} else {
-
 				return this.testModuleNames;
 			}
 		}

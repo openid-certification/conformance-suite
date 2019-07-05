@@ -34,6 +34,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl"
+	},
+	notApplicableForVariants = {
+		FAPICIBA.variant_ping_mtls,
+		FAPICIBA.variant_poll_mtls,
+		FAPICIBA.variant_openbankinguk_ping_mtls,
+		FAPICIBA.variant_openbankinguk_poll_mtls
 	}
 )
 public class FAPICIBAEnsureWithoutClientAssertionInTokenEndpointFails extends AbstractFAPICIBA {

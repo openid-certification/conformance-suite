@@ -28,6 +28,12 @@ import org.springframework.http.ResponseEntity;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl"
+	},
+	notApplicableForVariants = {
+		FAPICIBA.variant_poll_mtls,
+		FAPICIBA.variant_poll_privatekeyjwt,
+		FAPICIBA.variant_openbankinguk_poll_mtls,
+		FAPICIBA.variant_openbankinguk_poll_privatekeyjwt
 	}
 )
 // FIXME: mark test as Ping specific
