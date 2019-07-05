@@ -12,6 +12,7 @@ import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
@@ -190,6 +191,8 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+
+		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 
 		fireTestFinished();
 	}

@@ -15,6 +15,7 @@ import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
+import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
@@ -199,6 +200,8 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+
+			callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 
 			// Try the second client
 

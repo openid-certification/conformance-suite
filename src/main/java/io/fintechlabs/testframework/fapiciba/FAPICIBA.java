@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnF
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenACRClaims;
@@ -136,6 +137,8 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+
+		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 
 	protected void checkAccountResourceEndpointTLS() {
