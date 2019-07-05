@@ -26,19 +26,26 @@ public class CallProtectedResourceWithBearerTokenExpectingError extends Abstract
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders) {
 
+		// RFC6750 §3.1 (referenced by FAPI-R §6.2.1 etc) only states that the resource server SHOULD respond with HTTP 4xx codes.
+		// We allow a JSON error response, but warn about the status code.
+
 		if (Strings.isNullOrEmpty(responseBody)) {
-			throw error("Empty response from the resource endpoint");
+			throw error("Empty success response from the resource endpoint");
 		} else {
 			try {
 				JsonElement jsonRoot = new JsonParser().parse(responseBody);
 				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-					throw error("Resource endpoint did not return a JSON object");
+					throw error("Resource endpoint indicated success and did not return a JSON object");
 				}
 
 				JsonObject responseObj = jsonRoot.getAsJsonObject();
 
 				if (responseObj.has("error") && !Strings.isNullOrEmpty(OIDFJSON.getString(responseObj.get("error")))) {
-					logSuccess("Found error in resource endpoint error response", responseObj);
+					log(args("msg", "Resource endpoint returned a JSON error, but HTTP status indicated success",
+							"result", ConditionResult.WARNING,
+							"code", responseCode.get("code"),
+							"error", responseObj.get("error"),
+							"body", responseBody));
 					return env;
 				} else {
 					throw error("No error from resource endpoint", responseObj);
