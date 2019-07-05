@@ -8,11 +8,11 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class ExtractIdTokenFromAuthorizationResponse extends AbstractExtractIdToken {
 
 	@Override
-	@PreEnvironment(required = "callback_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	@PostEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
 
-		return extractIdToken(env, "callback_params");
+		return extractIdToken(env, "authorization_endpoint_response");
 
 	}
 

@@ -14,7 +14,7 @@ public abstract class AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest e
 		createAuthorizationRequest();
 
 		// Switch to client 2 JWKs
-		eventLog.startBlock("Second client's keys");
+		eventLog.startBlock("Sign request object containing client_id for client 1 using JWK for client 2");
 		env.mapKey("client_jwks", "client_jwks2");
 
 		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
@@ -28,7 +28,7 @@ public abstract class AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest e
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1", "OIDCC-6.3.2");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
