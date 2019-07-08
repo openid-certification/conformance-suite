@@ -1,0 +1,66 @@
+[
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "poll-mtls",
+        "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "ping-mtls",
+        "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "poll-private_key_jwt",
+        "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "ping-private_key_jwt",
+        "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "openbankinguk-poll-mtls",
+        "configuration-filename": "authlete-fapi-ciba-mtls-poll.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "openbankinguk-ping-mtls",
+        "configuration-filename": "authlete-fapi-ciba-mtls-ping-dcr.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "openbankinguk-poll-private_key_jwt",
+        "configuration-filename": "authlete-fapi-ciba-privatekey-poll.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-ciba-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": "openbankinguk-ping-private_key_jwt",
+        "configuration-filename": "authlete-fapi-ciba-privatekey-ping-dcr.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "ExpectBindingMessageCorrectDisplay",
+        "expected-result": "failure"
+    }
+]
