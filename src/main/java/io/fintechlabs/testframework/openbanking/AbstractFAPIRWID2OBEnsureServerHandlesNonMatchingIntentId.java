@@ -4,6 +4,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
+import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 
 public abstract class AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2OBServerTestModule {
@@ -34,7 +35,14 @@ public abstract class AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId 
 
 		eventLog.endBlock();
 
-		performRedirect();
+		performRedirectAndWaitForErrorCallback();
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage.class);
+
+		env.putString("error_callback_placeholder", env.getString("request_unverifiable_error"));
 	}
 
 	@Override
