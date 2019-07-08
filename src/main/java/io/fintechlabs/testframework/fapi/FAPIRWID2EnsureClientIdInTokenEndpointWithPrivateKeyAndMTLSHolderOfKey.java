@@ -31,6 +31,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureClientIdInTokenEndpoint {
 
+	public FAPIRWID2EnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

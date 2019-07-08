@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
 
+	public FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

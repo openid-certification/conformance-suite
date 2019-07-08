@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureExpiredRequestObjectFailsWithMTLS extends AbstractFAPIRWID2EnsureExpiredRequestObjectFails {
 
+	public FAPIRWID2EnsureExpiredRequestObjectFailsWithMTLS() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

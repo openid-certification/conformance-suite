@@ -31,6 +31,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureRequestObjectWithoutRedirectUriFails {
 
+	public FAPIRWID2EnsureRequestObjectWithoutRedirectUriFailsWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

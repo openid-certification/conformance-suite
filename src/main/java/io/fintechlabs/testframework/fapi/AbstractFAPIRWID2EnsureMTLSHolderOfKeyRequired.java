@@ -16,6 +16,10 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
 public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);

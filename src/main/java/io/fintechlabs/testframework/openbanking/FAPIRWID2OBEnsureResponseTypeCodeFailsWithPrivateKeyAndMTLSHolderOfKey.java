@@ -35,6 +35,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureResponseTypeCodeFailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureResponseTypeCodeFails {
 
+	public FAPIRWID2OBEnsureResponseTypeCodeFailsWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

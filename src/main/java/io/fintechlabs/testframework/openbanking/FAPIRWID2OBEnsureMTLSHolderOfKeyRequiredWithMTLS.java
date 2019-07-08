@@ -27,6 +27,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFAPIRWID2OBEnsureMTLSHolderOfKeyRequired {
 
+	public FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

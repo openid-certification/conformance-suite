@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS extends AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId {
 
+	public FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

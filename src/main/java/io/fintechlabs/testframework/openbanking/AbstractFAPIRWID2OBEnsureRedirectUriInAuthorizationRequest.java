@@ -19,6 +19,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRedirectUriInAut
 
 public abstract class AbstractFAPIRWID2OBEnsureRedirectUriInAuthorizationRequest extends AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest {
 
+	protected AbstractFAPIRWID2OBEnsureRedirectUriInAuthorizationRequest(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		requestClientCredentialsGrant();

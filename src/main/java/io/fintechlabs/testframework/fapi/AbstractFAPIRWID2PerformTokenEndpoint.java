@@ -20,6 +20,10 @@ import io.fintechlabs.testframework.condition.client.ValidateSHash;
  */
 public abstract class AbstractFAPIRWID2PerformTokenEndpoint extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2PerformTokenEndpoint(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	protected void performPostAuthorizationFlow() {
 
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");

@@ -21,6 +21,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureClientIdInTokenE
 
 public abstract class AbstractFAPIRWID2OBEnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2EnsureClientIdInTokenEndpoint {
 
+	protected AbstractFAPIRWID2OBEnsureClientIdInTokenEndpoint(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

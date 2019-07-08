@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureClientIdInTokenEndpoint {
 
+	public FAPIRWID2OBEnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

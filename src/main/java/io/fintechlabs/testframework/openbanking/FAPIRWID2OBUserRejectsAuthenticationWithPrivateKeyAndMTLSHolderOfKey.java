@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBUserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBUserRejectsAuthentication {
 
+	public FAPIRWID2OBUserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

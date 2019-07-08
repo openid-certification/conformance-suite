@@ -40,6 +40,14 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2PerformTokenEndpoint {
 
+	public FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new StepsConfigurationFAPI());
+	}
+
+	protected FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 

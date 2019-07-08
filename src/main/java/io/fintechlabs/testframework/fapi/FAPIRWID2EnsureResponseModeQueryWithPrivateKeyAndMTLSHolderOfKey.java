@@ -31,6 +31,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureResponseModeQueryWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureResponseModeQuery {
 
+	public FAPIRWID2EnsureResponseModeQueryWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		// Nothing to do here

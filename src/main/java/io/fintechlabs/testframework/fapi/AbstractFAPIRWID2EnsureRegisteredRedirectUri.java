@@ -6,6 +6,10 @@ import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
 
 public abstract class AbstractFAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureRegisteredRedirectUri(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 

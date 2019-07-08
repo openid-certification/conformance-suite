@@ -12,6 +12,10 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEn
 
 public abstract class AbstractFAPIRWID2EnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2PerformTokenEndpoint {
 
+	protected AbstractFAPIRWID2EnsureClientIdInTokenEndpoint(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 

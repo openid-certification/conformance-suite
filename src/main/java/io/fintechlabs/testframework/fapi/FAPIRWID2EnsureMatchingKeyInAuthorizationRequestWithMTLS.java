@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithMTLS extends AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest {
 
+	public FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithMTLS() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

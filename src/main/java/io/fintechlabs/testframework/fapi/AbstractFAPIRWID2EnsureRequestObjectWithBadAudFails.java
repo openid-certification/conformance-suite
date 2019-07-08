@@ -13,6 +13,10 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2EnsureRequestObjectWithBadAudFails extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureRequestObjectWithBadAudFails(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		createAuthorizationRequest();

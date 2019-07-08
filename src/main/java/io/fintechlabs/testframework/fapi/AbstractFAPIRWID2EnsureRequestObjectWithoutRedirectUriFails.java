@@ -13,6 +13,10 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutRedirectUriFails extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureRequestObjectWithoutRedirectUriFails(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 

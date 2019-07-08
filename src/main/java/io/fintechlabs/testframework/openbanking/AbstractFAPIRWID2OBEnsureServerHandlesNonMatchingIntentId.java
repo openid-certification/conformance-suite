@@ -8,6 +8,10 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2OBServerTestModule {
 
+	protected AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 

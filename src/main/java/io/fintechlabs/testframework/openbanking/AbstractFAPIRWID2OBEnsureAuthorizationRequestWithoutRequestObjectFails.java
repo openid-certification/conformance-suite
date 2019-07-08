@@ -20,6 +20,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureAuthorizationReq
 
 public abstract class AbstractFAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFails extends AbstractFAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFails {
 
+	protected AbstractFAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFails(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

@@ -13,6 +13,10 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2EnsureResponseModeQuery extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureResponseModeQuery(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 

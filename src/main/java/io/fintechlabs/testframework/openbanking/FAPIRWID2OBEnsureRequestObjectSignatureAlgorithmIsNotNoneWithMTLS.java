@@ -27,6 +27,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS extends AbstractFAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNone {
 
+	public FAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

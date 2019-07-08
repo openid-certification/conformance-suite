@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2UserRejectsAuthenticationWithMTLS extends AbstractFAPIRWID2UserRejectsAuthentication {
 
+	public FAPIRWID2UserRejectsAuthenticationWithMTLS() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

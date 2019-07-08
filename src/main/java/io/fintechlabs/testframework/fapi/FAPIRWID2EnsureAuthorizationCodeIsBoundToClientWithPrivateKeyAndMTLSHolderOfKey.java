@@ -31,6 +31,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
 
+	public FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

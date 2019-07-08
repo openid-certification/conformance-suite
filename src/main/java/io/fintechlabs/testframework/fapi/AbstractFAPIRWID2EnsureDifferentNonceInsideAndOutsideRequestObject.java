@@ -35,6 +35,10 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
 public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 

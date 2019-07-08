@@ -43,6 +43,10 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
 public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureRequestObjectWithoutState(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 

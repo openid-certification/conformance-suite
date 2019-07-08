@@ -20,6 +20,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureAuthorizationCod
 
 public abstract class AbstractFAPIRWID2OBEnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
 
+	protected AbstractFAPIRWID2OBEnsureAuthorizationCodeIsBoundToClient(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

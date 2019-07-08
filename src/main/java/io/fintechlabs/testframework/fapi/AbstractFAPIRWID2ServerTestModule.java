@@ -103,6 +103,22 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected boolean logEndTestIfAlgIsNotPS256(){return false;}
 
+	private StepsConfiguration stepsConfiguration;
+
+	public interface StepsConfiguration {
+		Class<? extends Condition> getSetProtectedResourceUrl();
+	}
+
+	public static class StepsConfigurationFAPI implements StepsConfiguration {
+		public Class<? extends Condition> getSetProtectedResourceUrl() {
+			return SetProtectedResourceUrlToSingleResourceEndpoint.class;
+		}
+	}
+
+	protected AbstractFAPIRWID2ServerTestModule(StepsConfiguration stepsConfiguration) {
+		this.stepsConfiguration = stepsConfiguration;
+	}
+
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -178,7 +194,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		callAndStopOnFailure(stepsConfiguration.getSetProtectedResourceUrl());
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);

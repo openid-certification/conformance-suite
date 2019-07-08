@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureSignedRequestObjectWithRS256FailsWithMTLS extends AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails {
 
+	public FAPIRWID2EnsureSignedRequestObjectWithRS256FailsWithMTLS() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

@@ -32,6 +32,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureResponseModeQueryWithMTLS extends AbstractFAPIRWID2OBEnsureResponseModeQuery {
 
+	public FAPIRWID2OBEnsureResponseModeQueryWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

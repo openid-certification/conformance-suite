@@ -16,10 +16,21 @@ import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEn
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ServerTestModule;
 
 public abstract class AbstractFAPIRWID2OBServerTestModule extends AbstractFAPIRWID2ServerTestModule {
+
+	public static class StepsConfigurationOpenBanking implements StepsConfiguration {
+		public Class<? extends Condition> getSetProtectedResourceUrl() {
+			return SetProtectedResourceUrlToAccountsEndpoint.class;
+		}
+	}
+
+	protected AbstractFAPIRWID2OBServerTestModule(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
 
 	@Override
 	protected void performAuthorizationFlow() {

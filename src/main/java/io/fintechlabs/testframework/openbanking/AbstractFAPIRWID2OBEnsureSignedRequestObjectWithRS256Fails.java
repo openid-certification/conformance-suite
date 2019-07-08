@@ -20,6 +20,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureSignedRequestObj
 
 public abstract class AbstractFAPIRWID2OBEnsureSignedRequestObjectWithRS256Fails extends AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails {
 
+	protected AbstractFAPIRWID2OBEnsureSignedRequestObjectWithRS256Fails(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

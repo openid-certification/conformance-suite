@@ -33,6 +33,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureResponseTypeCodeFailsWithMTLS extends AbstractFAPIRWID2OBEnsureResponseTypeCodeFails {
 
+	public FAPIRWID2OBEnsureResponseTypeCodeFailsWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

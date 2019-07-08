@@ -35,6 +35,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureAuthorizationCodeIsBoundToClient {
 
+	public FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

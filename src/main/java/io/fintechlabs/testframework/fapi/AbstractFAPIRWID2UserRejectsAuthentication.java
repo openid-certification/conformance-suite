@@ -8,6 +8,10 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2UserRejectsAuthentication(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void createAuthorizationRequest() {
 
