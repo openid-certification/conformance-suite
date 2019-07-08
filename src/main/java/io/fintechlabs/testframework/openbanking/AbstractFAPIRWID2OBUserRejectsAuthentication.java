@@ -18,6 +18,11 @@ import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2UserRejectsAuthentication;
 
 public abstract class AbstractFAPIRWID2OBUserRejectsAuthentication extends AbstractFAPIRWID2UserRejectsAuthentication {
+
+	protected AbstractFAPIRWID2OBUserRejectsAuthentication(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

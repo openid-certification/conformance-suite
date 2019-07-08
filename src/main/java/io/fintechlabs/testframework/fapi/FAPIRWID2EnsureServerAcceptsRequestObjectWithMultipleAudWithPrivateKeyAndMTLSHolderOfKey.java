@@ -31,6 +31,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
 
+	public FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

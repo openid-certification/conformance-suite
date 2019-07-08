@@ -33,6 +33,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithMTLS extends AbstractFAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObject {
 
+	public FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

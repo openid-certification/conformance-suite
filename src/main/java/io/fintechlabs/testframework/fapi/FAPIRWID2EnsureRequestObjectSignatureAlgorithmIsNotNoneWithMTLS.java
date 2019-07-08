@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS extends AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone {
 
+	public FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS() {
+		super(new StepsConfigurationFAPI());
+	}
+
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

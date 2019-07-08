@@ -28,6 +28,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPIRWID2OBEnsureRequestObjectWithBadAudFailsWithMTLS extends AbstractFAPIRWID2OBEnsureRequestObjectWithBadAudFails {
+
+	public FAPIRWID2OBEnsureRequestObjectWithBadAudFailsWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

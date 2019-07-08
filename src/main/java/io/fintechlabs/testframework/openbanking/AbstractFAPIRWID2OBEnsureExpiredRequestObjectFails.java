@@ -20,6 +20,10 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureExpiredRequestOb
 
 public abstract class AbstractFAPIRWID2OBEnsureExpiredRequestObjectFails extends AbstractFAPIRWID2EnsureExpiredRequestObjectFails {
 
+	protected AbstractFAPIRWID2OBEnsureExpiredRequestObjectFails(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

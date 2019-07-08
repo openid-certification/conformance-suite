@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureRedirectUriInAuthorizationRequest {
 
+	public FAPIRWID2OBEnsureRedirectUriInAuthorizationRequestWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

@@ -30,6 +30,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceedsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureServerAcceptsRequestObjectWithMultipleAud {
+
+	public FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceedsWithPrivateKeyAndMTLSHolderOfKey() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

@@ -13,6 +13,10 @@ import io.fintechlabs.testframework.condition.common.ExpectResponseTypeErrorPage
 
 public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2ServerTestModule {
 
+	protected AbstractFAPIRWID2EnsureResponseTypeCodeFails(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
+
 	@Override
 	protected void performAuthorizationFlow() {
 

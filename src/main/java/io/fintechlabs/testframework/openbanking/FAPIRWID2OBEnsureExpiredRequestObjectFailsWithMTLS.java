@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureExpiredRequestObjectFailsWithMTLS extends AbstractFAPIRWID2OBEnsureExpiredRequestObjectFails {
 
+	public FAPIRWID2OBEnsureExpiredRequestObjectFailsWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 

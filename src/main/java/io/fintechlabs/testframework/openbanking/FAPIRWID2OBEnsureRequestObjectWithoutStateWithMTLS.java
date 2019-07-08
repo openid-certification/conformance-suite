@@ -29,6 +29,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2OBEnsureRequestObjectWithoutStateWithMTLS extends AbstractFAPIRWID2OBEnsureRequestObjectWithoutState {
 
+	public FAPIRWID2OBEnsureRequestObjectWithoutStateWithMTLS() {
+		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	}
+
 	@Override
 	protected void createClientCredentialsRequest() {
 
