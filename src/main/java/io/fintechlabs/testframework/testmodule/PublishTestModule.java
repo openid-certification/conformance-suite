@@ -19,4 +19,6 @@ public @interface PublishTestModule {
 
 	String summary() default "";
 
+	String[] notApplicableForVariants() default {};
+
 }

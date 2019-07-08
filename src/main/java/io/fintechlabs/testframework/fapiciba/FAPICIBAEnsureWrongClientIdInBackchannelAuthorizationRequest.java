@@ -31,6 +31,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl"
+	},
+	notApplicableForVariants = {
+		FAPICIBA.variant_ping_privatekeyjwt,
+		FAPICIBA.variant_poll_privatekeyjwt,
+		FAPICIBA.variant_openbankinguk_ping_privatekeyjwt,
+		FAPICIBA.variant_openbankinguk_poll_privatekeyjwt
 	}
 )
 public class FAPICIBAEnsureWrongClientIdInBackchannelAuthorizationRequest extends AbstractFAPICIBAEnsureSendingInvalidBackchannelAuthorisationRequest {
