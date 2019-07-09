@@ -85,6 +85,7 @@ public class TestInfoApi {
 				.include("alias")
 				.include("owner")
 				.include("planId")
+				.include("variant")
 				.include("status")
 				.include("version")
 				.include("summary")
