@@ -142,6 +142,7 @@ public class DBTestPlanService implements TestPlanService {
 		query.fields()
 				.include("_id")
 				.include("planName")
+				.include("variant")
 				.include("description")
 				.include("started")
 				.include("modules")
