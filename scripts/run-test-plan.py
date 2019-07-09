@@ -624,10 +624,18 @@ if __name__ == '__main__':
 
     # read json config file which records a list of expected failures/warnings
     expected_failures_list = []
+    expected_failures_file_list = []
     if expected_failures_file:
-        with open(expected_failures_file) as f:
-            expected_failures_data = f.read()
-        expected_failures_list = json.loads(expected_failures_data)
+        if '|' in expected_failures_file:
+            expected_failures_file_list = expected_failures_file.split("|")
+        else:
+            expected_failures_file_list.append(expected_failures_file)
+
+        for fname in expected_failures_file_list:
+            with open(fname) as f:
+                data = f.read();
+                if data:
+                    expected_failures_list.extend(json.loads(data))
 
     for expected_failure_obj in expected_failures_list:
         expected_failure_obj['flag'] = 'none'
