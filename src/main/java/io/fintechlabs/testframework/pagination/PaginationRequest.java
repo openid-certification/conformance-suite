@@ -5,12 +5,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Field;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 
@@ -65,6 +73,41 @@ public class PaginationRequest {
 	public void setOrder(String order) {
 		this.order = order;
 	}
+
+	public <T> PaginationResponse<T> getResponse(
+			Function<Pageable, Page<T>> queryAll,
+			BiFunction<String, Pageable, Page<T>> querySearch) {
+
+		Page<T> allResults = queryAll.apply(getPageable());
+		Page<T> filteredResults = Strings.isNullOrEmpty(search) ? allResults : querySearch.apply('\"' + search + '\"', getPageable());
+
+		return new PaginationResponse<T>(draw,
+				allResults.getTotalElements(),
+				filteredResults.getTotalElements(),
+				Lists.newArrayList(filteredResults));
+	}
+
+	private Pageable getPageable() {
+
+		return PageRequest.of(start / length, length, getSort());
+	}
+
+	private Sort getSort() {
+
+		Sort sort = Sort.unsorted();
+
+		String[] orderParts = order.split(",");
+		for (int i = 0; i < orderParts.length; i += 2) {
+			String column = orderParts[i];
+			String dir = (i + 1 < orderParts.length) ? orderParts[i + 1] : "asc";
+			Order order = dir.equals("desc") ? Sort.Order.desc(column) : Sort.Order.asc(column);
+			sort = sort.and(Sort.by(order));
+		}
+
+		return sort;
+	}
+
+	// ---------------------
 
 	public Map getResults(MongoCollection<Document> collection, CriteriaDefinition criteria) {
 
