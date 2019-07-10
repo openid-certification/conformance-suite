@@ -1,6 +1,8 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
@@ -120,12 +122,15 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 
 		callAndStopOnFailure(FetchServerKeys.class);
 
+		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
 
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// get the second client and second JWKs Key
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
@@ -134,6 +139,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();

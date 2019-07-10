@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
@@ -124,6 +125,8 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectSer
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+
+		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
