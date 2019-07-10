@@ -110,33 +110,5 @@
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
-    },
-    {
-        "test-name": "fapi-rw-id2-ob-ensure-mtls-holder-of-key-required-with-mtls",
-        "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "CheckTokenEndpointHttpStatus401",
-        "expected-result": "failure"
-    },
-    {
-        "test-name": "fapi-rw-id2-ob-ensure-mtls-holder-of-key-required-with-mtls",
-        "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidClient",
-        "expected-result": "failure"
-    },
-    {
-        "test-name": "fapi-rw-id2-ensure-mtls-holder-of-key-required-with-mtls",
-        "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "CheckTokenEndpointHttpStatus401",
-        "expected-result": "failure"
-    },
-    {
-        "test-name": "fapi-rw-id2-ensure-mtls-holder-of-key-required-with-mtls",
-        "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidClient",
-        "expected-result": "failure"
     }
 ]
