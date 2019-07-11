@@ -202,11 +202,6 @@ public class DBTestInfoService implements TestInfoService {
 	@Override
 	public void createIndexes(){
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new Document("testName", 1));
-		collection.createIndex(new Document("description", 1));
-		collection.createIndex(new Document("started", 1));
-		collection.createIndex(new Document("owner", 1));
-		collection.createIndex(new Document("publish", 1));
 		collection.createIndex(new Document("$**", "text"));
 	}
 }

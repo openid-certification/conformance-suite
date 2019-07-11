@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Field;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,7 @@ import com.mongodb.client.result.UpdateResult;
 
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.pagination.PaginationRequest;
+import io.fintechlabs.testframework.pagination.PaginationResponse;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 
 @Service
@@ -45,6 +45,9 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	private PlanRepository plans;
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -113,61 +116,35 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#getTestPlan(java.lang.String)
 	 */
 	@Override
-	public Map getTestPlan(String id) {
-
-		Criteria criteria = new Criteria();
-		criteria.and("_id").is(id);
+	public Plan getTestPlan(String id) {
 
 		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
+			return plans.findByIdAndOwner(id, authenticationFacade.getPrincipal()).orElse(null);
+		} else {
+			return plans.findById(id).orElse(null);
 		}
-
-		Query query = new Query(criteria);
-
-		return mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).first();
 	}
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.info.TestPlanService#getPublicPlan(java.lang.String)
 	 */
 	@Override
-	public Map getPublicPlan(String id) {
+	public PublicPlan getPublicPlan(String id) {
 
-		Criteria criteria = new Criteria();
-		criteria.and("_id").is(id);
-		criteria.and("publish").in("summary", "everything");
-
-		Query query = new Query(criteria);
-
-		query.fields()
-				.include("_id")
-				.include("planName")
-				.include("variant")
-				.include("description")
-				.include("started")
-				.include("modules")
-				.include("publish")
-				.include("version");
-
-		return mongoTemplate
-				.getCollection(COLLECTION)
-				.find(query.getQueryObject())
-				.projection(query.getFieldsObject())
-				.first();
+		return plans.findByIdPublic(id).orElse(null);
 	}
 
 	@Override
 	public JsonObject getModuleConfig(String planId, String moduleName) {
-		Map testPlan = getTestPlan(planId);
+		Plan testPlan = getTestPlan(planId);
 
-		List modules = (List) testPlan.get("modules");
+		List<Plan.Module> modules = testPlan.getModules();
 
 		boolean found = false;
 
-		for (Object o : modules)
+		for (Plan.Module module : modules)
 		{
-			Map module = (Map) o;
-			if (module.containsValue(moduleName)) {
+			if (module.getTestModule().equals(moduleName)) {
 				found = true;
 			}
 		}
@@ -177,7 +154,7 @@ public class DBTestPlanService implements TestPlanService {
 			return null;
 		}
 
-		Object dbConfig = testPlan.get("config");
+		Document dbConfig = testPlan.getConfig();
 
 		String json = gson.toJson(dbConfig);
 
@@ -202,34 +179,29 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#getPaginatedPlansForCurrentUser()
 	 */
 	@Override
-	public Map getPaginatedPlansForCurrentUser(PaginationRequest page) {
-
-		Criteria criteria = new Criteria();
+	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page) {
 
 		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
+			Map<String, String> owner = authenticationFacade.getPrincipal();
+			return page.getResponse(
+					p -> plans.findAllByOwner(owner, p),
+					(s, p) -> plans.findAllByOwnerSearch(owner, s, p));
+		} else {
+			return page.getResponse(
+					p -> plans.findAll(p),
+					(s, p) -> plans.findAllSearch(s, p));
 		}
-
-		return page.getResults(mongoTemplate.getCollection(COLLECTION), criteria);
 	}
 
 	/* (non-Javadoc)
 	 * @see io.fintechlabs.testframework.info.TestPlanService#getPaginatedPublicPlans()
 	 */
 	@Override
-	public Map getPaginatedPublicPlans(PaginationRequest page) {
+	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page) {
 
-		Criteria criteria = new Criteria("publish").in("summary", "everything");
-
-		Field fields = new Field()
-				.include("_id")
-				.include("planName")
-				.include("description")
-				.include("started")
-				.include("modules")
-				.include("publish");
-
-		return page.getResults(mongoTemplate.getCollection(COLLECTION), criteria, fields);
+		return page.getResponse(
+				p -> plans.findAllPublic(p),
+				(s, p) -> plans.findAllPublicSearch(s, p));
 	}
 
 	/*
@@ -310,12 +282,11 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Override
 	public String getTestPlanVariant(String planId) {
-		Map testPlan = getTestPlan(planId);
+		Plan testPlan = getTestPlan(planId);
 
-		if (testPlan != null && testPlan.containsKey("variant") && testPlan.get("variant") != null
-			&& !Strings.isNullOrEmpty(testPlan.get("variant").toString())) {
+		if (testPlan != null && !Strings.isNullOrEmpty(testPlan.getVariant())) {
 
-			return testPlan.get("variant").toString();
+			return testPlan.getVariant();
 		}
 
 		return null;
@@ -324,11 +295,6 @@ public class DBTestPlanService implements TestPlanService {
 	@Override
 	public void createIndexes(){
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new Document("planName", 1));
-		collection.createIndex(new Document("description", 1));
-		collection.createIndex(new Document("started", 1));
-		collection.createIndex(new Document("owner", 1));
-		collection.createIndex(new Document("publish", 1));
 		collection.createIndex(new Document("$**", "text"));
 	}
 }
