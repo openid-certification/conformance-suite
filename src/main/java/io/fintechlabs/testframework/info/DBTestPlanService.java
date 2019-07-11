@@ -1,8 +1,6 @@
 package io.fintechlabs.testframework.info;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +21,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 
@@ -84,32 +80,18 @@ public class DBTestPlanService implements TestPlanService {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-			.add("_id", id)
-			.add("planName", planName)
-			.add("variant", variant)
-			.add("config", config)
-			.add("started", Instant.now().toString())
-			.add("owner", owner)
-			.add("description", description) // for the specific instance
-			.add("version", version)
-			.add("summary", summary) // from the plan definition
-			.add("publish", publish);
-
-		List<DBObject> moduleStructure = new ArrayList<>();
-
-		for (String module : testModules) {
-			BasicDBObjectBuilder moduleBuilder = BasicDBObjectBuilder.start()
-				.add("testModule", module)
-				.add("instances", Collections.emptyList());
-
-			moduleStructure.add(moduleBuilder.get());
-		}
-
-		documentBuilder.add("modules", moduleStructure);
-
-
-		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+		plans.save(new Plan(
+				id,
+				planName,
+				variant,
+				config,
+				Instant.now(),
+				owner,
+				description, // for the specific instance
+				testModules,
+				version,
+				summary, // from the plan definition
+				publish));
 	}
 
 	/* (non-Javadoc)

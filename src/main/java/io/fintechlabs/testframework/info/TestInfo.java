@@ -1,11 +1,16 @@
 package io.fintechlabs.testframework.info;
 
+import java.time.Instant;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.logging.GsonObjectToBsonDocumentConverter;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
 
 @Document(collection = DBTestInfoService.COLLECTION)
@@ -32,6 +37,40 @@ public class TestInfo {
 	@Indexed
 	private String publish;
 	private String result;
+
+	TestInfo() {
+		// Load constructor
+	}
+
+	public TestInfo(String id,
+			String testName,
+			String variant,
+			Instant started,
+			JsonObject config,
+			String description,
+			String alias,
+			Map<String, String> owner,
+			String planId,
+			String version,
+			String summary,
+			String publish) {
+		this._id = id;
+		this.testId = id;
+		this.testName = testName;
+		this.variant = variant;
+		this.started = started.toString();
+		this.config = org.bson.Document.parse(new Gson().toJson(
+				GsonObjectToBsonDocumentConverter.convertFieldsToStructure(config)));
+		this.description = description;
+		this.alias = alias;
+		this.owner = owner;
+		this.planId = planId;
+		this.status = Status.CREATED;
+		this.version = version;
+		this.summary = summary;
+		this.publish = publish;
+		this.result = null;
+	}
 
 	public String getId() {
 		return _id;

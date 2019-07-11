@@ -1,11 +1,20 @@
 package io.fintechlabs.testframework.info;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.logging.GsonObjectToBsonDocumentConverter;
 
 @Document(collection = DBTestPlanService.COLLECTION)
 public class Plan {
@@ -33,6 +42,15 @@ public class Plan {
 		private String testModule;
 		private List<String> instances;
 
+		Module() {
+			// Load constructor
+		}
+
+		public Module(String module) {
+			this.testModule = module;
+			this.instances = Collections.emptyList();
+		}
+
 		public String getTestModule() {
 			return testModule;
 		}
@@ -40,6 +58,37 @@ public class Plan {
 		public List<String> getInstances() {
 			return instances;
 		}
+	}
+
+	Plan() {
+		// Load constructor
+	}
+
+	public Plan(String id,
+			String planName,
+			String variant,
+			JsonObject config,
+			Instant started,
+			Map<String, String> owner,
+			String description,
+			String[] testModules,
+			String version,
+			String summary,
+			String publish) {
+		this._id = id;
+		this.planName = planName;
+		this.variant = variant;
+		this.config = org.bson.Document.parse(new Gson().toJson(
+				GsonObjectToBsonDocumentConverter.convertFieldsToStructure(config)));
+		this.started = started.toString();
+		this.owner = owner;
+		this.description = description;
+		this.modules = Arrays.stream(testModules)
+				.map(Module::new)
+				.collect(Collectors.toList());
+		this.version = version;
+		this.summary = summary;
+		this.publish = publish;
 	}
 
 	public String getId() {
