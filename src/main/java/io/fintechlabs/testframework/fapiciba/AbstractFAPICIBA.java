@@ -6,6 +6,8 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.CheckAuthReqIdInCallback;
 import io.fintechlabs.testframework.condition.as.CheckNotificationCallbackOnlyAuthReqId;
+import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.condition.as.VerifyBearerTokenHeaderCallback;
 import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpointRequest;
@@ -268,6 +270,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// Set up the client configuration
 		configClient();
@@ -307,6 +310,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
@@ -332,6 +336,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);

@@ -3,6 +3,8 @@ package io.fintechlabs.testframework.fapi;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
+import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
@@ -149,6 +151,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		whichClient = 1;
 
@@ -161,6 +164,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		if(logEndTestIfAlgIsNotPS256()){return;}
 
@@ -182,6 +186,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE,"FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 
@@ -391,6 +396,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+			callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);

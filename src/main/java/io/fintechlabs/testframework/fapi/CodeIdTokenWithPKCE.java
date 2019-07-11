@@ -1,5 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import org.slf4j.Logger;
@@ -94,6 +96,8 @@ public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+
+		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
