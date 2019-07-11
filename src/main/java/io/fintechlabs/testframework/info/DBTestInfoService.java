@@ -103,6 +103,9 @@ public class DBTestInfoService implements TestInfoService {
 
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(id);
+		if (Result.REVIEW.equals(result)) {
+			criteria.and("result").ne("FAILED");
+		}
 
 		Query query = new Query(criteria);
 

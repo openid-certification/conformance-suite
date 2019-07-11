@@ -577,7 +577,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public void fireTestReviewNeeded() {
-		setResult(Result.REVIEW);
+		if (!Result.FAILED.equals(result)) {
+			setResult(Result.REVIEW);
+		}
 	}
 
 	@Override
