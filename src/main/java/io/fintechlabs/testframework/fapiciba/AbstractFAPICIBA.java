@@ -71,10 +71,10 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import io.fintechlabs.testframework.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdLength;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenLength;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdLength;
 import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
@@ -127,6 +127,7 @@ import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
+import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsMTLS;
 import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsPrivateKeyJwt;
@@ -832,9 +833,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		env.mapKey("client_request", envKey);
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		// FIXME: disable this for now as Authlete doesn't support FAPI-CIBA yet and adding an exception for every
-		// single ping mode test is getting tedious
-		// callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
 
 		env.unmapKey("client_request");
 
