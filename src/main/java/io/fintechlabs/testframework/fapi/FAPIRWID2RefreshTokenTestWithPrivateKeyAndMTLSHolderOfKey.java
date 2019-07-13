@@ -30,10 +30,11 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2RefreshTokenTestModule {
 
-	protected FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey() {
+	public FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey() {
 		super(new StepsConfigurationFAPI());
 	}
 
+	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 

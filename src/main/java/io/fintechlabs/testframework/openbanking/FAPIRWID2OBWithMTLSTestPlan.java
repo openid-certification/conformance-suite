@@ -42,6 +42,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS.class,
 		FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientWithMTLS.class,
 
+		//Refresh token tests
+		FAPIRWID2OBRefreshTokenWithMTLS.class,
+
 		// OB systems specific tests
 		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS.class,
 	}
