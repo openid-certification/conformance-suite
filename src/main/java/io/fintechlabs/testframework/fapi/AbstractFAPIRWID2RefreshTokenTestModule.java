@@ -5,8 +5,8 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken;
-import io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerTokenExpectingError;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
+import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
@@ -52,6 +52,10 @@ import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
+
+	protected AbstractFAPIRWID2RefreshTokenTestModule(StepsConfiguration stepsConfiguration) {
+		super(stepsConfiguration);
+	}
 
 	protected abstract void addClientAuthenticationToTokenEndpointRequest();
 
@@ -206,11 +210,11 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 
-			callAndStopOnFailure(CallAccountsEndpointWithBearerToken.class, "RFC7231-5.3.2");
+			callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
 
 			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 
 			// Try the second client
 
@@ -267,7 +271,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			// Try client 2's access token with client 1's keys
 
-			callAndContinueOnFailure(CallAccountsEndpointWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
+			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
 
 			setStatus(Status.WAITING);
 			eventLog.endBlock();
