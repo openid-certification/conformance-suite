@@ -72,5 +72,3 @@ public class FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey extends Abs
 
 	}
 }
-
-
