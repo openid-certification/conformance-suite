@@ -78,7 +78,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
 		addIdTokenClaimsToEnv("first_id_token_claims");
-		callAndStopOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
+		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if(env.getString("refresh_token") == null) {
 			fireTestFinished();
