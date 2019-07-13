@@ -72,12 +72,13 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		addPromptConsentToAuthorizationEndpointRequest();
 	}
 
-	protected void sendRefreshTokenRequestAndCheckIdTokenClaims() {
+	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
 		addIdTokenClaimsToEnv("first_id_token_claims");
 		callAndStopOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if(env.getString("refresh_token") == null) {
 			fireTestFinished();
+			return true;
 		}
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		refreshTokenRequest();
@@ -85,6 +86,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		if(addIdTokenClaimsToEnv("second_id_token_claims")) {
 			callAndContinueOnFailure(CompareIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-12.2");
 		}
+		return false;
 	}
 
 	protected boolean addIdTokenClaimsToEnv(String targetKey) {
@@ -194,7 +196,9 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			String firstAccessToken = env.getString("token_endpoint_response", "access_token");
 			env.putString("first_access_token", firstAccessToken);
 
-			sendRefreshTokenRequestAndCheckIdTokenClaims();
+			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
+				return;
+			}
 
 			requestProtectedResource();
 
@@ -249,7 +253,9 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			String firstAccessToken = env.getString("token_endpoint_response", "access_token");
 			env.putString("first_access_token", firstAccessToken);
 
-			sendRefreshTokenRequestAndCheckIdTokenClaims();
+			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
+				return;
+			}
 
 			requestProtectedResource();
 
