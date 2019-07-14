@@ -14,7 +14,8 @@ public class EnsureRefreshTokenContainsAllowedCharactersOnly extends AbstractCon
 	public Environment evaluate(Environment env) {
 		String refreshToken = env.getString("token_endpoint_response", "refresh_token");
 		if(refreshToken==null) {
-			throw error("Token endpoint response does not contain a refresh_token");
+			logSuccess("Token endpoint response does not contain a refresh_token");
+			return env;
 		}
 
 		Pattern validPattern = Pattern.compile(VSCHAR_PATTERN);

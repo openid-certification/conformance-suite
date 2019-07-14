@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
@@ -80,7 +81,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		addIdTokenClaimsToEnv("first_id_token_claims");
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
-		if(env.getString("refresh_token") == null) {
+		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
 			fireTestFinished();
 			return true;
 		}
@@ -135,7 +136,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		env.removeObject("id_token");
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
-		env.removeObject("refresh_token");
+		env.removeNativeValue("refresh_token");
 		callAndStopOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 
 		eventLog.endBlock();
@@ -221,6 +222,10 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			whichClient = 2;
 
 			eventLog.startBlock(currentClientString() + "Setup");
+
+			//remove refresh token from 1st client
+			env.removeNativeValue("refresh_token");
+
 			env.mapKey("client", "client2");
 			env.mapKey("client_jwks", "client_jwks2");
 			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
