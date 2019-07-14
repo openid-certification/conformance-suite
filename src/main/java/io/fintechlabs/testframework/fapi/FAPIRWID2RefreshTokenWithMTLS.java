@@ -30,7 +30,7 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 )
 public class FAPIRWID2RefreshTokenWithMTLS extends AbstractFAPIRWID2RefreshTokenTestModule {
 
-	protected FAPIRWID2RefreshTokenWithMTLS() {
+	public FAPIRWID2RefreshTokenWithMTLS() {
 		super(new StepsConfigurationFAPI());
 	}
 
