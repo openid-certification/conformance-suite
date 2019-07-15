@@ -8,8 +8,8 @@ public interface SavedConfigurationService {
 
 	Document getLastConfigForCurrentUser();
 
-	void saveTestConfigurationForCurrentUser(JsonObject config, String testName);
+	void saveTestConfigurationForCurrentUser(JsonObject config, String testName, String variant);
 
-	void savePlanConfigurationForCurrentUser(JsonObject config, String planName);
+	void savePlanConfigurationForCurrentUser(JsonObject config, String planName, String variant);
 
 }

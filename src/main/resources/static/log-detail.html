@@ -344,6 +344,18 @@
 	                        $('#configModal').modal('show');
 	                    });
 
+	                    if (!public) {
+                            $('#editConfigBtn').click(function(evt) {
+                                evt.preventDefault();
+                                if (data.planId) {
+                                    window.location.assign('/index.html?edit-plan=' + encodeURIComponent(data.planId));
+                                } else {
+                                    window.location.assign('/index.html?edit-test=' + encodeURIComponent(data.testId));
+                                }
+                            });
+                            $('#editConfigBtn').show();
+                        }
+
 	                    // wire up publish button
 	                    $('#publishBtn').click(function(evt) {
 	                    	evt.preventDefault();

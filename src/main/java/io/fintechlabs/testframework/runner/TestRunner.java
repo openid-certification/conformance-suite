@@ -266,7 +266,7 @@ public class TestRunner implements DataUtils {
 			}
 
 			// save this test config on the user's stack
-			savedConfigurationService.saveTestConfigurationForCurrentUser(config, testName);
+			savedConfigurationService.saveTestConfigurationForCurrentUser(config, testName, testVariant);
 
 		}
 
