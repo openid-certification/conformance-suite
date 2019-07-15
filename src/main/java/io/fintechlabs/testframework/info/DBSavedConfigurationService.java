@@ -51,7 +51,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	}
 
 	@Override
-	public void saveTestConfigurationForCurrentUser(JsonObject config, String testName) {
+	public void saveTestConfigurationForCurrentUser(JsonObject config, String testName, String variant) {
 		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
@@ -65,6 +65,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 			.add("owner", user)
 			.add("testName", testName)
 			.add("config", config)
+			.add("variant", variant)
 			.add("time", Instant.now().toString())
 			.get();
 
@@ -73,7 +74,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	}
 
 	@Override
-	public void savePlanConfigurationForCurrentUser(JsonObject config, String planName) {
+	public void savePlanConfigurationForCurrentUser(JsonObject config, String planName, String variant) {
 		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
@@ -87,6 +88,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 			.add("owner", user)
 			.add("planName", planName)
 			.add("config", config)
+			.add("variant", variant)
 			.add("time", Instant.now().toString())
 			.get();
 

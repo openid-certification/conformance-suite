@@ -400,6 +400,8 @@ var FAPI_UI = {
 			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section."
 		},
 
-		testJSON : {}
+		testJSON : {},
+
+		selectedVariant: undefined
 
 };

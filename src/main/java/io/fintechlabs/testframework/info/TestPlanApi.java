@@ -91,7 +91,7 @@ public class TestPlanApi implements DataUtils {
 		}
 
 		// save the configuration for the test plan
-		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName);
+		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName, variant);
 
 		String[] testModuleNames = holder.testModuleNames;
 		if (!Strings.isNullOrEmpty(variant)) {
