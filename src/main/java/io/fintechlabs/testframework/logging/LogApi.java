@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Field;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,8 +41,11 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
-import io.fintechlabs.testframework.info.DBTestInfoService;
+import io.fintechlabs.testframework.info.PublicTestInfo;
+import io.fintechlabs.testframework.info.TestInfo;
+import io.fintechlabs.testframework.info.TestInfoRepository;
 import io.fintechlabs.testframework.pagination.PaginationRequest;
+import io.fintechlabs.testframework.pagination.PaginationResponse;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.security.KeyManager;
 
@@ -58,6 +61,9 @@ public class LogApi {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	private TestInfoRepository testInfos;
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -76,31 +82,21 @@ public class LogApi {
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
 		PaginationRequest page) {
 
-		Map response;
+		PaginationResponse<?> response;
 
 		if (publicOnly) {
-			Criteria criteria = new Criteria();
-			criteria.and("publish").in("summary", "everything");
-
-			Field fields = new Field()
-				.include("_id")
-				.include("testId")
-				.include("testName")
-				.include("started")
-				.include("description")
-				.include("planId")
-				.include("status")
-				.include("result");
-
-			response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria, fields);
+			response = page.getResponse(
+					p -> testInfos.findAllPublic(p),
+					(s, p) -> testInfos.findAllPublicSearch(s, p));
+		} else if (authenticationFacade.isAdmin()) {
+			response = page.getResponse(
+					p -> testInfos.findAll(p),
+					(s, p) -> testInfos.findAllSearch(s, p));
 		} else {
-			Criteria criteria = new Criteria();
-
-			if (!authenticationFacade.isAdmin()) {
-				criteria.and("owner").is(authenticationFacade.getPrincipal());
-			}
-
-			response = page.getResults(mongoTemplate.getCollection(DBTestInfoService.COLLECTION), criteria);
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			response = page.getResponse(
+					p -> testInfos.findAllByOwner(owner, p),
+					(s, p) -> testInfos.findAllByOwnerSearch(owner, s, p));
 		}
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -132,26 +128,30 @@ public class LogApi {
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
-		Document testInfo = null;
+		Optional<?> testInfo = Optional.empty();
+		String testModuleName = null;
+
 		if (publicOnly) {
-			Criteria criteria = new Criteria();
-			criteria.and("_id").is(id);
-			criteria.and("publish").is("everything");
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(criteria.getCriteriaObject()).first();
+			testInfo = testInfos.findByIdPublic(id);
 		} else if (authenticationFacade.isAdmin()) {
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id)).first();
+			testInfo = testInfos.findById(id);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
-				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id).append("owner", owner)).first();
+				testInfo = testInfos.findByIdAndOwner(id, owner);
 			}
 		}
 
-		if (testInfo == null) {
+		if (!testInfo.isPresent()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} else if (testInfo.get() instanceof TestInfo) {
+			testModuleName = ((TestInfo) testInfo.get()).getTestName();
+		} else if (testInfo.get() instanceof PublicTestInfo) {
+			testModuleName = ((PublicTestInfo) testInfo.get()).getTestName();
 		}
 
-		String testModuleName = testInfo.get("testName") != null ? testInfo.get("testName").toString() : "";
+		if (testModuleName == null)
+			testModuleName = "";
 
 		HttpHeaders headers = new HttpHeaders();
 
@@ -163,7 +163,7 @@ public class LogApi {
 		export.put("exportedFrom", baseUrl);
 		export.put("exportedBy", authenticationFacade.getPrincipal());
 		export.put("exportedVersion", version);
-		export.put("testInfo", testInfo);
+		export.put("testInfo", testInfo.get());
 		export.put("results", results);
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
@@ -221,22 +221,12 @@ public class LogApi {
 
 		if (isPublic) {
 			// Check publish status of test
-			Criteria criteria = new Criteria();
-			criteria.and("_id").is(id);
-			Query query = new Query(criteria);
-			query.fields().include("publish");
-			Document testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(query.getQueryObject()).first();
-			if (testInfo == null)
+			Optional<PublicTestInfo> testInfo = testInfos.findByIdPublic(id);
+			if (!testInfo.isPresent()) {
 				return Collections.emptyList();
-			String publish = (String) testInfo.get("publish");
-			if (publish == null)
-				return Collections.emptyList();
-			else if (publish.equals("summary"))
-				summaryOnly = true;
-			else if (publish.equals("everything"))
-				summaryOnly = false;
-			else
-				return Collections.emptyList();
+			} else {
+				summaryOnly = !testInfo.get().getPublish().equals("everything");
+			}
 		} else {
 			summaryOnly = false;
 		}

@@ -1,10 +1,9 @@
 package io.fintechlabs.testframework.info;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.pagination.PaginationRequest;
+import io.fintechlabs.testframework.pagination.PaginationResponse;
 
 public interface TestPlanService {
 
@@ -21,7 +20,7 @@ public interface TestPlanService {
 	 * @param id
 	 * @return
 	 */
-	Map getTestPlan(String id);
+	Plan getTestPlan(String id);
 
 	/**
 	 * Returns the configuration to be used for a module of a given name
@@ -34,17 +33,17 @@ public interface TestPlanService {
 	/**
 	 * @return
 	 */
-	Map getPaginatedPlansForCurrentUser(PaginationRequest page);
+	PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page);
 
 	/**
 	 *
 	 */
-	Map getPaginatedPublicPlans(PaginationRequest page);
+	PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page);
 
 	/**
 	 * @param id
 	 */
-	Map getPublicPlan(String id);
+	PublicPlan getPublicPlan(String id);
 
 	/**
 	 * Sets published status of test plan and latest tests

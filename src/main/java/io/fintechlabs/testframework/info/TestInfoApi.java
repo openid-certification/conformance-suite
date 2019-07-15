@@ -3,15 +3,13 @@ package io.fintechlabs.testframework.info;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class TestInfoApi {
 
 	@Autowired
-	private MongoTemplate mongoTemplate;
+	private TestInfoRepository testInfos;
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -49,14 +47,14 @@ public class TestInfoApi {
 	@ApiResponses({
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
-	public ResponseEntity<List<Document>> getAllTests() {
-		List<Document> testInfo = null;
+	public ResponseEntity<List<TestInfo>> getAllTests() {
+		List<TestInfo> testInfo = null;
 		if (authenticationFacade.isAdmin()) {
-			testInfo = Lists.newArrayList(mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find());
+			testInfo = Lists.newArrayList(testInfos.findAll());
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
-				testInfo = Lists.newArrayList(mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("owner", owner)));
+				testInfo = Lists.newArrayList(testInfos.findAllByOwner(owner));
 			}
 		}
 		return new ResponseEntity<>(testInfo, HttpStatus.OK);
@@ -73,41 +71,21 @@ public class TestInfoApi {
 		@ApiParam(value = "Id of test") @PathVariable("id") String id,
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
-		Document testInfo = null;
+		Optional<?> testInfo = Optional.empty();
 		if (publicOnly) {
-			Query query = new Query();
-			query.fields()
-				.include("_id")
-				.include("testId")
-				.include("testName")
-				.include("started")
-				.include("description")
-				.include("alias")
-				.include("owner")
-				.include("planId")
-				.include("variant")
-				.include("status")
-				.include("version")
-				.include("summary")
-				.include("publish")
-				.include("result");
-
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION)
-					.find(new Document("_id", id))
-					.projection(query.getFieldsObject())
-					.first();
+			testInfo = testInfos.findByIdPublic(id);
 		} else if (authenticationFacade.isAdmin()) {
-			testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id)).first();
+			testInfo = testInfos.findById(id);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			if (owner != null) {
-				testInfo = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).find(new Document("_id", id).append("owner", owner)).first();
+				testInfo = testInfos.findByIdAndOwner(id, owner);
 			}
 		}
-		if (testInfo == null) {
+		if (!testInfo.isPresent()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else {
-			return new ResponseEntity<>(testInfo, HttpStatus.OK);
+			return new ResponseEntity<>(testInfo.get(), HttpStatus.OK);
 		}
 
 	}

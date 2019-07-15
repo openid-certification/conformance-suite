@@ -40,6 +40,7 @@ import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.pagination.PaginationRequest;
+import io.fintechlabs.testframework.pagination.PaginationResponse;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.testmodule.DataUtils;
@@ -121,7 +122,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
 		PaginationRequest page) {
 
-		Map response = publicOnly
+		PaginationResponse<?> response = publicOnly
 				? planService.getPaginatedPublicPlans(page)
 				: planService.getPaginatedPlansForCurrentUser(page);
 
@@ -138,7 +139,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
-		Map testPlan = publicOnly
+		Object testPlan = publicOnly
 				? planService.getPublicPlan(id)
 				: planService.getTestPlan(id);
 

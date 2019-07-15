@@ -20,7 +20,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 
@@ -40,6 +39,9 @@ public class DBTestInfoService implements TestInfoService {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	private TestInfoRepository testInfos;
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -72,23 +74,19 @@ public class DBTestInfoService implements TestInfoService {
 	public void createTest(String id, String testName, String variant, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start()
-			.add("_id", id)
-			.add("testId", id)
-			.add("testName", testName)
-			.add("variant", variant)
-			.add("started", started.toString())
-			.add("config", config)
-			.add("description", description) // for this instance
-			.add("alias", alias)
-			.add("owner", owner)
-			.add("planId", planId)
-			.add("status", Status.CREATED)
-			.add("version", version)
-			.add("summary", summary) // from the test definition
-			.add("publish", publish);
-
-		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+		testInfos.save(new TestInfo(
+				id,
+				testName,
+				variant,
+				started,
+				config,
+				description, // for this instance,
+				alias,
+				owner,
+				planId,
+				version,
+				summary, // from the test definition,
+				publish));
 
 		if (planId != null) {
 			testPlanService.updateTestPlanWithModule(planId, testName, id);
@@ -202,11 +200,6 @@ public class DBTestInfoService implements TestInfoService {
 	@Override
 	public void createIndexes(){
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new Document("testName", 1));
-		collection.createIndex(new Document("description", 1));
-		collection.createIndex(new Document("started", 1));
-		collection.createIndex(new Document("owner", 1));
-		collection.createIndex(new Document("publish", 1));
 		collection.createIndex(new Document("$**", "text"));
 	}
 }
