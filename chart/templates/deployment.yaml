@@ -27,6 +27,18 @@ spec:
           value: {{ template "appname" . }}-mongodb
         - name: JAVA_EXTRA_ARGS
           value: {{ .Values.javaArgs | quote }}
+        - name: JWKS
+          valueFrom:
+            secretKeyRef:
+              name: jwks-{{ template "appname" . }}
+              key: jwks
+              optional: true
+        - name: SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jwks-{{ template "appname" . }}
+              key: signingKey
+              optional: true
         - name: OIDC_GOOGLE_CLIENTID
           valueFrom:
             secretKeyRef:
