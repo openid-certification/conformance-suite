@@ -53,10 +53,17 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 
 		cond.evaluate(env);
 	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalid() {
 		setHeader(env, "application/jsonmoo");
 
+		cond.evaluate(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_notFoundContentType() {
+		setHeader(env, null);
 		cond.evaluate(env);
 	}
 
