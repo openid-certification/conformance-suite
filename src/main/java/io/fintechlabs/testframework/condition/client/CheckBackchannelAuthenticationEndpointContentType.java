@@ -12,10 +12,18 @@ public class CheckBackchannelAuthenticationEndpointContentType extends AbstractC
 	public Environment evaluate(Environment env) {
 
 		String contentType = env.getString("backchannel_authentication_endpoint_response_headers", "content-type");
-		String mimeType = contentType.split(";")[0].trim();
-		String expected = "application/json";
+		if (Strings.isNullOrEmpty(contentType)) {
+			throw error("Couldn't find content-type header in backchannel authentication endpoint response");
+		}
 
-		if (Strings.isNullOrEmpty(mimeType) || !mimeType.equals(expected)) {
+		String mimeType = null;
+		try {
+			mimeType = contentType.split(";")[0].trim();
+		} catch (Exception e) {
+		}
+
+		String expected = "application/json";
+		if (!expected.equals(mimeType)) {
 			throw error("Invalid content-type header in backchannel authentication endpoint response", args("expected",	 expected, "actual", contentType));
 
 		}
