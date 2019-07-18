@@ -46,6 +46,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey.class,
 		FAPIRWID2OBEnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
 
+		//Refresh token tests
+		FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey.class,
+
 		// OB systems specific tests
 		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithPrivateKeyAndMTLSHolderOfKey.class,
 	}
