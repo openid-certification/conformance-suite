@@ -138,14 +138,24 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">alias</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="alias" placeholder="used in any URLs within the test, set to something unique to avoid clashes with other users, e.g. your name/company name"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="used in any URLs within the test, set to something unique to avoid clashes with other users, e.g. your name/company name"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="alias"></input>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">description</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="description" placeholder="Freeform text to help you identify this test run (optional)"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Freeform text to help you identify this test run (optional)"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="description"></input>
+										</div>
 									</div>
 								</div>
 
@@ -167,21 +177,36 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">discoveryUrl</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="server.discoveryUrl" placeholder="Full URL to server's .well-known/openid-configuration"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's .well-known/openid-configuration"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="server.discoveryUrl"></input>
+										</div>
 									</div>
 								</div>
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">discoveryIssuer</div>
                                     <div class="col-md-10">
-                                        <input type="text" class="config-form-element" data-json-target="server.discoveryIssuer" placeholder="Server's issuer URL"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Server's issuer URL"></span>
+											</div>
+	                                        <input type="text" class="form-control config-form-element" data-json-target="server.discoveryIssuer"></input>
+										</div>
                                     </div>
                                 </div>
 
 								<div class="row config-form-element-container">
-									<div class="col-md-2 key"></div>
+									<div class="col-md-2 key">jwks</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="server.jwks" placeholder="Server's keys in JSON Web Key Set (only for RP tests)"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Server's keys in JSON Web Key Set (only for RP tests)"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="server.jwks"></textarea>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -192,49 +217,89 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">client_id</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client.client_id" placeholder="oauth client id used with the authorisation server"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="oauth client id used with the authorisation server"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client.client_id"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">client_secret</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client.client_secret" placeholder="client secret, if applicable"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client secret, if applicable"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client.client_secret"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">client_name</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client.client_name" placeholder="client name"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client name"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client.client_name"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">scope</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="scopes to use in authorization request, e.g. openid accounts"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client.scope"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">redirect_uri</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client.redirect_uri" placeholder="Only required for RP tests"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Only required for RP tests"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client.redirect_uri"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">jwks</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="client.jwks" placeholder="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="client.jwks"></textarea>
+										</div>
 									</div>
 								</div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret_jwt_alg</div>
                                     <div class="col-md-10">
-                                        <input type="text" class="config-form-element" data-json-target="client.client_secret_jwt_alg" placeholder="algorithm for client_secret_jwt authentication, defaults to HS256"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="algorithm for client_secret_jwt authentication, defaults to HS256"></span>
+											</div>
+	                                        <input type="text" class="form-control config-form-element" data-json-target="client.client_secret_jwt_alg"></input>
+										</div>
                                     </div>
                                 </div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">certificate</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="client.certificate" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="client.certificate"></textarea>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
@@ -251,7 +316,12 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">hint_value</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client.hint_value" placeholder="hint value to identify user, passed with hint_type in authorisation request"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="hint value to identify user, passed with hint_type in authorisation request"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client.hint_value"></input>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -261,21 +331,36 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls.cert</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="mtls.cert"></textarea>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls.key</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls.key" placeholder="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="mtls.key"></textarea>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls.ca</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls.ca" placeholder="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="mtls.ca"></textarea>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -285,31 +370,56 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">client_id</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client2.client_id" placeholder="oauth client id used with the authorisation server"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="oauth client id used with the authorisation server"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client2.client_id"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">client_secret</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client2.client_secret" placeholder="client secret, if applicable"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client secret, if applicable"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client2.client_secret"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">scope</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="client2.scope" placeholder="scopes to use in authorization request, e.g. openid accounts"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="scopes to use in authorization request, e.g. openid accounts"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client2.scope"></input>
+										</div>
 									</div>
 								</div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">jwks</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="client2.jwks" placeholder="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="client2.jwks"></textarea>
+										</div>
 									</div>
 								</div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret_jwt_alg</div>
                                     <div class="col-md-10">
-                                        <input type="text" class="config-form-element" data-json-target="client2.client_secret_jwt_alg" placeholder="algorithm for client_secret_jwt authentication, defaults to HS256"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="algorithm for client_secret_jwt authentication, defaults to HS256"></span>
+											</div>
+	                                        <input type="text" class="form-control config-form-element" data-json-target="client2.client_secret_jwt_alg"></input>
+										</div>
                                     </div>
                                 </div>
 							</div>
@@ -319,21 +429,36 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls2.cert</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls2.cert" placeholder="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="mtls2.cert"></textarea>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls2.key</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls2.key" placeholder="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="mtls2.key"></textarea>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">mtls2.ca</div>
 									<div class="col-md-10">
-										<textarea class="config-form-element" data-json-target="mtls2.ca" placeholder="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></textarea>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format"></span>
+											</div>
+											<textarea class="form-control config-form-element" data-json-target="mtls2.ca"></textarea>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -343,14 +468,24 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">testHost</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="tls.testHost" placeholder="Hostname for TLS connection tests (only used in sample-test-test)"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Hostname for TLS connection tests (only used in sample-test-test)"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="tls.testHost"></input>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">testPort</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="tls.testPort" placeholder="Port number for TLS connection tests (only used in sample-test-test)"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Port number for TLS connection tests (only used in sample-test-test)"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="tls.testPort"></input>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -360,21 +495,36 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrl</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="resource.resourceUrl" placeholder="Base URL to use in resource server tests. For UK OpenBanking tests, this should end in /open-banking/vX.Y/aisp"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource server tests. For UK OpenBanking tests, this should end in /open-banking/vX.Y/aisp"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrl"></input>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrlAccountRequests</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountRequests" placeholder="Base URL to use in resource account request server tests (optional, use if endpoints split across servers)"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource account request server tests (optional, use if endpoints split across servers)"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrlAccountRequests"></input>
+										</div>
 									</div>
 								</div>
 
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">resourceUrlAccountsResource</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="resource.resourceUrlAccountsResource" placeholder="Base URL to use in resource accounts server tests (optional, use if endpoints split across servers)"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource accounts server tests (optional, use if endpoints split across servers)"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrlAccountsResource"></input>
+										</div>
 									</div>
 								</div>
 
@@ -383,7 +533,12 @@
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">institution_id</div>
 									<div class="col-md-10">
-										<input type="text" class="config-form-element" data-json-target="resource.institution_id" placeholder="Financial institution ID to send to FAPI resources, e.g. Institution ID assigned by UK OpenBanking"></input>
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Financial institution ID to send to FAPI resources, e.g. Institution ID assigned by UK OpenBanking"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="resource.institution_id"></input>
+										</div>
 									</div>
 								</div>
 							</div>
