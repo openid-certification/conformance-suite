@@ -48,14 +48,6 @@ public class FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSH
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
-	protected FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

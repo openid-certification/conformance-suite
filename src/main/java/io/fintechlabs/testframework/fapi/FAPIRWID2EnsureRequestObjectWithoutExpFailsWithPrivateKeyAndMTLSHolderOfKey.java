@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureRequestObjectWithoutExpFailsWithPrivateKeyAndMTLSHol
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureRequestObjectWithoutExpFailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 

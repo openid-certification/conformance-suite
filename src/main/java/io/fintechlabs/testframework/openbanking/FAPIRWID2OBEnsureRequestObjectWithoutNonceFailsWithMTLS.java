@@ -41,10 +41,6 @@ public class FAPIRWID2OBEnsureRequestObjectWithoutNonceFailsWithMTLS extends Abs
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureRequestObjectWithoutNonceFailsWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

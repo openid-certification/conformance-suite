@@ -19,10 +19,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMatchingKeyInAut
 
 public abstract class AbstractFAPIRWID2OBEnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest {
 
-	protected AbstractFAPIRWID2OBEnsureMatchingKeyInAuthorizationRequest(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

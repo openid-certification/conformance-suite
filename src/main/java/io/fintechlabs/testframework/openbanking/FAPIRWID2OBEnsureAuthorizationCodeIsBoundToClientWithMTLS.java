@@ -45,10 +45,6 @@ public class FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientWithMTLS extends A
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

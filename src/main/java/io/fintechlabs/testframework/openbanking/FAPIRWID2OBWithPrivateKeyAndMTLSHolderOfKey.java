@@ -49,10 +49,6 @@ public class FAPIRWID2OBWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWI
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	public FAPIRWID2OBWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

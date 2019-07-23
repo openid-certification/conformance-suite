@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithMTLS ex
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

@@ -51,14 +51,6 @@ public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAnd
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
-	protected FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 

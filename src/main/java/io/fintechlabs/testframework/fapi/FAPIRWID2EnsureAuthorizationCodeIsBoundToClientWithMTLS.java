@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithMTLS extends Abs
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

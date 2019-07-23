@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFailsWithMTLS extends
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureRequestObjectWithoutRedirectUriFailsWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

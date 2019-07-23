@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256FailsWithPrivateKeyAndMT
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureSignedRequestObjectWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

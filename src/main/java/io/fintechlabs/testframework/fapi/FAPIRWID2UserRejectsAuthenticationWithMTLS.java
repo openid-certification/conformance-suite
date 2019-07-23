@@ -40,10 +40,6 @@ public class FAPIRWID2UserRejectsAuthenticationWithMTLS extends AbstractFAPIRWID
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2UserRejectsAuthenticationWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

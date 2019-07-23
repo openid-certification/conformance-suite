@@ -62,10 +62,6 @@ public class FAPIRWID2OBEnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTL
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	public FAPIRWID2OBEnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

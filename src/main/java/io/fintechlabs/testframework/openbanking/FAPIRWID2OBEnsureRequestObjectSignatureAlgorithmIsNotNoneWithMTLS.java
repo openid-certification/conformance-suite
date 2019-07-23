@@ -39,10 +39,6 @@ public class FAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS e
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

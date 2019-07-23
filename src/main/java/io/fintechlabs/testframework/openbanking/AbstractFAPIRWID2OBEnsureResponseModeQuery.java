@@ -19,10 +19,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureResponseModeQuer
 
 public abstract class AbstractFAPIRWID2OBEnsureResponseModeQuery extends AbstractFAPIRWID2EnsureResponseModeQuery {
 
-	protected AbstractFAPIRWID2OBEnsureResponseModeQuery(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

@@ -39,10 +39,6 @@ public class FAPIRWID2OBEnsureRedirectUriInAuthorizationRequestWithMTLS extends 
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureRedirectUriInAuthorizationRequestWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

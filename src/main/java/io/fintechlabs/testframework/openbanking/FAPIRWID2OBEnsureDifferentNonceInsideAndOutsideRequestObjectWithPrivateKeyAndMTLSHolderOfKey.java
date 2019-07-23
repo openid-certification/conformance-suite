@@ -47,10 +47,6 @@ public class FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithPri
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	public FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

@@ -39,10 +39,6 @@ public class FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFA
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

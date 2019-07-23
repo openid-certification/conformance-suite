@@ -41,10 +41,6 @@ public class FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceedsWithMTLS exten
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceedsWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

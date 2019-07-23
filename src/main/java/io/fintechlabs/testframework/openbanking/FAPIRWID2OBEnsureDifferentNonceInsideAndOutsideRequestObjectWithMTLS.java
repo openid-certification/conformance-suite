@@ -45,10 +45,6 @@ public class FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithMTL
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

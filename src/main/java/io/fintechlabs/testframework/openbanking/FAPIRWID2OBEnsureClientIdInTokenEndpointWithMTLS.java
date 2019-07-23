@@ -41,10 +41,6 @@ public class FAPIRWID2OBEnsureClientIdInTokenEndpointWithMTLS extends AbstractFA
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureClientIdInTokenEndpointWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

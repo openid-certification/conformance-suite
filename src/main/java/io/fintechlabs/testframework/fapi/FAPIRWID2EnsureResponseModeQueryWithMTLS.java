@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureResponseModeQueryWithMTLS extends AbstractFAPIRWID2E
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureResponseModeQueryWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		// Nothing to do here

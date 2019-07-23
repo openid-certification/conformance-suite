@@ -47,10 +47,6 @@ public class FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientIsBoundToClientWit
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	public FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientIsBoundToClientWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

@@ -19,10 +19,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRegisteredRedire
 
 public abstract class AbstractFAPIRWID2OBEnsureRegisteredRedirectUri extends AbstractFAPIRWID2EnsureRegisteredRedirectUri {
 
-	protected AbstractFAPIRWID2OBEnsureRegisteredRedirectUri(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

@@ -22,11 +22,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2RefreshTokenTestModule
 public abstract class AbstractFAPIRWID2OBRefreshTokenTestModule extends AbstractFAPIRWID2RefreshTokenTestModule
 {
 
-	protected AbstractFAPIRWID2OBRefreshTokenTestModule() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
-
 	protected abstract void addClientAuthenticationToTokenEndpointRequest();
 	protected abstract void createClientCredentialsRequest();
 

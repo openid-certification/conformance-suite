@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObjectWithMTLS 
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObjectWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

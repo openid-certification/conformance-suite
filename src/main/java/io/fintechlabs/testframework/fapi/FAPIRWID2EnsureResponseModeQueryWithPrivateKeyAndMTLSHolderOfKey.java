@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureResponseModeQueryWithPrivateKeyAndMTLSHolderOfKey ex
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureResponseModeQueryWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		// Nothing to do here

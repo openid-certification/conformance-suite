@@ -20,10 +20,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureResponseTypeCode
 
 public abstract class AbstractFAPIRWID2OBEnsureResponseTypeCodeFails extends AbstractFAPIRWID2EnsureResponseTypeCodeFails {
 
-	protected AbstractFAPIRWID2OBEnsureResponseTypeCodeFails(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

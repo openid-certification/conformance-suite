@@ -45,10 +45,6 @@ public class FAPIRWID2OBEnsureResponseTypeCodeFailsWithMTLS extends AbstractFAPI
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureResponseTypeCodeFailsWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

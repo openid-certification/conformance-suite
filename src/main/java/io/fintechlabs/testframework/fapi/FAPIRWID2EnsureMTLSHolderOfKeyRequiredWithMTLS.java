@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFAPI
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

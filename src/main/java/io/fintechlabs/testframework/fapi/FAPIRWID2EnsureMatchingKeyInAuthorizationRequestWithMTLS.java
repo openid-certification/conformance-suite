@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithMTLS extends Ab
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

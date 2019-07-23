@@ -41,10 +41,6 @@ public class FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey extends A
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);

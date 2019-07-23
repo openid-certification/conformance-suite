@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureRequestObjectWithBadAudFailsWithPrivateKeyAndMTLSHol
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureRequestObjectWithBadAudFailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

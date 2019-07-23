@@ -39,10 +39,6 @@ public class FAPIRWID2OBUserRejectsAuthenticationWithMTLS extends AbstractFAPIRW
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBUserRejectsAuthenticationWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

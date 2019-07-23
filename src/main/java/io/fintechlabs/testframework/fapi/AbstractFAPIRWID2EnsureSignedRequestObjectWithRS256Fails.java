@@ -13,10 +13,6 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFAPIRWID2ServerTestModule {
 
-	protected AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

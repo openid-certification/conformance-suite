@@ -20,10 +20,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureDifferentNonceIn
 
 public abstract class AbstractFAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject {
 
-	protected AbstractFAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObject(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

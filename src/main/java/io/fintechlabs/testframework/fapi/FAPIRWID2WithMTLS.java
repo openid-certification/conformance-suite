@@ -42,10 +42,6 @@ public class FAPIRWID2WithMTLS extends FAPIRWID2 {
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2WithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 

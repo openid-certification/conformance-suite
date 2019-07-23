@@ -41,10 +41,6 @@ public class FAPIRWID2OBUserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKe
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	public FAPIRWID2OBUserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

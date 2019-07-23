@@ -39,10 +39,6 @@ public class FAPIRWID2OBEnsureRegisteredRedirectUriWithMTLS extends AbstractFAPI
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureRegisteredRedirectUriWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

@@ -41,10 +41,6 @@ public class FAPIRWID2OBEnsureMatchingKeyInAuthorizationRequestWithMTLS extends 
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureMatchingKeyInAuthorizationRequestWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

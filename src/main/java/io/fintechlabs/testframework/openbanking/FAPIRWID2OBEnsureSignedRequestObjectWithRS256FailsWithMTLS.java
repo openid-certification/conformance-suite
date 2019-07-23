@@ -46,10 +46,6 @@ public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends 
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

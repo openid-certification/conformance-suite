@@ -41,10 +41,6 @@ public class FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS extends A
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

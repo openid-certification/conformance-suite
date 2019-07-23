@@ -9,10 +9,6 @@ import io.fintechlabs.testframework.condition.client.SignRequestObject;
 
 public abstract class AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2ServerTestModule {
 
-	protected AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void createAuthorizationRedirect() {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);

@@ -41,10 +41,6 @@ public class FAPIRWID2RefreshTokenWithMTLS extends AbstractFAPIRWID2RefreshToken
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2RefreshTokenWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);

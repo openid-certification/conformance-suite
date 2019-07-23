@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS ext
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

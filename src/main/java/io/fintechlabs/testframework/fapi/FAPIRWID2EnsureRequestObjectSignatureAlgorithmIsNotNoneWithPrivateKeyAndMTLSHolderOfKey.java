@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithPrivateK
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

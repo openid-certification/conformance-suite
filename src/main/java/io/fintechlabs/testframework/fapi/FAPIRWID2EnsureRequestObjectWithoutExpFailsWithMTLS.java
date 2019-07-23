@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureRequestObjectWithoutExpFailsWithMTLS extends Abstrac
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureRequestObjectWithoutExpFailsWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

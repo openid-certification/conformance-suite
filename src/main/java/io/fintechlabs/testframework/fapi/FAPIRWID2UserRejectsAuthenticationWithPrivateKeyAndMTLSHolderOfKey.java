@@ -42,10 +42,6 @@ public class FAPIRWID2UserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey 
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2UserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

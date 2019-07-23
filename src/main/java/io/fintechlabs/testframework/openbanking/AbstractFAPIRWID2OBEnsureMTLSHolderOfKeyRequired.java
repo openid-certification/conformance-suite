@@ -20,10 +20,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMTLSHolderOfKeyR
 
 public abstract class AbstractFAPIRWID2OBEnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
 
-	protected AbstractFAPIRWID2OBEnsureMTLSHolderOfKeyRequired(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

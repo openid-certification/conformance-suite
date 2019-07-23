@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithPrivateKeyAndMT
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureMatchingKeyInAuthorizationRequestWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

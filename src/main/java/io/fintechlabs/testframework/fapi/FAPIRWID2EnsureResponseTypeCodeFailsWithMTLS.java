@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureResponseTypeCodeFailsWithMTLS extends AbstractFAPIRW
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureResponseTypeCodeFailsWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

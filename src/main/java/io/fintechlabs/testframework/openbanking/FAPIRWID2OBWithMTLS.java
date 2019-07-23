@@ -47,10 +47,6 @@ public class FAPIRWID2OBWithMTLS extends AbstractFAPIRWID2OBServerTestModule {
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

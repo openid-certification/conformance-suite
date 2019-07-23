@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithPrivate
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

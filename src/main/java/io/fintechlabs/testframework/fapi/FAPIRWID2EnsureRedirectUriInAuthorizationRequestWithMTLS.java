@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureRedirectUriInAuthorizationRequestWithMTLS extends Ab
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureRedirectUriInAuthorizationRequestWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

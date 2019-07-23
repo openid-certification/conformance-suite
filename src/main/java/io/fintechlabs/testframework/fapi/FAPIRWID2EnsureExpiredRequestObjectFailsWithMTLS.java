@@ -40,10 +40,6 @@ public class FAPIRWID2EnsureExpiredRequestObjectFailsWithMTLS extends AbstractFA
 		super.setupMTLS();
 	}
 
-	public FAPIRWID2EnsureExpiredRequestObjectFailsWithMTLS() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

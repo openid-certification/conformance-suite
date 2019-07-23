@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFailsWithPri
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

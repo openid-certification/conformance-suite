@@ -42,10 +42,6 @@ public class FAPIRWID2EnsureExpiredRequestObjectFailsWithPrivateKeyAndMTLSHolder
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2EnsureExpiredRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);

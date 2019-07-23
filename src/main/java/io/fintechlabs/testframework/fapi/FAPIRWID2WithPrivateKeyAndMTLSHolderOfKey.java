@@ -44,10 +44,6 @@ public class FAPIRWID2WithPrivateKeyAndMTLSHolderOfKey extends FAPIRWID2 {
 		super.setupPrivateKeyJwt();
 	}
 
-	public FAPIRWID2WithPrivateKeyAndMTLSHolderOfKey() {
-		super(new StepsConfigurationFAPI());
-	}
-
 	@Override
 	protected void createAuthorizationCodeRequest() {
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");

@@ -44,10 +44,6 @@ public class FAPIRWID2OBEnsureResponseModeQueryWithMTLS extends AbstractFAPIRWID
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureResponseModeQueryWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

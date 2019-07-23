@@ -96,6 +96,7 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
+import io.fintechlabs.testframework.openbanking.AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,11 +124,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		public Class<? extends Condition> getSetProtectedResourceUrl() {
 			return SetProtectedResourceUrlToSingleResourceEndpoint.class;
 		}
-	}
-
-	protected AbstractFAPIRWID2ServerTestModule(StepsConfiguration stepsConfiguration) {
-		// TODO: remove this constructor and use setup methods instead.
-		this.stepsConfiguration = stepsConfiguration;
 	}
 
 	@Override
@@ -590,14 +586,18 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void setupMTLS() {
+		stepsConfiguration = new StepsConfigurationFAPI();
 	}
 
 	protected void setupPrivateKeyJwt() {
+		stepsConfiguration = new StepsConfigurationFAPI();
 	}
 
 	protected void setupOpenBankingUkMTLS() {
+		stepsConfiguration = new StepsConfigurationOpenBanking();
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
+		stepsConfiguration = new StepsConfigurationOpenBanking();
 	}
 }

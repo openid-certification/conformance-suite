@@ -43,10 +43,6 @@ public class FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccessWithPrivate
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	public FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccessWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

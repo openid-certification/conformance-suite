@@ -43,10 +43,6 @@ public class FAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFailsWithM
 		super.setupOpenBankingUkMTLS();
 	}
 
-	public FAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFailsWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
-	}
-
 	@Override
 	protected void createClientCredentialsRequest() {
 

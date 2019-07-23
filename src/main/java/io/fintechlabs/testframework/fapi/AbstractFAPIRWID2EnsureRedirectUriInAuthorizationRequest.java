@@ -4,10 +4,6 @@ import io.fintechlabs.testframework.condition.client.ExpectRedirectUriMissingErr
 
 public abstract class AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest extends AbstractFAPIRWID2ServerTestModule {
 
-	protected AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

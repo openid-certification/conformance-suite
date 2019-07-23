@@ -19,10 +19,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2UserRejectsAuthenticat
 
 public abstract class AbstractFAPIRWID2OBUserRejectsAuthentication extends AbstractFAPIRWID2UserRejectsAuthentication {
 
-	protected AbstractFAPIRWID2OBUserRejectsAuthentication(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();
