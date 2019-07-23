@@ -110,6 +110,7 @@ import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestId;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdInterval;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -123,6 +124,7 @@ import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -270,6 +272,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
@@ -300,6 +303,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		if (env.getElementFromObject("config", "client.client_id") != null) {
 			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
 			callAndStopOnFailure(GetStaticClientConfiguration.class);
+			callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		} else {
 			eventLog.startBlock("First client: No client_id in configuration, registering client using dynamic client registration");
@@ -328,6 +332,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		if (env.getElementFromObject("config", "client2.client_id") != null) {
 			eventLog.startBlock("Verify Second client: client_id supplied, assume static client configuration");
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
+			callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		} else {
 			eventLog.startBlock("Second client: No client_id in configuration, registering client using dynamic client registration");

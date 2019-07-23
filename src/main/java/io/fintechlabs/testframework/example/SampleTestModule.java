@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.example;
 
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +94,8 @@ public class SampleTestModule extends AbstractRedirectServerTestModule {
 
 		// fetch or load the server's keys as needed
 		callAndStopOnFailure(FetchServerKeys.class);
+
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
