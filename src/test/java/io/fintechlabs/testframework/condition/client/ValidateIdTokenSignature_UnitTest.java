@@ -29,11 +29,15 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	private JsonObject goodIdToken;
 
+	private JsonObject goodIdTokenWithKid;
+
 	private JsonObject badIdToken;
 
 	private JsonObject goodServerJwks;
 
 	private JsonObject wrongServerJwks;
+
+	private JsonObject wrongServerJwksWithKid;
 
 	private ValidateIdTokenSignature cond;
 
@@ -59,6 +63,13 @@ public class ValidateIdTokenSignature_UnitTest {
 			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
 			+ "}").getAsJsonObject();
 
+		// { "kid": "authlete-fapidev-api-20180524", "alg": "PS256" }
+		goodIdTokenWithKid = new JsonParser().parse("{"
+			+ "\"value\":\"eyJraWQiOiJhdXRobGV0ZS1mYXBpZGV2LWFwaS0yMDE4MDUyNCIsImFsZyI6IlBTMjU2In0."
+			+ "eyJpc3MiOiJodHRwczovL2p3dC1pZHAuZXhhbXBsZS5jb20iLCJhdWQiOiJodHRwczovL290aGVyLmV4YW1wbGUubmV0IixleHA6MCxuYmY6MCxpYXQ6MH0."
+			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
+			+ "}").getAsJsonObject();
+
 		goodServerJwks = new JsonParser().parse("{"
 			+ "\"keys\":["
 			+ "{"
@@ -79,6 +90,16 @@ public class ValidateIdTokenSignature_UnitTest {
 			+ "\"kty\":\"oct\","
 			+ "\"alg\":\"HS256\","
 			+ "\"k\":\"UzUgc1C/vF44Uf9jZuswyJrivNwGas6uVYhVEi7GKUQ\""
+			+ "}"
+			+ "]}").getAsJsonObject();
+
+		wrongServerJwksWithKid = new JsonParser().parse("{"
+			+ "\"keys\":["
+			+ "{"
+			+ "\"kty\":\"oct\","
+			+ "\"alg\":\"HS256\","
+			+ "\"k\":\"UzUgc1C/vF44Uf9jZuswyJrivNwGas6uVYhVEi7GKUQ\","
+			+ "\"kid\":\"authlete-fapidev-api-20180524\""
 			+ "}"
 			+ "]}").getAsJsonObject();
 
@@ -177,4 +198,27 @@ public class ValidateIdTokenSignature_UnitTest {
 		verify(env, atLeastOnce()).getObject("server_jwks");
 
 	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_notFoundKeyWithKid() {
+
+		env.putObject("id_token", goodIdTokenWithKid);
+
+		env.putObject("server_jwks", goodServerJwks);
+
+		cond.evaluate(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_foundKeyWithKidAndVerifyFailure() {
+
+		env.putObject("id_token", goodIdTokenWithKid);
+
+		env.putObject("server_jwks", wrongServerJwksWithKid);
+
+		cond.evaluate(env);
+
+	}
+
 }
