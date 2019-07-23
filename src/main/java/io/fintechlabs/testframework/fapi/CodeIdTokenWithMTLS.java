@@ -11,6 +11,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpo
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
@@ -130,6 +131,8 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE,"FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 

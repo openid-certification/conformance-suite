@@ -45,6 +45,8 @@ import io.fintechlabs.testframework.condition.as.ValidateRequestObjectSignature;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
@@ -127,11 +129,15 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(LoadServerJWKs.class);
 
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+
 		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
 
 		// for signing request objects
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);

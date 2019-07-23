@@ -8,9 +8,11 @@ import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpoint
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,13 +124,15 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 
 		callAndStopOnFailure(FetchServerKeys.class);
 
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+
 		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
-
+		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
@@ -138,6 +142,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 		eventLog.startBlock("Loading second client key");
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
+		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
