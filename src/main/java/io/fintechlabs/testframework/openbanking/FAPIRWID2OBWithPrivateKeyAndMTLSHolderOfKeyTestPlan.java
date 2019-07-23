@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -51,6 +52,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		// OB systems specific tests
 		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithPrivateKeyAndMTLSHolderOfKey.class,
+	},
+	variants = {
+		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2OBWithPrivateKeyAndMTLSHolderOfKeyTestPlan implements TestPlan {

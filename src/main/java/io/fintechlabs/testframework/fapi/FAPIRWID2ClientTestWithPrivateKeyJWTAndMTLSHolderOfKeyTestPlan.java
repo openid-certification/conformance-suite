@@ -26,6 +26,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidMissingNonce.class,
 		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidMissingSHash.class,
 		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyValidAudAsArray.class
+	},
+	variants = {
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyTestPlan implements TestPlan {

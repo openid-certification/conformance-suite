@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfigu
 import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-mtls-holder-of-key-valid-aud-as-array",
@@ -18,10 +19,20 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+	},
+	notApplicableForVariants = {
+		FAPIRWID2ClientTest.variant_privatekeyjwt,
+		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
+		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
 public class FAPIRWID2ClientTestWithMTLSHolderOfKeyValidAudAsArray extends AbstractFAPIRWID2ClientTest {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Override
 	protected void addCustomValuesToIdToken(){

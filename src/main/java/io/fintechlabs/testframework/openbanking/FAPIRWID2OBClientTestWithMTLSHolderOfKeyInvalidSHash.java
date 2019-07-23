@@ -4,7 +4,9 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidSHashValueToIdToken;
 import io.fintechlabs.testframework.condition.as.LogEndTestIfStateIsNotSupplied;
+import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-shash",
@@ -18,10 +20,20 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+	},
+	notApplicableForVariants = {
+		FAPIRWID2ClientTest.variant_mtls,
+		FAPIRWID2ClientTest.variant_privatekeyjwt,
+		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
 public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSHash extends AbstractFAPIRWID2OBClientMTLSHolderOfKeyExpectNothingAfterAuthorisationEndpoint {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Override
 	protected boolean endTestIfStateIsNotSupplied() {

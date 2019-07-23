@@ -44,6 +44,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		//Refresh token tests
 		FAPIRWID2RefreshTokenWithMTLS.class
+	},
+	variants = {
+		FAPIRWID2.variant_mtls
 	}
 )
 public class FAPI_RW_ID2_WithMTLSTestPlan implements TestPlan {

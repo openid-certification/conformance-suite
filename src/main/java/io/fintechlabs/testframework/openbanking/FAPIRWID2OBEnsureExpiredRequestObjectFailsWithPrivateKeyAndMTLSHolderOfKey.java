@@ -6,7 +6,9 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-expired-request-object-fails-with-private-key-and-mtls-holder-of-key",
@@ -27,9 +29,19 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBEnsureExpiredRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureExpiredRequestObjectFails {
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+	}
 
 	public FAPIRWID2OBEnsureExpiredRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey() {
 		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());

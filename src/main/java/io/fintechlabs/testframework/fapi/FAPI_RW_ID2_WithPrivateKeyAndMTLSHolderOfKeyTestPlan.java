@@ -48,6 +48,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		//Refresh token tests
 		FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey.class
+	},
+	variants = {
+		FAPIRWID2.variant_privatekeyjwt
 	}
 )
 public class FAPI_RW_ID2_WithPrivateKeyAndMTLSHolderOfKeyTestPlan implements TestPlan {

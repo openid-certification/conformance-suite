@@ -101,6 +101,12 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
 
+	// to be used in @Variant definitions
+	public static final String variant_mtls = "mtls";
+	public static final String variant_privatekeyjwt = "private_key_jwt";
+	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
+	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
+
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected int whichClient;
@@ -120,6 +126,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected AbstractFAPIRWID2ServerTestModule(StepsConfiguration stepsConfiguration) {
+		// TODO: remove this constructor and use setup methods instead.
 		this.stepsConfiguration = stepsConfiguration;
 	}
 
@@ -580,5 +587,17 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			return "Second client: ";
 		}
 		return "";
+	}
+
+	protected void setupMTLS() {
+	}
+
+	protected void setupPrivateKeyJwt() {
+	}
+
+	protected void setupOpenBankingUkMTLS() {
+	}
+
+	protected void setupOpenBankingUkPrivateKeyJwt() {
 	}
 }

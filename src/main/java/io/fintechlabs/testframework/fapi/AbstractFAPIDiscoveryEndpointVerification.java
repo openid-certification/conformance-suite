@@ -76,4 +76,15 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 
 	}
 
+	protected void setupMTLS() {
+	}
+
+	protected void setupPrivateKeyJwt() {
+	}
+
+	protected void setupOpenBankingUkMTLS() {
+	}
+
+	protected void setupOpenBankingUkPrivateKeyJwt() {
+	}
 }

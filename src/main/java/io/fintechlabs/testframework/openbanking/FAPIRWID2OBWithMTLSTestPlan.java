@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -47,6 +48,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		// OB systems specific tests
 		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS.class,
+	},
+	variants = {
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBWithMTLSTestPlan implements TestPlan {

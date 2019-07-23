@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -28,6 +29,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidMissingNonce.class,
 		FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidMissingSHash.class,
 		FAPIRWID2OBClientTestWithMTLSHolderOfKeyValidAudAsArray.class
+	},
+	variants = {
+		FAPIRWID2ClientTest.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyTestPlan implements TestPlan {

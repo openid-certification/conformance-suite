@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapi;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidExpiredExpValueToIdToken;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-mtls-holder-of-key-invalid-expired-exp",
@@ -16,10 +17,20 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+	},
+	notApplicableForVariants = {
+		FAPIRWID2ClientTest.variant_privatekeyjwt,
+		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
+		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
 public class FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidExpiredExp extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {

@@ -14,6 +14,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
@@ -36,9 +37,19 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_openbankinguk_mtls,
+		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2PerformTokenEndpoint {
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+	}
 
 	public FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey() {
 		super(new StepsConfigurationFAPI());

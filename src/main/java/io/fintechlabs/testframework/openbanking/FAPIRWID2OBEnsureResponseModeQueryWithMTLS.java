@@ -3,7 +3,9 @@ package io.fintechlabs.testframework.openbanking;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-response-mode-query-with-mtls",
@@ -28,9 +30,19 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2OBEnsureResponseModeQueryWithMTLS extends AbstractFAPIRWID2OBEnsureResponseModeQuery {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	public FAPIRWID2OBEnsureResponseModeQueryWithMTLS() {
 		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
