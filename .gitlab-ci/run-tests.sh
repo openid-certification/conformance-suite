@@ -24,12 +24,12 @@ EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server
 
 function makeClientTest {
     # client FAPI-RW-ID2
-    TESTS="${TESTS} fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan:private_key_jwt automated-ob-client-test.json"
-    TESTS="${TESTS} fapi-rw-id2-client-test-with-mtls-holder-of-key-test-plan:mtls automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:private_key_jwt automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:mtls automated-ob-client-test.json"
 
     # client FAPI-RW-ID2-OB
-    TESTS="${TESTS} fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan:openbankinguk-private_key_jwt automated-ob-client-test.json"
-    TESTS="${TESTS} fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-test-plan:openbankinguk-mtls automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:openbankinguk-private_key_jwt automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:openbankinguk-mtls automated-ob-client-test.json"
 }
 
 function makeServerTest {
