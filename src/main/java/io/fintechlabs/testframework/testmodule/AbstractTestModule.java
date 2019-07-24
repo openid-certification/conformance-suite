@@ -101,6 +101,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
+		if (onFail != ConditionResult.FAILURE) {
+			throw new TestFailureException(getId(), "callAndStopOnFailure called with onFail != ConditionResult.FAILURE");
+		}
 		call(condition(conditionClass)
 			.requirements(requirements)
 			.onFail(onFail));
