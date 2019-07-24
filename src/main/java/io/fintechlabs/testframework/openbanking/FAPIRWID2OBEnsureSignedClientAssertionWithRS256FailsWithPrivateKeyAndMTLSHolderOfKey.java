@@ -21,8 +21,10 @@ import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaim
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.fapi.FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
@@ -47,12 +49,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey {
 
-	public FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override

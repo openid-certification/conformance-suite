@@ -28,10 +28,6 @@ public abstract class AbstractFAPIRWID2OBServerTestModule extends AbstractFAPIRW
 		}
 	}
 
-	protected AbstractFAPIRWID2OBServerTestModule(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

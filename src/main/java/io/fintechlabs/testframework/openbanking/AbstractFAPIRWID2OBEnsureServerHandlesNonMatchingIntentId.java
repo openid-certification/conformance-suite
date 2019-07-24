@@ -12,10 +12,6 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2OBServerTestModule {
 
-	protected AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		// client2 is used for the Authorization Request so make sure we use the redirect url normally used with client2

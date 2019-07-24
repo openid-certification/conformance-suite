@@ -78,6 +78,12 @@ import javax.servlet.http.HttpSession;
 
 public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
+	// to be used in @Variant definitions
+	public static final String variant_mtls = "mtls";
+	public static final String variant_privatekeyjwt = "private_key_jwt";
+	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
+	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
+
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
@@ -504,4 +510,15 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
+	protected void setupMTLS() {
+	}
+
+	protected void setupPrivateKeyJwt() {
+	}
+
+	protected void setupOpenBankingUkMTLS() {
+	}
+
+	protected void setupOpenBankingUkPrivateKeyJwt() {
+	}
 }

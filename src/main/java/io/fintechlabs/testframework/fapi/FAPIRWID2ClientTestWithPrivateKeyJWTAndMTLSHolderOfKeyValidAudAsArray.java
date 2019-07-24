@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusCheck
 import io.fintechlabs.testframework.condition.as.ValidateClientAssertionClaims;
 import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-valid-aud-as-array",
@@ -21,10 +22,20 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+	},
+	notApplicableForVariants = {
+		FAPIRWID2ClientTest.variant_mtls,
+		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
+		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
 public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyValidAudAsArray extends AbstractFAPIRWID2ClientTest {
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+	}
 
 	@Override
 	protected void addTokenEndpointAuthMethodSupported() {

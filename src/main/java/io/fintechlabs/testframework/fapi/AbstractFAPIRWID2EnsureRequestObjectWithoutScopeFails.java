@@ -13,10 +13,6 @@ import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWID2ServerTestModule {
 
-	protected AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		createAuthorizationRequest();

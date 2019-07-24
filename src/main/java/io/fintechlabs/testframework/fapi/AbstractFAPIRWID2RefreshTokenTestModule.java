@@ -54,10 +54,6 @@ import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs
 
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
 
-	protected AbstractFAPIRWID2RefreshTokenTestModule(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	protected abstract void addClientAuthenticationToTokenEndpointRequest();
 
 	@Override

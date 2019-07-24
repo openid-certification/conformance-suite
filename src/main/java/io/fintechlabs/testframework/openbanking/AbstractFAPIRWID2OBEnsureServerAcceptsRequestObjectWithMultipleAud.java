@@ -21,10 +21,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureServerAcceptsReq
 
 public abstract class AbstractFAPIRWID2OBEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
 
-	protected AbstractFAPIRWID2OBEnsureServerAcceptsRequestObjectWithMultipleAud(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

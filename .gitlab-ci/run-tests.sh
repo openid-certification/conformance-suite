@@ -24,30 +24,30 @@ EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server
 
 function makeClientTest {
     # client FAPI-RW-ID2
-    TESTS="${TESTS} fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan automated-ob-client-test.json"
-    TESTS="${TESTS} fapi-rw-id2-client-test-with-mtls-holder-of-key-test-plan automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:private_key_jwt automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:mtls automated-ob-client-test.json"
 
     # client FAPI-RW-ID2-OB
-    TESTS="${TESTS} fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-test-plan automated-ob-client-test.json"
-    TESTS="${TESTS} fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-test-plan automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:openbankinguk-private_key_jwt automated-ob-client-test.json"
+    TESTS="${TESTS} fapi-rw-id2-client-test-plan:openbankinguk-mtls automated-ob-client-test.json"
 }
 
 function makeServerTest {
     # authlete openbanking
-    TESTS="${TESTS} fapi-rw-id2-ob-with-mtls-test-plan authlete-fapi-rw-id2-ob-mtls.json"
-    TESTS="${TESTS} fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan authlete-fapi-rw-id2-ob-privatekey.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-mtls authlete-fapi-rw-id2-ob-mtls.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt authlete-fapi-rw-id2-ob-privatekey.json"
 
     # forgerock currently disabled: not managed to onboard new clients since their period of frequent key recycling
     #TESTS="${TESTS} fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan forgerock-code-idtoken-config.json"
     #TESTS="${TESTS} fapi-rw-id2-ob-code-with-private-key-and-mtls-holder-of-key-test-plan forgerock-code-config.json"
 
     # ozone openbanking
-    #TESTS="${TESTS} fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan ozone-ob-privatekey-codeidtoken-v2_0.json"
-    #TESTS="${TESTS} fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan ozone-ob-privatekey-codeidtoken-v3_1.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt ozone-ob-privatekey-codeidtoken-v2_0.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt ozone-ob-privatekey-codeidtoken-v3_1.json"
 
     # authlete FAPI
-    TESTS="${TESTS} fapi-rw-id2-with-mtls-test-plan authlete-fapi-rw-id2-mtls.json"
-    TESTS="${TESTS} fapi-rw-id2-with-private-key-and-mtls-holder-of-key-test-plan authlete-fapi-rw-id2-privatekey.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:mtls authlete-fapi-rw-id2-mtls.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:private_key_jwt authlete-fapi-rw-id2-privatekey.json"
     TESTS="${TESTS} fapi-r-code-id-token-with-mtls-test-plan authlete-fapi-r-mtls.json"
     TESTS="${TESTS} fapi-r-code-id-token-with-private-key-test-plan authlete-fapi-r-private-key.json"
     TESTS="${TESTS} fapi-r-code-id-token-with-client-secret-jwt-test-plan authlete-fapi-r-client-secret.json"
@@ -56,7 +56,7 @@ function makeServerTest {
     # This is the configuration used in the instructions as an example.
     # We keep it here as we want to be sure code changes don't break the example in the instructions, but the downside is there
     # is a chance that users may be using the alias at the same time our tests are running
-    TESTS="${TESTS} fapi-rw-id2-with-private-key-and-mtls-holder-of-key-test-plan authlete-fapi-rw-id2-privatekey-for-instructions.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:private_key_jwt authlete-fapi-rw-id2-privatekey-for-instructions.json"
 }
 
 function makeCIBATest {

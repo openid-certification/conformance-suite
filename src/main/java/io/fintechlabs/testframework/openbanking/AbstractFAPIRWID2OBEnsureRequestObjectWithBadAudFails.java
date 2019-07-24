@@ -20,10 +20,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRequestObjectWit
 
 public abstract class AbstractFAPIRWID2OBEnsureRequestObjectWithBadAudFails extends AbstractFAPIRWID2EnsureRequestObjectWithBadAudFails {
 
-	protected AbstractFAPIRWID2OBEnsureRequestObjectWithBadAudFails(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();

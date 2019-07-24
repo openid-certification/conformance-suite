@@ -6,7 +6,9 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-different-nonce-inside-and-outside-request-object-with-private-key-and-mtls-holder-of-key",
@@ -31,12 +33,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObject {
 
-	public FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObjectWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override

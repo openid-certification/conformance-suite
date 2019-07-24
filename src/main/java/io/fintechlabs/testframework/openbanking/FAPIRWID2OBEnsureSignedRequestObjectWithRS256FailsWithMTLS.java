@@ -8,8 +8,10 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-signed-request-object-with-RS256-fails-with-mtls",
@@ -30,12 +32,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends AbstractFAPIRWID2OBEnsureSignedRequestObjectWithRS256Fails {
 
-	public FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
 	}
 
 	@Override

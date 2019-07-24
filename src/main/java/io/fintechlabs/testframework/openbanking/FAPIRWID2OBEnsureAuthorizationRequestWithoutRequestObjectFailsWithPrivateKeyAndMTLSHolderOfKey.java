@@ -6,7 +6,9 @@ import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestF
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-authorization-request-without-request-object-fails-with-private-key-and-mtls-holder-of-key",
@@ -29,12 +31,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFails {
 
-	public FAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey() {
-		super(new AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking());
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override

@@ -19,10 +19,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureRequestObjectSig
 
 public abstract class AbstractFAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone {
 
-	protected AbstractFAPIRWID2OBEnsureRequestObjectSignatureAlgorithmIsNotNone(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

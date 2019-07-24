@@ -4,6 +4,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.*;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-refresh-token-with-mtls",
@@ -26,12 +27,18 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_mtls,
+		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2RefreshTokenWithMTLS extends AbstractFAPIRWID2RefreshTokenTestModule {
 
-	public FAPIRWID2RefreshTokenWithMTLS() {
-		super(new StepsConfigurationFAPI());
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
 	}
 
 	@Override

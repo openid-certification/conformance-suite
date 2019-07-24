@@ -11,10 +11,6 @@ import io.fintechlabs.testframework.condition.client.SignRequestObject;
 
 public abstract class AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
 
-	protected AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");

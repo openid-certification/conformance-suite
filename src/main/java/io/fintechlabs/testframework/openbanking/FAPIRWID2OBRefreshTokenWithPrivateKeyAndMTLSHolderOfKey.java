@@ -9,7 +9,9 @@ import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSu
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2RefreshTokenTestModule;
+import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 import io.fintechlabs.testframework.fapi.FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey;
 
 @PublishTestModule(
@@ -35,9 +37,19 @@ import io.fintechlabs.testframework.fapi.FAPIRWID2RefreshTokenTestWithPrivateKey
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
+	},
+	notApplicableForVariants = {
+		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBRefreshTokenTestModule {
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+	}
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {

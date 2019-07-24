@@ -11,10 +11,6 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAu
 
 public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutExpFails extends AbstractFAPIRWID2ServerTestModule {
 
-	protected AbstractFAPIRWID2EnsureRequestObjectWithoutExpFails(StepsConfiguration stepsConfiguration) {
-		super(stepsConfiguration);
-	}
-
 	@Override
 	protected void performAuthorizationFlow() {
 

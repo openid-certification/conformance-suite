@@ -1,6 +1,7 @@
 [
     {
         "test-name": "fapi-rw-id2-ob-discovery-end-point-verification",
+        "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "",
         "condition": "CheckJwksUriIsHostedOnOpenBankingDirectory",
@@ -8,6 +9,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-with-mtls",
+        "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -15,6 +17,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-mtls",
+        "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
@@ -22,6 +25,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-mtls",
+        "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError",
@@ -29,6 +33,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
+        "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -36,6 +41,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-discovery-end-point-verification",
+        "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "",
         "condition": "CheckJwksUriIsHostedOnOpenBankingDirectory",
@@ -43,6 +49,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key",
+        "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -50,6 +57,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-private-key-and-mtls-holder-of-key",
+        "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
@@ -57,6 +65,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-private-key-and-mtls-holder-of-key",
+        "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError",
@@ -64,6 +73,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-mtls-holder-of-key",
+        "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -71,6 +81,7 @@
     },
     {
         "test-name": "fapi-rw-id2-with-mtls",
+        "variant": "mtls",
         "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -78,6 +89,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
+        "variant": "mtls",
         "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -85,6 +97,7 @@
     },
     {
         "test-name": "fapi-rw-id2-with-private-key-and-mtls-holder-of-key",
+        "variant": "private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -92,6 +105,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-mtls-holder-of-key",
+        "variant": "private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -99,6 +113,7 @@
     },
     {
         "test-name": "fapi-rw-id2-with-private-key-and-mtls-holder-of-key",
+        "variant": "private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -106,6 +121,7 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds-with-private-key-and-mtls-holder-of-key",
+        "variant": "private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",

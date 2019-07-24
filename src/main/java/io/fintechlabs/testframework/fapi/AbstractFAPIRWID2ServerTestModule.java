@@ -96,10 +96,17 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
+import io.fintechlabs.testframework.openbanking.AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
+
+	// to be used in @Variant definitions
+	public static final String variant_mtls = "mtls";
+	public static final String variant_privatekeyjwt = "private_key_jwt";
+	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
+	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
 
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -117,10 +124,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		public Class<? extends Condition> getSetProtectedResourceUrl() {
 			return SetProtectedResourceUrlToSingleResourceEndpoint.class;
 		}
-	}
-
-	protected AbstractFAPIRWID2ServerTestModule(StepsConfiguration stepsConfiguration) {
-		this.stepsConfiguration = stepsConfiguration;
 	}
 
 	@Override
@@ -580,5 +583,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			return "Second client: ";
 		}
 		return "";
+	}
+
+	protected void setupMTLS() {
+		stepsConfiguration = new StepsConfigurationFAPI();
+	}
+
+	protected void setupPrivateKeyJwt() {
+		stepsConfiguration = new StepsConfigurationFAPI();
+	}
+
+	protected void setupOpenBankingUkMTLS() {
+		stepsConfiguration = new StepsConfigurationOpenBanking();
+	}
+
+	protected void setupOpenBankingUkPrivateKeyJwt() {
+		stepsConfiguration = new StepsConfigurationOpenBanking();
 	}
 }

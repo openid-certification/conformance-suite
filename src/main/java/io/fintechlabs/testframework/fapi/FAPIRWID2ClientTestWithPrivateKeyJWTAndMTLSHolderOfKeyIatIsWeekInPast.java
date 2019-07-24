@@ -4,6 +4,8 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddIatValueIsWeekInPastToIdToken;
 import io.fintechlabs.testframework.condition.as.ClientContinuedAfterReceivingIdTokenIssuedInPast;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -19,10 +21,20 @@ import org.springframework.http.ResponseEntity;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+	},
+	notApplicableForVariants = {
+		FAPIRWID2ClientTest.variant_mtls,
+		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
+		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
 public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyIatIsWeekInPast extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {
