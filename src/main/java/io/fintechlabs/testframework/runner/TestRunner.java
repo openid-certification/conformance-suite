@@ -689,7 +689,7 @@ public class TestRunner implements DataUtils {
 
 				if (error.getCause() instanceof ConditionError) {
 					Map<String, Object> event = new HashMap<>();
-					event.put("msg", "The failure  means the test cannot continue. Stopping test.");
+					event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error, event));
 				} else {
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
