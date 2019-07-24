@@ -311,6 +311,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
+		// save the id_token returned from the authorisation endpoint
+		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE,"OIDCC-2");
@@ -333,11 +336,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
-			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		if (whichClient == 1) {
 			// call the token endpoint and complete the flow
@@ -517,6 +515,18 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
+		eventLog.startBlock(currentClientString() + "Verify at_hash in the authorization endpoint id_token");
+
+		env.mapKey("id_token","authorization_endpoint_id_token");
+
+		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+
+		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		env.unmapKey("id_token");
+
+		eventLog.endBlock();
 	}
 
 	protected void processCallback() {

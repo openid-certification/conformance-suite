@@ -133,6 +133,9 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 	protected void performPostAuthorizationFlow() {
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
+		// save the id_token returned from the authorisation endpoint
+		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
@@ -153,11 +156,6 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		// call the token endpoint and complete the flow
 
