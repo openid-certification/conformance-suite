@@ -38,11 +38,8 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 	}
 
 	@Override
-	public void start() {
-
-		setStatus(Status.RUNNING);
-
-		performEndpointVerification();
+	protected void performEndpointVerification() {
+		super.performEndpointVerification();
 
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.WARNING, "OB-7.1-1");
@@ -55,9 +52,6 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
 
 		performProfileSpecificChecks();
-
-		fireTestFinished();
-
 	}
 
 	protected void performProfileSpecificChecks() {

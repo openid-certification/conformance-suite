@@ -6,8 +6,6 @@ import io.fintechlabs.testframework.condition.client.CheckBackchannelTokenDelive
 import io.fintechlabs.testframework.condition.client.CheckBackchannelUserCodeParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscBackchannelAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointBackchannelAuthenticationRequestSigningAlgValuesSupported;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import io.fintechlabs.testframework.condition.client.FAPICIBACheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.fapi.AbstractFAPIDiscoveryEndpointVerification;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
@@ -25,25 +23,8 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class FAPICIBADiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
-	private Class<? extends ConditionSequence> variantAuthChecks;
 	private Class<? extends ConditionSequence> variantModeChecks;
 
-	public static class MtlsChecks extends AbstractConditionSequence
-	{
-		@Override
-		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
-
-		}
-	}
-	public static class PrivateKeyJWTChecks extends AbstractConditionSequence
-	{
-		@Override
-		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
-
-		}
-	}
 	public static class PollChecks extends AbstractConditionSequence
 	{
 		@Override
@@ -63,46 +44,50 @@ public class FAPICIBADiscoveryEndpointVerification extends AbstractFAPIDiscovery
 
 	@Variant(name = FAPICIBA.variant_ping_mtls)
 	public void setupPingMTLS() {
-		variantAuthChecks = MtlsChecks.class;
+		super.setupMTLS();
 		variantModeChecks = PingChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_ping_privatekeyjwt)
 	public void setupPingPrivateKeyJwt() {
-		variantAuthChecks = PrivateKeyJWTChecks.class;
+		super.setupPrivateKeyJwt();
 		variantModeChecks = PingChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_poll_mtls)
 	public void setupPollMTLS() {
-		variantAuthChecks = MtlsChecks.class;
+		super.setupMTLS();
 		variantModeChecks = PollChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_poll_privatekeyjwt)
 	public void setupPollPrivateKeyJwt() {
-		variantAuthChecks = PrivateKeyJWTChecks.class;
+		super.setupPrivateKeyJwt();
 		variantModeChecks = PollChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_openbankinguk_poll_mtls)
 	public void setupOpenBankingUkPollMTLS() {
-		setupPollMTLS();
+		super.setupMTLS();
+		variantModeChecks = PollChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_openbankinguk_poll_privatekeyjwt)
 	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		setupPollPrivateKeyJwt();
+		super.setupPrivateKeyJwt();
+		variantModeChecks = PollChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_openbankinguk_ping_mtls)
 	public void setupOpenBankingUkPingMTLS() {
-		setupPingMTLS();
+		super.setupMTLS();
+		variantModeChecks = PingChecks.class;
 	}
 
 	@Variant(name = FAPICIBA.variant_openbankinguk_ping_privatekeyjwt)
 	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		setupPingPrivateKeyJwt();
+		super.setupPrivateKeyJwt();
+		variantModeChecks = PingChecks.class;
 	}
 
 	@Override
@@ -116,11 +101,9 @@ public class FAPICIBADiscoveryEndpointVerification extends AbstractFAPIDiscovery
 
 		performProfileSpecificChecks();
 
-		call(sequence(variantAuthChecks));
 		call(sequence(variantModeChecks));
 	}
 
 	public void performProfileSpecificChecks() {
 	}
-
 }
