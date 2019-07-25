@@ -58,15 +58,4 @@ public class FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey extends Abs
 
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
-
-	@Override
-	protected void generateNewClientAssertion() {
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-
-	}
 }

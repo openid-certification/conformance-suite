@@ -123,6 +123,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -474,6 +475,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void generateNewClientAssertion() {
 		// Generate a new client_assertion to test client authentication failure (400 invalid_grant) due to re-use of the authorization code
 		// Only use for private_key_jwt
+		if (generateNewClientAssertionSteps != null)
+			call(sequence(generateNewClientAssertionSteps));
 	}
 
 	protected void createAuthorizationCodeRequest() {
@@ -619,20 +622,24 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void setupMTLS() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = null;
 	}
 
 	protected void setupPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = null;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 }
