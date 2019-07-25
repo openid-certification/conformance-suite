@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-authorization-code-is-bound-to-client-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure authorization code is bound to client (with MTLS authentication)",
-	summary = "This test ensures the token endpoint returns an error if a valid authorization code is used with another client's credentials.",
+	testName = "fapi-rw-id2-ensure-request-object-with-bad-aud-fails",
+	displayName = "FAPI-RW-ID2: ensure request object with bad values of aud fails",
+	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,15 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithMTLS extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
+public class FAPIRWID2EnsureRequestObjectWithBadAudFails extends AbstractFAPIRWID2EnsureRequestObjectWithBadAudFails {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }

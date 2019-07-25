@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-response-type-code-fails-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure response_type code fails (with MTLS authentication)",
-	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-id2-ensure-redirect-uri-in-authorization-request",
+	displayName = "FAPI-RW-ID2: ensure redirect URI in authorization request",
+	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,15 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureResponseTypeCodeFailsWithMTLS extends AbstractFAPIRWID2EnsureResponseTypeCodeFails {
+public class FAPIRWID2EnsureRedirectUriInAuthorizationRequest extends AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }

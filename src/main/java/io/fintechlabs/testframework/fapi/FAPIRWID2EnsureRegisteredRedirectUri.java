@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-expired-request-object-fails-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure expired request object fails (with MTLS authentication)",
-	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-id2-ensure-registered-redirect-uri",
+	displayName = "FAPI-RW-ID2: ensure registered redirect URI",
+	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,15 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureExpiredRequestObjectFailsWithMTLS extends AbstractFAPIRWID2EnsureExpiredRequestObjectFails {
+public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2EnsureRegisteredRedirectUri {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }

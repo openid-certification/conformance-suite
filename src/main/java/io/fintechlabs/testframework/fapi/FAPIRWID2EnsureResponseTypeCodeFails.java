@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-signed-request-object-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure signed request object with RS256 fails (with private key authentication and mtls holder of key)",
-	summary = "This test should end with the authorisation server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-id2-ensure-response-type-code-fails",
+	displayName = "FAPI-RW-ID2: ensure response_type code fails",
+	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,12 +26,16 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureSignedRequestObjectWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails {
+public class FAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2EnsureResponseTypeCodeFails {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-signature-algorithm-is-not-none-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure request object signature algorithm is not none (with private key authentication and mtls holder of key)",
-	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-id2-user-rejects-authentication",
+	displayName = "FAPI-RW-ID2: user rejects authentication",
+	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,12 +26,16 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNoneWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone {
+public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2UserRejectsAuthentication {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

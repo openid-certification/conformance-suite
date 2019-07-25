@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-user-rejects-authentication-with-mtls",
-	displayName = "FAPI-RW-ID2: user rejects authentication (with MTLS authentication)",
-	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
+	testName = "fapi-rw-id2-refresh-token",
+	displayName = "FAPI-RW-ID2: obtain an id token using a refresh token",
+	summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,15 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2UserRejectsAuthenticationWithMTLS extends AbstractFAPIRWID2UserRejectsAuthentication {
+public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2RefreshTokenTestModule {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }

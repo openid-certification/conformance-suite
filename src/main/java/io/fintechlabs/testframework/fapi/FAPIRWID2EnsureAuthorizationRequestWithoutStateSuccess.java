@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-authorization-request-without-request-object-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure authorization request without request_object fails (with private key authentication and mtls holder of key)",
-	summary = "This test should end with the authorisation server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-id2-ensure-authorization-request-without-state-success",
+	displayName = "FAPI-RW-ID2: ensure authorization endpoint request without state success",
+	summary = "This test should end with the authorisation server must successfully authenticate and does not return state and does not return s_hash.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,12 +26,16 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFails {
+public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

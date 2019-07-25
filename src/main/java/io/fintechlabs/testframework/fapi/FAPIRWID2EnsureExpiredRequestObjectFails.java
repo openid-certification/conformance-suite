@@ -4,8 +4,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-with-bad-aud-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure request object with bad values of aud fails (with private key authentication and mtls holder of key)",
+	testName = "fapi-rw-id2-ensure-expired-request-object-fails",
+	displayName = "FAPI-RW-ID2: ensure expired request object fails",
 	summary = "This test should end with the authorisation server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -26,12 +26,16 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithBadAudFailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureRequestObjectWithBadAudFails {
+public class FAPIRWID2EnsureExpiredRequestObjectFails extends AbstractFAPIRWID2EnsureExpiredRequestObjectFails {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

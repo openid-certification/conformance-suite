@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-without-nonce-fails-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure request object without nonce fails (MTLS authentication)",
-	summary = "This test should end with the authorisation server showing an error message that the request or request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	testName = "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds",
+	displayName = "FAPI-RW-ID2: ensure request object with multiple aud succeeds",
+	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,15 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithoutNonceFailsWithMTLS extends AbstractFAPIRWID2EnsureRequestObjectWithoutNonceFails {
+public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }
