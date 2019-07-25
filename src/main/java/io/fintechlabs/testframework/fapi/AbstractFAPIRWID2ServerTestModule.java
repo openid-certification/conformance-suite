@@ -70,6 +70,7 @@ import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -96,7 +97,9 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
-import io.fintechlabs.testframework.openbanking.AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,15 +117,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected boolean logEndTestIfAlgIsNotPS256(){return false;}
 
-	private StepsConfiguration stepsConfiguration;
+	// for variants to fill in by calling the setup... family of methods
+	private Class<? extends ConditionSequence> resourceConfiguration;
 
-	public interface StepsConfiguration {
-		Class<? extends Condition> getSetProtectedResourceUrl();
+	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		}
 	}
 
-	public static class StepsConfigurationFAPI implements StepsConfiguration {
-		public Class<? extends Condition> getSetProtectedResourceUrl() {
-			return SetProtectedResourceUrlToSingleResourceEndpoint.class;
+	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
 		}
 	}
 
@@ -207,7 +216,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(stepsConfiguration.getSetProtectedResourceUrl());
+		call(sequence(resourceConfiguration));
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
@@ -596,18 +605,18 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void setupMTLS() {
-		stepsConfiguration = new StepsConfigurationFAPI();
+		resourceConfiguration = FAPIResourceConfiguration.class;
 	}
 
 	protected void setupPrivateKeyJwt() {
-		stepsConfiguration = new StepsConfigurationFAPI();
+		resourceConfiguration = FAPIResourceConfiguration.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
-		stepsConfiguration = new StepsConfigurationOpenBanking();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
-		stepsConfiguration = new StepsConfigurationOpenBanking();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 	}
 }
