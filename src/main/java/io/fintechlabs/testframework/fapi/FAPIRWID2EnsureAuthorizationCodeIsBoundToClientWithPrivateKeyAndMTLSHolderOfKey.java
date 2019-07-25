@@ -1,9 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -41,16 +37,4 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithPrivateKeyAndMTL
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
 }

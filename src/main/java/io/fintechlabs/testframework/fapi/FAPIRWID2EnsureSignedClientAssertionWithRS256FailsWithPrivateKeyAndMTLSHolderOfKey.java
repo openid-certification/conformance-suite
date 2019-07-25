@@ -8,7 +8,6 @@ import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpoint
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -52,9 +51,7 @@ public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAnd
 	}
 
 	@Override
-	protected void createAuthorizationCodeRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+	protected void addClientAuthenticationToTokenEndpointRequest() {
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 

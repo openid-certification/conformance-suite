@@ -22,7 +22,6 @@ import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2RefreshTokenTestModule
 public abstract class AbstractFAPIRWID2OBRefreshTokenTestModule extends AbstractFAPIRWID2RefreshTokenTestModule
 {
 
-	protected abstract void addClientAuthenticationToTokenEndpointRequest();
 	protected abstract void createClientCredentialsRequest();
 
 	@Override

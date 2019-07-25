@@ -50,9 +50,4 @@ public class FAPIRWID2OBEnsureResponseModeQueryWithMTLS extends AbstractFAPIRWID
 		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		// Nothing to do here
-	}
 }

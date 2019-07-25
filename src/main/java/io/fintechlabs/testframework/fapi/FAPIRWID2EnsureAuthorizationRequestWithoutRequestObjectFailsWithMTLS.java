@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -38,12 +36,5 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFailsWithMTL
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
-	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 }

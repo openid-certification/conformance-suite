@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.*;
 import io.fintechlabs.testframework.condition.common.*;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -39,11 +38,6 @@ public class FAPIRWID2RefreshTokenWithMTLS extends AbstractFAPIRWID2RefreshToken
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
-	}
-
-	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
 }

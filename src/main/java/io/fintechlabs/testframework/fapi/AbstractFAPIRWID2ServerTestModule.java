@@ -38,6 +38,7 @@ import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteraction
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -99,6 +100,8 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,6 +122,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
+	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -472,7 +476,15 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// Only use for private_key_jwt
 	}
 
-	protected abstract void createAuthorizationCodeRequest();
+	protected void createAuthorizationCodeRequest() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+
+		addClientAuthenticationToTokenEndpointRequest();
+	}
+
+	protected void addClientAuthenticationToTokenEndpointRequest() {
+		call(sequence(addTokenEndpointClientAuthentication));
+	}
 
 	protected void requestAuthorizationCode() {
 
@@ -606,17 +618,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected void setupMTLS() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	protected void setupPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 }

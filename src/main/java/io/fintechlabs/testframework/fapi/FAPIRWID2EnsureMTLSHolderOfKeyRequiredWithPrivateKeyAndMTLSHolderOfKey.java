@@ -1,16 +1,12 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAllowingTLSFailure;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -50,17 +46,6 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolderOf
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 
 	@Override
