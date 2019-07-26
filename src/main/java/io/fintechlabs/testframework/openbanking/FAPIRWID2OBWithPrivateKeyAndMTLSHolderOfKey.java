@@ -5,7 +5,6 @@ import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEn
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
@@ -64,8 +63,6 @@ public class FAPIRWID2OBWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWI
 
 	@Override
 	protected void createAuthorizationCodeRequest() {
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
-
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);

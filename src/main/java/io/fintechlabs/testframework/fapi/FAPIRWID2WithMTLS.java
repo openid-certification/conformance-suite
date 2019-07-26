@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.fapi;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -44,8 +43,6 @@ public class FAPIRWID2WithMTLS extends FAPIRWID2 {
 
 	@Override
 	protected void createAuthorizationCodeRequest() {
-
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 

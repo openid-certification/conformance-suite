@@ -10,13 +10,36 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpo
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckJwksUri;
+import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
+import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckTLSClientCertificateBoundAccessTokens;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 
 public abstract class AbstractFAPIDiscoveryEndpointVerification extends AbstractTestModule {
+	private Class<? extends ConditionSequence> variantAuthChecks;
+
+	public static class MtlsChecks extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+
+		}
+	}
+
+	public static class PrivateKeyJWTChecks extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+
+		}
+	}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -63,6 +86,8 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 		);
 
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
+		call(sequence(variantAuthChecks));
 	}
 
 	@Override
@@ -77,14 +102,18 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 	}
 
 	protected void setupMTLS() {
+		variantAuthChecks = MtlsChecks.class;
 	}
 
 	protected void setupPrivateKeyJwt() {
+		variantAuthChecks = PrivateKeyJWTChecks.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
+		variantAuthChecks = MtlsChecks.class;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
+		variantAuthChecks = PrivateKeyJWTChecks.class;
 	}
 }
