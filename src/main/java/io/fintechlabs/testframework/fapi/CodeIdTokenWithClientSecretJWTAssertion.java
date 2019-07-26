@@ -259,6 +259,9 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectSer
 
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
+		// save the id_token returned from the authorisation endpoint
+		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3"); // these can be continues
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
@@ -274,12 +277,6 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectSer
 
 		skipIfMissing(new String[] { "c_hash" }, null, ConditionResult.INFO,
 			ValidateCHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
 
 		// call the token endpoint and complete the flow
 
@@ -317,6 +314,19 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectSer
 
 		skipIfMissing(new String[] { "s_hash" }, null, ConditionResult.INFO,
 			ValidateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+
+		eventLog.startBlock("Verify at_hash in the authorization endpoint id_token");
+
+		env.mapKey("id_token","authorization_endpoint_id_token");
+
+		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+
+		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
+			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		env.unmapKey("id_token");
+
+		eventLog.endBlock();
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
