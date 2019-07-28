@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
-public class AddPromptConsentToAuthorizationEndpointRequest extends AbstractCondition {
+public class AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess extends AbstractCondition {
 
 	/**
 	 * Adds prompt=consent to authorization request only when scope contains offline_access
@@ -19,10 +19,12 @@ public class AddPromptConsentToAuthorizationEndpointRequest extends AbstractCond
 	{
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		if(!authorizationEndpointRequest.has("scope")) {
+			logSuccess("Not adding prompt=consent as the authorization endpoint request does not contain a scope");
 			return env;
 		}
 		String scope = OIDFJSON.getString(authorizationEndpointRequest.get("scope"));
 		if(!scope.contains("offline_access")) {
+			logSuccess("Not adding prompt=consent as the scope in the configuration does not contain offline_access");
 			return env;
 		}
 		authorizationEndpointRequest.addProperty("prompt", "consent");

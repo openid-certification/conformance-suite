@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -34,7 +34,7 @@ import io.fintechlabs.testframework.condition.client.WaitForOneSecond;
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
 
 	protected void addPromptConsentToAuthorizationEndpointRequest() {
-		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequest.class, "OIDCC-11");
+		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		eventLog.startBlock(currentClientString() + "Refresh Token Request");
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
 		if (whichClient == 1) {
-			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
+			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 		}
 
 		addClientAuthenticationToTokenEndpointRequest();
@@ -111,7 +111,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 	protected void refreshTokenRequestExpectingError() {
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
 		if (whichClient == 1) {
-			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
+			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 		}
 
 		addClientAuthenticationToTokenEndpointRequest();
