@@ -36,6 +36,7 @@ import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgai
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.VerifyNoSHash;
+import io.fintechlabs.testframework.condition.client.VerifyNoStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
@@ -101,12 +102,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-			// state can be absented if authorization request did not send state in the request object
-			call(condition(CheckMatchingStateParameter.class)
-				.skipIfElementMissing("callback_params", "state")
-				.onSkip(Condition.ConditionResult.INFO)
-				.onFail(Condition.ConditionResult.FAILURE)
-				.dontStopOnFailure());
+			callAndContinueOnFailure(VerifyNoStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
