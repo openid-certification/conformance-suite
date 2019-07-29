@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-iat-is-week-in-past",
-	displayName = "FAPI-RW-ID2: client test - iat value which is a week in the past in id_token from authorization_endpoint, should be rejected (with private_key and mtls holder of key)",
+	testName = "fapi-rw-id2-client-test-iat-is-week-in-past",
+	displayName = "FAPI-RW-ID2: client test - iat value which is a week in the past in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the iat value in the id_token (from the authorization_endpoint) has expired (in the request object)",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -23,13 +23,17 @@ import org.springframework.http.ResponseEntity;
 		"client.jwks",
 	},
 	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyIatIsWeekInPast extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

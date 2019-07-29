@@ -6,8 +6,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-missing-iss",
-	displayName = "FAPI-RW-ID2: client test - missing iss value in id_token from authorization_endpoint, should be rejected (with private_key_jwt and MTLS)",
+	testName = "fapi-rw-id2-client-test-invalid-missing-iss",
+	displayName = "FAPI-RW-ID2: client test - missing iss value in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token from the authorization_endpoint is missing",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -19,13 +19,17 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"client.jwks",
 	},
 	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidMissingIss extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestInvalidMissingIss extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
