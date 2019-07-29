@@ -1,15 +1,12 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.*;
-import io.fintechlabs.testframework.condition.common.*;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-refresh-token-with-mtls",
-	displayName = "FAPI-RW-ID2: obtain an id token using a refresh token (MTLS authentication)",
-	summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
+	testName = "fapi-rw-id2-ensure-authorization-request-without-state-success",
+	displayName = "FAPI-RW-ID2: ensure authorization endpoint request without state success",
+	summary = "This test should end with the authorisation server must successfully authenticate and does not return state and does not return s_hash.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,21 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2RefreshTokenWithMTLS extends AbstractFAPIRWID2RefreshTokenTestModule {
+public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
 	}
 
-	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
-
 }

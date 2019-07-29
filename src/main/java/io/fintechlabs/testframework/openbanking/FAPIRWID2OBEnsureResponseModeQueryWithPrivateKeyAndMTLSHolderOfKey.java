@@ -54,9 +54,4 @@ public class FAPIRWID2OBEnsureResponseModeQueryWithPrivateKeyAndMTLSHolderOfKey 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		// Nothing to do here
-	}
 }

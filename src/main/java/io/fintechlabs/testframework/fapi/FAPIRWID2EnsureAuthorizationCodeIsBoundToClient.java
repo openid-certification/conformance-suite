@@ -1,13 +1,11 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-authorization-code-is-bound-to-client-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure authorization code is bound to client (with MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-authorization-code-is-bound-to-client",
+	displayName = "FAPI-RW-ID2: ensure authorization code is bound to client",
 	summary = "This test ensures the token endpoint returns an error if a valid authorization code is used with another client's credentials.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -28,23 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClientWithMTLS extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
+public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
 	}
 
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
-
 }

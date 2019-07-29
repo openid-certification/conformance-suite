@@ -1,18 +1,13 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2RefreshTokenTestModule;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
-import io.fintechlabs.testframework.fapi.FAPIRWID2RefreshTokenTestWithPrivateKeyAndMTLSHolderOfKey;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-refresh-token-with-private-key-and-mtls-holder-of-key",
@@ -52,15 +47,6 @@ public class FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey extends Abs
 	}
 
 	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
-	@Override
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
@@ -71,16 +57,5 @@ public class FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey extends Abs
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
 		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
-	@Override
-	protected void generateNewClientAssertion() {
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-
 	}
 }

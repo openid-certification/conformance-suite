@@ -38,6 +38,7 @@ import io.fintechlabs.testframework.condition.client.CreateRandomFAPIInteraction
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
+import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -70,6 +71,7 @@ import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
+import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -96,7 +98,11 @@ import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
-import io.fintechlabs.testframework.openbanking.AbstractFAPIRWID2OBServerTestModule.StepsConfigurationOpenBanking;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,15 +120,23 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected boolean logEndTestIfAlgIsNotPS256(){return false;}
 
-	private StepsConfiguration stepsConfiguration;
+	// for variants to fill in by calling the setup... family of methods
+	private Class<? extends ConditionSequence> resourceConfiguration;
+	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
-	public interface StepsConfiguration {
-		Class<? extends Condition> getSetProtectedResourceUrl();
+	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		}
 	}
 
-	public static class StepsConfigurationFAPI implements StepsConfiguration {
-		public Class<? extends Condition> getSetProtectedResourceUrl() {
-			return SetProtectedResourceUrlToSingleResourceEndpoint.class;
+	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
 		}
 	}
 
@@ -207,7 +221,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(stepsConfiguration.getSetProtectedResourceUrl());
+		call(sequence(resourceConfiguration));
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
@@ -461,9 +475,19 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void generateNewClientAssertion() {
 		// Generate a new client_assertion to test client authentication failure (400 invalid_grant) due to re-use of the authorization code
 		// Only use for private_key_jwt
+		if (generateNewClientAssertionSteps != null)
+			call(sequence(generateNewClientAssertionSteps));
 	}
 
-	protected abstract void createAuthorizationCodeRequest();
+	protected void createAuthorizationCodeRequest() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+
+		addClientAuthenticationToTokenEndpointRequest();
+	}
+
+	protected void addClientAuthenticationToTokenEndpointRequest() {
+		call(sequence(addTokenEndpointClientAuthentication));
+	}
 
 	protected void requestAuthorizationCode() {
 
@@ -596,18 +620,26 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void setupMTLS() {
-		stepsConfiguration = new StepsConfigurationFAPI();
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = null;
 	}
 
 	protected void setupPrivateKeyJwt() {
-		stepsConfiguration = new StepsConfigurationFAPI();
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
-		stepsConfiguration = new StepsConfigurationOpenBanking();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = null;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
-		stepsConfiguration = new StepsConfigurationOpenBanking();
+		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 }

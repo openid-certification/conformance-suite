@@ -1,13 +1,11 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-response-mode-query-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure response_mode query (with MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-response-mode-query",
+	displayName = "FAPI-RW-ID2: ensure response_mode query",
 	summary = "This test includes response_mode=query in the authorization request. The authorization server should show an error message that response_mode=query is not allowed when response_type is 'code id_token' (a screenshot of which should be uploaded), should return an error to the client, or must successfully authenticate.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -28,20 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureResponseModeQueryWithMTLS extends AbstractFAPIRWID2EnsureResponseModeQuery {
+public class FAPIRWID2EnsureResponseModeQuery extends AbstractFAPIRWID2EnsureResponseModeQuery {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
 	}
 
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		// Nothing to do here
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }

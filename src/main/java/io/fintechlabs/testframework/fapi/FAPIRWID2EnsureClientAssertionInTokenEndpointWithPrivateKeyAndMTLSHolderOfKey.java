@@ -6,7 +6,6 @@ import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnF
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -49,9 +48,7 @@ public class FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSH
 	}
 
 	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
+	protected void addClientAuthenticationToTokenEndpointRequest() {
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 

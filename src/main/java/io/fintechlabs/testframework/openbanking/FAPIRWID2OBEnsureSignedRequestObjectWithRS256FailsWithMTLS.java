@@ -2,9 +2,9 @@ package io.fintechlabs.testframework.openbanking;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
@@ -51,14 +51,6 @@ public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends 
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}

@@ -1,13 +1,11 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-without-state-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure request object without state (MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-request-object-without-state",
+	displayName = "FAPI-RW-ID2: ensure request object without state",
 	summary = "This test should end with the authorisation server showing an error message: invalid_request, invalid_request_object or access_denied (a screenshot of which should be uploaded), or must successfully authenticate and does not return state and does not return s_hash.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -28,23 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithoutStateWithMTLS extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
+public class FAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
 	}
 
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
-
 }

@@ -1,13 +1,11 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure request object with multiple aud succeeds (MTLS authentication)",
+	testName = "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds",
+	displayName = "FAPI-RW-ID2: ensure request object with multiple aud succeeds",
 	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -28,23 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAudWithMTLS extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
+public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
 	}
 
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
-
 }

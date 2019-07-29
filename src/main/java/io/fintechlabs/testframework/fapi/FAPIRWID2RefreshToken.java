@@ -4,9 +4,9 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-mtls-holder-of-key-required-with-mtls",
-	displayName = "FAPI-RW-ID2: ensure mtls holder of key required (with MTLS authentication)",
-	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
+	testName = "fapi-rw-id2-refresh-token",
+	displayName = "FAPI-RW-ID2: obtain an id token using a refresh token",
+	summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,15 +26,19 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
-		FAPIRWID2.variant_privatekeyjwt,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
+public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2RefreshTokenTestModule {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 }

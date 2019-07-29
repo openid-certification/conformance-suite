@@ -45,11 +45,6 @@ public class FAPIRWID2OBRefreshTokenWithMTLS extends AbstractFAPIRWID2OBRefreshT
 	}
 
 	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-	}
-
-	@Override
 	protected void createClientCredentialsRequest() {
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
