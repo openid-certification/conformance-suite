@@ -6,8 +6,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-iss",
-	displayName = "FAPI-RW-ID2: client test - invalid iss in id_token from authorization_endpoint, should be rejected (with private_key_jwt and MTLS)",
+	testName = "fapi-rw-id2-client-test-invalid-iss",
+	displayName = "FAPI-RW-ID2: client test - invalid iss in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -19,13 +19,17 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"client.jwks",
 	},
 	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidIss extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestInvalidIss extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
@@ -42,7 +46,6 @@ public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidIss ex
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid iss value from the authorization_endpoint.");
-
 	}
 
 }
