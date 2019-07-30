@@ -416,15 +416,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			//exposeEnvString("client_id");
 
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-			callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
-
 			performAuthorizationFlow();
 		} else {
 			// call the token endpoint and complete the flow

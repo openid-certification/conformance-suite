@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.fapi;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
@@ -29,8 +30,6 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
@@ -43,12 +42,8 @@ import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
-import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.WaitForOneSecond;
-import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
-import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
 
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
 
@@ -229,14 +224,6 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
 
 			//exposeEnvString("client_id");
-
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-
-			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 
 			performAuthorizationFlow();
 		} else {
