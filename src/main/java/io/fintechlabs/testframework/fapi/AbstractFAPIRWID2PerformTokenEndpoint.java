@@ -1,16 +1,10 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractSHash;
-import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
-import io.fintechlabs.testframework.condition.client.ValidateIdToken;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgainstRequest;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
-import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 
 /**
@@ -25,18 +19,7 @@ public abstract class AbstractFAPIRWID2PerformTokenEndpoint extends AbstractFAPI
 		// save the id_token returned from the authorisation endpoint
 		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
-
-		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
-
-		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
-
-		performProfileIdTokenValidation();
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
-
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		performIdTokenValidation();
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 

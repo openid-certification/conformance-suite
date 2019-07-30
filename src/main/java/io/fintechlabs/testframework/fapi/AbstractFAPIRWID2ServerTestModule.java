@@ -322,12 +322,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performPostAuthorizationFlow();
 	}
 
-	protected void performPostAuthorizationFlow() {
-
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
-
-		// save the id_token returned from the authorisation endpoint
-		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+	protected void performIdTokenValidation() {
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
@@ -341,6 +336,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
+	}
+
+	protected void performPostAuthorizationFlow() {
+
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+
+		// save the id_token returned from the authorisation endpoint
+		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
+		performIdTokenValidation();
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 

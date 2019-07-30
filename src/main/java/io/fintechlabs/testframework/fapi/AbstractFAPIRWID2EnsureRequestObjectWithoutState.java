@@ -133,18 +133,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 		// save the id_token returned from the authorisation endpoint
 		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
-
-		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
-
-		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
-
-		performProfileIdTokenValidation();
-
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
-
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		performIdTokenValidation();
 
 		// s_hash must not be returned, as AS must ignore the state parameter outside the request object
 		callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-10");

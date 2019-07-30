@@ -137,11 +137,29 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 	}
 
-	protected void performStandardIdTokenValidation() {
+	protected void performIdTokenValidation() {
+		addIdTokenClaimsToEnv("first_id_token_claims");
+
+		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
+
+		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
+
+		performProfileIdTokenValidation();
+
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+	}
+
+	@Override
+	protected void performPostAuthorizationFlow() {
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+
+		// save the id_token returned from the authorisation endpoint
+		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
+		performIdTokenValidation();
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
@@ -152,24 +170,6 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-	}
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
-
-		// save the id_token returned from the authorisation endpoint
-		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
-
-		addIdTokenClaimsToEnv("first_id_token_claims");
-
-		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
-
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
-
-		performProfileIdTokenValidation();
-
-		performStandardIdTokenValidation();
 
 		if (whichClient == 1) {
 			// call the token endpoint and complete the flow

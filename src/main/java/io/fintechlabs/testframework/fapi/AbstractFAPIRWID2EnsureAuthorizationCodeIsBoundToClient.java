@@ -23,9 +23,7 @@ import io.fintechlabs.testframework.condition.client.ValidateSHash;
 public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected void performPostAuthorizationFlow() {
-
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+	protected void performIdTokenValidation() {
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
@@ -34,6 +32,14 @@ public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient ex
 		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+	}
+
+	@Override
+	protected void performPostAuthorizationFlow() {
+
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+
+		performIdTokenValidation();
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
