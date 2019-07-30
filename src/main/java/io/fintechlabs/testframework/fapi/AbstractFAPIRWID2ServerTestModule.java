@@ -383,6 +383,15 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 	}
 
+	protected void verifyAccessTokenWithResourceEndpoint() {
+		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
+		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+	}
+
 	protected void performPostAuthorizationFlow() {
 
 		if (whichClient == 1) {
@@ -398,17 +407,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			requestProtectedResource();
 
-			callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+			verifyAccessTokenWithResourceEndpoint();
 
 			// Try the second client
 

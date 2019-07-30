@@ -6,21 +6,12 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
-import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
-import io.fintechlabs.testframework.condition.common.DisallowTLS10;
-import io.fintechlabs.testframework.condition.common.DisallowTLS11;
-import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 
 public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2ServerTestModule {
 
@@ -90,17 +81,7 @@ public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideReque
 
 		requestProtectedResource();
 
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+		verifyAccessTokenWithResourceEndpoint();
 
 		fireTestFinished();
 	}

@@ -7,7 +7,6 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -16,33 +15,24 @@ import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
-import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenValuesAreDifferent;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractSHash;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
 import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.WaitForOneSecond;
 
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
@@ -169,17 +159,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			requestProtectedResource();
 
-			callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+			verifyAccessTokenWithResourceEndpoint();
 
 			// Try the second client
 
