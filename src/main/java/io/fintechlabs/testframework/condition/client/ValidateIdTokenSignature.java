@@ -63,12 +63,26 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 				}
 			} else {
 				// if a kid isn't given
-				if (!verifySignature(jwt, jwkSet)) {
+				boolean validSignature = false;
+				for(JWK jwk: jwkSet.getKeys()) {
+					// using each key to verify signature, so that can know the exact key which are able to verify
+					jwkSet = new JWKSet(jwk);
+					if(verifySignature(jwt, jwkSet)) {
+						validSignature = true;
+						break;
+					}
+				}
+				if (!validSignature) {
 					throw error("Unable to verify ID token signature based on server keys", args("jwks", serverJwks, "id_token", idToken));
 				}
 			}
 
-			logSuccess("ID Token signature validated");
+			String publicKeySetString = jwkSet.toPublicJWKSet().getKeys().size() > 0 ? jwkSet.toPublicJWKSet().getKeys().iterator().next().toString() : null;
+			JsonObject idTokenObject = new JsonObject();
+			idTokenObject.addProperty("verifiable_jws", idToken);
+			idTokenObject.addProperty("public_jwk", publicKeySetString);
+			logSuccess("ID Token signature validated", args("id_token", idTokenObject));
+
 			return env;
 
 		} catch (JOSEException | ParseException e) {

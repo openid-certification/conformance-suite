@@ -428,6 +428,15 @@ pre.prettyprint {
 	padding-right: 5px;
 }
 
+.marginTopBottom5 {
+	margin: 5px 0px 5px 0px;
+}
+
+.fitContent {
+	display: block;
+	width: fit-content;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px) {
 }

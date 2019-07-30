@@ -38,13 +38,24 @@
                     if ((key == 'stacktrace' || key == 'cause_stacktrace') && doubleStack) {
                         return;
                     }
-
             %>
                     <dt data-toggle="tooltip" title="<%- key %>" data-placement="bottom"><%- key %></dt>
                     <dd class="wrapLongStrings">
 
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-responsive center-block imagePreview">
+			<% } else if (!_.isUndefined(value.verifiable_jws)) { %>
+                <% var tokenJWTSplit = jwtRe.exec(value.verifiable_jws);%>
+
+                        <span class="jwtHeader"><%- tokenJWTSplit[1] %></span><b>.</b><span class="jwtPayload"><%- tokenJWTSplit[2] %></span><b>.</b><span class="jwtSignature"><%- tokenJWTSplit[3] %><%
+                        if (tokenJWTSplit[4]) { %></span><b>.</b><span class="jweCypher"><%- tokenJWTSplit[5] %></span><b>.</b><span class="jweTag"><%- tokenJWTSplit[6] %></span><% } %>
+
+                <% if(!_.isUndefined(value.public_jwk)) {
+                        var buildQueryParams = {'token' : value.verifiable_jws, 'publicKey' : value.public_jwk};
+                        var link = 'https://jwt.io/#debugger-io?' + $.param(buildQueryParams);
+                %>
+                        <div class="fitContent"><a href="<%- link %>"><img src="/images/jwt_io_badge.png" class="img-responsive center-block marginTopBottom5"></a></div>
+                <% } %>
             <% } else if (key == 'stacktrace' || key == 'cause_stacktrace') { %>
                 <ul>
                     <% _.each(value, function(v) { %>

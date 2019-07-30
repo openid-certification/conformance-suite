@@ -21,9 +21,7 @@ import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
-import org.apache.http.client.utils.URIBuilder;
 
-import java.net.URISyntaxException;
 import java.text.ParseException;
 
 public class SignClientAuthenticationAssertion extends AbstractCondition {
@@ -79,29 +77,11 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 				final String serializedJwt = assertion.serialize();
 				env.putString("client_assertion", serializedJwt);
 
-				String jwtIoUrl;
-				JWKSet pubSet = jwkSet.toPublicJWKSet();
-				if (pubSet.getKeys().size() == 0) {
-					// must be a symmetric key; I can't figure out the right jwt.io url to validate
-					jwtIoUrl = null;
-				} else {
-					try {
-						URIBuilder b = new URIBuilder("");
-						b.addParameter("token", serializedJwt);
-						JWK pubJwk = pubSet.getKeys().iterator().next();
-						String keySetString = pubJwk.toString();
-						b.addParameter("publicKey", keySetString);
-
-						// We do this odd string append because jwt.io wants something that looks like a url query
-						// but it actually part of the fragment: https://jwt.io/#debugger-io?token=...
-						jwtIoUrl = "https://jwt.io/#debugger-io" + b.build().toString();
-					} catch (URISyntaxException e) {
-						throw error("Failed to create URIBuilder");
-					}
-				}
-
-				logSuccess("Signed the client assertion", args("client_assertion", serializedJwt,
-					"jwt_io_link", jwtIoUrl));
+				String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
+				JsonObject verifiableClientAssertion = new JsonObject();
+				verifiableClientAssertion.addProperty("verifiable_jws", serializedJwt);
+				verifiableClientAssertion.addProperty("public_jwk", publicKeySetString);
+				logSuccess("Signed the client assertion", args("client_assertion", verifiableClientAssertion));
 
 				return env;
 

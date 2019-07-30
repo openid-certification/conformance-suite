@@ -99,7 +99,11 @@ public class SignRequestObject extends AbstractCondition {
 
 				env.putString("request_object", requestObject.serialize());
 
-				logSuccess("Signed the request object", args("request_object", requestObject.serialize(),
+				String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
+				JsonObject verifiableRequestObject = new JsonObject();
+				verifiableRequestObject.addProperty("verifiable_jws", requestObject.serialize());
+				verifiableRequestObject.addProperty("public_jwk", publicKeySetString);
+				logSuccess("Signed the request object", args("request_object", verifiableRequestObject,
 					"header", header.toString(),
 					"claims", claimSet.toString(),
 					"key", jwk.toJSONString()));

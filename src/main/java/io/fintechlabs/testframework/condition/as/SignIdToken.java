@@ -75,7 +75,11 @@ public class SignIdToken extends AbstractCondition {
 
 				env.putString("id_token", idToken);
 
-				logSuccess("Signed the ID token", args("id_token", idToken));
+				String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
+				JsonObject verifiableIdTokenObject = new JsonObject();
+				verifiableIdTokenObject.addProperty("verifiable_jws", idToken);
+				verifiableIdTokenObject.addProperty("public_jwk", publicKeySetString);
+				logSuccess("Signed the ID token", args("id_token", verifiableIdTokenObject));
 
 				return env;
 
