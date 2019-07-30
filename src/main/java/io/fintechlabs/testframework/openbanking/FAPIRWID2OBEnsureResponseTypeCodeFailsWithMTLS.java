@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-response-type-code-fails-with-mtls",
 	displayName = "FAPI-RW-ID2-OB: ensure response_type code fails (with MTLS authentication)",
-	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
