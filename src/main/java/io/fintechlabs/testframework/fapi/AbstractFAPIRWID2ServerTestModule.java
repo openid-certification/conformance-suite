@@ -421,16 +421,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			requestProtectedResource();
 
-			// Switch back to client 1
-			eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			env.unmapKey("mutual_tls_authentication");
-
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
-
-			setStatus(Status.WAITING);
-			eventLog.endBlock();
+			performProtectedResourceRequestWithFirstClientKeysExpectingError();
 
 			eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
 
@@ -485,6 +476,19 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		//exposeEnvString("client_id");
 
 		performAuthorizationFlow();
+	}
+
+	protected void performProtectedResourceRequestWithFirstClientKeysExpectingError() {
+		// Switch back to client 1
+		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		env.unmapKey("mutual_tls_authentication");
+
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
+
+		setStatus(Status.WAITING);
+		eventLog.endBlock();
 	}
 
 	protected void generateNewClientAssertion() {

@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
@@ -179,19 +178,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			requestProtectedResource();
 
-			// Switch back to client 1
-			////eventLog.startBlock("Try Client1 Crypto Keys with Client2 token");
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			env.unmapKey("mutual_tls_authentication");
-
-			// Try client 2's access token with client 1's keys
-
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
-
-			setStatus(Status.WAITING);
-			eventLog.endBlock();
-
+			performProtectedResourceRequestWithFirstClientKeysExpectingError();
 
 			// try client 2's refresh_token with client 1
 			eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
