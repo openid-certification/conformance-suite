@@ -154,25 +154,9 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 		requestAuthorizationCode();
 
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		checkAccountRequestEndpointTLS();
 
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-		eventLog.endBlock();
-
-
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-		env.unmapKey("tls");
-		eventLog.endBlock();
+		checkAccountResourceEndpointTLS();
 
 		requestProtectedResource();
 
