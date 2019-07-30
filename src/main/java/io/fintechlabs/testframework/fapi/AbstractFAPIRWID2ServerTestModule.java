@@ -319,7 +319,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		performPostAuthorizationFlow();
+		handleSuccessfulAuthorizationEndpointResponse();
 	}
 
 	protected void performIdTokenValidation() {
@@ -338,7 +338,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 	}
 
-	protected void performPostAuthorizationFlow() {
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
 
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
@@ -356,6 +356,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		performPostAuthorizationFlow();
+	}
+
+	protected void performPostAuthorizationFlow() {
 
 		if (whichClient == 1) {
 			// call the token endpoint and complete the flow

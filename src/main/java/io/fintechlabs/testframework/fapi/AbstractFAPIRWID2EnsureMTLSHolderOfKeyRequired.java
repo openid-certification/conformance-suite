@@ -57,6 +57,11 @@ public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends Abs
 	}
 
 	@Override
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+		performPostAuthorizationFlow();
+	}
+
+	@Override
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
 

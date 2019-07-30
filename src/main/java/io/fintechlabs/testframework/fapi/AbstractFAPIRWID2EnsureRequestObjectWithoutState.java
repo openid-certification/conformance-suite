@@ -107,7 +107,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-			performPostAuthorizationFlow();
+			handleSuccessfulAuthorizationEndpointResponse();
 
 		} else {
 			/* If we get an error back from the authorisation server:
@@ -127,7 +127,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 	}
 
 	@Override
-	protected void performPostAuthorizationFlow() {
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
 		// save the id_token returned from the authorisation endpoint
@@ -143,6 +143,11 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
+		performPostAuthorizationFlow();
+	}
+
+	@Override
+	protected void performPostAuthorizationFlow() {
 		// call the token endpoint and complete the flow
 
 		createAuthorizationCodeRequest();

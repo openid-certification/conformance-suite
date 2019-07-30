@@ -6,11 +6,7 @@ import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpoint
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.ExtractCHash;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import io.fintechlabs.testframework.condition.client.ExtractSHash;
-import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -18,7 +14,6 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
-import io.fintechlabs.testframework.condition.client.ValidateSHash;
 
 public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2ServerTestModule {
 
@@ -36,20 +31,6 @@ public abstract class AbstractFAPIRWID2EnsureAuthorizationCodeIsBoundToClient ex
 
 	@Override
 	protected void performPostAuthorizationFlow() {
-
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
-
-		performIdTokenValidation();
-
-		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-
-		skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		createAuthorizationCodeRequest();
 

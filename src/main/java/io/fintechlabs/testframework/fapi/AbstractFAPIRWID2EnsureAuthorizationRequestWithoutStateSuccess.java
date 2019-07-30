@@ -45,7 +45,7 @@ public abstract class AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuc
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		performPostAuthorizationFlow();
+		handleSuccessfulAuthorizationEndpointResponse();
 	}
 
 }
