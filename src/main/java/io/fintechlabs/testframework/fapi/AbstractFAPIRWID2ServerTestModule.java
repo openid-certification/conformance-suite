@@ -411,28 +411,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			// Try the second client
 
-			whichClient = 2;
-
-			eventLog.startBlock(currentClientString() + "Setup");
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-
-			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
-				/* Temporary change to allow banks to disable tests until they have had a chance to register new
-				 * clients with the new redirect uris.
-				 */
-				callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
-			} else {
-				callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
-			}
-			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-
-			//exposeEnvString("client_id");
-
-			performAuthorizationFlow();
+			performAuthorizationFlowWithSecondClient();
 		} else {
 			// call the token endpoint and complete the flow
 
@@ -480,6 +459,32 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			fireTestFinished();
 		}
+	}
+
+	protected void performAuthorizationFlowWithSecondClient() {
+		whichClient = 2;
+
+		eventLog.startBlock(currentClientString() + "Setup");
+
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+
+		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
+
+		if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
+			/* Temporary change to allow banks to disable tests until they have had a chance to register new
+			 * clients with the new redirect uris.
+			 */
+			callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
+		} else {
+			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+		}
+		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
+
+		//exposeEnvString("client_id");
+
+		performAuthorizationFlow();
 	}
 
 	protected void generateNewClientAssertion() {

@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
@@ -16,7 +15,6 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatu
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
-import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenValuesAreDifferent;
@@ -27,7 +25,6 @@ import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEn
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
-import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
@@ -163,32 +160,10 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			// Try the second client
 
-			whichClient = 2;
-
-			eventLog.startBlock(currentClientString() + "Setup");
-
 			//remove refresh token from 1st client
 			env.removeNativeValue("refresh_token");
 
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-
-			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
-				/* Temporary change to allow banks to disable tests until they have had a chance to register new
-				 * clients with the new redirect uris.
-				 */
-				callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
-			} else {
-				callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
-			}
-			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-
-			//exposeEnvString("client_id");
-
-			performAuthorizationFlow();
+			performAuthorizationFlowWithSecondClient();
 		} else {
 			// call the token endpoint and complete the flow
 
