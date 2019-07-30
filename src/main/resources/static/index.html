@@ -112,7 +112,9 @@
                     </select>
                 </div>
 				<div class="col-md-2">
-					<select class="form-control" id="variantSelector" ></select>
+					<select class="form-control" id="variantSelector">
+						<option value="select">--- Select A Variant ----</option>
+					</select>
 				</div>
             </div>
 
@@ -833,6 +835,13 @@
 
 				var createUrl = '/api/runner/?test=' + encodeURIComponent(testName);
 				if (hasVariants(testName)) {
+					// if the user hasn't picked any variants
+					if (!selectedVariant || selectedVariant == 'select') {
+						FAPI_UI.showError({
+							error: "Please select a variant from the dropdown list"
+						});
+						return;
+					}
 					createUrl += '&variant=' + encodeURIComponent(selectedVariant);
 				}
 
@@ -884,6 +893,13 @@
 
 				var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
 				if (hasVariants(planName)) {
+					// if the user hasn't picked any variants
+					if (!selectedVariant || selectedVariant == 'select') {
+						FAPI_UI.showError({
+							error: "Please select a variant from the dropdown list"
+						});
+						return;
+					}
 					createUrl += '&variant=' + encodeURIComponent(selectedVariant);
 				}
 
@@ -915,6 +931,9 @@
 			});
 			$('#planSelect').on('change', function(_) {
 				updateVariants();
+				updateConfigFieldVisibility();
+			});
+			$('#variantSelector').on('change', function(_) {
 				updateConfigFieldVisibility();
 			});
 
@@ -1002,14 +1021,24 @@
 					$('#createTestBtn').prop('disabled', true);
 				} else {
 					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
-					// enable the create button
-					$('#createTestBtn').prop('disabled', false);
+					if (hasVariants(testName)) {
+						var variant = $("#variantSelector").val();
+						if (!variant || variant == 'select') {
+							$('#createTestBtn').prop('disabled', true);
+						} else {
+							// enable the create button
+							$('#createTestBtn').prop('disabled', false);
+						}
+					} else {
+						$('#createTestBtn').prop('disabled', false);
+					}
 				}
 
 				if (!fieldsToShow) {
 					// the test hasn't defined anything, set a default
 					fieldsToShow = [];
 				}
+
             } else {
             	   // multi test plan selected
             	   var planName = $('#planSelect').val();
@@ -1028,7 +1057,16 @@
                            }
         			   });
 
-            		   $('#createPlanBtn').prop('disabled', false);
+                       if (hasVariants(planName)) {
+                           var variant = $("#variantSelector").val();
+                           if (!variant || variant == 'select') {
+                               $('#createPlanBtn').prop('disabled', true);
+                           } else {
+                               $('#createPlanBtn').prop('disabled', false);
+                           }
+                       } else {
+                           $('#createPlanBtn').prop('disabled', false);
+                       }
             	   }
             }
 
@@ -1075,7 +1113,7 @@
 				var itemSelected = $('#planSelect').val();
 			}
 
-			$('#variantSelector').find('option').remove();
+			$('#variantSelector').find('option[value!="select"]').remove();
 			if (map[itemSelected] && map[itemSelected].variants && map[itemSelected].variants.length > 0) {
 
 				// update the variant display
