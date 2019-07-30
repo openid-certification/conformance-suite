@@ -77,8 +77,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
 			HttpHeaders headers = getHeaders(env);
 
-			// FIXME: this is incorrect when used in conjunction with SetPermissiveAcceptHeaderForResourceEndpointRequest etc
-			/* if (headers.getAccept().isEmpty()) */ {
+			if (headers.getAccept().isEmpty()) {
 				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
 				headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 			}
