@@ -4,15 +4,15 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureResponseTypeCodeFails;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
-import io.fintechlabs.testframework.fapi.FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2-OB: ensure signed client assertion with RS256 fails (with private key authentication and mtls holder of key)",
-	summary = "This test should end with the token endpoint server showing an error message that the signature algorithm of the JWT for client authentication is invalid.",
+	testName = "fapi-rw-id2-ob-ensure-response-type-code-fails",
+	displayName = "FAPI-RW-ID2-OB: ensure response_type code fails",
+	summary = "This test puts only code into response type which is a parameter in the authorization request. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -35,11 +35,15 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_openbankinguk_mtls
+		FAPIRWID2.variant_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey {
+public class FAPIRWID2OBEnsureResponseTypeCodeFails extends AbstractFAPIRWID2EnsureResponseTypeCodeFails {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {

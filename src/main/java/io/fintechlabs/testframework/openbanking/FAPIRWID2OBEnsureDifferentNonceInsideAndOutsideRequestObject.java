@@ -4,15 +4,15 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
-import io.fintechlabs.testframework.fapi.FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2-OB: ensure signed client assertion with RS256 fails (with private key authentication and mtls holder of key)",
-	summary = "This test should end with the token endpoint server showing an error message that the signature algorithm of the JWT for client authentication is invalid.",
+	testName = "fapi-rw-id2-ob-ensure-different-nonce-inside-and-outside-request-object",
+	displayName = "FAPI-RW-ID2-OB: ensure different nonce inside and outside request object",
+	summary = "This test passes a different nonce in the authorization_endpoint parameters to the one inside the signed request object. The authorization server must either return an invalid_request error back to the client, and must show an error page (saying the request object is invalid as the 'nonce' value in the request object and outside it are different - upload a screenshot of the error page), or must successfully authenticate and return the nonce from inside the request object in the id_token.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -35,11 +35,15 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_openbankinguk_mtls
+		FAPIRWID2.variant_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey {
+public class FAPIRWID2OBEnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {

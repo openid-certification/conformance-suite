@@ -4,7 +4,6 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.fapi.FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -54,7 +53,6 @@ public class FAPIRWID2OBEnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTL
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-
 		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
 	}
 }

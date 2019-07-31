@@ -4,15 +4,15 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
-import io.fintechlabs.testframework.fapi.FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2-OB: ensure signed client assertion with RS256 fails (with private key authentication and mtls holder of key)",
-	summary = "This test should end with the token endpoint server showing an error message that the signature algorithm of the JWT for client authentication is invalid.",
+	testName = "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds",
+	displayName = "FAPI-RW-ID2-OB: ensure request object with good or bad values of aud succeeds",
+	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -23,11 +23,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls.cert",
 		"mtls.ca",
 		"client2.client_id",
-		"client2.scope",
 		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.resourceUrlAccountRequests",
 		"resource.resourceUrlAccountsResource",
@@ -35,11 +31,15 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_openbankinguk_mtls
+		FAPIRWID2.variant_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey {
+public class FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceeds extends AbstractFAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
@@ -49,12 +49,12 @@ public class FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyA
 	@Override
 	protected void performProfileIdTokenValidation() {
 		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
-
 	}
 
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
+
 		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
 	}
 }

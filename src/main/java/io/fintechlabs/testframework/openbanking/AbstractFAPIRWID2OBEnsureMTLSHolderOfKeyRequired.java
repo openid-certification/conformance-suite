@@ -4,7 +4,6 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired;
 
 public abstract class AbstractFAPIRWID2OBEnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
