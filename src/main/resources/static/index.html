@@ -142,7 +142,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="used in any URLs within the test, set to something unique to avoid clashes with other users, e.g. your name/company name"></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name"></span>
 											</div>
 											<input type="text" class="form-control config-form-element" data-json-target="alias"></input>
 										</div>
@@ -166,7 +166,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these should remain private while results are public."></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these details should remain private while the overall results are public. If in doubt choose &quot;No&quot; - test results can be made public later."></span>
 											</div>
 											<select class="form-control config-form-element" data-json-target="publish">
 												<option value="" selected>No</option>
@@ -281,7 +281,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'"></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'. PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'"></span>
 											</div>
 											<textarea class="form-control config-form-element" data-json-target="client.jwks"></textarea>
 										</div>
@@ -417,7 +417,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'"></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {,  must include 'alg'. PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'"></span>
 											</div>
 											<textarea class="form-control config-form-element" data-json-target="client2.jwks"></textarea>
 										</div>
