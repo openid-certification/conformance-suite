@@ -319,15 +319,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		performPostAuthorizationFlow();
+		handleSuccessfulAuthorizationEndpointResponse();
 	}
 
-	protected void performPostAuthorizationFlow() {
-
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
-
-		// save the id_token returned from the authorisation endpoint
-		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+	protected void performIdTokenValidation() {
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
@@ -341,6 +336,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
+	}
+
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+
+		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+
+		// save the id_token returned from the authorisation endpoint
+		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
+		performIdTokenValidation();
 
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
@@ -352,6 +357,43 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
+		performPostAuthorizationFlow();
+	}
+
+	protected void checkAccountRequestEndpointTLS() {
+		eventLog.startBlock("Accounts request endpoint TLS test");
+		env.mapKey("tls", "accounts_request_endpoint_tls");
+		checkEndpointTLS();
+		env.unmapKey("tls");
+		eventLog.endBlock();
+	}
+
+	protected void checkAccountResourceEndpointTLS() {
+		eventLog.startBlock("Accounts resource endpoint TLS test");
+		env.mapKey("tls", "accounts_resource_endpoint_tls");
+		checkEndpointTLS();
+		env.unmapKey("tls");
+		eventLog.endBlock();
+	}
+
+	protected void checkEndpointTLS() {
+		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
+	}
+
+	protected void verifyAccessTokenWithResourceEndpoint() {
+		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
+		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+	}
+
+	protected void performPostAuthorizationFlow() {
+
 		if (whichClient == 1) {
 			// call the token endpoint and complete the flow
 
@@ -359,73 +401,17 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			requestAuthorizationCode();
 
-			eventLog.startBlock("Accounts request endpoint TLS test");
-			env.mapKey("tls", "accounts_request_endpoint_tls");
-			callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+			checkAccountRequestEndpointTLS();
 
-			callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-			eventLog.endBlock();
-
-
-			eventLog.startBlock("Accounts resource endpoint TLS test");
-			env.mapKey("tls", "accounts_resource_endpoint_tls");
-			callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-
-			callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-			env.unmapKey("tls");
-			eventLog.endBlock();
+			checkAccountResourceEndpointTLS();
 
 			requestProtectedResource();
 
-			callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-			callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+			verifyAccessTokenWithResourceEndpoint();
 
 			// Try the second client
 
-			whichClient = 2;
-
-			eventLog.startBlock(currentClientString() + "Setup");
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-
-			if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
-				/* Temporary change to allow banks to disable tests until they have had a chance to register new
-				 * clients with the new redirect uris.
-				 */
-				callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
-			} else {
-				callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
-			}
-			callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-
-			//exposeEnvString("client_id");
-
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-			callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-			callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
-			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
-
-			performAuthorizationFlow();
+			performAuthorizationFlowWithSecondClient();
 		} else {
 			// call the token endpoint and complete the flow
 
@@ -435,16 +421,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			requestProtectedResource();
 
-			// Switch back to client 1
-			eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
-			env.unmapKey("client");
-			env.unmapKey("client_jwks");
-			env.unmapKey("mutual_tls_authentication");
-
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
-
-			setStatus(Status.WAITING);
-			eventLog.endBlock();
+			performProtectedResourceRequestWithFirstClientKeysExpectingError();
 
 			eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
 
@@ -473,6 +450,45 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			fireTestFinished();
 		}
+	}
+
+	protected void performAuthorizationFlowWithSecondClient() {
+		whichClient = 2;
+
+		eventLog.startBlock(currentClientString() + "Setup");
+
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+
+		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
+
+		if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
+			/* Temporary change to allow banks to disable tests until they have had a chance to register new
+			 * clients with the new redirect uris.
+			 */
+			callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
+		} else {
+			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+		}
+		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
+
+		//exposeEnvString("client_id");
+
+		performAuthorizationFlow();
+	}
+
+	protected void performProtectedResourceRequestWithFirstClientKeysExpectingError() {
+		// Switch back to client 1
+		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		env.unmapKey("mutual_tls_authentication");
+
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
+
+		setStatus(Status.WAITING);
+		eventLog.endBlock();
 	}
 
 	protected void generateNewClientAssertion() {
