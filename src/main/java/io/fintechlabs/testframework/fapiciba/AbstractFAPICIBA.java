@@ -60,6 +60,7 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatu
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointRetryAfterHeaders;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.CopyAcrValueFromDynamicRegistrationTemplateToClientConfiguration;
 import io.fintechlabs.testframework.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateCIBANotificationEndpointUri;
@@ -393,6 +394,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
 		// copy it across.
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
+		if (env.isKeyMapped("client")) {
+			// Add acr_values to client2 only
+			callAndStopOnFailure(CopyAcrValueFromDynamicRegistrationTemplateToClientConfiguration.class);
+		}
 	}
 
 	public void unregisterClient1() {

@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapiciba;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddAcrValuesScaToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
@@ -13,6 +12,7 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJ
 import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
 import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
+import io.fintechlabs.testframework.condition.client.FAPICIBAAddAcrValuesToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenACRClaims;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
@@ -44,6 +44,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"client2.client_id",
 		"client2.scope",
 		"client2.jwks",
+		"client2.acr_value",
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
@@ -122,7 +123,9 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		super.performProfileAuthorizationEndpointSetup();
 
 		if (isSecondClient()) {
-			callAndStopOnFailure(AddAcrValuesScaToAuthorizationEndpointRequest.class);
+			skipIfElementMissing("server", "acr_values_supported",
+				Condition.ConditionResult.INFO, FAPICIBAAddAcrValuesToAuthorizationEndpointRequest.class,
+				Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		}
 
 	}
@@ -226,7 +229,9 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		super.performProfileIdTokenValidation();
 
 		if (isSecondClient()) {
-			callAndContinueOnFailure(FAPICIBAValidateIdTokenACRClaims.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
+			skipIfElementMissing("server", "acr_values_supported",
+				Condition.ConditionResult.INFO, FAPICIBAValidateIdTokenACRClaims.class,
+				Condition.ConditionResult.FAILURE, "CIBA-7.1", "FAPI-CIBA-5.2.2-8");
 		}
 
 	}
