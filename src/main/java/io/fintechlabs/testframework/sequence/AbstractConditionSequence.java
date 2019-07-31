@@ -3,12 +3,14 @@ package io.fintechlabs.testframework.sequence;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.testmodule.Command;
 import io.fintechlabs.testframework.testmodule.ConditionCallBuilder;
+import io.fintechlabs.testframework.testmodule.ConditionSequenceCallBuilder;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.TestExecutionUnit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
@@ -43,6 +45,14 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	 */
 	protected Command exec() {
 		return new Command();
+	}
+
+	protected ConditionSequenceCallBuilder sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		return new ConditionSequenceCallBuilder(conditionSequenceClass);
+	}
+
+	protected ConditionSequenceCallBuilder sequence(Supplier<? extends ConditionSequence> conditionSequenceConstructor) {
+		return new ConditionSequenceCallBuilder(conditionSequenceConstructor);
 	}
 
 	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {

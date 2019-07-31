@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.testmodule;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
@@ -33,6 +32,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
 
@@ -447,6 +447,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call((Command)builder);
 		} else if (builder instanceof ConditionSequence) {
 			call((ConditionSequence)builder);
+		} else if (builder instanceof ConditionSequenceCallBuilder) {
+			call((ConditionSequenceCallBuilder)builder);
 		} else {
 			throw new TestFailureException(getId(), "Unknown class passed to call() function");
 		}
@@ -455,10 +457,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	/**
 	 * Create a caller for the given sequence
 	 */
-	protected ConditionSequence sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
-		ConditionSequence conditionSequence = createSequence(conditionSequenceClass);
+	protected ConditionSequenceCallBuilder sequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		return new ConditionSequenceCallBuilder(conditionSequenceClass);
+	}
 
-		return conditionSequence;
+	protected ConditionSequenceCallBuilder sequence(Supplier<? extends ConditionSequence> conditionSequenceConstructor) {
+		return new ConditionSequenceCallBuilder(conditionSequenceConstructor);
 	}
 
 	private ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
@@ -485,6 +489,18 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				call(Arrays.asList(units));
 			}
 		};
+	}
+
+	protected void call(ConditionSequenceCallBuilder builder) {
+		ConditionSequence sequence;
+
+		if (builder.getConditionSequenceConstructor() != null) {
+			sequence = builder.getConditionSequenceConstructor().get();
+		} else {
+			sequence = createSequence(builder.getConditionSequenceClass());
+		}
+
+		call(sequence);
 	}
 
 	protected void call(ConditionSequence sequence) {
