@@ -16,6 +16,7 @@ public abstract class AbstractFAPIRWID2EnsureResponseTypeCodeFails extends Abstr
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

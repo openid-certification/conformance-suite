@@ -1,15 +1,10 @@
 package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAllowingTLSFailure;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
-import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -49,19 +44,6 @@ public class FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolder
 	}
 
 	@Override
-	protected void createClientCredentialsRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
-
-	@Override
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
 
@@ -84,6 +66,4 @@ public class FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolder
 
 		fireTestFinished();
 	}
-
-
 }

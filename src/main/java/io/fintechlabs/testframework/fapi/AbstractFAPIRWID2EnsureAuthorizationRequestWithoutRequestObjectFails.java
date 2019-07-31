@@ -12,6 +12,7 @@ public abstract class AbstractFAPIRWID2EnsureAuthorizationRequestWithoutRequestO
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

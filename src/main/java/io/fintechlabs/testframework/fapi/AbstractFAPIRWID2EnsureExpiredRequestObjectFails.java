@@ -15,6 +15,8 @@ public abstract class AbstractFAPIRWID2EnsureExpiredRequestObjectFails extends A
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
 		createAuthorizationRequest();
 
 		createAuthorizationRedirect();

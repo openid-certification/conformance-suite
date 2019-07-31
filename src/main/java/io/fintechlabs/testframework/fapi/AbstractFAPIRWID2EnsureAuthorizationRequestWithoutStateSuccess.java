@@ -15,6 +15,8 @@ public abstract class AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuc
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 
 		createAuthorizationRequest();

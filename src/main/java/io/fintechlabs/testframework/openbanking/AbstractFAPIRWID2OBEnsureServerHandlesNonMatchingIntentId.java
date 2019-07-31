@@ -27,9 +27,7 @@ public abstract class AbstractFAPIRWID2OBEnsureServerHandlesNonMatchingIntentId 
 	@Override
 	protected void performAuthorizationFlow() {
 
-		requestClientCredentialsGrant();
-
-		createAccountRequest();
+		performPreAuthorizationSteps();
 
 		// Switch to client 2 JWKs
 		eventLog.startBlock("Swapping to Client2, Jwks2, tls2");

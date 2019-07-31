@@ -6,6 +6,7 @@ public abstract class AbstractFAPIRWID2EnsureRedirectUriInAuthorizationRequest e
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

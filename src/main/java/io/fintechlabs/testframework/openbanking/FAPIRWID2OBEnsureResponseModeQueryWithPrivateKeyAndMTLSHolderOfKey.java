@@ -1,10 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -44,14 +39,5 @@ public class FAPIRWID2OBEnsureResponseModeQueryWithPrivateKeyAndMTLSHolderOfKey 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
-	}
-
-	@Override
-	protected void createClientCredentialsRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 	}
 }

@@ -11,6 +11,7 @@ public abstract class AbstractFAPIRWID2EnsureMatchingKeyInAuthorizationRequest e
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

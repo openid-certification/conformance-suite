@@ -21,6 +21,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutNonceFails exte
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

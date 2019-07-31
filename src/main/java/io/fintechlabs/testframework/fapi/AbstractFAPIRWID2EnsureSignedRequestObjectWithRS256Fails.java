@@ -16,6 +16,7 @@ public abstract class AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails e
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

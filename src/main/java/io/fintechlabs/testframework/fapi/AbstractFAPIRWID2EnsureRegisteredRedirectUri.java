@@ -18,6 +18,7 @@ public abstract class AbstractFAPIRWID2EnsureRegisteredRedirectUri extends Abstr
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

@@ -103,6 +103,9 @@ import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.sequence.client.OpenBankingUkPreAuthorizationSteps;
+
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,6 +127,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
@@ -257,7 +261,14 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performAuthorizationFlow();
 	}
 
+	protected void performPreAuthorizationSteps() {
+		if (preAuthorizationSteps != null)
+			call(sequence(preAuthorizationSteps));
+	}
+
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 
 		createAuthorizationRequest();
@@ -630,6 +641,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		eventLog.endBlock();
 	}
 
+	protected boolean isSecondClient() {
+		return whichClient == 2;
+	}
+
 	/** Return which client is in use, for use in block identifiers */
 	protected String currentClientString() {
 		if (whichClient == 2) {
@@ -653,12 +668,14 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void setupOpenBankingUkMTLS() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
 		generateNewClientAssertionSteps = null;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
 		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 }

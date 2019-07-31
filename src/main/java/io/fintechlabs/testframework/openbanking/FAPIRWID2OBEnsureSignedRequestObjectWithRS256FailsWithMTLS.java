@@ -4,9 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
@@ -44,15 +41,6 @@ public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
-	}
-
-	@Override
-	protected void createClientCredentialsRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 	}
 
 	@Override

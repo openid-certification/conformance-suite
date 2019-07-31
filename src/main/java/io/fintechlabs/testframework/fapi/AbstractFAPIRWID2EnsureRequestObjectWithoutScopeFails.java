@@ -16,6 +16,8 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutScopeFails exte
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
 		createAuthorizationRequest();
 
 		createAuthorizationRedirect();

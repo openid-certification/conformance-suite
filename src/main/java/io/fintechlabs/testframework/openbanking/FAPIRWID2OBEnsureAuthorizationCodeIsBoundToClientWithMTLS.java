@@ -43,13 +43,4 @@ public class FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientWithMTLS extends A
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
 	}
-
-	@Override
-	protected void createClientCredentialsRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-	}
 }

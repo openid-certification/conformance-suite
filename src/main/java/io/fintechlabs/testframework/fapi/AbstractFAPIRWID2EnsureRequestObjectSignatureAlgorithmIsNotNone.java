@@ -15,6 +15,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNo
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

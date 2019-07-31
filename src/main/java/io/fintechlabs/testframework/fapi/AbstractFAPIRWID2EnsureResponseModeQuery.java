@@ -16,6 +16,7 @@ public abstract class AbstractFAPIRWID2EnsureResponseModeQuery extends AbstractF
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 

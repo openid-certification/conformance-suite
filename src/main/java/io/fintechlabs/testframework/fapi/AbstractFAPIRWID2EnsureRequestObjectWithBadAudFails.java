@@ -16,6 +16,8 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithBadAudFails extend
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
 		createAuthorizationRequest();
 
 		createAuthorizationRedirect();

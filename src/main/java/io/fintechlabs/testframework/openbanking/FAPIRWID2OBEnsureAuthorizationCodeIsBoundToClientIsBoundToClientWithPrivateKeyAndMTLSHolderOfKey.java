@@ -46,16 +46,4 @@ public class FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientIsBoundToClientWit
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
-	@Override
-	protected void createClientCredentialsRequest() {
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-	}
 }
