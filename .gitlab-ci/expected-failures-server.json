@@ -20,8 +20,16 @@
         "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
-        "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
         "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-mtls",
+        "variant": "openbankinguk-mtls",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning"
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-mtls",
@@ -60,8 +68,16 @@
         "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
-        "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
         "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-private-key-and-mtls-holder-of-key",
+        "variant": "openbankinguk-private_key_jwt",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning"
     },
     {
         "test-name": "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id-with-private-key-and-mtls-holder-of-key",

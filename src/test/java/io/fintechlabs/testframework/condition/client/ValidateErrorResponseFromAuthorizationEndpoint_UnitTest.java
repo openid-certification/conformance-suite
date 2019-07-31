@@ -23,14 +23,12 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 	private TestInstanceEventLog eventLog;
 	private ValidateErrorResponseFromAuthorizationEndpoint cond;
 
-	private String errorNoneNoOptionalFields = "{\"error\":\"access_denied\",\"state\":\"oObb8SUBuC\"}";
-	private String errorNoneAllOptionalFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\"}";
-	private String errorTooManyFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\",\"extraField\":\"Illegal Extra Field\"}";
+	private String errorNoneNoOptionalFields = "{\"error\":\"access_denied\",\"state\":\"oObb8SUBuC\",\"session_state\":\"4912fd505631d79b1d39f1e537679d1931558c5347707e04ae6483dda4d8fc85.cE2Jqk7V6cv_jLcoWXa3yQ\"}";
+	private String errorNoneAllOptionalFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\",\"session_state\":\"4912fd505631d79b1d39f1e537679d1931558c5347707e04ae6483dda4d8fc85.cE2Jqk7V6cv_jLcoWXa3yQ\"}";
+	private String errorTooManyFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\",\"extraField\":\"Illegal Extra Field\",\"session_state\":\"4912fd505631d79b1d39f1e537679d1931558c5347707e04ae6483dda4d8fc85.cE2Jqk7V6cv_jLcoWXa3yQ\"}";
 	private String errorErrorMissing = "{\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\"}";
-	private String errorStateMissing = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\", \"error_uri\":\"http://anerror.com\"}";
 
 	private String stateGood = "oObb8SUBuC";
-	private String stateWrong = "BrokenDunk";
 
 	/*
 	 * @throws java.lang.Exception
