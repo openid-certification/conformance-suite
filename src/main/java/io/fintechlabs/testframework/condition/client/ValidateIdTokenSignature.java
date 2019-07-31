@@ -1,10 +1,5 @@
 package io.fintechlabs.testframework.condition.client;
 
-import java.security.Key;
-import java.text.ParseException;
-import java.util.List;
-
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
@@ -20,10 +15,13 @@ import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
-
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
+
+import java.security.Key;
+import java.text.ParseException;
+import java.util.List;
 
 public class ValidateIdTokenSignature extends AbstractCondition {
 
@@ -49,7 +47,8 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 			JWSHeader header = jwt.getHeader();
 
 			// if a kid is given
-			if (header != null && !Strings.isNullOrEmpty(header.getKeyID())) {
+			// FIXME: this check is temporarily disabled due to https://gitlab.com/openid/conformance-suite/issues/580
+			if (false) /* header != null && !Strings.isNullOrEmpty(header.getKeyID())) */ {
 				JWK key = jwkSet.getKeyByKeyId(header.getKeyID());
 
 				if (key == null) {
