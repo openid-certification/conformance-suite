@@ -131,14 +131,13 @@ import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
-import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsMTLS;
-import io.fintechlabs.testframework.fapiciba.openbankinguk.OpenBankingUkPreAuthorizationStepsPrivateKeyJwt;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -146,6 +145,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.function.Supplier;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -175,7 +176,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
 	private Class<? extends ConditionSequence> additionalClientRegistrationSteps;
-	private Class<? extends ConditionSequence> preAuthorizationSteps;
+	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	private Class<? extends ConditionSequence> additionalProfileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> additionalProfileIdTokenValidationSteps;
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
@@ -1008,7 +1009,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		setupPingMTLS();
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsMTLS.class;
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(currentClientString(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
@@ -1017,7 +1018,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		setupPingPrivateKeyJwt();
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsPrivateKeyJwt.class;
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(currentClientString(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
@@ -1026,7 +1027,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		setupPollMTLS();
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsMTLS.class;
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(currentClientString(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
@@ -1035,7 +1036,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		setupPollPrivateKeyJwt();
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = OpenBankingUkPreAuthorizationStepsPrivateKeyJwt.class;
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(currentClientString(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}

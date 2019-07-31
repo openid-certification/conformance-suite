@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.fapiciba.openbankinguk;
+package io.fintechlabs.testframework.sequence.client;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CallAccountRequestsEndpointWithBearerToken;
@@ -15,34 +15,31 @@ import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEn
 import io.fintechlabs.testframework.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 
-public abstract class AbstractOpenBankingUkPreAuthorizationSteps extends AbstractConditionSequence {
+public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequence {
+
+	private String currentClient;
+	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
+
+	public OpenBankingUkPreAuthorizationSteps(String currentClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this.currentClient = currentClient;
+		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
+	}
 
 	@Override
 	public void evaluate() {
-		// We don't have access to the environment at this point, so can't determine which is the active client
-		call(exec().startBlock(/* currentClientString() + */ "Use client_credentials grant to obtain OpenBanking UK intent_id"));
+		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain OpenBanking UK intent_id"));
 
-		/* get an openbanking intent id */
-		requestClientCredentialsGrant();
-
-		createAccountRequest();
-
-		call(exec().endBlock());
-	}
-
-	abstract protected void addClientAuthenticationToTokenEndpointRequest();
-
-	protected void createClientCredentialsRequest() {
+		/* create client credentials request */
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
 		callAndStopOnFailure(SetAccountScopeOnTokenEndpointRequest.class);
 
-		addClientAuthenticationToTokenEndpointRequest();
-	}
+		call(sequence(addClientAuthenticationToTokenEndpointRequest));
 
-	protected void requestClientCredentialsGrant() {
-		createClientCredentialsRequest();
+		/* get an openbanking intent id */
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -60,9 +57,8 @@ public abstract class AbstractOpenBankingUkPreAuthorizationSteps extends Abstrac
 				.requirements("RFC6749-5.1")
 				.onFail(Condition.ConditionResult.FAILURE)
 				.dontStopOnFailure());
-	}
 
-	protected void createAccountRequest() {
+		/* create account request */
 
 		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
 
@@ -73,5 +69,7 @@ public abstract class AbstractOpenBankingUkPreAuthorizationSteps extends Abstrac
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
+
+		call(exec().endBlock());
 	}
 }
