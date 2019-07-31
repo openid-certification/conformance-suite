@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.AddIncorrectNonceToAuthoriz
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
@@ -61,7 +62,8 @@ public abstract class AbstractFAPIRWID2EnsureDifferentNonceInsideAndOutsideReque
 			 */
 
 			callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+			callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 			fireTestFinished();
 		}

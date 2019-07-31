@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCondition {
 
@@ -32,6 +31,11 @@ public class ValidateErrorResponseFromAuthorizationEndpoint extends AbstractCond
 				optionalParameterCount++;
 			}
 			if (callbackParams.has("error_uri")) {
+				optionalParameterCount++;
+			}
+
+			// https://gitlab.com/openid/conformance-suite/issues/567#note_194315659
+			if (callbackParams.has("session_state")) {
 				optionalParameterCount++;
 			}
 
