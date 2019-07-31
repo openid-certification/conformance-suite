@@ -86,7 +86,7 @@ public class SignClientAuthenticationAssertion extends AbstractCondition {
 				return env;
 
 			} else {
-				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
+				throw error("Expected only one JWK in the set. Please ensure the JWKS contains only the signing key to be used.", args("found", jwkSet.getKeys().size()));
 			}
 
 		} catch (ParseException e) {
