@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
 import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
-import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -51,14 +50,4 @@ public class FAPIRWID2ClientTestWithMTLSHolderOfKeyValidAudAsArray extends Abstr
 
 		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
 	}
-
-	@Override
-	protected void validateClientAuthentication() {
-
-		//Parent class has already verified the presented TLS certificate so nothing to do here.
-
-		callAndStopOnFailure(EnsureNoClientAssertionSentToTokenEndpoint.class);
-
-	}
-
 }

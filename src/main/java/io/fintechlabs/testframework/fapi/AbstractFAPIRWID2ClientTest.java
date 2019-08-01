@@ -63,6 +63,9 @@ import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.as.ValidateClientAuthenticationWithMTLS;
+import io.fintechlabs.testframework.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -87,6 +90,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
+	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
+
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
 	 *
@@ -99,8 +104,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	}
 
 	protected abstract void addTokenEndpointAuthMethodSupported();
-
-	protected abstract void validateClientAuthentication();
 
 	protected abstract void addCustomValuesToIdToken();
 
@@ -285,7 +288,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
-		validateClientAuthentication();
+		call(sequence(validateClientAuthenticationSteps));
 
 		return handleTokenEndpointGrantType(requestId);
 
@@ -511,14 +514,18 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	}
 
 	protected void setupMTLS() {
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	protected void setupPrivateKeyJwt() {
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
 	}
 }

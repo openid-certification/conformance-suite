@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
-import io.fintechlabs.testframework.condition.as.EnsureNoClientAssertionSentToTokenEndpoint;
 import io.fintechlabs.testframework.condition.as.RemoveAtHashFromIdToken;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -37,15 +36,6 @@ public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyNoAtHash extends AbstractFA
 	protected void addTokenEndpointAuthMethodSupported() {
 
 		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
-	}
-
-	@Override
-	protected void validateClientAuthentication() {
-
-		//Parent class has already verified the presented TLS certificate so nothing to do here.
-
-		callAndStopOnFailure(EnsureNoClientAssertionSentToTokenEndpoint.class);
-
 	}
 
 	@Override
