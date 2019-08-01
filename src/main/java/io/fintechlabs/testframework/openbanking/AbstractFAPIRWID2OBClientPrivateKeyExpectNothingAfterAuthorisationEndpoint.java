@@ -1,15 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
-
-
 public abstract class AbstractFAPIRWID2OBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWID2OBClientTest {
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
-	}
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

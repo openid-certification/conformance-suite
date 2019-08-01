@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -34,11 +33,5 @@ public class FAPIRWID2ClientTestWithMTLSHolderOfKey extends FAPIRWID2ClientTest 
 	@Override
 	protected void addCustomValuesToIdToken(){
 		//Do nothing
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
 	}
 }

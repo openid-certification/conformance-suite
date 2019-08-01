@@ -1,15 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
-
-
 public abstract class AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWID2ClientTest {
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddTLSClientAuthToServerConfiguration.class);
-	}
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

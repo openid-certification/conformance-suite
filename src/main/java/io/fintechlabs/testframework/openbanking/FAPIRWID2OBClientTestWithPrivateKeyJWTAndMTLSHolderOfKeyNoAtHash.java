@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.RemoveAtHashFromIdToken;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -31,12 +30,6 @@ public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyNoAtHash ex
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
 	}
 
 	@Override

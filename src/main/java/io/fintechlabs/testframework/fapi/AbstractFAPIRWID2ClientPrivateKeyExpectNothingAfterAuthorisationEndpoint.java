@@ -1,15 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
-
-
 public abstract class AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWID2ClientTest {
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
-	}
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

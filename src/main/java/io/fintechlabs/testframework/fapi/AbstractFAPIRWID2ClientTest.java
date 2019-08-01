@@ -2,12 +2,16 @@ package io.fintechlabs.testframework.fapi;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddAtHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddCHashToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddSHashToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddTokenEndpointSigningAlg;
 import io.fintechlabs.testframework.condition.as.CalculateAtHash;
 import io.fintechlabs.testframework.condition.as.CalculateCHash;
@@ -90,6 +94,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
+	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 
 	/**
@@ -102,8 +107,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		env.putString(name, env.getString("base_url") + "/" + path);
 		exposeEnvString(name);
 	}
-
-	protected abstract void addTokenEndpointAuthMethodSupported();
 
 	protected abstract void addCustomValuesToIdToken();
 
@@ -124,7 +127,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
-		addTokenEndpointAuthMethodSupported();
+		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class);
 		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
@@ -514,18 +517,22 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	}
 
 	protected void setupMTLS() {
+		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	protected void setupPrivateKeyJwt() {
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
+		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
 	}
 }

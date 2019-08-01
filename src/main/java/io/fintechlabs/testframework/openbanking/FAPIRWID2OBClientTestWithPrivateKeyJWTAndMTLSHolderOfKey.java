@@ -1,10 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
-import io.fintechlabs.testframework.condition.as.EnsureClientAssertionTypeIsJwt;
-import io.fintechlabs.testframework.condition.as.ExtractClientAssertion;
-import io.fintechlabs.testframework.condition.as.ValidateClientAssertionClaims;
-import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -34,12 +29,6 @@ public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKey extends Ab
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
 	}
 
 	@Override

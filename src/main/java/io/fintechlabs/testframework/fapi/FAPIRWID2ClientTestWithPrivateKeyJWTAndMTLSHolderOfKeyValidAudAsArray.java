@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -31,12 +30,6 @@ public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyValidAudAsArr
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
 	}
 
 	@Override

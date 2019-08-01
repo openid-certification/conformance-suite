@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
-import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -43,11 +42,5 @@ public class FAPIRWID2ClientTestWithMTLSHolderOfKeyValidAudAsArray extends Abstr
 	protected void addCustomSignatureOfIdToken(){
 
 		callAndStopOnFailure(SignIdTokenBypassingNimbusChecks.class);
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
 	}
 }

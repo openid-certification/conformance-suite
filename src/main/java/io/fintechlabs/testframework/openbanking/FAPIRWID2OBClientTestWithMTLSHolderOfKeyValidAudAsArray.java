@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
-import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -32,12 +31,6 @@ public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyValidAudAsArray extends Abs
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
 	}
 
 	@Override

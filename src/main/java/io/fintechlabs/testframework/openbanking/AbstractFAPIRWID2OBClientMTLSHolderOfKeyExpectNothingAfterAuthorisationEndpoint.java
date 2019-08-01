@@ -1,14 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
-
 public abstract class AbstractFAPIRWID2OBClientMTLSHolderOfKeyExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWID2OBClientTest {
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndContinueOnFailure(AddTLSClientAuthToServerConfiguration.class);
-	}
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

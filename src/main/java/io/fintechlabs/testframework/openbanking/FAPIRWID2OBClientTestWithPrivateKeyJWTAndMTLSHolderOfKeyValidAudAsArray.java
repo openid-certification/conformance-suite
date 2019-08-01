@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
-import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -32,12 +31,6 @@ public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyValidAudAsA
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
-	}
-
-	@Override
-	protected void addTokenEndpointAuthMethodSupported() {
-
-		callAndStopOnFailure(AddPrivateKeyJWTToServerConfiguration.class);
 	}
 
 	@Override
