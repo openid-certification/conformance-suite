@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.example;
 
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
@@ -181,7 +182,10 @@ public class SampleTestModule extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2-24");
 
 		callAndContinueOnFailure(ValidateSHash.class, "FAPI-RW-5.2.2-4");
 

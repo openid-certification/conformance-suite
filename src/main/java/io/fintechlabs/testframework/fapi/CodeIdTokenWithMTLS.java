@@ -9,6 +9,7 @@ import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJ
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
@@ -274,7 +275,10 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 
@@ -312,7 +316,10 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE,"FAPI-R-5.2.2-24");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2-24");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 

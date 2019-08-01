@@ -1,5 +1,11 @@
 package io.fintechlabs.testframework.condition.client;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.ConditionError;
+import io.fintechlabs.testframework.logging.TestInstanceEventLog;
+import io.fintechlabs.testframework.testmodule.Environment;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,21 +14,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import java.security.Security;
 
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.logging.TestInstanceEventLog;
-import io.fintechlabs.testframework.testmodule.Environment;
-
-import java.security.Security;
-
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateIdTokenSignature_UnitTest {
+public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -52,6 +50,8 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	private JsonObject wrongServerJwksWithKid;
 
+	private JsonObject wrongServerJwksWithMultipleKidValid;
+
 	private JsonObject goodServerJwksWithKid1;
 
 	private JsonObject goodServerJwksWithKid2;
@@ -64,7 +64,7 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	private JsonObject goodServerJwksWithKid6;
 
-	private ValidateIdTokenSignature cond;
+	private ValidateIdTokenSignatureUsingKid cond;
 
 	/*
 	 * @throws java.lang.Exception
@@ -72,7 +72,7 @@ public class ValidateIdTokenSignature_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateIdTokenSignature();
+		cond = new ValidateIdTokenSignatureUsingKid();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
@@ -300,6 +300,80 @@ public class ValidateIdTokenSignature_UnitTest {
 			+ "\"n\":\"10iGQ5l5IdqBP1l5wb5BDBZpSyLs4y_Um-kGv_se0BkRkwMZavGD_Nqjq8x3-fKNI45nU7E7COAh8gjn6LCXfug57EQfi0gOgKhOhVcLmKqIEXPmqeagvMndsXWIy6k8WPPwBzSkN5PDLKBXKG_X1BwVvOE9276nrx6lJq3CgNbmiEihovNt_6g5pCxiSarIk2uaG3T3Ve6hUJrM0W35QmqrNM9rL3laPgXtCuz4sJJN3rGnQq_25YbUawW9L1MTVbqKxWiyN5WbXoWUg8to1DhoQnXzDymIMhFa45NTLhxtdH9CDprXWXWBaWzo8mIFes5yI4AJW4ZSg1PPO2UJSQ\","
 			+ "\"e\":\"AQAB\","
 			+ "\"alg\":\"PS384\""
+			+ "}"
+			+ "]}").getAsJsonObject();
+
+		wrongServerJwksWithKid = new JsonParser().parse("{"
+			+ "\"keys\":["
+			+ "{"
+			+ "\"kty\":\"EC\","
+			+ "\"kid\":\"wU3ifIIaLOUAReRB/FG6eM1P1QM=\","
+			+ "\"use\":\"sig\","
+			+ "\"x5t\":\"MUOPc5byMEN9q_9gqArkd1EDajg\","
+			+ "\"x5c\":[\"MIIBwjCCAWkCCQCw3GyPBTSiGzAJBgcqhkjOPQQBMGoxCzAJBgNVBAYTAlVLMRAwDgYDVQQIEwdCcmlzdG9sMRAwDgYDVQQHEwdCcmlzdG9sMRIwEAYDVQQKEwlGb3JnZVJvY2sxDzANBgNVBAsTBk9wZW5BTTESMBAGA1UEAxMJZXMyNTZ0ZXN0MB4XDTE3MDIwMzA5MzQ0NloXDTIwMTAzMDA5MzQ0NlowajELMAkGA1UEBhMCVUsxEDAOBgNVBAgTB0JyaXN0b2wxEDAOBgNVBAcTB0JyaXN0b2wxEjAQBgNVBAoTCUZvcmdlUm9jazEPMA0GA1UECxMGT3BlbkFNMRIwEAYDVQQDEwllczI1NnRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ3sy05tV/3YUlPBi9jZm9NVPeuBmntrtcO3NP/1HDsgLsTZsqKHD6KWIeJNRQnONcriWVaIcZYTKNykyCVUz93MAkGByqGSM49BAEDSAAwRQIgZhTox7WpCb9krZMyHfgCzHwfu0FVqaJsO2Nl2ArhCX0CIQC5GgWD5jjCRlIWSEFSDo4DZgoQFXaQkJUSUbJZYpi9dA==\"],"
+			+ "\"x\":\"N7MtObVf92FJTwYvY2ZvTVT3rgZp7a7XDtzT_9Rw7IA\","
+			+ "\"y\":\"uxNmyoocPopYh4k1FCc41yuJZVohxlhMo3KTIJVTP3c\","
+			+ "\"crv\":\"P-256\","
+			+ "\"alg\":\"PS256\""
+			+ "}"
+			+ "]}").getAsJsonObject();
+
+		wrongServerJwksWithMultipleKidValid = new JsonParser().parse("{"
+			+ "\"keys\":["
+			+ "{"
+			+ "\"kty\":\"RSA\","
+			+ "\"kid\":\"wU3ifIIaLOUAReRB/FG6eM1P1QM=\","
+			+ "\"use\":\"sig\","
+			+ "\"x5t\":\"5eOfy1Nn2MMIKVRRkq0OgFAw348\","
+			+ "\"x5c\":[\"MIIDdzCCAl+gAwIBAgIES3eb+zANBgkqhkiG9w0BAQsFADBsMRAwDgYDVQQGEwdVbmtub3duMRAwDgYDVQQIEwdVbmtub3duMRAwDgYDVQQHEwdVbmtub3duMRAwDgYDVQQKEwdVbmtub3duMRAwDgYDVQQLEwdVbmtub3duMRAwDgYDVQQDEwdVbmtub3duMB4XDTE2MDUyNDEzNDEzN1oXDTI2MDUyMjEzNDEzN1owbDEQMA4GA1UEBhMHVW5rbm93bjEQMA4GA1UECBMHVW5rbm93bjEQMA4GA1UEBxMHVW5rbm93bjEQMA4GA1UEChMHVW5rbm93bjEQMA4GA1UECxMHVW5rbm93bjEQMA4GA1UEAxMHVW5rbm93bjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANdIhkOZeSHagT9ZecG+QQwWaUsi7OMv1JvpBr/7HtAZEZMDGWrxg/zao6vMd/nyjSOOZ1OxOwjgIfII5+iwl37oOexEH4tIDoCoToVXC5iqiBFz5qnmoLzJ3bF1iMupPFjz8Ac0pDeTwyygVyhv19QcFbzhPdu+p68epSatwoDW5ohIoaLzbf+oOaQsYkmqyJNrmht091XuoVCazNFt+UJqqzTPay95Wj4F7Qrs+LCSTd6xp0Kv9uWG1GsFvS9TE1W6isVosjeVm16FlIPLaNQ4aEJ18w8piDIRWuOTUy4cbXR/Qg6a11l1gWls6PJiBXrOciOACVuGUoNTzztlCUkCAwEAAaMhMB8wHQYDVR0OBBYEFMm4/1hF4WEPYS5gMXRmmH0gs6XjMA0GCSqGSIb3DQEBCwUAA4IBAQDVH/Md9lCQWxbSbie5lPdPLB72F4831glHlaqms7kzAM6IhRjXmd0QTYq3Ey1J88KSDf8A0HUZefhudnFaHmtxFv0SF5VdMUY14bJ9UsxJ5f4oP4CVh57fHK0w+EaKGGIw6TQEkL5L/+5QZZAywKgPz67A3o+uk45aKpF3GaNWjGRWEPqcGkyQ0sIC2o7FUTV+MV1KHDRuBgreRCEpqMoY5XGXe/IJc1EJLFDnsjIOQU1rrUzfM+WP/DigEQTPpkKWHJpouP+LLrGRj2ziYVbBDveP8KtHvLFsnexA/TidjOOxChKSLT9LYFyQqsvUyCagBb4aLs009kbW6inN8zA6\"],"
+			+ "\"n\":\"10iGQ5l5IdqBP1l5wb5BDBZpSyLs4y_Um-kGv_se0BkRkwMZavGD_Nqjq8x3-fKNI45nU7E7COAh8gjn6LCXfug57EQfi0gOgKhOhVcLmKqIEXPmqeagvMndsXWIy6k8WPPwBzSkN5PDLKBXKG_X1BwVvOE9276nrx6lJq3CgNbmiEihovNt_6g5pCxiSarIk2uaG3T3Ve6hUJrM0W35QmqrNM9rL3laPgXtCuz4sJJN3rGnQq_25YbUawW9L1MTVbqKxWiyN5WbXoWUg8to1DhoQnXzDymIMhFa45NTLhxtdH9CDprXWXWBaWzo8mIFes5yI4AJW4ZSg1PPO2UJSQ\","
+			+ "\"e\":\"AQAB\","
+			+ "\"alg\":\"RS512\""
+			+ "},"
+
+			+ "{"
+			+ "\"kty\":\"RSA\","
+			+ "\"kid\":\"wU3ifIIaLOUAReRB/FG6eM1P1QM=\","
+			+ "\"use\":\"sig\","
+			+ "\"x5t\":\"5eOfy1Nn2MMIKVRRkq0OgFAw348\","
+			+ "\"x5c\":[\"MIIDdzCCAl+gAwIBAgIES3eb+zANBgkqhkiG9w0BAQsFADBsMRAwDgYDVQQGEwdVbmtub3duMRAwDgYDVQQIEwdVbmtub3duMRAwDgYDVQQHEwdVbmtub3duMRAwDgYDVQQKEwdVbmtub3duMRAwDgYDVQQLEwdVbmtub3duMRAwDgYDVQQDEwdVbmtub3duMB4XDTE2MDUyNDEzNDEzN1oXDTI2MDUyMjEzNDEzN1owbDEQMA4GA1UEBhMHVW5rbm93bjEQMA4GA1UECBMHVW5rbm93bjEQMA4GA1UEBxMHVW5rbm93bjEQMA4GA1UEChMHVW5rbm93bjEQMA4GA1UECxMHVW5rbm93bjEQMA4GA1UEAxMHVW5rbm93bjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANdIhkOZeSHagT9ZecG+QQwWaUsi7OMv1JvpBr/7HtAZEZMDGWrxg/zao6vMd/nyjSOOZ1OxOwjgIfII5+iwl37oOexEH4tIDoCoToVXC5iqiBFz5qnmoLzJ3bF1iMupPFjz8Ac0pDeTwyygVyhv19QcFbzhPdu+p68epSatwoDW5ohIoaLzbf+oOaQsYkmqyJNrmht091XuoVCazNFt+UJqqzTPay95Wj4F7Qrs+LCSTd6xp0Kv9uWG1GsFvS9TE1W6isVosjeVm16FlIPLaNQ4aEJ18w8piDIRWuOTUy4cbXR/Qg6a11l1gWls6PJiBXrOciOACVuGUoNTzztlCUkCAwEAAaMhMB8wHQYDVR0OBBYEFMm4/1hF4WEPYS5gMXRmmH0gs6XjMA0GCSqGSIb3DQEBCwUAA4IBAQDVH/Md9lCQWxbSbie5lPdPLB72F4831glHlaqms7kzAM6IhRjXmd0QTYq3Ey1J88KSDf8A0HUZefhudnFaHmtxFv0SF5VdMUY14bJ9UsxJ5f4oP4CVh57fHK0w+EaKGGIw6TQEkL5L/+5QZZAywKgPz67A3o+uk45aKpF3GaNWjGRWEPqcGkyQ0sIC2o7FUTV+MV1KHDRuBgreRCEpqMoY5XGXe/IJc1EJLFDnsjIOQU1rrUzfM+WP/DigEQTPpkKWHJpouP+LLrGRj2ziYVbBDveP8KtHvLFsnexA/TidjOOxChKSLT9LYFyQqsvUyCagBb4aLs009kbW6inN8zA6\"],"
+			+ "\"n\":\"10iGQ5l5IdqBP1l5wb5BDBZpSyLs4y_Um-kGv_se0BkRkwMZavGD_Nqjq8x3-fKNI45nU7E7COAh8gjn6LCXfug57EQfi0gOgKhOhVcLmKqIEXPmqeagvMndsXWIy6k8WPPwBzSkN5PDLKBXKG_X1BwVvOE9276nrx6lJq3CgNbmiEihovNt_6g5pCxiSarIk2uaG3T3Ve6hUJrM0W35QmqrNM9rL3laPgXtCuz4sJJN3rGnQq_25YbUawW9L1MTVbqKxWiyN5WbXoWUg8to1DhoQnXzDymIMhFa45NTLhxtdH9CDprXWXWBaWzo8mIFes5yI4AJW4ZSg1PPO2UJSQ\","
+			+ "\"e\":\"AQAB\","
+			+ "\"alg\":\"RS256\""
+			+ "},"
+
+			+ "{"
+			+ "\"kty\":\"EC\","
+			+ "\"kid\":\"pZSfpEq8tQPeiIe3fnnaWnnr/Zc=\","
+			+ "\"use\":\"sig\","
+			+ "\"x5t\":\"6syJZMj8X0Adm-XNzWHHIl_3kG4\","
+			+ "\"x5c\":[\"MIICSTCCAawCCQD+h7BW+8vxbTAJBgcqhkjOPQQBMGoxCzAJBgNVBAYTAlVLMRAwDgYDVQQIEwdCcmlzdG9sMRAwDgYDVQQHEwdCcmlzdG9sMRIwEAYDVQQKEwlGb3JnZVJvY2sxDzANBgNVBAsTBk9wZW5BTTESMBAGA1UEAxMJZXM1MTJ0ZXN0MB4XDTE3MDIwMzA5NDA0OVoXDTIwMTAzMDA5NDA0OVowajELMAkGA1UEBhMCVUsxEDAOBgNVBAgTB0JyaXN0b2wxEDAOBgNVBAcTB0JyaXN0b2wxEjAQBgNVBAoTCUZvcmdlUm9jazEPMA0GA1UECxMGT3BlbkFNMRIwEAYDVQQDEwllczUxMnRlc3QwgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAB3VSmzQx8pvjIlIenGmqHf5LafD1zeoNcyCi85WgkjmT/NiimkLH8JbQCpzK8NdvZ1cftpLfMdSdaadQA3vR7V7QFKoUSnGLwOpRJSN1K36r6boVbMhBQUOHDPxPb+Fhp0XP6a4ok1Wv1Au2HwrUCU/RfDnNtb/4ue0qdzKv78ObnkXTAJBgcqhkjOPQQBA4GLADCBhwJCAd0cIC8QSVn2bp3DGYXxkz5vPNmR7Mv22E2WaWtHlsYcBIY8E7Kd4wxVD+otogDFf4fcFmA34tk5n4PLa67wS26CAkExH1YP2rFbF3LQZVEjTHOwTh+K5S0cIxmzTGx7nnH9+dnxSpCaxKjQ/L//pH/siWe6h/dmUkTY3Y9t939ypY1Blw==\"],"
+			+ "\"x\":\"AHdVKbNDHym-MiUh6caaod_ktp8PXN6g1zIKLzlaCSOZP82KKaQsfwltAKnMrw129nVx-2kt8x1J1pp1ADe9HtXt\","
+			+ "\"y\":\"AUqhRKcYvA6lElI3UrfqvpuhVsyEFBQ4cM_E9v4WGnRc_priiTVa_UC7YfCtQJT9F8Oc21v_i57Sp3Mq_vw5ueRd\","
+			+ "\"crv\":\"P-521\","
+			+ "\"alg\":\"ES512\""
+			+ "},"
+
+			+ "{"
+			+ "\"kty\":\"RSA\","
+			+ "\"kid\":\"wU3ifIIaLOUAReRB/FG6eM1P1QM=\","
+			+ "\"use\":\"sig\","
+			+ "\"x5t\":\"5eOfy1Nn2MMIKVRRkq0OgFAw348\","
+			+ "\"x5c\":[\"MIIDdzCCAl+gAwIBAgIES3eb+zANBgkqhkiG9w0BAQsFADBsMRAwDgYDVQQGEwdVbmtub3duMRAwDgYDVQQIEwdVbmtub3duMRAwDgYDVQQHEwdVbmtub3duMRAwDgYDVQQKEwdVbmtub3duMRAwDgYDVQQLEwdVbmtub3duMRAwDgYDVQQDEwdVbmtub3duMB4XDTE2MDUyNDEzNDEzN1oXDTI2MDUyMjEzNDEzN1owbDEQMA4GA1UEBhMHVW5rbm93bjEQMA4GA1UECBMHVW5rbm93bjEQMA4GA1UEBxMHVW5rbm93bjEQMA4GA1UEChMHVW5rbm93bjEQMA4GA1UECxMHVW5rbm93bjEQMA4GA1UEAxMHVW5rbm93bjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANdIhkOZeSHagT9ZecG+QQwWaUsi7OMv1JvpBr/7HtAZEZMDGWrxg/zao6vMd/nyjSOOZ1OxOwjgIfII5+iwl37oOexEH4tIDoCoToVXC5iqiBFz5qnmoLzJ3bF1iMupPFjz8Ac0pDeTwyygVyhv19QcFbzhPdu+p68epSatwoDW5ohIoaLzbf+oOaQsYkmqyJNrmht091XuoVCazNFt+UJqqzTPay95Wj4F7Qrs+LCSTd6xp0Kv9uWG1GsFvS9TE1W6isVosjeVm16FlIPLaNQ4aEJ18w8piDIRWuOTUy4cbXR/Qg6a11l1gWls6PJiBXrOciOACVuGUoNTzztlCUkCAwEAAaMhMB8wHQYDVR0OBBYEFMm4/1hF4WEPYS5gMXRmmH0gs6XjMA0GCSqGSIb3DQEBCwUAA4IBAQDVH/Md9lCQWxbSbie5lPdPLB72F4831glHlaqms7kzAM6IhRjXmd0QTYq3Ey1J88KSDf8A0HUZefhudnFaHmtxFv0SF5VdMUY14bJ9UsxJ5f4oP4CVh57fHK0w+EaKGGIw6TQEkL5L/+5QZZAywKgPz67A3o+uk45aKpF3GaNWjGRWEPqcGkyQ0sIC2o7FUTV+MV1KHDRuBgreRCEpqMoY5XGXe/IJc1EJLFDnsjIOQU1rrUzfM+WP/DigEQTPpkKWHJpouP+LLrGRj2ziYVbBDveP8KtHvLFsnexA/TidjOOxChKSLT9LYFyQqsvUyCagBb4aLs009kbW6inN8zA6\"],"
+			+ "\"n\":\"10iGQ5l5IdqBP1l5wb5BDBZpSyLs4y_Um-kGv_se0BkRkwMZavGD_Nqjq8x3-fKNI45nU7E7COAh8gjn6LCXfug57EQfi0gOgKhOhVcLmKqIEXPmqeagvMndsXWIy6k8WPPwBzSkN5PDLKBXKG_X1BwVvOE9276nrx6lJq3CgNbmiEihovNt_6g5pCxiSarIk2uaG3T3Ve6hUJrM0W35QmqrNM9rL3laPgXtCuz4sJJN3rGnQq_25YbUawW9L1MTVbqKxWiyN5WbXoWUg8to1DhoQnXzDymIMhFa45NTLhxtdH9CDprXWXWBaWzo8mIFes5yI4AJW4ZSg1PPO2UJSQ\","
+			+ "\"e\":\"AQAB\","
+			+ "\"alg\":\"PS256\""
+			+ "},"
+
+			+ "{"
+			+ "\"kty\":\"RSA\","
+			+ "\"kid\":\"wU3ifIIaLOUAReRB/FG6eM1P1QM=\","
+			+ "\"use\":\"sig\","
+			+ "\"x5t\":\"5eOfy1Nn2MMIKVRRkq0OgFAw348\","
+			+ "\"x5c\":[\"MIIDdzCCAl+gAwIBAgIES3eb+zANBgkqhkiG9w0BAQsFADBsMRAwDgYDVQQGEwdVbmtub3duMRAwDgYDVQQIEwdVbmtub3duMRAwDgYDVQQHEwdVbmtub3duMRAwDgYDVQQKEwdVbmtub3duMRAwDgYDVQQLEwdVbmtub3duMRAwDgYDVQQDEwdVbmtub3duMB4XDTE2MDUyNDEzNDEzN1oXDTI2MDUyMjEzNDEzN1owbDEQMA4GA1UEBhMHVW5rbm93bjEQMA4GA1UECBMHVW5rbm93bjEQMA4GA1UEBxMHVW5rbm93bjEQMA4GA1UEChMHVW5rbm93bjEQMA4GA1UECxMHVW5rbm93bjEQMA4GA1UEAxMHVW5rbm93bjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANdIhkOZeSHagT9ZecG+QQwWaUsi7OMv1JvpBr/7HtAZEZMDGWrxg/zao6vMd/nyjSOOZ1OxOwjgIfII5+iwl37oOexEH4tIDoCoToVXC5iqiBFz5qnmoLzJ3bF1iMupPFjz8Ac0pDeTwyygVyhv19QcFbzhPdu+p68epSatwoDW5ohIoaLzbf+oOaQsYkmqyJNrmht091XuoVCazNFt+UJqqzTPay95Wj4F7Qrs+LCSTd6xp0Kv9uWG1GsFvS9TE1W6isVosjeVm16FlIPLaNQ4aEJ18w8piDIRWuOTUy4cbXR/Qg6a11l1gWls6PJiBXrOciOACVuGUoNTzztlCUkCAwEAAaMhMB8wHQYDVR0OBBYEFMm4/1hF4WEPYS5gMXRmmH0gs6XjMA0GCSqGSIb3DQEBCwUAA4IBAQDVH/Md9lCQWxbSbie5lPdPLB72F4831glHlaqms7kzAM6IhRjXmd0QTYq3Ey1J88KSDf8A0HUZefhudnFaHmtxFv0SF5VdMUY14bJ9UsxJ5f4oP4CVh57fHK0w+EaKGGIw6TQEkL5L/+5QZZAywKgPz67A3o+uk45aKpF3GaNWjGRWEPqcGkyQ0sIC2o7FUTV+MV1KHDRuBgreRCEpqMoY5XGXe/IJc1EJLFDnsjIOQU1rrUzfM+WP/DigEQTPpkKWHJpouP+LLrGRj2ziYVbBDveP8KtHvLFsnexA/TidjOOxChKSLT9LYFyQqsvUyCagBb4aLs009kbW6inN8zA6\"],"
+			+ "\"n\":\"10iGQ5l5IdqBP1l5wb5BDBZpSyLs4y_Um-kGv_se0BkRkwMZavGD_Nqjq8x3-fKNI45nU7E7COAh8gjn6LCXfug57EQfi0gOgKhOhVcLmKqIEXPmqeagvMndsXWIy6k8WPPwBzSkN5PDLKBXKG_X1BwVvOE9276nrx6lJq3CgNbmiEihovNt_6g5pCxiSarIk2uaG3T3Ve6hUJrM0W35QmqrNM9rL3laPgXtCuz4sJJN3rGnQq_25YbUawW9L1MTVbqKxWiyN5WbXoWUg8to1DhoQnXzDymIMhFa45NTLhxtdH9CDprXWXWBaWzo8mIFes5yI4AJW4ZSg1PPO2UJSQ\","
+			+ "\"e\":\"AQAB\","
+			+ "\"alg\":\"PS256\""
 			+ "}"
 			+ "]}").getAsJsonObject();
 
@@ -665,9 +739,6 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test
 	public void testEvaluate_noError() {
 
@@ -681,9 +752,6 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
@@ -697,9 +765,6 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
@@ -712,9 +777,6 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongKeys() {
 
@@ -728,9 +790,6 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badKeys() {
 
@@ -744,9 +803,6 @@ public class ValidateIdTokenSignature_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeys() {
 
@@ -830,6 +886,41 @@ public class ValidateIdTokenSignature_UnitTest {
 		env.putObject("id_token", goodIdTokenWithKid6);
 
 		env.putObject("server_jwks", goodServerJwksWithKid6);
+
+		Security.addProvider(new BouncyCastleProvider());
+
+		cond.evaluate(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_notFoundKeyWithKid() {
+
+		env.putObject("id_token", goodIdTokenWithKid2);
+
+		env.putObject("server_jwks", goodServerJwks);
+
+		cond.evaluate(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_foundKeyWithKidAndVerifyFailure() {
+
+		env.putObject("id_token", goodIdTokenWithKid2);
+
+		env.putObject("server_jwks", wrongServerJwksWithKid);
+
+		cond.evaluate(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_foundMoreThanOneKeyWithRightKidUseAlg() {
+
+		env.putObject("id_token", goodIdTokenWithKid2);
+
+		env.putObject("server_jwks", wrongServerJwksWithMultipleKidValid);
 
 		Security.addProvider(new BouncyCastleProvider());
 
