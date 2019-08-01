@@ -7,8 +7,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-nonce",
-	displayName = "FAPI-RW-ID2-OB: client test - invalid nonce in id_token from authorization_endpoint, should be rejected (with MTLS)",
+	testName = "fapi-rw-id2-ob-client-test-invalid-nonce",
+	displayName = "FAPI-RW-ID2-OB: client test - invalid nonce in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the nonce value in the id_token from the authorization_endpoint does not match the nonce value in the request object",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -21,16 +21,20 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidNonce extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2OBClientTestInvalidNonce extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override

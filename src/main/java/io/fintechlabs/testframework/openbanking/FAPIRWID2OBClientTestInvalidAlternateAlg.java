@@ -7,8 +7,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-alternate-alg",
-	displayName = "FAPI-RW-ID2-OB: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected (with private_key_jwt and MTLS)",
+	testName = "fapi-rw-id2-ob-client-test-invalid-alternate-alg",
+	displayName = "FAPI-RW-ID2-OB: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -21,12 +21,16 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_mtls
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidAlternateAlg extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2OBClientTestInvalidAlternateAlg extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {

@@ -1,16 +1,15 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
 import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
-import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-valid-aud-as-array",
-	displayName = "FAPI-RW-ID2-OB: client test - valid aud in id_token as data type array (with MTLS)",
+	testName = "fapi-rw-id2-client-test-valid-aud-as-array",
+	displayName = "FAPI-RW-ID2: client test - valid aud in id_token as data type array",
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
-	profile = "FAPI-RW-ID2-OB",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -20,21 +19,25 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"client.jwks",
 	},
 	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
+		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
 		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyValidAudAsArray extends AbstractFAPIRWID2OBClientTest {
+public class FAPIRWID2ClientTestValidAudAsArray extends AbstractFAPIRWID2ClientTest {
 
-	@Variant(name = variant_openbankinguk_mtls)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 	}
 
 	@Override
-	protected void addCustomValuesToIdToken() {
+	protected void addCustomValuesToIdToken(){
 
 		callAndStopOnFailure(AddAudValueAsArrayToIdToken.class,"OIDCC-3.1.3.7-3");
 	}
@@ -44,5 +47,4 @@ public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyValidAudAsArray extends Abs
 
 		callAndStopOnFailure(SignIdTokenBypassingNimbusChecks.class);
 	}
-
 }

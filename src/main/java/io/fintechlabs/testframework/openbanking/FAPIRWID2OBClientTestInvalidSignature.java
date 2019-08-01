@@ -7,8 +7,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-signature",
-	displayName = "FAPI-RW-ID2-OB: client test - invalid signature in id_token from authorization_endpoint, should be rejected (with MTLS)",
+	testName = "fapi-rw-id2-ob-client-test-invalid-signature",
+	displayName = "FAPI-RW-ID2-OB: client test - invalid signature in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the signature in the id_token from the authorization_endpoint does not match the signature value in the request object",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -21,16 +21,20 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSignature extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2OBClientTestInvalidSignature extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override
@@ -41,7 +45,7 @@ public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSignature extends Ab
 	@Override
 	protected void addCustomSignatureOfIdToken(){
 
-		callAndStopOnFailure(SignIdTokenInvalid.class,"OIDCC-3.1.3.7.6");
+		callAndStopOnFailure(SignIdTokenInvalid.class, "OIDCC-3.1.3.7-6");
 	}
 
 	@Override

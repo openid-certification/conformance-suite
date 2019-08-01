@@ -10,9 +10,10 @@ import io.fintechlabs.testframework.testmodule.Variant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-iat-is-week-in-past",
-	displayName = "FAPI-RW-ID2-OB: client test - iat value which is a week in the past in id_token from authorization_endpoint, should be rejected (with private_key_jwt and MTLS)",
+	testName = "fapi-rw-id2-ob-client-test-iat-is-week-in-past",
+	displayName = "FAPI-RW-ID2-OB: client test - iat value which is a week in the past in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the iat value in the id_token (from the authorization_endpoint) has expired (in the request object)",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -25,12 +26,16 @@ import org.springframework.http.ResponseEntity;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_mtls
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyIatIsWeekInPast extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2OBClientTestIatIsWeekInPast extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
@@ -49,7 +54,7 @@ public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyIatIsWeekIn
 		callAndContinueOnFailure(ClientContinuedAfterReceivingIdTokenIssuedInPast.class, ConditionResult.WARNING);
 		setStatus(Status.WAITING);
 		fireTestFinished();
-		return new ResponseEntity<Object>("Client has incorrectly called token_endpoint after receiving an id_token with an iat value which is a week in the past from the authorization_endpoint.", HttpStatus.NOT_ACCEPTABLE);
+		return new ResponseEntity<Object>("Client has incorrectly called token_endpoint after receiving an id_token with an iat value which is a week in the past from the authorization_endpoint.", HttpStatus.BAD_REQUEST);
 	}
 
 }

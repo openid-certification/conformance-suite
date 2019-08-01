@@ -1,6 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidSHashValueToIdToken;
 import io.fintechlabs.testframework.condition.as.LogEndTestIfStateIsNotSupplied;
@@ -9,8 +9,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-mtls-holder-of-key-invalid-shash",
-	displayName = "FAPI-RW-ID2-OB: client test - invalid s_hash in id_token from authorization_endpoint, should be rejected (with MTLS)",
+	testName = "fapi-rw-id2-ob-client-test-invalid-shash",
+	displayName = "FAPI-RW-ID2-OB: client test - invalid s_hash in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the s_hash value in the id_token does not match the state the client sent",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -23,16 +23,20 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSHash extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2OBClientTestInvalidSHash extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override
@@ -40,7 +44,7 @@ public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSHash extends Abstra
 
 		String shash = env.getString("authorization_request_object", "claims.state");
 		if (shash == null) {
-			callAndContinueOnFailure(LogEndTestIfStateIsNotSupplied.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(LogEndTestIfStateIsNotSupplied.class, ConditionResult.WARNING);
 			fireTestFinished();
 			return true;
 		}
