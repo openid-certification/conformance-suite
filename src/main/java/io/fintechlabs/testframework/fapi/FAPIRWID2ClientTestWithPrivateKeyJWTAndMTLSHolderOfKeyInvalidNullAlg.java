@@ -25,7 +25,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidNullAlg extends AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidNullAlg extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

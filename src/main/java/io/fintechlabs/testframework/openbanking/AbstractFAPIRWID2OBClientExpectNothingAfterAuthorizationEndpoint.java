@@ -1,6 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
-public abstract class AbstractFAPIRWID2OBClientMTLSHolderOfKeyExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWID2OBClientTest {
+public abstract class AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint extends AbstractFAPIRWID2OBClientTest {
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

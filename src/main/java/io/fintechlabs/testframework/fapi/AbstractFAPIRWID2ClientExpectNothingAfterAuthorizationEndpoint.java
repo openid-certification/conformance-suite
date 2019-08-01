@@ -1,6 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
-public abstract class AbstractFAPIRWID2ClientPrivateKeyExpectNothingAfterAuthorisationEndpoint extends AbstractFAPIRWID2ClientTest {
+public abstract class AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint extends AbstractFAPIRWID2ClientTest {
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

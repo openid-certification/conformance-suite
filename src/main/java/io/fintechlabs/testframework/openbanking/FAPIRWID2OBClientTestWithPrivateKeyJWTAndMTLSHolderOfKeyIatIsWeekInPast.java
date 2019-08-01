@@ -30,7 +30,7 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
-public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyIatIsWeekInPast extends AbstractFAPIRWID2OBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyIatIsWeekInPast extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {

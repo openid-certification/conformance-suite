@@ -26,7 +26,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2ClientTestInvalidSHash extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestInvalidSHash extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {

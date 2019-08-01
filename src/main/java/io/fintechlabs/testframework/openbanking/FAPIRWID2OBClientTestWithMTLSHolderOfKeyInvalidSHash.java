@@ -28,7 +28,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSHash extends AbstractFAPIRWID2OBClientMTLSHolderOfKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2OBClientTestWithMTLSHolderOfKeyInvalidSHash extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {

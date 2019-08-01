@@ -28,7 +28,7 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
-public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
