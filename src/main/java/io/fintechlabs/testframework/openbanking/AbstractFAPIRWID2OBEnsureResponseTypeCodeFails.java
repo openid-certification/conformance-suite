@@ -47,11 +47,8 @@ public abstract class AbstractFAPIRWID2OBEnsureResponseTypeCodeFails extends Abs
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-		if (whichClient == 1) {
-			callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
-		} else {
-			callAndStopOnFailure(OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest.class);
-		}
+
+		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
 	}
 
 	protected abstract void createClientCredentialsRequest();

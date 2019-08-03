@@ -90,11 +90,8 @@ public class FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyA
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-		if (whichClient == 1) {
-			callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
-		} else {
-			callAndStopOnFailure(OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest.class);
-		}
+
+		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
 	}
 
 	protected void createClientCredentialsRequest() {
