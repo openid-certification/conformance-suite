@@ -223,8 +223,10 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_twoKeys() {
+		// a jwks with two valid private keys; we reject this as we need exactly one key, as otherwise we have no way
+		// to know which key the users wants us to use
 		client.add("jwks", new JsonParser().parse("{" +
 			"  \"keys\": [" +
 			"    {" +

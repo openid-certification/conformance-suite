@@ -84,11 +84,15 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claimObject.toString());
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-			// sign jwt using private key
-			SignedJWT jwt = signJWT(jwkSet, claimSet);
+			if (jwkSet.getKeys().size() == 1) {
+				// sign jwt using private key
+				SignedJWT jwt = signJWT(jwkSet, claimSet);
 
-			// Verify JWT after signed to check valid JWKs
-			verifyJWTAfterSigned(jwkSet, jwt);
+				// Verify JWT after signed to check valid JWKs
+				verifyJWTAfterSigned(jwkSet, jwt);
+			} else {
+				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
+			}
 		} catch (JOSEException | ParseException e) {
 			throw error("Error validating JWKs", e);
 		}
