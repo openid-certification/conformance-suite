@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ob-ensure-authorization-request-without-state-success-with-mtls",
 	displayName = "FAPI-RW-ID2-OB: ensure authorization endpoint request without state success (with MTLS authentication)",
-	summary = "This test should end with the authorisation server must successfully authenticate and does not return state and does not return s_hash.",
+	summary = "This test makes an authentication request that does not include 'state'. State is an optional parameter, so the authorisation server must successfully authenticate and must not return state nor s_hash.",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
 		"server.discoveryUrl",
