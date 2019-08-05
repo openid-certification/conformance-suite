@@ -102,7 +102,6 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		env.removeObject("id_token");
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
-		env.removeNativeValue("refresh_token");
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 
 		eventLog.endBlock();
