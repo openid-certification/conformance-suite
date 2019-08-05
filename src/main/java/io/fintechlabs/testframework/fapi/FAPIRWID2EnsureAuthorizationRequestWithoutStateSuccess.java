@@ -1,5 +1,14 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
+import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.VerifyNoStateInAuthorizationResponse;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -28,7 +37,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess {
+public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
@@ -48,5 +57,42 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends Abst
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
+	}
+
+	@Override
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
+		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+
+		createAuthorizationRequest();
+
+		createAuthorizationRedirect();
+
+		performRedirect();
+	}
+
+	@Override
+	protected void createAuthorizationRedirect() {
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddExpToRequestObject.class);
+
+		callAndStopOnFailure(SignRequestObject.class);
+
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	}
+
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		callAndContinueOnFailure(VerifyNoStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+		handleSuccessfulAuthorizationEndpointResponse();
 	}
 }
