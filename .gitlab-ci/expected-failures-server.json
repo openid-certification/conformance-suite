@@ -8,7 +8,7 @@
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2-ob",
+        "test-name": "fapi-rw-id2",
         "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
@@ -40,7 +40,7 @@
         "expected-result": "failure"
     },
     {
-        "test-name": "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds",
+        "test-name": "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds",
         "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
@@ -56,7 +56,7 @@
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2-ob",
+        "test-name": "fapi-rw-id2",
         "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
@@ -88,7 +88,7 @@
         "expected-result": "failure"
     },
     {
-        "test-name": "fapi-rw-id2-ob-ensure-request-object-with-multiple-aud-succeeds",
+        "test-name": "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds",
         "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
