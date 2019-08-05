@@ -11,7 +11,6 @@ import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
-import io.fintechlabs.testframework.condition.client.OBValidateIdTokenIntentId;
 import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ServerTestModule;
@@ -106,11 +105,6 @@ public class FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId extends AbstractF
 		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
 		fireTestFinished();
 
-	}
-
-	@Override
-	protected void performProfileIdTokenValidation() {
-		callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 	}
 
 	@Override
