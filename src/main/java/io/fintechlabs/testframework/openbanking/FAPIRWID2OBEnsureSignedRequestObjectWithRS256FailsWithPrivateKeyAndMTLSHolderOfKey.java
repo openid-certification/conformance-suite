@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -30,7 +31,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
-public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2OBEnsureSignedRequestObjectWithRS256Fails {
+public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails {
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {

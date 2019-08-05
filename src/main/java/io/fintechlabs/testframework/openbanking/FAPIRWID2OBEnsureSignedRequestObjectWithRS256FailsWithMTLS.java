@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -36,7 +37,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends AbstractFAPIRWID2OBEnsureSignedRequestObjectWithRS256Fails {
+public class FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS extends AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {

@@ -1,7 +1,0 @@
-package io.fintechlabs.testframework.openbanking;
-
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureClientIdInTokenEndpoint;
-
-public abstract class AbstractFAPIRWID2OBEnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2EnsureClientIdInTokenEndpoint {
-
-}

@@ -1,7 +1,0 @@
-package io.fintechlabs.testframework.openbanking;
-
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails;
-
-public abstract class AbstractFAPIRWID2OBEnsureSignedRequestObjectWithRS256Fails extends AbstractFAPIRWID2EnsureSignedRequestObjectWithRS256Fails {
-
-}

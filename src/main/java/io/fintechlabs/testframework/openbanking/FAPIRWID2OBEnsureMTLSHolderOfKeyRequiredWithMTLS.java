@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openbanking;
 
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -28,7 +29,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFAPIRWID2OBEnsureMTLSHolderOfKeyRequired {
+public class FAPIRWID2OBEnsureMTLSHolderOfKeyRequiredWithMTLS extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {

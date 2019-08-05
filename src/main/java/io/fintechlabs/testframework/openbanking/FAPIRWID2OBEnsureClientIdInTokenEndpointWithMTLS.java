@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureClientIdInTokenEndpoint;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -31,7 +32,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureClientIdInTokenEndpointWithMTLS extends AbstractFAPIRWID2OBEnsureClientIdInTokenEndpoint {
+public class FAPIRWID2OBEnsureClientIdInTokenEndpointWithMTLS extends AbstractFAPIRWID2EnsureClientIdInTokenEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {

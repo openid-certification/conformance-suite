@@ -1,7 +1,0 @@
-package io.fintechlabs.testframework.openbanking;
-
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired;
-
-public abstract class AbstractFAPIRWID2OBEnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired {
-
-}
