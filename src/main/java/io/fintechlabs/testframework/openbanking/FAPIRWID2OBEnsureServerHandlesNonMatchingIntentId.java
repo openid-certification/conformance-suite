@@ -4,14 +4,12 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRedirectUriQuerySuffix;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
-import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ServerTestModule;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
@@ -105,12 +103,5 @@ public class FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId extends AbstractF
 		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
 		fireTestFinished();
 
-	}
-
-	@Override
-	protected void performProfileAuthorizationEndpointSetup() {
-		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
 	}
 }

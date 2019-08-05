@@ -5,7 +5,6 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.as.ValidateClientSigningKeySize;
-import io.fintechlabs.testframework.condition.client.AddAcrClaimToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -103,6 +102,8 @@ import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.sequence.client.FAPIAuthorizationEndpointSetup;
+import io.fintechlabs.testframework.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import io.fintechlabs.testframework.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import io.fintechlabs.testframework.sequence.client.ValidateOpenBankingUkIdToken;
 
@@ -129,6 +130,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
+	private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
@@ -304,8 +306,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
-		callAndStopOnFailure(AddAcrClaimToAuthorizationEndpointRequest.class);
-
+		call(sequence(profileAuthorizationEndpointSetupSteps));
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -659,12 +660,14 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void setupMTLS() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
 		generateNewClientAssertionSteps = null;
 	}
 
 	protected void setupPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
 		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
@@ -672,6 +675,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
+		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
 		generateNewClientAssertionSteps = null;
 	}
@@ -680,6 +684,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
+		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
 		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}

@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess;
 import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -42,11 +40,5 @@ public class FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccess extends Ab
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
-	}
-
-	@Override
-	protected void performProfileAuthorizationEndpointSetup() {
-		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
 	}
 }

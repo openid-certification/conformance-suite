@@ -1,15 +1,7 @@
 package io.fintechlabs.testframework.openbanking;
 
-import io.fintechlabs.testframework.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2EnsureClientIdInTokenEndpoint;
 
 public abstract class AbstractFAPIRWID2OBEnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2EnsureClientIdInTokenEndpoint {
 
-	@Override
-	protected void performProfileAuthorizationEndpointSetup() {
-		callAndStopOnFailure(AddAccountRequestIdToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(OpenBankingUkAddMultipleAcrClaimsToAuthorizationEndpointRequest.class);
-	}
 }
