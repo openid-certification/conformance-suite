@@ -15,11 +15,11 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModules = {
 		// Normal well behaved client cases
 		FAPIRWID2DiscoveryEndpointVerification.class,
+		FAPIRWID2OBDiscoveryEndpointVerification.class,
 		FAPIRWID2.class,
 		FAPIRWID2UserRejectsAuthentication.class,
 		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess.class,
-		FAPIRWID2OBDiscoveryEndpointVerification.class,
 
 		// Possible failure case
 		FAPIRWID2EnsureResponseModeQuery.class,
@@ -35,12 +35,12 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureExpiredRequestObjectFails.class,
 		FAPIRWID2EnsureRequestObjectWithBadAudFails.class,
 		FAPIRWID2EnsureSignedRequestObjectWithRS256Fails.class,
+		FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS.class,
 		FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPIRWID2EnsureRequestObjectInvalidSignatureFails.class,
-		FAPIRWID2EnsureMatchingKeyInAuthorizationRequest.class,
-		FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS.class,
 		FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithMTLS.class,
 		FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithPrivateKeyAndMTLS.class,
+		FAPIRWID2EnsureMatchingKeyInAuthorizationRequest.class,
 
 		// Negative tests for authorization request
 		FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
@@ -49,10 +49,10 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		// Negative tests for token endpoint
 		FAPIRWID2EnsureClientIdInTokenEndpointWithMTLS.class,
-		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS.class,
-		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
 		FAPIRWID2EnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS.class,
 		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
 
 		// Private key specific tests
 		FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey.class,
