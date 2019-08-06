@@ -19,10 +19,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
-	},
-	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
-		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 
@@ -36,6 +32,16 @@ public class FAPIRWID2ClientTestInvalidSHash extends AbstractFAPIRWID2ClientExpe
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override
