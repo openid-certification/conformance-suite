@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.openbanking;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddIatValueIsWeekInPastToIdToken;
 import io.fintechlabs.testframework.condition.as.ClientContinuedAfterReceivingIdTokenIssuedInPast;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -30,7 +31,7 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
-public class FAPIRWID2OBClientTestIatIsWeekInPast extends AbstractFAPIRWID2OBClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2OBClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
