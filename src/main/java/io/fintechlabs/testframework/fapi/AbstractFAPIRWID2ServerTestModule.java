@@ -435,7 +435,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			requestProtectedResource();
 
-			performProtectedResourceRequestWithFirstClientKeysExpectingError();
+			switchToClient1AndTryClient2AccessToken();
 
 			eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
 
@@ -492,7 +492,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performAuthorizationFlow();
 	}
 
-	protected void performProtectedResourceRequestWithFirstClientKeysExpectingError() {
+	protected void switchToClient1AndTryClient2AccessToken() {
 		// Switch back to client 1
 		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
 		env.unmapKey("client");
