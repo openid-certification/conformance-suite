@@ -58,6 +58,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPICIBAPingNotificationEndpointReturnsABody.class,
 		FAPICIBAPingNotificationEndpointReturns401.class,
 		FAPICIBAPingNotificationEndpointReturns403.class,
+		FAPICIBAPingNotificationEndpointReturns401AndRequireServerDoesNotRetry.class,
 
 		// FAPI specific
 		FAPICIBAEnsureBackchannelAuthorizationRequestWithoutRequestFails.class,
