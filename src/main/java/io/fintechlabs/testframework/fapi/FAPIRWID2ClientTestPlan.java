@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestInvalidAlternateAlg;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestInvalidNullAlg;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestInvalidOpenBankingIntentId;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestNoAtHash;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
@@ -22,9 +21,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2ClientTestInvalidSecondaryAud.class,
 		FAPIRWID2OBClientTestInvalidOpenBankingIntentId.class,
 		FAPIRWID2ClientTestInvalidSignature.class,
-		FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidNullAlg.class,
-		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidNullAlg.class,
-		FAPIRWID2OBClientTestInvalidNullAlg.class,
+		FAPIRWID2ClientTestInvalidNullAlg.class,
 		FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidAlternateAlg.class,
 		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidAlternateAlg.class,
 		FAPIRWID2OBClientTestInvalidAlternateAlg.class,
