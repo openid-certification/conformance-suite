@@ -1,17 +1,15 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint;
-import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-invalid-openbanking-intent-id",
-	displayName = "FAPI-RW-ID2-OB: client test  - invalid openbanking_intent_id, should be rejected",
+	testName = "fapi-rw-id2-client-test-invalid-openbanking-intent-id",
+	displayName = "FAPI-RW-ID2: client test  - invalid openbanking_intent_id, should be rejected",
 	summary = "This test should end with the client displaying an error message that the openbanking_intent_id returned in id_token from authorization endpoint does not match the value sent in the request object",
-	profile = "FAPI-RW-ID2-OB",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -26,7 +24,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2OBClientTestInvalidOpenBankingIntentId extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPIRWID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
