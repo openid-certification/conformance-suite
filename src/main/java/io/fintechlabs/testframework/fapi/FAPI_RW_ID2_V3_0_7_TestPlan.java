@@ -39,8 +39,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		// Negative tests for token endpoint
 		FAPIRWID2EnsureClientIdInTokenEndpoint.class,
-		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS.class,
-		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureMTLSHolderOfKeyRequired.class,
 		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
 
 		// Private key specific tests

@@ -4,6 +4,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAllowingTLSFailure;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
@@ -13,8 +14,63 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
-public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {
+@PublishTestModule(
+	testName = "fapi-rw-id2-ensure-mtls-holder-of-key-required",
+	displayName = "FAPI-RW-ID2: ensure mtls holder of key required",
+	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
+	profile = "FAPI-RW-ID2",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"client2.client_id",
+		"client2.scope",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
+		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
+		"resource.institution_id"
+	}
+)
+public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {
+
+	private Class<? extends ConditionSequence> validateAuthorizationEndpointResponseSteps;
+
+	@Variant(name = variant_mtls)
+	public void setupMTLS() {
+		super.setupMTLS();
+		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithMTLS.class;
+	}
+
+	@Variant(name = variant_privatekeyjwt)
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithMTLS.class;
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
 
 	@Override
 	public void start() {
@@ -73,10 +129,7 @@ public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends Abs
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
 			// is required, so there's no further checks to do
 		} else {
-			// otherwise we expect a well-formed 'invalid_client' error
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			call(sequence(validateAuthorizationEndpointResponseSteps));
 			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
@@ -85,4 +138,22 @@ public abstract class AbstractFAPIRWID2EnsureMTLSHolderOfKeyRequired extends Abs
 		fireTestFinished();
 	}
 
+	public static class ValidateAuthorizationEndpointResponseWithMTLS extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
+	}
+
+	public static class ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the ssl connection was not dropped, we expect one of invalid_request, invalid_grant or invalid_client
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		}
+	}
 }
