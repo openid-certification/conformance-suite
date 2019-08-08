@@ -44,8 +44,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureResponseTypeCodeFails.class,
 
 		// Negative tests for token endpoint
-		FAPIRWID2EnsureClientIdInTokenEndpointWithMTLS.class,
-		FAPIRWID2EnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureClientIdInTokenEndpoint.class,
 		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS.class,
 		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolderOfKey.class,
 		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
