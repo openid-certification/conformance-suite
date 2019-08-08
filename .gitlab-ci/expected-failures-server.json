@@ -1,6 +1,6 @@
 [
     {
-        "test-name": "fapi-rw-id2-ob-discovery-end-point-verification",
+        "test-name": "fapi-rw-id2-discovery-end-point-verification",
         "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "",
@@ -48,7 +48,7 @@
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2-ob-discovery-end-point-verification",
+        "test-name": "fapi-rw-id2-discovery-end-point-verification",
         "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "",

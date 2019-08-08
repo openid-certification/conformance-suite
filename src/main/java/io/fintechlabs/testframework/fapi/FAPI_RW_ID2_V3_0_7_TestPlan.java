@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBDiscoveryEndpointVerification;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
@@ -13,7 +12,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModules = {
 		// Normal well behaved client cases
 		FAPIRWID2DiscoveryEndpointVerification.class,
-		FAPIRWID2OBDiscoveryEndpointVerification.class,
 		FAPIRWID2.class,
 		FAPIRWID2UserRejectsAuthentication.class,
 		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
