@@ -5,8 +5,6 @@ import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureAuthorizationCo
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureAuthorizationCodeIsBoundToClientWithMTLS;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFailsWithMTLS;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureAuthorizationRequestWithoutRequestObjectFailsWithPrivateKeyAndMTLSHolderOfKey;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccessWithMTLS;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccessWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureClientIdInTokenEndpointWithMTLS;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey;
@@ -47,8 +45,6 @@ import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureServerHandlesNo
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBRefreshTokenWithMTLS;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBUserRejectsAuthenticationWithMTLS;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBUserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBWithMTLS;
@@ -57,8 +53,8 @@ import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
-	testPlanName = "fapi-rw-id2-test-plan",
-	displayName = "FAPI-RW-ID2: Authorization server test (latest version)",
+	testPlanName = "fapi-rw-id2-test-plan-v3.0.7",
+	displayName = "FAPI-RW-ID2: Authorization server test (V3.0.7; allowable for certification until 24th August)",
 	profile = "FAPI-RW-ID2-OpenID-Provider-Authorization-Server-Test",
 	testModules = {
 		// Normal well behaved client cases
@@ -66,16 +62,13 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2.class,
 		FAPIRWID2UserRejectsAuthentication.class,
 		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
-		FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPIRWID2OBDiscoveryEndpointVerification.class,
 		FAPIRWID2OBWithMTLS.class,
 		FAPIRWID2OBUserRejectsAuthenticationWithMTLS.class,
 		FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceedsWithMTLS.class,
-		FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccessWithMTLS.class,
 		FAPIRWID2OBWithPrivateKeyAndMTLSHolderOfKey.class,
 		FAPIRWID2OBUserRejectsAuthenticationWithPrivateKeyAndMTLSHolderOfKey.class,
 		FAPIRWID2OBEnsureRequestObjectWithMultipleAudSucceedsWithPrivateKeyAndMTLSHolderOfKey.class,
-		FAPIRWID2OBEnsureAuthorizationRequestWithoutStateSuccessWithPrivateKeyAndMTLSHolderOfKey.class,
 
 		// Possible failure case
 		FAPIRWID2EnsureResponseModeQuery.class,
@@ -150,11 +143,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2OBEnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey.class,
 		FAPIRWID2OBEnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
 
-		//Refresh token tests
-		FAPIRWID2RefreshToken.class,
-		FAPIRWID2OBRefreshTokenWithMTLS.class,
-		FAPIRWID2OBRefreshTokenWithPrivateKeyAndMTLSHolderOfKey.class,
-
 		// OB systems specific tests
 		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithMTLS.class,
 		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentIdWithPrivateKeyAndMTLSHolderOfKey.class
@@ -166,6 +154,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPI_RW_ID2_TestPlan implements TestPlan {
+public class FAPI_RW_ID2_V3_0_7_TestPlan implements TestPlan {
 
 }
