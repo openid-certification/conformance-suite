@@ -1,7 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.as.AddSecondAudValueToIdToken;
+import io.fintechlabs.testframework.condition.as.ForceIdTokenToBeSignedWithRS256;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -35,7 +35,13 @@ public class FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidAltern
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(AddSecondAudValueToIdToken.class, "OIDCC-3.1.3.7-8");
+		//Do Nothing
+	}
+
+	@Override
+	protected void addCustomSignatureOfIdToken(){
+
+		callAndStopOnFailure(ForceIdTokenToBeSignedWithRS256.class,"OIDCC-3.1.3.7-8");
 	}
 
 	@Override
