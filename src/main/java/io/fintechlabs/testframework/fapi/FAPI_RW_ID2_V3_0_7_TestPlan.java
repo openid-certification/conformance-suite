@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -30,7 +29,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureExpiredRequestObjectFails.class,
 		FAPIRWID2EnsureRequestObjectWithBadAudFails.class,
 		FAPIRWID2EnsureSignedRequestObjectWithRS256Fails.class,
-		FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS.class,
 		FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPIRWID2EnsureMatchingKeyInAuthorizationRequest.class,
 
