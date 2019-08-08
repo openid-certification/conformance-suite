@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithMTLS;
 import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithPrivateKeyAndMTLS;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -49,14 +48,14 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
 
 		// Private key specific tests
-		FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey.class,
-		FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureSignedClientAssertionWithRS256Fails.class,
+		FAPIRWID2EnsureClientAssertionInTokenEndpoint.class,
 
 		//Refresh token tests
 		FAPIRWID2RefreshToken.class,
 
 		// OB systems specific tests
-		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId.class
+		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class
 	},
 	variants = {
 		FAPIRWID2.variant_mtls,

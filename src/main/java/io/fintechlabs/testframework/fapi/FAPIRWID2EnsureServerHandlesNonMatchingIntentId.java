@@ -1,4 +1,4 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
 import com.google.gson.JsonObject;
 
@@ -11,16 +11,14 @@ import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizatio
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
 import io.fintechlabs.testframework.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ServerTestModule;
-import io.fintechlabs.testframework.fapi.FAPIRWID2;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-ensure-server-handles-non-matching-intent-id",
-	displayName = "FAPI-RW-ID2-OB: server handles non matching openbanking_intent_id",
+	testName = "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
+	displayName = "FAPI-RW-ID2: server handles non matching openbanking_intent_id",
 	summary = "This test registers an intentId with one client and then uses it with a different client. It should end with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW-ID2-OB",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -41,7 +39,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_privatekeyjwt
 	}
 )
-public class FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ServerTestModule {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {

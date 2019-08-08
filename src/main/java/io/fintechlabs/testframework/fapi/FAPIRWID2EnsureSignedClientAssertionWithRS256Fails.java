@@ -16,8 +16,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-signed-client-assertion-with-RS256-fails-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure signed client assertion with RS256 fails (with private key authentication and mtls holder of key)",
+	testName = "fapi-rw-id2-ensure-signed-client-assertion-with-RS256-fails",
+	displayName = "FAPI-RW-ID2: ensure signed client assertion with RS256 fails",
 	summary = "This test should end with the token endpoint server showing an error message that the signature algorithm of the JWT for client authentication is invalid.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -44,7 +44,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
-public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2PerformTokenEndpoint {
+public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends AbstractFAPIRWID2PerformTokenEndpoint {
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {

@@ -13,8 +13,8 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-client-assertion-in-token-endpoint-with-private-key-and-mtls-holder-of-key",
-	displayName = "FAPI-RW-ID2: ensure client_assertion in token endpoint (private key authentication and mtls holder of key)",
+	testName = "fapi-rw-id2-ensure-client-assertion-in-token-endpoint",
+	displayName = "FAPI-RW-ID2: ensure client_assertion in token endpoint",
 	summary = "This test should end with the token endpoint returning an error message that was 'invalid_client' or 'invalid_request'.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -41,7 +41,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
-public class FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2PerformTokenEndpoint {
+public class FAPIRWID2EnsureClientAssertionInTokenEndpoint extends AbstractFAPIRWID2PerformTokenEndpoint {
 
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
