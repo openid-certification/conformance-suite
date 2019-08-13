@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,12 +12,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.fintechlabs.testframework.info.Plan;
+import io.fintechlabs.testframework.info.PublicPlan;
+import io.fintechlabs.testframework.info.TestPlanService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +79,9 @@ public class LogApi {
 
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
+	@Autowired
+	private TestPlanService planService;
+
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get all test logs with paging", notes = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
 	@ApiResponses(value = {
@@ -117,7 +126,7 @@ public class LogApi {
 		return ResponseEntity.ok().body(results);
 	}
 
-	@GetMapping(value = "/log/export/{id}", produces = "application/x-gtar")
+	@GetMapping(value = "/log/export/{id}", produces = "application/zip")
 	@ApiOperation(value = "Export test log by test id")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Exported successfully"),
@@ -128,19 +137,9 @@ public class LogApi {
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
-		Optional<?> testInfo = Optional.empty();
-		String testModuleName = null;
+		Optional<?> testInfo = getTestInfo(publicOnly, id);
 
-		if (publicOnly) {
-			testInfo = testInfos.findByIdPublic(id);
-		} else if (authenticationFacade.isAdmin()) {
-			testInfo = testInfos.findById(id);
-		} else {
-			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
-			if (owner != null) {
-				testInfo = testInfos.findByIdAndOwner(id, owner);
-			}
-		}
+		String testModuleName = null;
 
 		if (!testInfo.isPresent()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -155,16 +154,9 @@ public class LogApi {
 
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + testModuleName + "-" + id + ".tar.bz2\"");
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + testModuleName + "-" + id + ".zip\"");
 
-		final Map<String, Object> export = new HashMap<>();
-
-		export.put("exportedAt", new Date());
-		export.put("exportedFrom", baseUrl);
-		export.put("exportedBy", authenticationFacade.getPrincipal());
-		export.put("exportedVersion", version);
-		export.put("testInfo", testInfo.get());
-		export.put("results", results);
+		final Map<String, Object> export = putTestResultToExport(results, testInfo);
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
@@ -172,39 +164,13 @@ public class LogApi {
 			public void writeTo(OutputStream out) throws IOException {
 
 				try {
-					BZip2CompressorOutputStream compressorOutputStream = new BZip2CompressorOutputStream(out);
+					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
 
-					TarArchiveOutputStream archiveOutputStream = new TarArchiveOutputStream(compressorOutputStream);
+					String jsonFileName = "test-log-" + id + ".json";
 
-					TarArchiveEntry testLog = new TarArchiveEntry("test-log-" + id + ".json");
+					String sigFileName = "test-log-" + id + ".sig";
 
-					Signature signature = Signature.getInstance("SHA1withRSA");
-					signature.initSign(keyManager.getSigningPrivateKey());
-
-					SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
-
-					String json = gson.toJson(export);
-
-					testLog.setSize(json.getBytes().length);
-					archiveOutputStream.putArchiveEntry(testLog);
-
-					signatureOutputStream.write(json.getBytes());
-
-					signatureOutputStream.flush();
-					signatureOutputStream.close();
-
-					archiveOutputStream.closeArchiveEntry();
-
-					TarArchiveEntry signatureFile = new TarArchiveEntry("test-log-" + id + ".sig");
-
-					String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
-					signatureFile.setSize(encodedSignature.getBytes().length);
-
-					archiveOutputStream.putArchiveEntry(signatureFile);
-
-					archiveOutputStream.write(encodedSignature.getBytes());
-
-					archiveOutputStream.closeArchiveEntry();
+					addFilesToZip(archiveOutputStream, jsonFileName, sigFileName, export);
 
 					archiveOutputStream.close();
 				} catch (Exception ex) {
@@ -214,6 +180,165 @@ public class LogApi {
 		};
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
+	@ApiOperation(value = "Export all test logs of plan by plan id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Exported successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find given plan Id")
+	})
+	public ResponseEntity<StreamingResponseBody> exportLogsOfPlan(
+		@ApiParam(value = "Id of plan") @PathVariable("id") String id,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+
+		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
+
+		String planName = null;
+
+		List<Plan.Module> modules = new ArrayList<>();
+
+		if (testPlan == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} else if (testPlan instanceof PublicPlan) {
+			planName = ((PublicPlan) testPlan).getPlanName();
+			modules = ((PublicPlan) testPlan).getModules();
+		} else if (testPlan instanceof Plan) {
+			planName = ((Plan) testPlan).getPlanName();
+			modules = ((Plan) testPlan).getModules();
+		}
+
+		List<Map<String, Object>> allLatestLogsExport = new ArrayList<>();
+
+		for (Plan.Module module : modules) {
+
+			String testModuleName = module.getTestModule();
+			List<String> instances = module.getInstances();
+
+			if (instances != null && !instances.isEmpty()) {
+
+				String testId = instances.get(instances.size() - 1);
+
+				List<Document> results = getTestResults(testId, null, publicOnly);
+
+				Optional<?> testInfo = getTestInfo(publicOnly, testId);
+
+				final Map<String, Object> export = putTestResultToExport(results, testInfo);
+
+				final Map<String, Object> testLogInfoExport = new HashMap<>();
+
+				testLogInfoExport.put("testId", testId);
+				testLogInfoExport.put("testModuleName", testModuleName);
+				testLogInfoExport.put("export", export);
+
+				allLatestLogsExport.add(testLogInfoExport);
+
+			}
+		}
+
+		if (allLatestLogsExport.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		if (planName == null)
+			planName = "";
+
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.add("Content-Disposition", "attachment; filename=\"" + planName + "-" + id + ".zip\"");
+
+		StreamingResponseBody responseBody = new StreamingResponseBody() {
+
+			@Override
+			public void writeTo(OutputStream out) throws IOException {
+
+				try {
+					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
+
+					// add all test logs file of a test plan to zip
+					for (Map<String, Object> testLogInfoExport : allLatestLogsExport) {
+
+						String jsonFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".json";
+
+						String sigFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".sig";
+
+						@SuppressWarnings("unchecked")
+						Map<String, Object> infoExport = (Map<String, Object>) testLogInfoExport.get("export");
+
+						addFilesToZip(archiveOutputStream, jsonFileName, sigFileName, infoExport);
+
+					}
+
+					archiveOutputStream.close();
+				} catch (Exception ex) {
+					throw new IOException(ex);
+				}
+			}
+		};
+
+		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+	protected void addFilesToZip(ZipArchiveOutputStream archiveOutputStream, String jsonFileName, String sigFileName, Map<String, Object> export) throws Exception {
+
+		ZipArchiveEntry testLog = new ZipArchiveEntry(jsonFileName);
+
+		Signature signature = Signature.getInstance("SHA1withRSA");
+		signature.initSign(keyManager.getSigningPrivateKey());
+
+		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
+
+		String json = gson.toJson(export);
+
+		testLog.setSize(json.getBytes().length);
+		archiveOutputStream.putArchiveEntry(testLog);
+
+		signatureOutputStream.write(json.getBytes());
+
+		signatureOutputStream.flush();
+		signatureOutputStream.close();
+
+		archiveOutputStream.closeArchiveEntry();
+
+		ZipArchiveEntry signatureFile = new ZipArchiveEntry(sigFileName);
+
+		String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
+		signatureFile.setSize(encodedSignature.getBytes().length);
+
+		archiveOutputStream.putArchiveEntry(signatureFile);
+
+		archiveOutputStream.write(encodedSignature.getBytes());
+
+		archiveOutputStream.closeArchiveEntry();
+	}
+
+	protected Optional<?> getTestInfo(boolean publicOnly, String testId) {
+		Optional<?> testInfo = Optional.empty();
+
+		if (publicOnly) {
+			testInfo = testInfos.findByIdPublic(testId);
+		} else if (authenticationFacade.isAdmin()) {
+			testInfo = testInfos.findById(testId);
+		} else {
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			if (owner != null) {
+				testInfo = testInfos.findByIdAndOwner(testId, owner);
+			}
+		}
+		return testInfo;
+	}
+
+	protected Map<String, Object> putTestResultToExport(List<Document> results, Optional<?> testInfo) {
+		Map<String, Object> export = new HashMap<>();
+
+		export.put("exportedAt", new Date());
+		export.put("exportedFrom", baseUrl);
+		export.put("exportedBy", authenticationFacade.getPrincipal());
+		export.put("exportedVersion", version);
+		export.put("testInfo", testInfo.get());
+		export.put("results", results);
+
+		return export;
 	}
 
 	private List<Document> getTestResults(String id, Long since, boolean isPublic) {

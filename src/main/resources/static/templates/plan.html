@@ -52,21 +52,26 @@
 					<% } %>
                 </div>
 
-                <% if (!public) { %>
                 <div class="col-md-2">
-                    <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
-                    <a href="index.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
-                    <% if (!plan.publish) { %>
-                    <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
-                    <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
-                    <% } else { %>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
-                    <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
+                    <% if (!public) { %>
+                        <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
+                        <a href="index.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
+                    <% } %>
+                    <% if (!public || plan.publish == "everything") { %>
+                        <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download All Logs</button>
+                    <% } %>
+                    <% if (!public) { %>
+                        <% if (!plan.publish) { %>
+                        <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
+                        <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
+                        <% } else { %>
+                            <% if (FAPI_UI.currentUser.isAdmin) { %>
+                        <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
+                            <% } %>
+                        <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
                         <% } %>
-                    <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
                     <% } %>
                 </div>
-                <% } %>
             </div>
         </div>
 

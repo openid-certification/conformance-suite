@@ -113,7 +113,8 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET.toString()),
 				new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET.toString()),
 				new AntPathRequestMatcher("/api/plan", HttpMethod.GET.toString()),
-				new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET.toString())),
+				new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET.toString()),
+				new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET.toString())),
 			new PublicRequestMatcher());
 	}
 
