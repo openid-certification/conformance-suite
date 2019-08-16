@@ -173,7 +173,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
-	private Class<? extends ConditionSequence> addBackchannelClientAuthentication;
+	private Supplier<? extends ConditionSequence> addBackchannelClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
 	private Class<? extends ConditionSequence> additionalClientRegistrationSteps;
@@ -183,6 +183,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
 	protected TestType testType;
+
+	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
+		this.addBackchannelClientAuthentication = addBackchannelClientAuthentication;
+	}
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence
 	{
@@ -973,6 +977,10 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		}
 	}
 
+	boolean isSecondClient() {
+		return env.isKeyMapped("client");
+	}
+
 	/** This should be performed before finishing test for each client to unregister dynamic client at AS*/
 	protected void cleanUpPingTestResources() {
 		unregisterClient1();
@@ -980,7 +988,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupPingMTLS() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addBackchannelClientAuthentication = () -> new AddMTLSClientAuthenticationToBackchannelRequest();
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.PING;
@@ -988,7 +996,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupPingPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
+		addBackchannelClientAuthentication = () -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), true);
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
 		testType = TestType.PING;
@@ -996,7 +1004,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupPollMTLS() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		addBackchannelClientAuthentication = AddMTLSClientAuthenticationToBackchannelRequest.class;
+		addBackchannelClientAuthentication = () -> new AddMTLSClientAuthenticationToBackchannelRequest();
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		testType = TestType.POLL;
@@ -1004,7 +1012,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 	public void setupPollPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		addBackchannelClientAuthentication = AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class;
+		addBackchannelClientAuthentication = () -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), true);
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
 		testType = TestType.POLL;

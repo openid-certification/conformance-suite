@@ -23,6 +23,7 @@ import io.fintechlabs.testframework.condition.common.DisallowInsecureCipher;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
+import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -62,6 +63,7 @@ public class FAPICIBA extends AbstractFAPICIBA {
 	@Variant(name = variant_ping_privatekeyjwt)
 	public void setupPingPrivateKeyJwt() {
 		super.setupPingPrivateKeyJwt();
+		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
 	}
 
 	@Variant(name = variant_poll_mtls)
@@ -72,6 +74,7 @@ public class FAPICIBA extends AbstractFAPICIBA {
 	@Variant(name = variant_poll_privatekeyjwt)
 	public void setupPollPrivateKeyJwt() {
 		super.setupPollPrivateKeyJwt();
+		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
 	}
 
 	@Variant(name = variant_openbankinguk_ping_mtls)
@@ -92,10 +95,6 @@ public class FAPICIBA extends AbstractFAPICIBA {
 	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
 	public void setupOpenBankingUkPollPrivateKeyJwt() {
 		super.setupOpenBankingUkPollPrivateKeyJwt();
-	}
-
-	boolean isSecondClient() {
-		return env.isKeyMapped("client");
 	}
 
 	protected void switchToSecondClient() {
