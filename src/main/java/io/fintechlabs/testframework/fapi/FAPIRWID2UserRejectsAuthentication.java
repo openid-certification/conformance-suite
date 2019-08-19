@@ -1,5 +1,11 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
+import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -23,14 +29,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2UserRejectsAuthentication {
+public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2ServerTestModule {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
@@ -40,5 +44,41 @@ public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2UserRej
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+	}
+
+	@Override
+	protected void createAuthorizationRequest() {
+
+		env.putInteger("requested_state_length", 128);
+
+		super.createAuthorizationRequest();
+	}
+
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+
+		if (whichClient == 1) {
+			performAuthorizationFlowWithSecondClient();
+		} else {
+
+			// Check if server return correct params as we requested in redirect_uri query part
+			callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+			fireTestFinished();
+		}
 	}
 }

@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdIn
 import io.fintechlabs.testframework.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequest;
+import io.fintechlabs.testframework.condition.client.CreateCreateAccountRequestRequestWithExpiration;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
@@ -19,11 +20,13 @@ import io.fintechlabs.testframework.sequence.ConditionSequence;
 
 public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequence {
 
+	private boolean secondClient;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
-	public OpenBankingUkPreAuthorizationSteps(String currentClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
-		this.currentClient = currentClient;
+	public OpenBankingUkPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this.secondClient = secondClient;
+		this.currentClient = secondClient ? "Second client: " : "";
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
 
@@ -60,7 +63,11 @@ public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequenc
 
 		/* create account request */
 
-		callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+		if (secondClient) {
+			callAndStopOnFailure(CreateCreateAccountRequestRequestWithExpiration.class);
+		} else {
+			callAndStopOnFailure(CreateCreateAccountRequestRequest.class);
+		}
 
 		callAndStopOnFailure(CallAccountRequestsEndpointWithBearerToken.class);
 

@@ -1,5 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
+import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.client.CreateBadRedirectUri;
+import io.fintechlabs.testframework.condition.common.ExpectRedirectUriErrorPage;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -23,14 +27,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2EnsureRegisteredRedirectUri {
+public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ServerTestModule {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
@@ -40,5 +42,43 @@ public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2Ensur
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+
+		// create a random redirect URI
+		callAndStopOnFailure(CreateBadRedirectUri.class);
+
+		// this is inserted by the create call above, expose it to the test environment for publication
+		exposeEnvString("redirect_uri");
+	}
+
+	@Override
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
+		createAuthorizationRequest();
+
+		createAuthorizationRedirect();
+
+		performRedirectAndWaitForErrorCallback();
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}
 }

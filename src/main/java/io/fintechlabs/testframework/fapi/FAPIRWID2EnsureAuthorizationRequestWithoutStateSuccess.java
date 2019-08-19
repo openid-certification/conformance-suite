@@ -1,5 +1,14 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
+import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
+import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.VerifyNoStateInAuthorizationResponse;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -23,14 +32,12 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
-public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess {
+public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
@@ -40,5 +47,52 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends Abst
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+	}
+
+	@Override
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
+		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+
+		createAuthorizationRequest();
+
+		createAuthorizationRedirect();
+
+		performRedirect();
+	}
+
+	@Override
+	protected void createAuthorizationRedirect() {
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddExpToRequestObject.class);
+
+		callAndStopOnFailure(SignRequestObject.class);
+
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	}
+
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		callAndContinueOnFailure(VerifyNoStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+		handleSuccessfulAuthorizationEndpointResponse();
 	}
 }

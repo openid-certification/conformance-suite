@@ -35,12 +35,13 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl",
+		"resource.resourceUrlAccountRequests",
+		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
 		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
+		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
 public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey extends AbstractFAPIRWID2PerformTokenEndpoint {
@@ -48,6 +49,11 @@ public class FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAnd
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
 	}
 
 	@Override

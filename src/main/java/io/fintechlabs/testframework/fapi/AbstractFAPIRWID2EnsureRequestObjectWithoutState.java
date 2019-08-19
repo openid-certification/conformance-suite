@@ -31,6 +31,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 	@Override
 	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
 
 		createAuthorizationRequest();
 
