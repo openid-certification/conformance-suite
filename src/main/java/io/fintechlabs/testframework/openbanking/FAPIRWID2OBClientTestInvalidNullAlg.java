@@ -2,13 +2,14 @@ package io.fintechlabs.testframework.openbanking;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.SignIdTokenWithNullAlgorithm;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint;
 import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-with-private-key-jwt-and-mtls-holder-of-key-invalid-null-alg",
-	displayName = "FAPI-RW-ID2-OB: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected (with private_key_jwt and MTLS)",
+	testName = "fapi-rw-id2-ob-client-test-invalid-null-alg",
+	displayName = "FAPI-RW-ID2-OB: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the id_token was signed with alg: none",
 	profile = "FAPI-RW-ID2-OB",
 	configurationFields = {
@@ -21,12 +22,16 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_mtls
+		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
 
-public class FAPIRWID2OBClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidNullAlg extends AbstractFAPIRWID2OBClientPrivateKeyExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2OBClientTestInvalidNullAlg extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
+
+	@Variant(name = variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+	}
 
 	@Variant(name = variant_openbankinguk_privatekeyjwt)
 	public void setupOpenBankingUkPrivateKeyJwt() {

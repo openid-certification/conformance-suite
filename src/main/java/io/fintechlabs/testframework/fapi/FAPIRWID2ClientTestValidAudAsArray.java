@@ -1,12 +1,14 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.as.AddAudValueAsArrayToIdToken;
+import io.fintechlabs.testframework.condition.as.SignIdTokenBypassingNimbusChecks;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test",
-	displayName = "FAPI-RW-ID2: client test",
-	summary = "Successful test case scenario where response_type used is code id_token combined with MTLS encryption",
+	testName = "fapi-rw-id2-client-test-valid-aud-as-array",
+	displayName = "FAPI-RW-ID2: client test - valid aud in id_token as data type array",
+	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
@@ -18,7 +20,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2ClientTest extends AbstractFAPIRWID2ClientTest {
+public class FAPIRWID2ClientTestValidAudAsArray extends AbstractFAPIRWID2ClientTest {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
@@ -42,6 +44,13 @@ public class FAPIRWID2ClientTest extends AbstractFAPIRWID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken(){
-		//Do nothing
+
+		callAndStopOnFailure(AddAudValueAsArrayToIdToken.class,"OIDCC-3.1.3.7-3");
+	}
+
+	@Override
+	protected void addCustomSignatureOfIdToken(){
+
+		callAndStopOnFailure(SignIdTokenBypassingNimbusChecks.class);
 	}
 }

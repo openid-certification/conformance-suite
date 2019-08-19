@@ -25,7 +25,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidNullAlg extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorisationEndpoint {
+public class FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidNullAlg extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {

@@ -2,12 +2,16 @@ package io.fintechlabs.testframework.fapi;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddACRClaimToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddAtHashToIdTokenClaims;
 import io.fintechlabs.testframework.condition.as.AddCHashToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddPrivateKeyJWTToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddSHashToIdTokenClaims;
+import io.fintechlabs.testframework.condition.as.AddTLSClientAuthToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddTokenEndpointSigningAlg;
 import io.fintechlabs.testframework.condition.as.CalculateAtHash;
 import io.fintechlabs.testframework.condition.as.CalculateCHash;
@@ -63,6 +67,12 @@ import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
+import io.fintechlabs.testframework.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
+import io.fintechlabs.testframework.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
+import io.fintechlabs.testframework.sequence.as.ValidateClientAuthenticationWithMTLS;
+import io.fintechlabs.testframework.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
@@ -78,6 +88,12 @@ import javax.servlet.http.HttpSession;
 
 public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
+	// Controls which endpoints we should expose to the client
+	protected enum TestType {
+		PLAIN_FAPI,
+		OPENBANKINGUK
+	}
+
 	// to be used in @Variant definitions
 	public static final String variant_mtls = "mtls";
 	public static final String variant_privatekeyjwt = "private_key_jwt";
@@ -86,6 +102,14 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+
+	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
+	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
+	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
+	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
+	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+
+	protected TestType testType;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -98,19 +122,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		exposeEnvString(name);
 	}
 
-	protected abstract void addTokenEndpointAuthMethodSupported();
-
-	protected abstract void validateClientAuthentication();
-
 	protected abstract void addCustomValuesToIdToken();
 
 	protected void addCustomSignatureOfIdToken(){}
-
-	protected void authorizationCodeGrantTypeProfile(){}
-
-	protected void authorizationEndpointProfile(){}
-
-	protected void accountsEndpointProfile(){}
 
 	protected boolean endTestIfStateIsNotSupplied(){return false;}
 
@@ -121,7 +135,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
-		addTokenEndpointAuthMethodSupported();
+		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class);
 		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
@@ -196,6 +210,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 			return discoveryEndpoint();
 		} else if (path.equals(ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && testType == TestType.OPENBANKINGUK) {
+			return accountRequestsEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -285,7 +301,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
-		validateClientAuthentication();
+		call(sequence(validateClientAuthenticationSteps));
 
 		return handleTokenEndpointGrantType(requestId);
 
@@ -299,6 +315,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
 			return authorizationCodeGrantType(requestId);
+		} else if (grantType.equals("client_credentials") && testType == TestType.OPENBANKINGUK) {
+			// we're doing the client credentials grant for initial token access
+			return clientCredentialsGrantType(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
 		}
@@ -331,7 +350,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
-		authorizationCodeGrantTypeProfile();
+		if (authorizationCodeGrantTypeProfileSteps != null)
+			call(sequence(authorizationCodeGrantTypeProfileSteps));
 
 		callAndStopOnFailure(SignIdToken.class);
 
@@ -400,7 +420,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
-		authorizationEndpointProfile();
+		if (authorizationEndpointProfileSteps != null)
+			call(sequence(authorizationEndpointProfileSteps));
 
 		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
@@ -493,7 +514,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
-		accountsEndpointProfile();
+		if (accountsEndpointProfileSteps != null)
+			call(sequence(accountsEndpointProfileSteps));
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
@@ -511,14 +533,32 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	}
 
 	protected void setupMTLS() {
+		testType = TestType.PLAIN_FAPI;
+		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	protected void setupPrivateKeyJwt() {
+		testType = TestType.PLAIN_FAPI;
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
 	}
 
 	protected void setupOpenBankingUkMTLS() {
+		testType = TestType.OPENBANKINGUK;
+		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
+		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
+		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
 	}
 
 	protected void setupOpenBankingUkPrivateKeyJwt() {
+		testType = TestType.OPENBANKINGUK;
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
+		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
+		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
+		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
 	}
 }

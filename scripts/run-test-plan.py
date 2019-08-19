@@ -68,13 +68,8 @@ def run_test_plan(test_plan, config_file):
 
             if state == "WAITING":
                 # If it's a client test, we need to run the client
-                if re.match(r'(fapi-rw-id2-client-.*)', module):
-                    os.putenv('CLIENTTESTMODE', 'fapi-rw')
-                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
-
-                if re.match(r'(fapi-rw-id2-ob-client-.*)', module):
-                    os.putenv('CLIENTTESTMODE', 'fapi-ob')
+                if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
+                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', variant) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
