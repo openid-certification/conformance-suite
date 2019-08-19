@@ -19,6 +19,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -56,7 +57,7 @@ public class TokenApi {
 		boolean isPermanent = false;
 		try {
 			if (permanent != null && permanent.isJsonPrimitive())
-				isPermanent = permanent.getAsBoolean();
+				isPermanent = OIDFJSON.getBoolean(permanent);
 		} catch (ClassCastException e) {
 			// Not a boolean
 		}
