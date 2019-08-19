@@ -266,8 +266,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performPreAuthorizationSteps() {
-		if (preAuthorizationSteps != null)
+		if (preAuthorizationSteps != null) {
 			call(sequence(preAuthorizationSteps));
+		}
 	}
 
 	protected void performAuthorizationFlow() {
@@ -603,8 +604,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performProfileIdTokenValidation() {
-		if (profileIdTokenValidationSteps != null)
+		if (profileIdTokenValidationSteps != null) {
 			call(sequence(profileIdTokenValidationSteps));
+		}
 	}
 
 	protected void performTokenEndpointIdTokenExtraction() {
