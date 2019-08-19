@@ -34,6 +34,7 @@ variables:
   STAGING_HOST: staging
   DEMO_HOST: demo
   LM_JAVA_VERSION: 11
+  SONAR_URL: "https://sonarqube.certification.openid.net"
 
 stages:
   - build
@@ -94,6 +95,21 @@ check-trailing-whitespace:
   script:
     - apk -q add --no-cache --update python
     - ./scripts/checkwhitespace.py
+  only:
+    - branches
+
+sonarqube_scanner:
+  stage: build
+  image: gliderlabs/herokuish:latest
+  script:
+    # Run tests explicitly, since herokuish doesn't pick up the maven environment
+    - cp -R * /tmp/build
+    - "[ -e .m2 ] && cp -R .m2 /tmp/cache"
+    - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
+    - export JAVA_HOME=/tmp/build/.jdk
+    - HOME=/tmp/build source /tmp/build/.profile.d/maven.sh
+    - cd /tmp/build
+    - run_sonaqube
   only:
     - branches
 
@@ -461,6 +477,10 @@ deployment_ciba_test_review:
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar zx
     ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
     ./google-cloud-sdk/bin/gcloud --quiet components update
+  }
+
+  function run_sonaqube() {
+    mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.unique_issue_per_inline=true -Dsonar.gitlab.url=https://gitlab.com -Dsonar.gitlab.user_token=$SONARQUBE_BOT_API_KEY -Dsonar.gitlab.max_blocker_issues_gate=0 -Dsonar.gitlab.json_mode=SAST -Dsonar.gitlab.failure_notification_mode=exit-code
   }
 
   function build() {
