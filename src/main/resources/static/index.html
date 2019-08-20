@@ -808,10 +808,10 @@
 		function updateSelectedTestSelector(planName, testName) {
 			if (testName) {
 				$('#singleTestSelector').prop('checked', true).change();
-				$('#testSelect option[value=' + testName + ']').prop('selected', true).change();
+				$('#testSelect option[value="' + testName + '"]').prop('selected', true).change();
 			} else if (planName) {
 				$('#singleTestSelector').prop('checked', false).change();
-				$('#planSelect option[value=' + planName + ']').prop('selected', true).change();
+				$('#planSelect option[value="' + planName + '"]').prop('selected', true).change();
 			}
 		}
 
