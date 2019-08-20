@@ -1,9 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestInvalidAlternateAlg;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestInvalidNullAlg;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestInvalidOpenBankingIntentId;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBClientTestNoAtHash;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -13,21 +9,15 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "FAPI-RW-ID2-Relying-Party-Client-Test",
 	testModules = {
 		FAPIRWID2ClientTest.class,
-		FAPIRWID2OBClientTestNoAtHash.class,
 		FAPIRWID2ClientTestInvalidSHash.class,
 		FAPIRWID2ClientTestInvalidCHash.class,
 		FAPIRWID2ClientTestInvalidNonce.class,
 		FAPIRWID2ClientTestInvalidIss.class,
 		FAPIRWID2ClientTestInvalidAud.class,
 		FAPIRWID2ClientTestInvalidSecondaryAud.class,
-		FAPIRWID2OBClientTestInvalidOpenBankingIntentId.class,
 		FAPIRWID2ClientTestInvalidSignature.class,
-		FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidNullAlg.class,
-		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidNullAlg.class,
-		FAPIRWID2OBClientTestInvalidNullAlg.class,
-		FAPIRWID2ClientTestWithMTLSHolderOfKeyInvalidAlternateAlg.class,
-		FAPIRWID2ClientTestWithPrivateKeyJWTAndMTLSHolderOfKeyInvalidAlternateAlg.class,
-		FAPIRWID2OBClientTestInvalidAlternateAlg.class,
+		FAPIRWID2ClientTestInvalidNullAlg.class,
+		FAPIRWID2ClientTestInvalidAlternateAlg.class,
 		FAPIRWID2ClientTestInvalidExpiredExp.class,
 		FAPIRWID2ClientTestInvalidMissingExp.class,
 		FAPIRWID2ClientTestIatIsWeekInPast.class,
@@ -35,7 +25,11 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2ClientTestInvalidMissingIss.class,
 		FAPIRWID2ClientTestInvalidMissingNonce.class,
 		FAPIRWID2ClientTestInvalidMissingSHash.class,
-		FAPIRWID2ClientTestValidAudAsArray.class
+		FAPIRWID2ClientTestValidAudAsArray.class,
+
+		// OB systems specific tests
+		FAPIRWID2ClientTestNoAtHash.class,
+		FAPIRWID2ClientTestInvalidOpenBankingIntentId.class
 	},
 	variants = {
 		FAPIRWID2ClientTest.variant_mtls,

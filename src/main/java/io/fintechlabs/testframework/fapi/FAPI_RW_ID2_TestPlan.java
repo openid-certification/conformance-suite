@@ -1,10 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBDiscoveryEndpointVerification;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithMTLS;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithPrivateKeyAndMTLS;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -15,7 +10,6 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	testModules = {
 		// Normal well behaved client cases
 		FAPIRWID2DiscoveryEndpointVerification.class,
-		FAPIRWID2OBDiscoveryEndpointVerification.class,
 		FAPIRWID2.class,
 		FAPIRWID2UserRejectsAuthentication.class,
 		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
@@ -35,11 +29,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureExpiredRequestObjectFails.class,
 		FAPIRWID2EnsureRequestObjectWithBadAudFails.class,
 		FAPIRWID2EnsureSignedRequestObjectWithRS256Fails.class,
-		FAPIRWID2OBEnsureSignedRequestObjectWithRS256FailsWithMTLS.class,
 		FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
-		FAPIRWID2EnsureRequestObjectInvalidSignatureFails.class,
-		FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithMTLS.class,
-		FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithPrivateKeyAndMTLS.class,
+		FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails.class,
 		FAPIRWID2EnsureMatchingKeyInAuthorizationRequest.class,
 
 		// Negative tests for authorization request
@@ -48,21 +39,19 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureResponseTypeCodeFails.class,
 
 		// Negative tests for token endpoint
-		FAPIRWID2EnsureClientIdInTokenEndpointWithMTLS.class,
-		FAPIRWID2EnsureClientIdInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
-		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithMTLS.class,
-		FAPIRWID2EnsureMTLSHolderOfKeyRequiredWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureClientIdInTokenEndpoint.class,
+		FAPIRWID2EnsureMTLSHolderOfKeyRequired.class,
 		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
 
 		// Private key specific tests
-		FAPIRWID2EnsureSignedClientAssertionWithRS256FailsWithPrivateKeyAndMTLSHolderOfKey.class,
-		FAPIRWID2EnsureClientAssertionInTokenEndpointWithPrivateKeyAndMTLSHolderOfKey.class,
+		FAPIRWID2EnsureSignedClientAssertionWithRS256Fails.class,
+		FAPIRWID2EnsureClientAssertionInTokenEndpoint.class,
 
 		//Refresh token tests
 		FAPIRWID2RefreshToken.class,
 
 		// OB systems specific tests
-		FAPIRWID2OBEnsureServerHandlesNonMatchingIntentId.class
+		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class
 	},
 	variants = {
 		FAPIRWID2.variant_mtls,

@@ -6,9 +6,15 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointClaimsPara
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestParameterSupported;
 import io.fintechlabs.testframework.condition.client.CheckDiscEndpointRequestUriParameterSupported;
+import io.fintechlabs.testframework.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
+import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
+import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
+import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointClaimsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -19,22 +25,34 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 
+	private Class<? extends ConditionSequence> profileSpecificChecks;
+
 	@Variant(name = FAPIRWID2.variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
 	@Variant(name = FAPIRWID2.variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+	}
+
+	@Variant(name = FAPIRWID2.variant_openbankinguk_mtls)
+	public void setupOpenBankingUkMTLS() {
+		super.setupOpenBankingUkMTLS();
+		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
+	}
+
+	@Variant(name = FAPIRWID2.variant_openbankinguk_privatekeyjwt)
+	public void setupOpenBankingUkPrivateKeyJwt() {
+		super.setupOpenBankingUkPrivateKeyJwt();
+		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
 	@Override
@@ -51,12 +69,28 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 		// hence must support the claims parameter
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
 
-		performProfileSpecificChecks();
+		call(sequence(profileSpecificChecks));
 	}
 
-	protected void performProfileSpecificChecks() {
-		callAndContinueOnFailure(FAPIRWCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+	public static class PlainFAPIDiscoveryEndpointChecks extends AbstractConditionSequence {
+
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+		}
+	}
+
+	public static class OpenBankingUkDiscoveryEndpointChecks extends AbstractConditionSequence {
+
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING, "OBSP-3.4");
+
+			callAndContinueOnFailure(FAPIOBCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE, "OBSP-3.4");
+			callAndContinueOnFailure(FAPIOBCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIOBCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+		}
 	}
 }

@@ -1,15 +1,13 @@
-package io.fintechlabs.testframework.openbanking;
+package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.as.RemoveAtHashFromIdToken;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ClientTest;
-import io.fintechlabs.testframework.fapi.FAPIRWID2ClientTest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ob-client-test-missing-athash",
-	displayName = "FAPI-RW-ID2-OB: client test - id_token without an at_hash value from the authorization_endpoint, should be rejected",
-	profile = "FAPI-RW-ID2-OB",
+	testName = "fapi-rw-id2-client-test-missing-athash",
+	displayName = "FAPI-RW-ID2: client test - id_token without an at_hash value from the authorization_endpoint, should be rejected",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
@@ -24,7 +22,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPIRWID2OBClientTestNoAtHash extends AbstractFAPIRWID2ClientTest {
+public class FAPIRWID2ClientTestNoAtHash extends AbstractFAPIRWID2ClientTest {
 
 	@Variant(name = variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
