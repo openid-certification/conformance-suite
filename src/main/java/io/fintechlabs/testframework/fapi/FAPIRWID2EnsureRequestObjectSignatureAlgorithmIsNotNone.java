@@ -33,8 +33,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl",
-		"resource.resourceUrlAccountRequests",
-		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
 	}
 )
@@ -50,12 +48,24 @@ public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Abs
 		super.setupPrivateKeyJwt();
 	}
 
-	@Variant(name = variant_openbankinguk_mtls)
+	@Variant(
+		name = variant_openbankinguk_mtls,
+		configurationFields = {
+			"resource.resourceUrlAccountRequests",
+			"resource.resourceUrlAccountsResource",
+		}
+	)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
 	}
 
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	@Variant(
+		name = variant_openbankinguk_privatekeyjwt,
+		configurationFields = {
+			"resource.resourceUrlAccountRequests",
+			"resource.resourceUrlAccountsResource",
+		}
+	)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}

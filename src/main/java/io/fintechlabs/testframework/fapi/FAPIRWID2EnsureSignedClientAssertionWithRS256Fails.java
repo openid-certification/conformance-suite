@@ -35,8 +35,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl",
-		"resource.resourceUrlAccountRequests",
-		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
@@ -51,7 +49,13 @@ public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends Abstract
 		super.setupPrivateKeyJwt();
 	}
 
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	@Variant(
+		name = variant_openbankinguk_privatekeyjwt,
+		configurationFields = {
+			"resource.resourceUrlAccountRequests",
+			"resource.resourceUrlAccountsResource",
+		}
+	)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
