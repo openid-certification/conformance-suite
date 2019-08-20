@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithMTLS;
-import io.fintechlabs.testframework.openbanking.FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithPrivateKeyAndMTLS;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -32,9 +30,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureRequestObjectWithBadAudFails.class,
 		FAPIRWID2EnsureSignedRequestObjectWithRS256Fails.class,
 		FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
-		FAPIRWID2EnsureRequestObjectInvalidSignatureFails.class,
-		FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithMTLS.class,
-		FAPIRWID2OBEnsureRequestObjectInvalidSignatureFailsWithPrivateKeyAndMTLS.class,
+		FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails.class,
 		FAPIRWID2EnsureMatchingKeyInAuthorizationRequest.class,
 
 		// Negative tests for authorization request
