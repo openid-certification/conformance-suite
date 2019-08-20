@@ -36,3 +36,5 @@ mongodb:
       memory: 1Gi
     requests:
       cpu: 100m
+  persistence:
+    size: 50Gi
