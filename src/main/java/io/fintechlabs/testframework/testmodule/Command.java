@@ -13,6 +13,7 @@ import java.util.Map;
 public class Command implements TestExecutionUnit {
 	private Map<String, String> mapKeys = new LinkedHashMap<>();
 	private List<String> unmapKeys = new ArrayList<>();
+	private List<String> removeObjects = new ArrayList<>();
 	private String startBlock = null;
 	private boolean endBlock = false;
 	private List<String> exposeStrings = new ArrayList<>();
@@ -43,6 +44,14 @@ public class Command implements TestExecutionUnit {
 	 */
 	public Command unmapKey(String key) {
 		unmapKeys.add(key);
+		return this;
+	}
+
+	/**
+	 * Remove an object from the environment. See Environment.removeObject(String)
+	 */
+	public Command removeObject(String key) {
+		removeObjects.add(key);
 		return this;
 	}
 
@@ -95,6 +104,13 @@ public class Command implements TestExecutionUnit {
 	 */
 	public List<String> getUnmapKeys() {
 		return unmapKeys;
+	}
+
+	/**
+	 * Get the list of objects to remove from the Environment.
+	 */
+	public List<String> getRemoveObjects() {
+		return removeObjects;
 	}
 
 	/**
