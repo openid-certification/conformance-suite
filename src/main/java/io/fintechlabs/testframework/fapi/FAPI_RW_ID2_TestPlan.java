@@ -51,7 +51,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2RefreshToken.class,
 
 		// OB systems specific tests
-		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class
+		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class,
+
+		FAPIRWID2ServerNotAllowScaAcrClaim.class
 	},
 	variants = {
 		FAPIRWID2.variant_mtls,

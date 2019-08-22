@@ -134,7 +134,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
-	private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
