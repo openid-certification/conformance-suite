@@ -64,6 +64,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		// FAPI specific
 		FAPICIBAEnsureBackchannelAuthorizationRequestWithoutRequestFails.class,
 
+		//Refresh token tests
+		FAPICIBARefreshToken.class,
 	},
 	variants = {
 		FAPICIBA.variant_ping_mtls,
