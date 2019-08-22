@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
@@ -44,7 +43,6 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 	}
 
 	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
-		addIdTokenClaimsToEnv("first_id_token_claims");
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
@@ -53,19 +51,14 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 		}
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		refreshTokenRequest();
-		//compare only when refresh response contains an id_token
-		if(addIdTokenClaimsToEnv("second_id_token_claims")) {
-			callAndContinueOnFailure(CompareIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-12.2");
-		}
-		return false;
-	}
 
-	protected boolean addIdTokenClaimsToEnv(String targetKey) {
-		JsonObject idToken = env.getObject("id_token");
-		if(idToken!=null) {
-			env.putObject(targetKey, idToken.get("claims").getAsJsonObject());
-			return true;
-		}
+		env.mapKey("first_id_token_claims", "first_id_token.claims");
+		env.mapKey("second_id_token_claims", "second_id_token.claims");
+		//compare only when refresh response contains an id_token
+		call(condition(CompareIdTokenClaims.class)
+				.skipIfObjectMissing("second_id_token_claims")
+				.requirement("OIDCC-12.2")
+				.dontStopOnFailure());
 		return false;
 	}
 
@@ -83,6 +76,8 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 
+		env.mapKey("access_token", "second_access_token");
+		env.mapKey("id_token", "second_id_token");
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(CheckTokenTypeIsBearer.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.2-1");
@@ -94,12 +89,8 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
 
-		String secondAccessToken = env.getString("token_endpoint_response", "access_token");
-		env.putString("second_access_token", secondAccessToken);
-
 		callAndContinueOnFailure(EnsureAccessTokenValuesAreDifferent.class);
 
-		env.removeObject("id_token");
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
@@ -123,8 +114,6 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 	}
 
 	protected void performIdTokenValidation() {
-		addIdTokenClaimsToEnv("first_id_token_claims");
-
 		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
@@ -144,9 +133,9 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			createAuthorizationCodeRequest();
 
+			env.mapKey("access_token", "first_access_token");
+			env.mapKey("id_token", "first_id_token");
 			requestAuthorizationCode();
-			String firstAccessToken = env.getString("token_endpoint_response", "access_token");
-			env.putString("first_access_token", firstAccessToken);
 
 			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
 				return;
@@ -167,9 +156,9 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			createAuthorizationCodeRequest();
 
+			env.mapKey("access_token", "first_access_token");
+			env.mapKey("id_token", "first_id_token");
 			requestAuthorizationCode();
-			String firstAccessToken = env.getString("token_endpoint_response", "access_token");
-			env.putString("first_access_token", firstAccessToken);
 
 			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
 				return;
