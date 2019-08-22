@@ -4,31 +4,16 @@ import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
-import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
-import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
-import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
-import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
-import io.fintechlabs.testframework.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
-import io.fintechlabs.testframework.condition.client.EnsureAccessTokenValuesAreDifferent;
-import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
-import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
-import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
-import io.fintechlabs.testframework.condition.client.WaitForOneSecond;
+import io.fintechlabs.testframework.sequence.client.RefreshTokenRequestExpectingErrorSteps;
+import io.fintechlabs.testframework.sequence.client.RefreshTokenRequestSteps;
 
 public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFAPIRWID2ServerTestModule {
 
@@ -50,7 +35,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 			return true;
 		}
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
-		refreshTokenRequest();
+		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 
 		env.mapKey("first_id_token_claims", "first_id_token.claims");
 		env.mapKey("second_id_token_claims", "second_id_token.claims");
@@ -60,57 +45,6 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 				.requirement("OIDCC-12.2")
 				.dontStopOnFailure());
 		return false;
-	}
-
-	protected void refreshTokenRequest() {
-		eventLog.startBlock(currentClientString() + "Refresh Token Request");
-		callAndStopOnFailure(CreateRefreshTokenRequest.class);
-		if (whichClient == 1) {
-			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
-		}
-
-		addClientAuthenticationToTokenEndpointRequest();
-
-		//wait 1 second to make sure that iat values will be different
-		callAndStopOnFailure(WaitForOneSecond.class);
-
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-
-		env.mapKey("access_token", "second_access_token");
-		env.mapKey("id_token", "second_id_token");
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndContinueOnFailure(CheckTokenTypeIsBearer.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.2-1");
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
-		callAndContinueOnFailure(EnsureAccessTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.12");
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
-		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-
-		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
-
-		callAndContinueOnFailure(EnsureAccessTokenValuesAreDifferent.class);
-
-		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
-
-		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
-
-		eventLog.endBlock();
-	}
-
-	protected void refreshTokenRequestExpectingError() {
-		callAndStopOnFailure(CreateRefreshTokenRequest.class);
-		if (whichClient == 1) {
-			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
-		}
-
-		addClientAuthenticationToTokenEndpointRequest();
-
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 	}
 
 	protected void performIdTokenValidation() {
@@ -170,7 +104,7 @@ public abstract class AbstractFAPIRWID2RefreshTokenTestModule extends AbstractFA
 
 			// try client 2's refresh_token with client 1
 			eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
-			refreshTokenRequestExpectingError();
+			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 			eventLog.endBlock();
 			fireTestFinished();
 		}
