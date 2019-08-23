@@ -1,49 +1,36 @@
 package io.fintechlabs.testframework.condition.client;
 
-import java.text.ParseException;
-
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 
-import io.fintechlabs.testframework.condition.AbstractCondition;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jwt.JWTClaimsSet;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class SignRequestObject extends AbstractCondition {
+public class SignRequestObject extends AbstractSignJWT {
 
 	@Override
 	@PreEnvironment(required = { "request_object_claims", "client_jwks" })
 	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
-
-		JsonObject requestObjectClaims = env.getObject("request_object_claims");
+		JsonObject claims = env.getObject("request_object_claims");
 		JsonObject jwks = env.getObject("client_jwks");
+		return signJWT(env, claims, jwks);
+	}
 
-		if (requestObjectClaims == null) {
-			throw error("Couldn't find request object claims");
-		}
+	@Override
+	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
+		env.putString("request_object", jws);
+		logSuccess("Signed the request object", args("request_object", verifiableObj,
+			"header", header.toString(),
+			"claims", claimSet.toString(),
+			"key", jwk.toJSONString()));
+	}
 
-		if (jwks == null) {
-			throw error("Couldn't find jwks");
-		}
-
+	@Override
+	protected void checkIssAndAudInRequestObject(Environment env, JsonObject requestObjectClaims) {
 		if (!requestObjectClaims.has("iss")) {
 			String clientId = env.getString("client", "client_id");
 			if (clientId != null) {
@@ -63,61 +50,6 @@ public class SignRequestObject extends AbstractCondition {
 				log("Request object contains no audience and server issuer URL not found");
 			}
 		}
-
-		try {
-			JWTClaimsSet claimSet = JWTClaimsSet.parse(requestObjectClaims.toString());
-
-			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-
-			if (jwkSet.getKeys().size() == 1) {
-				// figure out which algorithm to use
-				JWK jwk = jwkSet.getKeys().iterator().next();
-
-				JWSSigner signer = null;
-				if (jwk.getKeyType().equals(KeyType.RSA)) {
-					signer = new RSASSASigner((RSAKey) jwk);
-				} else if (jwk.getKeyType().equals(KeyType.EC)) {
-					signer = new ECDSASigner((ECKey) jwk);
-				} else if (jwk.getKeyType().equals(KeyType.OCT)) {
-					signer = new MACSigner((OctetSequenceKey) jwk);
-				}
-
-				if (signer == null) {
-					throw error("Couldn't create signer from key", args("jwk", jwk.toJSONString()));
-				}
-
-				Algorithm alg = jwk.getAlgorithm();
-				if (alg == null) {
-					throw error("key should contain an 'alg' entry", args("jwk", jwk.toJSONString()));
-				}
-
-				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
-
-				SignedJWT requestObject = new SignedJWT(header, claimSet);
-
-				requestObject.sign(signer);
-
-				env.putString("request_object", requestObject.serialize());
-
-				String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
-				JsonObject verifiableRequestObject = new JsonObject();
-				verifiableRequestObject.addProperty("verifiable_jws", requestObject.serialize());
-				verifiableRequestObject.addProperty("public_jwk", publicKeySetString);
-				logSuccess("Signed the request object", args("request_object", verifiableRequestObject,
-					"header", header.toString(),
-					"claims", claimSet.toString(),
-					"key", jwk.toJSONString()));
-
-				return env;
-			} else {
-				throw error("Expected only one JWK in the set. Please ensure the JWKS contains only the signing key to be used.", args("found", jwkSet.getKeys().size()));
-			}
-		} catch (ParseException e) {
-			throw error(e);
-		} catch (JOSEException e) {
-			throw error(e);
-		}
-
 	}
 
 }
