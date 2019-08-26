@@ -30,8 +30,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 		"client2.client_id",
 		"client2.jwks",
 		"resource.resourceUrl",
-		"resource.resourceUrlAccountRequests",
-		"resource.resourceUrlAccountsResource",
 		"resource.institution_id"
 	},
 	notApplicableForVariants = {
@@ -41,12 +39,24 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ServerTestModule {
 
-	@Variant(name = variant_openbankinguk_mtls)
+	@Variant(
+		name = variant_openbankinguk_mtls,
+		configurationFields = {
+			"resource.resourceUrlAccountRequests",
+			"resource.resourceUrlAccountsResource",
+		}
+	)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
 	}
 
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
+	@Variant(
+		name = variant_openbankinguk_privatekeyjwt,
+		configurationFields = {
+			"resource.resourceUrlAccountRequests",
+			"resource.resourceUrlAccountsResource",
+		}
+	)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
 	}
