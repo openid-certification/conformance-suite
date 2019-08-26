@@ -9,6 +9,8 @@ image:
 application:
   track: stable
   tier: web
+  env_slug: ""
+  path_slug: ""
 service:
   enabled: true
   name: web
