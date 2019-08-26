@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.base.Strings;
 import io.fintechlabs.testframework.info.Plan;
 import io.fintechlabs.testframework.info.PublicPlan;
 import io.fintechlabs.testframework.info.TestPlanService;
@@ -140,21 +141,21 @@ public class LogApi {
 		Optional<?> testInfo = getTestInfo(publicOnly, id);
 
 		String testModuleName = null;
+		String variant = null;
 
 		if (!testInfo.isPresent()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else if (testInfo.get() instanceof TestInfo) {
 			testModuleName = ((TestInfo) testInfo.get()).getTestName();
+			variant = ((TestInfo) testInfo.get()).getVariant();
 		} else if (testInfo.get() instanceof PublicTestInfo) {
 			testModuleName = ((PublicTestInfo) testInfo.get()).getTestName();
+			variant = ((PublicTestInfo) testInfo.get()).getVariant();
 		}
-
-		if (testModuleName == null)
-			testModuleName = "";
 
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + testModuleName + "-" + id + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + (Strings.isNullOrEmpty(variant) ? "" : (variant + "-")) + id + ".zip\"");
 
 		final Map<String, Object> export = putTestResultToExport(results, testInfo);
 
@@ -195,6 +196,7 @@ public class LogApi {
 		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
 
 		String planName = null;
+		String variant = null;
 
 		List<Plan.Module> modules = new ArrayList<>();
 
@@ -202,9 +204,11 @@ public class LogApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else if (testPlan instanceof PublicPlan) {
 			planName = ((PublicPlan) testPlan).getPlanName();
+			variant = ((PublicPlan) testPlan).getVariant();
 			modules = ((PublicPlan) testPlan).getModules();
 		} else if (testPlan instanceof Plan) {
 			planName = ((Plan) testPlan).getPlanName();
+			variant = ((Plan) testPlan).getVariant();
 			modules = ((Plan) testPlan).getModules();
 		}
 
@@ -240,12 +244,9 @@ public class LogApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		if (planName == null)
-			planName = "";
-
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"" + planName + "-" + id + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + (Strings.isNullOrEmpty(variant) ? "" : (variant + "-")) + id + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
