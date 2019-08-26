@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractValidateJWKs extends AbstractCondition {
 
-	protected void checkJWKs(JsonElement jwks) {
+	protected void checkJWKs(JsonElement jwks, boolean checkPrivatePart) {
 
 		checkValidStructureInJwks(jwks);
 
@@ -50,27 +50,31 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 			if ("RSA".equals(kty)) {
 
-				validate(jwks, keyObject, "e", "n");
+				checkMissingKey(keyObject, "e", "n");
 
+				verifyKeysIsBase64UrlEncoded(keyObject, "e", "n");
+
+				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
 			} else if ("EC".equals(kty)) {
 
-				validate(jwks, keyObject, "x", "y");
+				checkMissingKey(keyObject, "x", "y");
 
+				verifyKeysIsBase64UrlEncoded(keyObject, "x", "y");
+
+				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
 			}
+
 		});
 	}
 
-	private void validate(JsonElement jwks, JsonObject keyObject, String... keys) {
-		checkMissingKey(keyObject, keys);
-
-		verifyKeysIsBase64UrlEncoded(keyObject, keys);
-
-		// In case JWK is private key, then check valid d key. And verify private exponent matches public exponent.
-		if (keyObject.has("d")) {
-			verifyKeysIsBase64UrlEncoded(keyObject, "d");
-
-			checkValidKey(jwks);
+	private void verifyPrivatePart(JsonElement jwks, JsonObject keyObject) {
+		if (!keyObject.has("d")) {
+			throw error("The JWK supplied for the first client seems to be a public key (the 'd' key is missing)");
 		}
+
+		verifyKeysIsBase64UrlEncoded(keyObject, "d");
+
+		checkValidKey(jwks);
 	}
 
 	private void checkValidKey(JsonElement jwks) {
@@ -149,7 +153,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 	private void verifyKeysIsBase64UrlEncoded(JsonObject keyObject, String... keys) {
 		for (String key : keys) {
-			String value = keyObject.get(key).getAsString();
+			String value = OIDFJSON.getString(keyObject.get(key));
 			String regex = "[a-zA-Z0-9_-]";
 			for (char character : value.toCharArray()) {
 				if (!Pattern.matches(regex, String.valueOf(character))) {

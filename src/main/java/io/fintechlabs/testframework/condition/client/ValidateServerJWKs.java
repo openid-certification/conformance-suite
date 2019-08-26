@@ -11,7 +11,7 @@ public class ValidateServerJWKs extends AbstractValidateJWKs {
 	public Environment evaluate(Environment env) {
 		JsonObject jwks = env.getObject("server_jwks");
 
-		checkJWKs(jwks);
+		checkJWKs(jwks, false);
 
 		logSuccess("Valid server JWKs");
 

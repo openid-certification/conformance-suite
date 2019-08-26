@@ -8,7 +8,7 @@ import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpoint
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -132,7 +132,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		exposeEnvString("client_id");
-		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
@@ -142,7 +142,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 		eventLog.startBlock("Loading second client key");
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
-		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
