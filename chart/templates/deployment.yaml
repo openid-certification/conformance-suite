@@ -7,6 +7,9 @@ metadata:
     track: "{{ .Values.application.track }}"
     tier: "{{ .Values.application.tier }}"
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+  annotations:
+    app.gitlab.com/app: "{{ .Values.application.path_slug }}"
+    app.gitlab.com/env: "{{ .Values.application.env_slug }}"
 spec:
   replicas: {{ .Values.replicaCount }}
   template:
@@ -15,6 +18,9 @@ spec:
         app: {{ template "appname" . }}
         track: "{{ .Values.application.track }}"
         tier: "{{ .Values.application.tier }}"
+      annotations:
+        app.gitlab.com/app: "{{ .Values.application.path_slug }}"
+        app.gitlab.com/env: "{{ .Values.application.env_slug }}"
     spec:
       containers:
       - name: {{ .Chart.Name }}

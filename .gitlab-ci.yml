@@ -385,6 +385,8 @@ deployment_ciba_test_review:
 
     helm upgrade --install \
       --wait \
+      --set application.env_slug="$CI_ENVIRONMENT_SLUG" \
+      --set application.path_slug="$CI_PROJECT_PATH_SLUG" \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
