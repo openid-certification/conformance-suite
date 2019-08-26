@@ -1,5 +1,8 @@
 package io.fintechlabs.testframework.fapi;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAlgorithmAsRS256;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
@@ -10,7 +13,9 @@ import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizatio
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
+import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -58,7 +63,6 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 	)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();
-		requireAlgIsPS256 = true;
 	}
 
 	@Variant(
@@ -70,6 +74,25 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 	)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
+	}
+
+	@Override
+	public void start() {
+
+		// If ES256 keys are supplied, the test module should probably just immediately exit successfully
+		// We don't need to check null for jwks and keys because it was checked the steps before
+		// We get first key to compare with PS256 because we use it to sign request_object or client_assertion
+		JsonObject jwks = env.getObject("client_jwks");
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+		JsonObject key = keys.get(0).getAsJsonObject();
+		String alg = OIDFJSON.getString(key.get("alg"));
+		if (!alg.equals("PS256")) {
+			callAndContinueOnFailure(TestCanOnlyBePerformedForPS256Alg.class, Condition.ConditionResult.FAILURE);
+			fireTestFinished();
+			return;
+		}
+
+		super.start();
 	}
 
 	@Override
