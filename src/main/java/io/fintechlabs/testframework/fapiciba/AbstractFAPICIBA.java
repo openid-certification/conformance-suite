@@ -111,7 +111,7 @@ import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestId;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateAuthenticationRequestIdInterval;
-import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -309,7 +309,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		if (env.getElementFromObject("config", "client.client_id") != null) {
 			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
 			callAndStopOnFailure(GetStaticClientConfiguration.class);
-			callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
+			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		} else {
 			eventLog.startBlock("First client: No client_id in configuration, registering client using dynamic client registration");
@@ -338,7 +338,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		if (env.getElementFromObject("config", "client2.client_id") != null) {
 			eventLog.startBlock("Verify Second client: client_id supplied, assume static client configuration");
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
-			callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
+			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		} else {
 			eventLog.startBlock("Second client: No client_id in configuration, registering client using dynamic client registration");

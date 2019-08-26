@@ -7,7 +7,7 @@ import javax.servlet.http.HttpSession;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
-import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
@@ -60,7 +60,6 @@ import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "heart-oidc-id-token",
@@ -112,7 +111,7 @@ public class FullDelegatedClientIdTokenAS extends AbstractRedirectServerTestModu
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class, "HEART-OAuth2-2.1.5");
 
 		callAndStopOnFailure(CreateJwksUri.class);

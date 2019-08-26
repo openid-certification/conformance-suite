@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ValidateClientJWKs;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +88,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		callAndStopOnFailure(ValidateClientJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class, "HEART-OAuth2-2.1.5");
 
 		callAndStopOnFailure(CreateJwksUri.class);
