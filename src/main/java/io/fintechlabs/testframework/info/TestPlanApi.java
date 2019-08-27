@@ -219,9 +219,8 @@ public class TestPlanApi implements DataUtils {
 				"configurationFields", e.a.configurationFields(),
 				"summary", e.a.summary(),
 				"variants", Arrays.stream(e.a.variants())
-					.map((v) -> args(
-						"name", v
-					)).collect(Collectors.toList())
+					.map(v -> e.getVariantInfo(v))
+					.collect(Collectors.toList())
 			))
 			.collect(Collectors.toSet());
 
@@ -294,6 +293,21 @@ public class TestPlanApi implements DataUtils {
 			} else {
 				return this.testModuleNames;
 			}
+		}
+
+		public Map<String, Object> getVariantInfo(String variant) {
+			Set<String> configurationFields = Arrays.stream(a.testModules())
+				.flatMap(test -> Arrays.stream(test.getDeclaredMethods())
+					.filter(m -> m.isAnnotationPresent(Variant.class))
+					.map(m -> m.getDeclaredAnnotation(Variant.class))
+					.filter(ann -> ann.name().equals(variant))
+					.flatMap(ann -> Arrays.stream(ann.configurationFields())))
+				.collect(Collectors.toSet());
+
+			return args(
+				"name", variant,
+				"configurationFields", configurationFields.toArray()
+			);
 		}
 	}
 

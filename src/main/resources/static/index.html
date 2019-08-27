@@ -1070,9 +1070,12 @@
 
                        if (hasVariants(planName)) {
                            var variant = $("#variantSelector").val();
+                           var variantIdx = $("#variantSelector").prop('selectedIndex') - 1;
                            if (!variant || variant == 'select') {
                                $('#createPlanBtn').prop('disabled', true);
                            } else {
+                               // add in any fields from the selected variant
+                               fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[variantIdx].configurationFields));
                                $('#createPlanBtn').prop('disabled', false);
                            }
                        } else {
