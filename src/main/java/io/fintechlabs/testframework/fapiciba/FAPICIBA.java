@@ -3,19 +3,14 @@ package io.fintechlabs.testframework.fapiciba;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CreateLongRandomClientNotificationToken;
-import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.FAPICIBAAddAcrValuesToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.FAPICIBAValidateIdTokenACRClaims;
-import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -53,7 +48,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 
-public class FAPICIBA extends AbstractFAPICIBA {
+public class FAPICIBA extends AbstractFAPICIBAMultipleClient {
 
 	@Variant(name = variant_ping_mtls)
 	public void setupPingMTLS() {
@@ -97,27 +92,6 @@ public class FAPICIBA extends AbstractFAPICIBA {
 		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
-	protected void switchToSecondClient() {
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("client_public_jwks", "client_public_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-	}
-
-	protected void unmapClient() {
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		env.unmapKey("client_public_jwks");
-		env.unmapKey("mutual_tls_authentication");
-	}
-
-	protected String currentClientString() {
-		if (isSecondClient()) {
-			return "Second client: ";
-		}
-		return "";
-	}
-
 	protected void performProfileAuthorizationEndpointSetup() {
 		super.performProfileAuthorizationEndpointSetup();
 
@@ -127,20 +101,6 @@ public class FAPICIBA extends AbstractFAPICIBA {
 				Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		}
 
-	}
-
-	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 
 	protected void checkAccountResourceEndpointTLS() {
@@ -242,19 +202,5 @@ public class FAPICIBA extends AbstractFAPICIBA {
 			// set a fairly standard requested expiry to verify server doesn't reject it
 			callAndStopOnFailure(AddRequestedExp300SToAuthorizationEndpointRequest.class, "CIBA-11");
 		}
-	}
-
-	@Override
-	protected void configClient() {
-		setupClient1();
-
-		setupClient2();
-	}
-
-	@Override
-	protected void cleanUpPingTestResources() {
-		unregisterClient1();
-
-		unregisterClient2();
 	}
 }

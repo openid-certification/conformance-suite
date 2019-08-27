@@ -6,11 +6,11 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureAccessTokenValuesAreDifferent extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = {"first_access_token", "second_access_token"})
+	@PreEnvironment(required = {"first_access_token", "second_access_token"})
 	public Environment evaluate(Environment env)
 	{
-		String firstAccessToken = env.getString("first_access_token");
-		String secondAccessToken = env.getString("second_access_token");
+		String firstAccessToken = env.getString("first_access_token", "value");
+		String secondAccessToken = env.getString("second_access_token", "value");
 
 		if(firstAccessToken==null) {
 			throw error("first_access_token is null");

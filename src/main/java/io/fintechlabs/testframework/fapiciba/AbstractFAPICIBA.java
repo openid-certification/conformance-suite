@@ -174,7 +174,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	private Supplier<? extends ConditionSequence> addBackchannelClientAuthentication;
-	private Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
 	private Class<? extends ConditionSequence> additionalClientRegistrationSteps;
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;

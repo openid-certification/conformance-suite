@@ -432,6 +432,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			env.unmapKey(e);
 		}
 
+		for (String e : builder.getRemoveObjects()) {
+			env.removeObject(e);
+		}
+
 		if (builder.isEndBlock()) {
 			eventLog.endBlock();
 		}
