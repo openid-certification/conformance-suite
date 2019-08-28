@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
@@ -88,16 +87,6 @@ public class FAPICIBARefreshToken extends AbstractFAPICIBAMultipleClient {
 		env.mapKey("access_token", "first_access_token");
 		env.mapKey("id_token", "first_id_token");
 		super.performAuthorizationFlow();
-	}
-
-	protected void addPromptConsentToAuthorizationEndpointRequest() {
-		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");
-	}
-
-	@Override
-	protected void createAuthorizationRequest() {
-		super.createAuthorizationRequest();
-		addPromptConsentToAuthorizationEndpointRequest();
 	}
 
 	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
