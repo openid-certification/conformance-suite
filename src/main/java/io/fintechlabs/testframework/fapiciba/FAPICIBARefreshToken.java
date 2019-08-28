@@ -118,8 +118,6 @@ public class FAPICIBARefreshToken extends AbstractFAPICIBAMultipleClient {
 
 			super.performPostAuthorizationFlow(false);
 
-			verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
-
 			// Try the second client
 
 			//remove refresh token from 1st client
