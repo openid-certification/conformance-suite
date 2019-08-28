@@ -183,6 +183,7 @@
 						FAPI_UI.incrementReloadPause();
 					}
 
+					var startBlock = '';
 					$.each(data, function(i, item) {
 
 					    var existing = $(`[data-item-entry-id='${item._id}']`);
@@ -202,6 +203,25 @@
 		                            public: public
 		                        }));
 	                        }
+
+	                        if(item.startBlock) startBlock = item.msg + ': ';
+
+	                        if( (item.result === 'FAILURE' || item.result === 'WARNING') && item.src !== 'TEST-RUNNER') {
+
+                                var failureDetailInfo = $(FAPI_UI.logTemplates.FAILURE_SUMMARY({
+                                    item: item,
+                                    startBlock: startBlock
+                                }));
+
+                                $('.failureSummaryTitle').removeClass('hidden');
+                                $('.failureSummary').append(failureDetailInfo);
+
+                                $('.failureText', failureDetailInfo).click(function(evt) {
+                                    $('html, body').animate({
+                                        scrollTop: ($(`[data-item-entry-id='${item._id}']`).offset().top - 200)
+                                    }, 500);
+                                });
+                            }
 
 	                        $('#logDetail .logContent').append(el);
 
