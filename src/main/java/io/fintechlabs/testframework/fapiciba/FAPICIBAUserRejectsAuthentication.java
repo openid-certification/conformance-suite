@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.client.CallAutomatedCibaApprovalEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusNot200;
-import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest;
 import io.fintechlabs.testframework.condition.client.TellUserToRejectCIBAAuthentication;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
@@ -143,7 +143,7 @@ public class FAPICIBAUserRejectsAuthentication extends AbstractFAPICIBA {
 		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
 
 		env.putObject("callback_params", env.getObject("token_endpoint_response"));
-		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpoint.class);
+		callAndStopOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest.class);
 
 		eventLog.endBlock();
 		cleanUpPingTestResources();
