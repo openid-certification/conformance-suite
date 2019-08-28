@@ -1,12 +1,12 @@
 package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -57,8 +57,8 @@ public class CompareIdTokenClaims extends AbstractCondition {
 			throw error(CLAIM_AZP + " claims are not the same", args("claim1", claim1, "claim2", claim2));
 		}
 		JsonObject values = new JsonObject();
-		values.addProperty("first", claim1.getAsString());
-		values.addProperty("second", claim2.getAsString());
+		values.addProperty("first", OIDFJSON.getString(claim1));
+		values.addProperty("second", OIDFJSON.getString(claim2));
 		values.addProperty("note", "Values are expected to be equal");
 		valuesForLog.add(CLAIM_AZP, values);
 	}
@@ -81,8 +81,8 @@ public class CompareIdTokenClaims extends AbstractCondition {
 			throw error("auth_time claims are not the same", args("claim1", claim1, "claim2", claim2));
 		}
 		JsonObject values = new JsonObject();
-		values.addProperty("first", claim1.getAsString());
-		values.addProperty("second", claim2.getAsString());
+		values.addProperty("first", OIDFJSON.getNumber(claim1));
+		values.addProperty("second", OIDFJSON.getNumber(claim2));
 		values.addProperty("note", "Values are expected to be equal");
 		valuesForLog.add(CLAIM_AUTH_TIME, values);
 	}
@@ -107,8 +107,8 @@ public class CompareIdTokenClaims extends AbstractCondition {
 				args("First iat", claim1, "Second iat", claim2));
 		}
 		JsonObject values = new JsonObject();
-		values.addProperty("first", claim1.getAsNumber());
-		values.addProperty("second", claim2.getAsNumber());
+		values.addProperty("first", OIDFJSON.getNumber(claim1));
+		values.addProperty("second", OIDFJSON.getNumber(claim2));
 		values.addProperty("note", "Values are expected to be different");
 		valuesForLog.add(CLAIM_IAT, values);
 	}
@@ -126,8 +126,8 @@ public class CompareIdTokenClaims extends AbstractCondition {
 			throw error("Claim values are not the same", args("claim1", claim1, "claim2", claim2));
 		}
 		JsonObject values = new JsonObject();
-		values.addProperty("first", claim1.getAsString());
-		values.addProperty("second", claim2.getAsString());
+		values.addProperty("first", OIDFJSON.getString(claim1));
+		values.addProperty("second", OIDFJSON.getString(claim2));
 		values.addProperty("note", "Values are expected to be equal");
 		valuesForLog.add(claimName, values);
 	}
@@ -139,23 +139,19 @@ public class CompareIdTokenClaims extends AbstractCondition {
 		if (!secondIdToken.has("aud")) {
 			throw error("Second id token does not contain an "+CLAIM_AUD+" claim", args("claimName", CLAIM_AUD));
 		}
-		Object claim1;
-		Object claim2;
 		JsonObject values = new JsonObject();
 
 		if(firstIdToken.get(CLAIM_AUD).isJsonArray()) {
-			claim1 = firstIdToken.getAsJsonArray(CLAIM_AUD);
-			claim2 = secondIdToken.getAsJsonArray(CLAIM_AUD);
-			JsonArray claim1AsArray = (JsonArray)claim1;
-			JsonArray claim2AsArray = (JsonArray)claim2;
-			values.add("first", claim1AsArray);
-			values.add("second", claim2AsArray);
+			JsonArray claim1 = firstIdToken.getAsJsonArray(CLAIM_AUD);
+			JsonArray claim2 = secondIdToken.getAsJsonArray(CLAIM_AUD);
+			values.add("first", claim1);
+			values.add("second", claim2);
 
 			Set<String> claim1AudSet = new HashSet<>();
-			claim1AsArray.forEach(e -> claim1AudSet.add(e.getAsString()));
+			claim1.forEach(e -> claim1AudSet.add(OIDFJSON.getString(e)));
 
 			Set<String> claim2AudSet = new HashSet<>();
-			claim2AsArray.forEach(e -> claim2AudSet.add(e.getAsString()));
+			claim2.forEach(e -> claim2AudSet.add(OIDFJSON.getString(e)));
 
 			if (!claim1AudSet.equals(claim2AudSet)) {
 				throw error("aud Claim Value MUST be the same as in the ID Token issued when the original authentication occurred",
@@ -163,10 +159,10 @@ public class CompareIdTokenClaims extends AbstractCondition {
 			}
 
 		} else {
-			claim1 = firstIdToken.getAsJsonPrimitive(CLAIM_AUD);
-			claim2 = secondIdToken.getAsJsonPrimitive(CLAIM_AUD);
-			values.addProperty("first", ((JsonPrimitive)claim1).getAsString());
-			values.addProperty("second", ((JsonPrimitive)claim2).getAsString());
+			JsonPrimitive claim1 = firstIdToken.getAsJsonPrimitive(CLAIM_AUD);
+			JsonPrimitive claim2 = secondIdToken.getAsJsonPrimitive(CLAIM_AUD);
+			values.addProperty("first", OIDFJSON.getString(claim1));
+			values.addProperty("second", OIDFJSON.getString(claim2));
 			if (!claim1.equals(claim2)) {
 				throw error("aud Claim Value MUST be the same as in the ID Token issued when the original authentication occurred",
 					args("First aud", claim1, "Second aud", claim2));
