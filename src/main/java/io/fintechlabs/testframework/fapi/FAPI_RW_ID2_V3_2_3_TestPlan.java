@@ -5,7 +5,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-test-plan-v3.2.3",
-	displayName = "FAPI-RW-ID2: Authorization server test (V3.2.3)",
+	displayName = "FAPI-RW-ID2: Authorization server test (V3.2.3; allowable for certification until 28th October)",
 	profile = "FAPI-RW-ID2-OpenID-Provider-Authorization-Server-Test",
 	testModules = {
 		// Normal well behaved client cases
