@@ -101,6 +101,10 @@ var FAPI_UI = {
 
 					$.get('templates/startBlock.html', function(data) {
 						FAPI_UI.logTemplates.START_BLOCK = _.template(data);
+					}),
+
+					$.get('templates/failureSummary.html', function(data) {
+						FAPI_UI.logTemplates.FAILURE_SUMMARY = _.template(data);
 					})
 			);
 
