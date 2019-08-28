@@ -53,7 +53,7 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		// OB systems specific tests
 		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class,
 
-		FAPIRWID2ServerNotAllowScaAcrClaim.class
+		FAPIRWID2TestEssentialAcrScaClaim.class
 	},
 	variants = {
 		FAPIRWID2.variant_mtls,
