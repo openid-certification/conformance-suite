@@ -95,11 +95,9 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 
-		env.mapKey("first_id_token_claims", "first_id_token.claims");
-		env.mapKey("second_id_token_claims", "second_id_token.claims");
 		//compare only when refresh response contains an id_token
 		call(condition(CompareIdTokenClaims.class)
-				.skipIfObjectMissing("second_id_token_claims")
+				.skipIfObjectMissing("second_id_token")
 				.requirement("OIDCC-12.2")
 				.dontStopOnFailure());
 		return false;

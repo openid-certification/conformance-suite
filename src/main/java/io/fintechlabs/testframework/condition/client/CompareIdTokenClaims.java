@@ -18,10 +18,10 @@ public class CompareIdTokenClaims extends AbstractCondition {
 	private static final String CLAIM_AUD = "aud";
 
 	@Override
-	@PreEnvironment(required = {"first_id_token_claims", "second_id_token_claims"})
+	@PreEnvironment(required = {"first_id_token", "second_id_token"})
 	public Environment evaluate(Environment env) {
-		JsonObject firstIdToken = env.getObject("first_id_token_claims");
-		JsonObject secondIdToken = env.getObject("second_id_token_claims");
+		JsonObject firstIdToken = env.getObject("first_id_token").getAsJsonObject("claims");
+		JsonObject secondIdToken = env.getObject("second_id_token").getAsJsonObject("claims");
 
 		JsonObject valuesForLog = new JsonObject();
 		ensureClaimsExistAndAreEqual(firstIdToken, secondIdToken, "iss", valuesForLog);
