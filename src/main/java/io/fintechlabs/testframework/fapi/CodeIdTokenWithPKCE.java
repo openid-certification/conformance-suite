@@ -4,6 +4,7 @@ import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.as.EnsureMinimumKeyLength;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,7 +226,10 @@ public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2-24");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
 

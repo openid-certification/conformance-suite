@@ -12,6 +12,7 @@ import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningA
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import io.fintechlabs.testframework.sequence.client.RefreshTokenRequestSteps;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -112,6 +113,9 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 		performProfileIdTokenValidation();
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");

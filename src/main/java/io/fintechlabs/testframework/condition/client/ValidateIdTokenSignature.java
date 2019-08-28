@@ -2,7 +2,6 @@ package io.fintechlabs.testframework.condition.client;
 
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.jwk.JWK;
@@ -40,49 +39,37 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 		String idToken = env.getString("id_token", "value");
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
+		validateIdTokenSignature(idToken, serverJwks);
+
+		return env;
+	}
+
+	protected void validateIdTokenSignature(String idToken, JsonObject serverJwks) {
 		try {
 			// translate stored items into nimbus objects
 			SignedJWT jwt = SignedJWT.parse(idToken);
 			JWKSet jwkSet = JWKSet.parse(serverJwks.toString());
-			JWSHeader header = jwt.getHeader();
+			JWKSet jwkSetWithKeyValid = null;
 
-			// if a kid is given
-			// FIXME: this check is temporarily disabled due to https://gitlab.com/openid/conformance-suite/issues/580
-			if (false) /* header != null && !Strings.isNullOrEmpty(header.getKeyID())) */ {
-				JWK key = jwkSet.getKeyByKeyId(header.getKeyID());
-
-				if (key == null) {
-					throw error("Couldn't find key by the 'kid' property from the header of the id_token", args("jwks", serverJwks, "kid", header.getKeyID(), "id_token", idToken));
-				}
-
-				jwkSet = new JWKSet(key);
-
-				if (!verifySignature(jwt, jwkSet)) {
-					throw error("Unable to verify ID token signature based on server key that found by the 'kid' property", args("jwks", serverJwks, "kid", header.getKeyID(), "id_token", idToken));
-				}
-			} else {
-				// if a kid isn't given
-				boolean validSignature = false;
-				for(JWK jwk: jwkSet.getKeys()) {
-					// using each key to verify signature, so that can know the exact key which are able to verify
-					jwkSet = new JWKSet(jwk);
-					if(verifySignature(jwt, jwkSet)) {
-						validSignature = true;
-						break;
-					}
-				}
-				if (!validSignature) {
-					throw error("Unable to verify ID token signature based on server keys", args("jwks", serverJwks, "id_token", idToken));
+			boolean validSignature = false;
+			for(JWK jwk: jwkSet.getKeys()) {
+				// using each key to verify signature, so that can know the exact key which are able to verify
+				if(verifySignature(jwt, new JWKSet(jwk))) {
+					jwkSetWithKeyValid = new JWKSet(jwk);
+					validSignature = true;
+					break;
 				}
 			}
 
-			String publicKeySetString = jwkSet.toPublicJWKSet().getKeys().size() > 0 ? jwkSet.toPublicJWKSet().getKeys().iterator().next().toString() : null;
+			if (!validSignature) {
+				throw error("Unable to verify ID token signature based on server keys", args("jwks", serverJwks, "id_token", idToken));
+			}
+
+			String publicKeySetString = jwkSetWithKeyValid.toPublicJWKSet().getKeys().size() > 0 ? jwkSetWithKeyValid.toPublicJWKSet().getKeys().iterator().next().toString() : null;
 			JsonObject idTokenObject = new JsonObject();
 			idTokenObject.addProperty("verifiable_jws", idToken);
 			idTokenObject.addProperty("public_jwk", publicKeySetString);
 			logSuccess("ID Token signature validated", args("id_token", idTokenObject));
-
-			return env;
 
 		} catch (JOSEException | ParseException e) {
 			throw error("Error validating ID Token signature", e);

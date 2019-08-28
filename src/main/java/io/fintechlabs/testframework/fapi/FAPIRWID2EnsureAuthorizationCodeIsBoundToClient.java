@@ -13,6 +13,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEn
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
@@ -81,7 +82,10 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAP
 
 		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 	}

@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClient
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import org.slf4j.Logger;
@@ -225,7 +226,10 @@ public class FullDelegatedClientIdTokenAS extends AbstractRedirectServerTestModu
 
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
 
-		callAndStopOnFailure(ValidateIdTokenSignature.class, "HEART-OIDC-3.1");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "HEART-OIDC-3.1");
 
 		//callAndStopOnFailure(ValidateIdToken.class);
 		callAndContinueOnFailure(ValidateIdTokenHeartClaims.class, ConditionResult.FAILURE, "HEART-OIDC-3.1");

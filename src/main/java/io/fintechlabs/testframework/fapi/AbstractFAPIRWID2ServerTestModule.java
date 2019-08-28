@@ -85,6 +85,7 @@ import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgainstRequest;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
@@ -344,6 +345,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
+
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 	}
@@ -551,6 +555,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performProfileIdTokenValidation();
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
+
+		// This condition is a warning because we're not yet 100% sure of the code
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2-24");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE,  "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
