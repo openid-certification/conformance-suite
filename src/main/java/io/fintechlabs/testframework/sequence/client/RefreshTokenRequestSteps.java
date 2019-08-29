@@ -5,6 +5,7 @@ import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequ
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
+import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenValuesAreDifferent;
@@ -18,6 +19,13 @@ import io.fintechlabs.testframework.condition.client.WaitForOneSecond;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 
+/**
+ * Use the refresh token to fetch a new access token and (possibly) ID token, and compare the two.
+ * The original access token and ID token should be stored as "first_access_token" and
+ * "first_id_token" respectively, and there should be an environment mapping from "access_token" to
+ * "second_access_token", and from "id_token" to "second_id_token".
+ * See FAPIRWID2RefreshToken for an example of how to do this.
+ */
 public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 	private boolean secondClient;
@@ -45,8 +53,6 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 
-		call(exec().mapKey("access_token", "second_access_token"));
-		call(exec().mapKey("id_token", "second_id_token"));
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(CheckTokenTypeIsBearer.class, ConditionResult.FAILURE, "FAPI-R-6.2.2-1");
@@ -65,6 +71,12 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, ConditionResult.INFO);
+
+		//compare only when refresh response contains an id_token
+		call(condition(CompareIdTokenClaims.class)
+				.skipIfObjectMissing("second_id_token")
+				.requirement("OIDCC-12.2")
+				.dontStopOnFailure());
 
 		call(exec().endBlock());
 	}

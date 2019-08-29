@@ -5,7 +5,6 @@ import com.google.common.base.Strings;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
-import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.FAPIValidateIdTokenSigningAlg;
@@ -94,14 +93,6 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 		}
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
-
-		env.mapKey("first_id_token_claims", "first_id_token.claims");
-		env.mapKey("second_id_token_claims", "second_id_token.claims");
-		//compare only when refresh response contains an id_token
-		call(condition(CompareIdTokenClaims.class)
-				.skipIfObjectMissing("second_id_token_claims")
-				.requirement("OIDCC-12.2")
-				.dontStopOnFailure());
 		return false;
 	}
 
@@ -128,9 +119,15 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 
 			createAuthorizationCodeRequest();
 
+			// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
 			env.mapKey("access_token", "first_access_token");
 			env.mapKey("id_token", "first_id_token");
+
 			requestAuthorizationCode();
+
+			// Set up the mappings for the refreshed access and ID tokens
+			env.mapKey("access_token", "second_access_token");
+			env.mapKey("id_token", "second_id_token");
 
 			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
 				return;
@@ -138,12 +135,14 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 
 			requestProtectedResource();
 
-			verifyAccessTokenWithResourceEndpoint();
-
 			// Try the second client
 
 			//remove refresh token from 1st client
 			env.removeNativeValue("refresh_token");
+
+			// Restore the original token mappings
+			env.mapKey("access_token", "first_access_token");
+			env.mapKey("id_token", "first_id_token");
 
 			performAuthorizationFlowWithSecondClient();
 		} else {
@@ -151,9 +150,11 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 
 			createAuthorizationCodeRequest();
 
-			env.mapKey("access_token", "first_access_token");
-			env.mapKey("id_token", "first_id_token");
 			requestAuthorizationCode();
+
+			// Set up the mappings for the refreshed access and ID tokens
+			env.mapKey("access_token", "second_access_token");
+			env.mapKey("id_token", "second_id_token");
 
 			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
 				return;

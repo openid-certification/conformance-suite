@@ -14,6 +14,9 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 
 	protected Environment extractIdToken(Environment env, String key) {
 
+		// Remove any old ID token
+		env.removeObject("id_token");
+
 		JsonElement idTokenElement = env.getElementFromObject(key, "id_token");
 		if (idTokenElement == null || !idTokenElement.isJsonPrimitive()) {
 			throw error("Couldn't find an ID Token in "+key);

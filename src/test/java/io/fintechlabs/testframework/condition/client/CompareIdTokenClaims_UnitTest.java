@@ -47,13 +47,19 @@ public class CompareIdTokenClaims_UnitTest {
 		return obj;
 	}
 
+	private JsonObject createTokenObject(JsonObject claims) {
+		JsonObject obj = new JsonObject();
+		obj.add("claims", claims);
+		return obj;
+	}
+
 	@Test
 	public void testEvaluate_success() {
 		JsonObject first = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600719, 1560600619, "client");
 		JsonObject second = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600819, 1560600619, "client");
 
-		env.putObject("first_id_token_claims", first);
-		env.putObject("second_id_token_claims", second);
+		env.putObject("first_id_token", createTokenObject(first));
+		env.putObject("second_id_token", createTokenObject(second));
 
 		cond.evaluate(env);
 	}
@@ -67,8 +73,8 @@ public class CompareIdTokenClaims_UnitTest {
 		JsonObject first = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600719, 1560600619, null);
 		JsonObject second = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600819, 1560600619, "client");
 
-		env.putObject("first_id_token_claims", first);
-		env.putObject("second_id_token_claims", second);
+		env.putObject("first_id_token", createTokenObject(first));
+		env.putObject("second_id_token", createTokenObject(second));
 
 		cond.evaluate(env);
 	}
@@ -92,8 +98,8 @@ public class CompareIdTokenClaims_UnitTest {
 		audArray2.add("aud2");	//note the different ordering of elements
 		second.add("aud", audArray2);
 
-		env.putObject("first_id_token_claims", first);
-		env.putObject("second_id_token_claims", second);
+		env.putObject("first_id_token", createTokenObject(first));
+		env.putObject("second_id_token", createTokenObject(second));
 
 		cond.evaluate(env);
 	}
