@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
@@ -84,12 +83,17 @@ public class FAPICIBARefreshToken extends AbstractFAPICIBAMultipleClient {
 
 	@Override
 	protected void performAuthorizationFlow() {
+		// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
 		env.mapKey("access_token", "first_access_token");
 		env.mapKey("id_token", "first_id_token");
 		super.performAuthorizationFlow();
 	}
 
 	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
+		// Set up the mappings for the refreshed access and ID tokens
+		env.mapKey("access_token", "second_access_token");
+		env.mapKey("id_token", "second_id_token");
+
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if (Strings.isNullOrEmpty(env.getString("refresh_token"))) {
@@ -98,12 +102,6 @@ public class FAPICIBARefreshToken extends AbstractFAPICIBAMultipleClient {
 		}
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
-
-		//compare only when refresh response contains an id_token
-		call(condition(CompareIdTokenClaims.class)
-				.skipIfObjectMissing("second_id_token")
-				.requirement("OIDCC-12.2")
-				.dontStopOnFailure());
 		return false;
 	}
 
