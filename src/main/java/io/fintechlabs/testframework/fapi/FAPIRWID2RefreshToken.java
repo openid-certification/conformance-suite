@@ -114,54 +114,40 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performPostAuthorizationFlow() {
+		// call the token endpoint and complete the flow
+
+		createAuthorizationCodeRequest();
+
+		// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
+		env.mapKey("access_token", "first_access_token");
+		env.mapKey("id_token", "first_id_token");
+
+		requestAuthorizationCode();
+
+		// Set up the mappings for the refreshed access and ID tokens
+		env.mapKey("access_token", "second_access_token");
+		env.mapKey("id_token", "second_id_token");
+
+		if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
+			return;
+		}
+
+		requestProtectedResource();
+
 		if (whichClient == 1) {
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
-			env.mapKey("access_token", "first_access_token");
-			env.mapKey("id_token", "first_id_token");
-
-			requestAuthorizationCode();
-
-			// Set up the mappings for the refreshed access and ID tokens
-			env.mapKey("access_token", "second_access_token");
-			env.mapKey("id_token", "second_id_token");
-
-			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-				return;
-			}
-
-			requestProtectedResource();
-
 			// Try the second client
 
 			//remove refresh token from 1st client
 			env.removeNativeValue("refresh_token");
 
-			// Restore the original token mappings
-			env.mapKey("access_token", "first_access_token");
-			env.mapKey("id_token", "first_id_token");
+			// Remove token mappings
+			// (This must be done before restarting the authorization flow, because
+			// handleSuccessfulAuthorizationEndpointResponse extracts an id token)
+			env.unmapKey("access_token");
+			env.unmapKey("id_token");
 
 			performAuthorizationFlowWithSecondClient();
 		} else {
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			// Set up the mappings for the refreshed access and ID tokens
-			env.mapKey("access_token", "second_access_token");
-			env.mapKey("id_token", "second_id_token");
-
-			if(sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-				return;
-			}
-
-			requestProtectedResource();
-
 			switchToClient1AndTryClient2AccessToken();
 
 			// try client 2's refresh_token with client 1

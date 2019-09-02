@@ -107,13 +107,13 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
 	@Override
 	protected void performPostAuthorizationFlow(boolean finishTest) {
+		if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
+			return;
+		}
+
+		requestProtectedResource();
+
 		if (!isSecondClient()) {
-			if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-				return;
-			}
-
-			super.performPostAuthorizationFlow(false);
-
 			// Try the second client
 
 			//remove refresh token from 1st client
@@ -123,12 +123,6 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
 			performAuthorizationFlow();
 		} else {
-			if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-				return;
-			}
-
-			requestProtectedResource();
-
 			unmapClient();
 
 			// try client 2's refresh_token with client 1
