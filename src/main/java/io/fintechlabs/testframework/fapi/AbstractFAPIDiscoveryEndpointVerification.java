@@ -60,7 +60,7 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 
 		callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
-		callAndContinueOnFailure(FAPIRWCheckTLSClientCertificateBoundAccessTokens.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-6");
+		callAndContinueOnFailure(FAPIRWCheckTLSClientCertificateBoundAccessTokens.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6", "MTLS-3.3");
 
 		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
