@@ -32,6 +32,7 @@ public interface TestModule {
 		FAILED, // test has failed
 		WARNING, // test has warnings
 		REVIEW, // test requires manual review
+		SKIPPED, // test can not be completed
 		UNKNOWN // test results not yet known, probably still running (see status)
 	}
 
@@ -165,6 +166,12 @@ public interface TestModule {
 	 * Mark the test as succeeded and finished.
 	 */
 	void fireTestSuccess();
+
+	/**
+	 * Mark the test as skipped (untestable).
+	 * @param msg Reason for skipping the test
+	 */
+	void fireTestSkipped(String msg);
 
 	/**
 	 * Mark the test as finished without setting a result.

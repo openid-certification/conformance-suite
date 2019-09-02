@@ -13,7 +13,6 @@ import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizatio
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
-import io.fintechlabs.testframework.condition.client.TestCanOnlyBePerformedForPS256Alg;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -87,8 +86,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 		JsonObject key = keys.get(0).getAsJsonObject();
 		String alg = OIDFJSON.getString(key.get("alg"));
 		if (!alg.equals("PS256")) {
-			callAndContinueOnFailure(TestCanOnlyBePerformedForPS256Alg.class, Condition.ConditionResult.FAILURE);
-			fireTestFinished();
+			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped.", alg));
 			return;
 		}
 

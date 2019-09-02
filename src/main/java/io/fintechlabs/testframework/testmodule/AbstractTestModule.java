@@ -615,6 +615,14 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		setResult(Result.FAILED);
 	}
 
+	@Override
+	public void fireTestSkipped(String msg) {
+		eventLog.log(getName(), msg);
+		setResult(Result.SKIPPED);
+		// TODO: change this to throw an exception so that no more conditions are run
+		stop();
+	}
+
 	/**
 	 * @return the result
 	 */

@@ -100,7 +100,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		//stop if no refresh token is returned
 		if (Strings.isNullOrEmpty(env.getString("refresh_token"))) {
 			callAndContinueOnFailure(EnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
-			fireTestFinished();
+			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
 			return true;
 		}
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
