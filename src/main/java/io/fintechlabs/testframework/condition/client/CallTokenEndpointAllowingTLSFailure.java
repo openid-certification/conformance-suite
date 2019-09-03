@@ -26,7 +26,7 @@ public class CallTokenEndpointAllowingTLSFailure extends CallTokenEndpointAndRet
 	protected Environment handleResponseException(Environment env, RestClientException e) {
 		if (e instanceof ResourceAccessException && e.getCause() instanceof SSLException) {
 			env.putBoolean("token_endpoint_response_ssl_error", true);
-			logSuccess("Call to token_endpoint failed due to a TLS issue");
+			logSuccess("Call to token_endpoint failed due to a TLS issue", ex(e));
 			return env;
 		}
 		return super.handleResponseException(env, e);
