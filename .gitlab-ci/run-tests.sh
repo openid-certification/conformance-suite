@@ -19,8 +19,9 @@ export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
 export ACCOUNTS='test/a/fintech-clienttest/open-banking/v1.1/accounts'
 export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
 
-TESTS="--expected-failures-file"
+TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
+EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
 function makeClientTest {
     # client FAPI-RW-ID2
@@ -77,7 +78,8 @@ function makeCIBATest {
 }
 
 if [ "$#" -eq 0 ]; then
-    TESTS="${TESTS} ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules all"
     echo "Run all tests"
     makeServerTest
@@ -85,19 +87,25 @@ if [ "$#" -eq 0 ]; then
     makeClientTest
 elif [[ ("$#" -eq 1 ) &&  ("$1" = "--client-tests-only" ) ]]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-client.json"
-    TESTS="${TESTS} ${EXPECTED_FAILURES_FILE}"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-client.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     echo "Run client tests"
     makeClientTest
 elif [[ ("$#" -eq 1) && ("$1" = "--server-tests-only") ]]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
-    TESTS="${TESTS} ${EXPECTED_FAILURES_FILE}"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server"
     echo "Run server tests"
     makeServerTest
 elif [[ ("$#" -eq 1) && ("$1" = "--ciba-tests-only") ]]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ciba.json"
-    TESTS="${TESTS} ${EXPECTED_FAILURES_FILE}"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ciba.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
     echo "Run ciba tests"
     makeCIBATest
