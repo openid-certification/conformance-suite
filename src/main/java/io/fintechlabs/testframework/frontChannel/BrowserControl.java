@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
+import org.bson.Document;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -542,7 +543,10 @@ public class BrowserControl implements DataUtils {
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
 
-		imageService.fillPlaceholder(testId, placeholder, update, true);
+		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
+		if (document == null) {
+			throw new TestFailureException(testId, "Couldn't find matched placeholder for uploading error screenshot.");
+		}
 
 		eventLog.log("BROWSER", args("msg", "Updated placeholder from scripted browser", "placeholder", placeholder));
 

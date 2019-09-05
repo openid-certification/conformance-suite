@@ -86,7 +86,7 @@ public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIR
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectMissingScopeErrorPage.class, "FAPI-RW-5.2.3-8");
 
-		env.putString("error_callback_placeholder", "request_object_unverifiable_error");
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override
