@@ -1,41 +1,19 @@
 package io.fintechlabs.testframework.condition.common;
 
-import java.util.List;
-
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-
-import io.fintechlabs.testframework.condition.AbstractCondition;
-import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class CheckServerConfiguration extends AbstractCondition {
+import java.util.List;
+
+public class CheckServerConfiguration extends AbstractCheckServerConfiguration {
 
 	@Override
-	@PreEnvironment(required = "server")
-	public Environment evaluate(Environment in) {
-
-		// first make sure we've got a "server" object at all
-		if (!in.containsObject("server")) {
-			throw error("Couldn't find a server configuration at all");
-		}
-
-		List<String> lookFor = ImmutableList.of("authorization_endpoint", "token_endpoint", "issuer");
-
-		for (String key : lookFor) {
-			ensureString(in, key);
-		}
-
-		logSuccess("Found required server configuration keys", args("keys", lookFor));
-
-		return in;
+	protected List<String> getExpectedListEndpoint() {
+		return ImmutableList.of("authorization_endpoint",
+			"token_endpoint",
+			"issuer");
 	}
 
-	private void ensureString(Environment in, String path) {
-		String string = in.getString("server", path);
-		if (Strings.isNullOrEmpty(string)) {
-			throw error("Couldn't find required component", args("path", path));
-		}
-	}
-
+	@Override
+	protected void ensureUrl(Environment in, String path) {}
 }

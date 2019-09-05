@@ -127,9 +127,9 @@ import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2He
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
+import io.fintechlabs.testframework.condition.common.CheckCIBAServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
-import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTls12;
 import io.fintechlabs.testframework.condition.common.EnsureIncomingTlsSecureCipher;
 import io.fintechlabs.testframework.condition.common.FAPICheckKeyAlgInClientJWKs;
@@ -274,7 +274,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckCIBAServerConfiguration.class);
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
