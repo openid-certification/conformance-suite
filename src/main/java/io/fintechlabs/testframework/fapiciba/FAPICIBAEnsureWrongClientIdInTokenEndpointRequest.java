@@ -3,7 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -81,7 +81,7 @@ public class FAPICIBAEnsureWrongClientIdInTokenEndpointRequest extends AbstractF
 		env.unmapKey("client");
 		eventLog.endBlock();
 
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
