@@ -1,6 +1,7 @@
 package io.fintechlabs.testframework.heart;
 
 import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToRevocationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerToken;
@@ -82,7 +83,7 @@ public class TokenRevocationAS extends AbstractTestModule {
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);

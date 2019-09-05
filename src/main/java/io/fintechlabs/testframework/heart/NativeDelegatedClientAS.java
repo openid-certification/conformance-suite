@@ -93,7 +93,7 @@ public class NativeDelegatedClientAS extends AbstractRedirectServerTestModule {
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, ConditionResult.FAILURE, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);

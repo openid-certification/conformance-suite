@@ -1,15 +1,6 @@
 package io.fintechlabs.testframework.heart;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import com.google.gson.JsonObject;
-
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.as.AddIntrospectionUrlToServerConfiguration;
 import io.fintechlabs.testframework.condition.as.AddRevocationUrlToServerConfiguration;
@@ -29,6 +20,7 @@ import io.fintechlabs.testframework.condition.client.CheckHeartServerJwksFields;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -40,6 +32,12 @@ import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @PublishTestModule(
 	testName = "heart-rs-plain-get",
@@ -89,7 +87,7 @@ public class PlainRS extends AbstractTestModule {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, ConditionResult.FAILURE, "OIDCC-10.1");
 
 		// Set up the resource configuration
 		callAndStopOnFailure(GetStaticResourceConfiguration.class);

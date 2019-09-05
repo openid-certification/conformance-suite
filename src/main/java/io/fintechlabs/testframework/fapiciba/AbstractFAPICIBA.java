@@ -280,7 +280,7 @@ public abstract class AbstractFAPICIBA extends AbstractTestModule {
 
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// Set up the client configuration

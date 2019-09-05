@@ -1,19 +1,6 @@
 package io.fintechlabs.testframework.heart;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
-import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import com.google.gson.JsonObject;
-
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
@@ -26,6 +13,7 @@ import io.fintechlabs.testframework.condition.client.CreateJwksUri;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
@@ -33,6 +21,8 @@ import io.fintechlabs.testframework.condition.client.ParseAccessTokenAsJwt;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenHeartClaims;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
@@ -42,6 +32,14 @@ import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @PublishTestModule(
 	testName = "heart-direct-access-client",
@@ -83,7 +81,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1", "RFC7517-1.1");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, ConditionResult.FAILURE, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
