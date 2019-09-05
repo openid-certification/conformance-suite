@@ -53,7 +53,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
 	private Instant statusUpdated; // time stamp of when the status was last updated
-	private TestFailureException finalError; // final error from running the test
+	private TestInterruptedException finalError; // final error from running the test
 
 	protected TestInfoService testInfo;
 	protected ImageService imageService;
@@ -616,11 +616,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	@Override
-	public void fireTestSkipped(String msg) {
-		eventLog.log(getName(), msg);
+	public void fireTestSkipped(String msg) throws TestSkippedException {
 		setResult(Result.SKIPPED);
-		// TODO: change this to throw an exception so that no more conditions are run
-		stop();
+		fireTestFinished();
+		throw new TestSkippedException(getId(), msg);
 	}
 
 	/**
@@ -853,7 +852,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @return the finalError
 	 */
 	@Override
-	public TestFailureException getFinalError() {
+	public TestInterruptedException getFinalError() {
 		return finalError;
 	}
 
@@ -861,7 +860,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @param finalError the finalError to set
 	 */
 	@Override
-	public void setFinalError(TestFailureException finalError) {
+	public void setFinalError(TestInterruptedException finalError) {
 		this.finalError = finalError;
 	}
 

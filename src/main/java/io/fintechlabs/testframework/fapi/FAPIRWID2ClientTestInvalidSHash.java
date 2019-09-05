@@ -1,9 +1,7 @@
 package io.fintechlabs.testframework.fapi;
 
-import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.condition.as.AddInvalidSHashValueToIdToken;
-import io.fintechlabs.testframework.condition.as.LogEndTestIfStateIsNotSupplied;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -45,16 +43,13 @@ public class FAPIRWID2ClientTestInvalidSHash extends AbstractFAPIRWID2ClientExpe
 	}
 
 	@Override
-	protected boolean endTestIfStateIsNotSupplied() {
+	protected void endTestIfRequiredParametersAreMissing() {
 
 		String shash = env.getString("authorization_request_object", "claims.state");
 		if (shash == null) {
-			callAndContinueOnFailure(LogEndTestIfStateIsNotSupplied.class, Condition.ConditionResult.WARNING);
-			fireTestFinished();
-			return true;
+			// This throws an exception: the test will stop here
+			fireTestSkipped("This test is being skipped as it relies on the client supplying a state value - since none is supplied, this can not be tested.");
 		}
-
-		return false;
 	}
 
 	@Override

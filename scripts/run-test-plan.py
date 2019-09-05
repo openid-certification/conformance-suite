@@ -216,8 +216,7 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
 
         if info['status'] != 'FINISHED':
             status_coloured = redbg(status_coloured)
-            if info['result'] != 'SKIPPED':
-                incomplete += 1
+            incomplete += 1
         if 'result' not in info:
             info['result'] = 'UNKNOWN'
 

@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.fapi;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -79,7 +78,6 @@ import io.fintechlabs.testframework.testmodule.UserFacing;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -126,7 +124,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 	protected void addCustomSignatureOfIdToken(){}
 
-	protected boolean endTestIfStateIsNotSupplied(){return false;}
+	protected void endTestIfRequiredParametersAreMissing(){}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -375,11 +373,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
-		if (endTestIfStateIsNotSupplied())
-		{return new ModelAndView("error",
-			ImmutableMap.of(
-				"status",
-				"test is not applicable as client did not send state"));}
+		endTestIfRequiredParametersAreMissing();
 
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 

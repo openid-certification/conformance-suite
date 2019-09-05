@@ -76,8 +76,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 	}
 
 	@Override
-	public void start() {
-
+	protected void onConfigure(JsonObject config, String baseUrl) {
 		// If ES256 keys are supplied, the test module should probably just immediately exit successfully
 		// We don't need to check null for jwks and keys because it was checked the steps before
 		// We get first key to compare with PS256 because we use it to sign request_object or client_assertion
@@ -86,11 +85,9 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 		JsonObject key = keys.get(0).getAsJsonObject();
 		String alg = OIDFJSON.getString(key.get("alg"));
 		if (!alg.equals("PS256")) {
+			// This throws an exception: the test will stop here
 			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped.", alg));
-			return;
 		}
-
-		super.start();
 	}
 
 	@Override

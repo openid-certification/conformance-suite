@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.TestInterruptedException;
 
 public class TestExecutionManager {
 
@@ -27,13 +28,13 @@ public class TestExecutionManager {
 		}
 
 		@Override
-		public Object call() throws TestFailureException {
+		public Object call() throws TestInterruptedException {
 			// restore the authentication context that was in place when this was created
 			authenticationFacade.setLocalAuthentication(savedAuthentication);
 			Object returnObj = null;
 			try {
 				returnObj = myCallable.call();
-			} catch (TestFailureException e) {
+			} catch (TestInterruptedException e) {
 				throw e;
 			} catch (Exception e) {
 				// we /must/ throw a TestFailureException here, so that when TestRunner calls future.get() and

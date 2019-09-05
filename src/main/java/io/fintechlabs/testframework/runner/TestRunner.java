@@ -65,8 +65,9 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.TestInterruptedException;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestSkippedException;
 
 /**
  *
@@ -157,18 +158,15 @@ public class TestRunner implements DataUtils {
 					// If we've been interrupted, then either it was on purpose, or something went very very wrong.
 					logger.error("Background task was interrupted", e);
 				} catch (ExecutionException e) {
-					if (e.getCause().getClass().equals(TestFailureException.class)) {
+					if (e.getCause() instanceof TestInterruptedException) {
 						// This should always be the case for our BackgroundTasks
-						TestFailureException testFailureException = (TestFailureException) e.getCause();
+						TestInterruptedException testException = (TestInterruptedException) e.getCause();
 
-						String testId = testFailureException.getTestId();
+						String testId = testException.getTestId();
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
-							conditionFailure(testFailureException);
-
-							// there's an exception, stop the test
-							test.stop();
+							conditionFailure(testException);
 
 							// Clean up other tasks for this test id
 							TestExecutionManager executionManager = test.getTestExecutionManager();
@@ -179,13 +177,6 @@ public class TestRunner implements DataUtils {
 									}
 								}
 							}
-
-							// set the final exception flag only if this wasn't a normal condition error
-							if (testFailureException.getCause() != null && !testFailureException.getCause().getClass().equals(ConditionError.class)) {
-								test.setFinalError(testFailureException);
-							}
-
-							test.fireTestFailure();
 						}
 					} else {
 						// TODO: Better handling if we get something we wern't expecting? But we don't have access to the test ID
@@ -679,24 +670,30 @@ public class TestRunner implements DataUtils {
 	}
 
 	// handle errors thrown by running tests
-	@ExceptionHandler(TestFailureException.class)
-	public ResponseEntity<Object> conditionFailure(TestFailureException error) {
+	@ExceptionHandler(TestInterruptedException.class)
+	public ResponseEntity<Object> conditionFailure(TestInterruptedException error) {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
 				logger.error("Caught an error in TestRunner while running the test, stopping the test: " + error.getMessage());
-				test.stop();
 
 				if (error.getCause() instanceof ConditionError) {
 					Map<String, Object> event = new HashMap<>();
 					event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error, event));
+				} else if (error instanceof TestSkippedException) {
+					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "The test was skipped: " + error.getMessage());
 				} else {
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
 				}
 
-				// Any form of exception from a test counts as a failure
-				test.fireTestFailure();
+				if (error instanceof TestSkippedException) {
+					// We don't need to do anything here
+				} else {
+					// Any other exception from a test counts as a failure
+					test.fireTestFailure();
+					test.stop();
+				}
 
 				if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
 					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail

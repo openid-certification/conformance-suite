@@ -150,12 +150,12 @@ public interface TestModule {
 	/**
 	 * @param error the final error from this test while running
 	 */
-	void setFinalError(TestFailureException error);
+	void setFinalError(TestInterruptedException error);
 
 	/**
 	 * @return the final error from this test while running, possibly null
 	 */
-	TestFailureException getFinalError();
+	TestInterruptedException getFinalError();
 
 	/**
 	 * Mark the test as failed and finished.
@@ -168,10 +168,11 @@ public interface TestModule {
 	void fireTestSuccess();
 
 	/**
-	 * Mark the test as skipped (untestable).
+	 * Mark the test as skipped (untestable). This method will throw a
+	 * TestSkippedException to skip any further conditions from running.
 	 * @param msg Reason for skipping the test
 	 */
-	void fireTestSkipped(String msg);
+	void fireTestSkipped(String msg) throws TestSkippedException;
 
 	/**
 	 * Mark the test as finished without setting a result.

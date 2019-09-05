@@ -86,18 +86,17 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 		addPromptConsentToAuthorizationEndpointRequest();
 	}
 
-	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
+	protected void sendRefreshTokenRequestAndCheckIdTokenClaims() {
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
 			callAndContinueOnFailure(EnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
+			// This throws an exception: the test will stop here
 			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
-			return true;
 		}
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
-		return false;
 	}
 
 	protected void performIdTokenValidation() {
@@ -132,9 +131,7 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 		env.mapKey("access_token", "second_access_token");
 		env.mapKey("id_token", "second_id_token");
 
-		if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-			return;
-		}
+		sendRefreshTokenRequestAndCheckIdTokenClaims();
 
 		requestProtectedResource();
 
