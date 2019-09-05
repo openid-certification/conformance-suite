@@ -1,31 +1,30 @@
 package io.fintechlabs.testframework.condition.client;
 
-import java.net.MalformedURLException;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.condition.util.TLSTestValueExtractor;
 import io.fintechlabs.testframework.testmodule.Environment;
 
+import java.net.MalformedURLException;
+
 public class ExtractTLSTestValuesFromServerConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")
-	@PostEnvironment(required = {"authorization_endpoint_tls", "token_endpoint_tls"}) // these two are required, others are added as found: userinfo_endpoint_tls, registration_endpoint_tls
+	@PostEnvironment(required = {"token_endpoint_tls"}) // always required, others are added as found: authorization_endpoint_tls, userinfo_endpoint_tls, registration_endpoint_tls
 	public Environment evaluate(Environment env) {
 
 		try {
 			String authorizationEndpoint = env.getString("server", "authorization_endpoint");
-			if (Strings.isNullOrEmpty(authorizationEndpoint)) {
-				throw error("Authorization endpoint not found");
-			}
 
-			JsonObject authorizationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(authorizationEndpoint);
-			env.putObject("authorization_endpoint_tls", authorizationEndpointTls);
+			JsonObject authorizationEndpointTls = null;
+			if (!Strings.isNullOrEmpty(authorizationEndpoint)) {
+				authorizationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(authorizationEndpoint);
+				env.putObject("authorization_endpoint_tls", authorizationEndpointTls);
+			}
 
 			String tokenEndpoint = env.getString("server", "token_endpoint");
 			if (Strings.isNullOrEmpty(tokenEndpoint)) {
