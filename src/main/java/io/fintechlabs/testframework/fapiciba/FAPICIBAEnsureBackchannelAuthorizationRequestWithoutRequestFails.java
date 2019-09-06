@@ -1,18 +1,15 @@
 package io.fintechlabs.testframework.fapiciba;
 
-import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddRequestObjectClaimsToBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-	testName = "fapi-ciba-ensure-backchannel-authorization-request-without-request-fails",
-	displayName = "FAPI-CIBA: Ensure backchannel authorization request without request fails",
-	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid.",
+	testName = "fapi-ciba-ensure-unsigned-backchannel-authorization-request-fails",
+	displayName = "FAPI-CIBA: Ensure unsigned backchannel authorization request fails",
+	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid, as FAPI-CIBA requires the use of signed authentication requests.",
 	profile = "FAPI-CIBA",
 	configurationFields = {
 		"server.discoveryUrl",

@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.AddAlgorithmAsRS256;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -74,7 +74,7 @@ public class FAPICIBAEnsureClientAssertionSignatureAlgorithmInTokenEndpointReque
 		 * - It must be a 'invalid_client' error
 		 */
 		validateErrorFromTokenEndpointResponse();
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatus401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
 
 		cleanupAfterBackchannelRequestShouldHaveFailed();

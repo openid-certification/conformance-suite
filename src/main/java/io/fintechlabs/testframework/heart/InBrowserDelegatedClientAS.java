@@ -1,13 +1,6 @@
 package io.fintechlabs.testframework.heart;
 
-import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
-import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
-import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
-import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
-
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -25,24 +18,26 @@ import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.CreateRedirectUri;
 import io.fintechlabs.testframework.condition.client.EnsureNoRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
-import io.fintechlabs.testframework.condition.client.ExtractImplicitHashToTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ParseAccessTokenAsJwt;
+import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToToken;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenHeartClaims;
 import io.fintechlabs.testframework.condition.client.ValidateAccessTokenSignature;
+import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckHeartServerConfiguration;
-import io.fintechlabs.testframework.condition.common.CreateRandomImplicitSubmitUrl;
 import io.fintechlabs.testframework.condition.common.DisallowTLS10;
 import io.fintechlabs.testframework.condition.common.DisallowTLS11;
 import io.fintechlabs.testframework.condition.common.EnsureTLS12;
 import io.fintechlabs.testframework.condition.common.SetTLSTestHostFromConfig;
+import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
-import io.fintechlabs.testframework.testmodule.UserFacing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @PublishTestModule(
 	testName = "heart-in-browser-delegated-client",
@@ -89,7 +84,7 @@ public class InBrowserDelegatedClientAS extends AbstractRedirectServerTestModule
 		callAndStopOnFailure(FetchServerKeys.class, "HEART-OAuth2-3.1.5");
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
-		callAndStopOnFailure(CheckForKeyIdInServerJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, ConditionResult.FAILURE, "OIDCC-10.1");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
