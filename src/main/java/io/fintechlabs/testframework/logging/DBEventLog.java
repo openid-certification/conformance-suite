@@ -80,7 +80,7 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, Map<String, Object> map) {
 
-		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(map) // this doesn't alter the incoming map
+		BasicDBObjectBuilder documentBuilder = BasicDBObjectBuilder.start(GsonArrayToBsonArrayConverter.convertAllValuesJsonArrayInMap(map)) // this doesn't alter the incoming map
 			.add("_id", testId + "-" + RandomStringUtils.randomAlphanumeric(32))
 			.add("testId", testId)
 			.add("src", source)
