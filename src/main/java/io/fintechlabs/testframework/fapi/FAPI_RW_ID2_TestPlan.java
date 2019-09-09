@@ -19,6 +19,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		FAPIRWID2EnsureResponseModeQuery.class,
 		FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
 		FAPIRWID2EnsureRegisteredRedirectUri.class,
+		FAPIRWID2EnsureRequestObjectWithLongNonce.class,
+		FAPIRWID2EnsureRequestObjectWithLongState.class,
 
 		// Negative tests for request objects
 		FAPIRWID2EnsureRequestObjectWithoutExpFails.class,

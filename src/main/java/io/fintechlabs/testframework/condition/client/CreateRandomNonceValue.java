@@ -12,13 +12,18 @@ public class CreateRandomNonceValue extends AbstractCondition {
 	@PostEnvironment(strings = "nonce")
 	public Environment evaluate(Environment env) {
 
-		String nonce = RandomStringUtils.randomAlphanumeric(10);
+		Integer nonceLength = env.getInteger("requested_nonce_length");
+
+		if (nonceLength == null) {
+			nonceLength = 10; // default to a nonce of length 10
+		}
+
+		String nonce = RandomStringUtils.randomAlphanumeric(nonceLength);
 		env.putString("nonce", nonce);
 
-		log("Created nonce value", args("nonce", nonce));
+		log("Created nonce value", args("nonce", nonce, "requested_nonce_length", nonceLength));
 
 		return env;
-
 	}
 
 }
