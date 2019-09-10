@@ -12,6 +12,7 @@ import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointGran
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointClaimsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
+import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
@@ -57,6 +58,9 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 
 	@Override
 	protected void performEndpointVerification() {
+
+		callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
+
 		super.performEndpointVerification();
 
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE);
