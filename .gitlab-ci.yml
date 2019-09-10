@@ -38,6 +38,7 @@ variables:
 
 stages:
   - build
+  - upload
   - review
   - demo
   - staging
@@ -50,66 +51,86 @@ include:
   - template: Security/Dependency-Scanning.gitlab-ci.yml
   - template: Security/License-Management.gitlab-ci.yml
 
+.maven: &maven
+  image: maven:3-jdk-11
+  variables:
+    MAVEN_CONFIG: $CI_PROJECT_DIR/.m2
+    MAVEN_OPTS: "-Duser.home=$CI_PROJECT_DIR"
+  cache:
+    key: maven
+    paths:
+      - .m2/
+
 build:
+  <<: *maven
   stage: build
+  script:
+    # Don't compile the tests yet
+    - mvn -B -Dmaven.test.skip clean package
+  artifacts:
+    paths:
+      - target/
+
+upload:
+  stage: upload
   image: docker:git
   services:
-  - docker:dind
+    - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
   script:
     - setup_docker
     - install_build_dependencies
-    - build
+    - docker build -t conformance-suite .
     - if [ -n "$GCP_PROJECT_ID" ]; then upload; fi
-  artifacts:
-    paths:
-      - target/fapi-test-suite.jar
-  cache:
-    paths:
-      - .m2/
+  dependencies:
+    - build
 
 test:
-  stage: build
-  image: gliderlabs/herokuish:latest
+  <<: *maven
+  stage: test
+  needs: ["build"]
   script:
-    # Run tests explicitly, since herokuish doesn't pick up the maven environment
-    - cp -R * /tmp/build
-    - "[ -e .m2 ] && cp -R .m2 /tmp/cache"
-    - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
-    - export JAVA_HOME=/tmp/build/.jdk
-    - HOME=/tmp/build source /tmp/build/.profile.d/maven.sh
-    - cd /tmp/build
-    - mvn -B test
-    - >
+    # Don't recompile the main app
+    - mvn -B -Dmaven.main.skip test
+    - |
       perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
-  cache:
-    paths:
-      - .m2/
+  dependencies:
+    - build
   only:
     - branches
 
 check-trailing-whitespace:
   stage: build
-  image: docker:git
+  image: python:2
   script:
-    - apk -q add --no-cache --update python
     - ./scripts/checkwhitespace.py
   only:
     - branches
 
 sonarqube_scanner:
-  stage: build
-  image: gliderlabs/herokuish:latest
+  <<: *maven
+  stage: test
+  needs: ["build"]
   script:
-    # Run tests explicitly, since herokuish doesn't pick up the maven environment
-    - cp -R * /tmp/build
-    - "[ -e .m2 ] && cp -R .m2 /tmp/cache"
-    - /tmp/buildpacks/05_buildpack-java/bin/test-compile /tmp/build /tmp/cache /tmp/env
-    - export JAVA_HOME=/tmp/build/.jdk
-    - HOME=/tmp/build source /tmp/build/.profile.d/maven.sh
-    - cd /tmp/build
-    - run_sonaqube
+    # Don't compile anything or run tests
+    - |
+      mvn -B -Dmaven.main.skip -Dmaven.test.skip \
+        verify sonar:sonar \
+        -Dsonar.host.url=$SONAR_URL \
+        -Dsonar.login=$SONAR_LOGIN \
+        -Dsonar.analysis.mode=preview \
+        -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA \
+        -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME \
+        -Dsonar.gitlab.project_id=$CI_PROJECT_PATH \
+        -Dsonar.gitlab.unique_issue_per_inline=true \
+        -Dsonar.gitlab.url=https://gitlab.com \
+        -Dsonar.gitlab.user_token=$SONARQUBE_BOT_API_KEY \
+        -Dsonar.gitlab.max_blocker_issues_gate=0 \
+        -Dsonar.gitlab.json_mode=SAST \
+        -Dsonar.gitlab.failure_notification_mode=exit-code
+  dependencies:
+    - build
   only:
     - branches
 
@@ -138,6 +159,7 @@ review:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
     on_stop: stop_review
+  dependencies: []
   only:
     refs:
       - /^dev-branch-[1-9]$/
@@ -157,6 +179,7 @@ stop_review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
+  dependencies: []
   when: manual
   allow_failure: true
   only:
@@ -180,6 +203,7 @@ demo:
   environment:
     name: demo
     url: https://$DEMO_HOST.$KUBE_INGRESS_BASE_DOMAIN
+  dependencies: []
   only:
     refs:
       - demo
@@ -208,6 +232,7 @@ staging:
   environment:
     name: staging
     url: https://$STAGING_HOST.$KUBE_INGRESS_BASE_DOMAIN
+  dependencies: []
   only:
     refs:
       - master
@@ -229,6 +254,7 @@ staging:
   environment:
     name: production
     url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
+  dependencies: []
   when: manual
   only:
     refs:
@@ -253,6 +279,7 @@ production:
   environment:
     name: production
     url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
+  dependencies: []
   only:
     refs:
       - production
@@ -267,6 +294,7 @@ production:
     - ensure_namespace
     - set_up_for_running_test_plan
     - run_all_test_plan
+  dependencies: []
 
 deployment_test_production:
   <<: *deployment_test
@@ -305,6 +333,7 @@ deployment_test_demo:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
     on_stop: stop_review
+  dependencies: []
   only:
     refs:
       - /^dev-branch-[1-9]$/
@@ -345,7 +374,6 @@ deployment_ciba_test_review:
   export CI_APPLICATION_REPOSITORY=gcr.io/$GCP_PROJECT_ID/$CI_COMMIT_REF_SLUG
   export CI_APPLICATION_TAG=$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
-  export MAVEN_CACHE=./.m2
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function codeclimate() {
@@ -479,15 +507,6 @@ deployment_ciba_test_review:
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar zx
     ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
     ./google-cloud-sdk/bin/gcloud --quiet components update
-  }
-
-  function run_sonaqube() {
-    mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.unique_issue_per_inline=true -Dsonar.gitlab.url=https://gitlab.com -Dsonar.gitlab.user_token=$SONARQUBE_BOT_API_KEY -Dsonar.gitlab.max_blocker_issues_gate=0 -Dsonar.gitlab.json_mode=SAST -Dsonar.gitlab.failure_notification_mode=exit-code
-  }
-
-  function build() {
-    docker-compose -f builder-compose.yml run builder
-    docker build -t conformance-suite .
   }
 
   function upload() {
