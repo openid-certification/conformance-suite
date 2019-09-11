@@ -682,12 +682,12 @@ public class TestRunner implements DataUtils {
 					// Any other exception from a test counts as a failure
 					test.fireTestFailure();
 					test.stop();
-				}
 
-				if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
-					// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-					// ConditionError will get handled by the logging system, no need to display with stacktrace
-					test.setFinalError(error);
+					if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+						// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+						// ConditionError will get handled by the logging system, no need to display with stacktrace
+						test.setFinalError(error);
+					}
 				}
 			} else {
 				logger.error("Caught an error from a test, but the test isn't running: " + error.getMessage());

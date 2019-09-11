@@ -185,11 +185,11 @@ public class TestDispatcher implements DataUtils {
 			if (test != null) {
 				logger.error("Caught an error in TestDispatcher while running the test, stopping the test: " + error.getMessage());
 
-				test.setFinalError(error);
-
 				if (error instanceof TestSkippedException) {
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "The test was skipped: " + error.getMessage());
 				} else {
+					test.setFinalError(error);
+
 					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
 							args(
 								"result", ConditionResult.FAILURE,
