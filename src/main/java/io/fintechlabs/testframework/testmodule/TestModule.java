@@ -78,6 +78,12 @@ public interface TestModule {
 	void stop();
 
 	/**
+	 * Called after the test has been stopped (for any reason) to allow
+	 * cleanup of resources, such as dynamic client registrations.
+	 */
+	void cleanup();
+
+	/**
 	 * Called when a the test runner calls a URL
 	 *
 	 * @param path

@@ -179,7 +179,6 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 
 			unmapClient();
 
-			cleanUpPingTestResources();
 			fireTestFinished();
 		}
 	}

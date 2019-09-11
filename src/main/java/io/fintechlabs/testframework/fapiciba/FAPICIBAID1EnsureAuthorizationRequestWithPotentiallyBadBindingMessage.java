@@ -102,7 +102,6 @@ public class FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessa
 
 			callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 
-			cleanUpPingTestResources();
 			fireTestFinished();
 
 		} else {
@@ -127,7 +126,5 @@ public class FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessa
 		callAndContinueOnFailure(ExpectBindingMessageCorrectDisplay.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 
 		waitForPlaceholders();
-
-		cleanUpPingTestResources();
 	}
 }

@@ -54,6 +54,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	private Instant created; // time stamp of when this test created
 	private Instant statusUpdated; // time stamp of when the status was last updated
 	private TestInterruptedException finalError; // final error from running the test
+	private boolean cleanupCalled = false;
 
 	protected TestInfoService testInfo;
 	protected ImageService imageService;
@@ -822,17 +823,30 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public void stop() {
 
-		if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
-			// can't stop what's already stopped
-			return;
+		if (!(getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED))) {
+			setStatus(Status.INTERRUPTED);
+			eventLog.log(getName(), args(
+				"msg", "Test was interrupted before it could complete",
+				"result", Status.INTERRUPTED.toString()));
+
+			logFinalEnv();
 		}
 
-		setStatus(Status.INTERRUPTED);
-		eventLog.log(getName(), args(
-			"msg", "Test was interrupted before it could complete",
-			"result", Status.INTERRUPTED.toString()));
+		if (!cleanupCalled) {
+			logger.info("Performing final clean-up");
+			try {
+				cleanup();
+			} catch (TestFailureException e) {
+				eventLog.log(getName(), ex(e, args("msg", "A test failure was raised while cleaning up")));
+			} finally {
+				cleanupCalled = true;
+			}
+		}
+	}
 
-		logFinalEnv();
+	@Override
+	public void cleanup() {
+		// Nothing to do in general
 	}
 
 	/**

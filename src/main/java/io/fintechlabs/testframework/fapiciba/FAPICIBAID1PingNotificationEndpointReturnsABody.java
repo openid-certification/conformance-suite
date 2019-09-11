@@ -76,7 +76,6 @@ public class FAPICIBAID1PingNotificationEndpointReturnsABody extends AbstractFAP
 			handleSuccessfulTokenEndpointResponse();
 		} else {
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
-			cleanUpPingTestResources();
 			fireTestFinished();
 		}
 

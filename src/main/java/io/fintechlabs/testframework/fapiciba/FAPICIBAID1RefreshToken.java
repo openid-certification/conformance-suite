@@ -131,7 +131,6 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 			eventLog.endBlock();
 
-			cleanUpPingTestResources();
 			fireTestFinished();
 		}
 	}

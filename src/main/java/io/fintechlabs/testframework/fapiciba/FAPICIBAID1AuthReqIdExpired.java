@@ -119,7 +119,6 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 		callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
 
 		verifyTokenEndpointResponseIsTokenExpired();
-		cleanUpPingTestResources();
 		fireTestFinished();
 	}
 

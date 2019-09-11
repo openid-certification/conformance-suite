@@ -778,8 +778,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		requestProtectedResource();
 
 		if (finishTest) {
-			cleanUpPingTestResources();
-
 			fireTestFinished();
 		}
 	}
@@ -969,7 +967,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
 		if (httpStatus != org.apache.http.HttpStatus.SC_OK) {
 			// error as expected, go on and complete test as normal
-			cleanUpPingTestResources();
 			fireTestFinished();
 		} else {
 			// no error - we don't want to leave a authorization request in progress (as it would result in a ping
@@ -983,6 +980,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	boolean isSecondClient() {
 		return env.isKeyMapped("client");
+	}
+
+	@Override
+	public void cleanup() {
+		cleanUpPingTestResources();
 	}
 
 	/** This should be performed before finishing test for each client to unregister dynamic client at AS*/
