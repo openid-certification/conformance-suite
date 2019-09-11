@@ -67,10 +67,14 @@ public class TestExecutionManager {
 	}
 
 	/**
-	 * @return the futures
+	 * Clean up queued tasks for this test id
 	 */
-	public List<Future> getFutures() {
-		return futures;
+	public void clearBackgroundTasks() {
+		for (Future f : futures) {
+			if (!f.isDone()) {
+				f.cancel(true); // True allows the task to be interrupted.
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")

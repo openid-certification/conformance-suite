@@ -588,12 +588,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				imageService.fillPlaceholder(getId(), placeholder, update, true);
 			}
 
-			stop();
-
 			eventLog.log(getName(), args(
 				"msg", "Test has run to completion",
 				"result", Status.FINISHED.toString(),
 				"testmodule_result", getResult()));
+
+			// This might interrupt the current thread, so don't do any logging after this
+			stop();
 
 			return "done";
 		});
@@ -842,6 +843,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				cleanupCalled = true;
 			}
 		}
+
+		// This might interrupt the current thread, so don't do any logging after this
+		getTestExecutionManager().clearBackgroundTasks();
 	}
 
 	@Override

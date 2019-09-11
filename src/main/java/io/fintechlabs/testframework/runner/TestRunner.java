@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -167,16 +166,6 @@ public class TestRunner implements DataUtils {
 						if (test != null) {
 							// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 							conditionFailure(testException);
-
-							// Clean up other tasks for this test id
-							TestExecutionManager executionManager = test.getTestExecutionManager();
-							if (executionManager != null) {
-								for (Future f : executionManager.getFutures()) {
-									if (!f.isDone()) {
-										f.cancel(true); // True allows the task to be interrupted.
-									}
-								}
-							}
 						}
 					} else {
 						// TODO: Better handling if we get something we wern't expecting? But we don't have access to the test ID
