@@ -66,6 +66,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 
 		//Refresh token tests
 		FAPICIBARefreshToken.class,
+
+		FAPICIBAEnsureMTLSHolderOfKeyRequired.class,
 	},
 	variants = {
 		FAPICIBA.variant_ping_mtls,
