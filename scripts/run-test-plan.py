@@ -719,12 +719,12 @@ if __name__ == '__main__':
                 continue
         elif show_untested == 'server':
             # Only run server test, therefore ignore all client test
-            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba.*)', m):
+            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ciba':
             # Only run server test, therefore ignore all ciba test
-            if not re.match(r'(fapi-ciba.*)', m):
+            if not re.match(r'(fapi-ciba-id1.*)', m):
                 untested_test_modules.remove(m)
                 continue
 
