@@ -48,6 +48,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		// Private key specific tests
 		FAPIRWID2EnsureSignedClientAssertionWithRS256Fails.class,
 		FAPIRWID2EnsureClientAssertionInTokenEndpoint.class,
+		FAPIRWID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
+		FAPIRWID2EnsureClientAssertionWithWrongAudFails.class,
 
 		//Refresh token tests
 		FAPIRWID2RefreshToken.class,
