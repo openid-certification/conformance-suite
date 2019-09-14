@@ -17,7 +17,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-response-mode-query",
 	displayName = "FAPI-RW-ID2: ensure response_mode query",
-	summary = "This test includes response_mode=query in the authorization request. The authorization server should show an error message that response_mode=query is not allowed when response_type is 'code id_token' (a screenshot of which should be uploaded), should return an error to the client, or must successfully authenticate.",
+	summary = "This test includes response_mode=query in the authorization request. The authorization server should show an error message that response_mode=query is not allowed by FAPI-RW (a screenshot of which should be uploaded), should return an error to the client, or must successfully authenticate without returning the result in the query.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",

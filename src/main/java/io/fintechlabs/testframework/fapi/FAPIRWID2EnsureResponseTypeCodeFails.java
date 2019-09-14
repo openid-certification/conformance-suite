@@ -8,6 +8,7 @@ import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizatio
 import io.fintechlabs.testframework.condition.client.EnsureUnsupportedResponseTypeOrInvalidRequestError;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlFragment;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RemoveAuthorizationEndpointRequestResponseMode;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.common.ExpectResponseTypeErrorPage;
@@ -92,6 +93,7 @@ public class FAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2Serve
 	@Override
 	protected void createAuthorizationRedirect() {
 		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class, "FAPI-RW-5.2.2-2");
+		callAndStopOnFailure(RemoveAuthorizationEndpointRequestResponseMode.class);
 
 		super.createAuthorizationRedirect();
 	}

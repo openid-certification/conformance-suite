@@ -13,6 +13,8 @@ import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestOrInvalidRequestObjectError;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingNonceErrorPage;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
@@ -106,7 +108,12 @@ public class FAPIRWID2EnsureRequestObjectWithoutNonceFails extends AbstractFAPIR
 		exposeEnvString("state");
 		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		if (jarm) {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+		} else {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		}
 	}
 
 	@Override

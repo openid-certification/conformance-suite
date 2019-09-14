@@ -20,6 +20,8 @@ import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingS
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
@@ -59,7 +61,12 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		if (jarm) {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+		} else {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		}
 	}
 
 	@Override
@@ -116,20 +123,22 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 	@Override
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+		if (!jarm) {
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-		// save the id_token returned from the authorisation endpoint
-		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+			// save the id_token returned from the authorisation endpoint
+			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
-		performIdTokenValidation();
+			performIdTokenValidation();
 
-		// s_hash must not be returned, as AS must ignore the state parameter outside the request object
-		callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-10");
+			// s_hash must not be returned, as AS must ignore the state parameter outside the request object
+			callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-10");
 
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		}
 
 		performPostAuthorizationFlow();
 	}
