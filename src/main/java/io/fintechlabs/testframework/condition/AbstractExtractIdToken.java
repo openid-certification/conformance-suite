@@ -9,6 +9,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 
 import io.fintechlabs.testframework.testmodule.Environment;
+import io.fintechlabs.testframework.testmodule.OIDFJSON;
 
 public abstract class AbstractExtractIdToken extends AbstractCondition {
 
@@ -22,7 +23,7 @@ public abstract class AbstractExtractIdToken extends AbstractCondition {
 			throw error("Couldn't find an ID Token in "+key);
 		}
 
-		String idTokenString = env.getString(key, "id_token");
+		String idTokenString = OIDFJSON.getString(idTokenElement);
 
 		try {
 			JWT idToken = JWTParser.parse(idTokenString);
