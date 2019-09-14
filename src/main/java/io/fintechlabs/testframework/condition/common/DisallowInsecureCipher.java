@@ -139,14 +139,14 @@ public class DisallowInsecureCipher extends AbstractCondition {
 
 					@Override
 					public void notifySelectedCipherSuite(int selectedCipherSuite) {
-						throw error("Server accepted a disallowed cipher",
+						throw error("Server accepted a cipher that is not on the list of FAPI-RW permitted ciphers",
 							args("host", tlsTestHost,
 								"port", tlsTestPort,
 								"cipher_suite", CIPHER_NAMES.get(selectedCipherSuite)));
 					}
 				};
 
-				log("Trying to connect with a disallowed cipher (this is not exhaustive: check the server configuration manually to verify conformance)",
+				log("Trying to connect with a non-permitted cipher (this is not exhaustive: check the server configuration manually to verify conformance)",
 					args("host", tlsTestHost, "port", tlsTestPort));
 
 				protocol.connect(client);
