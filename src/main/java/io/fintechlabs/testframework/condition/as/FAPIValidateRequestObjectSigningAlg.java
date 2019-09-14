@@ -17,6 +17,6 @@ public class FAPIValidateRequestObjectSigningAlg extends AbstractCondition {
 			return env;
 		}
 
-		throw error("Request object should be signed with PS256 or ES256", args("alg", alg));
+		throw error("Request object must be signed with PS256 or ES256", args("alg", alg));
 	}
 }
