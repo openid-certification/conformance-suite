@@ -17,10 +17,10 @@ import java.text.ParseException;
 public class ValidateIdTokenSignatureUsingKid extends ValidateIdTokenSignature {
 
 	@Override
-	protected void validateIdTokenSignature(String idToken, JsonObject serverJwks) {
+	protected void validateTokenSignature(String token, JsonObject serverJwks, String tokenName) {
 		try {
 			// translate stored items into nimbus objects
-			SignedJWT jwt = SignedJWT.parse(idToken);
+			SignedJWT jwt = SignedJWT.parse(token);
 			JWKSet jwkSet = JWKSet.parse(serverJwks.toString());
 			JWKSet jwkSetWithKeyValid = null;
 
@@ -39,7 +39,7 @@ public class ValidateIdTokenSignatureUsingKid extends ValidateIdTokenSignature {
 
 					numberOfKeyValid++;
 					if (numberOfKeyValid > 1) {
-						throw error("Found more than one key that has the right kid, kty, alg and 'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, "id_token", idToken));
+						throw error("Found more than one key that has the right kid, kty, alg and 'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 					}
 				}
 			}
@@ -60,12 +60,12 @@ public class ValidateIdTokenSignatureUsingKid extends ValidateIdTokenSignature {
 							jwkSetWithKeyValid = new JWKSet(jwkKey);
 							break;
 						} else {
-							throw error("Unable to verify ID token signature based on server key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, "id_token", idToken));
+							throw error("Unable to verify "+tokenName+" signature based on server key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 						}
 					}
 				}
 				if (key == null) {
-					throw error("Server JWKS does not contain a key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, "id_token", idToken));
+					throw error("Server JWKS does not contain a key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 				}
 			} else {
 				// if a kid isn't given
@@ -85,21 +85,21 @@ public class ValidateIdTokenSignatureUsingKid extends ValidateIdTokenSignature {
 					}
 				}
 				if (key == null) {
-					throw error("Server JWKS does not contain a key with the correct kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, "id_token", idToken));
+					throw error("Server JWKS does not contain a key with the correct kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 				}
 				if (!validSignature) {
-					throw error("Unable to verify ID token signature based on server keys", args("jwks", serverJwks, "id_token", idToken));
+					throw error("Unable to verify "+tokenName+" signature based on server keys", args("jwks", serverJwks, tokenName, token));
 				}
 			}
 
 			String publicKeySetString = jwkSetWithKeyValid.toPublicJWKSet().getKeys().size() > 0 ? jwkSetWithKeyValid.toPublicJWKSet().getKeys().iterator().next().toString() : null;
-			JsonObject idTokenObject = new JsonObject();
-			idTokenObject.addProperty("verifiable_jws", idToken);
-			idTokenObject.addProperty("public_jwk", publicKeySetString);
-			logSuccess("ID Token signature validated", args("id_token", idTokenObject));
+			JsonObject tokenObject = new JsonObject();
+			tokenObject.addProperty("verifiable_jws", token);
+			tokenObject.addProperty("public_jwk", publicKeySetString);
+			logSuccess(tokenName + " signature validated", args(tokenName, tokenObject));
 
 		} catch (JOSEException | ParseException e) {
-			throw error("Error validating ID Token signature", e);
+			throw error("Error validating "+tokenName+" signature", e);
 		}
 	}
 
@@ -109,7 +109,7 @@ public class ValidateIdTokenSignatureUsingKid extends ValidateIdTokenSignature {
 			return false;
 		}
 
-		// filter by 'alg' if key has alg (matching the id_token alg)
+		// filter by 'alg' if key has alg (matching the token alg)
 		if (jwkKey.getAlgorithm() != null && !headerAlg.equals(jwkKey.getAlgorithm().getName())) {
 			return false;
 		}
