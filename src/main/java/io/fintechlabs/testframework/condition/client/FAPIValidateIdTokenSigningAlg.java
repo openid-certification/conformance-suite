@@ -21,7 +21,7 @@ public class FAPIValidateIdTokenSigningAlg extends AbstractCondition {
 			String alg = jwt.getHeader().getAlgorithm().getName();
 
 			if (!alg.equals("PS256") && !alg.equals("ES256")) {
-				throw error("id_token should be signed with PS256 or ES256", args("alg", alg));
+				throw error("id_token must be signed with PS256 or ES256", args("alg", alg));
 			}
 
 			logSuccess("id_token was signed with a permitted algorithm", args("alg", alg));

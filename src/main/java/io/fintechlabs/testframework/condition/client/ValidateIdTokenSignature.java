@@ -39,15 +39,15 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 		String idToken = env.getString("id_token", "value");
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
-		validateIdTokenSignature(idToken, serverJwks);
+		validateTokenSignature(idToken, serverJwks, "id_token");
 
 		return env;
 	}
 
-	protected void validateIdTokenSignature(String idToken, JsonObject serverJwks) {
+	protected void validateTokenSignature(String token, JsonObject serverJwks, String tokenName) {
 		try {
 			// translate stored items into nimbus objects
-			SignedJWT jwt = SignedJWT.parse(idToken);
+			SignedJWT jwt = SignedJWT.parse(token);
 			JWKSet jwkSet = JWKSet.parse(serverJwks.toString());
 			JWKSet jwkSetWithKeyValid = null;
 
@@ -62,17 +62,17 @@ public class ValidateIdTokenSignature extends AbstractCondition {
 			}
 
 			if (!validSignature) {
-				throw error("Unable to verify ID token signature based on server keys", args("jwks", serverJwks, "id_token", idToken));
+				throw error("Unable to verify "+tokenName+" signature based on server keys", args("jwks", serverJwks, tokenName, token));
 			}
 
 			String publicKeySetString = jwkSetWithKeyValid.toPublicJWKSet().getKeys().size() > 0 ? jwkSetWithKeyValid.toPublicJWKSet().getKeys().iterator().next().toString() : null;
-			JsonObject idTokenObject = new JsonObject();
-			idTokenObject.addProperty("verifiable_jws", idToken);
-			idTokenObject.addProperty("public_jwk", publicKeySetString);
-			logSuccess("ID Token signature validated", args("id_token", idTokenObject));
+			JsonObject tokenObject = new JsonObject();
+			tokenObject.addProperty("verifiable_jws", token);
+			tokenObject.addProperty("public_jwk", publicKeySetString);
+			logSuccess(tokenName + " signature validated", args(tokenName, tokenObject));
 
 		} catch (JOSEException | ParseException e) {
-			throw error("Error validating ID Token signature", e);
+			throw error("Error validating " + tokenName + " signature", e);
 		}
 
 	}

@@ -10,14 +10,15 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 
 	@Override
 	@PreEnvironment(required = "callback_params")
-	public Environment evaluate(Environment in) {
-		if (Strings.isNullOrEmpty(in.getString("callback_params", "code"))) {
+	public Environment evaluate(Environment env) {
+		String code = env.getString("callback_params", "code");
+		if (Strings.isNullOrEmpty(code)) {
 			throw error("Couldn't find authorization code in callback");
 		} else {
-			in.putString("code", in.getString("callback_params", "code"));
+			env.putString("code", code);
 			logSuccess("Found authorization code",
-				args("code", in.getString("callback_params", "code")));
-			return in;
+				args("code", code));
+			return env;
 		}
 
 	}
