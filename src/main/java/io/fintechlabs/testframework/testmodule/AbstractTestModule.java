@@ -53,7 +53,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected Environment env = new Environment(); // keeps track of values at runtime
 	private Instant created; // time stamp of when this test created
 	private Instant statusUpdated; // time stamp of when the status was last updated
-	private TestFailureException finalError; // final error from running the test
+	private TestInterruptedException finalError; // final error from running the test
+	private boolean cleanupCalled = false;
 
 	protected TestInfoService testInfo;
 	protected ImageService imageService;
@@ -587,12 +588,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				imageService.fillPlaceholder(getId(), placeholder, update, true);
 			}
 
-			stop();
-
 			eventLog.log(getName(), args(
 				"msg", "Test has run to completion",
 				"result", Status.FINISHED.toString(),
 				"testmodule_result", getResult()));
+
+			// This might interrupt the current thread, so don't do any logging after this
+			stop();
 
 			return "done";
 		});
@@ -613,6 +615,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public void fireTestFailure() {
 		setResult(Result.FAILED);
+	}
+
+	@Override
+	public void fireTestSkipped(String msg) throws TestSkippedException {
+		setResult(Result.SKIPPED);
+		fireTestFinished();
+		throw new TestSkippedException(getId(), msg);
 	}
 
 	/**
@@ -815,17 +824,33 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public void stop() {
 
-		if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
-			// can't stop what's already stopped
-			return;
+		if (!(getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED))) {
+			setStatus(Status.INTERRUPTED);
+			eventLog.log(getName(), args(
+				"msg", "Test was interrupted before it could complete",
+				"result", Status.INTERRUPTED.toString()));
+
+			logFinalEnv();
 		}
 
-		setStatus(Status.INTERRUPTED);
-		eventLog.log(getName(), args(
-			"msg", "Test was interrupted before it could complete",
-			"result", Status.INTERRUPTED.toString()));
+		if (!cleanupCalled) {
+			logger.info("Performing final clean-up");
+			try {
+				cleanup();
+			} catch (TestFailureException e) {
+				eventLog.log(getName(), ex(e, args("msg", "A test failure was raised while cleaning up")));
+			} finally {
+				cleanupCalled = true;
+			}
+		}
 
-		logFinalEnv();
+		// This might interrupt the current thread, so don't do any logging after this
+		getTestExecutionManager().clearBackgroundTasks();
+	}
+
+	@Override
+	public void cleanup() {
+		// Nothing to do in general
 	}
 
 	/**
@@ -845,7 +870,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @return the finalError
 	 */
 	@Override
-	public TestFailureException getFinalError() {
+	public TestInterruptedException getFinalError() {
 		return finalError;
 	}
 
@@ -853,7 +878,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @param finalError the finalError to set
 	 */
 	@Override
-	public void setFinalError(TestFailureException finalError) {
+	public void setFinalError(TestInterruptedException finalError) {
 		this.finalError = finalError;
 	}
 

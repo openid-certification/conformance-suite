@@ -32,6 +32,7 @@ public interface TestModule {
 		FAILED, // test has failed
 		WARNING, // test has warnings
 		REVIEW, // test requires manual review
+		SKIPPED, // test can not be completed
 		UNKNOWN // test results not yet known, probably still running (see status)
 	}
 
@@ -75,6 +76,12 @@ public interface TestModule {
 	 * Called by the test runner to stop the test
 	 */
 	void stop();
+
+	/**
+	 * Called after the test has been stopped (for any reason) to allow
+	 * cleanup of resources, such as dynamic client registrations.
+	 */
+	void cleanup();
 
 	/**
 	 * Called when a the test runner calls a URL
@@ -149,12 +156,12 @@ public interface TestModule {
 	/**
 	 * @param error the final error from this test while running
 	 */
-	void setFinalError(TestFailureException error);
+	void setFinalError(TestInterruptedException error);
 
 	/**
 	 * @return the final error from this test while running, possibly null
 	 */
-	TestFailureException getFinalError();
+	TestInterruptedException getFinalError();
 
 	/**
 	 * Mark the test as failed and finished.
@@ -165,6 +172,13 @@ public interface TestModule {
 	 * Mark the test as succeeded and finished.
 	 */
 	void fireTestSuccess();
+
+	/**
+	 * Mark the test as skipped (untestable). This method will throw a
+	 * TestSkippedException to skip any further conditions from running.
+	 * @param msg Reason for skipping the test
+	 */
+	void fireTestSkipped(String msg) throws TestSkippedException;
 
 	/**
 	 * Mark the test as finished without setting a result.

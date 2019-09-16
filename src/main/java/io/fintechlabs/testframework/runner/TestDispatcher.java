@@ -30,12 +30,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
-import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.testmodule.TestInterruptedException;
 import io.fintechlabs.testframework.testmodule.TestModule;
+import io.fintechlabs.testframework.testmodule.TestSkippedException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
 
 @Controller
@@ -137,7 +138,7 @@ public class TestDispatcher implements DataUtils {
 			logOutgoingHttpResponse(test, restOfPath, response);
 			return response;
 
-		} catch (TestFailureException e) {
+		} catch (TestInterruptedException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new TestFailureException(test.getId(), e);
@@ -177,23 +178,29 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	// handle errors thrown by running tests
-	@ExceptionHandler(TestFailureException.class)
-	public Object testFailure(TestFailureException error) {
+	@ExceptionHandler(TestInterruptedException.class)
+	public Object testFailure(TestInterruptedException error) {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
 				logger.error("Caught an error in TestDispatcher while running the test, stopping the test: " + error.getMessage());
 
-				test.setFinalError(error);
-				eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
-					args(
-						"result", ConditionResult.FAILURE,
-						"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
-				));
-			}
+				if (error instanceof TestSkippedException) {
+					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "The test was skipped: " + error.getMessage());
+				} else {
+					test.setFinalError(error);
 
-			test.fireTestFailure();
-			test.stop();
+					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
+							args(
+								"result", ConditionResult.FAILURE,
+								"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
+						));
+					test.fireTestFailure();
+					test.stop();
+				}
+			} else {
+				logger.error("Caught an error from a test, but the test isn't running: " + error.getMessage());
+			}
 
 			for (StackTraceElement ste : error.getCause().getStackTrace()) {
 				// look for the user-facing annotation in the stack

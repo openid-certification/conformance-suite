@@ -286,6 +286,11 @@ textarea {
 	color: black;
 }
 
+.testResult-skipped {
+    background-color: #d88602;
+    color: white;
+}
+
 .testResult-unknown {
 	background-color: #dedada;
 	color: #6d6a6a;

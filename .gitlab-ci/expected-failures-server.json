@@ -96,6 +96,15 @@
         "expected-result": "warning"
     },
     {
+        "test-name": "fapi-rw-id2-refresh-token",
+        "variant": "openbankinguk-private_key_jwt",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
+        "current-block": "Second client: Verify at_hash in the authorization endpoint id_token",
+        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
+        "expected-result": "warning",
+        "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
+    },
+    {
         "test-name": "fapi-rw-id2",
         "variant": "mtls",
         "configuration-filename": "authlete-fapi-rw-id2-mtls.json",

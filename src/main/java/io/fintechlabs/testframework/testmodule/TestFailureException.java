@@ -2,42 +2,28 @@ package io.fintechlabs.testframework.testmodule;
 
 import io.fintechlabs.testframework.condition.ConditionError;
 
-public class TestFailureException extends RuntimeException {
-
-	// this is only used if the "cause" is not a ConditionError
-	private String testId = null;
+public class TestFailureException extends TestInterruptedException {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 7168979969763096442L;
+	private static final long serialVersionUID = 7168979969763096443L;
 
 	/**
 	 * @param cause
 	 */
 	public TestFailureException(ConditionError cause) {
-		super(cause);
+		super(cause.getTestId(), cause);
 	}
 
 	/**
 	 *
 	 */
 	public TestFailureException(String testId, String msg) {
-		super(new RuntimeException(msg));
-		this.testId = testId;
+		super(testId, msg);
 	}
 
 	public TestFailureException(String testId, Throwable cause) {
-		super(cause);
-		this.testId = testId;
+		super(testId, cause);
 	}
-
-	public String getTestId() {
-		if (getCause() != null && getCause() instanceof ConditionError) {
-			return ((ConditionError) getCause()).getTestId();
-		} else {
-			return testId;
-		}
-	}
-
 }

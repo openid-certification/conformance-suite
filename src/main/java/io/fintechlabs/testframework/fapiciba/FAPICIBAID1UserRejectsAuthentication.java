@@ -145,7 +145,6 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 		callAndStopOnFailure(ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest.class);
 
 		eventLog.endBlock();
-		cleanUpPingTestResources();
 		fireTestFinished();
 	}
 

@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
+import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
+import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import io.fintechlabs.testframework.condition.client.ExtractRefreshTokenFromTokenResponse;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import io.fintechlabs.testframework.sequence.client.RefreshTokenRequestExpectingErrorSteps;
@@ -89,7 +91,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		super.performAuthorizationFlow();
 	}
 
-	protected boolean sendRefreshTokenRequestAndCheckIdTokenClaims() {
+	protected void sendRefreshTokenRequestAndCheckIdTokenClaims() {
 		// Set up the mappings for the refreshed access and ID tokens
 		env.mapKey("access_token", "second_access_token");
 		env.mapKey("id_token", "second_id_token");
@@ -97,23 +99,22 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if (Strings.isNullOrEmpty(env.getString("refresh_token"))) {
-			fireTestFinished();
-			return true;
+			callAndContinueOnFailure(EnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
+			// This throws an exception: the test will stop here
+			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
 		}
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
-		return false;
 	}
 
 	@Override
 	protected void performPostAuthorizationFlow(boolean finishTest) {
+		sendRefreshTokenRequestAndCheckIdTokenClaims();
+
+		requestProtectedResource();
+
 		if (!isSecondClient()) {
-			if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-				return;
-			}
-
-			super.performPostAuthorizationFlow(false);
-
 			// Try the second client
 
 			//remove refresh token from 1st client
@@ -123,12 +124,6 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
 			performAuthorizationFlow();
 		} else {
-			if (sendRefreshTokenRequestAndCheckIdTokenClaims()) {
-				return;
-			}
-
-			requestProtectedResource();
-
 			unmapClient();
 
 			// try client 2's refresh_token with client 1
@@ -136,7 +131,6 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 			eventLog.endBlock();
 
-			cleanUpPingTestResources();
 			fireTestFinished();
 		}
 	}

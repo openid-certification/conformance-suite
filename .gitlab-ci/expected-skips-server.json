@@ -1,0 +1,7 @@
+[
+    {
+        "test-name": "fapi-rw-id2-refresh-token",
+        "variant": "openbankinguk-private_key_jwt",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json"
+    }
+]
