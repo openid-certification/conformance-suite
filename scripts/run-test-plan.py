@@ -779,7 +779,7 @@ if __name__ == '__main__':
 
     # filter untested list, as we don't currently have test environments for these
     for m in untested_test_modules[:]:
-        if all_test_modules[m]['profile'] in ['SAMPLE', 'HEART']:
+        if all_test_modules[m]['profile'] in ['HEART']:
             untested_test_modules.remove(m)
             continue
 

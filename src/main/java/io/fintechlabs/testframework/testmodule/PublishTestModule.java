@@ -13,7 +13,7 @@ public @interface PublishTestModule {
 
 	String displayName();
 
-	String profile() default "SAMPLE";
+	String profile();
 
 	String[] configurationFields() default {};
 

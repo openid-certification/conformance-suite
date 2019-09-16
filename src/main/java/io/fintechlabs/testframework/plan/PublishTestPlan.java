@@ -16,7 +16,7 @@ public @interface PublishTestPlan {
 
 	String displayName();
 
-	String profile() default "SAMPLE";
+	String profile();
 
 	String[] configurationFields() default {};
 
