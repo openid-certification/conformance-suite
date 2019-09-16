@@ -174,41 +174,23 @@ def expected_warning(text):
 def expected_failure(text):
     return color(text, fg_light_cyan=True)
 
-# Returns object contains 'plan_did_not_complete' and 'detail_plan_result', ie.
-# 'plan_did_not_complete' = NOT_COMPLETE
-#     some test modules did not run complete
-# 'plan_did_not_complete' = FAILURE_OR_WARNING
-#     if any test unexpectedly failed to run to completion
-#     if any test was expected to be skipped but wasn't
-#     if condition failure/warning occurs and isn't listed in the config json file
-#     if failure/warning is expected and doesn't occur
-# 'plan_did_not_complete' = COMPLETE
-#     all test modules run complete
-def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
+
+def show_plan_results(plan_result, analyzed_result):
     plan_id = plan_result['plan_id']
     plan_modules = plan_result['plan_modules']
     test_info = plan_result['test_info']
     test_time_taken = plan_result['test_time_taken']
     overall_time = plan_result['overall_time']
+    detail_plan_result = analyzed_result['detail_plan_result']
 
     incomplete = 0
     successful_conditions = 0
-    overall_test_results = []
+    overall_test_results = list(detail_plan_result['overall_test_results'])
 
     number_of_failures = 0
     number_of_warnings = 0
 
-    counts_unexpected = {
-        'EXPECTED_FAILURES': 0,
-        'UNEXPECTED_FAILURES': 0,
-        'EXPECTED_FAILURES_NOT_HAPPEN': 0,
-        'EXPECTED_WARNINGS': 0,
-        'UNEXPECTED_WARNINGS': 0,
-        'EXPECTED_WARNINGS_NOT_HAPPEN': 0,
-        'EXPECTED_SKIPS': 0,
-        'UNEXPECTED_SKIPS': 0,
-        'EXPECTED_SKIPS_NOT_HAPPEN': 0
-    }
+    counts_unexpected = detail_plan_result['counts_unexpected']
 
     print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
 
@@ -221,19 +203,14 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
         info = module_info['info']
         logs = module_info['logs']
 
-        if module in untested_test_modules:
-            untested_test_modules.remove(module)
-
         status_coloured = info['status']
 
         if info['status'] != 'FINISHED':
             status_coloured = redbg(status_coloured)
             incomplete += 1
-        if 'result' not in info:
-            info['result'] = 'UNKNOWN'
 
         test_name = info['testName']
-        result = analyze_result_logs(test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
+        result = overall_test_results.pop(0)['test_result']
 
         if module_id in test_time_taken:
             test_time = test_time_taken[module_id]
@@ -254,9 +231,6 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
         summary_unexpected_failures_test_module(result, test_name, module_id)
-        log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
-        test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
-        overall_test_results.append(test_result)
 
         successful_conditions += counts['SUCCESS']
         number_of_failures += counts['FAILURE']
@@ -268,6 +242,85 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
         format(len(test_info), successful_conditions, number_of_failures, number_of_warnings, overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 
+    if len(test_info) != len(plan_modules):
+        print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
+        return
+
+    if incomplete != 0:
+        print(failure("** {:d} TEST MODULES DID NOT RUN TO COMPLETION **".format(incomplete)))
+        return
+
+    if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
+        print(failure("** SOME TEST MODULES HAVE CONDITION UNEXPECTED FAILURES **"))
+
+    if  counts_unexpected['UNEXPECTED_WARNINGS'] > 0:
+        print(failure("** SOME TEST MODULES HAVE CONDITION UNEXPECTED WARNINGS **"))
+
+    if counts_unexpected['UNEXPECTED_SKIPS'] > 0:
+        print(failure("** SOME TEST MODULES WERE UNEXPECTEDLY SKIPPED **"))
+
+    if counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] > 0:
+        print(failure("** SOME TEST MODULES HAVE CONDITION EXPECTED FAILURE DID NOT HAPPEN **"))
+
+    if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
+        print(failure("** SOME TEST MODULES HAVE CONDITION EXPECTED WARNING DID NOT HAPPEN **"))
+
+    if counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] > 0:
+        print(failure("** SOME TEST MODULES WERE EXPECTED TO BE SKIPPED BUT COMPLETED **"))
+
+
+# Returns object contains 'plan_did_not_complete' and 'detail_plan_result', ie.
+# 'plan_did_not_complete' = NOT_COMPLETE
+#     some test modules did not run complete
+# 'plan_did_not_complete' = FAILURE_OR_WARNING
+#     if any test unexpectedly failed to run to completion
+#     if any test was expected to be skipped but wasn't
+#     if condition failure/warning occurs and isn't listed in the config json file
+#     if failure/warning is expected and doesn't occur
+# 'plan_did_not_complete' = COMPLETE
+#     all test modules run complete
+def analyze_plan_results(plan_result, expected_failures_list, expected_skips_list):
+    plan_modules = plan_result['plan_modules']
+    test_info = plan_result['test_info']
+
+    incomplete = 0
+    overall_test_results = []
+
+    counts_unexpected = {
+        'EXPECTED_FAILURES': 0,
+        'UNEXPECTED_FAILURES': 0,
+        'EXPECTED_FAILURES_NOT_HAPPEN': 0,
+        'EXPECTED_WARNINGS': 0,
+        'UNEXPECTED_WARNINGS': 0,
+        'EXPECTED_WARNINGS_NOT_HAPPEN': 0,
+        'EXPECTED_SKIPS': 0,
+        'UNEXPECTED_SKIPS': 0,
+        'EXPECTED_SKIPS_NOT_HAPPEN': 0
+    }
+
+    for module in plan_modules:
+        if module not in test_info:
+            continue
+        module_info = test_info[module]
+        module_id = module_info['id']
+        info = module_info['info']
+        logs = module_info['logs']
+
+        if module in untested_test_modules:
+            untested_test_modules.remove(module)
+
+        if info['status'] != 'FINISHED':
+            incomplete += 1
+        if 'result' not in info:
+            info['result'] = 'UNKNOWN'
+
+        test_name = info['testName']
+        result = analyze_result_logs(test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
+
+        log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
+        test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
+        overall_test_results.append(test_result)
+
     detail_plan_result = {
         'plan_name': plan_result['test_plan'],
         'plan_config_file': plan_result['config_file'],
@@ -275,44 +328,17 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
         'counts_unexpected': counts_unexpected
     }
 
-    if len(test_info) != len(plan_modules):
-        print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
+    if (len(test_info) != len(plan_modules) or incomplete != 0):
         return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': detail_plan_result}
-
-    if incomplete != 0:
-        print(failure("** {:d} TEST MODULES DID NOT RUN TO COMPLETION **".format(incomplete)))
-        return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': detail_plan_result}
-
-    has_failure_or_warning = False
-
-    if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
-        print(failure("** SOME TEST MODULES HAVE CONDITION UNEXPECTED FAILURES **"))
-        has_failure_or_warning = True
-
-    if  counts_unexpected['UNEXPECTED_WARNINGS'] > 0:
-        print(failure("** SOME TEST MODULES HAVE CONDITION UNEXPECTED WARNINGS **"))
-        has_failure_or_warning = True
-
-    if counts_unexpected['UNEXPECTED_SKIPS'] > 0:
-        print(failure("** SOME TEST MODULES WERE UNEXPECTEDLY SKIPPED **"))
-        has_failure_or_warning = True
-
-    if counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] > 0:
-        print(failure("** SOME TEST MODULES HAVE CONDITION EXPECTED FAILURE DID NOT HAPPEN **"))
-        has_failure_or_warning = True
-
-    if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
-        print(failure("** SOME TEST MODULES HAVE CONDITION EXPECTED WARNING DID NOT HAPPEN **"))
-        has_failure_or_warning = True
-
-    if counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] > 0:
-        print(failure("** SOME TEST MODULES WERE EXPECTED TO BE SKIPPED BUT COMPLETED **"))
-        has_failure_or_warning = True
-
-    if has_failure_or_warning:
+    elif (counts_unexpected['UNEXPECTED_FAILURES']
+          or counts_unexpected['UNEXPECTED_WARNINGS']
+          or counts_unexpected['UNEXPECTED_SKIPS']
+          or counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN']
+          or counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN']
+          or counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN']):
         return {'plan_did_not_complete': 'FAILURE_OR_WARNING', 'detail_plan_result': detail_plan_result}
-
-    return {'plan_did_not_complete': 'COMPLETE', 'detail_plan_result': detail_plan_result}
+    else:
+        return {'plan_did_not_complete': 'COMPLETE', 'detail_plan_result': detail_plan_result}
 
 
 # Analyze all log of a test module and return object contains:
@@ -708,7 +734,8 @@ if __name__ == '__main__':
     did_not_complete = False
     failed_plan_results = []
     for result in results:
-        plan_result = show_plan_results(result, expected_failures_list, expected_skips_list)
+        plan_result = analyze_plan_results(result, expected_failures_list, expected_skips_list)
+        show_plan_results(result, plan_result)
         plan_did_not_complete = plan_result['plan_did_not_complete']
         if plan_did_not_complete == 'NOT_COMPLETE':
             did_not_complete = True
