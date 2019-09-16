@@ -351,7 +351,6 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
         log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
         if log_result in counts:
             counts[log_result] += 1
-            duplicate_index = 0
             log_entry_exist_in_expected_list = False
             for expected_failure_obj in expected_failures_list:
                 expected_test_name = expected_failure_obj['test-name']
@@ -373,12 +372,6 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
                     and expected_condition == log_entry['src']):
 
                     log_entry_exist_in_expected_list = True
-
-                    # check and list all expected failure duplicate
-                    duplicate_index += 1
-                    if duplicate_index > 1:
-                        expected_failure_obj['flag'] = 'duplicate'
-                        continue
 
                     # check and list all expected failure
                     if (log_result == 'FAILURE' and expected_result == 'failure'):
@@ -607,21 +600,39 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
 
 def load_expected_problems(filespec):
     # read json config file which records a list of expected failures/warnings
-    results = []
-    files = []
-
-    if '|' in filespec:
-        files = filespec.split("|")
-    else:
-        files.append(filespec)
-
-    for fname in files:
+    all_loaded = []
+    for fname in filespec.split("|"):
         with open(fname) as f:
             data = f.read();
             if data:
-                results.extend(json.loads(data))
+                all_loaded.extend(json.loads(data))
 
-    return results
+    # Check for duplicates
+    seen = []
+    duplicates = []
+    filtered = []
+    for item in all_loaded:
+        key = tuple(item.get(field, None) for field in ['test-name', 'variant', 'configuration-filename', 'condition', 'current-block'])
+        if key in seen:
+            duplicates.append(item)
+        else:
+            seen.append(key)
+            filtered.append(item)
+
+    if duplicates:
+        print(warning("** Some entries in the json is duplicated **"))
+        for entry in duplicates:
+            entry_duplicate_json = {
+                'test-name': entry['test-name'],
+                'variant': entry.get('variant', None),
+                'configuration-filename': entry['configuration-filename'],
+                'current-block': entry['current-block'],
+                'condition': entry['condition'],
+                'expected-result': entry['expected-result']
+            }
+            print(json.dumps(entry_duplicate_json, indent=4) + "\n", file=sys.__stdout__)
+
+    return filtered
 
 
 def parser_args_cli():
@@ -722,32 +733,10 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - some tests did not run to completion **"))
         sys.exit(1)
 
-    has_duplicate = False
     has_invalid = False
     for expected_failure_obj in expected_failures_list:
-        if expected_failure_obj['flag'] == 'duplicate':
-            has_duplicate = True
         if expected_failure_obj['flag'] == 'none':
             has_invalid = True
-
-    if has_duplicate:
-        print(warning("** Some entries in the json is duplicated **"))
-        for entry in expected_failures_list:
-            try:
-                variant = entry['variant']
-            except:
-                variant = None
-
-            if entry['flag'] == 'duplicate':
-                entry_duplicate_json = {
-                    'test-name': entry['test-name'],
-                    'variant': variant,
-                    'configuration-filename': entry['configuration-filename'],
-                    'current-block': entry['current-block'],
-                    'condition': entry['condition'],
-                    'expected-result': entry['expected-result']
-                }
-                print(json.dumps(entry_duplicate_json, indent=4) + "\n", file=sys.__stdout__)
 
     if has_invalid:
         print(warning("** Some entries in the json not found in any test module of the system **"))
