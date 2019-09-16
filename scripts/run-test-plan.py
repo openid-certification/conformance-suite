@@ -253,8 +253,15 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
               format(module, module_id, status_coloured, result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
-        test_result = summary_unexpected_failures_test_module(result, test_name, module_id)
-        if test_result:
+        summary_unexpected_failures_test_module(result, test_name, module_id)
+        if (result['unexpected_failures']
+            or result['expected_failures_did_not_happen']
+            or result['unexpected_warnings']
+            or result['expected_warnings_did_not_happen']
+            or result['unexpected_skip']
+            or result['expected_skip_did_not_happen']):
+            log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
+            test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
             overall_test_results.append(test_result)
 
         successful_conditions += counts['SUCCESS']
@@ -473,18 +480,15 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
     unexpected_skip = result['unexpected_skip']
     expected_skip_did_not_happen = result['expected_skip_did_not_happen']
 
-    has_unexpected_failures = False
     if len(expected_failures) > 0:
         print(expected_failure("Expected failure: "))
         print_failure_warning(expected_failures, 'failure', '\t', expected=True)
 
     if len(unexpected_failures) > 0:
-        has_unexpected_failures = True
         print(failure("Unexpected failure: "))
         print_failure_warning(unexpected_failures, 'failure', '\t')
 
     if len(expected_failures_did_not_happen) > 0:
-        has_unexpected_failures = True
         print(failure("Expected failure did not happen: "))
         print_failure_warning(expected_failures_did_not_happen, 'failure', '\t')
 
@@ -493,12 +497,10 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
         print_failure_warning(expected_warnings, 'warning', '\t', expected=True)
 
     if len(unexpected_warnings) > 0:
-        has_unexpected_failures = True
         print(warning("Unexpected warning: "))
         print_failure_warning(unexpected_warnings, 'warning', '\t')
 
     if len(expected_warnings_did_not_happen) > 0:
-        has_unexpected_failures = True
         print(warning("Expected warning did not happen: "))
         print_failure_warning(expected_warnings_did_not_happen, 'warning', '\t')
 
@@ -506,19 +508,10 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
         print(expected_warning("Test was skipped as expected"))
 
     if unexpected_skip:
-        has_unexpected_failures = True
         print(warning("Test was unexpectedly skipped"))
 
     if expected_skip_did_not_happen:
-        has_unexpected_failures = True
         print(warning("Test completed but was expected to be skipped"))
-
-    test_result = {}
-    if has_unexpected_failures:
-        log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
-        test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
-
-    return test_result
 
 
 # Output all unexpected failures for all test plan at the end of run-test-plan.py file
