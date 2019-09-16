@@ -367,6 +367,14 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
     config_filename = plan_result['config_file']
     (test_plan_name, variant) = split_name_and_variant(test_plan)
 
+    def is_expected_for_this_test(obj):
+        return (obj['test-name'] == test_name
+                and obj['configuration-filename'] == config_filename
+                and obj.get('variant', None) == variant)
+
+    test_expected_failures = list(filter(is_expected_for_this_test, expected_failures_list))
+    test_expected_skips = list(filter(is_expected_for_this_test, expected_skips_list))
+
     block_names = {}
     block_msg = ''
     for log_entry in logs:
@@ -385,38 +393,32 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
         if log_result in counts:
             counts[log_result] += 1
             log_entry_exist_in_expected_list = False
-            for expected_failure_obj in expected_failures_list:
-                expected_test_name = expected_failure_obj['test-name']
-                expected_config_filename = expected_failure_obj['configuration-filename']
+            for expected_failure_obj in test_expected_failures:
                 expected_condition = expected_failure_obj['condition']
                 expected_block = expected_failure_obj['current-block']
                 expected_result = expected_failure_obj['expected-result']
-                flag = expected_failure_obj['flag']
-                try:
-                    expected_variant = expected_failure_obj['variant']
-                except:
-                    expected_variant = None
 
-                if (flag == 'none'
-                    and expected_test_name == test_name
-                    and expected_variant == variant
-                    and expected_config_filename == config_filename
-                    and expected_block == block_msg
+                if (expected_block == block_msg
                     and expected_condition == log_entry['src']):
-
-                    log_entry_exist_in_expected_list = True
 
                     # check and list all expected failure
                     if (log_result == 'FAILURE' and expected_result == 'failure'):
                         expected_failures.append({'current_block': block_msg, 'src': log_entry['src']})
-                        expected_failure_obj['flag'] = 'checked'
                         counts_unexpected['EXPECTED_FAILURES'] += 1
 
                     # check and list all expected warning
                     elif (log_result == 'WARNING' and expected_result == 'warning'):
                         expected_warnings.append({'current_block': block_msg, 'src': log_entry['src']})
-                        expected_failure_obj['flag'] = 'checked'
                         counts_unexpected['EXPECTED_WARNINGS'] += 1
+
+                    # this wasn't an expected failure after all
+                    else:
+                        continue
+
+                    log_entry_exist_in_expected_list = True
+                    test_expected_failures.remove(expected_failure_obj)
+                    expected_failures_list.remove(expected_failure_obj)
+                    break
 
             # list all the unexpected failures/warnings of a test module
             if log_entry_exist_in_expected_list == False:
@@ -429,45 +431,26 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
                     counts_unexpected['UNEXPECTED_WARNINGS'] += 1
 
     # list all the expected failures/warnings did not happen of a test module
-    for expected_failure_obj in expected_failures_list:
-        expected_test_name = expected_failure_obj['test-name']
-        expected_config_filename = expected_failure_obj['configuration-filename']
-        flag = expected_failure_obj['flag']
-        try:
-            expected_variant = expected_failure_obj['variant']
-        except:
-            expected_variant = None
+    for expected_failure_obj in test_expected_failures:
+        expected_result = expected_failure_obj['expected-result']
+        expected_block = expected_failure_obj['current-block']
+        expected_condition = expected_failure_obj['condition']
 
-        if (flag == 'none' and expected_test_name == test_name and expected_variant == variant and expected_config_filename == config_filename):
-            expected_result = expected_failure_obj['expected-result']
-            expected_block = expected_failure_obj['current-block']
-            expected_condition = expected_failure_obj['condition']
+        if expected_result == 'failure':
+            expected_failures_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
+            counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] += 1
 
-            if expected_result == 'failure':
-                expected_failures_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
-                expected_failure_obj['flag'] = 'checked'
-                counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] += 1
+        elif expected_result == 'warning':
+            expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
+            counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
 
-            elif expected_result == 'warning':
-                expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
-                expected_failure_obj['flag'] = 'checked'
-                counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
-
-    for expected_skip_obj in expected_skips_list:
-        expected_test_name = expected_skip_obj['test-name']
-        expected_config_filename = expected_skip_obj['configuration-filename']
-        flag = expected_skip_obj['flag']
-        try:
-            expected_variant = expected_skip_obj['variant']
-        except:
-            expected_variant = None
-
-        if (flag == 'none' and expected_test_name == test_name and expected_variant == variant and expected_config_filename == config_filename):
-            if test_result == 'SKIPPED':
-                expected_skip = True
-            else:
-                expected_skip_did_not_happen = True
-                counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
+    for expected_skip_obj in test_expected_skips:
+        if test_result == 'SKIPPED':
+            expected_skip = True
+            expected_skips_list.remove(expected_skip_obj)
+        else:
+            expected_skip_did_not_happen = True
+            counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
 
     if (test_result == 'SKIPPED' and not expected_skip):
         unexpected_skip = True
@@ -714,15 +697,9 @@ if __name__ == '__main__':
     if args.expected_failures_file:
         expected_failures_list = load_expected_problems(args.expected_failures_file)
 
-    for expected_failure_obj in expected_failures_list:
-        expected_failure_obj['flag'] = 'none'
-
     expected_skips_list = []
     if args.expected_skips_file:
         expected_skips_list = load_expected_problems(args.expected_skips_file)
-
-    for expected_skip_obj in expected_skips_list:
-        expected_skip_obj['flag'] = 'none'
 
     results = []
     for (plan_name, config_json) in to_run:
@@ -746,29 +723,30 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - some tests did not run to completion **"))
         sys.exit(1)
 
-    has_invalid = False
-    for expected_failure_obj in expected_failures_list:
-        if expected_failure_obj['flag'] == 'none':
-            has_invalid = True
-
-    if has_invalid:
-        print(warning("** Some entries in the json not found in any test module of the system **"))
+    # analyze_plan_results will remove expected failures and skips from the list, so if
+    # any remain at this point, they are unused and should be warned about.
+    if expected_failures_list:
+        print(warning("** Some expected failures were not found in any test module of the system **"))
         for entry in expected_failures_list:
-            if entry['flag'] == 'none':
-                try:
-                    variant = entry['variant']
-                except:
-                    variant = None
+            entry_invalid_json = {
+                'test-name': entry['test-name'],
+                'variant': entry.get('variant', None),
+                'configuration-filename': entry['configuration-filename'],
+                'current-block': entry['current-block'],
+                'condition': entry['condition'],
+                'expected-result': entry['expected-result']
+            }
+            print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
 
-                entry_invalid_json = {
-                    'test-name': entry['test-name'],
-                    'variant': variant,
-                    'configuration-filename': entry['configuration-filename'],
-                    'current-block': entry['current-block'],
-                    'condition': entry['condition'],
-                    'expected-result': entry['expected-result']
-                }
-                print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+    if expected_skips_list:
+        print(warning("** Some expected skips were not found in any test module of the system **"))
+        for entry in expected_skips_list:
+            entry_invalid_json = {
+                'test-name': entry['test-name'],
+                'variant': entry.get('variant', None),
+                'configuration-filename': entry['configuration-filename']
+            }
+            print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
 
     if failed_plan_results:
         summary_unexpected_failures_all_test_plan(failed_plan_results)
