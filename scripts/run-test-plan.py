@@ -52,7 +52,7 @@ def run_test_plan(test_plan, config_file):
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
-    test_ids = {}  # key is module name
+    test_info = {}  # key is module name
     test_time_taken = {}  # key is module_id
     overall_start_time = time.time()
     print('Created test plan, new id: {}'.format(plan_id))
@@ -61,12 +61,14 @@ def run_test_plan(test_plan, config_file):
     for module in plan_modules:
         test_start_time = time.time()
         module_id = ''
+        module_info = {}
 
         try:
             print('Running test module: {}'.format(module))
             test_module_info = conformance.create_test_from_plan(plan_id, module)
             module_id = test_module_info['id']
-            test_ids[module] = module_id
+            module_info['id'] = module_id
+            test_info[module] = module_info
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
@@ -86,6 +88,8 @@ def run_test_plan(test_plan, config_file):
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
+            module_info['info'] = conformance.get_module_info(module_id)
+            module_info['logs'] = conformance.get_test_log(module_id)
     overall_time = time.time() - overall_start_time
     print('\n\n')
     return {
@@ -93,7 +97,7 @@ def run_test_plan(test_plan, config_file):
         'config_file': config_file,
         'plan_id': plan_id,
         'plan_modules': plan_modules,
-        'test_ids': test_ids,
+        'test_info': test_info,
         'test_time_taken': test_time_taken,
         'overall_time': overall_time
     }
@@ -183,7 +187,7 @@ def expected_failure(text):
 def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
     plan_id = plan_result['plan_id']
     plan_modules = plan_result['plan_modules']
-    test_ids = plan_result['test_ids']
+    test_info = plan_result['test_info']
     test_time_taken = plan_result['test_time_taken']
     overall_time = plan_result['overall_time']
 
@@ -209,12 +213,13 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
     print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
 
     for module in plan_modules:
-        if module not in test_ids:
+        if module not in test_info:
             print(failure('Test {} did not run'.format(module)))
             continue
-        module_id = test_ids[module]
-        info = conformance.get_module_info(module_id)
-        logs = conformance.get_test_log(module_id)
+        module_info = test_info[module]
+        module_id = module_info['id']
+        info = module_info['info']
+        logs = module_info['logs']
 
         if module in untested_test_modules:
             untested_test_modules.remove(module)
@@ -259,10 +264,10 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
     print(
         '\nOverall totals: ran {:d} test modules. '
         'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
-        format(len(test_ids), successful_conditions, number_of_failures, number_of_warnings, overall_time))
+        format(len(test_info), successful_conditions, number_of_failures, number_of_warnings, overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 
-    if len(test_ids) != len(plan_modules):
+    if len(test_info) != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
         return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': {}}
 
