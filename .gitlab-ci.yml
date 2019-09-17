@@ -411,7 +411,7 @@ deployment_ciba_test_review:
   }
 
   function install_dependencies() {
-    apk add -U openssl curl tar gzip bash ca-certificates git
+    apk add -U --upgrade openssl curl tar gzip bash ca-certificates git
     wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
     wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
     apk add glibc-2.23-r3.apk
@@ -471,7 +471,7 @@ deployment_ciba_test_review:
   }
 
   function install_build_dependencies() {
-    apk -q add --no-cache --update curl tar gzip make ca-certificates openssl python py-pip
+    apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python py-pip
     update-ca-certificates
     pip -q install docker-compose==1.23.2
     docker-compose --version
