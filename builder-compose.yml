@@ -1,0 +1,9 @@
+version: '3'
+services:
+  builder:
+    image: maven:3-jdk-11
+    volumes:
+     - ${MAVEN_CACHE}:/root/.m2
+     - .:/usr/src/mymaven
+    working_dir: /usr/src/mymaven
+    command: mvn -B clean package
