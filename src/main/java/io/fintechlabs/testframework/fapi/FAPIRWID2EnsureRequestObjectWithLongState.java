@@ -53,6 +53,16 @@ public class FAPIRWID2EnsureRequestObjectWithLongState extends AbstractFAPIRWID2
 		super.setupPrivateKeyJwt();
 	}
 
+	@Variant(name = variant_mtls_jarm)
+	public void setupMTLSJarm() {
+		super.setupMTLSJarm();
+	}
+
+	@Variant(name = variant_privatekeyjwt_jarm)
+	public void setupPrivateKeyJwtJarm() {
+		super.setupPrivateKeyJwtJarm();
+	}
+
 	@Variant(
 		name = variant_openbankinguk_mtls,
 		configurationFields = {

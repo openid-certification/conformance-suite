@@ -126,7 +126,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	// to be used in @Variant definitions
 	public static final String variant_mtls = "mtls";
+	public static final String variant_mtls_jarm = "mtls-jarm";
 	public static final String variant_privatekeyjwt = "private_key_jwt";
+	public static final String variant_privatekeyjwt_jarm = "private_key_jwt-jarm";
 	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
 	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
 
@@ -711,11 +713,20 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		generateNewClientAssertionSteps = null;
 	}
 
+	protected void setupMTLSJarm() {
+		setupMTLS();
+		jarm = true;
+	}
 	protected void setupPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
 		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	}
+
+	protected void setupPrivateKeyJwtJarm() {
+		setupPrivateKeyJwt();
+		jarm = true;
 	}
 
 	protected void setupOpenBankingUkMTLS() {

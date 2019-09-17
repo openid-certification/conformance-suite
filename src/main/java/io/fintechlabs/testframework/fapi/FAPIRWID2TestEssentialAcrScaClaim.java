@@ -37,7 +37,9 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt
+		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_mtls_jarm,
+		FAPIRWID2.variant_privatekeyjwt_jarm
 	}
 )
 public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ServerTestModule {
