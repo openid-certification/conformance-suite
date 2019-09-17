@@ -91,6 +91,7 @@ import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
+import io.fintechlabs.testframework.condition.client.ValidateSuccessfulHybridResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -325,6 +326,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+		callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
 
 		callAndStopOnFailure(CheckMatchingStateParameter.class);
 
