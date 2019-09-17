@@ -38,7 +38,6 @@ import org.springframework.http.ResponseEntity;
 		FAPICIBAID1.variant_openbankinguk_poll_privatekeyjwt
 	}
 )
-// FIXME: mark test as Ping specific
 public class FAPICIBAID1PingNotificationEndpointReturnsABody extends AbstractFAPICIBAID1 {
 
 	@Variant(name = variant_ping_mtls)
