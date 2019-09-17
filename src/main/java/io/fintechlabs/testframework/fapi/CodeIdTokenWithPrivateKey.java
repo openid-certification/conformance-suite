@@ -235,10 +235,10 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 
 		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
 		// code id_token, so response should be in the hash
 		env.mapKey("authorization_endpoint_response", "callback_params");
+
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		if (env.isKeyMapped("client")) {
 			// we're doing the second client

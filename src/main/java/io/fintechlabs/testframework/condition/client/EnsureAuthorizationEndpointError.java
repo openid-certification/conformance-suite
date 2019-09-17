@@ -11,14 +11,14 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class EnsureAuthorizationEndpointError extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "callback_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment in) {
-		if (!in.containsObject("callback_params")) {
+		if (!in.containsObject("authorization_endpoint_response")) {
 			throw error("Couldn't find callback parameters");
 		}
 
-		if (!Strings.isNullOrEmpty(in.getString("callback_params", "error"))) {
-			logSuccess("Error from the authorization endpoint", in.getObject("callback_params"));
+		if (!Strings.isNullOrEmpty(in.getString("authorization_endpoint_response", "error"))) {
+			logSuccess("Error from the authorization endpoint", in.getObject("authorization_endpoint_response"));
 			return in;
 		} else {
 			throw error("No error from authorization endpoint");

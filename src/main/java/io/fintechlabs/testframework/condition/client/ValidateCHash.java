@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class ValidateCHash extends ValidateHash {
 
 	@Override
-	@PreEnvironment(required = { "c_hash" , "callback_params" })
+	@PreEnvironment(required = { "c_hash" , "authorization_endpoint_response" })
 	public Environment evaluate(Environment env) {
 		return super.validateHash(env,"c_hash","c_hash");
 	}

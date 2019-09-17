@@ -9,11 +9,11 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "callback_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
-		String code = env.getString("callback_params", "code");
+		String code = env.getString("authorization_endpoint_response", "code");
 		if (Strings.isNullOrEmpty(code)) {
-			throw error("Couldn't find authorization code in callback");
+			throw error("Couldn't find authorization code in authorization_endpoint_response");
 		} else {
 			env.putString("code", code);
 			logSuccess("Found authorization code",

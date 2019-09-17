@@ -13,21 +13,21 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class CheckMatchingStateParameter extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "callback_params")
-	public Environment evaluate(Environment in) {
-		if (!in.containsObject("callback_params")) {
+	@PreEnvironment(required = "authorization_endpoint_response")
+	public Environment evaluate(Environment env) {
+		if (!env.containsObject("authorization_endpoint_response")) {
 			throw error("Couldn't find callback parameters");
 		}
 
-		String expected = in.getString("state");
-		String actual = in.getString("callback_params", "state");
+		String expected = env.getString("state");
+		String actual = env.getString("authorization_endpoint_response", "state");
 
 		if (Strings.isNullOrEmpty(expected)) {
 			// we didn't save a 'state' value, we need to make sure one wasn't returned
 			if (Strings.isNullOrEmpty(actual)) {
 				// we're good
 				logSuccess("No state parameter to check");
-				return in;
+				return env;
 			} else {
 				throw error("No state value was sent, but a state parameter was returned", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			}
@@ -38,7 +38,7 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 				logSuccess("State parameter correctly returned",
 					args("state", Strings.nullToEmpty(actual)));
 
-				return in;
+				return env;
 			} else {
 				throw error("State parameter did not match",  args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			}
