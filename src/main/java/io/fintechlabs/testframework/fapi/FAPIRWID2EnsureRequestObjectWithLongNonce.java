@@ -142,13 +142,7 @@ public class FAPIRWID2EnsureRequestObjectWithLongNonce extends AbstractFAPIRWID2
 
 		requestAuthorizationCode();
 
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
 		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpoint();
 
 		fireTestFinished();
 	}

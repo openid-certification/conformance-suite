@@ -142,13 +142,7 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 		requestAuthorizationCode();
 
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
 		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpoint();
 
 		fireTestFinished();
 	}
