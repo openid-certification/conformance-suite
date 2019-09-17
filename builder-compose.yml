@@ -1,9 +1,9 @@
 version: '3'
 services:
   builder:
-    image: gliderlabs/herokuish
+    image: maven:3-jdk-11
     volumes:
-     - ${MAVEN_CACHE}:/tmp/cache/.m2
-     - .:/tmp/app:ro
-     - ./target:/target
-    command: /bin/bash -c '/bin/herokuish buildpack build && cp -v /app/target/*.jar /target'
+     - ${MAVEN_CACHE}:/root/.m2
+     - .:/usr/src/mymaven
+    working_dir: /usr/src/mymaven
+    command: mvn -B clean package
