@@ -129,5 +129,12 @@
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
         "comment": "known expected authlete behaviour"
+    },
+    {
+        "test-name": "oidcc",
+        "configuration-filename": "google-oidcc.json",
+        "current-block": "",
+        "condition": "ConfigurationRequestsTestIsSkipped",
+        "expected-result": "failure"
     }
 ]

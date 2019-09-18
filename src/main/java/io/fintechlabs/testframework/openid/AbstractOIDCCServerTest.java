@@ -17,6 +17,7 @@ import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
+import io.fintechlabs.testframework.condition.client.ConfigurationRequestsTestIsSkipped;
 import io.fintechlabs.testframework.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
@@ -55,6 +56,16 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
+
+		Boolean skip = env.getBoolean("config", "skip_test");
+		if (skip != null && skip) {
+			// This is intended for use in our CI where we insist all tests run to completion
+			// It would be used as a temporary measure in an 'override' where one of the environments we are testing
+			// against is not able to run the test to completion due to an issue in that environments.
+			callAndContinueOnFailure(ConfigurationRequestsTestIsSkipped.class, Condition.ConditionResult.FAILURE);
+			fireTestFinished();
+			return;
+		}
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 

@@ -34,6 +34,9 @@ function makeClientTest {
 }
 
 function makeServerTest {
+    # OIDCC
+    TESTS="${TESTS} oidcc-test-plan google-oidcc.json"
+
     # authlete openbanking
     TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-mtls authlete-fapi-rw-id2-ob-mtls.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt authlete-fapi-rw-id2-ob-privatekey.json"
