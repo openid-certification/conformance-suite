@@ -8,7 +8,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	displayName = "OIDCC: Authorization server test",
 	profile = "OIDCC",
 	testModules = {
-		OIDCC.class
+		OIDCC.class,
+		OIDCCRefreshToken.class
 	}
 )
 public class OIDCCTestPlan implements TestPlan {

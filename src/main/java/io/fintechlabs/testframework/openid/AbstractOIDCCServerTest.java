@@ -49,8 +49,19 @@ import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
+import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
+import io.fintechlabs.testframework.sequence.ConditionSequence;
 
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
+
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
+
+	public static class AddFormBasedClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		}
+	}
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -201,7 +212,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+		call(sequence(addTokenEndpointClientAuthentication));
 	}
 
 	protected void requestAuthorizationCode() {
