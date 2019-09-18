@@ -105,9 +105,9 @@ public abstract class ValidateHash extends AbstractCondition {
 				baseString = OIDFJSON.getString(accessToken.get("value"));
 				break;
 			case "c_hash":
-				baseString = env.getString("callback_params", "code");
+				baseString = env.getString("authorization_endpoint_response", "code");
 				if (baseString == null) {
-					throw error("Could not find callback_params.code");
+					throw error("Could not find authorization_endpoint_response.code");
 				}
 				break;
 			default:

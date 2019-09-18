@@ -60,11 +60,11 @@ public class CheckIfAuthorizationEndpointError_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.putObject("callback_params", successParams);
+		env.putObject("authorization_endpoint_response", successParams);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("callback_params", "error");
+		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "error");
 	}
 
 	/**
@@ -73,10 +73,10 @@ public class CheckIfAuthorizationEndpointError_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_error() {
 
-		env.putObject("callback_params", errorParams);
+		env.putObject("authorization_endpoint_response", errorParams);
 
 		cond.evaluate(env);
 
-		verify(env, atLeastOnce()).getString("callback_params", "error");
+		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "error");
 	}
 }

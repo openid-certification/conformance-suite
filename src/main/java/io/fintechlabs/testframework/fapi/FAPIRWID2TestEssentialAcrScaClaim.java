@@ -111,13 +111,7 @@ public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ServerTe
 
 		requestAuthorizationCode();
 
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
 		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpoint();
 
 		fireTestFinished();
 	}

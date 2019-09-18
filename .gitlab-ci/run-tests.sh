@@ -38,14 +38,6 @@ function makeServerTest {
     TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-mtls authlete-fapi-rw-id2-ob-mtls.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt authlete-fapi-rw-id2-ob-privatekey.json"
 
-    # forgerock currently disabled: not managed to onboard new clients since their period of frequent key recycling
-    #TESTS="${TESTS} fapi-rw-id2-ob-with-private-key-and-mtls-holder-of-key-test-plan forgerock-code-idtoken-config.json"
-    #TESTS="${TESTS} fapi-rw-id2-ob-code-with-private-key-and-mtls-holder-of-key-test-plan forgerock-code-config.json"
-
-    # ozone openbanking
-    #TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt ozone-ob-privatekey-codeidtoken-v2_0.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-private_key_jwt ozone-ob-privatekey-codeidtoken-v3_1.json"
-
     # authlete FAPI
     TESTS="${TESTS} fapi-rw-id2-test-plan:mtls authlete-fapi-rw-id2-mtls.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan:private_key_jwt authlete-fapi-rw-id2-privatekey.json"

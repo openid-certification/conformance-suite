@@ -8,10 +8,10 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class VerifyNoStateInAuthorizationResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "callback_params")
+	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		String state = env.getString("callback_params", "state");
+		String state = env.getString("authorization_endpoint_response", "state");
 
 		if (!Strings.isNullOrEmpty(state)) {
 			throw error("state has been returned in authorization endpoint response, when it shouldn't have been");

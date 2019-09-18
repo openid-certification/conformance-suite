@@ -47,13 +47,13 @@ public class VerifyNoStateInAuthorizationResponse_UnitTest {
 
 	@Test
 	public void testEvaluate_noError() {
-		env.putObject("callback_params", responseWithoutState);
+		env.putObject("authorization_endpoint_response", responseWithoutState);
 		cond.evaluate(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_presentState() {
-		env.putObject("callback_params", responseWithState);
+		env.putObject("authorization_endpoint_response", responseWithState);
 		cond.evaluate(env);
 	}
 

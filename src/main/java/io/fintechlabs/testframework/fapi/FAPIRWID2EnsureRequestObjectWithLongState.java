@@ -142,13 +142,7 @@ public class FAPIRWID2EnsureRequestObjectWithLongState extends AbstractFAPIRWID2
 
 		requestAuthorizationCode();
 
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
 		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpoint();
 
 		fireTestFinished();
 	}

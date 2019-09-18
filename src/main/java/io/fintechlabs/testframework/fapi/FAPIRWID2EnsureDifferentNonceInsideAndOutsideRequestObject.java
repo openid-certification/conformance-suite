@@ -135,13 +135,7 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 
 		requestAuthorizationCode();
 
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
 		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpoint();
 
 		fireTestFinished();
 	}

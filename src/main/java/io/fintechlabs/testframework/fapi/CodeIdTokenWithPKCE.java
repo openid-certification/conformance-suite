@@ -194,6 +194,8 @@ public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
 
 		callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
 
+		env.mapKey("authorization_endpoint_response", "callback_params");
+
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		handleAuthorizationResult();
