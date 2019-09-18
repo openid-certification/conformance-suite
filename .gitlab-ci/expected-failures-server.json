@@ -132,16 +132,10 @@
     },
     {
         "test-name": "oidcc",
-        "configuration-filename": "google-oidcc.json",
-        "current-block": "",
-        "condition": "ConfigurationRequestsTestIsSkipped",
-        "expected-result": "failure"
-    },
-    {
-        "test-name": "oidcc-refresh-token",
-        "configuration-filename": "google-oidcc.json",
-        "current-block": "",
-        "condition": "ConfigurationRequestsTestIsSkipped",
-        "expected-result": "failure"
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
     }
 ]

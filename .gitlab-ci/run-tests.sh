@@ -35,7 +35,7 @@ function makeClientTest {
 
 function makeServerTest {
     # OIDCC
-    TESTS="${TESTS} oidcc-test-plan google-oidcc.json"
+    TESTS="${TESTS} oidcc-test-plan authlete-oidcc-secret-post.json"
 
     # authlete openbanking
     TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-mtls authlete-fapi-rw-id2-ob-mtls.json"
