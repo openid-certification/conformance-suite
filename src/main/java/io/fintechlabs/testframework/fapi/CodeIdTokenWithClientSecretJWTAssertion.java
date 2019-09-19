@@ -94,12 +94,10 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 		"client.scope",
 		"client.client_secret",
 		"client.client_secret_jwt_alg",
-		"client.client_secret_jwt_kid",
 		"client2.client_id",
 		"client2.client_secret",
 		"client2.scope",
 		"client2.client_secret_jwt_alg",
-		"client2.client_secret_jwt_kid",
 		"resource.resourceUrl"
 	}
 )
