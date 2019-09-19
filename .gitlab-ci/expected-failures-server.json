@@ -132,6 +132,7 @@
     },
     {
         "test-name": "oidcc",
+        "variant": "client_secret_post",
         "configuration-filename": "authlete-oidcc-secret-post.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
