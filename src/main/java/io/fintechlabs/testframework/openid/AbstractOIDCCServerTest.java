@@ -32,6 +32,7 @@ import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResp
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
+import io.fintechlabs.testframework.condition.client.GenerateJWKsFromClientSecret;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;
 import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfiguration;
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
@@ -52,16 +53,39 @@ import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
-	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
+	// Variants
+	public static final String variant_client_secret_post = "client_secret_post";
+	public static final String variant_client_secret_jwt = "client_secret_jwt";
+
+	protected Class<? extends ConditionSequence> profileClientValidation;
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+
+	public static class ValidateClientForClientSecretJwt extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
+		}
+	}
 
 	public static class AddFormBasedClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 		}
+	}
+
+	protected void setupClientSecretPost() {
+		profileClientValidation = null;
+		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
+	}
+
+	protected void setupClientSecretJwt() {
+		profileClientValidation = ValidateClientForClientSecretJwt.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	@Override
@@ -120,7 +144,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void validateClientConfiguration() {
-		// TODO: validate JWKs, MTLS keys etc as appropriate
+		if (profileClientValidation != null) {
+			call(sequence(profileClientValidation));
+		}
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
+import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "oidcc",
@@ -28,6 +29,16 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class OIDCC extends AbstractOIDCCMultipleClient {
+
+	@Variant(name = variant_client_secret_post)
+	public void setupClientSecretPost() {
+		super.setupClientSecretPost();
+	}
+
+	@Variant(name = variant_client_secret_jwt)
+	public void setupClientSecretJwt() {
+		super.setupClientSecretJwt();
+	}
 
 	@Override
 	protected void performSecondClientTests() {
