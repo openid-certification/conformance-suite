@@ -31,6 +31,8 @@ import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import io.fintechlabs.testframework.condition.client.FetchServerKeys;
@@ -44,18 +46,23 @@ import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointReq
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
+import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgainstRequest;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
+import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
+import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ServerTestModule;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
+import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 
@@ -64,6 +71,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	// Variants
 	public static final String variant_client_secret_post = "client_secret_post";
 	public static final String variant_client_secret_jwt = "client_secret_jwt";
+	public static final String variant_private_key_jwt = "private_key_jwt";
+	public static final String variant_mtls = "mtls";
 
 	public static final List<ResponseType> SUPPORTED_RESPONSE_TYPES = List.of(ResponseType.CODE, ResponseType.CODE_ID_TOKEN);
 
@@ -76,6 +85,24 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
+		}
+	}
+
+	public static class ValidateClientForMtls extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
+			// FIXME: do we need to do second client mtls too?
+		}
+	}
+
+	public static class ValidateClientForPrivateKeyJwt extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ValidateClientJWKsPrivatePart .class, "RFC7517-1.1");
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration .class);
 		}
 	}
 
@@ -94,6 +121,16 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void setupClientSecretJwt() {
 		profileClientValidation = ValidateClientForClientSecretJwt.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	}
+
+	protected void setupPrivateKeyJwt() {
+		profileClientValidation = ValidateClientForPrivateKeyJwt.class;
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	}
+
+	protected void setupMtls() {
+		profileClientValidation = ValidateClientForMtls.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	@Override

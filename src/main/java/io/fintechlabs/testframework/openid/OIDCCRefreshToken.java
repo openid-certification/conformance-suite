@@ -51,6 +51,30 @@ public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 		super.setupClientSecretJwt();
 	}
 
+	@Variant(
+		name = variant_private_key_jwt,
+		configurationFields =  {
+			"client.jwks",
+			"client2.jwks",
+		})
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(
+		name = variant_mtls,
+		configurationFields =  {
+			"mtls.key",
+			"mtls.cert",
+			"mtls.ca",
+			"mtls2.key",
+			"mtls2.cert",
+			"mtls2.ca",
+		})
+	public void setupMtls() {
+		super.setupMtls();
+	}
+
 	@Override
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
