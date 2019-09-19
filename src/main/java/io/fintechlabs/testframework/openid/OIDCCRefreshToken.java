@@ -18,6 +18,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
 	profile = "OIDCC",
 	configurationFields = {
+		"response_type",
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.client_secret",

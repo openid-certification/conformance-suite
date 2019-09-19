@@ -1,5 +1,7 @@
 package io.fintechlabs.testframework.openid;
 
+import java.util.List;
+
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -38,6 +40,7 @@ import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfigur
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
@@ -54,12 +57,17 @@ import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import io.fintechlabs.testframework.testmodule.TestFailureException;
 
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
 	// Variants
 	public static final String variant_client_secret_post = "client_secret_post";
 	public static final String variant_client_secret_jwt = "client_secret_jwt";
+
+	public static final List<ResponseType> SUPPORTED_RESPONSE_TYPES = List.of(ResponseType.CODE, ResponseType.CODE_ID_TOKEN);
+
+	protected ResponseType responseType;
 
 	protected Class<? extends ConditionSequence> profileClientValidation;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
@@ -101,6 +109,17 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			callAndContinueOnFailure(ConfigurationRequestsTestIsSkipped.class, Condition.ConditionResult.FAILURE);
 			fireTestFinished();
 			return;
+		}
+
+		String responseTypeStr = env.getString("config", "response_type");
+		if (responseTypeStr == null) {
+			throw new TestFailureException(getId(), "No response_type was found in the config");
+		}
+
+		responseType = ResponseType.parse(responseTypeStr);
+
+		if (!SUPPORTED_RESPONSE_TYPES.contains(responseType)) {
+			throw new TestFailureException(getId(), "Not a supported response type: " + responseType);
 		}
 
 		callAndStopOnFailure(CreateRedirectUri.class);
@@ -174,7 +193,13 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		if (responseType.equals(ResponseType.CODE)) {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+		} else if (responseType.equals(ResponseType.CODE_ID_TOKEN)) {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		} else {
+			throw new TestFailureException(getId(), "BUG: missing case for response type: " + responseType);
+		}
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -184,14 +209,16 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void processCallback() {
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		// We're only using hybrid flow for now: use the hash as the response
-		env.mapKey("authorization_endpoint_response", "callback_params");
+		if (responseType.equals(ResponseType.CODE)) {
+			env.mapKey("authorization_endpoint_response", "callback_query_params");
+		} else if (responseType.equals(ResponseType.CODE_ID_TOKEN)) {
+			env.mapKey("authorization_endpoint_response", "callback_params");
 
-		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-		callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+		}
 
 		onAuthorizationCallbackResponse();
-
 		eventLog.endBlock();
 	}
 
@@ -204,13 +231,17 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class);
+		if (responseType.includesIdToken()) {
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class);
 
-		// save the id_token returned from the authorisation endpoint
-		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+			// save the id_token returned from the authorisation endpoint
+			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
-		performIdTokenValidation();
-		performAuthorizationCodeValidation();
+			performIdTokenValidation();
+		}
+		if (responseType.includesCode()) {
+			performAuthorizationCodeValidation();
+		}
 		performPostAuthorizationFlow();
 	}
 
@@ -224,10 +255,12 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void performAuthorizationCodeValidation() {
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		if (responseType.includesIdToken()) {
+			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
-			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
+					ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		}
 	}
 
 	protected void performPostAuthorizationFlow() {
@@ -255,10 +288,12 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.3.2.5");
-		performIdTokenValidation();
+		if (responseType.includesIdToken()) {
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.3.2.5");
+			performIdTokenValidation();
 
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE);
+		}
 	}
 
 	protected void requestProtectedResource() {
