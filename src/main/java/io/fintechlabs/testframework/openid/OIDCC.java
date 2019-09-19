@@ -15,28 +15,38 @@ import io.fintechlabs.testframework.testmodule.Variant;
 @PublishTestModule(
 	testName = "oidcc",
 	displayName = "OIDCC: Authorization server test",
-	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc), tests that certificate bound access tokens are implemented correctly and tries reusing an authorization code.",
+	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on registered redirect uri etc), and tries reusing an authorization code.",
 	profile = "OIDCC",
 	configurationFields = {
 		"response_type",
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.client_secret",
 		"client.scope",
 		"client2.client_id",
-		"client2.client_secret",
 		"client2.scope",
 		"resource.resourceUrl"
 	}
 )
 public class OIDCC extends AbstractOIDCCMultipleClient {
 
-	@Variant(name = variant_client_secret_post)
+	@Variant(
+		name = variant_client_secret_post,
+		configurationFields =  {
+			"client.client_secret",
+			"client2.client_secret"
+		})
 	public void setupClientSecretPost() {
 		super.setupClientSecretPost();
 	}
 
-	@Variant(name = variant_client_secret_jwt)
+	@Variant(
+		name = variant_client_secret_jwt,
+		configurationFields =  {
+			"client.client_secret",
+			"client.client_secret_jwt_alg",
+			"client2.client_secret",
+			"client2.client_secret_jwt_alg",
+		})
 	public void setupClientSecretJwt() {
 		super.setupClientSecretJwt();
 	}
