@@ -54,7 +54,7 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/introspect", env.getString("server", "introspection_endpoint"));
 	}
@@ -65,7 +65,7 @@ public class AddIntrospectionUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl + "/");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/introspect", env.getString("server", "introspection_endpoint"));
 	}

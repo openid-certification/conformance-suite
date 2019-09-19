@@ -5,11 +5,10 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
-import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.frontChannel.BrowserControl;
 import io.fintechlabs.testframework.info.ImageService;
 import io.fintechlabs.testframework.info.TestInfoService;
@@ -26,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -235,8 +233,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					.newInstance();
 			condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
 
-			Method eval = builder.getConditionClass().getMethod("evaluate", Environment.class);
-
 			logger.info((builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
 
 			// check the environment to see if we need to skip this call
@@ -287,89 +283,22 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				}
 			}
 
-
-			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
-			if (pre != null) {
-				for (String req : pre.required()) {
-					if (!env.containsObject(req)) {
-						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
-							"expected", req,
-							"result", ConditionResult.FAILURE,
-							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
-							"requirements", builder.getRequirements()
-						// TODO: log the environment here?
-						));
-						fireTestFailure();
-						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find key in environment: " + req));
-					}
-				}
-				for (String s : pre.strings()) {
-					if (env.getString(s) == null) {
-						logger.info("[pre] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
-							"expected", s,
-							"result", ConditionResult.FAILURE,
-							"requirements", builder.getRequirements()
-						// TODO: log the environment here?
-						));
-						fireTestFailure();
-						throw new TestFailureException(new ConditionError(getId(), "[pre] Couldn't find string in environment: " + s));
-					}
-				}
-			}
-
-			// evaluate the condition and assign its results back to our environment
-			env = condition.evaluate(env);
-			if (!condition.logged()) {
-				eventLog.log(condition.getMessage(),
-					args("msg", "Condition ran but did not log anything"));
-			}
-
-			// check the environment to make sure the condition did what it claimed to
-			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);
-			if (post != null) {
-				for (String req : post.required()) {
-					if (!env.containsObject(req)) {
-						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
-							"expected", req,
-							"result", ConditionResult.FAILURE,
-							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
-							"requirements", builder.getRequirements()
-						// TODO: log the environment here?
-						));
-						fireTestFailure();
-						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find key in environment: " + req));
-					}
-				}
-				for (String s : post.strings()) {
-					if (env.getString(s) == null) {
-						logger.info("[post] Test condition " + builder.getConditionClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
-						eventLog.log(condition.getMessage(), args(
-							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
-							"expected", s,
-							"result", ConditionResult.FAILURE,
-							"requirements", builder.getRequirements()
-						// TODO: log the environment here?
-						));
-						fireTestFailure();
-						throw new TestFailureException(new ConditionError(getId(), "[post] Couldn't find string in environment: " + s));
-					}
-				}
-			}
+			((AbstractCondition) condition).execute(env);
 
 		} catch (ConditionError error) {
-			if (builder.isStopOnFailure()) {
-				logger.info("stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+			if (error.isPreOrPostError()) {
+				logger.info("[pre/post] Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 				fireTestFailure();
 				throw new TestFailureException(error);
 			} else {
-				logger.info("Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
-				updateResultFromConditionFailure(builder.getOnFail());
+				if (builder.isStopOnFailure()) {
+					logger.info("stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+					fireTestFailure();
+					throw new TestFailureException(error);
+				} else {
+					logger.info("Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+					updateResultFromConditionFailure(builder.getOnFail());
+				}
 			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);

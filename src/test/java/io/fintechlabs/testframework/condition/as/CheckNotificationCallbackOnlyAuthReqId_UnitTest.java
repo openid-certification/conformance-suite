@@ -33,7 +33,7 @@ public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 	public void testEvaluate_caseNull() {
 		env.putObject("notification_callback", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -42,7 +42,7 @@ public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 		o.add("body_json", new JsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -51,7 +51,7 @@ public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 		o.add("body_json", new JsonParser().parse("{\"auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -60,6 +60,6 @@ public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 		o.add("body_json", new JsonParser().parse("{\"auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\",\"expires_in\": 3600}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

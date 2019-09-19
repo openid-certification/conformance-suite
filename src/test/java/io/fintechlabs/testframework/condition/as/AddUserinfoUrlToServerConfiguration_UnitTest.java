@@ -54,7 +54,7 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/userinfo", env.getString("server", "userinfo_endpoint"));
 	}
@@ -65,7 +65,7 @@ public class AddUserinfoUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl + "/");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/userinfo", env.getString("server", "userinfo_endpoint"));
 	}

@@ -64,7 +64,7 @@ public class ValidateRequestObjectExp_UnitTest {
 
 		addRequestObjectClaims(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getLong("authorization_request_object", "claims.exp");
 	}
@@ -76,7 +76,7 @@ public class ValidateRequestObjectExp_UnitTest {
 
 		addRequestObjectClaims(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -88,7 +88,7 @@ public class ValidateRequestObjectExp_UnitTest {
 
 		addRequestObjectClaims(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -100,7 +100,7 @@ public class ValidateRequestObjectExp_UnitTest {
 
 		addRequestObjectClaims(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -112,7 +112,7 @@ public class ValidateRequestObjectExp_UnitTest {
 
 		addRequestObjectClaims(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -124,7 +124,7 @@ public class ValidateRequestObjectExp_UnitTest {
 
 		addRequestObjectClaims(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

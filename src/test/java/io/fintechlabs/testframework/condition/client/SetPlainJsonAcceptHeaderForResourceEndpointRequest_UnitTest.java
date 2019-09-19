@@ -40,7 +40,7 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
 	@Test
 	public void testEvaluate_noHeaders() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("resource_endpoint_request_headers", "Accept")).isEqualTo(expectedHeader);
 	}
@@ -52,7 +52,7 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
 		headers.addProperty("Accept", "something else");
 		env.putObject("resource_endpoint_request_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("resource_endpoint_request_headers", "Accept")).isEqualTo(expectedHeader);
 	}

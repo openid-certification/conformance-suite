@@ -49,7 +49,7 @@ public class SetAccountScopeOnTokenEndpointRequest_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 

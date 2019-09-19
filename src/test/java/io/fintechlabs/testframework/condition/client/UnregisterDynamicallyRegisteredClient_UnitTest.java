@@ -57,7 +57,7 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 		client.addProperty("registration_access_token", "reg.access.token");
 		client.addProperty("registration_client_uri", "https://good.example.com/deregister");
 		env.putObject("client", client);
-		cond.evaluate(env);
+		cond.execute(env);
 		hoverfly.verify(service("good.example.com")
 			.delete("/deregister")
 			.header("Authorization", "Bearer reg.access.token"));
@@ -72,7 +72,7 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 		client.addProperty("registration_access_token", "reg.access.token");
 		client.addProperty("registration_client_uri", "https://bad.example.com/deregister");
 		env.putObject("client", client);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 

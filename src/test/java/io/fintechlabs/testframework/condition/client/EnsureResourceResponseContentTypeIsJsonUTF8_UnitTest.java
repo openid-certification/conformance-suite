@@ -44,7 +44,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 		headers.addProperty("content-type", "application/json; charset=UTF-8");
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "content-type");
 	}
@@ -59,7 +59,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 		headers.addProperty("content-type", "application/json; charset=Shift_JIS");
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 		headers.addProperty("content-type", "application/json");
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 		headers.addProperty("content-type", "text/json; charset=UTF-8");
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 		JsonObject headers = new JsonObject();
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

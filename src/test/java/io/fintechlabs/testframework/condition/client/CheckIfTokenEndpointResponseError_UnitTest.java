@@ -61,7 +61,7 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 
 		env.putObject("token_endpoint_response", successParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "error");
 	}
@@ -74,7 +74,7 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 
 		env.putObject("token_endpoint_response", errorParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "error");
 	}

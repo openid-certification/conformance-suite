@@ -86,7 +86,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 		assertThat(env.getObject("request_object_claims")).isEqualTo(authorizationEndpointRequest);
@@ -98,7 +98,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

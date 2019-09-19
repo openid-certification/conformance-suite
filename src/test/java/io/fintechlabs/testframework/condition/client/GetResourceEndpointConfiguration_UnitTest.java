@@ -54,7 +54,7 @@ public class GetResourceEndpointConfiguration_UnitTest {
 		config.add("resource", resourceConfig);
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getElementFromObject("config", "resource");
 		assertThat(env.getObject("resource")).isEqualTo(resourceConfig);
@@ -68,7 +68,7 @@ public class GetResourceEndpointConfiguration_UnitTest {
 
 		env.putObject("config", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class GetResourceEndpointConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_configMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

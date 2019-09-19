@@ -45,7 +45,7 @@ public class CalculateCHash_UnitTest {
 
 		env.putString("authorization_code", authorizationCode);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test (expected = ConditionError.class)
@@ -53,7 +53,9 @@ public class CalculateCHash_UnitTest {
 	{
 		env.putString("signing_algorithm", "ZZ256");
 
-		cond.evaluate(env);
+		env.putString("authorization_code", authorizationCode);
+
+		cond.execute(env);
 	}
 
 	@Test
@@ -65,7 +67,7 @@ public class CalculateCHash_UnitTest {
 		env.putString("authorization_code", "Qcb0Orv1zh30vL1MPRsbm-diHiMwcLyZvn1arpZv-Jxf_11jnpEX3Tgfvk");
 		env.putString("signing_algorithm", "HS256");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(expectedCHash, env.getString("c_hash"));
 		verify(env, atLeastOnce()).getString("authorization_code");

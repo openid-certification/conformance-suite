@@ -56,7 +56,7 @@ public class CheckForKeyIdInServerJWKs_UnitTest {
 			"  ]" +
 			"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class CheckForKeyIdInServerJWKs_UnitTest {
 			"  ]" +
 			"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

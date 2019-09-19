@@ -39,24 +39,24 @@ public class CheckRedirectUri_UnitTest {
 	@Test
 	public void testEvaluate_noErrors(){
 		env.putString("redirect_uri", goodHttpUri);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		env.putString("redirect_uri", goodHttpsUri);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		env.putString("redirect_uri", goodCustomUri);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_nonLoopBackHttp(){
 		env.putString("redirect_uri", badHttpUri);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badUriFormat(){
 		env.putString("redirect_uri", badUri);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

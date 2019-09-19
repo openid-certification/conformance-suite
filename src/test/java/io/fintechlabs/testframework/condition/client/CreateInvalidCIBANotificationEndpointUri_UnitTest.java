@@ -42,7 +42,7 @@ public class CreateInvalidCIBANotificationEndpointUri_UnitTest {
 
 		env.putString("base_url", "https://example.com");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("base_url");
 
@@ -55,7 +55,7 @@ public class CreateInvalidCIBANotificationEndpointUri_UnitTest {
 
 		env.putString("base_url", "");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -64,7 +64,7 @@ public class CreateInvalidCIBANotificationEndpointUri_UnitTest {
 
 		env.putString("base_url", null);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

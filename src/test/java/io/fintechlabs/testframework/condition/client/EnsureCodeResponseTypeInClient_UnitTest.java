@@ -53,7 +53,7 @@ public class EnsureCodeResponseTypeInClient_UnitTest {
 			"\"response_types\":[\"code\"]}").getAsJsonObject();
 
 		env.putObject("client", goodRespone);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class EnsureCodeResponseTypeInClient_UnitTest {
 			"\"response_types\":[\"token\"]}").getAsJsonObject();
 
 		env.putObject("client", goodRespone);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class EnsureCodeResponseTypeInClient_UnitTest {
 			"\"grant_types\":[\"authorization_code\"]}").getAsJsonObject();
 
 		env.putObject("client", goodRespone);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class EnsureCodeResponseTypeInClient_UnitTest {
 			"\"response_types\":[\"code\", \"token\"]}").getAsJsonObject();
 
 		env.putObject("client", goodRespone);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -144,6 +144,6 @@ public class EnsureCodeResponseTypeInClient_UnitTest {
 			"\"response_types\":[]}").getAsJsonObject();
 
 		env.putObject("client", goodRespone);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

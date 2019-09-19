@@ -284,7 +284,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
 		verify(env, atLeastOnce()).getString("config", "mtls.key");
@@ -305,7 +305,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
 		verify(env, atLeastOnce()).getString("config", "mtls.key");
@@ -324,7 +324,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -337,7 +337,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -349,7 +349,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -362,7 +362,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -371,7 +371,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

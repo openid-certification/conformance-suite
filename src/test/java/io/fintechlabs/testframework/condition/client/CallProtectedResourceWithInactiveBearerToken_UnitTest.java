@@ -94,7 +94,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://example.com/resource");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("example.com")
 			.get("/resource")
@@ -117,7 +117,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 		env.putString("protected_resource_url", "http://example.com/resource");
 		env.getObject("resource").addProperty("resourceMethod","POST");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("example.com")
 			.post("/resource")
@@ -139,7 +139,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 		env.putObject("access_token", inactiveBearerToken);
 		env.putString("protected_resource_url", "http://example.com/resource");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -153,7 +153,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 		env.putString("protected_resource_url", "http://example.com/resource");
 		env.getObject("resource").addProperty("resourceMethod", "POST");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -166,7 +166,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://invalid.org/");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -178,7 +178,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 
 		env.putString("protected_resource_url", "http://example.com/resource");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -190,7 +190,7 @@ public class CallProtectedResourceWithInactiveBearerToken_UnitTest {
 
 		env.putObject("access_token", bearerToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

@@ -58,7 +58,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 		createIdToken(env,240); // 4 minute offset
-		cond.evaluate(env);
+		cond.execute(env);
 		verify(env, atLeastOnce()).getLong("id_token", "claims.exp");
 		verify(env, atLeastOnce()).getLong("id_token", "claims.iat");
 	}
@@ -69,7 +69,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 	@Test
 	public void testEvaluate_noErrorMaxLength() {
 		createIdToken(env,300); // 5 minute offset
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_tooLong() {
 		createIdToken(env,600); // 10 minute offset
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
 		env.putObject("id_token",idToken);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
 		env.putObject("id_token",idToken);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class VerifyIdTokenExpHeart_UnitTest {
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);
 		env.putObject("id_token",idToken);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

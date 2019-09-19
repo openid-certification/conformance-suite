@@ -13,7 +13,7 @@ public class ValidateRequestObjectExp extends AbstractCondition {
 	private long oneDayMillis = 60 * 60 * 24 * 1000L; // Duration for one day
 
 	@Override
-	@PreEnvironment(required = {"authorization_request_object", "client"})
+	@PreEnvironment(required = "authorization_request_object" )
 	public Environment evaluate(Environment env) {
 
 		Instant now = Instant.now(); // to check timestamps

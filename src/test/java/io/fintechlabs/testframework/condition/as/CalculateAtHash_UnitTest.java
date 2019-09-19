@@ -44,7 +44,7 @@ public class CalculateAtHash_UnitTest {
 
 		env.putString("access_token", access_token);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test (expected = ConditionError.class)
@@ -52,7 +52,9 @@ public class CalculateAtHash_UnitTest {
 	{
 		env.putString("signing_algorithm", "ZZ256");
 
-		cond.evaluate(env);
+		env.putString("access_token", access_token);
+
+		cond.execute(env);
 	}
 
 	@Test
@@ -64,7 +66,7 @@ public class CalculateAtHash_UnitTest {
 		env.putString("access_token", "jHkWEdUXMU1BwAsC4vtUsZwnNvTIxEl0z9K3vx5KF0Y");
 		env.putString("signing_algorithm", "HS256");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(expectedAtHash, env.getString("at_hash"));
 		verify(env, atLeastOnce()).getString("access_token");

@@ -54,7 +54,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 
 		env.putObject("client", clientWithScope);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 
@@ -70,7 +70,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 
 		env.putObject("client", clientWithoutScope);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject parameters = env.getObject("token_endpoint_request_form_parameters");
 

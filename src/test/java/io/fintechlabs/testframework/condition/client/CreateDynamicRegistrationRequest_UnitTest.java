@@ -35,7 +35,7 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noClientName(){
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getObject("dynamic_registration_request")).isNotNull();
 		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("UNIT-TEST");
 	}
@@ -46,7 +46,7 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 	@Test
 	public void testEvaluate_withClientName(){
 		env.putString("client_name","my-client-name");
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getObject("dynamic_registration_request")).isNotNull();
 		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("my-client-name UNIT-TEST");
 	}

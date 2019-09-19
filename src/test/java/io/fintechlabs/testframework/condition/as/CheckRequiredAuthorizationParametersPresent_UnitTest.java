@@ -64,7 +64,7 @@ public class CheckRequiredAuthorizationParametersPresent_UnitTest {
 
 		addEndpointRequest(env, params);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test (expected = ConditionError.class)
@@ -74,7 +74,7 @@ public class CheckRequiredAuthorizationParametersPresent_UnitTest {
 
 		params.remove("response_type");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test (expected = ConditionError.class)
@@ -85,7 +85,7 @@ public class CheckRequiredAuthorizationParametersPresent_UnitTest {
 		params.remove("response_type");
 		params.remove("scope");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

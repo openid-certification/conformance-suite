@@ -98,7 +98,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 		env.putObject("resource_assertion", goodAssertion);
 		env.putObject("resource_public_jwks", goodResourceJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -111,7 +111,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 		env.putObject("resource_assertion", badAssertion);
 		env.putObject("resource_public_jwks", goodResourceJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -123,7 +123,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 
 		env.putObject("resource_public_jwks", goodResourceJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -136,7 +136,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 		env.putObject("resource_assertion", goodAssertion);
 		env.putObject("resource_public_jwks", wrongResourceJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -147,9 +147,9 @@ public class ValidateResourceAssertionSignature_UnitTest {
 	public void testEvaluate_badKeys() {
 
 		env.putObject("resource_assertion", goodAssertion);
-		env.putString("resource_public_jwks", "this is not a key set");
+		env.putObject("resource_public_jwks", new JsonParser().parse("{\"keys\":[]}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -161,7 +161,7 @@ public class ValidateResourceAssertionSignature_UnitTest {
 
 		env.putObject("resource_assertion", goodAssertion);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

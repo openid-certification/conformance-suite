@@ -41,18 +41,18 @@ public class ValidateErrorUriFromTokenEndpointResponseError_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorUriFieldCharacterInvalid() {
 		tokenEndpointResponse.addProperty("error_uri", "https://www.authlete.com/documents/apis/result_codes#A200308\"");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorUriFieldURISyntaxInvalid() {
 		tokenEndpointResponse.addProperty("error_uri", "/authlete/documents/apis/result_codes#A200308");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_ErrorUriFieldValid() {
 		tokenEndpointResponse.addProperty("error_uri", "https://www.authlete.com/documents/apis/result_codes#A200308");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

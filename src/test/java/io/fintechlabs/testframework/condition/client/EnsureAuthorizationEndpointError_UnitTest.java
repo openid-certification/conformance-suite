@@ -55,7 +55,7 @@ public class EnsureAuthorizationEndpointError_UnitTest {
 	public void testEvaluate_noError() {
 		// This condition is looking for an error to pass
 		env.putObject("authorization_endpoint_response", errorParams);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -66,6 +66,6 @@ public class EnsureAuthorizationEndpointError_UnitTest {
 		// Looking for an error, so a successful callback will throw an error.
 		env.putObject("authorization_endpoint_response", successParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

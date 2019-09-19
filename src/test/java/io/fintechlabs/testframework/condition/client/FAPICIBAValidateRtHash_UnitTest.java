@@ -38,7 +38,7 @@ public class FAPICIBAValidateRtHash_UnitTest {
 		JsonObject rtHash = new JsonParser().parse("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
 		env.putObject("rt_hash", rtHash);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -50,7 +50,7 @@ public class FAPICIBAValidateRtHash_UnitTest {
 		JsonObject rtHash = new JsonParser().parse("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
 		env.putObject("rt_hash", rtHash);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -62,7 +62,7 @@ public class FAPICIBAValidateRtHash_UnitTest {
 		JsonObject rtHash = new JsonParser().parse("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
 		env.putObject("rt_hash", rtHash);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

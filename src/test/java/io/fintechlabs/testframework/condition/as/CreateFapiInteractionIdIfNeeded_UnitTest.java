@@ -44,7 +44,7 @@ public class CreateFapiInteractionIdIfNeeded_UnitTest {
 	public void test_existing() {
 
 		env.putString("fapi_interaction_id", interactionId);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("fapi_interaction_id");
 		assertEquals(interactionId, env.getString("fapi_interaction_id"));
@@ -53,7 +53,7 @@ public class CreateFapiInteractionIdIfNeeded_UnitTest {
 	@Test
 	public void test_create() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("fapi_interaction_id");
 		verify(env, times(1)).putString(eq("fapi_interaction_id"), anyString());

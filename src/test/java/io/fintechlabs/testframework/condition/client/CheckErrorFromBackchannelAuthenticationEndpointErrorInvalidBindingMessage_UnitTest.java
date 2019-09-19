@@ -40,7 +40,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 
 	@Test
 	public void testEvaluate_caseGood() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -52,7 +52,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 
 		env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -64,7 +64,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 
 		env.putObject("backchannel_authentication_endpoint_response", response);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

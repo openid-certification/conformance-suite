@@ -68,7 +68,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 		env.putObject("id_token", goodIdToken);
 		env.putObject("server_jwks", goodServerJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
 		verify(env, atLeastOnce()).getObject("server_jwks");
@@ -101,7 +101,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 		env.putObject("id_token", badIdToken);
 		env.putObject("server_jwks", goodServerJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
 		verify(env, atLeastOnce()).getObject("server_jwks");
@@ -127,7 +127,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		env.putObject("server_jwks", goodServerJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
 		verify(env, atLeastOnce()).getObject("server_jwks");
@@ -155,7 +155,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 		env.putObject("id_token", goodIdToken);
 		env.putObject("server_jwks", wrongServerJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
 		verify(env, atLeastOnce()).getObject("server_jwks");
@@ -174,7 +174,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 		env.putObject("id_token", goodIdToken);
 		env.putString("server_jwks", "this is not a key set");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
 		verify(env, atLeastOnce()).getObject("server_jwks");
@@ -192,7 +192,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		env.putObject("id_token", goodIdToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "value");
 		verify(env, atLeastOnce()).getObject("server_jwks");
@@ -226,7 +226,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -385,7 +385,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -432,7 +432,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -479,7 +479,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -719,7 +719,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -826,7 +826,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -858,7 +858,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		env.putObject("server_jwks", goodServerJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -891,7 +891,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		env.putObject("server_jwks", wrongServerJwksWithKid);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -970,7 +970,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

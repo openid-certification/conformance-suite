@@ -39,7 +39,7 @@ public class AddExpValueIs70MinutesInFutureToRequestObject_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("request_object_claims").has("exp")).isTrue();
 
@@ -54,7 +54,7 @@ public class AddExpValueIs70MinutesInFutureToRequestObject_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getLong("request_object_claims", "exp") - Instant.now().getEpochSecond()).isEqualTo(expExpect);
 

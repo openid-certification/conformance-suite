@@ -62,7 +62,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 		env.putObject("client", client);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("client_assertion_claims")).isNotNull();
 
@@ -86,7 +86,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 	public void testEvaluate_missingClient() {
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 
@@ -94,7 +94,7 @@ public class CreateClientAuthenticationAssertionClaimsForRevocationEndpoint_Unit
 	public void testEvaluate_missingServer() {
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

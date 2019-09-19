@@ -54,7 +54,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 	public void testEvaluate() {
 		env.putObject("resource_assertion", resourceAssertion);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -64,7 +64,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 		env.putObject("resource_assertion", resourceAssertion);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -75,7 +75,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 		env.putObject("resource_assertion", resourceAssertion);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -86,7 +86,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 		env.putObject("resource_assertion", resourceAssertion);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

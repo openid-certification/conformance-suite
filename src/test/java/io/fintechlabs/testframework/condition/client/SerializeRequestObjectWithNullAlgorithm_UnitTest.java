@@ -94,7 +94,7 @@ public class SerializeRequestObjectWithNullAlgorithm_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("request_object_claims");
 
@@ -115,7 +115,7 @@ public class SerializeRequestObjectWithNullAlgorithm_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_claimsMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

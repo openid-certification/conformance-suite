@@ -53,7 +53,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -75,7 +75,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -95,7 +95,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -117,7 +117,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -140,7 +140,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -163,21 +163,21 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingJWKs() {
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeys() {
 		client.add("jwks", new JsonObject());
 		env.putObject("client", client);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -199,7 +199,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -220,7 +220,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -251,6 +251,6 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 			"}").getAsJsonObject());
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

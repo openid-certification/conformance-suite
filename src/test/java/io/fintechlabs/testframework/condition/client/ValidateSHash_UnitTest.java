@@ -57,7 +57,7 @@ public class ValidateSHash_UnitTest {
 		env.putString("state", "12345");
 		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -69,7 +69,7 @@ public class ValidateSHash_UnitTest {
 		env.putString("state", "Qcb0Orv1zh30vL1MPRsbm-diHiMwcLyZvn1arpZv-Jxf_11jnpEX3Tgfvk");
 		addStateHash(env, "HS256", "LDktKdoQak3Pk0cnXxCltA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("s_hash", "s_hash");
 		verify(env, atLeastOnce()).getString("state");
@@ -84,7 +84,7 @@ public class ValidateSHash_UnitTest {
 
 		env.putString("state", "12345");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class ValidateSHash_UnitTest {
 		env.putString("state", "12345");
 		addStateHash(env, "HS256", null);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class ValidateSHash_UnitTest {
 
 		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class ValidateSHash_UnitTest {
 		env.putString("state", "12345");
 		addStateHash(env, null, "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -131,7 +131,7 @@ public class ValidateSHash_UnitTest {
 		env.putString("state", "12345");
 		addStateHash(env, "XXX", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class ValidateSHash_UnitTest {
 		env.putString("state", "abcde");
 		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

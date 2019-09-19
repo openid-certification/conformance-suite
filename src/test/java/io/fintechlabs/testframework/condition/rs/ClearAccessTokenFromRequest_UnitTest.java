@@ -40,7 +40,7 @@ public class ClearAccessTokenFromRequest_UnitTest {
 
 		env.putString("incoming_access_token", accesstoken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).removeNativeValue("incoming_access_token");
 
@@ -50,7 +50,7 @@ public class ClearAccessTokenFromRequest_UnitTest {
 	@Test
 	public void test_notPresent() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).removeNativeValue("incoming_access_token");
 

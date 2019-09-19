@@ -46,7 +46,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 	private void doTestString(String stringToTest) {
 		JsonObject jsonErrorNoneNoOptionalFields = new JsonParser().parse(stringToTest).getAsJsonObject();
 		env.putObject("authorization_endpoint_response", jsonErrorNoneNoOptionalFields);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**

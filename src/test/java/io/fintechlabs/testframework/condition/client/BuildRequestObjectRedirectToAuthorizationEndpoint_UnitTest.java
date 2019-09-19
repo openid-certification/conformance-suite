@@ -137,7 +137,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		env.putObject("request_object_claims", requestObjectClaims);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 		verify(env, atLeastOnce()).getString("request_object");
@@ -171,7 +171,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		env.putObject("request_object_claims", requestObjectClaims);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		UriComponents redirectUriComponents = UriComponentsBuilder.fromUriString(env.getString("redirect_to_authorization_endpoint")).build();
 		Map<String, List<String>> redirectUriParams = redirectUriComponents.getQueryParams();
@@ -191,7 +191,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		env.putObject("request_object_claims", requestObjectClaims);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -205,7 +205,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		env.putObject("request_object_claims", requestObjectClaims);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -219,7 +219,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		env.putString("request_object", requestObject);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -233,7 +233,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 		env.putString("request_object", requestObject);
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

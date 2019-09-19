@@ -62,7 +62,7 @@ public class CheckMatchingStateParameter_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", paramsWithState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("state");
 		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "state");
@@ -76,7 +76,7 @@ public class CheckMatchingStateParameter_UnitTest {
 
 		env.putObject("authorization_endpoint_response", paramsWithoutState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("state");
 		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "state");
@@ -91,7 +91,7 @@ public class CheckMatchingStateParameter_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", paramsWithoutState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class CheckMatchingStateParameter_UnitTest {
 		env.putString("state", "abc");
 		env.putObject("authorization_endpoint_response", paramsWithState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -114,6 +114,6 @@ public class CheckMatchingStateParameter_UnitTest {
 
 		env.putObject("authorization_endpoint_response", paramsWithState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

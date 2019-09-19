@@ -1,6 +1,5 @@
 package io.fintechlabs.testframework.condition.as;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
@@ -57,7 +56,7 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 
 		env.putObject("token_endpoint_request", tokenEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertNotNull(env.getElementFromObject("token_endpoint_request", "params.client_assertion_type"));
 	}
@@ -67,13 +66,13 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 
 		env.putObject("token_endpoint_request", invalidTokenEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

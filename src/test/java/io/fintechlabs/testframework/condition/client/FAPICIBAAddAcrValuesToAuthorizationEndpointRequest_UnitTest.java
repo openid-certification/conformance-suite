@@ -50,7 +50,7 @@ public class FAPICIBAAddAcrValuesToAuthorizationEndpointRequest_UnitTest {
 		client.addProperty("acr_value", acrValues);
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getString("authorization_endpoint_request", "acr_values")).isNotEmpty();
 		assertThat(env.getString("authorization_endpoint_request", "acr_values")).isEqualTo(acrValues);
 	}
@@ -61,7 +61,7 @@ public class FAPICIBAAddAcrValuesToAuthorizationEndpointRequest_UnitTest {
 		client.addProperty("acr_value", "urn:openbanking:psd2:acr");
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -69,7 +69,7 @@ public class FAPICIBAAddAcrValuesToAuthorizationEndpointRequest_UnitTest {
 		JsonObject client = new JsonObject();
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getString("authorization_endpoint_request", "acr_values")).isNotEmpty();
 		assertThat(env.getString("authorization_endpoint_request", "acr_values")).isEqualTo(acrValues);
 	}

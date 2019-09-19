@@ -59,7 +59,7 @@ public class CopyAccessTokenFromASToClient_UnitTest {
 		env.putString("access_token", accessTokenValue);
 		env.putString("token_type", tokenType);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject res = env.getObject("access_token");
 

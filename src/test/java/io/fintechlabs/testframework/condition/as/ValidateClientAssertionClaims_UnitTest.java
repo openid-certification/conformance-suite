@@ -92,7 +92,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("server", "issuer");
@@ -110,9 +110,10 @@ public class ValidateClientAssertionClaims_UnitTest {
 	public void testEvaluate_missingClientId() {
 
 		env.putObject("server", server);
+		env.putObject("client", new JsonObject());
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -122,7 +123,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("client", client);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -132,7 +133,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("client", client);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -145,7 +146,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -159,7 +160,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -172,7 +173,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -186,7 +187,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -199,7 +200,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -213,7 +214,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -227,7 +228,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -241,7 +242,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -255,7 +256,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -269,7 +270,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -283,7 +284,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -296,7 +297,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -310,7 +311,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -324,7 +325,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -338,7 +339,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 		env.putObject("server", server);
 		addClientAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

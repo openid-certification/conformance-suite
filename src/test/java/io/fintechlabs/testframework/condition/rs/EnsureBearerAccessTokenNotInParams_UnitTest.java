@@ -64,7 +64,7 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 
 		env.putObject("incoming_request", hasToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 
 	}
@@ -73,7 +73,7 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 
 		env.putObject("incoming_request", missingToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "params.access_token");
 
@@ -83,7 +83,7 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 
 		env.putObject("incoming_request", missingParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "params.access_token");
 

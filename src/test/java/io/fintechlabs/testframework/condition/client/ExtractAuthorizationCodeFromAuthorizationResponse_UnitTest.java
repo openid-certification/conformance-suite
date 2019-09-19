@@ -63,7 +63,7 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 
 		env.putObject("authorization_endpoint_response", callbackParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "code");
 
@@ -78,7 +78,7 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 
 		env.putObject("authorization_endpoint_response", callbackParamsWithoutCode);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -87,6 +87,6 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testparamsMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

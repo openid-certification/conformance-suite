@@ -33,7 +33,7 @@ public class CreateRandomFAPIInteractionId_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("fapi_interaction_id")).isNotNull();
 	}

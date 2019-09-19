@@ -34,7 +34,7 @@ public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 	public void testEvaluate_RequestedExpiryFieldValid() {
 		env.putObject("authorization_endpoint_request", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		String expectedRequestedExpiry = "30";
 		assertEquals(env.getString("authorization_endpoint_request", "requested_expiry"), expectedRequestedExpiry);

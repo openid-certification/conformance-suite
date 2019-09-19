@@ -34,7 +34,7 @@ public class ValidateAuthenticationRequestIdInterval_UnitTest {
 		JsonObject o = new JsonObject();
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -43,7 +43,7 @@ public class ValidateAuthenticationRequestIdInterval_UnitTest {
 		o.addProperty("interval", 1);
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -52,7 +52,7 @@ public class ValidateAuthenticationRequestIdInterval_UnitTest {
 		o.addProperty("interval", "1");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -61,7 +61,7 @@ public class ValidateAuthenticationRequestIdInterval_UnitTest {
 		o.addProperty("interval", -2);
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

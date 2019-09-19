@@ -42,7 +42,7 @@ public class CreateRedirectUri_UnitTest {
 
 		env.putString("base_url", "https://example.com");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("base_url");
 
@@ -60,7 +60,7 @@ public class CreateRedirectUri_UnitTest {
 
 		env.putString("redirect_uri_suffix", "?dummy1=lorem&dummy2=ipsum");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("base_url");
 		verify(env, atLeastOnce()).getString("redirect_uri_suffix");
@@ -77,7 +77,7 @@ public class CreateRedirectUri_UnitTest {
 
 		env.putString("base_url", "");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -89,7 +89,7 @@ public class CreateRedirectUri_UnitTest {
 
 		env.putString("base_url", null);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

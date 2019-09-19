@@ -34,7 +34,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 	public void testEvaluate_caseNull() {
 		env.putObject("server", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -42,7 +42,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 		JsonObject server = new JsonParser().parse("{\"tls_client_certificate_bound_access_tokens\":{\"value\": true}}").getAsJsonObject();
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -50,7 +50,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 		JsonObject server = new JsonParser().parse("{\"tls_client_certificate_bound_access_tokens\":\"true\"}").getAsJsonObject();
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -58,6 +58,6 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 		JsonObject server = new JsonParser().parse("{\"tls_client_certificate_bound_access_tokens\":true}").getAsJsonObject();
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

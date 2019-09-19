@@ -41,18 +41,18 @@ public class ValidateErrorFromTokenEndpointResponseError_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorFieldEmpty() {
 		tokenEndpointResponse.addProperty("error", "");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorFieldInvalid() {
 		tokenEndpointResponse.addProperty("error", "authorization_pending\"");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_ErrorFieldValid() {
 		tokenEndpointResponse.addProperty("error", "authorization_pending");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

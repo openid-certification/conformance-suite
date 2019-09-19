@@ -46,7 +46,7 @@ public class AddAudToRequestObject_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("request_object_claims").has("aud")).isTrue();
 

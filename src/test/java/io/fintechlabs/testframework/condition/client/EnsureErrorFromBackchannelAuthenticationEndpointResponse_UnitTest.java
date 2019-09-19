@@ -49,12 +49,12 @@ public class EnsureErrorFromBackchannelAuthenticationEndpointResponse_UnitTest {
 
 		env.putObject("backchannel_authentication_endpoint_response", backChannelAuthenticationEndpointResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_success() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

@@ -45,7 +45,7 @@ public class CreateBadRedirectUri_UnitTest {
 
 		env.putString("base_url", "https://example.com");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("base_url");
 
@@ -58,6 +58,6 @@ public class CreateBadRedirectUri_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

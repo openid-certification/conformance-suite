@@ -83,7 +83,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 		for (JsonObject tls : hasTls) {
 			env.putObject("client_request", tls);
 
-			cond.evaluate(env);
+			cond.execute(env);
 
 			verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-cipher");
 		}
@@ -94,7 +94,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 		env.putObject("client_request", wrongTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 	@Test(expected = ConditionError.class)
@@ -102,7 +102,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 		env.putObject("client_request", missingTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 	@Test
@@ -110,7 +110,7 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 		env.putObject("client_request", onlyTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-cipher");
 

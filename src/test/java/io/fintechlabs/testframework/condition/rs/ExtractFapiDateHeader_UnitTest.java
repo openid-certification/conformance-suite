@@ -82,7 +82,7 @@ public class ExtractFapiDateHeader_UnitTest {
 	public void test_good() {
 
 		env.putObject("incoming_request", goodRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "headers.x-fapi-auth-date");
 		assertEquals(date, env.getString("fapi_auth_date"));
@@ -91,43 +91,43 @@ public class ExtractFapiDateHeader_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void test_bad() {
 		env.putObject("incoming_request", badRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_odd() {
 		env.putObject("incoming_request", oddRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_old() {
 		env.putObject("incoming_request", oldRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_ascii() {
 		env.putObject("incoming_request", asciiRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_badFormat() {
 		env.putObject("incoming_request", badFormatRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_missing() {
 		env.putObject("incoming_request", missingHeader);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_noHeader() {
 		env.putObject("incoming_request", noHeaders);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

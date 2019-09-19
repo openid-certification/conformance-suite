@@ -38,7 +38,7 @@ public class CreateRandomStateValue_UnitTest {
 	 */
 	@Test
 	public void testEvaluate() {
-		cond.evaluate(env);
+		cond.execute(env);
 
 		String res1 = env.getString("state");
 
@@ -46,7 +46,7 @@ public class CreateRandomStateValue_UnitTest {
 		assertThat(res1).isNotEmpty();
 
 		// call it twice to make sure we get a different value
-		cond.evaluate(env);
+		cond.execute(env);
 
 		String res2 = env.getString("state");
 

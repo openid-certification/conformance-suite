@@ -66,7 +66,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequestFormParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("client", "client_secret");
@@ -81,7 +81,7 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

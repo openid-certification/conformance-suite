@@ -67,7 +67,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 
 		env.putObject("token_endpoint_request", tokenEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.containsObject("client_certificate")).isTrue();
 		assertThat(env.getString("client_certificate", "subject.dn")).isEqualTo("CN=Atlantis");
@@ -80,7 +80,11 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		tokenEndpointRequest.add("headers", new JsonObject());
+
+		env.putObject("token_endpoint_request", tokenEndpointRequest);
+
+		cond.execute(env);
 
 	}
 

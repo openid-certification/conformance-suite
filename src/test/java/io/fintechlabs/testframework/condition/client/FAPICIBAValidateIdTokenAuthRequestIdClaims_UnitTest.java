@@ -37,7 +37,7 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 		JsonObject claims = new JsonParser().parse("{\"claims\":{}}").getAsJsonObject();
 		env.putObject("id_token", claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -49,7 +49,7 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 		JsonObject claims = new JsonParser().parse("{\"claims\":{\"urn:openid:params:jwt:claim:auth_req_id\": \"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}}").getAsJsonObject();
 		env.putObject("id_token", claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -61,7 +61,7 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 		JsonObject claims = new JsonParser().parse("{\"claims\":{\"urn:openid:params:jwt:claim:auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\"}}").getAsJsonObject();
 		env.putObject("id_token", claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

@@ -38,7 +38,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 	public void testEvaluate_caseHeadersAsNull() {
 		env.putObject("notification_callback", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -47,7 +47,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		o.add("headers", new JsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -56,7 +56,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		o.add("headers", new JsonParser().parse("{\"authorization\": \"\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -65,7 +65,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		o.add("headers", new JsonParser().parse("{\"authorization\": \"x-bearer 8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		o.add("headers", new JsonParser().parse("{\"authorization\": \"Bearer 8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -83,7 +83,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		o.add("headers", new JsonParser().parse("{\"authorization\": \"Bearer   8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -92,6 +92,6 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		o.add("headers", new JsonParser().parse("{\"authorization\": \"Bearer qw3lPzKZNTpgZ2IKYSNwn6Xct1pX9jdQ2dIBUpD4AiI\"}").getAsJsonObject());
 		env.putObject("notification_callback", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

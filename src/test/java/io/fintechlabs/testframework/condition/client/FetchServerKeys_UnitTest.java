@@ -82,7 +82,7 @@ public class FetchServerKeys_UnitTest {
 		server.addProperty("jwks_uri", "https://good.example.com/jwks.json");
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verifyZeroRequestTo(service("good.example.com"));
 
@@ -101,7 +101,7 @@ public class FetchServerKeys_UnitTest {
 		server.addProperty("jwks_uri", "https://good.example.com/jwks.json");
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com").get("/jwks.json"));
 
@@ -116,7 +116,7 @@ public class FetchServerKeys_UnitTest {
 
 		env.putObject("server", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class FetchServerKeys_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingConfig() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -138,7 +138,7 @@ public class FetchServerKeys_UnitTest {
 		server.addProperty("jwks_uri", "https://nonexisting.example.com/jwks.json");
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -151,6 +151,6 @@ public class FetchServerKeys_UnitTest {
 		server.addProperty("jwks_uri", "https://bad.example.com/jwks.json");
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

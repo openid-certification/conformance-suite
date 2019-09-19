@@ -90,7 +90,7 @@ public class CreateIntrospectionResponse_UnitTest {
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject res = env.getObject("introspection_response");
 
@@ -121,7 +121,7 @@ public class CreateIntrospectionResponse_UnitTest {
 		env.putString("access_token", accessTokenValue);
 		env.putString("client_id", clientId);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject res = env.getObject("introspection_response");
 

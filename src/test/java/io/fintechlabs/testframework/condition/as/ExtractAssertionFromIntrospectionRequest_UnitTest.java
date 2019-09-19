@@ -81,9 +81,6 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromRequestHeaders#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test
 	public void testEvaluate() {
 
@@ -96,7 +93,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 
 		env.putObject("introspection_request", request);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject res = env.getObject("resource_assertion");
 
@@ -107,9 +104,6 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 		assertEquals(payload, res.get("assertion_payload").getAsJsonObject());
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.as.ExtractClientCertificateFromRequestHeaders#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
@@ -118,7 +112,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 
 	}
 
@@ -128,7 +124,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 		request = new JsonParser().parse("{\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -140,7 +138,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 
 	}
 	@Test(expected = ConditionError.class)
@@ -153,7 +153,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -165,7 +167,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 
 	}
 
@@ -179,7 +183,9 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 
 	}
 
@@ -193,20 +199,10 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		cond.evaluate(env);
+		env.putObject("introspection_request", request);
+
+		cond.execute(env);
 
 	}
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_wrongType() {
-
-		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
-			"		\"client_assertion\": \"" + assertion + "\",\n" +
-			"		\"client_assertion_type\": \"batman\"\n" +
-			"	}\n" +
-			"}").getAsJsonObject();
-
-		cond.evaluate(env);
-	}
 }

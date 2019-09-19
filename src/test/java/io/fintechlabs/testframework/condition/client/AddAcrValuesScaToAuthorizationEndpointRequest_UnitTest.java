@@ -36,7 +36,7 @@ public class AddAcrValuesScaToAuthorizationEndpointRequest_UnitTest {
 	public void testEvaluate() {
 		env.putObject("authorization_endpoint_request", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("authorization_endpoint_request", "acr_values")).isNotEmpty();
 		assertThat(env.getString("authorization_endpoint_request", "acr_values")).isEqualTo(acrValue);

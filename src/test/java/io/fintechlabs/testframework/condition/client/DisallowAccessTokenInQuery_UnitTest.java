@@ -79,7 +79,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://good.example.com/accounts");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com")
 			.get("/accounts")
@@ -98,7 +98,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://bad.example.com/accounts");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -111,7 +111,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://invalid.org/accounts");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -123,7 +123,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 
 		env.putString("protected_resource_url", "http://good.example.com/accounts");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -135,7 +135,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 
 		env.putObject("access_token", bearerToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

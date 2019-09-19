@@ -36,7 +36,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_
 
 		env.putObject("backchannel_authentication_endpoint_response", response);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -45,14 +45,14 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_
 
 		env.putObject("backchannel_authentication_endpoint_response", response);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseErrorEmpty() {
 		env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

@@ -57,7 +57,7 @@ public class SetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticati
 	@Test
 	public void testEvaluate_noError() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getElementFromObject("server", "issuer");
 		verify(env, atLeastOnce()).getObject("client_assertion_claims");

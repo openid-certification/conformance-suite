@@ -35,7 +35,7 @@ public class ValidateAuthenticationRequestIdExpiresIn_UnitTest {
 		o.addProperty("expires_in", 600);
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -44,7 +44,7 @@ public class ValidateAuthenticationRequestIdExpiresIn_UnitTest {
 		o.addProperty("expires_in", "600");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -53,7 +53,7 @@ public class ValidateAuthenticationRequestIdExpiresIn_UnitTest {
 		o.addProperty("expires_in", -2);
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -62,6 +62,6 @@ public class ValidateAuthenticationRequestIdExpiresIn_UnitTest {
 		o.addProperty("expires_in", 60000000);
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

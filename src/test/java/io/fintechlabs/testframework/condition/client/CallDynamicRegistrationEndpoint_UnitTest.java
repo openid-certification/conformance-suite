@@ -116,7 +116,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		env.putObject("dynamic_registration_request", requestParameters);
 
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com")
 			.post("/registration")
@@ -144,7 +144,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		env.putObject("dynamic_registration_request", requestParameters);
 
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("noregapi.example.com")
 			.post("/registration")
@@ -165,7 +165,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	public void testEvaluate_noServerRegistraitonEndpoint(){
 		JsonObject server = new JsonParser().parse("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
 		env.putObject("server",server);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -181,7 +181,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		env.putObject("dynamic_registration_request", requestParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -196,7 +196,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		env.putObject("dynamic_registration_request", requestParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -211,6 +211,6 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		env.putObject("dynamic_registration_request", requestParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

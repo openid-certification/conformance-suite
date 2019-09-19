@@ -62,7 +62,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		env.putObject("resource", resourceConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
@@ -78,7 +78,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 		env.putObject("resource", resourceConfig);
 		env.putObject("resource_endpoint_request_headers",	new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
@@ -94,7 +94,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 		env.putObject("resource", resourceConfig);
 		env.putObject("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonObject req = env.getObject("resource_endpoint_request_headers");
 
@@ -110,7 +110,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 		env.putObject("resource", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

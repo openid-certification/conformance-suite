@@ -32,20 +32,20 @@ public class CheckBackchannelAuthenticationEndpointHttpStatus200_UnitTest {
 	public void testEvaluate_noError() {
 		env.putInteger("backchannel_authentication_endpoint_response_http_status", 200);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_withError400() {
 		env.putInteger("backchannel_authentication_endpoint_response_http_status", 400);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongParameters() {
 		env.putInteger("authentication_endpoint_response_http_status", 200);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

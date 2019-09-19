@@ -62,7 +62,7 @@ public class ExtractFapiInteractionIdHeader_UnitTest {
 	public void test_good() {
 
 		env.putObject("incoming_request", goodRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "headers.x-fapi-interaction-id");
 		assertEquals(id, env.getString("fapi_interaction_id"));
@@ -72,7 +72,7 @@ public class ExtractFapiInteractionIdHeader_UnitTest {
 	public void test_alt() {
 
 		env.putObject("incoming_request", altRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "headers.x-fapi-interaction-id");
 		assertEquals(altId, env.getString("fapi_interaction_id"));
@@ -81,13 +81,13 @@ public class ExtractFapiInteractionIdHeader_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void test_missing() {
 		env.putObject("incoming_request", missingHeader);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_noHeader() {
 		env.putObject("incoming_request", noHeaders);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

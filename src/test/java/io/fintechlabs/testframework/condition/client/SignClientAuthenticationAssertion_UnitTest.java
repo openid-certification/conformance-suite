@@ -96,7 +96,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 		env.putObject("client_assertion_claims", claims);
 		env.putObject("client_jwks", rsaJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("client_assertion")).isNotNull();
 
@@ -123,7 +123,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 		env.putObject("client_assertion_claims", claims);
 		env.putObject("client_jwks", octJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("client_assertion")).isNotNull();
 
@@ -151,7 +151,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 
 		env.putObject("client_jwks", rsaJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -162,7 +162,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 
 		env.putObject("client_assertion_claims", claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

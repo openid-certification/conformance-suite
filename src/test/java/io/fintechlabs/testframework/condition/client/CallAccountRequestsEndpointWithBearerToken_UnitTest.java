@@ -130,7 +130,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.putObject("account_requests_endpoint_request", requestObject);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("example.com")
 			.post("/account-requests")
@@ -154,7 +154,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.putObject("account_requests_endpoint_request", requestObject);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -168,7 +168,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.getObject("resource").addProperty("resourceUrl", "http://invalid.org/");
 		env.putObject("account_requests_endpoint_request", requestObject);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -181,7 +181,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.putObject("account_requests_endpoint_request", requestObject);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -194,7 +194,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.putObject("account_requests_endpoint_request", requestObject);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -207,7 +207,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

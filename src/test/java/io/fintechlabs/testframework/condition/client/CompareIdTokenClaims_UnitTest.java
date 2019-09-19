@@ -61,7 +61,7 @@ public class CompareIdTokenClaims_UnitTest {
 		env.putObject("first_id_token", createTokenObject(first));
 		env.putObject("second_id_token", createTokenObject(second));
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class CompareIdTokenClaims_UnitTest {
 		env.putObject("first_id_token", createTokenObject(first));
 		env.putObject("second_id_token", createTokenObject(second));
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -101,6 +101,6 @@ public class CompareIdTokenClaims_UnitTest {
 		env.putObject("first_id_token", createTokenObject(first));
 		env.putObject("second_id_token", createTokenObject(second));
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

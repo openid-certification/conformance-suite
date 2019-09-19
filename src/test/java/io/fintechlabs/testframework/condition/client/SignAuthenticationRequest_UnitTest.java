@@ -107,7 +107,7 @@ public class SignAuthenticationRequest_UnitTest {
 		env.putObject("client_jwks", jwks);
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("request_object_claims");
 
@@ -147,7 +147,7 @@ public class SignAuthenticationRequest_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -156,7 +156,7 @@ public class SignAuthenticationRequest_UnitTest {
 
 		env.putObject("client_jwks", jwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
