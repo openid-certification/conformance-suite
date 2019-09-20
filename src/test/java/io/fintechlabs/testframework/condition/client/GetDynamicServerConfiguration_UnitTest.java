@@ -73,7 +73,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com").get("/.well-known/openid-configuration"));
 
@@ -95,7 +95,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -156,7 +156,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 			+ "}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 		JsonObject config = new JsonParser().parse("{\"server\":{}}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -177,6 +177,6 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingConfig() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

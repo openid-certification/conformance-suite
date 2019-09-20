@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -44,6 +45,8 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -59,7 +62,11 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.Environment;
 
+import static io.fintechlabs.testframework.heart.InBrowserDelegatedClientAS.logger;
+
 public abstract class AbstractCondition implements Condition, DataUtils {
+
+	private static Logger logger = LoggerFactory.getLogger(AbstractCondition.class);
 
 	private String testId;
 	private TestInstanceEventLog log;
@@ -72,6 +79,84 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		this.log = log;
 		this.conditionResultOnFailure = conditionResultOnFailure;
 		this.requirements = Sets.newHashSet(requirements);
+	}
+
+	public void execute(Environment env) {
+		try {
+			Method eval = this.getClass().getMethod("evaluate", Environment.class);
+			PreEnvironment pre = eval.getAnnotation(PreEnvironment.class);
+			if (pre != null) {
+				for (String req : pre.required()) {
+					if (!env.containsObject(req)) {
+						logger.info("[pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
+						log.log(this.getMessage(), args(
+							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+							"expected", req,
+							"result", ConditionResult.FAILURE,
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
+							"requirements", this.getRequirements()
+							// TODO: log the environment here?
+						));
+						throw error("[pre] Couldn't find key in environment: " + req, true);
+					}
+				}
+				for (String s : pre.strings()) {
+					if (env.getString(s) == null) {
+						logger.info("[pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
+						log.log(this.getMessage(), args(
+							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+							"expected", s,
+							"result", ConditionResult.FAILURE,
+							"requirements", this.getRequirements()
+							// TODO: log the environment here?
+						));
+						throw error("[pre] Couldn't find string in environment: " + s, true);
+					}
+				}
+			}
+
+			// evaluate the condition and assign its results back to our environment
+			env = evaluate(env);
+			if (!this.logged()) {
+				log.log(this.getMessage(),
+					args("msg", "Condition ran but did not log anything"));
+			}
+
+			// check the environment to make sure the condition did what it claimed to
+			PostEnvironment post = eval.getAnnotation(PostEnvironment.class);
+			if (post != null) {
+				for (String req : post.required()) {
+					if (!env.containsObject(req)) {
+						logger.info("[post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
+						log.log(this.getMessage(), args(
+							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+							"expected", req,
+							"result", ConditionResult.FAILURE,
+							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
+							"requirements", this.getRequirements()
+							// TODO: log the environment here?
+						));
+						throw error("[post] Couldn't find key in environment: " + req, true);
+					}
+				}
+				for (String s : post.strings()) {
+					if (env.getString(s) == null) {
+						logger.info("[post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
+						log.log(this.getMessage(), args(
+							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+							"expected", s,
+							"result", ConditionResult.FAILURE,
+							"requirements", this.getRequirements()
+							// TODO: log the environment here?
+						));
+						throw error("[post] Couldn't find string in environment: " + s, true);
+					}
+				}
+			}
+		} catch (NoSuchMethodException e) {
+			logger.error("Couldn't create condition object", e);
+			throw error("Couldn't create required condition: " + this.getClass().getSimpleName(), true, e);
+		}
 	}
 
 	@Override
@@ -233,6 +318,20 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	/*
 	 * Error utilities
 	 */
+
+	/**
+	 * Return a ConditionError to handle error incorrect the Pre/Post Environment annotations
+	 */
+	protected ConditionError error(String message, boolean isPreOrPostError, Throwable cause) {
+		return new ConditionError(testId, getMessage() + ": " + message, isPreOrPostError, cause);
+	}
+
+	/**
+	 * Return a ConditionError to handle error incorrect the Pre/Post Environment annotations
+	 */
+	protected ConditionError error(String message, boolean isPreOrPostError) {
+		return new ConditionError(testId, getMessage() + ": " + message, isPreOrPostError);
+	}
 
 	/**
 	 * Log a failure then return a ConditionError

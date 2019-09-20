@@ -98,7 +98,7 @@ public class CallTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com")
 			.post("/token")
@@ -126,7 +126,7 @@ public class CallTokenEndpoint_UnitTest {
 
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -144,7 +144,7 @@ public class CallTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -162,7 +162,7 @@ public class CallTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -180,7 +180,7 @@ public class CallTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -198,7 +198,7 @@ public class CallTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -213,7 +213,7 @@ public class CallTokenEndpoint_UnitTest {
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -226,7 +226,7 @@ public class CallTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

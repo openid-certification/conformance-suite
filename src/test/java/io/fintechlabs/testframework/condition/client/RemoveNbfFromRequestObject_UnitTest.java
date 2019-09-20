@@ -43,7 +43,7 @@ public class RemoveNbfFromRequestObject_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("request_object_claims").has("nbf")).isFalse();
 

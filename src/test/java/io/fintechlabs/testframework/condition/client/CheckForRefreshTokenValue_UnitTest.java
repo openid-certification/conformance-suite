@@ -67,7 +67,7 @@ public class CheckForRefreshTokenValue_UnitTest {
 
 		env.putObject("token_endpoint_response", goodResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "refresh_token");
 	}
@@ -80,6 +80,6 @@ public class CheckForRefreshTokenValue_UnitTest {
 
 		env.putObject("token_endpoint_response", badResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

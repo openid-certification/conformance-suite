@@ -44,7 +44,7 @@ public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 		headers.addProperty("x-fapi-interaction-id", "c770aef3-6784-41f7-8e0e-ff5f97bddb3a"); // Example from FAPI 1
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "x-fapi-interaction-id");
 	}
@@ -59,7 +59,7 @@ public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 		headers.addProperty("x-fapi-interaction-id", "this is not a uuid");
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 		JsonObject headers = new JsonObject();
 		env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

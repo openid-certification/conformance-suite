@@ -62,7 +62,7 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 		env.putObject("client", client);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("client_assertion_claims")).isNotNull();
 
@@ -85,14 +85,14 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 	public void testEvaluate_missingClient() {
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingServer() {
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

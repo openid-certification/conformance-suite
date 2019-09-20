@@ -41,23 +41,23 @@ public class CheckErrorFromTokenEndpointResponseErrorInvalidGrant_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_NotExistTokenEndpointResponse() {
 		env.removeObject("token_endpoint_response");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorValueEmpty() {
 		tokenEndpointResponse.addProperty("error", "");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_ErrorValueValid() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorValueInvalid() {
 		tokenEndpointResponse.addProperty("error", "invalid_request");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

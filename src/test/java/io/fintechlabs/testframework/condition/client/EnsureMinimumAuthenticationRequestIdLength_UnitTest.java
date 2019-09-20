@@ -35,7 +35,7 @@ public class EnsureMinimumAuthenticationRequestIdLength_UnitTest {
 		o.addProperty("auth_req_id", "VggF4rKbpuQyjEV3MxVNOy_f-vRyWiNZbuHssshH8WY");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -44,7 +44,7 @@ public class EnsureMinimumAuthenticationRequestIdLength_UnitTest {
 		o.addProperty("auth_req_id", "1c266114");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

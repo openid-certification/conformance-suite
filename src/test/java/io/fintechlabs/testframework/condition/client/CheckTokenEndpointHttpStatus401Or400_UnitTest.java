@@ -34,7 +34,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 400);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -42,7 +42,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -50,7 +50,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 400);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -58,7 +58,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 400);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -66,7 +66,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -74,7 +74,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -82,6 +82,6 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"access_denied\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

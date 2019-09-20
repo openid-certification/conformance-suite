@@ -600,7 +600,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -612,7 +612,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -624,7 +624,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -635,7 +635,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -645,7 +645,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -656,7 +656,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -667,7 +667,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -678,7 +678,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -690,7 +690,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -702,7 +702,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -714,7 +714,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -726,12 +726,12 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 			+ "}}").getAsJsonObject();
 
 		env.putObject("config", config);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

@@ -41,7 +41,7 @@ public class CreateS256CodeChallenge_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testMissing() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -51,7 +51,7 @@ public class CreateS256CodeChallenge_UnitTest {
 
 		env.putString("code_verifier", codeVerifier);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("code_challenge_method")).isEqualTo("S256");
 

@@ -37,7 +37,7 @@ public class EnsureMinimumAccessTokenEntropy_UnitTest {
 		o.addProperty("access_token", "aQm0ukLetSUOXr1XA8RLHdeO9eFdoBGF8Sn1UhP9");
 		env.putObject("token_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -46,7 +46,7 @@ public class EnsureMinimumAccessTokenEntropy_UnitTest {
 		o.addProperty("access_token", "1111111111111111111111111111111111111111");
 		env.putObject("token_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

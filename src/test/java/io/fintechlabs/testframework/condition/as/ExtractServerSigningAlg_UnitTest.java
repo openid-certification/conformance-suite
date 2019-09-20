@@ -79,7 +79,7 @@ public class ExtractServerSigningAlg_UnitTest {
 
 		env.putObject("server_jwks", jwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("server_jwks");
 
@@ -90,7 +90,7 @@ public class ExtractServerSigningAlg_UnitTest {
 
 		env.putObject("server_jwks", invalidJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("server_jwks");
 
@@ -101,7 +101,7 @@ public class ExtractServerSigningAlg_UnitTest {
 
 		env.putObject("server_jwks", combinedJwks);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("server_jwks");
 	}

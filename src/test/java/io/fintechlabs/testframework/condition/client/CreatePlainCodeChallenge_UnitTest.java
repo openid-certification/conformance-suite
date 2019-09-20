@@ -34,7 +34,7 @@ public class CreatePlainCodeChallenge_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testMissing() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class CreatePlainCodeChallenge_UnitTest {
 
 		env.putString("code_verifier", codeVerifier);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("code_challenge_method")).isEqualTo("plain");
 		assertThat(env.getString("code_challenge")).isNotEmpty();

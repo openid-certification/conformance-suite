@@ -131,7 +131,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
@@ -149,7 +149,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutAuthorizationEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 		goodConfig.addProperty("authorization_endpoint", "ExampleApp");
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutTokenEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -185,7 +185,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 
@@ -197,7 +197,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutIssuer);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -208,7 +208,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithBadIssuer);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -219,7 +219,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutIntrospectionEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -232,7 +232,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -243,7 +243,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutRevocationEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -256,7 +256,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -267,7 +267,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutJwksUri);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 
@@ -281,7 +281,7 @@ public class CheckHeartServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

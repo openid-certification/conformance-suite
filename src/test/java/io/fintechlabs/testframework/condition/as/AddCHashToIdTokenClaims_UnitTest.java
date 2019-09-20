@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.condition.as;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
@@ -59,17 +60,17 @@ public class AddCHashToIdTokenClaims_UnitTest {
 		claims = new JsonObject();
 		claims.addProperty("c_hash", hash);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertNotNull(env.getObject("id_token_claims" ));
 		assertEquals(hash, env.getString("id_token_claims", "c_hash"));
 	}
 
 
-	@Test(expected = NullPointerException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

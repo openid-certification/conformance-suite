@@ -2,6 +2,7 @@ package io.fintechlabs.testframework.condition.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.fintechlabs.testframework.condition.ConditionError;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,7 +76,7 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 
 		env.putObject("token_endpoint_response", goodResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("expires_in")).isNotNull();
 	}
@@ -83,12 +84,12 @@ public class ExtractExpiresInFromTokenEndpointResponse_UnitTest {
 	/**
 	 * Test method for {@link io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse#evaluate(io.fintechlabs.testframework.testmodule.Environment)}.
 	 */
-	@Test
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
 		env.putObject("token_endpoint_response", badResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

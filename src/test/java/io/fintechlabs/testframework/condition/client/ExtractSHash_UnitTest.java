@@ -64,7 +64,7 @@ public class ExtractSHash_UnitTest {
 		env.putString("state", "12345");
 		addIdToken(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "claims.s_hash");
 		verify(env, atLeastOnce()).getString("id_token", "header.alg");
@@ -82,7 +82,7 @@ public class ExtractSHash_UnitTest {
 
 		env.putString("state", "12345");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class ExtractSHash_UnitTest {
 		env.putString("state", "12345");
 		addIdToken(env, "HS256", null);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class ExtractSHash_UnitTest {
 		env.putString("state", "12345");
 		addIdToken(env, null, "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

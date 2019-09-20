@@ -58,7 +58,7 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 		env.putObject("id_token_claims", claims);
 		env.putString("requested_id_token_acr_values", acrValuesString);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("id_token_claims");
 		assertEquals("urn:openbanking:psd2:sca", env.getString("id_token_claims", "acr"));
@@ -71,7 +71,7 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 		env.putObject("id_token_claims", claims);
 		env.putString("requested_id_token_acr_values", "[\"urn:openbanking:psd2:ca\"]");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("id_token_claims");
 		assertEquals("urn:openbanking:psd2:ca", env.getString("id_token_claims", "acr"));
@@ -83,7 +83,7 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 		env.putObject("id_token_claims", claims);
 		env.putString("requested_id_token_acr_values", "[\"urn:openbanking:invalid:ca\"]");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

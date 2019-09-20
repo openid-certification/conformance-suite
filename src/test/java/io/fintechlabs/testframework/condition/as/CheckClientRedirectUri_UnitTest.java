@@ -55,7 +55,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -68,7 +68,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -81,7 +81,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -107,7 +107,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -120,13 +120,13 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -140,7 +140,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -150,7 +150,7 @@ public class CheckClientRedirectUri_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

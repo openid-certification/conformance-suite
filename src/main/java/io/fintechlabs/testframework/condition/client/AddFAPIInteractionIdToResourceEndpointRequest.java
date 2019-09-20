@@ -10,7 +10,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 public class AddFAPIInteractionIdToResourceEndpointRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "resource_endpoint_request_headers", strings = "fapi_interaction_id")
+	@PreEnvironment(strings = "fapi_interaction_id")
 	@PostEnvironment(required = "resource_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 

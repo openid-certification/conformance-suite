@@ -54,7 +54,7 @@ public class AddRegistrationUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/register", env.getString("server", "registration_endpoint"));
 	}
@@ -65,7 +65,7 @@ public class AddRegistrationUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl + "/");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/register", env.getString("server", "registration_endpoint"));
 	}

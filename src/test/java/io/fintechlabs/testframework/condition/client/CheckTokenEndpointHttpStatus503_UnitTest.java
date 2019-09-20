@@ -32,6 +32,6 @@ public class CheckTokenEndpointHttpStatus503_UnitTest {
 
 		env.putInteger("token_endpoint_response_http_status", 503);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

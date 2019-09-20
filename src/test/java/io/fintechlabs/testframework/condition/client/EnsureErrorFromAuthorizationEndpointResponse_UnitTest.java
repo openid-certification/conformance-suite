@@ -49,12 +49,12 @@ public class EnsureErrorFromAuthorizationEndpointResponse_UnitTest {
 
 		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_success() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

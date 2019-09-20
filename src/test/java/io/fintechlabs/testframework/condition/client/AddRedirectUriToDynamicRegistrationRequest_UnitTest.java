@@ -49,7 +49,7 @@ public class AddRedirectUriToDynamicRegistrationRequest_UnitTest {
 	public void testEvaluate_noErrors(){
 		env.putString("redirect_uri","https://example.org/redirect");
 		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getObject("dynamic_registration_request").equals(goodDynamicRegistrationRequest)).isTrue();
 	}
 }

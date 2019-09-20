@@ -34,7 +34,7 @@ public class CreateRandomClientNotificationToken_UnitTest {
 
 	@Test
 	public void testEvaluate() {
-		cond.evaluate(env);
+		cond.execute(env);
 
 		String res1 = env.getString("client_notification_token");
 
@@ -43,7 +43,7 @@ public class CreateRandomClientNotificationToken_UnitTest {
 		assertThat(res1.length()).isEqualTo(21);
 
 		// call it twice to make sure we get a different value
-		cond.evaluate(env);
+		cond.execute(env);
 
 		String res2 = env.getString("client_notification_token");
 

@@ -56,7 +56,7 @@ public class ValidateExpiresIn_UnitTest {
 
 		env.putObject("expires_in", goodInteger);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 
@@ -68,7 +68,7 @@ public class ValidateExpiresIn_UnitTest {
 
 		env.putObject("expires_in", badStringNumeric);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class ValidateExpiresIn_UnitTest {
 
 		env.putObject("expires_in", badNonPrimitive);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class ValidateExpiresIn_UnitTest {
 
 		env.putObject("expires_in", badStringAlpha);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 

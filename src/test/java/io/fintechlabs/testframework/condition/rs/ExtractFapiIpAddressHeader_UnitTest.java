@@ -67,7 +67,7 @@ public class ExtractFapiIpAddressHeader_UnitTest {
 	public void test_good() {
 
 		env.putObject("incoming_request", goodRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "headers.x-fapi-customer-ip-address");
 		assertEquals(addr, env.getString("fapi_customer_ip_address"));
@@ -77,7 +77,7 @@ public class ExtractFapiIpAddressHeader_UnitTest {
 	public void test_good6() {
 
 		env.putObject("incoming_request", good6Request);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("incoming_request", "headers.x-fapi-customer-ip-address");
 		assertEquals(addr6, env.getString("fapi_customer_ip_address"));
@@ -86,19 +86,19 @@ public class ExtractFapiIpAddressHeader_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void test_bad() {
 		env.putObject("incoming_request", badRequest);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_missing() {
 		env.putObject("incoming_request", missingHeader);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void test_noHeader() {
 		env.putObject("incoming_request", noHeaders);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

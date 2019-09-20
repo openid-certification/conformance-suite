@@ -57,7 +57,7 @@ public class FAPIValidateRequestObjectSigningAlg_UnitTest {
 
 		addRequestObject(env, header);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("authorization_request_object", "header.alg");
 	}
@@ -71,7 +71,7 @@ public class FAPIValidateRequestObjectSigningAlg_UnitTest {
 
 		addRequestObject(env, header);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

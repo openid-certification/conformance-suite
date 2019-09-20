@@ -37,7 +37,7 @@ public class AddBindingMessageToAuthorizationEndpointRequest_UnitTest {
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("authorization_endpoint_request").has("binding_message")).isTrue();
 

@@ -34,7 +34,7 @@ public class CheckTokenEndpointHttpStatusNot200_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_HttpStatusCodeNullError() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -42,7 +42,7 @@ public class CheckTokenEndpointHttpStatusNot200_UnitTest {
 
 		env.putInteger("token_endpoint_response_http_status", 200);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -50,6 +50,6 @@ public class CheckTokenEndpointHttpStatusNot200_UnitTest {
 
 		env.putInteger("token_endpoint_response_http_status", 400);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

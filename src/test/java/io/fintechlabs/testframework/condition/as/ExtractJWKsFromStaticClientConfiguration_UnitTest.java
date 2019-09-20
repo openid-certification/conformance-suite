@@ -83,7 +83,7 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 
 		env.putObject("client", client);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(jwks, env.getObject("client_jwks"));
 		assertEquals(publicJwks, env.getObject("public_client_jwks"));

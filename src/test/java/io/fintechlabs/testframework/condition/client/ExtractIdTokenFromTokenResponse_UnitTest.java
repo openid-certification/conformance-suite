@@ -78,7 +78,7 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 
 		env.putObject("token_endpoint_response", goodResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getElementFromObject("token_endpoint_response", "id_token");
 
@@ -96,7 +96,7 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 
 		env.putObject("token_endpoint_response", badResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

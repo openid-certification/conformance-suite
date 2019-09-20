@@ -32,13 +32,13 @@ public class ExpectServerDoesNotCallNotificationEndpointTwice_UnitTest {
 
 	@Test
 	public void testEvaluate() {
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getString("times_server_called_notification_endpoint")).isEqualTo("1");
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ServerCalledNotificationEndpointTwice() {
 		env.putString("times_server_called_notification_endpoint", "1");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

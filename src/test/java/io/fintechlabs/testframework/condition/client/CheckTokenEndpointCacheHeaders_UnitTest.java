@@ -34,7 +34,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		JsonObject o = new JsonObject();
 		env.putObject("token_endpoint_response_headers", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -43,7 +43,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		o.addProperty("cache-control", "no-store, no-transform");
 		env.putObject("token_endpoint_response_headers", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		o.addProperty("pragma", "no-cache");
 		env.putObject("token_endpoint_response_headers", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -61,7 +61,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		o.addProperty("cache-control", "");
 		env.putObject("token_endpoint_response_headers", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -70,6 +70,6 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		o.addProperty("pragma", "");
 		env.putObject("token_endpoint_response_headers", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

@@ -78,7 +78,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 
 		addRequestObject(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getElementFromObject("authorization_request_object", "claims.claims.id_token.acr.values");
 		verify(env, atLeastOnce()).getElementFromObject("authorization_request_object", "claims.claims.id_token.acr.essential");
@@ -99,7 +99,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 
 		addRequestObject(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 
@@ -111,7 +111,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 
 		addRequestObject(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -126,7 +126,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 
 		addRequestObject(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

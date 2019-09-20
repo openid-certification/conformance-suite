@@ -43,7 +43,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 	public void testEvaluate_noClientConfig() {
 		env.putObject("config", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 			"}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
 		assertThat(env.getObject("dynamic_client_registration_template").get("client_name")).isNull();
@@ -73,7 +73,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 			"}").getAsJsonObject();
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
 		assertThat(env.getObject("dynamic_client_registration_template").get("client_name")).isNotNull();

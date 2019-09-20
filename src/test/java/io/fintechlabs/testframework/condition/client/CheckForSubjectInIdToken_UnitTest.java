@@ -64,7 +64,7 @@ public class CheckForSubjectInIdToken_UnitTest {
 
 		env.putObject("id_token", goodToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token", "claims.sub");
 	}
@@ -79,7 +79,7 @@ public class CheckForSubjectInIdToken_UnitTest {
 		badToken.get("claims").getAsJsonObject().remove("sub");
 		env.putObject("id_token", badToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

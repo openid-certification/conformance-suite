@@ -63,7 +63,7 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	public void test_good() {
 
 		env.putObject("authorization_endpoint_request", hasNonce);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 		verify(env, times(1)).putString("nonce", nonce);
@@ -75,7 +75,7 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	public void test_only() {
 
 		env.putObject("authorization_endpoint_request", onlyNonce);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
 		verify(env, times(1)).putString("nonce", nonce);
@@ -88,14 +88,14 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	public void test_bad() {
 
 		env.putObject("authorization_endpoint_request", noNonce);
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 	@Test(expected = ConditionError.class)
 	public void test_missing() {
 
 		env.putObject("authorization_endpoint_request", noParams);
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

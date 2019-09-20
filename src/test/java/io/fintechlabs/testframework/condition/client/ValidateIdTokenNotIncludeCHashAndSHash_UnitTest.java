@@ -48,7 +48,7 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 
 		env.putObject("id_token", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -70,7 +70,7 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 
 		env.putObject("id_token", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

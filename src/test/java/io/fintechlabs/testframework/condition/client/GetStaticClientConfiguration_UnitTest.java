@@ -68,7 +68,7 @@ public class GetStaticClientConfiguration_UnitTest {
 
 		env.putObject("config", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("client")).isEqualTo(client);
 		assertThat(env.getString("client_id")).isEqualTo("client");
@@ -82,7 +82,7 @@ public class GetStaticClientConfiguration_UnitTest {
 
 		env.putObject("config", badConfig_notObject);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class GetStaticClientConfiguration_UnitTest {
 
 		env.putObject("config", badConfig_clientMissing);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -102,6 +102,6 @@ public class GetStaticClientConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_configMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

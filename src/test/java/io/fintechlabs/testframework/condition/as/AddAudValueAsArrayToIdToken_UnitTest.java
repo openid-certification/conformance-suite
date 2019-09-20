@@ -63,7 +63,7 @@ public class AddAudValueAsArrayToIdToken_UnitTest {
 		JsonArray audArray = new JsonArray();
 		audArray.add("test-client-id-123");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getObject("id_token_claims");
 		assertEquals(audArray, env.getElementFromObject("id_token_claims", "aud").getAsJsonArray());

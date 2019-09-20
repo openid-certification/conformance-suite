@@ -38,18 +38,18 @@ public class ExpectExpiredTokenErrorFromTokenEndpoint_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_NoErrorField() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorFieldNotCorrect() {
 		tokenEndpointResponse.addProperty("error", "access_denied");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_ErrorFieldValid() {
 		tokenEndpointResponse.addProperty("error", "expired_token");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

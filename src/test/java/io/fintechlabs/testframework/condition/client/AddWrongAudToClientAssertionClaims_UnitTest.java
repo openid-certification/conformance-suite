@@ -41,7 +41,7 @@ public class AddWrongAudToClientAssertionClaims_UnitTest {
 
 		env.putObject("client_assertion_claims", clientAssertClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("client_assertion_claims")).isNotNull();
 

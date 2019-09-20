@@ -55,7 +55,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 
 		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getElementFromObject("server", "token_endpoint_auth_methods_supported");
 	}
@@ -71,7 +71,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 
 		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 
 		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 
 		env.getObject("server").add("token_endpoint_auth_methods_supported", methods);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class EnsureServerConfigurationSupportsMTLS_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_defaultOnly() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

@@ -88,7 +88,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 		env.putString("state", "xyz");
 		env.putString("redirect_uri", "https://client.example.com/cb");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
 		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");

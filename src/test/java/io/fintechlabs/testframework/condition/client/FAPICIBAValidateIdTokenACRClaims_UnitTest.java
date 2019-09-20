@@ -37,7 +37,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 		env.putObject("id_token", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -49,7 +49,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 		env.putObject("id_token", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -62,7 +62,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -75,7 +75,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -88,7 +88,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca  urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -101,7 +101,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver urn:openbanking:psd2:ca\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

@@ -64,7 +64,7 @@ public class RedirectBackToClientWithAuthorizationCodeAndIdToken_UnitTest {
 		env.putString("id_token", idToken);
 		env.putString("authorization_code", code);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("id_token");
 		verify(env, atLeastOnce()).getString("authorization_code");
@@ -94,7 +94,7 @@ public class RedirectBackToClientWithAuthorizationCodeAndIdToken_UnitTest {
 		env.putString("id_token", idToken);
 		env.putString("authorization_code", code);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getString("authorization_endpoint_response_redirect")).startsWith(redirectUri);
 

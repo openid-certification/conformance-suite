@@ -18,7 +18,7 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 	private long oneDayMillis = 60 * 60 * 24 * 1000L; // Duration for one day
 
 	@Override
-	@PreEnvironment(required = "token_endpoint_request")
+	@PreEnvironment(required = { "server", "client" })
 	public Environment evaluate(Environment env) {
 
 

@@ -44,7 +44,7 @@ public class CreateCreateAccountRequestRequest_UnitTest {
 	@Test
 	public void testEvaluate() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		JsonElement permissions = env.getElementFromObject("account_requests_endpoint_request", "Data.Permissions");
 		assertThat(permissions).isNotNull();

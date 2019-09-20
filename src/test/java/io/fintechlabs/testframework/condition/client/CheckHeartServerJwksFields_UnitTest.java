@@ -69,7 +69,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
 		env.putObject("server_jwks",server_jwks);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -83,7 +83,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyB);
 		server_jwks.add("keys", keys);
 		env.putObject("server_jwks",server_jwks);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
 		env.putObject("server_jwks",server_jwks);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
 		env.putObject("server_jwks",server_jwks);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyB);
 		server_jwks.add("keys", keys);
 		env.putObject("server_jwks",server_jwks);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 
@@ -141,6 +141,6 @@ public class CheckHeartServerJwksFields_UnitTest {
 		keys.add(keyA);
 		server_jwks.add("keys", keys);
 		env.putObject("server_jwks",server_jwks);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

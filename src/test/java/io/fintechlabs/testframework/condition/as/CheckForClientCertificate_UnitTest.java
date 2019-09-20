@@ -50,7 +50,7 @@ public class CheckForClientCertificate_UnitTest {
 
 		env.putObject("client_certificate", certificate);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -60,7 +60,7 @@ public class CheckForClientCertificate_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

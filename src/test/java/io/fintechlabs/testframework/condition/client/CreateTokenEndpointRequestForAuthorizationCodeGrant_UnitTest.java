@@ -45,7 +45,7 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant_UnitTest {
 		env.putString("code", "SplxlOBeZQQYbYS6WxSbIA");
 		env.putString("redirect_uri", "https://client.example.com/cb");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("code");
 		verify(env, atLeastOnce()).getString("redirect_uri");

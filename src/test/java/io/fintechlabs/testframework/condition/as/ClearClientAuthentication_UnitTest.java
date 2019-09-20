@@ -48,7 +48,7 @@ public class ClearClientAuthentication_UnitTest {
 
 		env.putString("client_authentication_success", "client:auth:method");
 		env.putObject("client_authentication", clientAuthentication);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).removeNativeValue("client_authentication_success");
 		verify(env, atLeastOnce()).removeObject("client_authentication");
@@ -61,7 +61,7 @@ public class ClearClientAuthentication_UnitTest {
 	public void test_onlySuccess() {
 
 		env.putString("client_authentication_success", "client:auth:method");
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).removeNativeValue("client_authentication_success");
 		verify(env, atLeastOnce()).removeObject("client_authentication");
@@ -74,7 +74,7 @@ public class ClearClientAuthentication_UnitTest {
 	public void test_onlyAuth() {
 
 		env.putObject("client_authentication", clientAuthentication);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).removeNativeValue("client_authentication_success");
 		verify(env, atLeastOnce()).removeObject("client_authentication");
@@ -86,7 +86,7 @@ public class ClearClientAuthentication_UnitTest {
 	@Test
 	public void test_empty() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).removeNativeValue("client_authentication_success");
 		verify(env, atLeastOnce()).removeObject("client_authentication");

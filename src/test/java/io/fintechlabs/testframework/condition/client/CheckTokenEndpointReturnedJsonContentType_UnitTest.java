@@ -44,27 +44,27 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 	public void testEvaluate_noError() {
 		setHeader(env, "application/json");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_withCharset() {
 		setHeader(env, "application/json   ; charset=UTF-8");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalid() {
 		setHeader(env, "application/jsonmoo");
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notFoundContentType() {
 		setHeader(env, null);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

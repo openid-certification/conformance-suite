@@ -51,7 +51,7 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTes
 
 		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -64,13 +64,13 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTes
 
 		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
 	@Test
 	public void testEvaluate_successWithInvalidRequestError() {
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTes
 
 		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -95,7 +95,7 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTes
 
 		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

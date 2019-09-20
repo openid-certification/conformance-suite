@@ -57,7 +57,7 @@ public class SetClientAuthenticationAudToBackchannelAuthenticationEndpoint_UnitT
 	@Test
 	public void testEvaluate_noError() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getElementFromObject("server", "backchannel_authentication_endpoint");
 		verify(env, atLeastOnce()).getObject("client_assertion_claims");

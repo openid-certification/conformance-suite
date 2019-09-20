@@ -32,7 +32,7 @@ public class ValidateErrorResponseFromBackchannelAuthenticationEndpoint_UnitTest
 	private void doTestString(String stringToTest) {
 		JsonObject jsonErrorNoneNoOptionalFields = new JsonParser().parse(stringToTest).getAsJsonObject();
 		env.putObject("backchannel_authentication_endpoint_response", jsonErrorNoneNoOptionalFields);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test

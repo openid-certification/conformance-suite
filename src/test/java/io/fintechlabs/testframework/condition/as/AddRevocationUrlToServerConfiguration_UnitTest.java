@@ -54,7 +54,7 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/revoke", env.getString("server", "revocation_endpoint"));
 	}
@@ -65,7 +65,7 @@ public class AddRevocationUrlToServerConfiguration_UnitTest {
 		env.putObject("server", server);
 		env.putString("base_url", baseUrl + "/");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(baseUrl + "/revoke", env.getString("server", "revocation_endpoint"));
 	}

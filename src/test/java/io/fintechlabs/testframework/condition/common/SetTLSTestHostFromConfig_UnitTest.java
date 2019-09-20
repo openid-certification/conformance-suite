@@ -52,7 +52,7 @@ public class SetTLSTestHostFromConfig_UnitTest {
 		config.add("tls", tlsConfig);
 		env.putObject("config", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("config", "tls.testHost");
 		verify(env, atLeastOnce()).getInteger("config", "tls.testPort");

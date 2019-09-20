@@ -17,7 +17,7 @@ public class ValidateIdTokenHeartClaims extends AbstractCondition {
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
-	@PreEnvironment(required = { "id_token", "server" }, strings = "client_id")
+	@PreEnvironment(required = { "id_token", "server", "client" })
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("id_token")) {

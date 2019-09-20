@@ -77,7 +77,7 @@ public class CheckServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("server", "authorization_endpoint");
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
@@ -92,7 +92,7 @@ public class CheckServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutAuthorizationEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class CheckServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutTokenEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -114,6 +114,6 @@ public class CheckServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutIssuer);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

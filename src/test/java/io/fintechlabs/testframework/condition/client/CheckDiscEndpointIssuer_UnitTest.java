@@ -44,7 +44,7 @@ public class CheckDiscEndpointIssuer_UnitTest {
 
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -56,7 +56,7 @@ public class CheckDiscEndpointIssuer_UnitTest {
 
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -68,7 +68,7 @@ public class CheckDiscEndpointIssuer_UnitTest {
 
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -80,7 +80,7 @@ public class CheckDiscEndpointIssuer_UnitTest {
 
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

@@ -53,7 +53,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", responseWithState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 
 		env.putObject("authorization_endpoint_response", responseWithoutState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -70,7 +70,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", responseWithoutState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -79,7 +79,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "abc_xyz");
 		env.putObject("authorization_endpoint_response", responseWithState);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -88,7 +88,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error_description\": \"Invalid request parameter JWS\",\"error\": \"invalid_request_object\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -97,7 +97,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "abc_xyz");
 		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error_description\": \"Invalid request parameter JWS\",\"error\": \"invalid_request_object\",\"state\":\"xyz\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -106,7 +106,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error_description\": \"Invalid request parameter\",\"error\": \"invalid_request\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -115,6 +115,6 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		env.putString("state", "xyz");
 		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error_description\": \"Invalid request parameter\",\"error\": \"invalid_request\",\"state\":\"xyz\"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

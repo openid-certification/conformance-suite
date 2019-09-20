@@ -72,7 +72,7 @@ public class CheckCIBAServerConfiguration_UnitTest {
 
 		env.putObject("server", goodConfig);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("server", "backchannel_authentication_endpoint");
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
@@ -84,7 +84,7 @@ public class CheckCIBAServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutAuthorizationEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -92,7 +92,7 @@ public class CheckCIBAServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutTokenEndpoint);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -100,7 +100,7 @@ public class CheckCIBAServerConfiguration_UnitTest {
 
 		env.putObject("server", badConfigWithoutIssuer);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

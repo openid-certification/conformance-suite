@@ -25,7 +25,7 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 	private static final Logger logger = LoggerFactory.getLogger(UnregisterDynamicallyRegisteredClient.class);
 
 	@Override
-	@PreEnvironment(strings = {"registration_client_uri", "registration_access_token"})
+	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("client", "registration_access_token");

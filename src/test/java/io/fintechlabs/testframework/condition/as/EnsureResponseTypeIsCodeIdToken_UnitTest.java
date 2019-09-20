@@ -56,7 +56,7 @@ public class EnsureResponseTypeIsCodeIdToken_UnitTest {
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertNotNull(env.getElementFromObject("authorization_endpoint_request", "params.response_type"));
 	}
@@ -66,13 +66,13 @@ public class EnsureResponseTypeIsCodeIdToken_UnitTest {
 
 		env.putObject("authorization_endpoint_request", invalidAuthorizationEndpointRequest);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

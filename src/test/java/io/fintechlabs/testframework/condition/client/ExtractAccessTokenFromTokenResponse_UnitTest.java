@@ -62,7 +62,7 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 
 		env.putObject("token_endpoint_response", tokenResponse);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "access_token");
 		verify(env, atLeastOnce()).getString("token_endpoint_response", "token_type");
@@ -81,7 +81,7 @@ public class ExtractAccessTokenFromTokenResponse_UnitTest {
 
 		env.putObject("token_endpoint_response", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

@@ -65,7 +65,7 @@ public class SetDynamicRegistrationRequestGrantTypeToImplicit_UnitTest {
 
 	private void testGrantType(JsonObject dynamicRegistrationRequestObject) {
 		env.putObject("dynamic_registration_request", dynamicRegistrationRequestObject);
-		cond.evaluate(env);
+		cond.execute(env);
 		assertThat(env.getObject("dynamic_registration_request").equals(goodGrantTypeDynamicRegistrationRequest)).isTrue();
 	}
 

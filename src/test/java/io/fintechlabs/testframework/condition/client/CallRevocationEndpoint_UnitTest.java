@@ -66,7 +66,7 @@ public class CallRevocationEndpoint_UnitTest {
 		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 		env.putObject("revocation_endpoint_request_headers", requestHeaders);
 
-		cond.evaluate(env);
+		cond.execute(env);
 		hoverfly.verify(service("good.example.com")
 			.post("/revoke")
 			.header("Authorization", "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW")
@@ -81,7 +81,7 @@ public class CallRevocationEndpoint_UnitTest {
 		env.putObject("server",server);
 		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 		hoverfly.verify(service("good.example.com")
 			.post("/revoke")
 			.body("token=2YotnFZFEjr1zCsicMWpAA"));
@@ -95,7 +95,7 @@ public class CallRevocationEndpoint_UnitTest {
 		env.putObject("server",server);
 		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -106,7 +106,7 @@ public class CallRevocationEndpoint_UnitTest {
 		env.putObject("server",server);
 		env.putObject("revocation_endpoint_request_form_parameters", revocationEndpointRequestFormParameters);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -116,6 +116,6 @@ public class CallRevocationEndpoint_UnitTest {
 			+ "}").getAsJsonObject();
 		env.putObject("server",server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

@@ -68,7 +68,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		env.putObject("client_request", hasTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
 
@@ -78,7 +78,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		env.putObject("client_request", wrongTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 	@Test(expected = ConditionError.class)
@@ -86,7 +86,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		env.putObject("client_request", missingTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 	@Test
@@ -94,7 +94,7 @@ public class EnsureIncomingTls12_UnitTest {
 
 		env.putObject("client_request", onlyTls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
 

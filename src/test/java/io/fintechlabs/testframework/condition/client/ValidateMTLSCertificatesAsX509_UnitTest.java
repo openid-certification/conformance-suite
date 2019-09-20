@@ -222,7 +222,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 		env.putObject("mutual_tls_authentication", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "cert");
 		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "key");
@@ -241,7 +241,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 		env.putObject("mutual_tls_authentication", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -254,7 +254,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 		env.putObject("mutual_tls_authentication", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -266,7 +266,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 		env.putObject("mutual_tls_authentication", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -279,13 +279,13 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 		env.putObject("mutual_tls_authentication", config);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

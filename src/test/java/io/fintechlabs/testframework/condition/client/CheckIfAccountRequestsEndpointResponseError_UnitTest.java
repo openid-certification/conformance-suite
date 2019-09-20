@@ -57,7 +57,7 @@ public class CheckIfAccountRequestsEndpointResponseError_UnitTest {
 
 		env.putObject("account_requests_endpoint_response", successParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("account_requests_endpoint_response", "error");
 	}
@@ -70,7 +70,7 @@ public class CheckIfAccountRequestsEndpointResponseError_UnitTest {
 
 		env.putObject("account_requests_endpoint_response", errorParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

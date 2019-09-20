@@ -46,7 +46,7 @@ public class ValidateServerJWKs_UnitTest {
 			"  ]" +
 			"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -74,6 +74,6 @@ public class ValidateServerJWKs_UnitTest {
 			"  ]" +
 			"}").getAsJsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

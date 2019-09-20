@@ -44,7 +44,7 @@ public class EnsureOpenIDInScopeRequest_UnitTest {
 	public void test_good() {
 
 		env.putString("scope", goodScope);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("scope");
 	}
@@ -53,7 +53,7 @@ public class EnsureOpenIDInScopeRequest_UnitTest {
 	public void test_only() {
 
 		env.putString("scope", onlyScope);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("scope");
 
@@ -63,7 +63,7 @@ public class EnsureOpenIDInScopeRequest_UnitTest {
 	public void test_bad() {
 
 		env.putString("scope", badScope);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("scope");
 
@@ -73,7 +73,7 @@ public class EnsureOpenIDInScopeRequest_UnitTest {
 	public void test_empty() {
 
 		env.putString("scope", emptyScope);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("scope");
 

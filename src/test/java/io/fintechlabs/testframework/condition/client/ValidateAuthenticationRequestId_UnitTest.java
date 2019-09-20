@@ -34,7 +34,7 @@ public class ValidateAuthenticationRequestId_UnitTest {
 		JsonObject o = new JsonObject();
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -43,7 +43,7 @@ public class ValidateAuthenticationRequestId_UnitTest {
 		o.addProperty("auth_req_id", "");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class ValidateAuthenticationRequestId_UnitTest {
 		o.addProperty("auth_req_id", "NlPTzeKKU8CNJompx_lj77ABC5cEXPPV3BernTiVU10");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -61,7 +61,7 @@ public class ValidateAuthenticationRequestId_UnitTest {
 		o.addProperty("auth_req_id", "~~f-vRyWiNZbuHssshH8WY");
 		env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

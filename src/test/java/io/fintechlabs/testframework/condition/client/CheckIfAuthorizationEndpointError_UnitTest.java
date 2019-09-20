@@ -62,7 +62,7 @@ public class CheckIfAuthorizationEndpointError_UnitTest {
 
 		env.putObject("authorization_endpoint_response", successParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "error");
 	}
@@ -75,7 +75,7 @@ public class CheckIfAuthorizationEndpointError_UnitTest {
 
 		env.putObject("authorization_endpoint_response", errorParams);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("authorization_endpoint_response", "error");
 	}

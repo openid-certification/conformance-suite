@@ -42,7 +42,7 @@ public class CreateTokenRevocationRequest_UnitTest {
 	@Test
 	public void testEvaluate() {
 		env.putObject("access_token", accessToken);
-		cond.evaluate(env);
+		cond.execute(env);
 
 		String tokenVal = env.getString("revocation_endpoint_request_form_parameters", "token");
 		assertThat(tokenVal).isNotEmpty();

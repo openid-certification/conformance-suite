@@ -33,7 +33,7 @@ public class CheckTokenEndpointRetryAfterHeaders_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_isEmpty() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
@@ -42,7 +42,7 @@ public class CheckTokenEndpointRetryAfterHeaders_UnitTest {
 		o.addProperty(HttpHeaders.RETRY_AFTER, 300);
 		env.putObject("token_endpoint_response_headers", o);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 }

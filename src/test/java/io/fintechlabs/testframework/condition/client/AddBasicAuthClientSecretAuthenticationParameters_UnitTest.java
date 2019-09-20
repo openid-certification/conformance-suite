@@ -62,7 +62,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("client", "client_secret");

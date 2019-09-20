@@ -84,7 +84,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 		env.putObject("account_requests_endpoint_response", endpointResponse);
 		env.putInteger("ob_api_version", 2);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("account_requests_endpoint_response", "Data.AccountRequestId");
 
@@ -100,7 +100,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 
 		env.putObject("account_requests_endpoint_response", new JsonObject());
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 

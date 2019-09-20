@@ -39,7 +39,7 @@ public class AddNbfValueIs70MinutesInPastToRequestObject_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(env.getObject("request_object_claims").has("nbf")).isTrue();
 
@@ -54,7 +54,7 @@ public class AddNbfValueIs70MinutesInPastToRequestObject_UnitTest {
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertThat(Instant.now().getEpochSecond() - env.getLong("request_object_claims", "nbf")).isEqualTo(nbfExpect);
 

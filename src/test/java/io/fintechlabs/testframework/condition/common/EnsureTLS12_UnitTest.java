@@ -57,7 +57,7 @@ public class EnsureTLS12_UnitTest {
 
 		env.putObject("tls", tls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("tls", "testHost");
 		verify(env, atLeastOnce()).getInteger("tls", "testPort");
@@ -76,7 +76,7 @@ public class EnsureTLS12_UnitTest {
 
 		env.putObject("tls", tls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class EnsureTLS12_UnitTest {
 
 		env.putObject("tls", tls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class EnsureTLS12_UnitTest {
 
 		env.putObject("tls", tls);
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	/**
@@ -115,6 +115,6 @@ public class EnsureTLS12_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingConfig() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

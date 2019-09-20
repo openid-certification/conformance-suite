@@ -44,7 +44,7 @@ public class AddClientAssertionToBackchannelAuthenticationEndpoint_UnitTest {
 		env.putObject("backchannel_authentication_endpoint_request_form_parameters", new JsonObject());
 		env.putString("client_assertion", clientAssertion);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client_assertion");
 

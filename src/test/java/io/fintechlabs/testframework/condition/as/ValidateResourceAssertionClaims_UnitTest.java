@@ -91,7 +91,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -105,7 +105,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -120,7 +120,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -134,7 +134,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -149,7 +149,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -167,7 +167,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -185,7 +185,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -199,7 +199,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -214,7 +214,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -229,7 +229,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -243,7 +243,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -258,7 +258,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -273,7 +273,7 @@ public class ValidateResourceAssertionClaims_UnitTest {
 
 		addAssertion(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

@@ -82,7 +82,7 @@ public class ExtractJWKsFromResourceConfiguration_UnitTest {
 
 		env.putObject("resource", resource);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		assertEquals(jwks, env.getObject("resource_jwks"));
 		assertEquals(publicJwks, env.getObject("public_resource_jwks"));

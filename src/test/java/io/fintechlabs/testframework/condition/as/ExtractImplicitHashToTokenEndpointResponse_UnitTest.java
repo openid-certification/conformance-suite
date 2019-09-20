@@ -46,7 +46,7 @@ public class ExtractImplicitHashToTokenEndpointResponse_UnitTest {
 
 		env.putString("implicit_hash", "#access_token=2YotnFZFEjr1zCsicMWpAA&state=xyz&token_type=example&expires_in=3600");
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("implicit_hash");
 
@@ -64,6 +64,6 @@ public class ExtractImplicitHashToTokenEndpointResponse_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }

@@ -91,7 +91,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("client", "client_id");
 		verify(env, atLeastOnce()).getString("server", "issuer");
@@ -112,7 +112,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -125,7 +125,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("client", client);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -138,7 +138,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("client", client);
 		env.putObject("server", server);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -154,7 +154,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -171,7 +171,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -187,7 +187,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -204,7 +204,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -224,7 +224,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -244,7 +244,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -260,7 +260,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -277,7 +277,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -294,7 +294,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -310,7 +310,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -327,7 +327,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 
@@ -344,7 +344,7 @@ public class ValidateIdTokenHeartClaims_UnitTest {
 		env.putObject("server", server);
 		addIdToken(env, claims);
 
-		cond.evaluate(env);
+		cond.execute(env);
 
 	}
 }

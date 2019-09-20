@@ -41,12 +41,12 @@ public class ValidateErrorDescriptionFromTokenEndpointResponseError_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ErrorDescriptionFieldInvalid() {
 		tokenEndpointResponse.addProperty("error_description", "[A200308] \"The end-user has not been authenticated yet.");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_ErrorDescriptionFieldValid() {
 		tokenEndpointResponse.addProperty("error_description", "[A200308] The end-user has not been authenticated yet.");
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }
