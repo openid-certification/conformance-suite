@@ -66,7 +66,7 @@ public class ValidateJARMExp_Recommendations_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_tooShort() {
-		createResponse(env,30); // 30 seconds; fairly random
+		createResponse(env,5); // 30 seconds; fairly random
 		cond.evaluate(env);
 	}
 

@@ -152,11 +152,11 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
 		// Validate the MTLS keys
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 
 		// validate the secondary MTLS keys
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 		env.unmapKey("mutual_tls_authentication");
 
 		// Set up the resource endpoint configuration

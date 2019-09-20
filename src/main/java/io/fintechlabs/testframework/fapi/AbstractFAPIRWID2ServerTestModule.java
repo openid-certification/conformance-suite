@@ -234,7 +234,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		// validate the secondary MTLS keys
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 		env.unmapKey("mutual_tls_authentication");
 
 		eventLog.endBlock();
