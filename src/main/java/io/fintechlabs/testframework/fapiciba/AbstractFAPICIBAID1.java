@@ -326,7 +326,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 		eventLog.endBlock();
 	}
 
@@ -355,7 +355,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		// validate the secondary MTLS keys
-		callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
