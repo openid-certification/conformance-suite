@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -106,6 +108,10 @@ public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Abs
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(AddExpToRequestObject.class);
+
+		callAndStopOnFailure(AddAudToRequestObject.class);
+
+		callAndStopOnFailure(AddIssToRequestObject.class);
 
 		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 

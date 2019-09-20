@@ -1,8 +1,10 @@
 package io.fintechlabs.testframework.fapiciba;
 
+import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddJtiToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddNbfToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
@@ -87,8 +89,8 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsBadFails extends 
 		callAndStopOnFailure(AddExpToRequestObject.class, "CIBA-7.1.1");
 		callAndStopOnFailure(AddNbfToRequestObject.class, "CIBA-7.1.1");
 		callAndStopOnFailure(AddJtiToRequestObject.class, "CIBA-7.1.1");
-
-		// aud, iss are added by SignRequestObject
+		callAndStopOnFailure(AddAudToRequestObject.class, "CIBA-7.1.1");
+		callAndStopOnFailure(AddIssToRequestObject.class, "CIBA-7.1.1");
 		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
 
 		callAndStopOnFailure(SignRequestObjectInvalid.class, "CIBA-7.2");

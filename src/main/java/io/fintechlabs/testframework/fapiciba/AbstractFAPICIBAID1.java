@@ -104,7 +104,7 @@ import io.fintechlabs.testframework.condition.client.GetStaticClient2Configurati
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.TellUserToDoCIBAAuthentication;
 import io.fintechlabs.testframework.condition.client.UnregisterDynamicallyRegisteredClient;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
@@ -580,7 +580,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		createAuthorizationRequestObject();
 
-		callAndStopOnFailure(SignAuthenticationRequest.class, "CIBA-7.1.1");
+		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 

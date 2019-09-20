@@ -34,9 +34,6 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 			throw error("Couldn't find jwks");
 		}
 
-		// only override this method when we need check 'iss' and 'aud' in request object
-		checkIssAndAudInRequestObject(env, claims);
-
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
 
@@ -95,10 +92,6 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 		signJWT.sign(signer);
 
 		return signJWT.serialize();
-	}
-
-	protected void checkIssAndAudInRequestObject(Environment env, JsonObject claims) {
-		// only override this method when we need check 'iss' and 'aud' in request object
 	}
 
 	protected abstract void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj);

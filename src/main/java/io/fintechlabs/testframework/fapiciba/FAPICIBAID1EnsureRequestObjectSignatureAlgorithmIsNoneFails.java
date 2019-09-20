@@ -78,7 +78,6 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsNoneFails extends
 	protected void performAuthorizationRequest() {
 		createAuthorizationRequestObject();
 
-		// aud, iss are added by SignRequestObject
 		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class, "CIBA-7.2");
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");

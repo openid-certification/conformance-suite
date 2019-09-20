@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddExpiredExpToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -103,6 +105,10 @@ public class FAPIRWID2EnsureExpiredRequestObjectFails extends AbstractFAPIRWID2S
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(AddExpiredExpToRequestObject.class, "RFC7519-4.1.4");
+
+		callAndStopOnFailure(AddAudToRequestObject.class);
+
+		callAndStopOnFailure(AddIssToRequestObject.class);
 
 		callAndStopOnFailure(SignRequestObject.class);
 

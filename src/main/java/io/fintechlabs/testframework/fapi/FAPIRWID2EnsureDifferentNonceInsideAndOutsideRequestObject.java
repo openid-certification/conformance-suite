@@ -3,8 +3,10 @@ package io.fintechlabs.testframework.fapi;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
+import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -106,6 +108,10 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(AddExpToRequestObject.class);
+
+		callAndStopOnFailure(AddAudToRequestObject.class);
+
+		callAndStopOnFailure(AddIssToRequestObject.class);
 
 		callAndStopOnFailure(SignRequestObject.class);
 

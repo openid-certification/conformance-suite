@@ -1,6 +1,8 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.CheckStateInAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -100,6 +102,10 @@ public class FAPIRWID2EnsureRequestObjectWithoutExpFails extends AbstractFAPIRWI
 	@Override
 	protected void createAuthorizationRedirect() {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddAudToRequestObject.class);
+
+		callAndStopOnFailure(AddIssToRequestObject.class);
 
 		callAndStopOnFailure(SignRequestObject.class);
 
