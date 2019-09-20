@@ -7,7 +7,7 @@ import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticati
 import io.fintechlabs.testframework.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus401;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidClient;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateErrorResponseFromBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
@@ -77,7 +77,7 @@ public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizati
 	protected void performAuthorizationRequest() {
 		createAuthorizationRequestObject();
 
-		callAndStopOnFailure(SignAuthenticationRequest.class, "CIBA-7.1.1");
+		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 

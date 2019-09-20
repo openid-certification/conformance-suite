@@ -4,7 +4,7 @@ import io.fintechlabs.testframework.condition.client.AddClientIdToBackchannelAut
 import io.fintechlabs.testframework.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallBackchannelAuthenticationEndpoint;
 import io.fintechlabs.testframework.condition.client.CreateBackchannelAuthenticationEndpointRequest;
-import io.fintechlabs.testframework.condition.client.SignAuthenticationRequest;
+import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
@@ -89,8 +89,7 @@ public class FAPICIBAID1EnsureRequestObjectSignedByOtherClientFails extends Abst
 		eventLog.startBlock("Swapping to Jwks2");
 		env.mapKey("client_jwks", "client_jwks2");
 
-		// aud, iss are added by SignRequestObject
-		callAndStopOnFailure(SignAuthenticationRequest.class, "CIBA-7.1.1");
+		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
 
 		env.unmapKey("client_jwks");
 

@@ -1,7 +1,9 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIatToRequestObject;
+import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddMultipleAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -86,6 +88,8 @@ public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends Ab
 		callAndStopOnFailure(AddExpToRequestObject.class);
 
 		callAndStopOnFailure(AddMultipleAudToRequestObject.class, "RFC7519-4.1.3");
+
+		callAndStopOnFailure(AddIssToRequestObject.class);
 
 		callAndStopOnFailure(SignRequestObject.class);
 

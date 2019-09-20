@@ -29,27 +29,4 @@ public class SignRequestObject extends AbstractSignJWT {
 			"key", jwk.toJSONString()));
 	}
 
-	@Override
-	protected void checkIssAndAudInRequestObject(Environment env, JsonObject requestObjectClaims) {
-		if (!requestObjectClaims.has("iss")) {
-			String clientId = env.getString("client", "client_id");
-			if (clientId != null) {
-				requestObjectClaims.addProperty("iss", clientId);
-			} else {
-				// Only a "should" requirement
-				log("Request object contains no issuer and client ID not found");
-			}
-		}
-
-		if (!requestObjectClaims.has("aud")) {
-			String serverIssuerUrl = env.getString("server", "issuer");
-			if (serverIssuerUrl != null) {
-				requestObjectClaims.addProperty("aud", serverIssuerUrl);
-			} else {
-				// Only a "should" requirement
-				log("Request object contains no audience and server issuer URL not found");
-			}
-		}
-	}
-
 }

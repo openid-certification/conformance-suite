@@ -25,28 +25,6 @@ public class SerializeRequestObjectWithNullAlgorithm extends AbstractCondition {
 			throw error("Couldn't find request object claims");
 		}
 
-		// FIXME: this processing should be handled in a separate condition
-		if (!requestObjectClaims.has("iss")) {
-			String clientId = env.getString("client", "client_id");
-			if (clientId != null) {
-				requestObjectClaims.addProperty("iss", clientId);
-			} else {
-				// Only a "should" requirement
-				log("Request object contains no issuer and client ID not found");
-			}
-		}
-
-		// FIXME: this processing should be handled in a separate condition
-		if (!requestObjectClaims.has("aud")) {
-			String serverIssuerUrl = env.getString("server", "issuer");
-			if (serverIssuerUrl != null) {
-				requestObjectClaims.addProperty("aud", serverIssuerUrl);
-			} else {
-				// Only a "should" requirement
-				log("Request object contains no audience and server issuer URL not found");
-			}
-		}
-
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(requestObjectClaims.toString());
 
