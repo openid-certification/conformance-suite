@@ -44,6 +44,18 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
+	@Variant(name = FAPIRWID2.variant_mtls_jarm)
+	public void setupMTLSJarm() {
+		// FIXME: need JARM variant
+		setupMTLS();
+	}
+
+	@Variant(name = FAPIRWID2.variant_privatekeyjwt_jarm)
+	public void setupPrivateKeyJwtJarm() {
+		// FIXME: need JARM variant
+		setupPrivateKeyJwt();
+	}
+
 	@Variant(name = FAPIRWID2.variant_openbankinguk_mtls)
 	public void setupOpenBankingUkMTLS() {
 		super.setupOpenBankingUkMTLS();

@@ -111,5 +111,23 @@
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2",
+        "variant": "mtls-jarm",
+        "configuration-filename": "authlete-fapi-rw-id2-mtls-jarm.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known expected authlete behaviour"
+    },
+    {
+        "test-name": "fapi-rw-id2",
+        "variant": "private_key_jwt-jarm",
+        "configuration-filename": "authlete-fapi-rw-id2-privatekey-jarm.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known expected authlete behaviour"
     }
 ]

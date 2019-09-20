@@ -62,6 +62,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	variants = {
 		FAPIRWID2.variant_mtls,
 		FAPIRWID2.variant_privatekeyjwt,
+		FAPIRWID2.variant_mtls_jarm,
+		FAPIRWID2.variant_privatekeyjwt_jarm,
 		FAPIRWID2.variant_openbankinguk_mtls,
 		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}

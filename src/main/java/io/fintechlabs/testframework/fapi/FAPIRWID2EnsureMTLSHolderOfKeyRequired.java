@@ -58,6 +58,16 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
+	@Variant(name = variant_mtls_jarm)
+	public void setupMTLSJarm() {
+		super.setupMTLSJarm();
+	}
+
+	@Variant(name = variant_privatekeyjwt_jarm)
+	public void setupPrivateKeyJwtJarm() {
+		super.setupPrivateKeyJwtJarm();
+	}
+
 	@Variant(
 		name = variant_openbankinguk_mtls,
 		configurationFields = {

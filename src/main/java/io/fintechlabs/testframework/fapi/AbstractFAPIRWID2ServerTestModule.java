@@ -47,10 +47,12 @@ import io.fintechlabs.testframework.condition.client.EnsureResourceResponseConte
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import io.fintechlabs.testframework.condition.client.ExtractAuthorizationEndpointResponseFromJARMResponse;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
+import io.fintechlabs.testframework.condition.client.ExtractJARMFromURLQuery;
 import io.fintechlabs.testframework.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import io.fintechlabs.testframework.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -68,6 +70,9 @@ import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguratio
 import io.fintechlabs.testframework.condition.client.RedirectQueryTestDisabled;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
+import io.fintechlabs.testframework.condition.client.RejectNonJarmResponsesInUrlQuery;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import io.fintechlabs.testframework.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
@@ -86,12 +91,16 @@ import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgai
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenNonce;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignature;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
+import io.fintechlabs.testframework.condition.client.ValidateJARMExpRecommendations;
+import io.fintechlabs.testframework.condition.client.ValidateJARMResponse;
+import io.fintechlabs.testframework.condition.client.ValidateJARMSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesAsX509;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateSHash;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.client.ValidateSuccessfulHybridResponseFromAuthorizationEndpoint;
+import io.fintechlabs.testframework.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInClientJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
@@ -117,13 +126,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	// to be used in @Variant definitions
 	public static final String variant_mtls = "mtls";
+	public static final String variant_mtls_jarm = "mtls-jarm";
 	public static final String variant_privatekeyjwt = "private_key_jwt";
+	public static final String variant_privatekeyjwt_jarm = "private_key_jwt-jarm";
 	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
 	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
 
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected int whichClient;
+	protected boolean jarm = false;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -300,7 +312,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		if (jarm) {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+		} else {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		}
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
@@ -327,15 +344,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		if (jarm) {
+			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		} else {
+			callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		}
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndContinueOnFailure(CheckMatchingStateParameter.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
 		handleSuccessfulAuthorizationEndpointResponse();
 	}
 
+	// This is only used for the id token from the authorization endpoint, the token endpoint one is verified
+	// separately (I'm not sure why)
 	protected void performIdTokenValidation() {
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
@@ -357,22 +380,23 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 
-		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+		if (!jarm) {
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-		// save the id_token returned from the authorisation endpoint
-		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+			// save the id_token returned from the authorisation endpoint
+			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+			performIdTokenValidation();
 
-		performIdTokenValidation();
+			callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
-		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
-		skipIfMissing(new String[] { "s_hash" }, null, Condition.ConditionResult.INFO,
-			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
-			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		}
 
 		performPostAuthorizationFlow();
 	}
@@ -578,26 +602,44 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		eventLog.startBlock(currentClientString() + "Verify at_hash in the authorization endpoint id_token");
+		if (!jarm) {
+			eventLog.startBlock(currentClientString() + "Verify at_hash in the authorization endpoint id_token");
 
-		env.mapKey("id_token","authorization_endpoint_id_token");
+			env.mapKey("id_token", "authorization_endpoint_id_token");
 
-		callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractAtHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
 
-		skipIfMissing(new String[] { "at_hash" }, null, ConditionResult.INFO,
-			ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[]{"at_hash"}, null, ConditionResult.INFO,
+				ValidateAtHash.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		env.unmapKey("id_token");
+			env.unmapKey("id_token");
 
-		eventLog.endBlock();
+			eventLog.endBlock();
+		}
 	}
 
 	protected void processCallback() {
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		// FAPI-RW always requires the hybrid flow, use the hash as the response
-		env.mapKey("authorization_endpoint_response", "callback_params");
+		if (jarm) {
+			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
+			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI-RW-5.2.5","JARM-4.3.4","JARM-4.3.1");
+
+			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
+
+			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
+
+			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
+
+			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
+
+			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.WARNING, "JARM-4.4-6");
+
+		} else {
+			// FAPI-RW otherwise always requires the hybrid flow, use the hash as the response
+			env.mapKey("authorization_endpoint_response", "callback_params");
+		}
 
 		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
@@ -671,11 +713,20 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		generateNewClientAssertionSteps = null;
 	}
 
+	protected void setupMTLSJarm() {
+		setupMTLS();
+		jarm = true;
+	}
 	protected void setupPrivateKeyJwt() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
 		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	}
+
+	protected void setupPrivateKeyJwtJarm() {
+		setupPrivateKeyJwt();
+		jarm = true;
 	}
 
 	protected void setupOpenBankingUkMTLS() {

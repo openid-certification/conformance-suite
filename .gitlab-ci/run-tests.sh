@@ -41,6 +41,8 @@ function makeServerTest {
     # authlete FAPI
     TESTS="${TESTS} fapi-rw-id2-test-plan:mtls authlete-fapi-rw-id2-mtls.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan:private_key_jwt authlete-fapi-rw-id2-privatekey.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:mtls-jarm authlete-fapi-rw-id2-mtls-jarm.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan:private_key_jwt-jarm authlete-fapi-rw-id2-privatekey-jarm.json"
     TESTS="${TESTS} fapi-r-code-id-token-with-mtls-test-plan authlete-fapi-r-mtls.json"
     TESTS="${TESTS} fapi-r-code-id-token-with-private-key-test-plan authlete-fapi-r-private-key.json"
     TESTS="${TESTS} fapi-r-code-id-token-with-client-secret-jwt-test-plan authlete-fapi-r-client-secret.json"

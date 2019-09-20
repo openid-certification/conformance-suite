@@ -36,6 +36,7 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	},
 	notApplicableForVariants = {
 		FAPIRWID2.variant_mtls,
+		FAPIRWID2.variant_mtls_jarm,
 		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
@@ -44,6 +45,11 @@ public class FAPIRWID2EnsureClientAssertionInTokenEndpoint extends AbstractFAPIR
 	@Variant(name = variant_privatekeyjwt)
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_privatekeyjwt_jarm)
+	public void setupPrivateKeyJwtJarm() {
+		super.setupPrivateKeyJwtJarm();
 	}
 
 	@Variant(
