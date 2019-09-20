@@ -77,6 +77,12 @@ public class OIDCC extends AbstractOIDCCMultipleClient {
 
 	@Override
 	protected void performSecondClientTests() {
+		if (responseType.includesCode()) {
+			testReuseOfAuthorizationCode();
+		}
+	}
+
+	private void testReuseOfAuthorizationCode() {
 		eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
