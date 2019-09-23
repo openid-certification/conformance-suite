@@ -45,6 +45,10 @@ import io.fintechlabs.testframework.condition.client.DisallowAccessTokenInQuery;
 import io.fintechlabs.testframework.condition.client.EnsureMatchingFAPIInteractionId;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenLength;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthorizationCodeEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthorizationCodeLength;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumRefreshTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumRefreshTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractAtHash;
@@ -360,6 +364,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
 		handleSuccessfulAuthorizationEndpointResponse();
 	}
 
@@ -572,6 +580,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
+			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
+			EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 

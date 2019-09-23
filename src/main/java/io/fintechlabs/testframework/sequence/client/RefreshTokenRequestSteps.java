@@ -10,6 +10,8 @@ import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureAccessTokenValuesAreDifferent;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumRefreshTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumRefreshTokenLength;
 import io.fintechlabs.testframework.condition.client.ExtractAccessTokenFromTokenResponse;
 import io.fintechlabs.testframework.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import io.fintechlabs.testframework.condition.client.ExtractIdTokenFromTokenResponse;
@@ -73,6 +75,16 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, ConditionResult.INFO);
+
+		call(condition(EnsureMinimumRefreshTokenLength.class)
+			.skipIfStringsMissing("refresh_token")
+			.requirement("RFC6749-10.10")
+			.dontStopOnFailure());
+
+		call(condition(EnsureMinimumRefreshTokenEntropy.class)
+			.skipIfStringsMissing("refresh_token")
+			.requirement("RFC6749-10.10")
+			.dontStopOnFailure());
 
 		//compare only when refresh response contains an id_token
 		call(condition(CompareIdTokenClaims.class)

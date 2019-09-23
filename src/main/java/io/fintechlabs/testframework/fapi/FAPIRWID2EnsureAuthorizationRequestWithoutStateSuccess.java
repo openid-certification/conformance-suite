@@ -8,6 +8,8 @@ import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectT
 import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpointError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthorizationCodeEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthorizationCodeLength;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.VerifyNoStateInAuthorizationResponse;
@@ -118,6 +120,10 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends Abst
 		callAndContinueOnFailure(VerifyNoStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
 		handleSuccessfulAuthorizationEndpointResponse();
 	}
