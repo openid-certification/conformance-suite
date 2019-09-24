@@ -48,26 +48,26 @@ public class ValidateJARMExp_Recommendations_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 		createResponse(env,240); // 4 minute offset
-		cond.evaluate(env);
+		cond.execute(env);
 		verify(env, atLeastOnce()).getLong("jarm_response", "claims.exp");
 	}
 
 	@Test
 	public void testEvaluate_noErrorMaxLength() {
 		createResponse(env,15*60); // 15 minutes (10 minutes allowable in spec + 5 minutes allowed time skew)
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_tooLong() {
 		createResponse(env,16*60); // 16 minutes (10 minutes allowable in spec + 5 minutes allowed time skew)
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_tooShort() {
 		createResponse(env,5); // 30 seconds; fairly random
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
@@ -76,6 +76,6 @@ public class ValidateJARMExp_Recommendations_UnitTest {
 		JsonObject response = new JsonObject();
 		response.add("claims", claims);
 		env.putObject("heart_response",response);
-		cond.evaluate(env);
+		cond.execute(env);
 	}
 }
