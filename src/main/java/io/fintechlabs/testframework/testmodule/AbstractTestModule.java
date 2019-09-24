@@ -283,7 +283,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				}
 			}
 
-			((AbstractCondition) condition).execute(env);
+			condition.execute(env);
 
 		} catch (ConditionError error) {
 			if (error.isPreOrPostError()) {

@@ -81,6 +81,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		this.requirements = Sets.newHashSet(requirements);
 	}
 
+	@Override
 	public void execute(Environment env) {
 		try {
 			Method eval = this.getClass().getMethod("evaluate", Environment.class);
@@ -117,7 +118,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 			// evaluate the condition and assign its results back to our environment
 			env = evaluate(env);
-			if (!this.logged()) {
+			if (!logged) {
 				log.log(this.getMessage(),
 					args("msg", "Condition ran but did not log anything"));
 			}
@@ -159,10 +160,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		}
 	}
 
-	@Override
-	public boolean logged() {
-		return logged;
-	}
+	/**
+	 * Tests if the condition holds true. Reads from the given environment and returns a potentially modified environment.
+	 *
+	 * Throws ConditionError when condition isn't met.
+	 *
+	 * Decorate with @PreEnvironment to ensure objects or strings are in the environment before evaluation.
+	 * Decorate with @PostEnvironment to ensure objects or strings are in the environment after evaluation.
+	 */
+	protected abstract Environment evaluate(Environment env);
 
 	/**
 	 * Get the testId for this instance
