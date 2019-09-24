@@ -770,6 +770,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
+		eventLog.endBlock();
+
 		performPostAuthorizationFlow(true);
 	}
 
