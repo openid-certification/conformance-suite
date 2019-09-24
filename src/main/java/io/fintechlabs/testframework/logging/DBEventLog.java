@@ -1,9 +1,7 @@
 package io.fintechlabs.testframework.logging;
 
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
@@ -13,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.client.MongoCollection;
@@ -26,12 +23,6 @@ public class DBEventLog implements EventLog {
 	private static final Logger log = LoggerFactory.getLogger(DBEventLog.class);
 
 	public static final String COLLECTION = "EVENT_LOG";
-
-	// a block identifier for a log entry
-	private String blockId = null;
-
-	// random number generator
-	private Random random = new SecureRandom();
 
 	@Autowired
 	private TestInfoService testInfoService;
@@ -51,7 +42,6 @@ public class DBEventLog implements EventLog {
 			.append("src", source)
 			.append("testOwner", owner)
 			.append("time", new Date().getTime())
-			.append("blockId", blockId)
 			.append("msg", msg);
 
 		mongoTemplate.insert(document, COLLECTION);
@@ -69,7 +59,6 @@ public class DBEventLog implements EventLog {
 		dbObject.append("src", source);
 		dbObject.append("testOwner", owner);
 		dbObject.append("time", new Date().getTime());
-		dbObject.append("blockId", blockId);
 
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
@@ -85,30 +74,9 @@ public class DBEventLog implements EventLog {
 			.add("testId", testId)
 			.add("src", source)
 			.add("testOwner", owner)
-			.add("time", new Date().getTime())
-			.add("blockId", blockId);
+			.add("time", new Date().getTime());
 
 		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
-	}
-
-	@Override
-	public String startBlock() {
-		// create a random six-character hex string that we can use as a CSS color code in the logs
-		blockId = Strings.padStart(
-			Integer.toHexString(
-				random.nextInt(256 * 256 * 256))
-			, 6, '0');
-
-
-
-		return blockId;
-	}
-
-	@Override
-	public String endBlock() {
-		String oldBlock = blockId;
-		blockId = null;
-		return oldBlock;
 	}
 
 	@Override

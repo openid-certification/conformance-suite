@@ -43,18 +43,6 @@ public interface EventLog {
 	void log(String testId, String source, Map<String, String> owner, Map<String, Object> map);
 
 	/**
-	 * Start a new log block and return its ID
-	 *
-	 * @return
-	 */
-	String startBlock();
-
-	/**
-	 * end a log block and return the previous block ID
-	 */
-	String endBlock();
-
-	/**
 	 * create indexes on EventLog
 	 */
 	void createIndexes();
