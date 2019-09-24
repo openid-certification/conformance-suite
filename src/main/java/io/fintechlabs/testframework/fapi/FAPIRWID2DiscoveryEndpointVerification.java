@@ -12,6 +12,8 @@ import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointGran
 import io.fintechlabs.testframework.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointClaimsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
+import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
+import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointJARMResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
@@ -32,6 +34,8 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
 
+	protected boolean jarm = false;
+
 	@Variant(name = FAPIRWID2.variant_mtls)
 	public void setupMTLS() {
 		super.setupMTLS();
@@ -46,12 +50,14 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 
 	@Variant(name = FAPIRWID2.variant_mtls_jarm)
 	public void setupMTLSJarm() {
+		jarm = true;
 		// FIXME: need JARM variant
 		setupMTLS();
 	}
 
 	@Variant(name = FAPIRWID2.variant_privatekeyjwt_jarm)
 	public void setupPrivateKeyJwtJarm() {
+		jarm = true;
 		// FIXME: need JARM variant
 		setupPrivateKeyJwt();
 	}
@@ -71,7 +77,12 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 	@Override
 	protected void performEndpointVerification() {
 
-		callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
+		if (jarm) {
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.1.1");
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
+		} else {
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
+		}
 
 		super.performEndpointVerification();
 
