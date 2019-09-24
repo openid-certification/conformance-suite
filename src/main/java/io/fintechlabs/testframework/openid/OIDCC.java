@@ -29,6 +29,21 @@ import io.fintechlabs.testframework.testmodule.Variant;
 )
 public class OIDCC extends AbstractOIDCCMultipleClient {
 
+	@Variant(name = variant_none)
+	public void setupNone() {
+		super.setupNone();
+	}
+
+	@Variant(
+		name = variant_client_secret_basic,
+		configurationFields =  {
+			"client.client_secret",
+			"client2.client_secret"
+		})
+	public void setupClientSecretBasic() {
+		super.setupClientSecretBasic();
+	}
+
 	@Variant(
 		name = variant_client_secret_post,
 		configurationFields =  {

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
+import io.fintechlabs.testframework.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import io.fintechlabs.testframework.condition.client.AddNonceToAuthorizationEndpointRequest;
 import io.fintechlabs.testframework.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -69,6 +70,8 @@ import io.fintechlabs.testframework.testmodule.TestFailureException;
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
 	// Variants
+	public static final String variant_none = "none";
+	public static final String variant_client_secret_basic = "client_secret_basic";
 	public static final String variant_client_secret_post = "client_secret_post";
 	public static final String variant_client_secret_jwt = "client_secret_jwt";
 	public static final String variant_private_key_jwt = "private_key_jwt";
@@ -112,11 +115,28 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
+	public static class AddBasicAuthClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+		}
+	}
+
 	public static class AddFormBasedClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
 		}
+	}
+
+	protected void setupNone() {
+		profileClientValidation = null;
+		addTokenEndpointClientAuthentication = null;
+	}
+
+	protected void setupClientSecretBasic() {
+		profileClientValidation = null;
+		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	protected void setupClientSecretPost() {
@@ -320,7 +340,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		call(sequence(addTokenEndpointClientAuthentication));
+		if (addTokenEndpointClientAuthentication != null) {
+			call(sequence(addTokenEndpointClientAuthentication));
+		}
 	}
 
 	protected void requestAuthorizationCode() {
