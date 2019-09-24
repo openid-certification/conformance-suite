@@ -329,13 +329,19 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
     if ':' in test_plan:
         (test_plan_name, variant) = test_plan.split(':', 1)
 
+    block_names = {}
     block_msg = ''
     for log_entry in logs:
         if ('startBlock' in log_entry and log_entry['startBlock'] == True and log_entry['src'] == '-START-BLOCK-'):
-            block_msg = log_entry['msg']
+            block_names[log_entry['blockId']] = log_entry['msg']
             continue
         if 'result' not in log_entry:
             continue
+
+        if ('blockId' in log_entry):
+            block_msg = block_names[log_entry['blockId']]
+        else:
+            block_msg = ''
 
         log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
         if log_result in counts:
