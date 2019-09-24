@@ -16,7 +16,7 @@ echo -e "\n\n`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh starting\n\n"
 
 source node-client-setup.sh
 export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
-export ACCOUNTS='test/a/fintech-clienttest/open-banking/v1.1/accounts'
+export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
 export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
 
 TESTS=""

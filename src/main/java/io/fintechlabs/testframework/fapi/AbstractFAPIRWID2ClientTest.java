@@ -66,6 +66,7 @@ import io.fintechlabs.testframework.condition.rs.LoadUserInfo;
 import io.fintechlabs.testframework.condition.rs.RequireBearerAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireBearerClientCredentialsAccessToken;
 import io.fintechlabs.testframework.condition.rs.RequireOpenIDScope;
+import io.fintechlabs.testframework.runner.TestDispatcher;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
 import io.fintechlabs.testframework.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
@@ -120,6 +121,12 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		exposeEnvString(name);
 	}
 
+	private void exposeMtlsPath(String name, String path) {
+		String baseUrlMtls = env.getString("base_url").replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
+		env.putString(name, baseUrlMtls + "/" + path);
+		exposeEnvString(name);
+	}
+
 	protected abstract void addCustomValuesToIdToken();
 
 	protected void addCustomSignatureOfIdToken(){}
@@ -140,7 +147,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		exposePath("accounts_endpoint", ACCOUNTS_PATH);
+		exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -235,6 +242,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
+		} else if (path.equals(ACCOUNTS_PATH)) {
+			return accountsEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -491,8 +500,17 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	private Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Accounts endpoint")
-			.mapKey("incoming_request", requestId));
+		call(exec().startBlock("Accounts endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
+		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
