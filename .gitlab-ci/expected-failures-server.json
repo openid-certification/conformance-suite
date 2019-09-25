@@ -129,5 +129,32 @@
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
         "comment": "known expected authlete behaviour"
+    },
+    {
+        "test-name": "oidcc",
+        "variant": "client_secret_post",
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc",
+        "variant": "client_secret_jwt",
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc",
+        "variant": "private_key_jwt",
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
     }
 ]

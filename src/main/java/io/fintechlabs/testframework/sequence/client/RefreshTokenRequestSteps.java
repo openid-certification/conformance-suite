@@ -46,7 +46,9 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 		}
 
-		call(sequence(addClientAuthenticationToTokenEndpointRequest));
+		if (addClientAuthenticationToTokenEndpointRequest != null) {
+			call(sequence(addClientAuthenticationToTokenEndpointRequest));
+		}
 
 		//wait 1 second to make sure that iat values will be different
 		callAndStopOnFailure(WaitForOneSecond.class);
