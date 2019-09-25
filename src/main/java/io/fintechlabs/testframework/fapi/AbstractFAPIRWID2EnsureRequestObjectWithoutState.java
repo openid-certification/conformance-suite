@@ -18,6 +18,8 @@ import io.fintechlabs.testframework.condition.client.CreateRandomNonceValue;
 import io.fintechlabs.testframework.condition.client.CreateRandomStateValue;
 import io.fintechlabs.testframework.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import io.fintechlabs.testframework.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthorizationCodeEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthorizationCodeLength;
 import io.fintechlabs.testframework.condition.client.ExpectRequestObjectMissingStateErrorPage;
 import io.fintechlabs.testframework.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import io.fintechlabs.testframework.condition.client.ExtractCHash;
@@ -104,6 +106,10 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 			callAndContinueOnFailure(VerifyNoStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
 			handleSuccessfulAuthorizationEndpointResponse();
 

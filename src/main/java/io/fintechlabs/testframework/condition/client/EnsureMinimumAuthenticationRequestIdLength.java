@@ -7,7 +7,7 @@ import io.fintechlabs.testframework.testmodule.Environment;
 
 public class EnsureMinimumAuthenticationRequestIdLength extends AbstractCondition {
 
-	private final double requiredLength = 128;
+	private final int requiredLength = 128;
 
 	@Override
 	@PreEnvironment(required = "backchannel_authentication_endpoint_response")

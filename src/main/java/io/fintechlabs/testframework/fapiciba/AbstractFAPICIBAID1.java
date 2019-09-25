@@ -76,6 +76,8 @@ import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenEnt
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAccessTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureMinimumAuthenticationRequestIdLength;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumRefreshTokenEntropy;
+import io.fintechlabs.testframework.condition.client.EnsureMinimumRefreshTokenLength;
 import io.fintechlabs.testframework.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
 import io.fintechlabs.testframework.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import io.fintechlabs.testframework.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
@@ -734,6 +736,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
+			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
+			EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
