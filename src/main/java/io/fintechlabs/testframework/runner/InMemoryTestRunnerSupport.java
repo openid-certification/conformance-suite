@@ -36,7 +36,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#addRunningTest(java.lang.String, io.fintechlabs.testframework.testmodule.TestModule)
 	 */
 	@Override
-	public void addRunningTest(String id, TestModule test) {
+	public synchronized void addRunningTest(String id, TestModule test) {
 		runningTests.put(id, test);
 	}
 
@@ -44,7 +44,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#hasAlias(java.lang.String)
 	 */
 	@Override
-	public boolean hasAlias(String alias) {
+	public synchronized boolean hasAlias(String alias) {
 		return aliases.containsKey(alias);
 	}
 
@@ -52,7 +52,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#getRunningTestByAlias(java.lang.String)
 	 */
 	@Override
-	public TestModule getRunningTestByAlias(String alias) {
+	public synchronized TestModule getRunningTestByAlias(String alias) {
 		expireOldTests();
 		return getRunningTestById(getTestIdForAlias(alias));
 	}
@@ -61,7 +61,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#addAlias(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void addAlias(String alias, String id) {
+	public synchronized void addAlias(String alias, String id) {
 		aliases.put(alias, id);
 	}
 
@@ -69,7 +69,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#getRunningTestById(java.lang.String)
 	 */
 	@Override
-	public TestModule getRunningTestById(String testId) {
+	public synchronized TestModule getRunningTestById(String testId) {
 		expireOldTests();
 
 		if (authenticationFacade.getPrincipal() == null || 	// if the user's not logged in at all (it's a back-channel or Selenium call)
@@ -89,7 +89,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#getAllRunningTestIds()
 	 */
 	@Override
-	public Set<String> getAllRunningTestIds() {
+	public synchronized Set<String> getAllRunningTestIds() {
 		expireOldTests();
 
 		if (authenticationFacade.getPrincipal() == null || 	// if the user's not logged in at all (it's a back-channel or Selenium call)
@@ -112,7 +112,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#getTestIdForAlias(java.lang.String)
 	 */
 	@Override
-	public String getTestIdForAlias(String alias) {
+	public synchronized String getTestIdForAlias(String alias) {
 		return aliases.get(alias);
 	}
 
@@ -120,7 +120,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see io.fintechlabs.testframework.runner.TestRunnerSupport#hasTestId(java.lang.String)
 	 */
 	@Override
-	public boolean hasTestId(String testId) {
+	public synchronized boolean hasTestId(String testId) {
 		expireOldTests();
 		return runningTests.containsKey(testId);
 	}
@@ -129,7 +129,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @param testId
 	 */
 	@Override
-	public void removeRunningTest(String testId) {
+	public synchronized void removeRunningTest(String testId) {
 		runningTests.remove(testId);
 	}
 
