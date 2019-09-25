@@ -345,6 +345,10 @@ textarea {
 	background-color: #e2bfce;
 }
 
+.label.result-skipped {
+    background-color: #d88602;
+}
+
 /* JJH: I don't believe this default value is ever used, there is no code to treat an unknown value as the default
   and unknown values seem to display as white-on-white */
 .label.result-default {
@@ -358,6 +362,7 @@ textarea {
 .label.result-interrupted .badge,
 .label.result-info .badge,
 .label.result-finished .badge,
+.label.result-skipped .badge,
 .label.result-default .badge {
 	background-color: rgba(0.5, 0.5, 0.5, 0.5);
 	font-size: 10px;

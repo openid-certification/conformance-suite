@@ -97,6 +97,7 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 	}
 
 	protected void sendRefreshTokenRequestAndCheckIdTokenClaims() {
+		eventLog.startBlock(currentClientString() + "Check for refresh token");
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
@@ -106,6 +107,7 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 		}
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
+		eventLog.endBlock();
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 	}
 

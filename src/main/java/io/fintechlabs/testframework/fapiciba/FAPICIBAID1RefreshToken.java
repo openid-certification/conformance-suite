@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsRefreshToken;
@@ -84,6 +85,12 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 	}
 
 	@Override
+	protected void performProfileClientRegistrationSetup() {
+		super.performProfileClientRegistrationSetup();
+		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
+	}
+
+	@Override
 	protected void performAuthorizationFlow() {
 		// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
 		env.mapKey("access_token", "first_access_token");
@@ -96,6 +103,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		env.mapKey("access_token", "second_access_token");
 		env.mapKey("id_token", "second_id_token");
 
+		eventLog.startBlock(currentClientString() + "Check for refresh token");
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if (Strings.isNullOrEmpty(env.getString("refresh_token"))) {
@@ -105,6 +113,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		}
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
+		eventLog.endBlock();
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 	}
 

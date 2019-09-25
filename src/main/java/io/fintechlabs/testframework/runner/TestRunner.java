@@ -671,7 +671,10 @@ public class TestRunner implements DataUtils {
 					event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error, event));
 				} else if (error instanceof TestSkippedException) {
-					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), "The test was skipped: " + error.getMessage());
+					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(),
+							args(
+								"result", TestModule.Result.SKIPPED,
+								"msg", "The test was skipped: " + error.getMessage()));
 				} else {
 					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
 				}

@@ -1,20 +1,30 @@
 package io.fintechlabs.testframework.logging;
 
+import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.testmodule.DataUtils;
 
 /**
- * A wrapper around an EventLog that remebers the test ID and Owner information so the caller doesn't need to
+ * A wrapper around an EventLog that supports blocks and remembers the test ID and Owner information
  */
 public class TestInstanceEventLog implements DataUtils {
 
 	private String testId;
 	private Map<String, String> owner;
 	private EventLog eventLog;
+
+	// a block identifier for a log entry
+	private String blockId = null;
+
+	// random number generator
+	private Random random = new SecureRandom();
 
 	/**
 	 * @param testId
@@ -33,7 +43,11 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.lang.String, java.util.Map, java.lang.String)
 	 */
 	public void log(String source, String msg) {
-		eventLog.log(testId, source, owner, msg);
+		if (blockId != null) {
+			eventLog.log(testId, source, owner, Map.of("blockId", blockId, "msg", msg));
+		} else {
+			eventLog.log(testId, source, owner, msg);
+		}
 	}
 
 	/**
@@ -42,7 +56,17 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.lang.String, java.util.Map, com.google.gson.JsonObject)
 	 */
 	public void log(String source, JsonObject obj) {
-		eventLog.log(testId, source, owner, obj);
+		JsonObject logObj;
+		if (blockId != null) {
+			logObj = new JsonObject();
+			for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
+				logObj.add(entry.getKey(), entry.getValue().deepCopy());
+			}
+			logObj.addProperty("blockId", blockId);
+		} else {
+			logObj = obj;
+		}
+		eventLog.log(testId, source, owner, logObj);
 	}
 
 	/**
@@ -51,20 +75,33 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @see io.fintechlabs.testframework.logging.EventLog#log(java.lang.String, java.lang.String, java.util.Map, java.util.Map)
 	 */
 	public void log(String source, Map<String, Object> map) {
-		eventLog.log(testId, source, owner, map);
+		Map<String, Object> logMap;
+		if (blockId != null) {
+			logMap = new HashMap<>(map);
+			logMap.put("blockId", blockId);
+		} else {
+			logMap = map;
+		}
+		eventLog.log(testId, source, owner, logMap);
 	}
 
+	private String startBlock() {
+		// create a random six-character hex string that we can use as a CSS color code in the logs
+		blockId = Strings.padStart(
+			Integer.toHexString(
+				random.nextInt(256 * 256 * 256))
+			, 6, '0');
 
-	public String startBlock() {
-		return startBlock(null);
+		return blockId;
 	}
 
 	/**
+	 * Start a new log block and return its ID
+	 *
 	 * @return
-	 * @see io.fintechlabs.testframework.logging.EventLog#startBlock()
 	 */
 	public String startBlock(String message) {
-		String blockId = eventLog.startBlock();
+		String blockId = startBlock();
 
 		if (!Strings.isNullOrEmpty(message)) {
 			log("-START-BLOCK-", args("msg", message, "startBlock", true));
@@ -74,11 +111,12 @@ public class TestInstanceEventLog implements DataUtils {
 	}
 
 	/**
-	 * @return
-	 * @see io.fintechlabs.testframework.logging.EventLog#endBlock()
+	 * end a log block and return the previous block ID
 	 */
 	public String endBlock() {
-		return eventLog.endBlock();
+		String oldBlock = blockId;
+		blockId = null;
+		return oldBlock;
 	}
 
 }

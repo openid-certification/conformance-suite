@@ -1,28 +1,8 @@
 [
     {
         "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "ping-mtls",
-        "configuration-filename": "authlete-fapi-ciba-id1-mtls-ping-dcr.json"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "ping-private_key_jwt",
-        "configuration-filename": "authlete-fapi-ciba-id1-privatekey-ping-dcr.json"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
         "variant": "poll-private_key_jwt",
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "openbankinguk-ping-mtls",
-        "configuration-filename": "authlete-fapi-ciba-id1-mtls-ping-dcr.json"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "openbankinguk-ping-private_key_jwt",
-        "configuration-filename": "authlete-fapi-ciba-id1-privatekey-ping-dcr.json"
     },
     {
         "test-name": "fapi-ciba-id1-refresh-token",

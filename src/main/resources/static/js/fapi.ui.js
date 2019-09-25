@@ -304,6 +304,8 @@ var FAPI_UI = {
 					return "The test has generated some warnings during its execution, see the log for details";
 				case "review":
 					return "The test requires manual review";
+				case "skipped":
+					return "The test could not be completed due to configuration or optional features";
 				default:
 					return "";
 

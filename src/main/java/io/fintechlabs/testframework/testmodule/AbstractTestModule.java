@@ -548,7 +548,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public void fireTestSkipped(String msg) throws TestSkippedException {
-		setResult(Result.SKIPPED);
+		if (getResult() != Result.FAILED) {
+			setResult(Result.SKIPPED);
+		}
 		fireTestFinished();
 		throw new TestSkippedException(getId(), msg);
 	}
