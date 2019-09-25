@@ -65,45 +65,9 @@
     },
     {
         "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "ping-mtls",
-        "configuration-filename": "authlete-fapi-ciba-id1-mtls-ping-dcr.json",
-        "current-block": "Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
-        "expected-result": "warning",
-        "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "ping-private_key_jwt",
-        "configuration-filename": "authlete-fapi-ciba-id1-privatekey-ping-dcr.json",
-        "current-block": "Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
-        "expected-result": "warning",
-        "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
         "variant": "poll-private_key_jwt",
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
-        "expected-result": "warning",
-        "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "openbankinguk-ping-mtls",
-        "configuration-filename": "authlete-fapi-ciba-id1-mtls-ping-dcr.json",
-        "current-block": "Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
-        "expected-result": "warning",
-        "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
-    },
-    {
-        "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "openbankinguk-ping-private_key_jwt",
-        "configuration-filename": "authlete-fapi-ciba-id1-privatekey-ping-dcr.json",
-        "current-block": "Check for refresh token",
         "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"

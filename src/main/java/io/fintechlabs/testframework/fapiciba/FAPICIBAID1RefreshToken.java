@@ -3,6 +3,7 @@ package io.fintechlabs.testframework.fapiciba;
 import com.google.common.base.Strings;
 
 import io.fintechlabs.testframework.condition.Condition;
+import io.fintechlabs.testframework.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
 import io.fintechlabs.testframework.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsRefreshToken;
@@ -81,6 +82,12 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
 	public void setupOpenBankingUkPollPrivateKeyJwt() {
 		super.setupOpenBankingUkPollPrivateKeyJwt();
+	}
+
+	@Override
+	protected void performProfileClientRegistrationSetup() {
+		super.performProfileClientRegistrationSetup();
+		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
 	}
 
 	@Override

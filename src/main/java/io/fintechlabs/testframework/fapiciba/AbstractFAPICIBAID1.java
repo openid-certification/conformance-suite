@@ -385,6 +385,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddEmptyResponseTypesArrayToDynamicRegistrationRequest.class);
 
+		performProfileClientRegistrationSetup();
+
 		call(sequence(addTokenEndpointAuthToRegistrationRequest));
 
 		if (additionalClientRegistrationSteps != null)
@@ -403,6 +405,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			// Add acr_values to client2 only
 			callAndStopOnFailure(CopyAcrValueFromDynamicRegistrationTemplateToClientConfiguration.class);
 		}
+	}
+
+	protected void performProfileClientRegistrationSetup() {
+		// Nothing more to do by default
 	}
 
 	public void unregisterClient1() {
