@@ -45,18 +45,19 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_U
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseInvalidRequestObject() {
+	@Test
+	public void testEvaluate_caseInvalidClient400() {
 		env.putInteger("token_endpoint_response_http_status", 400);
-		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}
 
+
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseBadHttpStatusInvalidClient() {
+	public void testEvaluate_caseInvalidRequestObject() {
 		env.putInteger("token_endpoint_response_http_status", 400);
-		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}
@@ -70,7 +71,23 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_U
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseBadHttpStatusInvalidRequestObject() {
+	public void testEvaluate_caseBadHttpStatusInvalidClient() {
+		env.putInteger("token_endpoint_response_http_status", 402);
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_caseBadHttpStatus200InvalidClient() {
+		env.putInteger("token_endpoint_response_http_status", 200);
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_caseBadHttpErrorInvalidRequestObject() {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
@@ -78,7 +95,7 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_U
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseBadHttpStatusAccessDenied() {
+	public void testEvaluate_caseBadErrorAccessDenied() {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"access_denied\"}").getAsJsonObject());
 
