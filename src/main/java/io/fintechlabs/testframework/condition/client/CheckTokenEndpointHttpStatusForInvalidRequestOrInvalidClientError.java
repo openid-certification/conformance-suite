@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 import org.apache.http.HttpStatus;
 
-public class CheckTokenEndpointHttpStatus401Or400 extends AbstractCondition {
+public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")

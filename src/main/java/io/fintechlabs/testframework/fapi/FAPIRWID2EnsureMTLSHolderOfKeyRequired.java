@@ -3,7 +3,7 @@ package io.fintechlabs.testframework.fapi;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAllowingTLSFailure;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.RemoveMTLSCertificates;
@@ -162,7 +162,7 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 		@Override
 		public void evaluate() {
 			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		}

@@ -13,7 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
+public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -21,11 +21,11 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckTokenEndpointHttpStatus401Or400 cond;
+	private CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckTokenEndpointHttpStatus401Or400();
+		cond = new CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 

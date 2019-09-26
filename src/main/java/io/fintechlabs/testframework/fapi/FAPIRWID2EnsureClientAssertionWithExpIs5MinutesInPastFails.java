@@ -5,7 +5,7 @@ import io.fintechlabs.testframework.condition.client.AddClientAssertionToTokenEn
 import io.fintechlabs.testframework.condition.client.AddExpIs5MinutesInPastToClientAssertionClaims;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.CreateClientAuthenticationAssertionClaims;
 import io.fintechlabs.testframework.condition.client.SignClientAuthenticationAssertion;
@@ -87,7 +87,7 @@ public class FAPIRWID2EnsureClientAssertionWithExpIs5MinutesInPastFails extends 
 		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 
 		fireTestFinished();
