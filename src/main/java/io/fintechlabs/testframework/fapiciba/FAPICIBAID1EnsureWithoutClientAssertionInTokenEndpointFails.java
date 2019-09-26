@@ -6,7 +6,7 @@ import io.fintechlabs.testframework.condition.client.AddAuthReqIdToTokenEndpoint
 import io.fintechlabs.testframework.condition.client.AddClientIdToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
 import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus401Or400;
+import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
 import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
@@ -79,7 +79,7 @@ public class FAPICIBAID1EnsureWithoutClientAssertionInTokenEndpointFails extends
 		 * - It must be a 'invalid_client' error
 		 */
 		validateErrorFromTokenEndpointResponse();
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatus401Or400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
 
 		cleanupAfterBackchannelRequestShouldHaveFailed();

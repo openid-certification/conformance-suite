@@ -13,7 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
+public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -21,11 +21,11 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckTokenEndpointHttpStatus401Or400 cond;
+	private CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckTokenEndpointHttpStatus401Or400();
+		cond = new CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -45,18 +45,19 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseInvalidRequestObject() {
+	@Test
+	public void testEvaluate_caseInvalidClient400() {
 		env.putInteger("token_endpoint_response_http_status", 400);
-		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}
 
+
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseBadHttpStatusInvalidClient() {
+	public void testEvaluate_caseInvalidRequestObject() {
 		env.putInteger("token_endpoint_response_http_status", 400);
-		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}
@@ -70,7 +71,23 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseBadHttpStatusInvalidRequestObject() {
+	public void testEvaluate_caseBadHttpStatusInvalidClient() {
+		env.putInteger("token_endpoint_response_http_status", 402);
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_caseBadHttpStatus200InvalidClient() {
+		env.putInteger("token_endpoint_response_http_status", 200);
+		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_caseBadHttpErrorInvalidRequestObject() {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
@@ -78,7 +95,7 @@ public class CheckTokenEndpointHttpStatus401Or400_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_caseBadHttpStatusAccessDenied() {
+	public void testEvaluate_caseBadErrorAccessDenied() {
 		env.putInteger("token_endpoint_response_http_status", 401);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"access_denied\"}").getAsJsonObject());
 

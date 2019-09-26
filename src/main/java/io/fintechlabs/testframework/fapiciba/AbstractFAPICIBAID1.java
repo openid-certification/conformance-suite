@@ -48,7 +48,6 @@ import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForRefreshTokenValue;
-import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckForSubjectInIdToken;
 import io.fintechlabs.testframework.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
@@ -733,7 +732,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 
-		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
+		// scope is not *required* to be returned as the request was not passed via the browser - FAPI-R-5.2.2-15
+		// https://gitlab.com/openid/conformance-suite/issues/617
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
