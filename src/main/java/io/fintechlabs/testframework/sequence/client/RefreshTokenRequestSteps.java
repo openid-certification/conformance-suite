@@ -3,7 +3,6 @@ package io.fintechlabs.testframework.sequence.client;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.client.AddScopeToTokenEndpointRequest;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
-import io.fintechlabs.testframework.condition.client.CheckForScopesInTokenResponse;
 import io.fintechlabs.testframework.condition.client.CheckTokenTypeIsBearer;
 import io.fintechlabs.testframework.condition.client.CompareIdTokenClaims;
 import io.fintechlabs.testframework.condition.client.CreateRefreshTokenRequest;
@@ -67,8 +66,6 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 				.skipIfObjectMissing("expires_in")
 				.requirement("RFC6749-5.1")
 				.dontStopOnFailure());
-
-		callAndContinueOnFailure(CheckForScopesInTokenResponse.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-15");
 
 		callAndContinueOnFailure(EnsureAccessTokenValuesAreDifferent.class);
 
