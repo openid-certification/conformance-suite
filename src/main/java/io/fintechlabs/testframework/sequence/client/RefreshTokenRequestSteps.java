@@ -74,12 +74,12 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, ConditionResult.INFO);
 
 		call(condition(EnsureMinimumRefreshTokenLength.class)
-			.skipIfStringsMissing("refresh_token")
+			.skipIfElementMissing("token_endpoint_response", "refresh_token")
 			.requirement("RFC6749-10.10")
 			.dontStopOnFailure());
 
 		call(condition(EnsureMinimumRefreshTokenEntropy.class)
-			.skipIfStringsMissing("refresh_token")
+			.skipIfElementMissing("token_endpoint_response", "refresh_token")
 			.requirement("RFC6749-10.10")
 			.dontStopOnFailure());
 
