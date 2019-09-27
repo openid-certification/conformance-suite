@@ -53,6 +53,7 @@ include:
 
 .maven: &maven
   image: maven:3-jdk-11
+  interruptible: true
   variables:
     MAVEN_CONFIG: $CI_PROJECT_DIR/.m2
     MAVEN_OPTS: "-Duser.home=$CI_PROJECT_DIR"
@@ -101,6 +102,7 @@ test:
     - branches
 
 check-trailing-whitespace:
+  interruptible: true
   stage: build
   image: python:2
   script:
@@ -287,6 +289,7 @@ production:
 
 .deployment_test: &deployment_test
   stage: test
+  interruptible: true
   image: python:alpine
   script:
     - check_kube_domain
