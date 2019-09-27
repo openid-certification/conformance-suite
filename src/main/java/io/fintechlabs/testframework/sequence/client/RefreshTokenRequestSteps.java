@@ -71,6 +71,10 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
 
+		// It's perfectly legal to NOT return a new refresh token; if the server didn't then
+		// 'refresh_token' in the environment will be left containing the old (still valid)
+		// token. We use that token later to test the refresh token is bound to the client
+		// correctly.
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, ConditionResult.INFO);
 
 		call(condition(EnsureMinimumRefreshTokenLength.class)
