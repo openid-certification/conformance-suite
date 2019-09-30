@@ -8,10 +8,18 @@
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "openbankinguk-mtls",
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "openbankinguk-mtls",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
     },
@@ -48,10 +56,18 @@
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "openbankinguk-private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "openbankinguk-private_key_jwt",
+        "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
     },
@@ -89,43 +105,85 @@
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "mtls",
         "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "private_key_jwt",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "mtls-jarm",
         "configuration-filename": "authlete-fapi-rw-id2-mtls-jarm.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
         "comment": "known expected authlete behaviour"
     },
     {
-        "test-name": "fapi-rw-id2",
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
         "variant": "private_key_jwt-jarm",
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-jarm.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known expected authlete behaviour"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "mtls",
+        "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "private_key_jwt",
+        "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "private_key_jwt",
+        "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "mtls-jarm",
+        "configuration-filename": "authlete-fapi-rw-id2-mtls-jarm.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known expected authlete behaviour"
+    },
+    {
+        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "variant": "private_key_jwt-jarm",
+        "configuration-filename": "authlete-fapi-rw-id2-privatekey-jarm.json",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
         "comment": "known expected authlete behaviour"

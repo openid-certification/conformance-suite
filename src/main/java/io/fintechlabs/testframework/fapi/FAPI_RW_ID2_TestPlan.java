@@ -57,7 +57,9 @@ import io.fintechlabs.testframework.plan.TestPlan;
 		// OB systems specific tests
 		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class,
 
-		FAPIRWID2TestEssentialAcrScaClaim.class
+		FAPIRWID2TestEssentialAcrScaClaim.class,
+		FAPIRWID2AttemptReuseAuthorisationCodeAfter30s.class,
+		FAPIRWID2AttemptReuseAuthorisationCodeAfterOneSecond.class,
 	},
 	variants = {
 		FAPIRWID2.variant_mtls,
