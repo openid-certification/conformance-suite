@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.openid;
 
+import io.fintechlabs.testframework.openid.nonvariantversion.OIDCCoreRefreshTokenTest;
 import io.fintechlabs.testframework.plan.PublishTestPlan;
 import io.fintechlabs.testframework.plan.TestPlan;
 
@@ -9,7 +10,8 @@ import io.fintechlabs.testframework.plan.TestPlan;
 	profile = "OIDCC",
 	testModules = {
 		OIDCC.class,
-		OIDCCRefreshToken.class
+		OIDCCRefreshToken.class,
+		OIDCCoreRefreshTokenTest.class
 	},
 	variants = {
 		OIDCC.variant_client_secret_post,
