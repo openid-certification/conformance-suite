@@ -198,6 +198,7 @@ stop_review:
     - demo
 
 demo:
+  extends: .auto-deploy
   stage: demo
   script:
     - auto-deploy check_kube_domain
@@ -226,6 +227,7 @@ demo:
 # and uncomment the `when: manual` line in the `production` job.
 
 staging:
+  extends: .auto-deploy
   stage: staging
   script:
     - auto-deploy check_kube_domain
@@ -248,6 +250,7 @@ staging:
 # to production, uncomment the `when: manual` line in the `production` job.
 
 production:
+  extends: .auto-deploy
   stage: production
   script:
     - auto-deploy check_kube_domain
