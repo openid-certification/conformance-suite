@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Strings;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,7 @@ import io.fintechlabs.testframework.CollapsingGsonHttpMessageConverter;
 import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.pagination.PaginationResponse;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 @Service
 public class DBTestPlanService implements TestPlanService {
@@ -76,7 +76,7 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see io.fintechlabs.testframework.info.TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, io.fintechlabs.testframework.plan.TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, String variant, JsonObject config, String description, String[] testModules, String summary, String publish) {
+	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String[] testModules, String summary, String publish) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
@@ -263,10 +263,10 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public String getTestPlanVariant(String planId) {
+	public VariantSelection getTestPlanVariant(String planId) {
 		Plan testPlan = getTestPlan(planId);
 
-		if (testPlan != null && !Strings.isNullOrEmpty(testPlan.getVariant())) {
+		if (testPlan != null) {
 
 			return testPlan.getVariant();
 		}

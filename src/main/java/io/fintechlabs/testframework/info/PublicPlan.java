@@ -2,11 +2,13 @@ package io.fintechlabs.testframework.info;
 
 import java.util.List;
 
+import io.fintechlabs.testframework.variant.VariantSelection;
+
 public class PublicPlan {
 
 	private String _id;
 	private String planName;
-	private String variant;
+	private VariantSelection variant;
 	private String description;
 	private String started;
 	private List<Plan.Module> modules;
@@ -21,7 +23,7 @@ public class PublicPlan {
 		return planName;
 	}
 
-	public String getVariant() {
+	public VariantSelection getVariant() {
 		return variant;
 	}
 

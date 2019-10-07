@@ -1,10 +1,6 @@
 package io.fintechlabs.testframework.runner;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +13,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import io.fintechlabs.testframework.testmodule.Variant;
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,9 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,8 +40,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -63,10 +53,12 @@ import io.fintechlabs.testframework.logging.EventLog;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.DataUtils;
-import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.TestInterruptedException;
 import io.fintechlabs.testframework.testmodule.TestModule;
 import io.fintechlabs.testframework.testmodule.TestSkippedException;
+import io.fintechlabs.testframework.variant.VariantSelection;
+import io.fintechlabs.testframework.variant.VariantService;
+import io.fintechlabs.testframework.variant.VariantService.TestModuleHolder;
 
 /**
  *
@@ -131,7 +123,8 @@ public class TestRunner implements DataUtils {
 	@Autowired
 	private SavedConfigurationService savedConfigurationService;
 
-	private Supplier<Map<String, TestModuleHolder>> testModuleSupplier = Suppliers.memoize(this::findTestModules);
+	@Autowired
+	private VariantService variantService;
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
@@ -189,20 +182,15 @@ public class TestRunner implements DataUtils {
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
 
-		Set<Map<String, ?>> available = getTestModules().values().stream()
+		List<?> available = variantService.getTestModules().stream()
 			.map(e -> args(
-				"testName", e.a.testName(),
-				"displayName", e.a.displayName(),
-				"profile", e.a.profile(),
-				"configurationFields", e.a.configurationFields(),
-				"variants", e.variants.stream()
-					.map((v) -> args(
-						"name", v.name(),
-						"configurationFields", v.configurationFields()
-					))
-					.collect(Collectors.toList()),
-				"summary", e.a.summary()))
-			.collect(Collectors.toSet());
+				"testName", e.info.testName(),
+				"displayName", e.info.displayName(),
+				"profile", e.info.profile(),
+				"configurationFields", e.info.configurationFields(),
+				"variants", e.getVariantSummary(),
+				"summary", e.info.summary()))
+			.collect(Collectors.toList());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
@@ -218,11 +206,11 @@ public class TestRunner implements DataUtils {
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@ApiParam(value = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
 														  @ApiParam(value = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
-														  @ApiParam(value = "Kind of test variation") @RequestParam(name = "variant", required = false) String variant,
+														  @ApiParam(value = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variant,
 														  @ApiParam(value = "Configuration for running test") @RequestBody(required = false) JsonObject testConfig,
 														  Model m) {
 		final JsonObject config;
-		final String testVariant;
+		final VariantSelection testVariant;
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
@@ -291,7 +279,7 @@ public class TestRunner implements DataUtils {
 		}
 
 		// copy the summary from the test module
-		String summary = getTestModules().get(testName).a.summary();
+		String summary = variantService.getTestModule(testName).info.summary();
 
 		// extract the `publish` field if available
 		String publish = null;
@@ -507,9 +495,9 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	private TestModule createTestModule(String testName, String id, JsonObject config, String variantName) {
+	private TestModule createTestModule(String testName, String id, JsonObject config, VariantSelection variant) {
 
-		TestModuleHolder holder = getTestModules().get(testName);
+		TestModuleHolder holder = variantService.getTestModule(testName);
 
 		if (holder == null) {
 			logger.warn("Couldn't find a test module for " + testName);
@@ -517,8 +505,6 @@ public class TestRunner implements DataUtils {
 		}
 
 		try {
-
-			Class<? extends TestModule> testModuleClass = holder.c;
 
 			@SuppressWarnings("unchecked")
 			Map<String, String> owner = authenticationFacade.getPrincipal();
@@ -528,28 +514,18 @@ public class TestRunner implements DataUtils {
 			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade);
 			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
 
-			// call the constructor
-			TestModule module = testModuleClass.getDeclaredConstructor()
-				.newInstance();
-
+			TestModule module;
 
 			// see if we're running a variant
 			// in case, run test in the pipeline
-			if (Strings.isNullOrEmpty(variantName) && config.has("variant") && config.get("variant").isJsonPrimitive()) {
-
-				variantName = OIDFJSON.getString(config.get("variant"));
+			if (variant == null && config.has("variant")) {
+				variant = VariantSelection.fromJson(config.get("variant"));
 			}
 
-			if (!Strings.isNullOrEmpty(variantName)) {
-
-				Method variantMethod = getVariant(module.getClass(), variantName);
-
-				variantMethod.invoke(module);
+			if (variant == null) {
+				module = holder.newInstance(VariantSelection.EMPTY);
 			} else {
-				// if a test module has variants, the user must pick one
-				if (holder.variants.size() > 0) {
-					throw new RuntimeException("This test module has variants, configuration json must contain 'variant'");
-				}
+				module = holder.newInstance(variant);
 			}
 
 			// pass in all the components for this test module to execute
@@ -557,84 +533,13 @@ public class TestRunner implements DataUtils {
 
 			return module;
 
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+		} catch (IllegalArgumentException | SecurityException e) {
 
 			logger.warn("Couldn't create test module", e);
 
 			return null;
 		}
 
-	}
-
-	// get the test modules from the memoized copy, filling it if necessary
-	private Map<String, TestModuleHolder> getTestModules() {
-		return testModuleSupplier.get();
-	}
-
-	// get all the variants found on methods in given TestModule
-	private List<Variant> getVariants(Class<? extends TestModule> c) {
-		return Arrays.stream(c.getDeclaredMethods()) // includes private methods, excludes inherited
-			.filter((m) -> m.isAnnotationPresent(Variant.class))
-			.map((m) -> m.getDeclaredAnnotation(Variant.class))
-			.collect(Collectors.toList());
-	}
-
-	// get Method for a particular variant name
-	private Method getVariant(Class<? extends TestModule> c, String name) {
-		List<Method> methods = Arrays.stream(c.getDeclaredMethods()) // includes private methods, excludes inherited
-			.filter((m) -> m.isAnnotationPresent(Variant.class))
-			.map((m) -> {
-				if (Modifier.isPublic(m.getModifiers())) {
-					return m;
-				}
-				throw new RuntimeException("Variant methods must be public");
-			})
-			.filter((m) -> m.getDeclaredAnnotation(Variant.class).name().equals(name))
-			.collect(Collectors.toList());
-		if (methods.size() == 0) {
-			throw new RuntimeException("Variant '"+name+"' not found");
-		}
-		if (methods.size() > 1) {
-			throw new RuntimeException("More than one variant with '"+name+"' found");
-		}
-		return methods.get(0);
-	}
-
-	// this is used to load all the test modules into the memoized copy used above
-	// we memoize this because reflection is slow
-	private Map<String, TestModuleHolder> findTestModules() {
-
-		Map<String, TestModuleHolder> testModules = new HashMap<>();
-
-		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestModule.class));
-		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
-			try {
-				@SuppressWarnings("unchecked")
-				Class<? extends TestModule> c = (Class<? extends TestModule>) Class.forName(bd.getBeanClassName());
-				PublishTestModule a = c.getDeclaredAnnotation(PublishTestModule.class);
-				List<Variant> v = getVariants(c);
-
-				testModules.put(a.testName(), new TestModuleHolder(c, a, v));
-
-			} catch (ClassNotFoundException e) {
-				logger.error("Couldn't load test module definition: " + bd.getBeanClassName());
-			}
-		}
-
-		return testModules;
-	}
-
-	private class TestModuleHolder {
-		public Class<? extends TestModule> c;
-		public PublishTestModule a;
-		public List<Variant> variants;
-
-		public TestModuleHolder(Class<? extends TestModule> c, PublishTestModule a, List<Variant> variants) {
-			this.c = c;
-			this.a = a;
-			this.variants = variants;
-		}
 	}
 
 	private Map<String, Object> createTestStatusMap(TestModule test) {

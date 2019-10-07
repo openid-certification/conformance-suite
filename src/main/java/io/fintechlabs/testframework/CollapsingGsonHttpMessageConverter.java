@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import io.fintechlabs.testframework.serializers.SpringfoxApiListingJsonSerializer;
 import io.fintechlabs.testframework.serializers.SpringfoxJsonSerializer;
+import io.fintechlabs.testframework.variant.VariantSelection;
+import io.fintechlabs.testframework.variant.VariantSelectionJsonSerializer;
+
 import org.bson.Document;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
@@ -95,6 +98,8 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 			.registerTypeAdapter(Json.class, new SpringfoxJsonSerializer())
 			// needed for making calls to /swagger-ui.html
 			.registerTypeAdapter(ApiListing.class, new SpringfoxApiListingJsonSerializer())
+			// needed for variants
+			.registerTypeAdapter(VariantSelection.class, new VariantSelectionJsonSerializer())
 			.create();
 	}
 

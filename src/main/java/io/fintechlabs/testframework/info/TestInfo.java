@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.logging.GsonObjectToBsonDocumentConverter;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 @Document(collection = DBTestInfoService.COLLECTION)
 public class TestInfo {
@@ -21,7 +22,7 @@ public class TestInfo {
 	private String testId;
 	@Indexed
 	private String testName;
-	private String variant;
+	private VariantSelection variant;
 	@Indexed
 	private String started;
 	private org.bson.Document config;
@@ -44,7 +45,7 @@ public class TestInfo {
 
 	public TestInfo(String id,
 			String testName,
-			String variant,
+			VariantSelection variant,
 			Instant started,
 			JsonObject config,
 			String description,
@@ -84,7 +85,7 @@ public class TestInfo {
 		return testName;
 	}
 
-	public String getVariant() {
+	public VariantSelection getVariant() {
 		return variant;
 	}
 

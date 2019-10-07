@@ -7,10 +7,11 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 public interface TestInfoService {
 
-	void createTest(String id, String testName, String variant, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
+	void createTest(String id, String testName, VariantSelection variant, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
 
 	/**
 	 * Update the result of a test in the database

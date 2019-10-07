@@ -200,4 +200,8 @@ public interface TestModule {
 	 */
 	void setProperties(String id, Map<String, String> owner, TestInstanceEventLog wrappedEventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService);
 
+	/**
+	 * Pass along the current variant configuration
+	 */
+	void setVariant(Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant);
 }

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
 import io.fintechlabs.testframework.info.Plan;
@@ -55,6 +56,7 @@ import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.pagination.PaginationResponse;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.security.KeyManager;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -141,7 +143,7 @@ public class LogApi {
 		Optional<?> testInfo = getTestInfo(publicOnly, id);
 
 		String testModuleName = null;
-		String variant = null;
+		VariantSelection variant = null;
 
 		if (!testInfo.isPresent()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -155,7 +157,7 @@ public class LogApi {
 
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + (Strings.isNullOrEmpty(variant) ? "" : (variant + "-")) + id + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
 		final Map<String, Object> export = putTestResultToExport(results, testInfo);
 
@@ -196,7 +198,7 @@ public class LogApi {
 		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
 
 		String planName = null;
-		String variant = null;
+		VariantSelection variant = null;
 
 		List<Plan.Module> modules = new ArrayList<>();
 
@@ -246,7 +248,7 @@ public class LogApi {
 
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + (Strings.isNullOrEmpty(variant) ? "" : (variant + "-")) + id + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
@@ -384,6 +386,19 @@ public class LogApi {
 			.find(query.getQueryObject())
 			.projection(query.getFieldsObject())
 			.sort(new Document("time", 1)));
+	}
+
+	private static String variantSuffix(VariantSelection variant) {
+		if (variant == null) {
+			return "";
+		} else if (variant.isLegacyVariant()) {
+			return variant.getLegacyVariant() + "-";
+		} else {
+			return variant.getVariant().values()
+					.stream()
+					.collect(Collectors.joining("-"))
+					+ "-";
+		}
 	}
 
 	private static class SignatureOutputStream extends OutputStream {
