@@ -148,14 +148,17 @@ sonarqube_scanner:
 #  artifacts:
 #    paths: [codeclimate.json]
 
+.auto-deploy:
+  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.1.0"
+
 review:
+  extends: .auto-deploy
   stage: review
   script:
-    - check_kube_domain
-    - install_dependencies
-    - download_chart
-    - ensure_namespace
-    - install_tiller
+    - auto-deploy check_kube_domain
+    - auto-deploy download_chart
+    - auto-deploy ensure_namespace
+    - auto-deploy initialize_tiller
     - deploy
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -172,12 +175,13 @@ review:
     - demo
 
 stop_review:
+  extends: .auto-deploy
   stage: cleanup
   variables:
     GIT_STRATEGY: none
   script:
-    - install_dependencies
-    - delete
+    - auto-deploy initialize_tiller
+    - auto-deploy delete
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
@@ -196,11 +200,10 @@ stop_review:
 demo:
   stage: demo
   script:
-    - check_kube_domain
-    - install_dependencies
-    - download_chart
-    - ensure_namespace
-    - install_tiller
+    - auto-deploy check_kube_domain
+    - auto-deploy download_chart
+    - auto-deploy ensure_namespace
+    - auto-deploy initialize_tiller
     - deploy
   environment:
     name: demo
@@ -225,39 +228,15 @@ demo:
 staging:
   stage: staging
   script:
-    - check_kube_domain
-    - install_dependencies
-    - download_chart
-    - ensure_namespace
-    - install_tiller
+    - auto-deploy check_kube_domain
+    - auto-deploy download_chart
+    - auto-deploy ensure_namespace
+    - auto-deploy initialize_tiller
     - deploy
   environment:
     name: staging
     url: https://$STAGING_HOST.$KUBE_INGRESS_BASE_DOMAIN
   dependencies: []
-  only:
-    refs:
-      - master
-    kubernetes: active
-
-# Canaries are disabled by default, but if you want them,
-# and know what the downsides are, enable this job by removing the dot (.),
-# and uncomment the `when: manual` line in the `production` job.
-
-.canary:
-  stage: canary
-  script:
-    - check_kube_domain
-    - install_dependencies
-    - download_chart
-    - ensure_namespace
-    - install_tiller
-    - deploy canary
-  environment:
-    name: production
-    url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  dependencies: []
-  when: manual
   only:
     refs:
       - master
@@ -271,13 +250,11 @@ staging:
 production:
   stage: production
   script:
-    - check_kube_domain
-    - install_dependencies
-    - download_chart
-    - ensure_namespace
-    - install_tiller
+    - auto-deploy check_kube_domain
+    - auto-deploy download_chart
+    - auto-deploy ensure_namespace
+    - auto-deploy initialize_tiller
     - deploy
-    - delete canary
   environment:
     name: production
     url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
@@ -378,6 +355,7 @@ deployment_ciba_test_review:
   export CI_APPLICATION_TAG=$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
+  export HELM_HOST="localhost:44134"
 
   function codeclimate() {
     cc_opts="--env CODECLIMATE_CODE="$PWD" \
@@ -414,6 +392,22 @@ deployment_ciba_test_review:
       replicas="$new_replicas"
     fi
 
+    # Create OIDC credentials secrets
+    kubectl delete secret oidc-gitlab-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+    kubectl delete secret oidc-google-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+    kubectl create secret generic oidc-gitlab-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=clientid="$OIDC_GITLAB_CLIENTID" \
+      --from-literal=secret="$OIDC_GITLAB_SECRET"
+    kubectl create secret generic oidc-google-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
+      --from-literal=secret="$OIDC_GOOGLE_SECRET"
+
     helm upgrade --install \
       --wait \
       --set application.env_slug="$CI_ENVIRONMENT_SLUG" \
@@ -448,10 +442,6 @@ deployment_ciba_test_review:
     apk add glibc-2.23-r3.apk
     rm glibc-2.23-r3.apk
 
-    curl https://kubernetes-helm.storage.googleapis.com/helm-v2.14.0-linux-amd64.tar.gz | tar zx
-    mv linux-amd64/helm /usr/bin/
-    helm version --client
-
     curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
     chmod +x /usr/bin/kubectl
     kubectl version --client
@@ -463,29 +453,6 @@ deployment_ciba_test_review:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-  }
-
-  function download_chart() {
-    if [[ ! -d chart ]]; then
-      auto_chart=${AUTO_DEVOPS_CHART:-gitlab/auto-deploy-app}
-      auto_chart_name=$(basename $auto_chart)
-      auto_chart_name=${auto_chart_name%.tgz}
-    else
-      auto_chart="chart"
-      auto_chart_name="chart"
-    fi
-
-    helm init --client-only
-    helm repo add gitlab https://charts.gitlab.io
-    if [[ ! -d "$auto_chart" ]]; then
-      helm fetch ${auto_chart} --untar
-    fi
-    if [ "$auto_chart_name" != "chart" ]; then
-      mv ${auto_chart_name} chart
-    fi
-
-    helm dependency update chart/
-    helm dependency build chart/
   }
 
   function ensure_namespace() {
@@ -522,28 +489,6 @@ deployment_ciba_test_review:
     echo "Pushing to GCR..."
     ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
     echo ""
-  }
-
-  function install_tiller() {
-    echo "Checking Tiller..."
-    helm init --upgrade
-    kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
-    if ! helm version --debug; then
-      echo "Failed to init Tiller."
-      return 1
-    fi
-    echo ""
-  }
-
-  function delete() {
-    track="${1-stable}"
-    name="$CI_ENVIRONMENT_SLUG"
-
-    if [[ "$track" != "stable" ]]; then
-      name="$name-$track"
-    fi
-
-    helm delete --purge "$name" || true
   }
 
   function set_up_for_running_test_plan() {
