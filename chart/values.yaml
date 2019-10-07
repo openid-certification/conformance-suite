@@ -33,6 +33,7 @@ mongodb:
   usePassword: false
   mongodbExtraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
+   - "--noIndexBuildRetry"
   resources:
     limits:
       memory: 1Gi
