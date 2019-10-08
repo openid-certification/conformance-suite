@@ -18,8 +18,6 @@ import io.fintechlabs.testframework.condition.client.BuildRequestObjectRedirectT
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import io.fintechlabs.testframework.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import io.fintechlabs.testframework.condition.client.CallTokenEndpoint;
-import io.fintechlabs.testframework.condition.client.CallTokenEndpointAndReturnFullResponse;
-import io.fintechlabs.testframework.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import io.fintechlabs.testframework.condition.client.CheckForAccessTokenValue;
 import io.fintechlabs.testframework.condition.client.CheckForDateHeaderInResourceResponse;
 import io.fintechlabs.testframework.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -29,8 +27,6 @@ import io.fintechlabs.testframework.condition.client.CheckIfAuthorizationEndpoin
 import io.fintechlabs.testframework.condition.client.CheckIfTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.CheckMatchingCallbackParameters;
 import io.fintechlabs.testframework.condition.client.CheckMatchingStateParameter;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointHttpStatus400;
-import io.fintechlabs.testframework.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import io.fintechlabs.testframework.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import io.fintechlabs.testframework.condition.client.ConfigurationRequestsTestIsSkipped;
 import io.fintechlabs.testframework.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -87,9 +83,6 @@ import io.fintechlabs.testframework.condition.client.SignRequestObject;
 import io.fintechlabs.testframework.condition.client.ValidateAtHash;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
-import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateExpiresIn;
 import io.fintechlabs.testframework.condition.client.ValidateIdToken;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenACRClaimAgainstRequest;
@@ -476,31 +469,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			requestProtectedResource();
 
 			switchToClient1AndTryClient2AccessToken();
-
-			eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
-
-			// Re-map to Client 2 keys
-			env.mapKey("client", "client2");
-			env.mapKey("client_jwks", "client_jwks2");
-			env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-			generateNewClientAssertion();
-
-			// Check access_token still works
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-			callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-13");
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-			callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-
-
-			// The AS 'SHOULD' have revoked the access token; try it again".
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
-			eventLog.endBlock();
 
 			fireTestFinished();
 		}

@@ -1,32 +1,33 @@
 package io.fintechlabs.testframework.fapi;
 
+import io.fintechlabs.testframework.condition.client.WaitFor30Seconds;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
 import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
-		testName = "fapi-rw-id2",
-		displayName = "FAPI-RW-ID2",
-		summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on request object, registered redirect uri etc)",
-		profile = "FAPI-RW-ID2",
-		configurationFields = {
-			"server.discoveryUrl",
-			"client.client_id",
-			"client.scope",
-			"client.jwks",
-			"mtls.key",
-			"mtls.cert",
-			"mtls.ca",
-			"client2.client_id",
-			"client2.scope",
-			"client2.jwks",
-			"mtls2.key",
-			"mtls2.cert",
-			"mtls2.ca",
-			"resource.resourceUrl",
-			"resource.institution_id"
-		}
-	)
-public class FAPIRWID2 extends AbstractFAPIRWID2ServerTestModule {
+	testName = "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+	displayName = "FAPI-RW-ID2: try to reuse authorisation code after one second",
+	summary = "This test tries reusing an authorization code after 30 seconds and expects AS return an error",
+	profile = "FAPI-RW-ID2",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"client2.client_id",
+		"client2.scope",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
+public class FAPIRWID2AttemptReuseAuthorisationCodeAfter30s extends AbstractFAPIRWID2AttemptReuseAuthorisationCode {
 
 	@Variant(name = variant_mtls)
 	public void setupMTLS() {
@@ -68,5 +69,10 @@ public class FAPIRWID2 extends AbstractFAPIRWID2ServerTestModule {
 	)
 	public void setupOpenBankingUkPrivateKeyJwt() {
 		super.setupOpenBankingUkPrivateKeyJwt();
+	}
+
+	@Override
+	protected void waitForAmountOfTime() {
+		callAndStopOnFailure(WaitFor30Seconds.class);
 	}
 }
