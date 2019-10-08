@@ -34,6 +34,13 @@ mongodb:
   mongodbExtraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
    - "--noIndexBuildRetry"
+   - "--setParameter maxIndexBuildMemoryUsageMegabytes=250"
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 60
+  readinessProbe:
+    enabled: false
   resources:
     limits:
       memory: 1Gi
