@@ -17,7 +17,7 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SetAuthorizationEndpointRequestResponseTypeFromConfig_UnitTest {
+public class SetAuthorizationEndpointRequestResponseTypeFromEnvironment_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -25,22 +25,19 @@ public class SetAuthorizationEndpointRequestResponseTypeFromConfig_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private SetAuthorizationEndpointRequestResponseTypeFromConfig cond;
+	private SetAuthorizationEndpointRequestResponseTypeFromEnvironment cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new SetAuthorizationEndpointRequestResponseTypeFromConfig();
+		cond = new SetAuthorizationEndpointRequestResponseTypeFromEnvironment();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test
 	public void testEvaluate_code() {
 
-		JsonObject config = new JsonObject();
-		config.addProperty("response_type", "code");
-
 		env.putObject("authorization_endpoint_request", new JsonObject());
-		env.putObject("config", config);
+		env.putString("response_type", "code");
 
 		cond.execute(env);
 
@@ -50,11 +47,8 @@ public class SetAuthorizationEndpointRequestResponseTypeFromConfig_UnitTest {
 	@Test
 	public void testEvaluate_idToken() {
 
-		JsonObject config = new JsonObject();
-		config.addProperty("response_type", "id_token");
-
 		env.putObject("authorization_endpoint_request", new JsonObject());
-		env.putObject("config", config);
+		env.putString("response_type", "id_token");
 
 		cond.execute(env);
 
@@ -64,10 +58,7 @@ public class SetAuthorizationEndpointRequestResponseTypeFromConfig_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missing() {
 
-		JsonObject config = new JsonObject();
-
 		env.putObject("authorization_endpoint_request", new JsonObject());
-		env.putObject("config", config);
 
 		cond.execute(env);
 	}
@@ -75,11 +66,8 @@ public class SetAuthorizationEndpointRequestResponseTypeFromConfig_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_empty() {
 
-		JsonObject config = new JsonObject();
-		config.addProperty("response_type", "");
-
 		env.putObject("authorization_endpoint_request", new JsonObject());
-		env.putObject("config", config);
+		env.putString("response_type", "");
 
 		cond.execute(env);
 	}

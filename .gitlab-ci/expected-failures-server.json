@@ -190,7 +190,10 @@
     },
     {
         "test-name": "oidcc",
-        "variant": "client_secret_post",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token"
+        },
         "configuration-filename": "authlete-oidcc-secret-post.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -199,7 +202,10 @@
     },
     {
         "test-name": "oidcc",
-        "variant": "client_secret_jwt",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code"
+        },
         "configuration-filename": "authlete-oidcc-secret-jwt.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -208,7 +214,10 @@
     },
     {
         "test-name": "oidcc",
-        "variant": "private_key_jwt",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code"
+        },
         "configuration-filename": "authlete-oidcc-privatekey.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",

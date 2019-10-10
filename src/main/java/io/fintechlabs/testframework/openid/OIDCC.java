@@ -10,7 +10,6 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorDescriptionFro
 import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "oidcc",
@@ -18,7 +17,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on registered redirect uri etc), and tries reusing an authorization code.",
 	profile = "OIDCC",
 	configurationFields = {
-		"response_type",
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
@@ -28,67 +26,6 @@ import io.fintechlabs.testframework.testmodule.Variant;
 	}
 )
 public class OIDCC extends AbstractOIDCCMultipleClient {
-
-	@Variant(name = variant_none)
-	public void setupNone() {
-		super.setupNone();
-	}
-
-	@Variant(
-		name = variant_client_secret_basic,
-		configurationFields =  {
-			"client.client_secret",
-			"client2.client_secret"
-		})
-	public void setupClientSecretBasic() {
-		super.setupClientSecretBasic();
-	}
-
-	@Variant(
-		name = variant_client_secret_post,
-		configurationFields =  {
-			"client.client_secret",
-			"client2.client_secret"
-		})
-	public void setupClientSecretPost() {
-		super.setupClientSecretPost();
-	}
-
-	@Variant(
-		name = variant_client_secret_jwt,
-		configurationFields =  {
-			"client.client_secret",
-			"client.client_secret_jwt_alg",
-			"client2.client_secret",
-			"client2.client_secret_jwt_alg",
-		})
-	public void setupClientSecretJwt() {
-		super.setupClientSecretJwt();
-	}
-
-	@Variant(
-		name = variant_private_key_jwt,
-		configurationFields =  {
-			"client.jwks",
-			"client2.jwks",
-		})
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(
-		name = variant_mtls,
-		configurationFields =  {
-			"mtls.key",
-			"mtls.cert",
-			"mtls.ca",
-			"mtls2.key",
-			"mtls2.cert",
-			"mtls2.ca",
-		})
-	public void setupMtls() {
-		super.setupMtls();
-	}
 
 	@Override
 	protected void performSecondClientTests() {

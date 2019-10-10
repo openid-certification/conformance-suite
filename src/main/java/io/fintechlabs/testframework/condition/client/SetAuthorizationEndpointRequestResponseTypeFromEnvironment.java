@@ -8,13 +8,13 @@ import io.fintechlabs.testframework.condition.PostEnvironment;
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-public class SetAuthorizationEndpointRequestResponseTypeFromConfig extends AbstractCondition {
+public class SetAuthorizationEndpointRequestResponseTypeFromEnvironment extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request", "config" })
+	@PreEnvironment(required = { "authorization_endpoint_request" }, strings = { "response_type" })
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		String responseType = env.getString("config", "response_type");
+		String responseType = env.getString("response_type");
 		if (Strings.isNullOrEmpty(responseType)) {
 			throw error("No response_type found in config");
 		}

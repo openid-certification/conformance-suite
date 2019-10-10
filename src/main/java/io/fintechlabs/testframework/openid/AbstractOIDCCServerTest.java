@@ -1,7 +1,5 @@
 package io.fintechlabs.testframework.openid;
 
-import java.util.List;
-
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition;
@@ -44,7 +42,7 @@ import io.fintechlabs.testframework.condition.client.GetResourceEndpointConfigur
 import io.fintechlabs.testframework.condition.client.GetStaticClientConfiguration;
 import io.fintechlabs.testframework.condition.client.RejectAuthCodeInUrlQuery;
 import io.fintechlabs.testframework.condition.client.RejectErrorInUrlQuery;
-import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeFromConfig;
+import io.fintechlabs.testframework.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import io.fintechlabs.testframework.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import io.fintechlabs.testframework.condition.client.ValidateCHash;
 import io.fintechlabs.testframework.condition.client.ValidateClientJWKsPrivatePart;
@@ -65,25 +63,35 @@ import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;
 import io.fintechlabs.testframework.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import io.fintechlabs.testframework.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
-import io.fintechlabs.testframework.testmodule.TestFailureException;
+import io.fintechlabs.testframework.variant.ClientAuthType;
+import io.fintechlabs.testframework.variant.ResponseType;
+import io.fintechlabs.testframework.variant.VariantParameters;
+import io.fintechlabs.testframework.variant.VariantSetup;
+import io.fintechlabs.testframework.variant.VariantConfigurationFields;
 
+@VariantParameters({
+	ClientAuthType.class,
+	ResponseType.class
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
+	"client.client_secret"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
+	"client.client_secret"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
+	"client.client_secret",
+	"client.client_secret_jwt_alg"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
+	"client.client_jwks"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca"
+})
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
-
-	// Variants
-	public static final String variant_none = "none";
-	public static final String variant_client_secret_basic = "client_secret_basic";
-	public static final String variant_client_secret_post = "client_secret_post";
-	public static final String variant_client_secret_jwt = "client_secret_jwt";
-	public static final String variant_private_key_jwt = "private_key_jwt";
-	public static final String variant_mtls = "mtls";
-
-	public static final List<ResponseType> SUPPORTED_RESPONSE_TYPES = List.of(
-			ResponseType.CODE,
-			ResponseType.ID_TOKEN,
-			ResponseType.ID_TOKEN_TOKEN,
-			ResponseType.CODE_ID_TOKEN,
-			ResponseType.CODE_TOKEN,
-			ResponseType.CODE_ID_TOKEN_TOKEN);
 
 	protected ResponseType responseType;
 
@@ -129,32 +137,38 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
-	protected void setupNone() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "none")
+	public void setupNone() {
 		profileClientValidation = null;
 		addTokenEndpointClientAuthentication = null;
 	}
 
-	protected void setupClientSecretBasic() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
+	public void setupClientSecretBasic() {
 		profileClientValidation = null;
 		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
 
-	protected void setupClientSecretPost() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
+	public void setupClientSecretPost() {
 		profileClientValidation = null;
 		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
 	}
 
-	protected void setupClientSecretJwt() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
+	public void setupClientSecretJwt() {
 		profileClientValidation = ValidateClientForClientSecretJwt.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
-	protected void setupPrivateKeyJwt() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
 		profileClientValidation = ValidateClientForPrivateKeyJwt.class;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
-	protected void setupMtls() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMtls() {
 		profileClientValidation = ValidateClientForMtls.class;
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 	}
@@ -174,16 +188,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			return;
 		}
 
-		String responseTypeStr = env.getString("config", "response_type");
-		if (responseTypeStr == null) {
-			throw new TestFailureException(getId(), "No response_type was found in the config");
-		}
-
-		responseType = ResponseType.parse(responseTypeStr);
-
-		if (!SUPPORTED_RESPONSE_TYPES.contains(responseType)) {
-			throw new TestFailureException(getId(), "Not a supported response type: " + responseType);
-		}
+		responseType = getVariant(ResponseType.class);
+		env.putString("response_type", responseType.toString());
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -256,7 +262,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		exposeEnvString("nonce");
 		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromConfig.class);
+		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
 	}
 
 	protected void createAuthorizationRedirect() {

@@ -35,9 +35,9 @@ function makeClientTest {
 
 function makeServerTest {
     # OIDCC
-    TESTS="${TESTS} oidcc-test-plan:client_secret_post authlete-oidcc-secret-post.json"
-    TESTS="${TESTS} oidcc-test-plan:client_secret_jwt authlete-oidcc-secret-jwt.json"
-    TESTS="${TESTS} oidcc-test-plan:private_key_jwt authlete-oidcc-privatekey.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token] authlete-oidcc-secret-post.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code] authlete-oidcc-secret-jwt.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code] authlete-oidcc-privatekey.json"
 
     # authlete openbanking
     TESTS="${TESTS} fapi-rw-id2-test-plan:openbankinguk-mtls authlete-fapi-rw-id2-ob-mtls.json"
@@ -113,4 +113,4 @@ else
     exit 1
 fi
 
-../conformance-suite/scripts/run-test-plan.py $TESTS
+echo ${TESTS} | xargs ../conformance-suite/scripts/run-test-plan.py
