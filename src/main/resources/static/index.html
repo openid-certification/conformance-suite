@@ -101,21 +101,20 @@
                         data-width="auto" data-height="auto"
                         type="checkbox" id="singleTestSelector">
                 </div>
-                <div class="col-md-9" id="testSelector">
+                <div class="col-md-8" id="testSelector">
                     <select id="testSelect" class="form-control">
                         <option value="select">--- Select A Test ----</option>
                     </select>
                 </div>
-                <div class="col-md-9 collapse" id="planSelector">
+                <div class="col-md-8 collapse" id="planSelector">
                     <select id="planSelect" class="form-control">
                         <option value="select">--- Select A Test Plan ----</option>
                     </select>
                 </div>
-				<div class="col-md-2">
-					<select class="form-control" id="variantSelector">
-						<option value="select">--- Select A Variant ----</option>
-					</select>
-				</div>
+                <div class="col-md-3">
+                    <form id="variantSelectors">
+                    </form>
+                </div>
             </div>
 
 			<div class="row">
@@ -172,25 +171,6 @@
 												<option value="" selected>No</option>
 												<option value="summary">Summary</option>
 												<option value="everything">Everything</option>
-											</select>
-										</div>
-									</div>
-								</div>
-
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">response_type</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The OAuth response type to be used in authentication requests"></span>
-											</div>
-											<select class="form-control config-form-element" data-json-target="response_type">
-												<option value="code">code</option>
-												<option value="id_token">id_token</option>
-												<option value="id_token_token">id_token token</option>
-												<option value="code id_token" selected>code id_token</option>
-												<option value="code token">code token</option>
-												<option value="code id_token token">code id_token token</option>
 											</select>
 										</div>
 									</div>
@@ -858,21 +838,21 @@
 
 				FAPI_UI.showBusy('Creating test...');
 
-				var selectedVariant = $('#variantSelector').val();
+				var selectedVariant = getSelectedVariant();
 
 				// Stash the config in case we are unable to create the test
 				saveConfig({ config: $('#config').val(), testName: testName, variant: selectedVariant });
 
 				var createUrl = '/api/runner/?test=' + encodeURIComponent(testName);
-				if (hasVariants(testName)) {
-					// if the user hasn't picked any variants
-					if (!selectedVariant || selectedVariant == 'select') {
+				for (var [key, value] of Object.entries(selectedVariant)) {
+					// if the user hasn't picked a value for some variant
+					if (value == 'select') {
 						FAPI_UI.showError({
-							error: "Please select a variant from the dropdown list"
+							error: "Please select a value for " + key + " from the dropdown list"
 						});
 						return;
 					}
-					createUrl += '&variant=' + encodeURIComponent(selectedVariant);
+					createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
 				}
 
 				$.ajax({
@@ -916,21 +896,21 @@
 
                 FAPI_UI.showBusy('Creating plan...');
 
-				var selectedVariant = $('#variantSelector').val();
+				var selectedVariant = getSelectedVariant();
 
 				// Stash the config in case we are unable to create the test
 				saveConfig({ config: $('#config').val(), planName: planName, variant: selectedVariant });
 
 				var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
-				if (hasVariants(planName)) {
-					// if the user hasn't picked any variants
-					if (!selectedVariant || selectedVariant == 'select') {
+				for (var [key, value] of Object.entries(selectedVariant)) {
+					// if the user hasn't picked a value for some variant
+					if (value == 'select') {
 						FAPI_UI.showError({
-							error: "Please select a variant from the dropdown list"
+							error: "Please select a value for " + key + " from the dropdown list"
 						});
 						return;
 					}
-					createUrl += '&variant=' + encodeURIComponent(selectedVariant);
+					createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
 				}
 
                 $.ajax({
@@ -963,14 +943,17 @@
 				updateVariants();
 				updateConfigFieldVisibility();
 			});
-			$('#variantSelector').on('change', function(_) {
-				updateConfigFieldVisibility();
-			});
 
 			// update the config visibility right now
 			updateVariants();
 			if (FAPI_UI.selectedVariant) {
-				$("#variantSelector").val(FAPI_UI.selectedVariant);
+			    var selection = FAPI_UI.selectedVariant;
+			    if (typeof(selection) === 'string') {
+			        selection = {'__variant__': selection};
+			    }
+			    _.each(selection, function(value, key) {
+			        $('input.config-form-element[data-variant-parameter="' + key + '"]').val(value);
+			    });
 			}
 			updateConfigFieldVisibility();
 
@@ -1030,10 +1013,10 @@
 		function hasVariants(name) {
 			if ($('#singleTestSelector').is(':checked')) {
 
-				return FAPI_UI.availableTests[name].variants && FAPI_UI.availableTests[name].variants.length > 0;
+				return FAPI_UI.availableTests[name].variants && Object.keys(FAPI_UI.availableTests[name].variants).length > 0;
 			} else {
 
-				return FAPI_UI.availablePlans[name].variants && FAPI_UI.availablePlans[name].variants.length > 0;
+				return FAPI_UI.availablePlans[name].variants && Object.keys(FAPI_UI.availablePlans[name].variants).length > 0;
 			}
 
 		}
@@ -1051,17 +1034,13 @@
 					$('#createTestBtn').prop('disabled', true);
 				} else {
 					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
-					if (hasVariants(testName)) {
-						var variant = $("#variantSelector").val();
-						if (!variant || variant == 'select') {
-							$('#createTestBtn').prop('disabled', true);
-						} else {
-							// enable the create button
-							$('#createTestBtn').prop('disabled', false);
+					var allVariantsSelected = true;
+					_.each(getSelectedVariant(), function(v) {
+						if (!v || v == 'select') {
+							allVariantsSelected = false;
 						}
-					} else {
-						$('#createTestBtn').prop('disabled', false);
-					}
+					});
+					$('#createTestBtn').prop('disabled', !allVariantsSelected);
 				}
 
 				if (!fieldsToShow) {
@@ -1087,19 +1066,16 @@
                            }
         			   });
 
-                       if (hasVariants(planName)) {
-                           var variant = $("#variantSelector").val();
-                           var variantIdx = $("#variantSelector").prop('selectedIndex') - 1;
-                           if (!variant || variant == 'select') {
-                               $('#createPlanBtn').prop('disabled', true);
-                           } else {
-                               // add in any fields from the selected variant
-                               fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[variantIdx].configurationFields));
-                               $('#createPlanBtn').prop('disabled', false);
-                           }
-                       } else {
-                           $('#createPlanBtn').prop('disabled', false);
-                       }
+						var allVariantsSelected = true;
+						_.each(getSelectedVariant(), function(v, p) {
+							if (!v || v == 'select') {
+								allVariantsSelected = false;
+							} else {
+								// add in any fields from the selected variant
+								fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[p][v].configurationFields));
+							}
+						});
+						$('#createPlanBtn').prop('disabled', !allVariantsSelected);
             	   }
             }
 
@@ -1146,25 +1122,51 @@
 				var itemSelected = $('#planSelect').val();
 			}
 
-			$('#variantSelector').find('option[value!="select"]').remove();
-			if (map[itemSelected] && map[itemSelected].variants && map[itemSelected].variants.length > 0) {
+			$('#variantSelectors').empty();
+			if (map[itemSelected] && map[itemSelected].variants && Object.keys(map[itemSelected].variants).length > 0) {
 
 				// update the variant display
-				_.each(map[itemSelected].variants, function(variant) {
+				_.each(map[itemSelected].variants, function(values, parameter) {
 
-					$('#variantSelector').append(FAPI_UI.logTemplates.TEST_OPTION({
-
-						val: variant.name,
-						display: variant.name
-					}));
+					var id = 'vp_' + parameter;
+					var label = parameter;
+					if (label == '__variant__') {
+						// Legacy variant
+						label = 'Variant';
+					}
+					var selector = $('<div class="form-group row">' +
+							'<label for="' + id + '" class="col-sm-4 col-form-label">' + parameter + '</label>' +
+							'<div class="col-sm-8">' +
+							'<select class="form-control config-form-element variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
+							'<option value="select">--- Select A Variant ----</option>' +
+							'</select></div></div>');
+					$('#variantSelectors').append(selector);
+					_.each(values, function(info, value) {
+						$('#' + id).append(FAPI_UI.logTemplates.TEST_OPTION({
+							val: value,
+							display: value
+						}));
+					});
 				});
 
-				$('#variantSelector').show();
+				$('#variantSelectors').show();
 			} else {
 
 				// don't show the variant if there's none to show
-				$('#variantSelector').hide();
+				$('#variantSelectors').hide();
 			}
+
+			$('.variant-selector').on('change', function(_) {
+				updateConfigFieldVisibility();
+			});
+		}
+
+		function getSelectedVariant() {
+			var selection = {};
+			$('.config-form-element[data-variant-parameter]').each(function() {
+				selection[$(this).attr('data-variant-parameter')] = $(this).val();
+			});
+			return selection;
 		}
 
 		/**

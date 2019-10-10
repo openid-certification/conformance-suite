@@ -165,7 +165,7 @@
 			   url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
 			   data: {},
 			   success: function(data) {
-				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public }));
+				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant) }));
 
                    $('#downloadAllBtn').click(function(evt) {
                        evt.preventDefault();

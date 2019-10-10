@@ -1,5 +1,6 @@
 package io.fintechlabs.testframework.variant;
 
+import static io.fintechlabs.testframework.variant.VariantSelection.LEGACY_VARIANT_NAME;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.flatMapping;
 import static java.util.stream.Collectors.groupingBy;
@@ -256,7 +257,6 @@ public class VariantService {
 		}
 
 		public Object getVariantSummary() {
-			// TODO: modify API to return info on multidimensional variants
 			if (!legacyVariants.isEmpty()) {
 				Map<String, Set<String>> fields =
 						modules.stream()
@@ -264,13 +264,33 @@ public class VariantService {
 						.collect(groupingBy(e -> e.getKey(),
 								flatMapping(e -> e.getValue().stream(),
 										toSet())));
-				return legacyVariants.stream()
-						.map(v -> Map.of(
-								"name", v,
-								"configurationFields", fields.getOrDefault(v, Set.of())))
-						.collect(toList());
+				return Map.of(LEGACY_VARIANT_NAME,
+						legacyVariants.stream()
+						.collect(toOrderedMap(identity(),
+								v -> Map.of("configurationFields", fields.getOrDefault(v, Set.of())))));
 			}
-			return List.of();
+			Set<ParameterHolder<?>> parameters = modules.stream()
+					.flatMap(m -> m.parameters.stream())
+					.map(p -> p.parameter)
+					.collect(toSet());
+
+			Map<ParameterHolder<?>, Map<String, Set<String>>> fields = modules.stream()
+					.flatMap(m -> m.parameters.stream())
+					.collect(groupingBy(p -> p.parameter,
+							flatMapping(p -> p.configurationFields.entrySet().stream(),
+									groupingBy(e -> e.getKey().toString(),
+											flatMapping(e -> e.getValue().stream(),
+													mapping(v -> v.toString(),
+															toSet()))))));
+
+			return parameters.stream()
+					.collect(toMap(p -> p.name,
+							p -> {
+								Map<String, Set<String>> pf = fields.getOrDefault(p, Map.of());
+								return p.values().stream()
+										.collect(toOrderedMap(v -> v.toString(),
+												v -> Map.of("configurationFields", pf.getOrDefault(v.toString(), Set.of()))));
+							}));
 		}
 
 	}
@@ -367,15 +387,17 @@ public class VariantService {
 		}
 
 		public Object getVariantSummary() {
-			// TODO: modify API to return info on multidimensional variants
 			if (!legacySetupMethods.isEmpty()) {
-				return legacyConfigurationFields.entrySet().stream()
-						.map(e -> Map.of(
-								"name", e.getKey(),
-								"configurationFields", e.getValue()))
-						.collect(toList());
+				return Map.of(LEGACY_VARIANT_NAME,
+						legacyConfigurationFields.entrySet().stream()
+						.collect(toOrderedMap(e -> e.getKey(),
+								e -> Map.of("configurationFields", e.getValue()))));
 			}
-			return List.of();
+			return parameters.stream()
+					.collect(toMap(p -> p.parameter.name,
+							p -> p.allowedValues.stream()
+									.collect(toOrderedMap(v -> v.toString(),
+											v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()))))));
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
