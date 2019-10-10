@@ -35,15 +35,24 @@ class timestamp_filter:
 
 sys.stdout = timestamp_filter()
 
+def split_name_and_variant(test_plan):
+    if '[' in test_plan:
+        name = re.match(r'^[^\[]*', test_plan).group(0)
+        vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
+        variant = { v.group(1) : v.group(2) for v in vs }
+        return (name, variant)
+    elif ':' in test_plan:
+        # Legacy variant
+        return test_plan.split(':', 1)
+    else:
+        return (test_plan, None)
+
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     with open(config_file) as f:
         json_config = f.read()
-    if ':' in test_plan:
-        (test_plan_name, variant) = test_plan.split(':', 1)
-        test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
-    else:
-        test_plan_info = conformance.create_test_plan(test_plan, json_config)
+    (test_plan_name, variant) = split_name_and_variant(test_plan)
+    test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
     test_ids = {}  # key is module name
@@ -69,7 +78,8 @@ def run_test_plan(test_plan, config_file):
             if state == "WAITING":
                 # If it's a client test, we need to run the client
                 if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
-                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', variant) else 'fapi-rw')
+                    profile = variant # TODO: update this when module is converted
+                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
@@ -325,9 +335,7 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
 
     test_plan = plan_result['test_plan']
     config_filename = plan_result['config_file']
-    variant = None
-    if ':' in test_plan:
-        (test_plan_name, variant) = test_plan.split(':', 1)
+    (test_plan_name, variant) = split_name_and_variant(test_plan)
 
     block_names = {}
     block_msg = ''
@@ -532,9 +540,7 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             print(failure('{} - {}: '.format(test_plan, config_filename)))
             overall_test_results = detail_plan_result['overall_test_results']
             counts_unexpected = detail_plan_result['counts_unexpected']
-            variant = None
-            if ':' in test_plan:
-                (test_plan_name, variant) = test_plan.split(':', 1)
+            (test_plan_name, variant) = split_name_and_variant(test_plan)
 
             if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
                 print(failure('\tUnexpected failure: '))
@@ -573,22 +579,15 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
         msg = "{}Block name: '{}' - Condition: '{}'".format(tab_format,
                                                             failure_warning['current_block'],
                                                             failure_warning['src'])
-        json = '''
-{{
-    "test-name": "{}",
-    "variant": "{}",
-    "configuration-filename": "{}",
-    "current-block": "{}",
-    "condition": "{}",
-    "expected-result": "{}",
-    "comment": "**CHANGE ME** explain why this failure occurs"
-}},
-'''.strip().format(test,
-                   variant,
-                   config,
-                   failure_warning['current_block'],
-                   failure_warning['src'],
-                   status)
+        template = {
+            'test-name': test,
+            'variant': variant,
+            'configuration-filename': config,
+            'current-block': failure_warning['current_block'],
+            'condition': failure_warning['src'],
+            'expected-result': status,
+            'comment': '**CHANGE ME** explain why this failure occurs'
+        }
         if (status == 'failure'):
             if expected:
                 print(expected_failure(msg))
@@ -597,7 +596,7 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
                 if print_template:
                     print("Template expected failure json:\n")
                     # print json, skipping timestamp addition for easy C&P
-                    print(json+"\n", file=sys.__stdout__)
+                    print(json.dumps(template, indent=4)+",\n", file=sys.__stdout__)
         else:
             if expected:
                 print(expected_warning(msg))
@@ -606,7 +605,7 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
                 if print_template:
                     print("Template expected warning json:\n")
                     # print json, skipping timestamp addition for easy C&P
-                    print(json+"\n", file=sys.__stdout__)
+                    print(json.dumps(template, indent=4)+",\n", file=sys.__stdout__)
 
 
 def load_expected_problems(filespec):
@@ -734,16 +733,6 @@ if __name__ == '__main__':
         if expected_failure_obj['flag'] == 'none':
             has_invalid = True
 
-    json = '''
-{{
-    "test-name": "{}",
-    "variant": "{}",
-    "configuration-filename": "{}",
-    "current-block": "{}",
-    "condition": "{}",
-    "expected-result": "{}"
-}},
-'''
     if has_duplicate:
         print(warning("** Some entries in the json is duplicated **"))
         for entry in expected_failures_list:
@@ -753,13 +742,15 @@ if __name__ == '__main__':
                 variant = None
 
             if entry['flag'] == 'duplicate':
-                entry_duplicate_json = json.strip().format(entry['test-name'],
-                                                           variant,
-                                                           entry['configuration-filename'],
-                                                           entry['current-block'],
-                                                           entry['condition'],
-                                                           entry['expected-result'])
-                print(entry_duplicate_json + "\n", file=sys.__stdout__)
+                entry_duplicate_json = {
+                    'test-name': entry['test-name'],
+                    'variant': variant,
+                    'configuration-filename': entry['configuration-filename'],
+                    'current-block': entry['current-block'],
+                    'condition': entry['condition'],
+                    'expected-result': entry['expected-result']
+                }
+                print(json.dumps(entry_duplicate_json, indent=4) + "\n", file=sys.__stdout__)
 
     if has_invalid:
         print(warning("** Some entries in the json not found in any test module of the system **"))
@@ -770,13 +761,15 @@ if __name__ == '__main__':
                 except:
                     variant = None
 
-                entry_invalid_json = json.strip().format(entry['test-name'],
-                                                         variant,
-                                                         entry['configuration-filename'],
-                                                         entry['current-block'],
-                                                         entry['condition'],
-                                                         entry['expected-result'])
-                print(entry_invalid_json + "\n", file=sys.__stdout__)
+                entry_invalid_json = {
+                    'test-name': entry['test-name'],
+                    'variant': variant,
+                    'configuration-filename': entry['configuration-filename'],
+                    'current-block': entry['current-block'],
+                    'condition': entry['condition'],
+                    'expected-result': entry['expected-result']
+                }
+                print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
 
     has_unexpected_failures = summary_unexpected_failures_all_test_plan(detail_plan_results)
     if has_unexpected_failures:
