@@ -36,6 +36,7 @@ public abstract class AbstractCheckServerConfiguration extends AbstractCondition
 	protected void ensureUrl(Environment in, String path) {
 		String string = in.getString("server", path);
 		try {
+			@SuppressWarnings("unused")
 			URL url = new URL(string);
 		} catch (MalformedURLException e) {
 			throw error("Couldn't parse key as URL", e, args("required", path, "url", string));

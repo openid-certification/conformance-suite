@@ -95,6 +95,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 			}
 
 			try {
+				@SuppressWarnings("unused")
 				X509Certificate caCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(decodedCa));
 			} catch (CertificateException | IllegalArgumentException e) {
 				throw error("Calling generateCertificate on ca failed", e, args("ca", caString));
