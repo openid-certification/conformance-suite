@@ -57,7 +57,6 @@ import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHea
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckForKeyIdInServerJWKs;
 import io.fintechlabs.testframework.condition.common.CheckServerConfiguration;
-import io.fintechlabs.testframework.fapi.AbstractFAPIRWID2ServerTestModule;
 import io.fintechlabs.testframework.fapi.AbstractRedirectServerTestModule;
 import io.fintechlabs.testframework.sequence.AbstractConditionSequence;
 import io.fintechlabs.testframework.sequence.ConditionSequence;

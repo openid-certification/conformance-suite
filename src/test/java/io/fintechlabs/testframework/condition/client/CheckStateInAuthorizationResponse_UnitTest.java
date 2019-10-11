@@ -13,8 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.verify;
-
 @RunWith(MockitoJUnitRunner.class)
 public class CheckStateInAuthorizationResponse_UnitTest {
 

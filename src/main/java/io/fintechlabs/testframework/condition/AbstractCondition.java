@@ -62,8 +62,6 @@ import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 import io.fintechlabs.testframework.testmodule.Environment;
 
-import static io.fintechlabs.testframework.heart.InBrowserDelegatedClientAS.logger;
-
 public abstract class AbstractCondition implements Condition, DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractCondition.class);

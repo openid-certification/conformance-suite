@@ -10,7 +10,6 @@ import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import io.fintechlabs.testframework.variant.VariantSelection;
 import io.fintechlabs.testframework.variant.VariantService;
 import io.fintechlabs.testframework.variant.VariantService.TestPlanHolder;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;

@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
