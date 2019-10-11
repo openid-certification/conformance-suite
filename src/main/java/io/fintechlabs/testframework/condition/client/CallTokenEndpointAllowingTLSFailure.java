@@ -2,16 +2,12 @@ package io.fintechlabs.testframework.condition.client;
 
 import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
 import javax.net.ssl.SSLException;
 
 public class CallTokenEndpointAllowingTLSFailure extends CallTokenEndpointAndReturnFullResponse {
-
-	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpointAllowingTLSFailure.class);
 
 	@Override
 	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })

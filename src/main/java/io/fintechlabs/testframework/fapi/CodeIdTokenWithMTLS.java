@@ -13,8 +13,6 @@ import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsi
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificates2Header;
 import io.fintechlabs.testframework.condition.client.ValidateMTLSCertificatesHeader;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
@@ -107,8 +105,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
-
-	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithMTLS.class);
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

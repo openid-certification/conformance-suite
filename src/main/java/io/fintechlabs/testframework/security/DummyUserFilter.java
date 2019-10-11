@@ -11,8 +11,6 @@ import javax.servlet.ServletResponse;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -40,14 +38,12 @@ public class DummyUserFilter extends GenericFilterBean {
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;
 
-	private static Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 	private static Set<GrantedAuthority> authorities = ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
 	private static String sub = "developer";
 	private static String issuer = "https://developer.com";
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		//logger.debug("In Dummy Filter doFilter()");
 		if (devmode) {
 			UserInfo info = new DefaultUserInfo();
 			info.setEmail("DEVMODE@developer.com");

@@ -144,8 +144,6 @@ import io.fintechlabs.testframework.sequence.client.OpenBankingUkPreAuthorizatio
 import io.fintechlabs.testframework.testmodule.AbstractTestModule;
 import io.fintechlabs.testframework.testmodule.TestFailureException;
 import io.fintechlabs.testframework.testmodule.UserFacing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -157,7 +155,6 @@ import javax.servlet.http.HttpSession;
 
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractFAPICIBAID1.class);
 	protected enum TestType {
 		PING,
 		POLL

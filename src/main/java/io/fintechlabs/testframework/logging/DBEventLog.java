@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
@@ -19,8 +17,6 @@ import io.fintechlabs.testframework.info.TestInfoService;
 
 @Component
 public class DBEventLog implements EventLog {
-
-	private static final Logger log = LoggerFactory.getLogger(DBEventLog.class);
 
 	public static final String COLLECTION = "EVENT_LOG";
 
