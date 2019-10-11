@@ -184,7 +184,7 @@ public class TestPlanApi implements DataUtils {
 
 		if (holder != null) {
 
-				Map map = args(
+			Map<String, ?> map = args(
 					"planName", holder.info.testPlanName(),
 					"displayName", holder.info.displayName(),
 					"profile", holder.info.profile(),

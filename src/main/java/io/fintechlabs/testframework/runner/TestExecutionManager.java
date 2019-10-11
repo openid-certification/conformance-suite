@@ -15,12 +15,12 @@ import io.fintechlabs.testframework.testmodule.TestInterruptedException;
 public class TestExecutionManager {
 
 
-	private class BackgroundTask implements Callable {
+	private class BackgroundTask implements Callable<Object> {
 		private String testId;
-		private Callable myCallable;
+		private Callable<?> myCallable;
 		private Authentication savedAuthentication;
 
-		public BackgroundTask(String testId, Callable callable) {
+		public BackgroundTask(String testId, Callable<?> callable) {
 			this.testId = testId;
 			this.myCallable = callable;
 			// save the authentication context for use when we run it later
@@ -47,13 +47,13 @@ public class TestExecutionManager {
 
 	private String testId;
 
-	private List<Future> futures = new ArrayList<>();
+	private List<Future<?>> futures = new ArrayList<>();
 
-	private ExecutorCompletionService executorCompletionService;
+	private ExecutorCompletionService<Object> executorCompletionService;
 
 	private AuthenticationFacade authenticationFacade;
 
-	public TestExecutionManager(String testId, ExecutorCompletionService executorCompletionService, AuthenticationFacade authenticationFacade) {
+	public TestExecutionManager(String testId, ExecutorCompletionService<Object> executorCompletionService, AuthenticationFacade authenticationFacade) {
 		this.testId = testId;
 		this.executorCompletionService = executorCompletionService;
 		this.authenticationFacade = authenticationFacade;
@@ -70,15 +70,14 @@ public class TestExecutionManager {
 	 * Clean up queued tasks for this test id
 	 */
 	public void clearBackgroundTasks() {
-		for (Future f : futures) {
+		for (Future<?> f : futures) {
 			if (!f.isDone()) {
 				f.cancel(true); // True allows the task to be interrupted.
 			}
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public void runInBackground(Callable callable) {
+	public void runInBackground(Callable<?> callable) {
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable)));
 	}
 

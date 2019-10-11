@@ -238,7 +238,7 @@ public class DBTestPlanService implements TestPlanService {
 
 		Object[] latestTestIds = ((List<?>) testModules)
 				.stream()
-				.map(mod -> (List<?>) ((Map) mod).get("instances"))
+				.map(mod -> (List<?>) ((Map<?,?>) mod).get("instances"))
 				.filter(x -> !x.isEmpty())
 				.map(x -> x.get(x.size() - 1))
 				.toArray();
