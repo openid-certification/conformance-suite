@@ -1,0 +1,576 @@
+package net.openid.conformance.fapi;
+
+import com.google.gson.JsonObject;
+
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
+import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddPrivateKeyJWTToServerConfiguration;
+import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
+import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
+import net.openid.conformance.condition.as.AddTokenEndpointSigningAlg;
+import net.openid.conformance.condition.as.CalculateAtHash;
+import net.openid.conformance.condition.as.CalculateCHash;
+import net.openid.conformance.condition.as.CalculateSHash;
+import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
+import net.openid.conformance.condition.as.CreateAuthorizationCode;
+import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
+import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
+import net.openid.conformance.condition.as.EnsureMatchingClientId;
+import net.openid.conformance.condition.as.EnsureMatchingRedirectUri;
+import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
+import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
+import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
+import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
+import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
+import net.openid.conformance.condition.as.ExtractRequestObject;
+import net.openid.conformance.condition.as.ExtractRequestedScopes;
+import net.openid.conformance.condition.as.ExtractServerSigningAlg;
+import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
+import net.openid.conformance.condition.as.FilterUserInfoForScopes;
+import net.openid.conformance.condition.as.GenerateBearerAccessToken;
+import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
+import net.openid.conformance.condition.as.LoadServerJWKs;
+import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
+import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.ValidateAuthorizationCode;
+import net.openid.conformance.condition.as.ValidateRedirectUri;
+import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
+import net.openid.conformance.condition.as.ValidateRequestObjectExp;
+import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
+import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckServerConfiguration;
+import net.openid.conformance.condition.common.EnsureIncomingTls12;
+import net.openid.conformance.condition.common.EnsureIncomingTlsSecureCipher;
+import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
+import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
+import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
+import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
+import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
+import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
+import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
+import net.openid.conformance.condition.rs.GenerateAccountRequestId;
+import net.openid.conformance.condition.rs.LoadUserInfo;
+import net.openid.conformance.condition.rs.RequireBearerAccessToken;
+import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
+import net.openid.conformance.condition.rs.RequireOpenIDScope;
+import net.openid.conformance.runner.TestDispatcher;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
+import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
+import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey;
+import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.testmodule.UserFacing;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
+
+	// Controls which endpoints we should expose to the client
+	protected enum TestType {
+		PLAIN_FAPI,
+		OPENBANKINGUK
+	}
+
+	// to be used in @Variant definitions
+	public static final String variant_mtls = "mtls";
+	public static final String variant_privatekeyjwt = "private_key_jwt";
+	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
+	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
+
+	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
+	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+
+	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
+	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
+	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
+	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
+	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+
+	protected TestType testType;
+
+	/**
+	 * Exposes, in the web frontend, a path that the user needs to know
+	 *
+	 * @param name Name to use in the frontend
+	 * @param path Path, relative to baseUrl
+	 */
+	private void exposePath(String name, String path) {
+		env.putString(name, env.getString("base_url") + "/" + path);
+		exposeEnvString(name);
+	}
+
+	private void exposeMtlsPath(String name, String path) {
+		String baseUrlMtls = env.getString("base_url").replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
+		env.putString(name, baseUrlMtls + "/" + path);
+		exposeEnvString(name);
+	}
+
+	protected abstract void addCustomValuesToIdToken();
+
+	protected void addCustomSignatureOfIdToken(){}
+
+	protected void endTestIfRequiredParametersAreMissing(){}
+
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		env.putString("base_url", baseUrl);
+		env.putObject("config", config);
+
+		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+
+		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+
+		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class);
+		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
+		exposeEnvString("discoveryUrl");
+		exposeEnvString("issuer");
+
+		exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
+		exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
+
+		callAndStopOnFailure(CheckServerConfiguration.class);
+
+		callAndStopOnFailure(LoadServerJWKs.class);
+
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+
+		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+
+		callAndStopOnFailure(LoadUserInfo.class);
+
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
+
+		// for signing request objects
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+
+		setStatus(Status.CONFIGURED);
+		fireSetupDone();
+	}
+
+	@Override
+	public void start() {
+		setStatus(Status.RUNNING);
+		// nothing to do here
+		setStatus(Status.WAITING);
+	}
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		setStatus(Status.RUNNING);
+
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+
+		call(exec().unmapKey("client_request"));
+
+		setStatus(Status.WAITING);
+
+		return handleClientRequestForPath(requestId, path);
+
+	}
+
+
+	protected Object handleClientRequestForPath(String requestId, String path){
+
+		if (path.equals("authorize")) {
+			return authorizationEndpoint(requestId);
+		} else if (path.equals("token")) {
+			return tokenEndpoint(requestId);
+		} else if (path.equals("jwks")) {
+			return jwksEndpoint();
+		} else if (path.equals("userinfo")) {
+			return userinfoEndpoint(requestId);
+		} else if (path.equals(".well-known/openid-configuration")) {
+			return discoveryEndpoint();
+		} else if (path.equals(ACCOUNTS_PATH)) {
+			return accountsEndpoint(requestId);
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && testType == TestType.OPENBANKINGUK) {
+			return accountRequestsEndpoint(requestId);
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		}
+	}
+
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		setStatus(Status.RUNNING);
+
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+
+		call(exec().unmapKey("client_request"));
+
+		setStatus(Status.WAITING);
+
+		if (path.equals("token")) {
+			return tokenEndpoint(requestId);
+		} else if (path.equals(ACCOUNTS_PATH)) {
+			return accountsEndpoint(requestId);
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		}
+	}
+
+	private Object discoveryEndpoint() {
+		setStatus(Status.RUNNING);
+		JsonObject serverConfiguration = env.getObject("server");
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
+	}
+
+	private Object userinfoEndpoint(String requestId) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Userinfo endpoint")
+			.mapKey("incoming_request", requestId));
+
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
+
+		callAndStopOnFailure(RequireBearerAccessToken.class);
+
+		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
+
+		callAndStopOnFailure(FilterUserInfoForScopes.class);
+
+		JsonObject user = env.getObject("user_info_endpoint_response");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(user, HttpStatus.OK);
+
+	}
+
+	private Object jwksEndpoint() {
+
+		setStatus(Status.RUNNING);
+		JsonObject jwks = env.getObject("server_public_jwks");
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
+	}
+
+	private Object tokenEndpoint(String requestId) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Token endpoint")
+			.mapKey("token_endpoint_request", requestId));
+
+		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+
+		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
+
+		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+
+		call(sequence(validateClientAuthenticationSteps));
+
+		return handleTokenEndpointGrantType(requestId);
+
+	}
+
+	protected Object handleTokenEndpointGrantType(String requestId){
+
+		// dispatch based on grant type
+		String grantType = env.getString("token_endpoint_request", "params.grant_type");
+
+		if (grantType.equals("authorization_code")) {
+			// we're doing the authorization code grant for user access
+			return authorizationCodeGrantType(requestId);
+		} else if (grantType.equals("client_credentials") && testType == TestType.OPENBANKINGUK) {
+			// we're doing the client credentials grant for initial token access
+			return clientCredentialsGrantType(requestId);
+		} else {
+			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
+		}
+	}
+
+	protected Object clientCredentialsGrantType(String requestId) {
+
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+
+		// this puts the client credentials specific token into its own box for later
+		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
+	}
+
+	protected Object authorizationCodeGrantType(String requestId) {
+
+		callAndStopOnFailure(ValidateAuthorizationCode.class);
+
+		callAndStopOnFailure(ValidateRedirectUri.class);
+
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
+
+		if (authorizationCodeGrantTypeProfileSteps != null)
+			call(sequence(authorizationCodeGrantTypeProfileSteps));
+
+		callAndStopOnFailure(SignIdToken.class);
+
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
+	}
+
+	@UserFacing
+	protected Object authorizationEndpoint(String requestId) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Authorization endpoint")
+			.mapKey("authorization_endpoint_request", requestId));
+
+		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
+
+		endTestIfRequiredParametersAreMissing();
+
+		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
+
+		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
+
+		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5");
+
+		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
+
+		callAndStopOnFailure(ValidateRequestObjectClaims.class);
+
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2.1");
+
+		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1");
+
+		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+
+		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
+
+		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI-R-5.2.3-7");
+
+		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI-R-5.2.3-8");
+
+		callAndStopOnFailure(CreateAuthorizationCode.class);
+
+		callAndStopOnFailure(ExtractServerSigningAlg.class);
+
+		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+
+		skipIfElementMissing("authorization_request_object", "claims.state", ConditionResult.INFO,
+			CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
+
+		if (authorizationEndpointProfileSteps != null)
+			call(sequence(authorizationEndpointProfileSteps));
+
+		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
+
+		skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
+			AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+
+		callAndStopOnFailure(AddAtHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
+
+		addCustomValuesToIdToken();
+
+		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "OIDCC-3.1.3.7-12");
+
+		callAndStopOnFailure(SignIdToken.class);
+
+		addCustomSignatureOfIdToken();
+
+		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
+
+		exposeEnvString("authorization_endpoint_response_redirect");
+
+		String redirectTo = env.getString("authorization_endpoint_response_redirect");
+
+		setStatus(Status.WAITING);
+
+		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+
+		return new RedirectView(redirectTo, false, false, false);
+
+	}
+
+	/**
+	 * OpenBanking account request API
+	 *
+	 * @param requestId
+	 * @return
+	 */
+	protected Object accountRequestsEndpoint(String requestId) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Account request endpoint")
+			.mapKey("incoming_request", requestId));
+
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
+
+		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+
+		// TODO: should we clear the old headers?
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+
+		callAndStopOnFailure(GenerateAccountRequestId.class);
+		exposeEnvString("account_request_id");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-11");
+
+		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
+
+		JsonObject accountRequestResponse = env.getObject("account_request_response");
+		JsonObject headerJson = env.getObject("account_request_response_headers");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
+	}
+
+	private Object accountsEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Accounts endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
+		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
+
+		callAndStopOnFailure(RequireBearerAccessToken.class);
+
+		// TODO: should we clear the old headers?
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI-R-6.2.2-4");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI-R-6.2.1-11");
+
+		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
+
+		if (accountsEndpointProfileSteps != null)
+			call(sequence(accountsEndpointProfileSteps));
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
+		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
+
+		setStatus(Status.WAITING);
+
+		// at this point we can assume the test is fully done
+		fireTestFinished();
+
+		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+	}
+
+	protected void setupMTLS() {
+		testType = TestType.PLAIN_FAPI;
+		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+	}
+
+	protected void setupPrivateKeyJwt() {
+		testType = TestType.PLAIN_FAPI;
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
+	}
+
+	protected void setupOpenBankingUkMTLS() {
+		testType = TestType.OPENBANKINGUK;
+		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
+		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
+		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
+	}
+
+	protected void setupOpenBankingUkPrivateKeyJwt() {
+		testType = TestType.OPENBANKINGUK;
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
+		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
+		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
+		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
+	}
+}

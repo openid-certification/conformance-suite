@@ -1,0 +1,51 @@
+package net.openid.conformance.condition.client;
+
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+
+public class CheckDiscEndpointIssuer extends AbstractCondition {
+
+	private final String removingPartInUrl = ".well-known/openid-configuration";
+
+	@Override
+	@PostEnvironment(required = { "server", "config" } )
+	public Environment evaluate(Environment env) {
+		JsonElement issuerElement = env.getElementFromObject("server", "issuer");
+
+		if (issuerElement == null || issuerElement.isJsonObject()) {
+
+			throw error("issuer in server was missing");
+		}
+
+		String discoveryUrl = env.getString("config", "server.discoveryUrl");
+
+		String issuerUrl = OIDFJSON.getString(issuerElement);
+
+		if (discoveryUrl.endsWith(removingPartInUrl)) {
+
+			discoveryUrl = discoveryUrl.substring(0, discoveryUrl.length() - removingPartInUrl.length());
+		}
+
+		//Remove slash character endpoint url before comparing
+		if (!removeSlashEndpointURL(issuerUrl).equals(removeSlashEndpointURL(discoveryUrl))) {
+
+			throw error("issuer in server did not match the discovery endpoint", args("discovery_url", discoveryUrl, "issuer", issuerUrl));
+		}
+
+		logSuccess("issuer matched the discovery endpoint");
+
+		return env;
+	}
+
+	private String removeSlashEndpointURL(String url) {
+		if (url.endsWith("/")) {
+
+			return url.substring(0, url.length() - 1);
+		}
+
+		return url;
+	}
+}
