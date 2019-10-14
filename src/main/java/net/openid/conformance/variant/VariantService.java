@@ -46,7 +46,7 @@ public class VariantService {
 
 	// TODO: Remove (most) legacy-support code once all test modules have been converted
 
-	private static final String SEARCH_PACKAGE = "io.fintechlabs";
+	private static final String SEARCH_PACKAGE = "net.openid";
 
 	private final Map<Class<?>, ParameterHolder<? extends Enum<?>>> variantParametersByClass;
 	private final Map<String, ParameterHolder<? extends Enum<?>>> variantParametersByName;
