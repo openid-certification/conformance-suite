@@ -26,6 +26,7 @@ import com.mongodb.client.result.UpdateResult;
 import io.fintechlabs.testframework.security.AuthenticationFacade;
 import io.fintechlabs.testframework.testmodule.TestModule.Result;
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 @Service
 public class DBTestInfoService implements TestInfoService {
@@ -71,7 +72,7 @@ public class DBTestInfoService implements TestInfoService {
 			});
 
 	@Override
-	public void createTest(String id, String testName, String variant, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
+	public void createTest(String id, String testName, VariantSelection variant, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		testInfos.save(new TestInfo(

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.pagination.PaginationResponse;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 public interface TestPlanService {
 
@@ -14,7 +15,7 @@ public interface TestPlanService {
 	 */
 	void updateTestPlanWithModule(String planId, String testName, String id);
 
-	void createTestPlan(String id, String planName, String variant, JsonObject config, String description, String[] testModules, String summary, String publish);
+	void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String[] testModules, String summary, String publish);
 
 	/**
 	 * @param id
@@ -57,7 +58,7 @@ public interface TestPlanService {
 	 * Gets the test variant to apply for all tests in the the plan
 	 * @param planId Plan ID
 	 */
-	String getTestPlanVariant(String planId);
+	VariantSelection getTestPlanVariant(String planId);
 
 	void createIndexes();
 }

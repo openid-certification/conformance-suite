@@ -331,7 +331,8 @@
 					if (existing.length == 0) {
 	                    $('#logDetail .header').html(FAPI_UI.logTemplates.LOG_START({
 	                        test: data,
-	                        public: public
+	                        public: public,
+	                        variant: FAPI_UI.formatVariant(data.variant)
 	                    }));
 
 	                    $('#logDetail .header [data-toggle="tooltip"]').tooltip({
@@ -692,7 +693,7 @@
             var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : '');
 
             if (testVariant !== null && testVariant !== undefined) {
-                runTestUrl += '&variant=' + encodeURIComponent(testVariant);
+                runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
             }
 
 			FAPI_UI.showBusy('Creating a clone of this test...');

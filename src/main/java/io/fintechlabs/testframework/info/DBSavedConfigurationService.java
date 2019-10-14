@@ -18,6 +18,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 
 import io.fintechlabs.testframework.security.AuthenticationFacade;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 @Service
 public class DBSavedConfigurationService implements SavedConfigurationService {
@@ -51,7 +52,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	}
 
 	@Override
-	public void saveTestConfigurationForCurrentUser(JsonObject config, String testName, String variant) {
+	public void saveTestConfigurationForCurrentUser(JsonObject config, String testName, VariantSelection variant) {
 		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
@@ -74,7 +75,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	}
 
 	@Override
-	public void savePlanConfigurationForCurrentUser(JsonObject config, String planName, String variant) {
+	public void savePlanConfigurationForCurrentUser(JsonObject config, String planName, VariantSelection variant) {
 		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {

@@ -208,7 +208,14 @@
 						visible: !public
 					},
 					{ title: 'Name', data: 'testName' },
-					{ title: 'Variant', data: 'variant', defaultContent: '' },
+					{
+						title: 'Variant',
+						data: 'variant',
+						defaultContent: '',
+						render: {
+							display: function(v) { return FAPI_UI.formatVariant(v); }
+						}
+					},
 					{ title: 'Description', data: 'description', defaultContent: '' },
 					{
 						title: 'Started',

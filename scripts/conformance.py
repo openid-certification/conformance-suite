@@ -32,8 +32,10 @@ class Conformance(object):
     def create_test_plan(self, name, configuration, variant=None):
         api_url = '{0}api/plan'.format(self.api_url_base)
         payload = {'planName': name}
-        if variant != None:
-            payload['variant'] = variant
+        if isinstance(variant, str):
+            payload['variant'] = variant # Legacy variant
+        elif variant != None:
+            payload['variant'] = json.dumps(variant)
         response = self.requests_session.post(api_url, params=payload, data=configuration)
 
         if response.status_code != 201:

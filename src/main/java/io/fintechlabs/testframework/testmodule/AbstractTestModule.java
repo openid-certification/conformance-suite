@@ -43,6 +43,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
+	private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
 	private Map<String, String> owner; // Owner of the test (i.e. who created it. Should be subject and issuer from OIDC
 	protected TestInstanceEventLog eventLog;
 	protected BrowserControl browser;
@@ -77,6 +78,23 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
 
 		setStatus(Status.CREATED);
+	}
+
+	@Override
+	public void setVariant(Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant) {
+		this.variant = variant;
+	}
+
+	public <T extends Enum<T>> T getVariant(Class<T> parameter) {
+		Enum<?> value = variant.get(parameter);
+		if (value == null) {
+			throw new IllegalArgumentException("Invalid variant parameter: " + parameter.getSimpleName());
+		} else if (!parameter.isAssignableFrom(value.getClass())) {
+			throw new RuntimeException(String.format("BUG: invalid value for variant %s: %s",
+					parameter.getSimpleName(),
+					value));
+		}
+		return parameter.cast(value);
 	}
 
 	@Override

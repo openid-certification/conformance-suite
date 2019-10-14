@@ -3,13 +3,14 @@ package io.fintechlabs.testframework.info;
 import java.util.Map;
 
 import io.fintechlabs.testframework.testmodule.TestModule.Status;
+import io.fintechlabs.testframework.variant.VariantSelection;
 
 public class PublicTestInfo {
 
 	private String _id;
 	private String testId;
 	private String testName;
-	private String variant;
+	private VariantSelection variant;
 	private String started;
 	private String description;
 	private String alias;
@@ -33,7 +34,7 @@ public class PublicTestInfo {
 		return testName;
 	}
 
-	public String getVariant() {
+	public VariantSelection getVariant() {
 		return variant;
 	}
 

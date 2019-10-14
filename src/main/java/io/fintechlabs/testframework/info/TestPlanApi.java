@@ -1,27 +1,24 @@
 package io.fintechlabs.testframework.info;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fintechlabs.testframework.testmodule.OIDFJSON;
-import io.fintechlabs.testframework.testmodule.PublishTestModule;
-import io.fintechlabs.testframework.testmodule.Variant;
+import io.fintechlabs.testframework.variant.VariantSelection;
+import io.fintechlabs.testframework.variant.VariantService;
+import io.fintechlabs.testframework.variant.VariantService.TestPlanHolder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +32,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.pagination.PaginationRequest;
 import io.fintechlabs.testframework.pagination.PaginationResponse;
-import io.fintechlabs.testframework.plan.PublishTestPlan;
-import io.fintechlabs.testframework.plan.TestPlan;
 import io.fintechlabs.testframework.testmodule.DataUtils;
 
 @Controller
@@ -51,13 +44,14 @@ public class TestPlanApi implements DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(TestPlanApi.class);
 
-	private Supplier<Map<String, TestPlanHolder>> testPlanSupplier = Suppliers.memoize(this::findTestPlans);
-
 	@Autowired
 	private TestPlanService planService;
 
 	@Autowired
 	private SavedConfigurationService savedConfigurationService;
+
+	@Autowired
+	private VariantService variantService;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Create test plan")
@@ -67,13 +61,13 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<Map<String, Object>> createTestPlan(
 		@ApiParam(value = "Plan name") @RequestParam("planName") String planName,
-		@ApiParam(value = "Kind of test variation") @RequestParam(value = "variant", required = false) String variant,
+		@ApiParam(value = "Kind of test variation") @RequestParam(value = "variant", required = false) VariantSelection variant,
 		@ApiParam(value = "Configuration json") @RequestBody JsonObject config,
 		Model m) {
 
 		String id = RandomStringUtils.randomAlphanumeric(13);
 
-		TestPlanHolder holder = getTestPlans().get(planName);
+		TestPlanHolder holder = variantService.getTestPlan(planName);
 
 		if (holder == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -93,17 +87,18 @@ public class TestPlanApi implements DataUtils {
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName, variant);
 
-		String[] testModuleNames = holder.testModuleNames;
-		if (!Strings.isNullOrEmpty(variant)) {
-			testModuleNames = holder.filterTestModule(variant);
+		List<String> testModuleNames;
+		if (variant != null) {
+			testModuleNames = holder.getTestModulesForVariant(variant);
 		} else {
-			// if a test plan has variants, the user must pick one
-			if (holder.a.variants().length > 0) {
-				throw new RuntimeException("Test plan '"+planName+"' has variants, configuration json must contain 'variant'");
-			}
+			testModuleNames = holder.getTestModulesForVariant(VariantSelection.EMPTY);
 		}
 
-		planService.createTestPlan(id, planName, variant, config, description, testModuleNames, holder.a.summary(), publish);
+		if (testModuleNames.isEmpty()) {
+			throw new RuntimeException("No test modules in plan '" + planName + "' are applicable for specified variant");
+		}
+
+		planService.createTestPlan(id, planName, variant, config, description, testModuleNames.toArray(new String[testModuleNames.size()]), holder.info.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
@@ -185,17 +180,17 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(code = 404, message = "Couldn't find test plan for provided plan name")
 	})
 	public ResponseEntity<Object> getTestPlanInfo(@ApiParam(value = "Plan name, use to identify a specific TestPlan ") @PathVariable("planName") String planName) {
-		TestPlanHolder holder = getTestPlans().get(planName);
+		TestPlanHolder holder = variantService.getTestPlan(planName);
 
 		if (holder != null) {
 
 				Map map = args(
-					"planName", holder.a.testPlanName(),
-					"displayName", holder.a.displayName(),
-					"profile", holder.a.profile(),
-					"moduleNames", holder.testModuleNames,
-					"configurationFields", holder.a.configurationFields(),
-					"summary", holder.a.summary());
+					"planName", holder.info.testPlanName(),
+					"displayName", holder.info.displayName(),
+					"profile", holder.info.profile(),
+					"moduleNames", holder.getTestModules(),
+					"configurationFields", holder.info.configurationFields(),
+					"summary", holder.info.summary());
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
@@ -209,106 +204,19 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
 	public ResponseEntity<Object> getAvailableTestPlans() {
-		Set<Map<String, ?>> available = getTestPlans()
-			.values().stream()
+		Set<Map<String, ?>> available = variantService.getTestPlans().stream()
 			.map(e -> args(
-				"planName", e.a.testPlanName(),
-				"displayName", e.a.displayName(),
-				"profile", e.a.profile(),
-				"moduleNames", e.testModuleNames,
-				"configurationFields", e.a.configurationFields(),
-				"summary", e.a.summary(),
-				"variants", Arrays.stream(e.a.variants())
-					.map(v -> e.getVariantInfo(v))
-					.collect(Collectors.toList())
+				"planName", e.info.testPlanName(),
+				"displayName", e.info.displayName(),
+				"profile", e.info.profile(),
+				"moduleNames", e.getTestModules(),
+				"configurationFields", e.info.configurationFields(),
+				"summary", e.info.summary(),
+				"variants", e.getVariantSummary()
 			))
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
-	}
-
-	private Map<String, TestPlanHolder> getTestPlans() {
-		return testPlanSupplier.get();
-	}
-
-	private Map<String, TestPlanHolder> findTestPlans() {
-		Map<String, TestPlanHolder> testPlans = new HashMap<>();
-
-		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AnnotationTypeFilter(PublishTestPlan.class));
-		for (BeanDefinition bd : scanner.findCandidateComponents("io.fintechlabs")) {
-			try {
-				@SuppressWarnings("unchecked")
-				Class<? extends TestPlan> c = (Class<? extends TestPlan>) Class.forName(bd.getBeanClassName());
-				PublishTestPlan a = c.getDeclaredAnnotation(PublishTestPlan.class);
-
-				testPlans.put(a.testPlanName(), new TestPlanHolder(c, a));
-
-			} catch (ClassNotFoundException e) {
-				logger.error("Couldn't load test module definition: " + bd.getBeanClassName());
-			}
-		}
-
-		return testPlans;
-
-	}
-
-	private class TestPlanHolder {
-		public Class<? extends TestPlan> c;
-		public PublishTestPlan a;
-		public String[] testModuleNames;
-
-		public TestPlanHolder(Class<? extends TestPlan> c, PublishTestPlan a) {
-			this.c = c;
-			this.a = a;
-
-			if (a.testModules().length > 0) {
-				this.testModuleNames = Arrays.stream(a.testModules())
-					.map((m) -> m.getDeclaredAnnotation(PublishTestModule.class).testName())
-					.toArray(String[]::new);
-			}
-		}
-
-		public String[] filterTestModule(String variant) {
-			if (a.testModules().length > 0) {
-				return Arrays.stream(a.testModules())
-					.filter(test -> {
-						boolean isExist = Arrays.stream(test.getDeclaredMethods())
-							.filter((m) -> m.isAnnotationPresent(Variant.class))
-							.map((m) -> m.getDeclaredAnnotation(Variant.class).name())
-							.collect(Collectors.toList())
-							.contains(variant);
-						if (!isExist) {
-							if (Arrays.stream(test.getDeclaredAnnotation(PublishTestModule.class).notApplicableForVariants()).anyMatch(v -> v.equals(variant))) {
-								return false;
-							}
-							String testModuleName = test.getDeclaredAnnotation(PublishTestModule.class).testName();
-							String testPlanName = a.testPlanName();
-							throw new RuntimeException("Variant '"+variant+"' not found in test module '"+testModuleName+"' of test plan '"+testPlanName+"'");
-						}
-						return true;
-					})
-					.map(test -> test.getDeclaredAnnotation(PublishTestModule.class).testName())
-					.toArray(String[]::new);
-			} else {
-				return this.testModuleNames;
-			}
-		}
-
-		public Map<String, Object> getVariantInfo(String variant) {
-			Set<String> configurationFields = Arrays.stream(a.testModules())
-				.flatMap(test -> Arrays.stream(test.getDeclaredMethods())
-					.filter(m -> m.isAnnotationPresent(Variant.class))
-					.map(m -> m.getDeclaredAnnotation(Variant.class))
-					.filter(ann -> ann.name().equals(variant))
-					.flatMap(ann -> Arrays.stream(ann.configurationFields())))
-				.collect(Collectors.toSet());
-
-			return args(
-				"name", variant,
-				"configurationFields", configurationFields.toArray()
-			);
-		}
 	}
 
 }

@@ -2,11 +2,13 @@ package io.fintechlabs.testframework;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import io.fintechlabs.testframework.ui.ServerInfoTemplate;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
@@ -19,6 +21,7 @@ import io.fintechlabs.testframework.logging.GsonPrimitiveToBsonValueConverter;
 import io.fintechlabs.testframework.runner.InMemoryTestRunnerSupport;
 import io.fintechlabs.testframework.runner.TestRunnerSupport;
 import io.fintechlabs.testframework.security.KeyManager;
+import io.fintechlabs.testframework.variant.VariantConverters;
 
 @Configuration
 public class ApplicationConfig {
@@ -41,10 +44,12 @@ public class ApplicationConfig {
 
 	@Bean
 	public MongoCustomConversions mongoCustomConversions() {
-		return new MongoCustomConversions(Lists.newArrayList(
+		List<Converter<?, ?>> converters = Lists.newArrayList(
 			new GsonPrimitiveToBsonValueConverter(),
 			new GsonObjectToBsonDocumentConverter(),
-			new GsonArrayToBsonArrayConverter()));
+			new GsonArrayToBsonArrayConverter());
+		converters.addAll(VariantConverters.getConverters());
+		return new MongoCustomConversions(converters);
 	}
 
 	@Bean

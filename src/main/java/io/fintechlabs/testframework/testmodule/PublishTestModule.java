@@ -19,6 +19,7 @@ public @interface PublishTestModule {
 
 	String summary() default "";
 
+	// TODO: remove this when all test modules have been converted
 	String[] notApplicableForVariants() default {};
 
 }

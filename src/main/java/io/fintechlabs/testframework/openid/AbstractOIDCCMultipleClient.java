@@ -1,7 +1,27 @@
 package io.fintechlabs.testframework.openid;
 
 import io.fintechlabs.testframework.condition.client.GetStaticClient2Configuration;
+import io.fintechlabs.testframework.variant.ClientAuthType;
+import io.fintechlabs.testframework.variant.VariantConfigurationFields;
 
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
+	"client2.client_secret"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
+	"client2.client_secret"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
+	"client2.client_secret",
+	"client2.client_secret_jwt_alg"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
+	"client2.client_jwks"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
 public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTest {
 
 	@Override

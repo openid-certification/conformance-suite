@@ -386,6 +386,16 @@ var FAPI_UI = {
 			}
 		},
 
+		formatVariant : function(v) {
+			if (!v) {
+				return "";
+			} else if (typeof(v) === 'string') {
+				return v;
+			} else {
+				return Object.values(v).join(" ");
+			}
+		},
+
 		specLinks : {
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
