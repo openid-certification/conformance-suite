@@ -67,9 +67,6 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		env.putObject("resource", new JsonObject());
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test
 	public void testEvaluate_noError() {
 

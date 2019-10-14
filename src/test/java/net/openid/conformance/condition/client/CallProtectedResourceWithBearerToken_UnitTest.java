@@ -71,9 +71,6 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 		env.putObject("resource", new JsonObject());
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test
 	public void testEvaluate_noError() {
 
@@ -93,9 +90,6 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 		assertThat(env.getString("resource_endpoint_response")).isEqualTo("OK");
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test
 	public void testEvaluate_noErrorPost() {
 
@@ -116,9 +110,6 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 		assertThat(env.getString("resource_endpoint_response")).isEqualTo("OK");
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
@@ -129,9 +120,6 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badServer() {
 
@@ -142,9 +130,6 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
@@ -154,9 +139,6 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.client.CallAccountsEndpointWithBearerToken#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingUrl() {
 

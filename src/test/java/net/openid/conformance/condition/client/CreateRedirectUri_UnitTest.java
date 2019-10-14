@@ -48,9 +48,6 @@ public class CreateRedirectUri_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(Environment).
-	 */
 	@Test
 	public void testEvaluate_valueAndSuffixPresent() {
 
@@ -67,9 +64,6 @@ public class CreateRedirectUri_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(Environment).
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueEmpty() {
 
@@ -79,9 +73,6 @@ public class CreateRedirectUri_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link io.fintechlabs.testframework.condition.CreateRedirectUri#evaluate(Environment).
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueNull() {
 
