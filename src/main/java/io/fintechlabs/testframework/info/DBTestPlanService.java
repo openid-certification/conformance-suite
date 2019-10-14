@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -33,8 +31,6 @@ import io.fintechlabs.testframework.variant.VariantSelection;
 public class DBTestPlanService implements TestPlanService {
 
 	public static final String COLLECTION = "TEST_PLAN";
-
-	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
 
 	@Value("${fintechlabs.version}")
 	private String version;
@@ -238,7 +234,7 @@ public class DBTestPlanService implements TestPlanService {
 
 		Object[] latestTestIds = ((List<?>) testModules)
 				.stream()
-				.map(mod -> (List<?>) ((Map) mod).get("instances"))
+				.map(mod -> (List<?>) ((Map<?,?>) mod).get("instances"))
 				.filter(x -> !x.isEmpty())
 				.map(x -> x.get(x.size() - 1))
 				.toArray();

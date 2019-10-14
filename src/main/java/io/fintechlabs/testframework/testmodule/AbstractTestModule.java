@@ -5,7 +5,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.Condition;
 import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;

@@ -4,12 +4,10 @@ import java.util.Date;
 
 import org.apache.http.client.utils.DateUtils;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import io.fintechlabs.testframework.condition.AbstractCondition;
 import io.fintechlabs.testframework.condition.PostEnvironment;
-import io.fintechlabs.testframework.condition.PreEnvironment;
 import io.fintechlabs.testframework.testmodule.Environment;
 
 public class FAPIGenerateResourceEndpointRequestHeaders extends AbstractCondition {

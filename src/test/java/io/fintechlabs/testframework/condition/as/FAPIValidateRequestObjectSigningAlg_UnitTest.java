@@ -13,8 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Date;
-
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 

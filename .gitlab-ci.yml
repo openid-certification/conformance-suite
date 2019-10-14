@@ -430,7 +430,7 @@ deployment_ciba_test_review:
 
     echo -n "Waiting for mongodb to start"
     export MONGO_POD=""
-    while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done
+    while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod || true; done
     while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
     echo "Inserting CI token"
     CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n' )

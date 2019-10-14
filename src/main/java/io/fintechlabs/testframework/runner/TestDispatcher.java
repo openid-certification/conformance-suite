@@ -159,7 +159,7 @@ public class TestDispatcher implements DataUtils {
 
 	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
 		if (response instanceof ResponseEntity) {
-			ResponseEntity responseEntity = (ResponseEntity) response;
+			ResponseEntity<?> responseEntity = (ResponseEntity<?>) response;
 			eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",
@@ -236,7 +236,7 @@ public class TestDispatcher implements DataUtils {
 
 		} catch (Exception e) {
 			logger.error("Something terrible happened when handling an error, I give up", e);
-			return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

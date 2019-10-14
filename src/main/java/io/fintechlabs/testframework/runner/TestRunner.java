@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -127,7 +127,7 @@ public class TestRunner implements DataUtils {
 	private VariantService variantService;
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
-	private ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
+	private ExecutorCompletionService<Object> executorCompletionService = new ExecutorCompletionService<>(executorService);
 	private FutureWatcher futureWatcher = new FutureWatcher();
 
 	private class FutureWatcher implements Runnable {
@@ -142,7 +142,7 @@ public class TestRunner implements DataUtils {
 			running = true;
 			while (running) {
 				try {
-					FutureTask future = (FutureTask) executorCompletionService.poll(1, TimeUnit.SECONDS);
+					Future<?> future = executorCompletionService.poll(1, TimeUnit.SECONDS);
 					if (future != null && !future.isCancelled()) {
 						future.get();
 					}
@@ -506,7 +506,6 @@ public class TestRunner implements DataUtils {
 
 		try {
 
-			@SuppressWarnings("unchecked")
 			Map<String, String> owner = authenticationFacade.getPrincipal();
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);

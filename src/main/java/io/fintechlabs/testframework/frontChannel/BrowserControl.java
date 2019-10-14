@@ -173,7 +173,7 @@ public class BrowserControl implements DataUtils {
 	 * Private Runnable class that acts as the browser and allows goToUrl to return before the page gets hit.
 	 * This gets handed to a {@link TaskExecutor} which manages the thread it gets run on
 	 */
-	private class WebRunner implements Callable {
+	private class WebRunner implements Callable<String> {
 		private String url;
 		private ResponseCodeHtmlUnitDriver driver;
 		private JsonArray tasks;

@@ -14,8 +14,6 @@ import io.fintechlabs.testframework.condition.client.ValidateErrorFromTokenEndpo
 import io.fintechlabs.testframework.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import io.fintechlabs.testframework.condition.client.ValidateIdTokenSignatureUsingKid;
 import io.fintechlabs.testframework.condition.client.ValidateServerJWKs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
@@ -101,8 +99,6 @@ import io.fintechlabs.testframework.testmodule.PublishTestModule;
 	}
 )
 public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule {
-
-	private static final Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPrivateKey.class);
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

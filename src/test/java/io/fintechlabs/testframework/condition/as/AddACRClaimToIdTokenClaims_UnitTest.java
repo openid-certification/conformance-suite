@@ -6,7 +6,6 @@ import io.fintechlabs.testframework.condition.Condition.ConditionResult;
 import io.fintechlabs.testframework.condition.ConditionError;
 import io.fintechlabs.testframework.logging.TestInstanceEventLog;
 import io.fintechlabs.testframework.testmodule.Environment;
-import io.fintechlabs.testframework.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -12,7 +12,6 @@ import io.fintechlabs.testframework.condition.client.CheckDiscEndpointUserinfoSi
 import io.fintechlabs.testframework.condition.client.CheckJwksUri;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsMTLS;
 import io.fintechlabs.testframework.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
-import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported;
 import io.fintechlabs.testframework.condition.client.FAPIRWCheckTLSClientCertificateBoundAccessTokens;
 import io.fintechlabs.testframework.condition.client.GetDynamicServerConfiguration;

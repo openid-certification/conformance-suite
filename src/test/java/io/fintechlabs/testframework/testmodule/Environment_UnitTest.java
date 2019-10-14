@@ -251,11 +251,13 @@ public class Environment_UnitTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetStringAsInteger() {
+		@SuppressWarnings("unused")
 		Integer actual = env.getInteger(testKey, "stringint");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetStringAsBoolean() {
+		@SuppressWarnings("unused")
 		Boolean actual = env.getBoolean(testKey, "stringbool");
 	}
 

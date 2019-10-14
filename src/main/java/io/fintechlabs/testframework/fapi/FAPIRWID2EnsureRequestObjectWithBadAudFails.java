@@ -1,7 +1,6 @@
 package io.fintechlabs.testframework.fapi;
 
 import io.fintechlabs.testframework.condition.Condition;
-import io.fintechlabs.testframework.condition.client.AddAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddBadAudToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddExpToRequestObject;
 import io.fintechlabs.testframework.condition.client.AddIssToRequestObject;
