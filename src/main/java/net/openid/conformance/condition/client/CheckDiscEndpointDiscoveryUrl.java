@@ -1,14 +1,14 @@
 package net.openid.conformance.condition.client;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import com.google.gson.JsonElement;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 
@@ -36,7 +36,7 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 					String discoveryUrl = OIDFJSON.getString(configUrl);
 
 					if (!discoveryUrl.endsWith("/.well-known/openid-configuration")) {
-						throw error("discoveryUrl was missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));
+						throw error("discoveryUrl is missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));
 					}
 
 					URL extractedUrl = new URL(discoveryUrl);
