@@ -935,6 +935,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			case POLL:
 				callAndContinueOnFailure(CIBANotificationEndpointCalledUnexpectedly.class, Condition.ConditionResult.FAILURE);
 				fireTestFinished();
+				break;
 			default:
 				throw new RuntimeException("unknown testType");
 		}

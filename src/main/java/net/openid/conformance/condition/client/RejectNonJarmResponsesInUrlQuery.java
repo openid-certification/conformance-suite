@@ -14,7 +14,7 @@ public class RejectNonJarmResponsesInUrlQuery extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = "redirect_uri", required = "callback_query_params")
 	public Environment evaluate(Environment env) {
-		var params = (JsonObject) env.getObject("callback_query_params").deepCopy();
+		JsonObject params = env.getObject("callback_query_params").deepCopy();
 
 		params.remove("response");
 
