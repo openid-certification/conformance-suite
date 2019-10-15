@@ -1,0 +1,171 @@
+package net.openid.conformance.fapi;
+
+import com.google.gson.JsonObject;
+
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddIssToRequestObject;
+import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import net.openid.conformance.condition.client.CreateRandomNonceValue;
+import net.openid.conformance.condition.client.CreateRandomStateValue;
+import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
+import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
+import net.openid.conformance.condition.client.ExpectRequestObjectMissingStateErrorPage;
+import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import net.openid.conformance.condition.client.ExtractCHash;
+import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.ValidateCHash;
+import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.VerifyNoSHash;
+import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
+
+public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2ServerTestModule {
+
+	@Override
+	protected void performAuthorizationFlow() {
+		performPreAuthorizationSteps();
+
+		createAuthorizationRequest();
+
+		createAuthorizationRedirect();
+
+		performRedirectAndWaitForErrorCallback();
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRequestObjectMissingStateErrorPage.class, "FAPI-RW-5.2.3-8");
+
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
+	}
+
+	@Override
+	protected void createAuthorizationRequest() {
+		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+		performProfileAuthorizationEndpointSetup();
+
+		env.putInteger("requested_state_length", null);
+
+		callAndStopOnFailure(CreateRandomNonceValue.class);
+		exposeEnvString("nonce");
+		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+
+		if (jarm) {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+		} else {
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+		}
+	}
+
+	@Override
+	protected void createAuthorizationRedirect() {
+		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+		callAndStopOnFailure(AddExpToRequestObject.class);
+
+		callAndStopOnFailure(AddAudToRequestObject.class);
+
+		callAndStopOnFailure(AddIssToRequestObject.class);
+
+		callAndStopOnFailure(SignRequestObject.class);
+
+		callAndStopOnFailure(CreateRandomStateValue.class);
+		exposeEnvString("state");
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	}
+
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
+		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
+
+		if (!callbackParams.has("error")) {
+
+			callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
+			callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
+			callAndContinueOnFailure(VerifyNoStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+
+			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+
+			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+
+			handleSuccessfulAuthorizationEndpointResponse();
+
+		} else {
+			/* If we get an error back from the authorisation server:
+			 * - It must be a 'invalid_request_object', 'invalid_request' or 'access_denied' error
+			 * - It must have the correct state we supplied
+			 */
+
+			// state can be absented if authorization request did not send state in the request object
+			skipIfElementMissing("authorization_endpoint_response",  "state", Condition.ConditionResult.INFO,
+				CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+
+			callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+
+			callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+
+			callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
+
+			fireTestFinished();
+		}
+	}
+
+	@Override
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+		if (!jarm) {
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+
+			// save the id_token returned from the authorisation endpoint
+			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+
+			performIdTokenValidation();
+
+			// s_hash must not be returned, as AS must ignore the state parameter outside the request object
+			callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-10");
+
+			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		}
+
+		performPostAuthorizationFlow();
+	}
+
+	@Override
+	protected void performPostAuthorizationFlow() {
+		// call the token endpoint and complete the flow
+
+		createAuthorizationCodeRequest();
+
+		requestAuthorizationCode();
+
+		requestProtectedResource();
+
+		fireTestFinished();
+	}
+
+}

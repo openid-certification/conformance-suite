@@ -1,0 +1,117 @@
+package net.openid.conformance.fapi;
+
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
+import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
+import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckJwksUri;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
+import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported;
+import net.openid.conformance.condition.client.FAPIRWCheckTLSClientCertificateBoundAccessTokens;
+import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.AbstractTestModule;
+
+public abstract class AbstractFAPIDiscoveryEndpointVerification extends AbstractTestModule {
+	private Class<? extends ConditionSequence> variantAuthChecks;
+
+	public static class MtlsChecks extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+
+		}
+	}
+
+	public static class PrivateKeyJWTChecks extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
+
+		}
+	}
+
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+
+		env.putString("base_url", baseUrl);
+		env.putObject("config", config);
+
+		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		setStatus(Status.CONFIGURED);
+		fireSetupDone();
+
+	}
+
+	protected void performEndpointVerification() {
+
+		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+
+		callAndContinueOnFailure(FAPIRWCheckTLSClientCertificateBoundAccessTokens.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6", "MTLS-3.3");
+
+		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+
+		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-14");
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+
+		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
+			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirement("FAPI-RW-8.6")
+			.dontStopOnFailure()
+		);
+
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
+		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
+			.skipIfElementMissing("server", "registration_endpoint")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirement("OIDCD-3")
+			.dontStopOnFailure()
+		);
+
+		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
+		call(sequence(variantAuthChecks));
+	}
+
+	@Override
+	public void start() {
+
+		setStatus(Status.RUNNING);
+
+		performEndpointVerification();
+
+		fireTestFinished();
+
+	}
+
+	protected void setupMTLS() {
+		variantAuthChecks = MtlsChecks.class;
+	}
+
+	protected void setupPrivateKeyJwt() {
+		variantAuthChecks = PrivateKeyJWTChecks.class;
+	}
+
+	protected void setupOpenBankingUkMTLS() {
+		variantAuthChecks = MtlsChecks.class;
+	}
+
+	protected void setupOpenBankingUkPrivateKeyJwt() {
+		variantAuthChecks = PrivateKeyJWTChecks.class;
+	}
+}

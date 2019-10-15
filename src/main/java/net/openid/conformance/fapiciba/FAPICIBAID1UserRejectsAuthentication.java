@@ -1,0 +1,152 @@
+package net.openid.conformance.fapiciba;
+
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusNot200;
+import net.openid.conformance.condition.client.ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest;
+import net.openid.conformance.condition.client.TellUserToRejectCIBAAuthentication;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.testmodule.Variant;
+
+@PublishTestModule(
+	testName = "fapi-ciba-id1-user-rejects-authentication",
+	displayName = "FAPI-CIBA-ID1: user rejects authentication",
+	summary = "This test requires the user to reject the authentication on their device, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
+	profile = "FAPI-CIBA-ID1",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"client.hint_type",
+		"client.hint_value",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"client2.client_id",
+		"client2.scope",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
+		"resource.resourceUrl"
+	}
+)
+public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
+
+	@Variant(name = variant_ping_mtls)
+	public void setupPingMTLS() {
+		super.setupPingMTLS();
+	}
+
+	@Variant(name = variant_ping_privatekeyjwt)
+	public void setupPingPrivateKeyJwt() {
+		super.setupPingPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_poll_mtls)
+	public void setupPollMTLS() {
+		super.setupPollMTLS();
+	}
+
+	@Variant(name = variant_poll_privatekeyjwt)
+	public void setupPollPrivateKeyJwt() {
+		super.setupPollPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_ping_mtls)
+	public void setupOpenBankingUkPingMTLS() {
+		super.setupOpenBankingUkPingMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
+	public void setupOpenBankingUkPingPrivateKeyJwt() {
+		super.setupOpenBankingUkPingPrivateKeyJwt();
+	}
+
+	@Variant(name = variant_openbankinguk_poll_mtls)
+	public void setupOpenBankingUkPollMTLS() {
+		super.setupOpenBankingUkPollMTLS();
+	}
+
+	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
+	public void setupOpenBankingUkPollPrivateKeyJwt() {
+		super.setupOpenBankingUkPollPrivateKeyJwt();
+	}
+
+	@Override
+	protected void callAutomatedEndpoint() {
+		env.putString("request_action", "deny");
+		callAndStopOnFailure(CallAutomatedCibaApprovalEndpoint.class);
+	}
+
+	@Override
+	protected void waitForAuthenticationToComplete(long delaySeconds) {
+		callAndStopOnFailure(TellUserToRejectCIBAAuthentication.class);
+
+		if (testType == TestType.PING) {
+			// test resumes when notification endpoint called
+			setStatus(Status.WAITING);
+			return;
+		}
+
+		int attempts = 0;
+		while (attempts++ < 20) {
+			setStatus(TestModule.Status.WAITING);
+			try {
+				Thread.sleep(delaySeconds * 1000);
+			} catch (InterruptedException e) {
+				throw new TestFailureException(getId(), "Thread.sleep threw exception: " + e.getMessage());
+			}
+			setStatus(TestModule.Status.RUNNING);
+
+			eventLog.startBlock(currentClientString() + "Polling token endpoint waiting for user to reject authentication");
+			callTokenEndpointForCibaGrant();
+			eventLog.endBlock();
+
+			callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
+
+			String error = env.getString("token_endpoint_response", "error");
+			if (error.equals("access_denied")) {
+
+				verifyTokenEndpointResponseIsAccessDeniedAndFinishTest();
+				return;
+			}
+
+			verifyTokenEndpointResponseIsPendingOrSlowDown();
+
+			if (delaySeconds < 60) {
+				delaySeconds *= 1.5;
+			}
+		}
+
+		fireTestFailure();
+		throw new TestFailureException(new ConditionError(getId(), "User did not reject authentication before timeout"));
+	}
+
+	@Override
+	protected void processNotificationCallback(JsonObject requestParts) {
+		if (testType == TestType.PING) {
+			processPingNotificationCallback(requestParts);
+			verifyTokenEndpointResponseIsAccessDeniedAndFinishTest();
+		} else {
+			super.processNotificationCallback(requestParts);
+		}
+	}
+
+	protected void verifyTokenEndpointResponseIsAccessDeniedAndFinishTest() {
+		eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
+
+		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
+
+		callAndStopOnFailure(ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest.class);
+
+		eventLog.endBlock();
+		fireTestFinished();
+	}
+
+
+}
