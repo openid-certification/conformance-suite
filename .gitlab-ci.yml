@@ -428,9 +428,11 @@ deployment_ciba_test_review:
       "$name" \
       chart/
 
-    echo -n "Waiting for mongodb to start"
+    echo -n "Waiting for mongodb pod to start"
     export MONGO_POD=""
-    while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod || true; done
+    while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done; echo
+    echo "Using pod: $MONGO_POD"
+    echo -n "Connecting to mongodb"
     while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
     echo "Inserting CI token"
     CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n' )
@@ -440,10 +442,12 @@ deployment_ciba_test_review:
   }
 
   function get_mongo_pod() {
-    export MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod \
+    MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod \
       -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} \
       --field-selector=status.phase=Running \
-      -o template --template="{{(index .items 0).metadata.name}}"`
+      -o template --template="{{(index .items 0).metadata.name}}" 2>&1` \
+      || MONGO_POD=''
+    export MONGO_POD
   }
 
   function install_dependencies() {
