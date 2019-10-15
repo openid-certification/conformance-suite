@@ -479,6 +479,7 @@ public class BrowserControl implements DataUtils {
 
 	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
 
+	@SuppressWarnings("serial")
 	private class BrowserControlPageCreator extends DefaultPageCreator {
 		// this is necessary because:
 		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
