@@ -3,7 +3,6 @@ package net.openid.conformance.fapi;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidSHashValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-invalid-shash",
@@ -21,26 +20,6 @@ import net.openid.conformance.testmodule.Variant;
 )
 
 public class FAPIRWID2ClientTestInvalidSHash extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
-
-	@Variant(name = variant_mtls)
-	public void setupMTLS() {
-		super.setupMTLS();
-	}
-
-	@Variant(name = variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_mtls)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void endTestIfRequiredParametersAreMissing() {

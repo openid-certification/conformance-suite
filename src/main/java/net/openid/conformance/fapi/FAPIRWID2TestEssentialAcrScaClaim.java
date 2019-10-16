@@ -11,7 +11,9 @@ import net.openid.conformance.condition.client.OpenBankingUkAddScaAcrClaimToAuth
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-test-essential-acr-sca-claim",
@@ -34,38 +36,14 @@ import net.openid.conformance.testmodule.Variant;
 		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_mtls_jarm,
-		FAPIRWID2.variant_privatekeyjwt_jarm
 	}
 )
+@VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
 public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ServerTestModule {
 
-	@Variant(
-		name = variant_openbankinguk_mtls,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;
-	}
-
-	@Variant(
-		name = variant_openbankinguk_privatekeyjwt,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-
+	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
+		super.setupOpenBankingUk();
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;
 	}
 

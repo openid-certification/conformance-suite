@@ -51,12 +51,6 @@ import net.openid.conformance.plan.TestPlan;
 
 		// OB systems specific tests
 		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class
-	},
-	variants = {
-		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPI_RW_ID2_V3_2_3_TestPlan implements TestPlan {

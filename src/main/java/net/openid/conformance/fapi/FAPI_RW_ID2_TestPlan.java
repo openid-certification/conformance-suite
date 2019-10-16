@@ -60,14 +60,6 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2TestEssentialAcrScaClaim.class,
 		FAPIRWID2AttemptReuseAuthorisationCodeAfter30s.class,
 		FAPIRWID2AttemptReuseAuthorisationCodeAfterOneSecond.class,
-	},
-	variants = {
-		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_mtls_jarm,
-		FAPIRWID2.variant_privatekeyjwt_jarm,
-		FAPIRWID2.variant_openbankinguk_mtls,
-		FAPIRWID2.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPI_RW_ID2_TestPlan implements TestPlan {

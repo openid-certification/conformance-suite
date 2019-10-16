@@ -12,7 +12,8 @@ import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidReques
 import net.openid.conformance.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
@@ -31,37 +32,10 @@ import net.openid.conformance.testmodule.Variant;
 		"client2.jwks",
 		"resource.resourceUrl",
 		"resource.institution_id"
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_privatekeyjwt,
-		FAPIRWID2.variant_mtls_jarm,
-		FAPIRWID2.variant_privatekeyjwt_jarm
 	}
 )
+@VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
 public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ServerTestModule {
-
-	@Variant(
-		name = variant_openbankinguk_mtls,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(
-		name = variant_openbankinguk_privatekeyjwt,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

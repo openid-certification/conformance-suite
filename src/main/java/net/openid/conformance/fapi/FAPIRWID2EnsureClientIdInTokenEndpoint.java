@@ -9,9 +9,8 @@ import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonCon
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
-import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-client-id-in-token-endpoint",
@@ -38,50 +37,6 @@ import net.openid.conformance.testmodule.Variant;
 )
 public class FAPIRWID2EnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2PerformTokenEndpoint {
 
-	@Variant(name = variant_mtls)
-	public void setupMTLS() {
-		super.setupMTLS();
-		addTokenEndpointClientAuthentication = DoNothing.class;
-	}
-
-	@Variant(name = variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_mtls_jarm)
-	public void setupMTLSJarm() {
-		super.setupMTLSJarm();
-	}
-
-	@Variant(name = variant_privatekeyjwt_jarm)
-	public void setupPrivateKeyJwtJarm() {
-		super.setupPrivateKeyJwtJarm();
-	}
-
-	@Variant(
-		name = variant_openbankinguk_mtls,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-		addTokenEndpointClientAuthentication = DoNothing.class;
-	}
-
-	@Variant(
-		name = variant_openbankinguk_privatekeyjwt,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
-
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 
@@ -91,7 +46,10 @@ public class FAPIRWID2EnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2Per
 
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class, "FAPI-R-5.2.2-19");
 
-		super.addClientAuthenticationToTokenEndpointRequest();
+		// For this test, we explicitly add the client ID - so don't do it twice
+		if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
+			super.addClientAuthenticationToTokenEndpointRequest();
+		}
 	}
 
 	@Override
@@ -108,12 +66,5 @@ public class FAPIRWID2EnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2Per
 		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 
 		fireTestFinished();
-	}
-
-	public static class DoNothing extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			// For this test, we explicitly add the client ID - so don't do it twice
-		}
 	}
 }

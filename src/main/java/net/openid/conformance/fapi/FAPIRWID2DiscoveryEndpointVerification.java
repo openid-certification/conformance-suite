@@ -1,5 +1,7 @@
 package net.openid.conformance.fapi;
 
+import com.google.gson.JsonObject;
+
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
@@ -19,7 +21,10 @@ import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupp
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-discovery-end-point-verification",
@@ -30,48 +35,30 @@ import net.openid.conformance.testmodule.Variant;
 		"server.discoveryUrl",
 	}
 )
+@VariantParameters({
+	FAPIProfile.class,
+	FAPIResponseMode.class
+})
 public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
 
 	protected boolean jarm = false;
 
-	@Variant(name = FAPIRWID2.variant_mtls)
-	public void setupMTLS() {
-		super.setupMTLS();
+	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@Variant(name = FAPIRWID2.variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
-	}
-
-	@Variant(name = FAPIRWID2.variant_mtls_jarm)
-	public void setupMTLSJarm() {
-		jarm = true;
-		// FIXME: need JARM variant
-		setupMTLS();
-	}
-
-	@Variant(name = FAPIRWID2.variant_privatekeyjwt_jarm)
-	public void setupPrivateKeyJwtJarm() {
-		jarm = true;
-		// FIXME: need JARM variant
-		setupPrivateKeyJwt();
-	}
-
-	@Variant(name = FAPIRWID2.variant_openbankinguk_mtls)
+	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
-	@Variant(name = FAPIRWID2.variant_openbankinguk_privatekeyjwt)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		super.configure(config, baseUrl, externalUrlOverride);
 	}
 
 	@Override

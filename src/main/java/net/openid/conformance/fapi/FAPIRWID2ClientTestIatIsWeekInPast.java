@@ -4,7 +4,6 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddIatValueIsWeekInPastToIdToken;
 import net.openid.conformance.condition.as.ClientContinuedAfterReceivingIdTokenIssuedInPast;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,26 +24,6 @@ import org.springframework.http.ResponseEntity;
 )
 
 public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
-
-	@Variant(name = variant_mtls)
-	public void setupMTLS() {
-		super.setupMTLS();
-	}
-
-	@Variant(name = variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_mtls)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {

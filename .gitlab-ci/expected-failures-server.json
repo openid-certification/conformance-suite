@@ -1,7 +1,11 @@
 [
     {
         "test-name": "fapi-rw-id2-discovery-end-point-verification",
-        "variant": "openbankinguk-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "",
         "condition": "CheckJwksUriIsHostedOnOpenBankingDirectory",
@@ -9,7 +13,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "openbankinguk-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -17,7 +25,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "openbankinguk-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -25,7 +37,11 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": "openbankinguk-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "EnsureErrorFromAuthorizationEndpointResponse",
@@ -33,7 +49,11 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": "openbankinguk-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
@@ -41,7 +61,11 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": "openbankinguk-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError",
@@ -49,7 +73,11 @@
     },
     {
         "test-name": "fapi-rw-id2-discovery-end-point-verification",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "",
         "condition": "CheckJwksUriIsHostedOnOpenBankingDirectory",
@@ -57,7 +85,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -65,7 +97,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -73,7 +109,11 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "EnsureErrorFromAuthorizationEndpointResponse",
@@ -81,7 +121,11 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
@@ -89,7 +133,11 @@
     },
     {
         "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
         "condition": "EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError",
@@ -97,7 +145,11 @@
     },
     {
         "test-name": "fapi-rw-id2-refresh-token",
-        "variant": "openbankinguk-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Second client: Check for refresh token",
         "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
@@ -106,7 +158,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -114,7 +170,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -122,7 +182,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -130,7 +194,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "mtls-jarm",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "jarm"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-mtls-jarm.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -139,7 +207,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-        "variant": "private_key_jwt-jarm",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "jarm"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-jarm.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -148,7 +220,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-mtls.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -156,7 +232,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-privatekey.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -164,7 +244,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "plain_response"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-for-instructions.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -172,7 +256,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "mtls-jarm",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "jarm"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-mtls-jarm.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
@@ -181,7 +269,11 @@
     },
     {
         "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "private_key_jwt-jarm",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "fapi_response_mode": "jarm"
+        },
         "configuration-filename": "authlete-fapi-rw-id2-privatekey-jarm.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",

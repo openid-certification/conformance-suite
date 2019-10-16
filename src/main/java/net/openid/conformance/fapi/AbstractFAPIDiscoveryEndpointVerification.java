@@ -18,7 +18,17 @@ import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 
+@VariantParameters({
+	ClientAuthType.class
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public abstract class AbstractFAPIDiscoveryEndpointVerification extends AbstractTestModule {
 	private Class<? extends ConditionSequence> variantAuthChecks;
 
@@ -99,19 +109,13 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 
 	}
 
-	protected void setupMTLS() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMTLS() {
 		variantAuthChecks = MtlsChecks.class;
 	}
 
-	protected void setupPrivateKeyJwt() {
-		variantAuthChecks = PrivateKeyJWTChecks.class;
-	}
-
-	protected void setupOpenBankingUkMTLS() {
-		variantAuthChecks = MtlsChecks.class;
-	}
-
-	protected void setupOpenBankingUkPrivateKeyJwt() {
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
 	}
 }

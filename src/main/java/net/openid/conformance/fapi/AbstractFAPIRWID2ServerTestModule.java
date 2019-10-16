@@ -115,20 +115,32 @@ import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.function.Supplier;
 
+@VariantParameters({
+	ClientAuthType.class,
+	FAPIProfile.class,
+	FAPIResponseMode.class
+})
+@VariantConfigurationFields(parameter = FAPIProfile.class, value = "openbanking_uk", configurationFields = {
+	"resource.resourceUrlAccountRequests",
+	"resource.resourceUrlAccountsResource"
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
-
-	// to be used in @Variant definitions
-	public static final String variant_mtls = "mtls";
-	public static final String variant_mtls_jarm = "mtls-jarm";
-	public static final String variant_privatekeyjwt = "private_key_jwt";
-	public static final String variant_privatekeyjwt_jarm = "private_key_jwt-jarm";
-	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
-	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
 
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -172,6 +184,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			fireTestFinished();
 			return;
 		}
+
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -694,44 +708,31 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		return "";
 	}
 
-	protected void setupMTLS() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMTLS() {
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
 		generateNewClientAssertionSteps = null;
 	}
 
-	protected void setupMTLSJarm() {
-		setupMTLS();
-		jarm = true;
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
+		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
-	protected void setupPrivateKeyJwt() {
+
+	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
-		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		profileIdTokenValidationSteps = null;
 	}
 
-	protected void setupPrivateKeyJwtJarm() {
-		setupPrivateKeyJwt();
-		jarm = true;
-	}
-
-	protected void setupOpenBankingUkMTLS() {
+	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
-		generateNewClientAssertionSteps = null;
-	}
-
-	protected void setupOpenBankingUkPrivateKeyJwt() {
-		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
-		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
-		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
-		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 }

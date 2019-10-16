@@ -3,7 +3,6 @@ package net.openid.conformance.fapi;
 import net.openid.conformance.condition.as.AddAudValueAsArrayToIdToken;
 import net.openid.conformance.condition.as.SignIdTokenBypassingNimbusChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-valid-aud-as-array",
@@ -21,26 +20,6 @@ import net.openid.conformance.testmodule.Variant;
 )
 
 public class FAPIRWID2ClientTestValidAudAsArray extends AbstractFAPIRWID2ClientTest {
-
-	@Variant(name = variant_mtls)
-	public void setupMTLS() {
-		super.setupMTLS();
-	}
-
-	@Variant(name = variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_mtls)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void addCustomValuesToIdToken(){

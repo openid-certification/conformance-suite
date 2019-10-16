@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.CreateBadRedirectUri;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-registered-redirect-uri",
@@ -31,48 +30,6 @@ import net.openid.conformance.testmodule.Variant;
 	}
 )
 public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ServerTestModule {
-
-	@Variant(name = variant_mtls)
-	public void setupMTLS() {
-		super.setupMTLS();
-	}
-
-	@Variant(name = variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_mtls_jarm)
-	public void setupMTLSJarm() {
-		super.setupMTLSJarm();
-	}
-
-	@Variant(name = variant_privatekeyjwt_jarm)
-	public void setupPrivateKeyJwtJarm() {
-		super.setupPrivateKeyJwtJarm();
-	}
-
-	@Variant(
-		name = variant_openbankinguk_mtls,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(
-		name = variant_openbankinguk_privatekeyjwt,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

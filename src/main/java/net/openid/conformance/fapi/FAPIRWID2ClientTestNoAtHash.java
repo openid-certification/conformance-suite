@@ -2,7 +2,8 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.RemoveAtHashFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-missing-athash",
@@ -15,24 +16,10 @@ import net.openid.conformance.testmodule.Variant;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
-	},
-	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
-
+@VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
 public class FAPIRWID2ClientTestNoAtHash extends AbstractFAPIRWID2ClientTest {
-
-	@Variant(name = variant_openbankinguk_mtls)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {

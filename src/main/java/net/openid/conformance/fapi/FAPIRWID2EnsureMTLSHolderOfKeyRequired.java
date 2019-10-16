@@ -17,7 +17,8 @@ import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-mtls-holder-of-key-required",
@@ -46,49 +47,15 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 
 	private Class<? extends ConditionSequence> validateAuthorizationEndpointResponseSteps;
 
-	@Variant(name = variant_mtls)
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		super.setupMTLS();
 		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithMTLS.class;
 	}
 
-	@Variant(name = variant_privatekeyjwt)
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
-	}
-
-	@Variant(name = variant_mtls_jarm)
-	public void setupMTLSJarm() {
-		super.setupMTLSJarm();
-	}
-
-	@Variant(name = variant_privatekeyjwt_jarm)
-	public void setupPrivateKeyJwtJarm() {
-		super.setupPrivateKeyJwtJarm();
-	}
-
-	@Variant(
-		name = variant_openbankinguk_mtls,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithMTLS.class;
-	}
-
-	@Variant(
-		name = variant_openbankinguk_privatekeyjwt,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
 		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 

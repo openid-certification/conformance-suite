@@ -3,7 +3,8 @@ package net.openid.conformance.fapi;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-invalid-openbanking-intent-id",
@@ -17,24 +18,10 @@ import net.openid.conformance.testmodule.Variant;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
-	},
-	notApplicableForVariants = {
-		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt
 	}
 )
-
+@VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
 public class FAPIRWID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
-
-	@Variant(name = variant_openbankinguk_mtls)
-	public void setupOpenBankingUkMTLS() {
-		super.setupOpenBankingUkMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_privatekeyjwt)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void addCustomValuesToIdToken() {
