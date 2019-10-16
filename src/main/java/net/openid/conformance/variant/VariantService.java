@@ -308,10 +308,10 @@ public class VariantService {
 			this.moduleClass = moduleClass;
 			this.info = moduleClass.getDeclaredAnnotation(PublishTestModule.class);
 
-			List<ParameterHolder<?>> declaredParameters = inCombinedAnnotations(moduleClass, VariantParameters.class)
+			Set<ParameterHolder<?>> declaredParameters = inCombinedAnnotations(moduleClass, VariantParameters.class)
 					.flatMap(a -> Arrays.stream(a.value()))
 					.map(c -> parameter(c))
-					.collect(toList());
+					.collect(toSet());
 
 			Map<Class<?>, ParameterHolder<?>> declaredParametersByClass = declaredParameters.stream()
 					.collect(toMap(c -> c.parameterClass, identity()));
