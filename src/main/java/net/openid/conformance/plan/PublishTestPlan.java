@@ -28,10 +28,4 @@ public @interface PublishTestPlan {
 
 	String summary() default "";
 
-	/**
-	 * Variants defined some variant that test plan was supported,
-	 * used to refer to this variant in web frontend / API
-	 */
-	// TODO: remove this when all test modules are converted
-	String[] variants() default {};
 }

@@ -948,9 +948,6 @@
 			updateVariants();
 			if (FAPI_UI.selectedVariant) {
 			    var selection = FAPI_UI.selectedVariant;
-			    if (typeof(selection) === 'string') {
-			        selection = {'__variant__': selection};
-			    }
 			    _.each(selection, function(value, key) {
 			        $('input.config-form-element[data-variant-parameter="' + key + '"]').val(value);
 			    });
@@ -1129,11 +1126,6 @@
 				_.each(map[itemSelected].variants, function(values, parameter) {
 
 					var id = 'vp_' + parameter;
-					var label = parameter;
-					if (label == '__variant__') {
-						// Legacy variant
-						label = 'Variant';
-					}
 					var selector = $('<div class="form-group row">' +
 							'<label for="' + id + '" class="col-sm-4 col-form-label">' + parameter + '</label>' +
 							'<div class="col-sm-8">' +

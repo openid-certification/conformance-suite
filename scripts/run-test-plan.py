@@ -41,9 +41,6 @@ def split_name_and_variant(test_plan):
         vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
         variant = { v.group(1) : v.group(2) for v in vs }
         return (name, variant)
-    elif ':' in test_plan:
-        # Legacy variant
-        return test_plan.split(':', 1)
     else:
         return (test_plan, None)
 
