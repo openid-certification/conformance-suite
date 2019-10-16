@@ -7,7 +7,8 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromBackc
 import net.openid.conformance.condition.client.ValidateErrorResponseFromBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-wrong-client-id-in-backchannel-authorization-request",
@@ -31,35 +32,10 @@ import net.openid.conformance.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl"
-	},
-	notApplicableForVariants = {
-		FAPICIBAID1.variant_ping_privatekeyjwt,
-		FAPICIBAID1.variant_poll_privatekeyjwt,
-		FAPICIBAID1.variant_openbankinguk_ping_privatekeyjwt,
-		FAPICIBAID1.variant_openbankinguk_poll_privatekeyjwt
 	}
 )
+@VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" })
 public class FAPICIBAID1EnsureWrongClientIdInBackchannelAuthorizationRequest extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
-
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
-	}
-
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-	}
 
 	@Override
 	protected void configClient() {

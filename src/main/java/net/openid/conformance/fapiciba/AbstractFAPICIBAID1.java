@@ -144,6 +144,13 @@ import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -153,22 +160,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+@VariantParameters({
+	ClientAuthType.class,
+	FAPIProfile.class,
+	CIBAMode.class
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
-
-	protected enum TestType {
-		PING,
-		POLL
-	}
-
-	// to be used in @Variant definitions
-	public static final String variant_ping_mtls = "ping-mtls";
-	public static final String variant_ping_privatekeyjwt = "ping-private_key_jwt";
-	public static final String variant_poll_mtls = "poll-mtls";
-	public static final String variant_poll_privatekeyjwt = "poll-private_key_jwt";
-	public static final String variant_openbankinguk_ping_mtls = "openbankinguk-ping-mtls";
-	public static final String variant_openbankinguk_ping_privatekeyjwt = "openbankinguk-ping-private_key_jwt";
-	public static final String variant_openbankinguk_poll_mtls = "openbankinguk-poll-mtls";
-	public static final String variant_openbankinguk_poll_privatekeyjwt = "openbankinguk-poll-private_key_jwt";
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -181,7 +182,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	private Class<? extends ConditionSequence> additionalProfileIdTokenValidationSteps;
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
-	protected TestType testType;
+	protected CIBAMode testType;
 
 	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
 		this.addBackchannelClientAuthentication = addBackchannelClientAuthentication;
@@ -262,6 +263,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.putString("external_url_override", externalUrlOverride);
 		env.putObject("config", config);
+
+		testType = getVariant(CIBAMode.class);
 
 		callAndStopOnFailure(CreateCIBANotificationEndpointUri.class);
 
@@ -1006,70 +1009,34 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		unregisterClient1();
 	}
 
-	public void setupPingMTLS() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMTLS() {
 		addBackchannelClientAuthentication = () -> new AddMTLSClientAuthenticationToBackchannelRequest();
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
-		testType = TestType.PING;
 	}
 
-	public void setupPingPrivateKeyJwt() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
 		addBackchannelClientAuthentication = () -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), true);
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
-		testType = TestType.PING;
 	}
 
-	public void setupPollMTLS() {
+	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		addBackchannelClientAuthentication = () -> new AddMTLSClientAuthenticationToBackchannelRequest();
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
-		testType = TestType.POLL;
+		additionalClientRegistrationSteps = null;
+		preAuthorizationSteps = null;
+		additionalProfileAuthorizationEndpointSetupSteps = null;
+		additionalProfileIdTokenValidationSteps = null;
 	}
 
-	public void setupPollPrivateKeyJwt() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
-		addBackchannelClientAuthentication = () -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), true);
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
-		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
-		testType = TestType.POLL;
-	}
-
-	public void setupOpenBankingUkPingMTLS() {
-		setupPingMTLS();
+	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
-	}
-
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		setupPingPrivateKeyJwt();
-		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
-	}
-
-	public void setupOpenBankingUkPollMTLS() {
-		setupPollMTLS();
-		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddMTLSClientAuthenticationToTokenEndpointRequest.class);
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
-	}
-
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		setupPollPrivateKeyJwt();
-		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class);
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}

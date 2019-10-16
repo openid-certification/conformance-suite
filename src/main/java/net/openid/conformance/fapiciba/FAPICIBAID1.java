@@ -20,7 +20,9 @@ import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1",
@@ -50,46 +52,11 @@ import net.openid.conformance.testmodule.Variant;
 
 public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
-	}
-
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@Override
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
-	}
-
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
-	}
-
-	@Variant(name = variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPollPrivateKeyJwt();
-		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
@@ -126,7 +93,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 	}
 
 	protected void modeSpecificAuthorizationEndpointRequest() {
-		if (testType == TestType.PING && isSecondClient()) {
+		if (testType == CIBAMode.PING && isSecondClient()) {
 			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
 			callAndStopOnFailure(AddClientNotificationTokenToAuthorizationEndpointRequest.class, "CIBA-7.1");
 		} else {
