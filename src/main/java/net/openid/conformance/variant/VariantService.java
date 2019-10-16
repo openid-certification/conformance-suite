@@ -263,8 +263,12 @@ public class VariantService {
 			return values.entrySet().stream()
 					.collect(toMap(e -> e.getKey().name,
 							e -> {
+								ParameterHolder<?> p = e.getKey();
+								Set<String> allowed = e.getValue();
 								Map<String, Set<String>> pf = fields.getOrDefault(e.getKey(), Map.of());
-								return e.getValue().stream()
+								return p.values().stream()
+										.map(v -> v.toString())
+										.filter(v -> allowed.contains(v))
 										.collect(toOrderedMap(identity(),
 												v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()))));
 							}));
