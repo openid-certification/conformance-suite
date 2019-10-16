@@ -83,7 +83,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	"client.client_secret_jwt_alg"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"client.client_jwks"
+	"client.jwks"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
 	"mtls.key",
