@@ -269,10 +269,13 @@ public class VariantService {
 						.collect(toOrderedMap(identity(),
 								v -> Map.of("configurationFields", fields.getOrDefault(v, Set.of())))));
 			}
-			Set<ParameterHolder<?>> parameters = modules.stream()
+
+			Map<ParameterHolder<?>, Set<String>> values = modules.stream()
 					.flatMap(m -> m.parameters.stream())
-					.map(p -> p.parameter)
-					.collect(toSet());
+					.collect(groupingBy(p -> p.parameter,
+							flatMapping(p -> p.allowedValues.stream(),
+									mapping(v -> v.toString(),
+											toSet()))));
 
 			Map<ParameterHolder<?>, Map<String, Set<String>>> fields = modules.stream()
 					.flatMap(m -> m.parameters.stream())
@@ -283,13 +286,13 @@ public class VariantService {
 													mapping(v -> v.toString(),
 															toSet()))))));
 
-			return parameters.stream()
-					.collect(toMap(p -> p.name,
-							p -> {
-								Map<String, Set<String>> pf = fields.getOrDefault(p, Map.of());
-								return p.values().stream()
-										.collect(toOrderedMap(v -> v.toString(),
-												v -> Map.of("configurationFields", pf.getOrDefault(v.toString(), Set.of()))));
+			return values.entrySet().stream()
+					.collect(toMap(e -> e.getKey().name,
+							e -> {
+								Map<String, Set<String>> pf = fields.getOrDefault(e.getKey(), Map.of());
+								return e.getValue().stream()
+										.collect(toOrderedMap(identity(),
+												v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()))));
 							}));
 		}
 
