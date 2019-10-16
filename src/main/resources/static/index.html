@@ -943,13 +943,16 @@
 				updateVariants();
 				updateConfigFieldVisibility();
 			});
+			$('#variantSelectors').on('change', function(_) {
+				updateConfigFieldVisibility();
+			});
 
 			// update the config visibility right now
 			updateVariants();
 			if (FAPI_UI.selectedVariant) {
 			    var selection = FAPI_UI.selectedVariant;
 			    _.each(selection, function(value, key) {
-			        $('input.config-form-element[data-variant-parameter="' + key + '"]').val(value);
+			        $('.variant-selector[data-variant-parameter="' + key + '"]').val(value);
 			    });
 			}
 			updateConfigFieldVisibility();
@@ -1127,9 +1130,9 @@
 
 					var id = 'vp_' + parameter;
 					var selector = $('<div class="form-group row">' +
-							'<label for="' + id + '" class="col-sm-4 col-form-label">' + parameter + '</label>' +
-							'<div class="col-sm-8">' +
-							'<select class="form-control config-form-element variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
+							'<label for="' + id + '" class="col-sm-6 col-form-label">' + parameter + '</label>' +
+							'<div class="col-sm-6">' +
+							'<select class="form-control variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
 							'<option value="select">--- Select A Variant ----</option>' +
 							'</select></div></div>');
 					$('#variantSelectors').append(selector);
@@ -1147,15 +1150,11 @@
 				// don't show the variant if there's none to show
 				$('#variantSelectors').hide();
 			}
-
-			$('.variant-selector').on('change', function(_) {
-				updateConfigFieldVisibility();
-			});
 		}
 
 		function getSelectedVariant() {
 			var selection = {};
-			$('.config-form-element[data-variant-parameter]').each(function() {
+			$('.variant-selector[data-variant-parameter]').each(function() {
 				selection[$(this).attr('data-variant-parameter')] = $(this).val();
 			});
 			return selection;
