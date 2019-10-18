@@ -1,6 +1,5 @@
 package net.openid.conformance.variant;
 
-import static net.openid.conformance.variant.VariantSelection.LEGACY_VARIANT_NAME;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.flatMapping;
 import static java.util.stream.Collectors.groupingBy;
@@ -29,7 +28,6 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -43,8 +41,6 @@ import net.openid.conformance.testmodule.TestModule;
 
 @Component
 public class VariantService {
-
-	// TODO: Remove (most) legacy-support code once all test modules have been converted
 
 	private static final String SEARCH_PACKAGE = "net.openid";
 
@@ -218,12 +214,10 @@ public class VariantService {
 
 		final List<TestModuleHolder> modules;
 		final Class<? extends TestPlan> planClass;
-		final List<String> legacyVariants;
 
 		TestPlanHolder(Class<? extends TestPlan> planClass) {
 			this.planClass = planClass;
 			this.info = planClass.getDeclaredAnnotation(PublishTestPlan.class);
-			this.legacyVariants = List.of(info.variants());
 			this.modules = Arrays.stream(info.testModules())
 					.map(c -> {
 						TestModuleHolder m = testModulesByClass.get(c);
@@ -242,13 +236,6 @@ public class VariantService {
 		}
 
 		public List<String> getTestModulesForVariant(VariantSelection variant) {
-			if (variant.isLegacyVariant()) {
-				String v = variant.getLegacyVariant();
-				return modules.stream()
-						.filter(m -> m.isApplicableForLegacyVariant(v))
-						.map(m -> m.info.testName())
-						.collect(toList());
-			}
 			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> v = typedVariant(variant);
 			return modules.stream()
 					.filter(m -> m.isApplicableForVariant(v))
@@ -257,22 +244,12 @@ public class VariantService {
 		}
 
 		public Object getVariantSummary() {
-			if (!legacyVariants.isEmpty()) {
-				Map<String, Set<String>> fields =
-						modules.stream()
-						.flatMap(m -> m.legacyConfigurationFields.entrySet().stream())
-						.collect(groupingBy(e -> e.getKey(),
-								flatMapping(e -> e.getValue().stream(),
-										toSet())));
-				return Map.of(LEGACY_VARIANT_NAME,
-						legacyVariants.stream()
-						.collect(toOrderedMap(identity(),
-								v -> Map.of("configurationFields", fields.getOrDefault(v, Set.of())))));
-			}
-			Set<ParameterHolder<?>> parameters = modules.stream()
+			Map<ParameterHolder<?>, Set<String>> values = modules.stream()
 					.flatMap(m -> m.parameters.stream())
-					.map(p -> p.parameter)
-					.collect(toSet());
+					.collect(groupingBy(p -> p.parameter,
+							flatMapping(p -> p.allowedValues.stream(),
+									mapping(v -> v.toString(),
+											toSet()))));
 
 			Map<ParameterHolder<?>, Map<String, Set<String>>> fields = modules.stream()
 					.flatMap(m -> m.parameters.stream())
@@ -283,13 +260,17 @@ public class VariantService {
 													mapping(v -> v.toString(),
 															toSet()))))));
 
-			return parameters.stream()
-					.collect(toMap(p -> p.name,
-							p -> {
-								Map<String, Set<String>> pf = fields.getOrDefault(p, Map.of());
+			return values.entrySet().stream()
+					.collect(toMap(e -> e.getKey().name,
+							e -> {
+								ParameterHolder<?> p = e.getKey();
+								Set<String> allowed = e.getValue();
+								Map<String, Set<String>> pf = fields.getOrDefault(e.getKey(), Map.of());
 								return p.values().stream()
-										.collect(toOrderedMap(v -> v.toString(),
-												v -> Map.of("configurationFields", pf.getOrDefault(v.toString(), Set.of()))));
+										.map(v -> v.toString())
+										.filter(v -> allowed.contains(v))
+										.collect(toOrderedMap(identity(),
+												v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()))));
 							}));
 		}
 
@@ -301,17 +282,15 @@ public class VariantService {
 
 		final Class<? extends TestModule> moduleClass;
 		final Set<TestModuleVariantInfo<? extends Enum<?>>> parameters;
-		final Map<String, List<String>> legacyConfigurationFields;
-		final Map<String, Method> legacySetupMethods;
 
 		TestModuleHolder(Class<? extends TestModule> moduleClass) {
 			this.moduleClass = moduleClass;
 			this.info = moduleClass.getDeclaredAnnotation(PublishTestModule.class);
 
-			List<ParameterHolder<?>> declaredParameters = inCombinedAnnotations(moduleClass, VariantParameters.class)
+			Set<ParameterHolder<?>> declaredParameters = inCombinedAnnotations(moduleClass, VariantParameters.class)
 					.flatMap(a -> Arrays.stream(a.value()))
 					.map(c -> parameter(c))
-					.collect(toList());
+					.collect(toSet());
 
 			Map<Class<?>, ParameterHolder<?>> declaredParametersByClass = declaredParameters.stream()
 					.collect(toMap(c -> c.parameterClass, identity()));
@@ -353,24 +332,9 @@ public class VariantService {
 							allConfigurationFields.getOrDefault(p, Map.of()),
 							allSetupMethods.getOrDefault(p, Map.of())))
 					.collect(toSet());
-
-			List<Method> legacyMethods =
-					Arrays.stream(moduleClass.getDeclaredMethods())
-					.filter(m -> m.isAnnotationPresent(Variant.class))
-					.collect(toList());
-
-			this.legacyConfigurationFields = legacyMethods.stream()
-					.map(m -> m.getAnnotation(Variant.class))
-					.collect(toOrderedMap(Variant::name, a -> List.of(a.configurationFields())));
-
-			this.legacySetupMethods = legacyMethods.stream()
-					.collect(toOrderedMap(m -> m.getAnnotation(Variant.class).name(), identity()));
 		}
 
 		public boolean isApplicableForVariant(VariantSelection variant) {
-			if (variant.isLegacyVariant()) {
-				return isApplicableForLegacyVariant(variant.getLegacyVariant());
-			}
 			return isApplicableForVariant(typedVariant(variant));
 		}
 
@@ -382,17 +346,7 @@ public class VariantService {
 					});
 		}
 
-		boolean isApplicableForLegacyVariant(String variant) {
-			return legacySetupMethods.containsKey(variant);
-		}
-
 		public Object getVariantSummary() {
-			if (!legacySetupMethods.isEmpty()) {
-				return Map.of(LEGACY_VARIANT_NAME,
-						legacyConfigurationFields.entrySet().stream()
-						.collect(toOrderedMap(e -> e.getKey(),
-								e -> Map.of("configurationFields", e.getValue()))));
-			}
 			return parameters.stream()
 					.collect(toMap(p -> p.parameter.name,
 							p -> p.allowedValues.stream()
@@ -401,13 +355,6 @@ public class VariantService {
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
-			if (!legacySetupMethods.isEmpty()) {
-				if (!variant.isLegacyVariant()) {
-					throw new RuntimeException("Only legacy variants supported for test: " + info.testName());
-				}
-				return newLegacyInstance(variant.getLegacyVariant());
-			}
-
 			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant = typedVariant(variant);
 
 			// Validate the supplied parameters
@@ -455,23 +402,6 @@ public class VariantService {
 			}
 
 			return module;
-		}
-
-		private TestModule newLegacyInstance(String variant) {
-			Method setup = legacySetupMethods.get(variant);
-			if (setup == null) {
-				throw new IllegalArgumentException("Not a recognized variant: " + variant);
-			}
-
-			try {
-				TestModule module = moduleClass.getDeclaredConstructor().newInstance();
-				module.setVariant(Map.of());
-				setup.invoke(module);
-				return module;
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				throw new RuntimeException("Couldn't create test module", e);
-			}
 		}
 
 	}

@@ -9,7 +9,7 @@ import net.openid.conformance.condition.client.TellUserToRejectCIBAAuthenticatio
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.CIBAMode;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-user-rejects-authentication",
@@ -37,46 +37,6 @@ import net.openid.conformance.testmodule.Variant;
 )
 public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
-	}
-
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
-	}
-
-	@Variant(name = variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPollPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupOpenBankingUkPollPrivateKeyJwt();
-	}
-
 	@Override
 	protected void callAutomatedEndpoint() {
 		env.putString("request_action", "deny");
@@ -87,7 +47,7 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		callAndStopOnFailure(TellUserToRejectCIBAAuthentication.class);
 
-		if (testType == TestType.PING) {
+		if (testType == CIBAMode.PING) {
 			// test resumes when notification endpoint called
 			setStatus(Status.WAITING);
 			return;
@@ -129,7 +89,7 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
-		if (testType == TestType.PING) {
+		if (testType == CIBAMode.PING) {
 			processPingNotificationCallback(requestParts);
 			verifyTokenEndpointResponseIsAccessDeniedAndFinishTest();
 		} else {

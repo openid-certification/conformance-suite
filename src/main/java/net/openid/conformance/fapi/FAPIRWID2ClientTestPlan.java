@@ -30,12 +30,6 @@ import net.openid.conformance.plan.TestPlan;
 		// OB systems specific tests
 		FAPIRWID2ClientTestNoAtHash.class,
 		FAPIRWID2ClientTestInvalidOpenBankingIntentId.class
-	},
-	variants = {
-		FAPIRWID2ClientTest.variant_mtls,
-		FAPIRWID2ClientTest.variant_privatekeyjwt,
-		FAPIRWID2ClientTest.variant_openbankinguk_mtls,
-		FAPIRWID2ClientTest.variant_openbankinguk_privatekeyjwt
 	}
 )
 public class FAPIRWID2ClientTestPlan implements TestPlan {

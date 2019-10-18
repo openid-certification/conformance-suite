@@ -2,7 +2,9 @@ package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.VariantNotApplicable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -28,34 +30,10 @@ import org.springframework.http.ResponseEntity;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl"
-	},
-	notApplicableForVariants = {
-		FAPICIBAID1.variant_poll_mtls,
-		FAPICIBAID1.variant_poll_privatekeyjwt,
-		FAPICIBAID1.variant_openbankinguk_poll_mtls,
-		FAPICIBAID1.variant_openbankinguk_poll_privatekeyjwt
 	}
 )
+@VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAID1PingNotificationEndpointReturns401 extends AbstractFAPICIBAID1 {
-
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
-	}
-
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() { super.setupOpenBankingUkPingMTLS(); }
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-	}
-
 
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {

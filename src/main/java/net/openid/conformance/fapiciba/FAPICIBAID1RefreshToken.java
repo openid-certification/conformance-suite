@@ -12,7 +12,8 @@ import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticati
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 		testName = "fapi-ciba-id1-refresh-token",
@@ -42,46 +43,11 @@ import net.openid.conformance.testmodule.Variant;
 	)
 public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
-	}
-
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@Override
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
-	}
-
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
-	}
-
-	@Variant(name = variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPollPrivateKeyJwt();
-		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupOpenBankingUkPollPrivateKeyJwt();
 	}
 
 	@Override

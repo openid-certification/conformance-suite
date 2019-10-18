@@ -13,10 +13,6 @@ public class VariantSelectionJsonReader implements Converter<String, VariantSele
 
 	@Override
 	public VariantSelection convert(String source) {
-		// Support test script (temporarily)
-		if (!source.startsWith("{")) {
-			return new VariantSelection(source);
-		}
 		return VariantSelection.fromJson(gson.fromJson(source, JsonElement.class));
 	}
 

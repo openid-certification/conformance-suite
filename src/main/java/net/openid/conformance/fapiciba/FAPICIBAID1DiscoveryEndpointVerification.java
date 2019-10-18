@@ -11,7 +11,10 @@ import net.openid.conformance.fapi.AbstractFAPIDiscoveryEndpointVerification;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-discovery-end-point-verification",
@@ -22,6 +25,10 @@ import net.openid.conformance.testmodule.Variant;
 		"server.discoveryUrl",
 	}
 )
+@VariantParameters({
+	CIBAMode.class
+})
+@VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
 public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 	private Class<? extends ConditionSequence> variantModeChecks;
 
@@ -42,52 +49,14 @@ public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscov
 		}
 	}
 
-	@Variant(name = FAPICIBAID1.variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupMTLS();
+	@VariantSetup(parameter = CIBAMode.class, value = "ping")
+	public void setupPing() {
 		variantModeChecks = PingChecks.class;
 	}
 
-	@Variant(name = FAPICIBAID1.variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-		variantModeChecks = PingChecks.class;
-	}
-
-	@Variant(name = FAPICIBAID1.variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupMTLS();
+	@VariantSetup(parameter = CIBAMode.class, value = "poll")
+	public void setupPoll() {
 		variantModeChecks = PollChecks.class;
-	}
-
-	@Variant(name = FAPICIBAID1.variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-		variantModeChecks = PollChecks.class;
-	}
-
-	@Variant(name = FAPICIBAID1.variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupMTLS();
-		variantModeChecks = PollChecks.class;
-	}
-
-	@Variant(name = FAPICIBAID1.variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-		variantModeChecks = PollChecks.class;
-	}
-
-	@Variant(name = FAPICIBAID1.variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupMTLS();
-		variantModeChecks = PingChecks.class;
-	}
-
-	@Variant(name = FAPICIBAID1.variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-		variantModeChecks = PingChecks.class;
 	}
 
 	@Override

@@ -13,7 +13,8 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromToken
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-signed-client-assertion-with-RS256-fails",
@@ -36,35 +37,10 @@ import net.openid.conformance.testmodule.Variant;
 		"mtls2.ca",
 		"resource.resourceUrl",
 		"resource.institution_id"
-	},
-	notApplicableForVariants = {
-		FAPIRWID2.variant_mtls,
-		FAPIRWID2.variant_mtls_jarm,
-		FAPIRWID2.variant_openbankinguk_mtls
 	}
 )
+@VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends AbstractFAPIRWID2PerformTokenEndpoint {
-
-	@Variant(name = variant_privatekeyjwt)
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_privatekeyjwt_jarm)
-	public void setupPrivateKeyJwtJarm() {
-		super.setupPrivateKeyJwtJarm();
-	}
-
-	@Variant(
-		name = variant_openbankinguk_privatekeyjwt,
-		configurationFields = {
-			"resource.resourceUrlAccountRequests",
-			"resource.resourceUrlAccountsResource",
-		}
-	)
-	public void setupOpenBankingUkPrivateKeyJwt() {
-		super.setupOpenBankingUkPrivateKeyJwt();
-	}
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {

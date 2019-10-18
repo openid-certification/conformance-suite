@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusNot20
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
 import net.openid.conformance.condition.client.TellUserToIgnoreCIBAAuthentication;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.CIBAMode;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-auth-req-id-expired",
@@ -33,45 +33,6 @@ import net.openid.conformance.testmodule.Variant;
 	}
 )
 public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
-	}
-
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
-	}
-
-	@Variant(name = variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPollPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupOpenBankingUkPollPrivateKeyJwt();
-	}
 
 	@Override
 	protected void createAuthorizationRequest() {
@@ -91,7 +52,7 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 		callAndStopOnFailure(TellUserToIgnoreCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
-		if (testType == TestType.PING) {
+		if (testType == CIBAMode.PING) {
 			// test resumes when notification endpoint called
 			return;
 		}
@@ -103,7 +64,7 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
-		if (testType == TestType.PING) {
+		if (testType == CIBAMode.PING) {
 			verifyNotificationCallback(requestParts);
 			callTokenEndpointAndFinishTest();
 		} else {

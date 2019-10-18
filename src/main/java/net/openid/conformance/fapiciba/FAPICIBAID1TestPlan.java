@@ -68,16 +68,6 @@ import net.openid.conformance.plan.TestPlan;
 		FAPICIBAID1RefreshToken.class,
 
 		FAPICIBAID1EnsureMTLSHolderOfKeyRequired.class,
-	},
-	variants = {
-		FAPICIBAID1.variant_ping_mtls,
-		FAPICIBAID1.variant_ping_privatekeyjwt,
-		FAPICIBAID1.variant_poll_mtls,
-		FAPICIBAID1.variant_poll_privatekeyjwt,
-		FAPICIBAID1.variant_openbankinguk_ping_mtls,
-		FAPICIBAID1.variant_openbankinguk_ping_privatekeyjwt,
-		FAPICIBAID1.variant_openbankinguk_poll_mtls,
-		FAPICIBAID1.variant_openbankinguk_poll_privatekeyjwt,
 	}
 )
 public class FAPICIBAID1TestPlan implements TestPlan {

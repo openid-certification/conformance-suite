@@ -14,7 +14,8 @@ import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.fapi.FAPIRWID2EnsureMTLSHolderOfKeyRequired;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-mtls-holder-of-key-required",
@@ -44,51 +45,17 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 
 	private Class<? extends ConditionSequence> validateAuthorizationEndpointResponseSteps;
 
-	@Variant(name = variant_ping_mtls)
-	public void setupPingMTLS() {
-		super.setupPingMTLS();
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	@Override
+	public void setupMTLS() {
+		super.setupMTLS();
 		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithMTLS.class;
 	}
 
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
-	}
-
-	@Variant(name = variant_poll_mtls)
-	public void setupPollMTLS() {
-		super.setupPollMTLS();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithMTLS.class;
-	}
-
-	@Variant(name = variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPollPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
-	}
-
-	@Variant(name = variant_openbankinguk_ping_mtls)
-	public void setupOpenBankingUkPingMTLS() {
-		super.setupOpenBankingUkPingMTLS();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithMTLS.class;
-	}
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
-	}
-
-	@Variant(name = variant_openbankinguk_poll_mtls)
-	public void setupOpenBankingUkPollMTLS() {
-		super.setupOpenBankingUkPollMTLS();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithMTLS.class;
-	}
-
-	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupOpenBankingUkPollPrivateKeyJwt();
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@Override
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
 		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 

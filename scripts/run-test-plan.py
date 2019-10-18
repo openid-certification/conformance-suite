@@ -41,9 +41,6 @@ def split_name_and_variant(test_plan):
         vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
         variant = { v.group(1) : v.group(2) for v in vs }
         return (name, variant)
-    elif ':' in test_plan:
-        # Legacy variant
-        return test_plan.split(':', 1)
     else:
         return (test_plan, None)
 
@@ -78,7 +75,7 @@ def run_test_plan(test_plan, config_file):
             if state == "WAITING":
                 # If it's a client test, we need to run the client
                 if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
-                    profile = variant # TODO: update this when module is converted
+                    profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")

@@ -1,7 +1,11 @@
 [
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "poll-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "plain_fapi",
+                "ciba_mode": "poll"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-mtls-poll.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -9,7 +13,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "ping-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "plain_fapi",
+                "ciba_mode": "ping"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-mtls-ping-dcr.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -17,7 +25,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "poll-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "ciba_mode": "poll"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -25,7 +37,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "ping-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "ciba_mode": "ping"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-ping-dcr.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -33,7 +49,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "openbankinguk-poll-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "ciba_mode": "poll"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-mtls-poll.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -41,7 +61,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "openbankinguk-ping-mtls",
+        "variant": {
+                "client_auth_type": "mtls",
+                "fapi_profile": "openbanking_uk",
+                "ciba_mode": "ping"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-mtls-ping-dcr.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -49,7 +73,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "openbankinguk-poll-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "ciba_mode": "poll"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -57,7 +85,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
-        "variant": "openbankinguk-ping-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "ciba_mode": "ping"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-ping-dcr.json",
         "current-block": "Resource server endpoint tests",
         "condition": "ExpectBindingMessageCorrectDisplay",
@@ -65,7 +97,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "poll-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "plain_fapi",
+                "ciba_mode": "poll"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
         "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
@@ -74,7 +110,11 @@
     },
     {
         "test-name": "fapi-ciba-id1-refresh-token",
-        "variant": "openbankinguk-poll-private_key_jwt",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "ciba_mode": "poll"
+        },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
         "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",

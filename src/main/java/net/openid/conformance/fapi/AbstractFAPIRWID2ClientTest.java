@@ -76,6 +76,12 @@ import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivat
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -85,19 +91,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+@VariantParameters({
+	ClientAuthType.class,
+	FAPIProfile.class
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
-
-	// Controls which endpoints we should expose to the client
-	protected enum TestType {
-		PLAIN_FAPI,
-		OPENBANKINGUK
-	}
-
-	// to be used in @Variant definitions
-	public static final String variant_mtls = "mtls";
-	public static final String variant_privatekeyjwt = "private_key_jwt";
-	public static final String variant_openbankinguk_mtls = "openbankinguk-mtls";
-	public static final String variant_openbankinguk_privatekeyjwt = "openbankinguk-private_key_jwt";
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
@@ -108,7 +109,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 
-	protected TestType testType;
+	// Controls which endpoints we should expose to the client
+	protected FAPIProfile profile;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -137,6 +139,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
+
+		profile = getVariant(FAPIProfile.class);
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
@@ -215,7 +219,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 			return discoveryEndpoint();
 		} else if (path.equals(ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
-		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && testType == TestType.OPENBANKINGUK) {
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPIProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
@@ -322,7 +326,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
 			return authorizationCodeGrantType(requestId);
-		} else if (grantType.equals("client_credentials") && testType == TestType.OPENBANKINGUK) {
+		} else if (grantType.equals("client_credentials") && profile == FAPIProfile.OPENBANKING_UK) {
 			// we're doing the client credentials grant for initial token access
 			return clientCredentialsGrantType(requestId);
 		} else {
@@ -544,31 +548,27 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
-	protected void setupMTLS() {
-		testType = TestType.PLAIN_FAPI;
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
-	protected void setupPrivateKeyJwt() {
-		testType = TestType.PLAIN_FAPI;
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
 	}
 
-	protected void setupOpenBankingUkMTLS() {
-		testType = TestType.OPENBANKINGUK;
-		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
-		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
-		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
-		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
+	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	public void setupPlainFapi() {
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
+		accountsEndpointProfileSteps = null;
 	}
 
-	protected void setupOpenBankingUkPrivateKeyJwt() {
-		testType = TestType.OPENBANKINGUK;
-		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
+	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
 		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
 		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;

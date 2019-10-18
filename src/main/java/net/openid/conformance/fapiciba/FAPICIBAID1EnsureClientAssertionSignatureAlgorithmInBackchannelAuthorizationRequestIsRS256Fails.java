@@ -8,7 +8,8 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromBackc
 import net.openid.conformance.condition.client.ValidateErrorResponseFromBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.Variant;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-client-assertion-signature-algorithm-in-backchannel-authorization-request-is-RS256-fails",
@@ -32,35 +33,10 @@ import net.openid.conformance.testmodule.Variant;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.resourceUrl"
-	},
-	notApplicableForVariants = {
-		FAPICIBAID1.variant_ping_mtls,
-		FAPICIBAID1.variant_poll_mtls,
-		FAPICIBAID1.variant_openbankinguk_ping_mtls,
-		FAPICIBAID1.variant_openbankinguk_poll_mtls
 	}
 )
+@VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 public class FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInBackchannelAuthorizationRequestIsRS256Fails extends AbstractFAPICIBAID1 {
-
-	@Variant(name = variant_ping_privatekeyjwt)
-	public void setupPingPrivateKeyJwt() {
-		super.setupPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_poll_privatekeyjwt)
-	public void setupPollPrivateKeyJwt() {
-		super.setupPollPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_ping_privatekeyjwt)
-	public void setupOpenBankingUkPingPrivateKeyJwt() {
-		super.setupOpenBankingUkPingPrivateKeyJwt();
-	}
-
-	@Variant(name = variant_openbankinguk_poll_privatekeyjwt)
-	public void setupOpenBankingUkPollPrivateKeyJwt() {
-		super.setupOpenBankingUkPollPrivateKeyJwt();
-	}
 
 	@Override
 	protected void addClientAuthenticationToBackchannelRequest() {
