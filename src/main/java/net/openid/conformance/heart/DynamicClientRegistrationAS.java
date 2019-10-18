@@ -1,5 +1,6 @@
 package net.openid.conformance.heart;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
@@ -28,11 +29,6 @@ import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonObject;
-
 @PublishTestModule(
 	testName = "heart-dynamic-client-registration",
 	displayName = "HEART AS: OAuth Dynamic Client Registration",
@@ -45,8 +41,6 @@ import com.google.gson.JsonObject;
 	}
 )
 public class DynamicClientRegistrationAS extends AbstractTestModule {
-
-	public static Logger logger = LoggerFactory.getLogger(DynamicClientRegistrationAS.class);
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

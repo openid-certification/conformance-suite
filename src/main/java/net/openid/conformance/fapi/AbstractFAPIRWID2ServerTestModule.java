@@ -123,9 +123,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -141,8 +138,6 @@ import java.util.function.Supplier;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
-
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected int whichClient;
 	protected boolean jarm = false;

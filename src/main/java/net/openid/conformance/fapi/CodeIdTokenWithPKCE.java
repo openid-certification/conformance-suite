@@ -1,11 +1,8 @@
 package net.openid.conformance.fapi;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
-import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
-import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
@@ -13,7 +10,9 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
@@ -32,37 +31,35 @@ import net.openid.conformance.condition.client.CreateS256CodeChallenge;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
+import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
+import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
 import net.openid.conformance.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
+import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
+import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateSHash;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.CheckForAccessTokenValue;
-import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.common.CheckServerConfiguration;
 
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-pkce",
@@ -77,8 +74,6 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 	}
 )
 public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
-
-	public static Logger logger = LoggerFactory.getLogger(CodeIdTokenWithPKCE.class);
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
