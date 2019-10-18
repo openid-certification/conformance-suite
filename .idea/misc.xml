@@ -2,9 +2,9 @@
 <project version="4">
   <component name="EntryPointsManager">
     <list size="3">
-      <item index="0" class="java.lang.String" itemvalue="io.fintechlabs.testframework.plan.PublishTestPlan" />
-      <item index="1" class="java.lang.String" itemvalue="io.fintechlabs.testframework.testmodule.PublishTestModule" />
-      <item index="2" class="java.lang.String" itemvalue="io.fintechlabs.testframework.testmodule.Variant" />
+      <item index="0" class="java.lang.String" itemvalue="net.openid.conformance.plan.PublishTestPlan" />
+      <item index="1" class="java.lang.String" itemvalue="net.openid.conformance.testmodule.PublishTestModule" />
+      <item index="2" class="java.lang.String" itemvalue="net.openid.conformance.variant.VariantSetup" />
     </list>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
