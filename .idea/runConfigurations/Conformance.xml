@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Conformance" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="fapi-conformance-suite" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="io.fintechlabs.testframework.Application" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="net.openid.conformance.Application" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
     <additionalParameters>
