@@ -1,9 +1,21 @@
 package net.openid.conformance.fapi;
 
-import net.openid.conformance.variant.ClientAuthType;
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
+import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
+import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.variant.FapiRClientAuthType;
 import net.openid.conformance.variant.VariantConfigurationFields;
-import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 @VariantParameters({
@@ -34,4 +46,47 @@ import net.openid.conformance.variant.VariantParameters;
 	"mtls2.ca"
 })
 public abstract class AbstractFapiRServerTestModule extends AbstractRedirectServerTestModule {
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		env.putString("base_url", baseUrl);
+		env.putObject("config", config);
+
+		callAndStopOnFailure(CreateRedirectUri.class);
+
+		// this is inserted by the create call above, expose it to the test environment for publication
+		exposeEnvString("redirect_uri");
+
+		// Make sure we're calling the right server configuration
+		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
+		callAndContinueOnFailure(GetStaticServerConfiguration.class);
+
+		// make sure the server configuration passes some basic sanity checks
+		callAndStopOnFailure(CheckServerConfiguration.class);
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
+
+		callAndStopOnFailure(FetchServerKeys.class);
+
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+
+		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+
+		// Set up the client configuration
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		exposeEnvString("client_id");
+
+		setupClient();
+
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
+
+		setStatus(Status.CONFIGURED);
+
+		fireSetupDone();
+	}
+
+	protected abstract void setupClient();
 }

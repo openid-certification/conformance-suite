@@ -1,8 +1,6 @@
 package net.openid.conformance.fapi;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
@@ -26,7 +24,6 @@ import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
-import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateS256CodeChallenge;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
@@ -38,23 +35,14 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenRespon
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
-import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateSHash;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
-import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
@@ -62,7 +50,6 @@ import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FapiRClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.variant.VariantParameters;
 
 @VariantNotApplicable(parameter = FapiRClientAuthType.class, values = {
 	"client_secret_jwt", "private_key_jwt", "mtls"
@@ -82,42 +69,7 @@ import net.openid.conformance.variant.VariantParameters;
 public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
-		env.putString("base_url", baseUrl);
-		env.putObject("config", config);
-
-		callAndStopOnFailure(CreateRedirectUri.class);
-
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
-
-		// Make sure we're calling the right server configuration
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-
-		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
-
-		callAndStopOnFailure(FetchServerKeys.class);
-
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-
-		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-
-		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		exposeEnvString("client_id");
-
-		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-
-		setStatus(Status.CONFIGURED);
-
-		fireSetupDone();
+	protected void setupClient() {
 	}
 
 	@Override
