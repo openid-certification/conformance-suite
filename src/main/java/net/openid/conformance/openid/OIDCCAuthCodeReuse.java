@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc",
+	testName = "oidcc-codereuse",
 	displayName = "OIDCC: Authorization server test",
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on registered redirect uri etc), and tries reusing an authorization code.",
 	profile = "OIDCC",
@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class OIDCC extends AbstractOIDCCMultipleClient {
+public class OIDCCAuthCodeReuse extends AbstractOIDCCMultipleClient {
 
 	@Override
 	protected void performSecondClientTests() {

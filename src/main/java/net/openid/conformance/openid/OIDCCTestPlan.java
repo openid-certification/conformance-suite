@@ -8,7 +8,7 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = "OIDCC: Authorization server test (not currently part of certification program)",
 	profile = "OIDCC",
 	testModules = {
-		OIDCC.class,
+		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class
 	}
 )

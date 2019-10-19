@@ -281,7 +281,7 @@
         "comment": "known expected authlete behaviour"
     },
     {
-        "test-name": "oidcc",
+        "test-name": "oidcc-codereuse",
         "variant": {
             "client_auth_type": "client_secret_post",
             "response_type": "code id_token"
@@ -293,7 +293,7 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "oidcc",
+        "test-name": "oidcc-codereuse",
         "variant": {
             "client_auth_type": "client_secret_jwt",
             "response_type": "code"
@@ -305,7 +305,7 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "oidcc",
+        "test-name": "oidcc-codereuse",
         "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "code"
