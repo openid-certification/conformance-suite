@@ -65,7 +65,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);

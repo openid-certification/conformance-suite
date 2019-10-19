@@ -1,5 +1,6 @@
 package net.openid.conformance.testmodule;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 
 import net.openid.conformance.condition.Condition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 
 import com.google.gson.JsonArray;
@@ -18,6 +20,12 @@ import com.google.gson.JsonParser;
  * Static implementation of data manipulation utility methods.
  */
 public interface DataUtils {
+
+	// The FAPI implementers draft 2 specs explicitly require the charset UTF8 header, but Spring have correctly
+	// deprecated this in their http module, so we have our own definition to ensure we follow the specs.
+	// https://github.com/spring-projects/spring-framework/issues/22788
+	// https://bitbucket.org/openid/fapi/issues/236/charset-not-needed-for-application-json
+	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8 = new MediaType("application", "json",StandardCharsets.UTF_8);
 
 	/**
 	 * Utility function to convert an incoming multi-value map to a JSonObject for storage.

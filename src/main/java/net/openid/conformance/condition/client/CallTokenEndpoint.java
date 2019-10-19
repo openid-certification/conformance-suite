@@ -69,7 +69,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 			// extract the headers for use (below)
 			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);

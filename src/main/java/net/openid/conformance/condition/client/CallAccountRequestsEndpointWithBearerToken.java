@@ -99,9 +99,9 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 			HttpHeaders headers = headersFromJson(requestHeaders);
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
 			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
 
 
