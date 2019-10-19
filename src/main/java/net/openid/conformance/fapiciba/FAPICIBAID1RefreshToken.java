@@ -16,31 +16,31 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-		testName = "fapi-ciba-id1-refresh-token",
-		displayName = "FAPI-CIBA-ID1: obtain an id token using a refresh token",
-		summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
-		profile = "FAPI-CIBA-ID1",
-		configurationFields = {
-			"server.discoveryUrl",
-			"client.client_id",
-			"client.scope",
-			"client.jwks",
-			"client.hint_type",
-			"client.hint_value",
-			"mtls.key",
-			"mtls.cert",
-			"mtls.ca",
-			"client2.client_id",
-			"client2.scope",
-			"client2.jwks",
-			"client2.acr_value",
-			"mtls2.key",
-			"mtls2.cert",
-			"mtls2.ca",
-			"resource.resourceUrl",
-			"resource.institution_id"
-		}
-	)
+	testName = "fapi-ciba-id1-refresh-token",
+	displayName = "FAPI-CIBA-ID1: test refresh token behaviours",
+	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
+	profile = "FAPI-CIBA-ID1",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"client.hint_type",
+		"client.hint_value",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"client2.client_id",
+		"client2.scope",
+		"client2.jwks",
+		"client2.acr_value",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
+		"resource.resourceUrl",
+		"resource.institution_id"
+	}
+)
 public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
