@@ -82,7 +82,13 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FapiRClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
 
+@VariantNotApplicable(parameter = FapiRClientAuthType.class, values = {
+	"none", "client_secret_jwt", "private_key_jwt"
+})
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-mtls",
 	displayName = "FAPI-R: code id_token (MTLS authentication)",
@@ -91,20 +97,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.jwks",
-		"client2.scope",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"resource.resourceUrl"
 	}
 )
-public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
+public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -138,7 +134,6 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 
 		exposeEnvString("client_id");
 
-		//require(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
@@ -166,9 +161,6 @@ public class CodeIdTokenWithMTLS extends AbstractRedirectServerTestModule {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#start()
-	 */
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);

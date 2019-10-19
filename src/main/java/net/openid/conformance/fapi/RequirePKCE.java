@@ -20,7 +20,12 @@ import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FapiRClientAuthType;
+import net.openid.conformance.variant.VariantParameters;
 
+@VariantParameters({
+	FapiRClientAuthType.class,
+})
 @PublishTestModule(
 	testName = "fapi-r-require-pkce",
 	displayName = "FAPI-R: Require PKCE in authorization request (code id_token)",
@@ -33,9 +38,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class RequirePKCE extends AbstractRedirectServerTestModule {
 
-	/* (non-Javadoc)
-	 * @see TestModule#configure(com.google.gson.JsonObject, EventLog, java.lang.String, BrowserControl, java.lang.String)
-	 */
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -63,9 +65,6 @@ public class RequirePKCE extends AbstractRedirectServerTestModule {
 		fireSetupDone();
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#start()
-	 */
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);

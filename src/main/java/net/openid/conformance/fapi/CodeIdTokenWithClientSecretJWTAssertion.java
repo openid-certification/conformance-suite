@@ -81,7 +81,13 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FapiRClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
 
+@VariantNotApplicable(parameter = FapiRClientAuthType.class, values = {
+	"none", "private_key_jwt", "mtls"
+})
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-client-secret-jwt",
 	displayName = "FAPI-R: code id_token (client secret jwt authentication)",
@@ -90,16 +96,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
-		"client.client_secret",
-		"client.client_secret_jwt_alg",
 		"client2.client_id",
-		"client2.client_secret",
 		"client2.scope",
-		"client2.client_secret_jwt_alg",
 		"resource.resourceUrl"
 	}
 )
-public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractRedirectServerTestModule {
+public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractFapiRServerTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

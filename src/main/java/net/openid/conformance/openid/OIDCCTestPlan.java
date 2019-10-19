@@ -5,7 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-test-plan",
-	displayName = "OIDCC: Authorization server test",
+	displayName = "OIDCC: Authorization server test (not currently part of certification program)",
 	profile = "OIDCC",
 	testModules = {
 		OIDCC.class,

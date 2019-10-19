@@ -60,7 +60,13 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FapiRClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
 
+@VariantNotApplicable(parameter = FapiRClientAuthType.class, values = {
+	"client_secret_jwt", "private_key_jwt", "mtls"
+})
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-pkce",
 	displayName = "FAPI-R: code id_token (Public Client with PKCE/S256)",
@@ -73,7 +79,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class CodeIdTokenWithPKCE extends AbstractRedirectServerTestModule {
+public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

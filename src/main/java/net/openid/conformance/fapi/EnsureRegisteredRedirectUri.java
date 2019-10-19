@@ -20,13 +20,16 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FapiRClientAuthType;
+import net.openid.conformance.variant.VariantParameters;
 
-/**
- * Tests that the AS will reject a non-registered redirect URI by
- */
+@VariantParameters({
+	FapiRClientAuthType.class,
+})
 @PublishTestModule(
 	testName = "fapi-r-ensure-redirect-uri-is-registered",
 	displayName = "FAPI-R: Ensure redirect URI is registered (code id_token)",
+	summary = "Tests that the AS will reject a non-registered redirect URI by display an error message, a screenshot of which should be uploaded.",
 	profile = "FAPI-R",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -36,9 +39,6 @@ import net.openid.conformance.testmodule.TestFailureException;
 )
 public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModule {
 
-	/* (non-Javadoc)
-	 * @see TestModule#configure(com.google.gson.JsonObject, EventLog, java.lang.String, BrowserControl, java.lang.String)
-	 */
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -66,9 +66,6 @@ public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModul
 		fireSetupDone();
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#start()
-	 */
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
@@ -110,6 +107,6 @@ public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModul
 	protected void processCallback() {
 
 		fireTestFailure();
-		throw new TestFailureException(new ConditionError(getId(), "Couldn't ever got the callback response"));
+		throw new TestFailureException(new ConditionError(getId(), "The server incorrected returned a response to an unregistered redirect url."));
 	}
 }
