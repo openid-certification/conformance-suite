@@ -5,8 +5,8 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-ciba-id1-test-plan",
-	displayName = "FAPI-CIBA-ID1: test plan",
-	profile = "FAPI-CIBA-ID1",
+	displayName = "FAPI-CIBA-ID1: Authorization server test",
+	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
 		FAPICIBAID1DiscoveryEndpointVerification.class,
