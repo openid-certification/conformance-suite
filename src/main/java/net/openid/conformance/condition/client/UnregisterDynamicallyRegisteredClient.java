@@ -42,7 +42,7 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 
 			RestTemplate restTemplate = createRestTemplate(env);
 			HttpHeaders headers = new HttpHeaders();
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
 

@@ -44,7 +44,7 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 			// extract the headers for use (below)
 			HttpHeaders headers = new HttpHeaders();
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
