@@ -1,7 +1,21 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -9,23 +23,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
-
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.testmodule.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 
 public class CallRevocationEndpoint extends AbstractCondition {
 
@@ -55,7 +52,7 @@ public class CallRevocationEndpoint extends AbstractCondition {
 			HttpHeaders headers = headersFromJson(env.getObject("revocation_endpoint_request_headers"));
 
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 

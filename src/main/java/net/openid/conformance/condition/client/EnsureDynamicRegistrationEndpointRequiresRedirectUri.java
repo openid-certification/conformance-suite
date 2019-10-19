@@ -14,7 +14,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -47,7 +47,7 @@ public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends Abstra
 			HttpHeaders headers = new HttpHeaders();
 
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			headers.setContentType(MediaType.APPLICATION_JSON);
 
 			HttpEntity<?> request = new HttpEntity<>(requestObj.toString(), headers);
