@@ -10,6 +10,6 @@ public class ValidateSuccessfulHybridResponseFromAuthorizationEndpoint extends A
 	protected List<String> getExpectedParams()
 	{
 		return ImmutableList.of("code", "state", "id_token", "session_state");
-	};
+	}
 
 }

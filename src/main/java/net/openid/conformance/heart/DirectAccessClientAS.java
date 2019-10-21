@@ -1,6 +1,7 @@
 package net.openid.conformance.heart;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -31,9 +32,6 @@ import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.condition.Condition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -55,8 +53,6 @@ import javax.servlet.http.HttpSession;
 	}
 )
 public class DirectAccessClientAS extends AbstractTestModule {
-
-	public static Logger logger = LoggerFactory.getLogger(DirectAccessClientAS.class);
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)

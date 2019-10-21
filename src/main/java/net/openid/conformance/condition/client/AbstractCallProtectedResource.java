@@ -1,7 +1,18 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -9,20 +20,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
-
-import net.openid.conformance.testmodule.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.AbstractCondition;
 
 public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
@@ -78,8 +75,8 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			HttpHeaders headers = getHeaders(env);
 
 			if (headers.getAccept().isEmpty()) {
-				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-				headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+				headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
+				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			}
 
 			HttpEntity<?> request = new HttpEntity<>(headers);

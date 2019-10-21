@@ -1,9 +1,7 @@
 package net.openid.conformance.logging;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
+import com.google.gson.JsonObject;
+import net.openid.conformance.testmodule.DataUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -12,9 +10,10 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.testmodule.DataUtils;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, DataUtils {
 
@@ -42,7 +41,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		o.addProperty("request_method", request.getMethod().toString());
 		o.add("request_headers", mapToJsonObject(request.getHeaders(), true));
 		if (body != null) {
-			o.addProperty("request_body", new String(body, "UTF-8"));
+			o.addProperty("request_body", new String(body, StandardCharsets.UTF_8));
 		}
 		o.addProperty("msg", "HTTP request");
 		o.addProperty("http", "request");
@@ -58,7 +57,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		o.addProperty("response_status_text", response.getStatusText());
 		o.add("response_headers", mapToJsonObject(response.getHeaders(), true));
 		if (response.body != null) {
-			o.addProperty("response_body", new String(response.body, "UTF-8"));
+			o.addProperty("response_body", new String(response.body, StandardCharsets.UTF_8));
 		}
 		o.addProperty("msg", "HTTP response");
 		o.addProperty("http", "response");

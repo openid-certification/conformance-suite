@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
@@ -26,7 +25,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -65,8 +64,8 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
+			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 

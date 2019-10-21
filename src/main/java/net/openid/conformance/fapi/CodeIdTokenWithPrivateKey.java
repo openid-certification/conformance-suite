@@ -1,23 +1,8 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
-import net.openid.conformance.condition.as.ValidateClientSigningKeySize;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
-import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
-
-import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.ValidateClientSigningKeySize;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
@@ -27,6 +12,8 @@ import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -36,13 +23,14 @@ import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
-import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateS256CodeChallenge;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
@@ -56,33 +44,35 @@ import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAutho
 import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
+import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
+import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
+import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateSHash;
-import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FapiRClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = FapiRClientAuthType.class, values = {
+	"none", "client_secret_jwt", "mtls"
+})
 @PublishTestModule(
 	testName = "fapi-r-code-id-token-with-private-key",
 	displayName = "FAPI-R: code id_token (private key authentication)",
@@ -91,47 +81,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
-		"client.jwks",
 		"client2.client_id",
-		"client2.jwks",
 		"client2.scope",
 		"resource.resourceUrl"
 	}
 )
-public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule {
+public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
-		env.putString("base_url", baseUrl);
-		env.putObject("config", config);
-
-		callAndStopOnFailure(CreateRedirectUri.class);
-
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
-
-		// Make sure we're calling the right server configuration
-		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
-		callAndContinueOnFailure(GetStaticServerConfiguration.class);
-
-		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-
-		callAndStopOnFailure(FetchServerKeys.class);
-
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-
-		callAndContinueOnFailure(EnsureMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		exposeEnvString("client_id");
+	protected void setupClient() {
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// get the second client and second JWKs Key
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
@@ -141,21 +102,10 @@ public class CodeIdTokenWithPrivateKey extends AbstractRedirectServerTestModule 
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();
-
-
-		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-
-		setStatus(Status.CONFIGURED);
-
-		fireSetupDone();
-
 	}
 
 	@Override

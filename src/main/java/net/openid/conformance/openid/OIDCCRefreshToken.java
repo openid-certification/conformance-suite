@@ -13,8 +13,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "oidcc-refresh-token",
-	displayName = "OIDCC: obtain an id token using a refresh token",
-	summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
+	displayName = "OIDCC: test refresh token behaviours",
+	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
 	profile = "OIDCC",
 	configurationFields = {
 		"server.discoveryUrl",

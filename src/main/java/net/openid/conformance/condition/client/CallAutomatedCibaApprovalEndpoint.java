@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -44,8 +44,8 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 			// extract the headers for use (below)
 			HttpHeaders headers = new HttpHeaders();
 
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
 

@@ -20,8 +20,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-refresh-token",
-	displayName = "FAPI-RW-ID2: obtain an id token using a refresh token",
-	summary = "This test uses a refresh_token to obtain an id token and ensures that claims satisfy the requirements.",
+	displayName = "FAPI-RW-ID2: test refresh token behaviours",
+	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",

@@ -124,7 +124,7 @@ public class ImageAPI {
 
 	}
 
-	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get all the images for a test")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Retrieved successfully"),
