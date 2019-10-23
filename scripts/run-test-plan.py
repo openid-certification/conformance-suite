@@ -315,7 +315,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
             info['result'] = 'UNKNOWN'
 
         test_name = info['testName']
-        result = analyze_result_logs(test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
+        result = analyze_result_logs(module_id, test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
 
         log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
         test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
@@ -349,7 +349,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 #   'unexpected_warnings': list all unexpected warnings condition
 #   'expected_warnings_did_not_happen': list all expected warnings condition did not happen
 #   'counts': contains number of success condition, number of warning condition and number of failure condition
-def analyze_result_logs(test_name, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
+def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
     counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
     expected_failures = []
     unexpected_failures = []
@@ -385,7 +385,16 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
             continue
 
         if ('blockId' in log_entry):
-            block_msg = block_names[log_entry['blockId']]
+            blockId = log_entry['blockId']
+            if blockId in block_names:
+                block_msg = block_names[blockId]
+            else:
+                # A new blockId was seen without a block start: this shouldn't happen.
+                # We don't have a sensible value for block_msg at this point, so log the error and stop analyzing this test.
+                print(failure('Unknown block ID in results: {}'.format(blockId)))
+                print('See {}log-detail.html?log={}'.format(api_url_base, module_id))
+                print('Log entry: {}'.format(log_entry))
+                break
         else:
             block_msg = ''
 
