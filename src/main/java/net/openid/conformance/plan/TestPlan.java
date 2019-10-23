@@ -5,5 +5,8 @@ package net.openid.conformance.plan;
  * test configuration.
  */
 public interface TestPlan {
-
+	interface ProfileNames {
+		String rptest = "Test a Relying Party / OAuth2 Client";
+		String optest = "Test an OpenID Provider / Authorization Server";
+	}
 }

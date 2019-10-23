@@ -6,7 +6,7 @@ import net.openid.conformance.plan.TestPlan;
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-client-test-plan",
 	displayName = "FAPI-RW-ID2: Relying Party (client test)",
-	profile = "FAPI-RW-ID2-Relying-Party-Client-Test",
+	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPIRWID2ClientTest.class,
 		FAPIRWID2ClientTestInvalidSHash.class,

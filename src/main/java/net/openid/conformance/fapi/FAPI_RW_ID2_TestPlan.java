@@ -6,7 +6,7 @@ import net.openid.conformance.plan.TestPlan;
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-test-plan",
 	displayName = "FAPI-RW-ID2: Authorization server test (latest version)",
-	profile = "FAPI-RW-ID2-OpenID-Provider-Authorization-Server-Test",
+	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
 		FAPIRWID2DiscoveryEndpointVerification.class,

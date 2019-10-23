@@ -5,8 +5,8 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-test-plan",
-	displayName = "OIDCC: Authorization server test (not currently part of certification program)",
-	profile = "OIDCC",
+	displayName = "OpenID Connect Core: Authorization server test (not currently part of certification program)",
+	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class

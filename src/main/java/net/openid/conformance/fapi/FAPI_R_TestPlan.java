@@ -6,7 +6,7 @@ import net.openid.conformance.plan.TestPlan;
 @PublishTestPlan (
 	testPlanName = "fapi-r-test-plan",
 	displayName = "FAPI-R: Authorization server test (not currently part of certification program)",
-	profile = "FAPI-R",
+	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// each test module applies to only one client auth method
 		CodeIdTokenWithClientSecretJWTAssertion.class,
