@@ -38,7 +38,7 @@ public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends Ab
 	protected void createAuthorizationRedirect() {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		if (whichClient == 2) {
+		if (isSecondClient()) {
 			callAndStopOnFailure(AddIatToRequestObject.class);
 		}
 		callAndStopOnFailure(AddExpToRequestObject.class);

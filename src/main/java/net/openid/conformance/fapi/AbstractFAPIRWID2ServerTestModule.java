@@ -139,7 +139,7 @@ import java.util.function.Supplier;
 })
 public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
 
-	protected int whichClient;
+	private int whichClient;
 	protected boolean jarm = false;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -302,7 +302,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		performProfileAuthorizationEndpointSetup();
 
-		if ( whichClient == 2 ) {
+		if (isSecondClient()) {
 			env.putInteger("requested_state_length", 128);
 		} else {
 			env.putInteger("requested_state_length", null);
@@ -332,7 +332,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		if (whichClient == 2) {
+		if (isSecondClient()) {
 			callAndStopOnFailure(AddIatToRequestObject.class);
 		}
 		callAndStopOnFailure(AddExpToRequestObject.class);
@@ -447,7 +447,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected void performPostAuthorizationFlow() {
 
-		if (whichClient == 1) {
+		if (!isSecondClient()) {
 			// call the token endpoint and complete the flow
 
 			createAuthorizationCodeRequest();
@@ -652,7 +652,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
-		if ( whichClient != 2 ) {
+		if (!isSecondClient()) {
 			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
 			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
@@ -683,7 +683,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	/** Return which client is in use, for use in block identifiers */
 	protected String currentClientString() {
-		if (whichClient == 2) {
+		if (isSecondClient()) {
 			return "Second client: ";
 		}
 		return "";

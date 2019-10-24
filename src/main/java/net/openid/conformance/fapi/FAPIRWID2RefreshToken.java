@@ -104,7 +104,7 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 
 		requestProtectedResource();
 
-		if (whichClient == 1) {
+		if (!isSecondClient()) {
 			// Try the second client
 
 			//remove refresh token from 1st client
