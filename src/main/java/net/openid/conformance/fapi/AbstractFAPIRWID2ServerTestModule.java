@@ -12,11 +12,9 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddRedirectUriQuerySuffix;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
@@ -66,7 +64,6 @@ import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.RejectNonJarmResponsesInUrlQuery;
@@ -131,7 +128,7 @@ import java.util.function.Supplier;
 })
 public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
 
-	private int whichClient;
+	protected int whichClient;
 	protected boolean jarm = false;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -414,48 +411,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void onPostAuthorizationFlowComplete() {
-		if (!isSecondClient()) {
-			// Try the second client
-			performAuthorizationFlowWithSecondClient();
-		} else {
-			switchToClient1AndTryClient2AccessToken();
-			fireTestFinished();
-		}
-	}
-
-	protected void performAuthorizationFlowWithSecondClient() {
-		whichClient = 2;
-
-		eventLog.startBlock(currentClientString() + "Setup");
-
-		switchToSecondClient();
-
-		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-
-		if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
-			/* Temporary change to allow banks to disable tests until they have had a chance to register new
-			 * clients with the new redirect uris.
-			 */
-			callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
-		} else {
-			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
-		}
-		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-
-		//exposeEnvString("client_id");
-
-		performAuthorizationFlow();
-	}
-
-	protected void switchToClient1AndTryClient2AccessToken() {
-		// Switch back to client 1
-		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
-		unmapClient();
-
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
-
-		setStatus(Status.WAITING);
-		eventLog.endBlock();
+		fireTestFinished();
 	}
 
 	protected void createAuthorizationCodeRequest() {

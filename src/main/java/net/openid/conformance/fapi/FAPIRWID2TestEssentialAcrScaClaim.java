@@ -70,19 +70,6 @@ public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2Expectin
 		}
 	}
 
-	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		requestProtectedResource();
-
-		fireTestFinished();
-	}
-
 	public static class OpenBankingUkAuthorizationEndpointOverridingSetup extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {

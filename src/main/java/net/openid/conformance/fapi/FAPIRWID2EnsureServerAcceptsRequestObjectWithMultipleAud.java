@@ -51,17 +51,4 @@ public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends Ab
 
 		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
 	}
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		requestProtectedResource();
-
-		fireTestFinished();
-	}
 }

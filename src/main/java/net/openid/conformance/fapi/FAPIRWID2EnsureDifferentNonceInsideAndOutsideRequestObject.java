@@ -88,17 +88,4 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 			fireTestFinished();
 		}
 	}
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		requestProtectedResource();
-
-		fireTestFinished();
-	}
 }

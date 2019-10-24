@@ -143,18 +143,4 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 		performPostAuthorizationFlow();
 	}
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		requestProtectedResource();
-
-		fireTestFinished();
-	}
-
 }

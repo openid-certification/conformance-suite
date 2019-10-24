@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2MultipleClient {
 
 	@Override
 	protected void createAuthorizationRequest() {

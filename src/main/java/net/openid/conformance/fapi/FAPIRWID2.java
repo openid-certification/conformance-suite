@@ -35,7 +35,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 			"resource.institution_id"
 		}
 	)
-public class FAPIRWID2 extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2 extends AbstractFAPIRWID2MultipleClient {
 
 	protected void checkAccountRequestEndpointTLS() {
 		eventLog.startBlock("Accounts request endpoint TLS test");

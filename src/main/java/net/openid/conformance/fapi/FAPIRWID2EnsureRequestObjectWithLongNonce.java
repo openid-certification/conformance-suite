@@ -94,18 +94,4 @@ public class FAPIRWID2EnsureRequestObjectWithLongNonce extends AbstractFAPIRWID2
 			fireTestFinished();
 		}
 	}
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		requestProtectedResource();
-
-		fireTestFinished();
-	}
-
 }
