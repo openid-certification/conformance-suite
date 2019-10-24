@@ -406,30 +406,19 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performPostAuthorizationFlow() {
+		// call the token endpoint and complete the flow
+		createAuthorizationCodeRequest();
+		requestAuthorizationCode();
+		requestProtectedResource();
+		onPostAuthorizationFlowComplete();
+	}
 
+	protected void onPostAuthorizationFlowComplete() {
 		if (!isSecondClient()) {
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			requestProtectedResource();
-
 			// Try the second client
-
 			performAuthorizationFlowWithSecondClient();
 		} else {
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			requestProtectedResource();
-
 			switchToClient1AndTryClient2AccessToken();
-
 			fireTestFinished();
 		}
 	}

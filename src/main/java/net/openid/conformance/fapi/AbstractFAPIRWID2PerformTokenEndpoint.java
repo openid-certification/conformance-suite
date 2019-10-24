@@ -5,6 +5,7 @@ package net.openid.conformance.fapi;
  */
 public abstract class AbstractFAPIRWID2PerformTokenEndpoint extends AbstractFAPIRWID2ServerTestModule {
 
+	@Override
 	protected void performPostAuthorizationFlow() {
 
 		// call the token endpoint and complete the flow
