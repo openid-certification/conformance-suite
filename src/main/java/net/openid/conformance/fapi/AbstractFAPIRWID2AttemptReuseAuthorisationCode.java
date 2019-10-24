@@ -19,19 +19,7 @@ public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends Abs
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
 	@Override
-	protected void performPostAuthorizationFlow() {
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
-		requestProtectedResource();
-
-		verifyAccessTokenWithResourceEndpoint();
+	protected void onPostAuthorizationFlowComplete() {
 
 		eventLog.startBlock("Attempting reuse of authorisation code & testing if access token is revoked");
 

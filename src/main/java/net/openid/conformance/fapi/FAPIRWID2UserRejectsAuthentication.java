@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2MultipleClient {
 
 	@Override
 	protected void createAuthorizationRequest() {
@@ -49,7 +49,7 @@ public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2ServerT
 		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 
-		if (whichClient == 1) {
+		if (!isSecondClient()) {
 			performAuthorizationFlowWithSecondClient();
 		} else {
 

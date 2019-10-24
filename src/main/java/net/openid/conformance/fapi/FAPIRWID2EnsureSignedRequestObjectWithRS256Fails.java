@@ -42,7 +42,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -57,17 +57,6 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 			// This throws an exception: the test will stop here
 			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped.", alg));
 		}
-	}
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirectAndWaitForErrorCallback();
 	}
 
 	@Override

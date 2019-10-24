@@ -40,18 +40,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2ServerTestModule {
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirectAndWaitForErrorCallback();
-	}
+public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@Override
 	protected void createPlaceholder() {
@@ -98,18 +87,5 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
 			fireTestFinished();
 		}
-	}
-
-	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		requestAuthorizationCode();
-
-		requestProtectedResource();
-
-		fireTestFinished();
 	}
 }

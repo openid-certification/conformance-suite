@@ -41,7 +41,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 
 	protected void addPromptConsentToAuthorizationEndpointRequest() {
 		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");
@@ -85,26 +85,8 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 	}
 
 	@Override
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-
-		createAuthorizationCodeRequest();
-
-		// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
-		env.mapKey("access_token", "first_access_token");
-		env.mapKey("id_token", "first_id_token");
-
-		requestAuthorizationCode();
-
-		// Set up the mappings for the refreshed access and ID tokens
-		env.mapKey("access_token", "second_access_token");
-		env.mapKey("id_token", "second_id_token");
-
-		sendRefreshTokenRequestAndCheckIdTokenClaims();
-
-		requestProtectedResource();
-
-		if (whichClient == 1) {
+	protected void onPostAuthorizationFlowComplete() {
+		if (!isSecondClient()) {
 			// Try the second client
 
 			//remove refresh token from 1st client
@@ -126,5 +108,20 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2ServerTestModule {
 			eventLog.endBlock();
 			fireTestFinished();
 		}
+	}
+
+	@Override
+	protected void requestAuthorizationCode() {
+		// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
+		env.mapKey("access_token", "first_access_token");
+		env.mapKey("id_token", "first_id_token");
+
+		super.requestAuthorizationCode();
+
+		// Set up the mappings for the refreshed access and ID tokens
+		env.mapKey("access_token", "second_access_token");
+		env.mapKey("id_token", "second_id_token");
+
+		sendRefreshTokenRequestAndCheckIdTokenClaims();
 	}
 }

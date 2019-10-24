@@ -66,9 +66,7 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAP
 		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
 
-		env.mapKey("client", "client2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-		env.mapKey("client_jwks", "client_jwks2");
+		switchToSecondClient();
 
 		createAuthorizationCodeRequest();
 
@@ -80,9 +78,7 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAP
 		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
 
-		env.unmapKey("client");
-		env.unmapKey("mutual_tls_authentication");
-		env.unmapKey("client_jwks");
+		unmapClient();
 
 		fireTestFinished();
 	}

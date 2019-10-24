@@ -29,7 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -39,17 +39,6 @@ public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2Serve
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
-	}
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirectAndWaitForErrorCallback();
 	}
 
 	@Override

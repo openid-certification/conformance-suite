@@ -12,11 +12,9 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddRedirectUriQuerySuffix;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
@@ -27,7 +25,6 @@ import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
-import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -36,7 +33,6 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -68,15 +64,12 @@ import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.RejectNonJarmResponsesInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -102,10 +95,6 @@ import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFro
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
-import net.openid.conformance.condition.common.DisallowTLS10;
-import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -202,46 +191,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		whichClient = 1;
 
 		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		exposeEnvString("client_id");
-
-		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-		// Test won't pass without MATLS, but we'll try anyway (for now)
-		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
-
-		eventLog.startBlock("Verify configuration of second client");
-
-		// extract second client
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
-
-		// get the second client's JWKs
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE,"FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-
-		// validate the secondary MTLS keys
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
-		env.unmapKey("mutual_tls_authentication");
-
-		eventLog.endBlock();
+		configureClient();
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -267,6 +217,43 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		// No custom configuration
+	}
+
+	protected void configureClient() {
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		exposeEnvString("client_id");
+
+		// Test won't pass without MATLS, but we'll try anyway (for now)
+		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		validateClientConfiguration();
+
+		eventLog.startBlock("Verify configuration of second client");
+
+		// extract second client
+		switchToSecondClient();
+		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		validateClientConfiguration();
+
+		unmapClient();
+
+		eventLog.endBlock();
+	}
+
+	protected void validateClientConfiguration() {
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 	}
 
 	/* (non-Javadoc)
@@ -304,7 +291,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		performProfileAuthorizationEndpointSetup();
 
-		if ( whichClient == 2 ) {
+		if (isSecondClient()) {
 			env.putInteger("requested_state_length", 128);
 		} else {
 			env.putInteger("requested_state_length", null);
@@ -334,7 +321,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-		if (whichClient == 2) {
+		if (isSecondClient()) {
 			callAndStopOnFailure(AddIatToRequestObject.class);
 		}
 		callAndStopOnFailure(AddExpToRequestObject.class);
@@ -415,110 +402,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performPostAuthorizationFlow();
 	}
 
-	protected void checkAccountRequestEndpointTLS() {
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkAccountResourceEndpointTLS() {
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-	}
-
-	protected void verifyAccessTokenWithResourceEndpoint() {
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
-	}
-
 	protected void performPostAuthorizationFlow() {
-
-		if (whichClient == 1) {
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			checkAccountRequestEndpointTLS();
-
-			checkAccountResourceEndpointTLS();
-
-			requestProtectedResource();
-
-			verifyAccessTokenWithResourceEndpoint();
-
-			// Try the second client
-
-			performAuthorizationFlowWithSecondClient();
-		} else {
-			// call the token endpoint and complete the flow
-
-			createAuthorizationCodeRequest();
-
-			requestAuthorizationCode();
-
-			requestProtectedResource();
-
-			switchToClient1AndTryClient2AccessToken();
-
-			fireTestFinished();
-		}
+		// call the token endpoint and complete the flow
+		createAuthorizationCodeRequest();
+		requestAuthorizationCode();
+		requestProtectedResource();
+		onPostAuthorizationFlowComplete();
 	}
 
-	protected void performAuthorizationFlowWithSecondClient() {
-		whichClient = 2;
-
-		eventLog.startBlock(currentClientString() + "Setup");
-
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
-
-		if (redirectQueryDisabled != null && redirectQueryDisabled.intValue() != 0) {
-			/* Temporary change to allow banks to disable tests until they have had a chance to register new
-			 * clients with the new redirect uris.
-			 */
-			callAndContinueOnFailure(RedirectQueryTestDisabled.class, Condition.ConditionResult.FAILURE, "RFC6749-3.1.2");
-		} else {
-			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
-		}
-		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
-
-		//exposeEnvString("client_id");
-
-		performAuthorizationFlow();
-	}
-
-	protected void switchToClient1AndTryClient2AccessToken() {
-		// Switch back to client 1
-		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		env.unmapKey("mutual_tls_authentication");
-
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
-
-		setStatus(Status.WAITING);
-		eventLog.endBlock();
+	protected void onPostAuthorizationFlowComplete() {
+		fireTestFinished();
 	}
 
 	protected void createAuthorizationCodeRequest() {
@@ -658,7 +551,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
-		if ( whichClient != 2 ) {
+		if (!isSecondClient()) {
 			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
 			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
@@ -689,10 +582,22 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	/** Return which client is in use, for use in block identifiers */
 	protected String currentClientString() {
-		if (whichClient == 2) {
+		if (isSecondClient()) {
 			return "Second client: ";
 		}
 		return "";
+	}
+
+	protected void switchToSecondClient() {
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+	}
+
+	protected void unmapClient() {
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		env.unmapKey("mutual_tls_authentication");
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
