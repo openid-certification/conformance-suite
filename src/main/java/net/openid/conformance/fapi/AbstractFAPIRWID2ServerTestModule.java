@@ -27,7 +27,6 @@ import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
-import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -36,7 +35,6 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -75,8 +73,6 @@ import net.openid.conformance.condition.client.RejectNonJarmResponsesInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -409,15 +405,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performPostAuthorizationFlow();
 	}
 
-	protected void verifyAccessTokenWithResourceEndpoint() {
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
-	}
-
 	protected void performPostAuthorizationFlow() {
 
 		if (!isSecondClient()) {
@@ -428,8 +415,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			requestAuthorizationCode();
 
 			requestProtectedResource();
-
-			verifyAccessTokenWithResourceEndpoint();
 
 			// Try the second client
 

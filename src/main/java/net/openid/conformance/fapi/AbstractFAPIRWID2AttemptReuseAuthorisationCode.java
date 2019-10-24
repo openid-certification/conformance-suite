@@ -27,8 +27,6 @@ public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends Abs
 
 		requestProtectedResource();
 
-		verifyAccessTokenWithResourceEndpoint();
-
 		eventLog.startBlock("Attempting reuse of authorisation code & testing if access token is revoked");
 
 		waitForAmountOfTime();

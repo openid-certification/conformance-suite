@@ -1,6 +1,11 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
+import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
@@ -55,12 +60,26 @@ public class FAPIRWID2 extends AbstractFAPIRWID2ServerTestModule {
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 	}
 
+	protected void verifyAccessTokenWithResourceEndpoint() {
+		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
+		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+	}
+
 	@Override
 	protected void requestProtectedResource() {
 		if (!isSecondClient()) {
 			checkAccountRequestEndpointTLS();
 			checkAccountResourceEndpointTLS();
 		}
+
 		super.requestProtectedResource();
+
+		if (!isSecondClient()) {
+			verifyAccessTokenWithResourceEndpoint();
+		}
 	}
 }
