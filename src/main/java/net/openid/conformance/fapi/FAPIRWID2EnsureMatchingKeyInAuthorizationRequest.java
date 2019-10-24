@@ -31,32 +31,26 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIRWID2ServerTestModule {
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		createAuthorizationRequest();
-
-		// Switch to client 2 JWKs
-		eventLog.startBlock("Sign request object containing client_id for client 1 using JWK for client 2");
-		env.mapKey("client_jwks", "client_jwks2");
-
-		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
-		createAuthorizationRedirect();
-
-		env.unmapKey("client_jwks");
-		eventLog.endBlock();
-
-		performRedirectAndWaitForErrorCallback();
-	}
+public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@Override
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1", "OIDCC-6.3.2");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
+	}
+
+	@Override
+	protected void createAuthorizationRedirect() {
+		// Switch to client 2 JWKs
+		eventLog.startBlock("Sign request object containing client_id for client 1 using JWK for client 2");
+		env.mapKey("client_jwks", "client_jwks2");
+
+		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
+		super.createAuthorizationRedirect();
+
+		env.unmapKey("client_jwks");
+		eventLog.endBlock();
 	}
 
 	@Override

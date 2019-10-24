@@ -33,18 +33,7 @@ import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthoriz
 import net.openid.conformance.condition.client.VerifyNoSHash;
 import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 
-public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2ServerTestModule {
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirectAndWaitForErrorCallback();
-	}
+public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@Override
 	protected void createPlaceholder() {

@@ -37,18 +37,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureExpiredRequestObjectFails extends AbstractFAPIRWID2ServerTestModule {
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirectAndWaitForErrorCallback();
-	}
+public class FAPIRWID2EnsureExpiredRequestObjectFails extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@Override
 	protected void createPlaceholder() {

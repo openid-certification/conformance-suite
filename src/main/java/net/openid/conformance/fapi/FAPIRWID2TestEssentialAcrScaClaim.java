@@ -39,25 +39,12 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
-public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
 
 	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		super.setupOpenBankingUk();
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;
-	}
-
-	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirectAndWaitForErrorCallback();
 	}
 
 	@Override
