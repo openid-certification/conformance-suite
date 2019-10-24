@@ -13,7 +13,7 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse extends AbstractC
 	public Environment evaluate(Environment env) {
 		String code = env.getString("authorization_endpoint_response", "code");
 		if (Strings.isNullOrEmpty(code)) {
-			throw error("Couldn't find authorization code in authorization_endpoint_response");
+			throw error("Couldn't find authorization code in authorization_endpoint_response, 'code' parameter is missing/empty");
 		} else {
 			env.putString("code", code);
 			logSuccess("Found authorization code",
