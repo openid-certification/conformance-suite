@@ -202,42 +202,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		whichClient = 1;
 
 		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		exposeEnvString("client_id");
-
-		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-		// Test won't pass without MATLS, but we'll try anyway (for now)
-		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
-
-		eventLog.startBlock("Verify configuration of second client");
-
-		// extract second client
-		switchToSecondClient();
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
-
-		// get the second client's JWKs
-		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE,"FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-		// validate the secondary MTLS keys
-		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
-
-		unmapClient();
-		eventLog.endBlock();
+		configureClient();
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -263,6 +228,43 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		// No custom configuration
+	}
+
+	protected void configureClient() {
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		exposeEnvString("client_id");
+
+		// Test won't pass without MATLS, but we'll try anyway (for now)
+		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		validateClientConfiguration();
+
+		eventLog.startBlock("Verify configuration of second client");
+
+		// extract second client
+		switchToSecondClient();
+		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		validateClientConfiguration();
+
+		unmapClient();
+
+		eventLog.endBlock();
+	}
+
+	protected void validateClientConfiguration() {
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+
+		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
+		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+
+		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 	}
 
 	/* (non-Javadoc)
