@@ -102,10 +102,6 @@ import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFro
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
-import net.openid.conformance.condition.common.DisallowTLS10;
-import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -413,29 +409,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performPostAuthorizationFlow();
 	}
 
-	protected void checkAccountRequestEndpointTLS() {
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkAccountResourceEndpointTLS() {
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
-	}
-
 	protected void verifyAccessTokenWithResourceEndpoint() {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
@@ -453,10 +426,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			createAuthorizationCodeRequest();
 
 			requestAuthorizationCode();
-
-			checkAccountRequestEndpointTLS();
-
-			checkAccountResourceEndpointTLS();
 
 			requestProtectedResource();
 

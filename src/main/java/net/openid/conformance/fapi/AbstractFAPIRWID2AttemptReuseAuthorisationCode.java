@@ -25,10 +25,6 @@ public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends Abs
 
 		requestAuthorizationCode();
 
-		checkAccountRequestEndpointTLS();
-
-		checkAccountResourceEndpointTLS();
-
 		requestProtectedResource();
 
 		verifyAccessTokenWithResourceEndpoint();

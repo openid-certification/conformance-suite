@@ -1,5 +1,10 @@
 package net.openid.conformance.fapi;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.common.DisallowInsecureCipher;
+import net.openid.conformance.condition.common.DisallowTLS10;
+import net.openid.conformance.condition.common.DisallowTLS11;
+import net.openid.conformance.condition.common.EnsureTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -27,4 +32,35 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	)
 public class FAPIRWID2 extends AbstractFAPIRWID2ServerTestModule {
 
+	protected void checkAccountRequestEndpointTLS() {
+		eventLog.startBlock("Accounts request endpoint TLS test");
+		env.mapKey("tls", "accounts_request_endpoint_tls");
+		checkEndpointTLS();
+		env.unmapKey("tls");
+		eventLog.endBlock();
+	}
+
+	protected void checkAccountResourceEndpointTLS() {
+		eventLog.startBlock("Accounts resource endpoint TLS test");
+		env.mapKey("tls", "accounts_resource_endpoint_tls");
+		checkEndpointTLS();
+		env.unmapKey("tls");
+		eventLog.endBlock();
+	}
+
+	protected void checkEndpointTLS() {
+		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
+	}
+
+	@Override
+	protected void requestProtectedResource() {
+		if (!isSecondClient()) {
+			checkAccountRequestEndpointTLS();
+			checkAccountResourceEndpointTLS();
+		}
+		super.requestProtectedResource();
+	}
 }
