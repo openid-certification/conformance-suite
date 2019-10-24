@@ -1,7 +1,6 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -10,8 +9,14 @@ import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonCon
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantSetup;
 
 public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends AbstractFAPIRWID2ServerTestModule {
+
+	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
 	@Override
 	protected void performPostAuthorizationFlow() {
@@ -30,10 +35,13 @@ public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends Abs
 
 		eventLog.startBlock("Attempting reuse of authorisation code & testing if access token is revoked");
 
-		// Check access_token still works
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
 		waitForAmountOfTime();
+
+		// We're testing that reuse of the _code_ is refused. Reusing the client assertion
+		// (only present for private_key_jwt) is also an error, so generate a new one here.
+		if (generateNewClientAssertionSteps != null) {
+			call(sequence(generateNewClientAssertionSteps));
+		}
 
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-13");
 
@@ -56,5 +64,17 @@ public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends Abs
 		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMTLS() {
+		super.setupMTLS();
+		generateNewClientAssertionSteps = null;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 }

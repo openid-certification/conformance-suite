@@ -148,7 +148,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
-	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -522,13 +521,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		eventLog.endBlock();
 	}
 
-	protected void generateNewClientAssertion() {
-		// Generate a new client_assertion to test client authentication failure (400 invalid_grant) due to re-use of the authorization code
-		// Only use for private_key_jwt
-		if (generateNewClientAssertionSteps != null)
-			call(sequence(generateNewClientAssertionSteps));
-	}
-
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
@@ -706,13 +698,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-		generateNewClientAssertionSteps = null;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
-		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
