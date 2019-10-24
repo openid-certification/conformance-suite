@@ -55,16 +55,12 @@ public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAP
 
 		// Switch to client 2 JWKs
 		eventLog.startBlock("Swapping to Client2, Jwks2, tls2");
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		switchToSecondClient();
 
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
 
-		env.unmapKey("mutual_tls_authentication");
-		env.unmapKey("client_jwks");
-		env.unmapKey("client");
+		unmapClient();
 
 		eventLog.endBlock();
 

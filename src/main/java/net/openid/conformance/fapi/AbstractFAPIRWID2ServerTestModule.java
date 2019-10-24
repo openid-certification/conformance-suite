@@ -221,26 +221,22 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		eventLog.startBlock("Verify configuration of second client");
 
 		// extract second client
+		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		// get the second client's JWKs
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE,"FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
 
 		// validate the secondary MTLS keys
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
-		env.unmapKey("mutual_tls_authentication");
 
+		unmapClient();
 		eventLog.endBlock();
 
 		// Set up the resource endpoint configuration
@@ -487,9 +483,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		eventLog.startBlock(currentClientString() + "Setup");
 
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		switchToSecondClient();
 
 		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
 
@@ -511,9 +505,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void switchToClient1AndTryClient2AccessToken() {
 		// Switch back to client 1
 		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		env.unmapKey("mutual_tls_authentication");
+		unmapClient();
 
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
 
@@ -693,6 +685,18 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			return "Second client: ";
 		}
 		return "";
+	}
+
+	protected void switchToSecondClient() {
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+	}
+
+	protected void unmapClient() {
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+		env.unmapKey("mutual_tls_authentication");
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
