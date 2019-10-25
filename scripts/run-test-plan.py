@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import absolute_import
 from __future__ import division
@@ -52,7 +52,7 @@ def run_test_plan(test_plan, config_file):
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
-    test_ids = {}  # key is module name
+    test_info = {}  # key is module name
     test_time_taken = {}  # key is module_id
     overall_start_time = time.time()
     print('Created test plan, new id: {}'.format(plan_id))
@@ -61,12 +61,14 @@ def run_test_plan(test_plan, config_file):
     for module in plan_modules:
         test_start_time = time.time()
         module_id = ''
+        module_info = {}
 
         try:
             print('Running test module: {}'.format(module))
             test_module_info = conformance.create_test_from_plan(plan_id, module)
             module_id = test_module_info['id']
-            test_ids[module] = module_id
+            module_info['id'] = module_id
+            test_info[module] = module_info
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
@@ -86,6 +88,8 @@ def run_test_plan(test_plan, config_file):
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
+            module_info['info'] = conformance.get_module_info(module_id)
+            module_info['logs'] = conformance.get_test_log(module_id)
     overall_time = time.time() - overall_start_time
     print('\n\n')
     return {
@@ -93,7 +97,7 @@ def run_test_plan(test_plan, config_file):
         'config_file': config_file,
         'plan_id': plan_id,
         'plan_modules': plan_modules,
-        'test_ids': test_ids,
+        'test_info': test_info,
         'test_time_taken': test_time_taken,
         'overall_time': overall_time
     }
@@ -170,65 +174,43 @@ def expected_warning(text):
 def expected_failure(text):
     return color(text, fg_light_cyan=True)
 
-# Returns object contains 'plan_did_not_complete' and 'detail_plan_result', ie.
-# 'plan_did_not_complete' = NOT_COMPLETE
-#     some test modules did not run complete
-# 'plan_did_not_complete' = FAILURE_OR_WARNING
-#     if any test unexpectedly failed to run to completion
-#     if any test was expected to be skipped but wasn't
-#     if condition failure/warning occurs and isn't listed in the config json file
-#     if failure/warning is expected and doesn't occur
-# 'plan_did_not_complete' = COMPLETE
-#     all test modules run complete
-def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
+
+def show_plan_results(plan_result, analyzed_result):
     plan_id = plan_result['plan_id']
     plan_modules = plan_result['plan_modules']
-    test_ids = plan_result['test_ids']
+    test_info = plan_result['test_info']
     test_time_taken = plan_result['test_time_taken']
     overall_time = plan_result['overall_time']
+    detail_plan_result = analyzed_result['detail_plan_result']
 
     incomplete = 0
     successful_conditions = 0
-    overall_test_results = []
+    overall_test_results = list(detail_plan_result['overall_test_results'])
 
     number_of_failures = 0
     number_of_warnings = 0
 
-    counts_unexpected = {
-        'EXPECTED_FAILURES': 0,
-        'UNEXPECTED_FAILURES': 0,
-        'EXPECTED_FAILURES_NOT_HAPPEN': 0,
-        'EXPECTED_WARNINGS': 0,
-        'UNEXPECTED_WARNINGS': 0,
-        'EXPECTED_WARNINGS_NOT_HAPPEN': 0,
-        'EXPECTED_SKIPS': 0,
-        'UNEXPECTED_SKIPS': 0,
-        'EXPECTED_SKIPS_NOT_HAPPEN': 0
-    }
+    counts_unexpected = detail_plan_result['counts_unexpected']
 
     print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
 
     for module in plan_modules:
-        if module not in test_ids:
+        if module not in test_info:
             print(failure('Test {} did not run'.format(module)))
             continue
-        module_id = test_ids[module]
-        info = conformance.get_module_info(module_id)
-        logs = conformance.get_test_log(module_id)
-
-        if module in untested_test_modules:
-            untested_test_modules.remove(module)
+        module_info = test_info[module]
+        module_id = module_info['id']
+        info = module_info['info']
+        logs = module_info['logs']
 
         status_coloured = info['status']
 
         if info['status'] != 'FINISHED':
             status_coloured = redbg(status_coloured)
             incomplete += 1
-        if 'result' not in info:
-            info['result'] = 'UNKNOWN'
 
         test_name = info['testName']
-        result = analyze_result_logs(test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
+        result = overall_test_results.pop(0)['test_result']
 
         if module_id in test_time_taken:
             test_time = test_time_taken[module_id]
@@ -248,9 +230,7 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
               format(module, module_id, status_coloured, result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
-        test_result = summary_unexpected_failures_test_module(result, test_name, module_id)
-        if test_result:
-            overall_test_results.append(test_result)
+        summary_unexpected_failures_test_module(result, test_name, module_id)
 
         successful_conditions += counts['SUCCESS']
         number_of_failures += counts['FAILURE']
@@ -259,42 +239,87 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
     print(
         '\nOverall totals: ran {:d} test modules. '
         'Conditions: {:d} successes, {:d} failures, {:d} warnings. {:.1f} seconds'.
-        format(len(test_ids), successful_conditions, number_of_failures, number_of_warnings, overall_time))
+        format(len(test_info), successful_conditions, number_of_failures, number_of_warnings, overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 
-    if len(test_ids) != len(plan_modules):
+    if len(test_info) != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
-        return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': {}}
+        return
 
     if incomplete != 0:
         print(failure("** {:d} TEST MODULES DID NOT RUN TO COMPLETION **".format(incomplete)))
-        return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': {}}
-
-    has_failure_or_warning = False
+        return
 
     if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
         print(failure("** SOME TEST MODULES HAVE CONDITION UNEXPECTED FAILURES **"))
-        has_failure_or_warning = True
 
     if  counts_unexpected['UNEXPECTED_WARNINGS'] > 0:
         print(failure("** SOME TEST MODULES HAVE CONDITION UNEXPECTED WARNINGS **"))
-        has_failure_or_warning = True
 
     if counts_unexpected['UNEXPECTED_SKIPS'] > 0:
         print(failure("** SOME TEST MODULES WERE UNEXPECTEDLY SKIPPED **"))
-        has_failure_or_warning = True
 
     if counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] > 0:
         print(failure("** SOME TEST MODULES HAVE CONDITION EXPECTED FAILURE DID NOT HAPPEN **"))
-        has_failure_or_warning = True
 
     if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
         print(failure("** SOME TEST MODULES HAVE CONDITION EXPECTED WARNING DID NOT HAPPEN **"))
-        has_failure_or_warning = True
 
     if counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] > 0:
         print(failure("** SOME TEST MODULES WERE EXPECTED TO BE SKIPPED BUT COMPLETED **"))
-        has_failure_or_warning = True
+
+
+# Returns object contains 'plan_did_not_complete' and 'detail_plan_result', ie.
+# 'plan_did_not_complete' = NOT_COMPLETE
+#     some test modules did not run complete
+# 'plan_did_not_complete' = FAILURE_OR_WARNING
+#     if any test unexpectedly failed to run to completion
+#     if any test was expected to be skipped but wasn't
+#     if condition failure/warning occurs and isn't listed in the config json file
+#     if failure/warning is expected and doesn't occur
+# 'plan_did_not_complete' = COMPLETE
+#     all test modules run complete
+def analyze_plan_results(plan_result, expected_failures_list, expected_skips_list):
+    plan_modules = plan_result['plan_modules']
+    test_info = plan_result['test_info']
+
+    incomplete = 0
+    overall_test_results = []
+
+    counts_unexpected = {
+        'EXPECTED_FAILURES': 0,
+        'UNEXPECTED_FAILURES': 0,
+        'EXPECTED_FAILURES_NOT_HAPPEN': 0,
+        'EXPECTED_WARNINGS': 0,
+        'UNEXPECTED_WARNINGS': 0,
+        'EXPECTED_WARNINGS_NOT_HAPPEN': 0,
+        'EXPECTED_SKIPS': 0,
+        'UNEXPECTED_SKIPS': 0,
+        'EXPECTED_SKIPS_NOT_HAPPEN': 0
+    }
+
+    for module in plan_modules:
+        if module not in test_info:
+            continue
+        module_info = test_info[module]
+        module_id = module_info['id']
+        info = module_info['info']
+        logs = module_info['logs']
+
+        if module in untested_test_modules:
+            untested_test_modules.remove(module)
+
+        if info['status'] != 'FINISHED':
+            incomplete += 1
+        if 'result' not in info:
+            info['result'] = 'UNKNOWN'
+
+        test_name = info['testName']
+        result = analyze_result_logs(module_id, test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
+
+        log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
+        test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
+        overall_test_results.append(test_result)
 
     detail_plan_result = {
         'plan_name': plan_result['test_plan'],
@@ -302,10 +327,18 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
         'overall_test_results': overall_test_results,
         'counts_unexpected': counts_unexpected
     }
-    if has_failure_or_warning:
-        return {'plan_did_not_complete': 'FAILURE_OR_WARNING', 'detail_plan_result': detail_plan_result}
 
-    return {'plan_did_not_complete': 'COMPLETE', 'detail_plan_result': {}}
+    if (len(test_info) != len(plan_modules) or incomplete != 0):
+        return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': detail_plan_result}
+    elif (counts_unexpected['UNEXPECTED_FAILURES']
+          or counts_unexpected['UNEXPECTED_WARNINGS']
+          or counts_unexpected['UNEXPECTED_SKIPS']
+          or counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN']
+          or counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN']
+          or counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN']):
+        return {'plan_did_not_complete': 'FAILURE_OR_WARNING', 'detail_plan_result': detail_plan_result}
+    else:
+        return {'plan_did_not_complete': 'COMPLETE', 'detail_plan_result': detail_plan_result}
 
 
 # Analyze all log of a test module and return object contains:
@@ -316,7 +349,7 @@ def show_plan_results(plan_result, expected_failures_list, expected_skips_list):
 #   'unexpected_warnings': list all unexpected warnings condition
 #   'expected_warnings_did_not_happen': list all expected warnings condition did not happen
 #   'counts': contains number of success condition, number of warning condition and number of failure condition
-def analyze_result_logs(test_name, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
+def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
     counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
     expected_failures = []
     unexpected_failures = []
@@ -334,6 +367,14 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
     config_filename = plan_result['config_file']
     (test_plan_name, variant) = split_name_and_variant(test_plan)
 
+    def is_expected_for_this_test(obj):
+        return (obj['test-name'] == test_name
+                and obj['configuration-filename'] == config_filename
+                and obj.get('variant', None) == variant)
+
+    test_expected_failures = list(filter(is_expected_for_this_test, expected_failures_list))
+    test_expected_skips = list(filter(is_expected_for_this_test, expected_skips_list))
+
     block_names = {}
     block_msg = ''
     for log_entry in logs:
@@ -344,53 +385,49 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
             continue
 
         if ('blockId' in log_entry):
-            block_msg = block_names[log_entry['blockId']]
+            blockId = log_entry['blockId']
+            if blockId in block_names:
+                block_msg = block_names[blockId]
+            else:
+                # A new blockId was seen without a block start: this shouldn't happen.
+                # We don't have a sensible value for block_msg at this point, so log the error and stop analyzing this test.
+                print(failure('Unknown block ID in results: {}'.format(blockId)))
+                print('See {}log-detail.html?log={}'.format(api_url_base, module_id))
+                print('Log entry: {}'.format(log_entry))
+                break
         else:
             block_msg = ''
 
         log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
         if log_result in counts:
             counts[log_result] += 1
-            duplicate_index = 0
             log_entry_exist_in_expected_list = False
-            for expected_failure_obj in expected_failures_list:
-                expected_test_name = expected_failure_obj['test-name']
-                expected_config_filename = expected_failure_obj['configuration-filename']
+            for expected_failure_obj in test_expected_failures:
                 expected_condition = expected_failure_obj['condition']
                 expected_block = expected_failure_obj['current-block']
                 expected_result = expected_failure_obj['expected-result']
-                flag = expected_failure_obj['flag']
-                try:
-                    expected_variant = expected_failure_obj['variant']
-                except:
-                    expected_variant = None
 
-                if (flag == 'none'
-                    and expected_test_name == test_name
-                    and expected_variant == variant
-                    and expected_config_filename == config_filename
-                    and expected_block == block_msg
+                if (expected_block == block_msg
                     and expected_condition == log_entry['src']):
-
-                    log_entry_exist_in_expected_list = True
-
-                    # check and list all expected failure duplicate
-                    duplicate_index += 1
-                    if duplicate_index > 1:
-                        expected_failure_obj['flag'] = 'duplicate'
-                        continue
 
                     # check and list all expected failure
                     if (log_result == 'FAILURE' and expected_result == 'failure'):
                         expected_failures.append({'current_block': block_msg, 'src': log_entry['src']})
-                        expected_failure_obj['flag'] = 'checked'
                         counts_unexpected['EXPECTED_FAILURES'] += 1
 
                     # check and list all expected warning
                     elif (log_result == 'WARNING' and expected_result == 'warning'):
                         expected_warnings.append({'current_block': block_msg, 'src': log_entry['src']})
-                        expected_failure_obj['flag'] = 'checked'
                         counts_unexpected['EXPECTED_WARNINGS'] += 1
+
+                    # this wasn't an expected failure after all
+                    else:
+                        continue
+
+                    log_entry_exist_in_expected_list = True
+                    test_expected_failures.remove(expected_failure_obj)
+                    expected_failures_list.remove(expected_failure_obj)
+                    break
 
             # list all the unexpected failures/warnings of a test module
             if log_entry_exist_in_expected_list == False:
@@ -403,45 +440,26 @@ def analyze_result_logs(test_name, test_result, plan_result, logs, expected_fail
                     counts_unexpected['UNEXPECTED_WARNINGS'] += 1
 
     # list all the expected failures/warnings did not happen of a test module
-    for expected_failure_obj in expected_failures_list:
-        expected_test_name = expected_failure_obj['test-name']
-        expected_config_filename = expected_failure_obj['configuration-filename']
-        flag = expected_failure_obj['flag']
-        try:
-            expected_variant = expected_failure_obj['variant']
-        except:
-            expected_variant = None
+    for expected_failure_obj in test_expected_failures:
+        expected_result = expected_failure_obj['expected-result']
+        expected_block = expected_failure_obj['current-block']
+        expected_condition = expected_failure_obj['condition']
 
-        if (flag == 'none' and expected_test_name == test_name and expected_variant == variant and expected_config_filename == config_filename):
-            expected_result = expected_failure_obj['expected-result']
-            expected_block = expected_failure_obj['current-block']
-            expected_condition = expected_failure_obj['condition']
+        if expected_result == 'failure':
+            expected_failures_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
+            counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] += 1
 
-            if expected_result == 'failure':
-                expected_failures_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
-                expected_failure_obj['flag'] = 'checked'
-                counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] += 1
+        elif expected_result == 'warning':
+            expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
+            counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
 
-            elif expected_result == 'warning':
-                expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
-                expected_failure_obj['flag'] = 'checked'
-                counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
-
-    for expected_skip_obj in expected_skips_list:
-        expected_test_name = expected_skip_obj['test-name']
-        expected_config_filename = expected_skip_obj['configuration-filename']
-        flag = expected_skip_obj['flag']
-        try:
-            expected_variant = expected_skip_obj['variant']
-        except:
-            expected_variant = None
-
-        if (flag == 'none' and expected_test_name == test_name and expected_variant == variant and expected_config_filename == config_filename):
-            if test_result == 'SKIPPED':
-                expected_skip = True
-            else:
-                expected_skip_did_not_happen = True
-                counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
+    for expected_skip_obj in test_expected_skips:
+        if test_result == 'SKIPPED':
+            expected_skip = True
+            expected_skips_list.remove(expected_skip_obj)
+        else:
+            expected_skip_did_not_happen = True
+            counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
 
     if (test_result == 'SKIPPED' and not expected_skip):
         unexpected_skip = True
@@ -475,18 +493,15 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
     unexpected_skip = result['unexpected_skip']
     expected_skip_did_not_happen = result['expected_skip_did_not_happen']
 
-    has_unexpected_failures = False
     if len(expected_failures) > 0:
         print(expected_failure("Expected failure: "))
         print_failure_warning(expected_failures, 'failure', '\t', expected=True)
 
     if len(unexpected_failures) > 0:
-        has_unexpected_failures = True
         print(failure("Unexpected failure: "))
         print_failure_warning(unexpected_failures, 'failure', '\t')
 
     if len(expected_failures_did_not_happen) > 0:
-        has_unexpected_failures = True
         print(failure("Expected failure did not happen: "))
         print_failure_warning(expected_failures_did_not_happen, 'failure', '\t')
 
@@ -495,12 +510,10 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
         print_failure_warning(expected_warnings, 'warning', '\t', expected=True)
 
     if len(unexpected_warnings) > 0:
-        has_unexpected_failures = True
         print(warning("Unexpected warning: "))
         print_failure_warning(unexpected_warnings, 'warning', '\t')
 
     if len(expected_warnings_did_not_happen) > 0:
-        has_unexpected_failures = True
         print(warning("Expected warning did not happen: "))
         print_failure_warning(expected_warnings_did_not_happen, 'warning', '\t')
 
@@ -508,30 +521,16 @@ def summary_unexpected_failures_test_module(result, test_name, module_id):
         print(expected_warning("Test was skipped as expected"))
 
     if unexpected_skip:
-        has_unexpected_failures = True
         print(warning("Test was unexpectedly skipped"))
 
     if expected_skip_did_not_happen:
-        has_unexpected_failures = True
         print(warning("Test completed but was expected to be skipped"))
-
-    test_result = {}
-    if has_unexpected_failures:
-        log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
-        test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
-
-    return test_result
 
 
 # Output all unexpected failures for all test plan at the end of run-test-plan.py file
-# return a flag 'has_unexpected_failures', ie.
-#   'has_unexpected_failures' = true: existed unexpected failures/warnings in some test plan
-#   'has_unexpected_failures' = false: not existed unexpected failures/warnings in all test plan
 def summary_unexpected_failures_all_test_plan(detail_plan_results):
-    has_unexpected_failures = False
     for detail_plan_result in detail_plan_results:
         if detail_plan_result:
-            has_unexpected_failures = True
             config_filename = detail_plan_result['plan_config_file']
             test_plan = detail_plan_result['plan_name']
             print(failure('{} - {}: '.format(test_plan, config_filename)))
@@ -554,8 +553,6 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
                 print(warning('\tExpected warning did not happen: '))
                 output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_warnings_did_not_happen', 'warning')
-
-    return has_unexpected_failures
 
 
 def output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, key, unexpected_type):
@@ -607,21 +604,39 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
 
 def load_expected_problems(filespec):
     # read json config file which records a list of expected failures/warnings
-    results = []
-    files = []
-
-    if '|' in filespec:
-        files = filespec.split("|")
-    else:
-        files.append(filespec)
-
-    for fname in files:
+    all_loaded = []
+    for fname in filespec.split("|"):
         with open(fname) as f:
             data = f.read();
             if data:
-                results.extend(json.loads(data))
+                all_loaded.extend(json.loads(data))
 
-    return results
+    # Check for duplicates
+    seen = []
+    duplicates = []
+    filtered = []
+    for item in all_loaded:
+        key = tuple(item.get(field, None) for field in ['test-name', 'variant', 'configuration-filename', 'condition', 'current-block'])
+        if key in seen:
+            duplicates.append(item)
+        else:
+            seen.append(key)
+            filtered.append(item)
+
+    if duplicates:
+        print(warning("** Some entries in the json is duplicated **"))
+        for entry in duplicates:
+            entry_duplicate_json = {
+                'test-name': entry['test-name'],
+                'variant': entry.get('variant', None),
+                'configuration-filename': entry['configuration-filename'],
+                'current-block': entry['current-block'],
+                'condition': entry['condition'],
+                'expected-result': entry['expected-result']
+            }
+            print(json.dumps(entry_duplicate_json, indent=4) + "\n", file=sys.__stdout__)
+
+    return filtered
 
 
 def parser_args_cli():
@@ -691,15 +706,9 @@ if __name__ == '__main__':
     if args.expected_failures_file:
         expected_failures_list = load_expected_problems(args.expected_failures_file)
 
-    for expected_failure_obj in expected_failures_list:
-        expected_failure_obj['flag'] = 'none'
-
     expected_skips_list = []
     if args.expected_skips_file:
         expected_skips_list = load_expected_problems(args.expected_skips_file)
-
-    for expected_skip_obj in expected_skips_list:
-        expected_skip_obj['flag'] = 'none'
 
     results = []
     for (plan_name, config_json) in to_run:
@@ -709,67 +718,47 @@ if __name__ == '__main__':
     print("\n\nScript complete - results:")
 
     did_not_complete = False
-    detail_plan_results = []
+    failed_plan_results = []
     for result in results:
-        plan_result = show_plan_results(result, expected_failures_list, expected_skips_list)
+        plan_result = analyze_plan_results(result, expected_failures_list, expected_skips_list)
+        show_plan_results(result, plan_result)
         plan_did_not_complete = plan_result['plan_did_not_complete']
         if plan_did_not_complete == 'NOT_COMPLETE':
             did_not_complete = True
-
-        detail_plan_results.append(plan_result['detail_plan_result'])
+        elif plan_did_not_complete == 'FAILURE_OR_WARNING':
+            failed_plan_results.append(plan_result['detail_plan_result'])
 
     if did_not_complete:
         print(failure("** Exiting with failure - some tests did not run to completion **"))
         sys.exit(1)
 
-    has_duplicate = False
-    has_invalid = False
-    for expected_failure_obj in expected_failures_list:
-        if expected_failure_obj['flag'] == 'duplicate':
-            has_duplicate = True
-        if expected_failure_obj['flag'] == 'none':
-            has_invalid = True
-
-    if has_duplicate:
-        print(warning("** Some entries in the json is duplicated **"))
+    # analyze_plan_results will remove expected failures and skips from the list, so if
+    # any remain at this point, they are unused and should be warned about.
+    if expected_failures_list:
+        print(warning("** Some expected failures were not found in any test module of the system **"))
         for entry in expected_failures_list:
-            try:
-                variant = entry['variant']
-            except:
-                variant = None
+            entry_invalid_json = {
+                'test-name': entry['test-name'],
+                'variant': entry.get('variant', None),
+                'configuration-filename': entry['configuration-filename'],
+                'current-block': entry['current-block'],
+                'condition': entry['condition'],
+                'expected-result': entry['expected-result']
+            }
+            print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
 
-            if entry['flag'] == 'duplicate':
-                entry_duplicate_json = {
-                    'test-name': entry['test-name'],
-                    'variant': variant,
-                    'configuration-filename': entry['configuration-filename'],
-                    'current-block': entry['current-block'],
-                    'condition': entry['condition'],
-                    'expected-result': entry['expected-result']
-                }
-                print(json.dumps(entry_duplicate_json, indent=4) + "\n", file=sys.__stdout__)
+    if expected_skips_list:
+        print(warning("** Some expected skips were not found in any test module of the system **"))
+        for entry in expected_skips_list:
+            entry_invalid_json = {
+                'test-name': entry['test-name'],
+                'variant': entry.get('variant', None),
+                'configuration-filename': entry['configuration-filename']
+            }
+            print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
 
-    if has_invalid:
-        print(warning("** Some entries in the json not found in any test module of the system **"))
-        for entry in expected_failures_list:
-            if entry['flag'] == 'none':
-                try:
-                    variant = entry['variant']
-                except:
-                    variant = None
-
-                entry_invalid_json = {
-                    'test-name': entry['test-name'],
-                    'variant': variant,
-                    'configuration-filename': entry['configuration-filename'],
-                    'current-block': entry['current-block'],
-                    'condition': entry['condition'],
-                    'expected-result': entry['expected-result']
-                }
-                print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
-
-    has_unexpected_failures = summary_unexpected_failures_all_test_plan(detail_plan_results)
-    if has_unexpected_failures:
+    if failed_plan_results:
+        summary_unexpected_failures_all_test_plan(failed_plan_results)
         print(failure("** Exiting with failure - some test modules have unexpected condition failures/warnings **"))
         sys.exit(1)
 
