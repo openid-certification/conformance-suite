@@ -370,9 +370,9 @@
                             $('#editConfigBtn').click(function(evt) {
                                 evt.preventDefault();
                                 if (data.planId) {
-                                    window.location.assign('/index.html?edit-plan=' + encodeURIComponent(data.planId));
+                                    window.location.assign('/schedule-test.html?edit-plan=' + encodeURIComponent(data.planId));
                                 } else {
-                                    window.location.assign('/index.html?edit-test=' + encodeURIComponent(data.testId));
+                                    window.location.assign('/schedule-test.html?edit-test=' + encodeURIComponent(data.testId));
                                 }
                             });
                             $('#editConfigBtn').show();

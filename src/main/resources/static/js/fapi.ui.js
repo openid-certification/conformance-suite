@@ -4,24 +4,40 @@ var FAPI_UI = {
 
 		loadHomepageTemplates : function() {
 			return $.when(
+				$.get('templates/userinfo.html', function(data) {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				})
+			);
+		},
+
+		loadScheduleTestPageTemplates : function() {
+			return $.when(
 					$.get('templates/testOption.html', function(data) {
 						FAPI_UI.logTemplates.TEST_OPTION = _.template(data);
 					}),
 					$.get('templates/testOptGroup.html', function(data) {
 						FAPI_UI.logTemplates.TEST_OPTGROUP = _.template(data);
 					}),
-					$.get('templates/runningTest.html', function(data) {
-						FAPI_UI.logTemplates.RUNNING_TEST = _.template(data);
-					}),
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
-					}),
-					$.get('templates/statusAndResult.html', function(data) {
-						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-					}),
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					})
+			);
+		},
+
+		loadRunningTestPageTemplates : function() {
+			return $.when(
+				$.get('templates/runningTest.html', function(data) {
+					FAPI_UI.logTemplates.RUNNING_TEST = _.template(data);
+				}),
+				$.get('templates/owner.html', function(data) {
+					FAPI_UI.logTemplates.OWNER = _.template(data);
+				}),
+				$.get('templates/statusAndResult.html', function(data) {
+					FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
+				}),
+				$.get('templates/userinfo.html', function(data) {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				})
 			);
 		},
 
