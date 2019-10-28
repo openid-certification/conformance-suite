@@ -260,17 +260,28 @@ public class VariantService {
 													mapping(v -> v.toString(),
 															toSet()))))));
 
+			Map<ParameterHolder<?>, Map<String, Set<String>>> hideFields = modules.stream()
+					.flatMap(m -> m.parameters.stream())
+					.collect(groupingBy(p -> p.parameter,
+							flatMapping(p -> p.hidesConfigurationFields.entrySet().stream(),
+									groupingBy(e -> e.getKey().toString(),
+											flatMapping(e -> e.getValue().stream(),
+													mapping(v -> v.toString(),
+															toSet()))))));
+
 			return values.entrySet().stream()
 					.collect(toMap(e -> e.getKey().name,
 							e -> {
 								ParameterHolder<?> p = e.getKey();
 								Set<String> allowed = e.getValue();
 								Map<String, Set<String>> pf = fields.getOrDefault(e.getKey(), Map.of());
+								Map<String, Set<String>> phf = hideFields.getOrDefault(e.getKey(), Map.of());
 								return p.values().stream()
 										.map(v -> v.toString())
 										.filter(v -> allowed.contains(v))
 										.collect(toOrderedMap(identity(),
-												v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()))));
+												v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()),
+														"hidesConfigurationFields", phf.getOrDefault(v, Set.of()))));
 							}));
 		}
 
@@ -317,6 +328,13 @@ public class VariantService {
 									flatMapping(a -> Arrays.stream(a.configurationFields()),
 											toList()))));
 
+			Map<ParameterHolder<?>, Map<String, List<String>>> allHidesConfigurationFields =
+					inCombinedAnnotations(moduleClass, VariantHidesConfigurationFields.class)
+					.collect(groupingBy(a -> moduleParameter.apply(a.parameter()),
+							groupingBy(VariantHidesConfigurationFields::value,
+									flatMapping(a -> Arrays.stream(a.configurationFields()),
+											toList()))));
+
 			Map<ParameterHolder<?>, Map<String, List<Method>>> allSetupMethods =
 					Arrays.stream(moduleClass.getMethods())
 					.filter(m -> m.isAnnotationPresent(VariantSetup.class))
@@ -330,6 +348,7 @@ public class VariantService {
 							p,
 							allValuesNotApplicable.getOrDefault(p, Set.of()),
 							allConfigurationFields.getOrDefault(p, Map.of()),
+							allHidesConfigurationFields.getOrDefault(p, Map.of()),
 							allSetupMethods.getOrDefault(p, Map.of())))
 					.collect(toSet());
 		}
@@ -351,7 +370,8 @@ public class VariantService {
 					.collect(toMap(p -> p.parameter.name,
 							p -> p.allowedValues.stream()
 									.collect(toOrderedMap(v -> v.toString(),
-											v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()))))));
+											v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()),
+													"hidesConfigurationFields", p.hidesConfigurationFields.getOrDefault(v, List.of()))))));
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
@@ -411,12 +431,14 @@ public class VariantService {
 		final ParameterHolder<T> parameter;
 		final Set<T> allowedValues;
 		final Map<T, List<String>> configurationFields;
+		final Map<T, List<String>> hidesConfigurationFields;
 		final Map<T, List<Method>> setupMethods;
 
 		TestModuleVariantInfo(
 				ParameterHolder<T> parameter,
 				Set<String> valuesNotApplicable,
 				Map<String, List<String>> configurationFields,
+				Map<String, List<String>> hidesConfigurationFields,
 				Map<String, List<Method>> setupMethods) {
 
 			this.parameter = parameter;
@@ -425,6 +447,9 @@ public class VariantService {
 			valuesNotApplicable.forEach(s -> this.allowedValues.remove(parameter.valueOf(s)));
 
 			this.configurationFields = configurationFields.entrySet().stream()
+					.collect(toMap(e -> parameter.valueOf(e.getKey()), e -> e.getValue()));
+
+			this.hidesConfigurationFields = hidesConfigurationFields.entrySet().stream()
 					.collect(toMap(e -> parameter.valueOf(e.getKey()), e -> e.getValue()));
 
 			this.setupMethods = setupMethods.entrySet().stream()

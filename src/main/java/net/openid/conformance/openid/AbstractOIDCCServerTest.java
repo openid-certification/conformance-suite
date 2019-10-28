@@ -84,6 +84,7 @@ import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -113,6 +114,10 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name"
+})
+@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client.client_secret",
+	"client2.client_secret"
 })
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
