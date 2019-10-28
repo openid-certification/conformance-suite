@@ -1,14 +1,23 @@
 package net.openid.conformance.openid;
 
+import java.util.function.Supplier;
+
 import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
+import net.openid.conformance.condition.client.AddImplicitGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -19,7 +28,9 @@ import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
+import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
@@ -31,12 +42,15 @@ import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractJWKsFromDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
+import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -44,6 +58,7 @@ import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
@@ -52,6 +67,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstReq
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
@@ -63,6 +79,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -70,7 +87,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 
 @VariantParameters({
 	ClientAuthType.class,
-	ResponseType.class
+	ResponseType.class,
+	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_secret"
@@ -90,35 +108,62 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	"mtls.cert",
 	"mtls.ca"
 })
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"client.client_id"
+})
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client.client_name"
+})
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
 
-	protected Class<? extends ConditionSequence> profileClientValidation;
+	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
+	protected Class<? extends ConditionSequence> profileDynamicClientConfiguration;
+	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 
-	public static class ValidateClientForClientSecretJwt extends AbstractConditionSequence {
+	public static class ConfigureClientForClientSecretJwt extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
 		}
 	}
 
-	public static class ValidateClientForMtls extends AbstractConditionSequence {
+	public static class ConfigureClientForMtls extends AbstractConditionSequence {
+		private boolean secondClient;
+
+		public ConfigureClientForMtls(boolean secondClient) {
+			this.secondClient = secondClient;
+		}
+
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+			if (!secondClient) {
+				callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+				callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+			} else {
+				// TODO: use environment mapping so we don't need two versions of these conditions
+				callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+				callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
+			}
 			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
-			// FIXME: do we need to do second client mtls too?
 		}
 	}
 
-	public static class ValidateClientForPrivateKeyJwt extends AbstractConditionSequence {
+	public static class ConfigureStaticClientForPrivateKeyJwt extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart .class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration .class);
+		}
+	}
+
+	public static class ConfigureDynamicClientForPrivateKeyJwt extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
+			callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		}
 	}
 
@@ -138,37 +183,49 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "none")
 	public void setupNone() {
-		profileClientValidation = null;
+		profileStaticClientConfiguration = null;
+		profileDynamicClientConfiguration = null;
+		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = null;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
-		profileClientValidation = null;
+		profileStaticClientConfiguration = null;
+		profileDynamicClientConfiguration = null;
+		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
-		profileClientValidation = null;
+		profileStaticClientConfiguration = null;
+		profileDynamicClientConfiguration = null;
+		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJwt() {
-		profileClientValidation = ValidateClientForClientSecretJwt.class;
+		profileStaticClientConfiguration = null;
+		profileDynamicClientConfiguration = null;
+		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretJwt();
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
-		profileClientValidation = ValidateClientForPrivateKeyJwt.class;
+		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
+		profileDynamicClientConfiguration = ConfigureDynamicClientForPrivateKeyJwt.class;
+		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
-		profileClientValidation = ValidateClientForMtls.class;
+		profileStaticClientConfiguration = null;
+		profileDynamicClientConfiguration = null;
+		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(isSecondClient());
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 	}
 
@@ -186,6 +243,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			fireTestFinished();
 			return;
 		}
+
+		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
+		env.putString("client_auth_type", clientAuthType.toString());
 
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
@@ -223,16 +283,67 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void configureClient() {
 		// Set up the client configuration
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		switch (getVariant(ClientRegistration.class)) {
+		case STATIC_CLIENT:
+			callAndStopOnFailure(GetStaticClientConfiguration.class);
+			configureStaticClient();
+			break;
+		case DYNAMIC_CLIENT:
+			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			configureDynamicClient();
+			break;
+		}
 
 		exposeEnvString("client_id");
 
-		validateClientConfiguration();
+		completeClientConfiguration();
 	}
 
-	protected void validateClientConfiguration() {
-		if (profileClientValidation != null) {
-			call(sequence(profileClientValidation));
+	protected void configureStaticClient() {
+		if (profileStaticClientConfiguration != null) {
+			call(sequence(profileStaticClientConfiguration));
+		}
+	}
+
+	protected void createDynamicClientRegistrationRequest() {
+
+		callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
+
+		// create basic dynamic registration request
+		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
+		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
+
+		if (profileDynamicClientConfiguration != null) {
+			call(sequence(profileDynamicClientConfiguration));
+		}
+
+		if (responseType.includesCode()) {
+			callAndStopOnFailure(AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest.class);
+		}
+
+		if (responseType.includesIdToken() || responseType.includesToken()) {
+			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
+		}
+
+		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
+		callAndStopOnFailure(AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment.class);
+		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
+	}
+
+	protected void configureDynamicClient() {
+
+		createDynamicClientRegistrationRequest();
+
+		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+
+		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
+		// copy it across.
+		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
+	}
+
+	protected void completeClientConfiguration() {
+		if (profileCompleteClientConfiguration != null) {
+			call(sequence(profileCompleteClientConfiguration));
 		}
 	}
 
@@ -380,8 +491,28 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		fireTestFinished();
 	}
 
+	@Override
+	public void cleanup() {
+		unregisterClient();
+	}
+
+	public void unregisterClient() {
+		eventLog.startBlock("Unregister dynamically registered client");
+
+		skipIfMissing(new String[] {"client"},
+			new String[] {"registration_client_uri", "registration_access_token"},
+			ConditionResult.INFO,
+			UnregisterDynamicallyRegisteredClient.class);
+
+		eventLog.endBlock();
+	}
+
 	protected String currentClientString() {
 		return "";
+	}
+
+	protected boolean isSecondClient() {
+		return false;
 	}
 
 	protected boolean isCodeFlow() {

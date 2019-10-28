@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import com.google.common.base.Strings;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
@@ -18,14 +19,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OIDCC",
 	configurationFields = {
 		"server.discoveryUrl",
-		"client.client_id",
 		"client.scope",
-		"client2.client_id",
 		"client2.scope",
 		"resource.resourceUrl"
 	}
 )
 public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
+
+	@Override
+	protected void createDynamicClientRegistrationRequest() {
+		super.createDynamicClientRegistrationRequest();
+		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
+	}
 
 	@Override
 	protected void performPostAuthorizationFlow() {
