@@ -20,7 +20,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
-		"client.client_id",
 		"client.scope",
 		"client.jwks",
 		"client.hint_type",
@@ -28,7 +27,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"client2.client_id",
 		"client2.scope",
 		"client2.jwks",
 		"mtls2.key",
