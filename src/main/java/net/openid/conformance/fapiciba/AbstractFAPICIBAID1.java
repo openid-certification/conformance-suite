@@ -146,7 +146,9 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -163,12 +165,21 @@ import javax.servlet.http.HttpSession;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPIProfile.class,
-	CIBAMode.class
+	CIBAMode.class,
+	ClientRegistration.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"client.client_id",
+	"client2.client_id"
+})
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client.client_name",
+	"client2.client_name"
+})
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	// for variants to fill in by calling the setup... family of methods
@@ -308,15 +319,18 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void setupClient1() {
-		if (env.getElementFromObject("config", "client.client_id") != null) {
-			eventLog.startBlock("Verify First client: client_id supplied, assume static client configuration");
+		switch (getVariant(ClientRegistration.class)) {
+		case STATIC_CLIENT:
+			eventLog.startBlock("Verify First client: static client configuration");
 			callAndStopOnFailure(GetStaticClientConfiguration.class);
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		} else {
-			eventLog.startBlock("First client: No client_id in configuration, registering client using dynamic client registration");
+			break;
+		case DYNAMIC_CLIENT:
+			eventLog.startBlock("First client: registering client using dynamic client registration");
 			callAndStopOnFailure(GetDynamicClientConfiguration.class);
 			registerClient();
+			break;
 		}
 
 		exposeEnvString("client_id");
@@ -337,15 +351,18 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		env.mapKey("client_public_jwks", "client_public_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
-		if (env.getElementFromObject("config", "client2.client_id") != null) {
-			eventLog.startBlock("Verify Second client: client_id supplied, assume static client configuration");
+		switch (getVariant(ClientRegistration.class)) {
+		case STATIC_CLIENT:
+			eventLog.startBlock("Verify Second client: static client configuration");
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		} else {
-			eventLog.startBlock("Second client: No client_id in configuration, registering client using dynamic client registration");
+			break;
+		case DYNAMIC_CLIENT:
+			eventLog.startBlock("Second client: registering client using dynamic client registration");
 			callAndStopOnFailure(GetDynamicClient2Configuration.class);
 			registerClient();
+			break;
 		}
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");

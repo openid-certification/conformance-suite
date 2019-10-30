@@ -401,6 +401,17 @@
 									</div>
 								</div>
 								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_name</div>
+									<div class="col-md-10">
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client name"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client2.client_name"></input>
+										</div>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
 									<div class="col-md-2 key">scope</div>
 									<div class="col-md-10">
 										<div class="input-group">
@@ -1023,6 +1034,8 @@
 
 		function updateConfigFieldVisibility() {
 
+            var fieldsNotToShow = [];
+
             if ($('#singleTestSelector').is(':checked')) {
             	   // single test selected
 				var testName = $('#testSelect').val();
@@ -1033,11 +1046,17 @@
 					var fieldsToShow = [];
 					$('#createTestBtn').prop('disabled', true);
 				} else {
-					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
+					var selectedTest = FAPI_UI.availableTests[testName];
+					var fieldsToShow = selectedTest.configurationFields;
+					var testVariants = selectedTest.variants;
 					var allVariantsSelected = true;
-					_.each(getSelectedVariant(), function(v) {
+					_.each(getSelectedVariant(), function(v, p) {
 						if (!v || v == 'select') {
 							allVariantsSelected = false;
+						} else {
+							// add in any fields from the selected variant
+							fieldsToShow = _.uniqBy(fieldsToShow.concat(testVariants[p][v].configurationFields));
+							fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(testVariants[p][v].hidesConfigurationFields));
 						}
 					});
 					$('#createTestBtn').prop('disabled', !allVariantsSelected);
@@ -1057,28 +1076,32 @@
             		   var fieldsToShow = [];
             		   $('#createPlanBtn').prop('disabled', true);
             	   } else {
-            		   var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
+            		   var selectedPlan = FAPI_UI.availablePlans[planName];
+            		   var fieldsToShow = selectedPlan.configurationFields;
 
             		   // add in any fields from the associated modules
-        			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
+        			   _.each(selectedPlan.moduleNames, function(module) {
                            if (FAPI_UI.availableTests[module]) {
                                fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
                            }
         			   });
 
+						var planVariants = selectedPlan.variants;
 						var allVariantsSelected = true;
 						_.each(getSelectedVariant(), function(v, p) {
 							if (!v || v == 'select') {
 								allVariantsSelected = false;
 							} else {
 								// add in any fields from the selected variant
-								fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[p][v].configurationFields));
+								fieldsToShow = _.uniqBy(fieldsToShow.concat(planVariants[p][v].configurationFields));
+								fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p][v].hidesConfigurationFields));
 							}
 						});
 						$('#createPlanBtn').prop('disabled', !allVariantsSelected);
             	   }
             }
 
+			fieldsToShow = _.difference(fieldsToShow, fieldsNotToShow);
 			fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
 
 			// show/hide all the appropriate fields on the page

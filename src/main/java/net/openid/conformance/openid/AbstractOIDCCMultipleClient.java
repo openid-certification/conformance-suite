@@ -1,7 +1,9 @@
 package net.openid.conformance.openid;
 
+import net.openid.conformance.condition.client.GetDynamicClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
@@ -22,6 +24,12 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	"mtls2.cert",
 	"mtls2.ca"
 })
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"client2.client_id"
+})
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client2.client_name"
+})
 public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTest {
 
 	@Override
@@ -29,8 +37,18 @@ public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTes
 		super.configureClient();
 
 		switchToSecondClient();
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
-		validateClientConfiguration();
+		switch (getVariant(ClientRegistration.class)) {
+		case STATIC_CLIENT:
+			callAndStopOnFailure(GetStaticClient2Configuration.class);
+			configureStaticClient();
+			break;
+		case DYNAMIC_CLIENT:
+			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			configureDynamicClient();
+			break;
+		}
+
+		completeClientConfiguration();
 		unmapClient();
 	}
 
@@ -52,6 +70,14 @@ public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTes
 	protected abstract void performSecondClientTests();
 
 	@Override
+	public void cleanup() {
+		unmapClient();
+		super.cleanup();
+		switchToSecondClient();
+		unregisterClient();
+	}
+
+	@Override
 	protected String currentClientString() {
 		if (isSecondClient()) {
 			return "Second client: ";
@@ -60,6 +86,7 @@ public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTes
 		}
 	}
 
+	@Override
 	protected boolean isSecondClient() {
 		return env.isKeyMapped("client");
 	}

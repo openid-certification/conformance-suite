@@ -35,9 +35,12 @@ function makeClientTest {
 
 function makeServerTest {
     # OIDCC
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token] authlete-oidcc-secret-post.json"
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code] authlete-oidcc-secret-jwt.json"
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code] authlete-oidcc-privatekey.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=static_client] authlete-oidcc-secret-post.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code][client_registration=static_client] authlete-oidcc-secret-jwt.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code][client_registration=static_client] authlete-oidcc-privatekey.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
 
     # authlete openbanking
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][fapi_response_mode=plain_response] authlete-fapi-rw-id2-ob-mtls.json"
@@ -61,18 +64,17 @@ function makeServerTest {
 
 function makeCIBATest {
     # ciba
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll] authlete-fapi-ciba-id1-mtls-poll.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll]
- authlete-fapi-ciba-id1-privatekey-poll.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll] authlete-fapi-ciba-id1-mtls-poll.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=poll] authlete-fapi-ciba-id1-privatekey-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
 
     # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
     # see https://gitlab.com/openid/conformance-suite/issues/389
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=ping] authlete-fapi-ciba-id1-mtls-ping-dcr.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=ping] authlete-fapi-ciba-id1-privatekey-ping-dcr.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=ping] authlete-fapi-ciba-id1-mtls-ping-dcr.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=ping] authlete-fapi-ciba-id1-privatekey-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-mtls-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-privatekey-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-mtls-ping-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-privatekey-ping-dcr.json"
     # push isn't allowed in FAPI-CIBA profile
     #TESTS="${TESTS} fapi-ciba-id1-push-with-mtls-test-plan authlete-fapi-ciba-id1-mtls-push.json"
 }
