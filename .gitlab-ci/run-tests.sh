@@ -38,6 +38,9 @@ function makeServerTest {
     TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=static_client] authlete-oidcc-secret-post.json"
     TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code][client_registration=static_client] authlete-oidcc-secret-jwt.json"
     TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code][client_registration=static_client] authlete-oidcc-privatekey.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
 
     # authlete openbanking
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][fapi_response_mode=plain_response] authlete-fapi-rw-id2-ob-mtls.json"
