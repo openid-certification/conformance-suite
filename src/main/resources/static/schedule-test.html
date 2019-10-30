@@ -92,24 +92,15 @@
 
 			<!-- render available test launch options here -->
             <div class="row">
-                <div class="col-md-1">
-                    <!-- toggle selector for launch type, multi test by default -->
-                    <input data-toggle="toggle"
-                        data-on="Single Test" data-off="Multi Test Plan"
-                        data-onstyle="info" data-offstyle="primary"
-                        data-style="btn-block"
-                        data-width="auto" data-height="auto"
-                        type="checkbox" id="singleTestSelector">
-                </div>
-                <div class="col-md-8" id="testSelector">
-                    <select id="testSelect" class="form-control">
-                        <option value="select">--- Select A Test ----</option>
-                    </select>
-                </div>
-                <div class="col-md-8 collapse" id="planSelector">
-                    <select id="planSelect" class="form-control">
-                        <option value="select">--- Select A Test Plan ----</option>
-                    </select>
+                <div class="col-md-9" id="planSelector">
+                    <div class="form-group row">
+                        <label for="planSelect" class="col-sm-1 col-form-label">Test Plan</label>
+                        <div class="col-sm-11">
+                            <select id="planSelect" class="form-control">
+                                <option value="select">--- Select A Test Plan ----</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <form id="variantSelectors">
@@ -578,10 +569,7 @@
 			<div class="row top10" id="launchButtons">
 				<div class="well col-md-6 col-md-offset-3">
 				    <button class="btn btn-block collapse">Fake Button for spacing, ignore</button>
-					<button class="btn btn-primary btn-block btn-lg" id="createTestBtn" disabled="">
-						<span class="glyphicon glyphicon-flag"></span> Launch Test
-					</button>
-                    <button class="btn btn-primary btn-block btn-lg collapse" id="createPlanBtn" disabled="">
+					<button class="btn btn-primary btn-block btn-lg" id="createPlanBtn" disabled="">
                         <span class="glyphicon glyphicon-flag"></span> Start Test Plan
                     </button>
 				</div>
@@ -617,30 +605,6 @@
 			return $.getJSON('/api/runner/available', function(data) {
                 // save the list of available tests and associated info for later
                 FAPI_UI.availableTests = _.keyBy(data, 'testName');
-                //console.log('available: ', JSON.stringify(FAPI_UI.availableTests));
-
-                // sort the tests into groups by profile
-                var groupedTests = _.groupBy(data, 'profile');
-                // consistent ordering for groups
-                var profiles = _.keys(groupedTests).sort();
-
-                // render all of the tests into the dropdown
-                _.each(profiles, function(profile) {
-
-                    var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
-                        label: profile
-                    }));
-                    $('#testSelect').append(optGroup);
-
-                    // note that we're sorting the tests within each group as well
-                    _.each(_.sortBy(groupedTests[profile], 'displayName'), function(item) {
-                        optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
-                        	   val: item.testName,
-                        	   display: item.displayName
-                        }));
-                    });
-
-                });
             });
 		}
 
@@ -707,7 +671,7 @@
 				if (data.config) {
 					// we found a configuration file, load it up
 					$("#config").val(JSON.stringify(data.config, null, 4));
-					updateSelectedTestSelector(data.planName, data.testName);
+					updateSelectedTestSelector(data.planName);
 					if (data.variant) {
 						FAPI_UI.selectedVariant = data.variant;
 					}
@@ -726,7 +690,7 @@
 				if (data.config) {
 					// we found a configuration file, load it up
 					$("#config").val(JSON.stringify(data.config, null, 4));
-					updateSelectedTestSelector(data.planName, data.testName);
+					updateSelectedTestSelector(data.planName);
 					if (data.variant) {
 						FAPI_UI.selectedVariant = data.variant;
 					}
@@ -753,7 +717,7 @@
 
 			if (localSavedConfig) {
 				$('#config').val(localSavedConfig.config);
-				updateSelectedTestSelector(localSavedConfig.planName, localSavedConfig.testName);
+				updateSelectedTestSelector(localSavedConfig.planName);
 				if (localSavedConfig.variant) {
 					FAPI_UI.selectedVariant = localSavedConfig.variant;
 				}
@@ -768,7 +732,7 @@
 					// we found a configuration file, load it up
 
 					$("#config").val(JSON.stringify(data.config, null, 4));
-					updateSelectedTestSelector(data.planName, data.testName);
+					updateSelectedTestSelector(data.planName);
 					if (data.variant) {
 						FAPI_UI.selectedVariant = data.variant;
 					}
@@ -782,76 +746,11 @@
 			});
 		}
 
-		function updateSelectedTestSelector(planName, testName) {
-			if (testName) {
-				$('#singleTestSelector').prop('checked', true).change();
-				$('#testSelect option[value="' + testName + '"]').prop('selected', true).change();
-			} else if (planName) {
-				$('#singleTestSelector').prop('checked', false).change();
-				$('#planSelect option[value="' + planName + '"]').prop('selected', true).change();
-			}
+		function updateSelectedTestSelector(planName) {
+			$('#planSelect option[value="' + planName + '"]').prop('selected', true).change();
 		}
 
 		function loadScheduleTestPage() {
-			$('#createTestBtn').click(function(evt) {
-				var testName = $('#testSelect').val();
-
-				// if the user hasn't picked anything, just bail here
-				if (!testName || testName == 'select') {
-					//console.log("No test selected");
-					FAPI_UI.showError({
-						error: "Please select a test from the dropdown list"
-					});
-					return;
-				}
-
-				//console.log('Button clicked: ' + testName);
-
-				/* Figures out which tab is visible then populates the form appropriately
-				this is to ensure that the $('#config') value has properly updated in the event of a
-				quick paste into a form field  with no tab switch and then a button press */
-				if ($("#formInput").hasClass("active")) {
-					updateJSONFromFormElements();
-				}
-
-				FAPI_UI.showBusy('Creating test...');
-
-				var selectedVariant = getSelectedVariant();
-
-				// Stash the config in case we are unable to create the test
-				saveConfig({ config: $('#config').val(), testName: testName, variant: selectedVariant });
-
-				var createUrl = '/api/runner/?test=' + encodeURIComponent(testName);
-				for (var [key, value] of Object.entries(selectedVariant)) {
-					// if the user hasn't picked a value for some variant
-					if (value == 'select') {
-						FAPI_UI.showError({
-							error: "Please select a value for " + key + " from the dropdown list"
-						});
-						return;
-					}
-					createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
-				}
-
-				$.ajax({
-					url: createUrl,
-					type: 'POST',
-					contentType: 'application/json',
-					data: $('#config').val(),
-					success: function(data, status) {
-						clearSavedConfig();
-						// forward to the test info page
-						window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
-					},
-					error: function(jqxhr, status, error) {
-						FAPI_UI.hideBusy();
-						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-							code: jqxhr.status,
-							error: error
-						});
-					}
-				});
-			});
 
 			$('#createPlanBtn').click(function(evt) {
 				var planName = $('#planSelect').val();
@@ -911,10 +810,6 @@
 			});
 
 			// update field visibility when the selectors change
-			$('#testSelect').on('change', function(_) {
-				updateVariants();
-				updateConfigFieldVisibility();
-			});
 			$('#planSelect').on('change', function(_) {
 				updateVariants();
 				updateConfigFieldVisibility();
@@ -951,33 +846,8 @@
 			// sync the JSON at least once
 			updateFormElementsFromJSON();
 
-			// update the test/plan components on the toggle switch
-			$('#singleTestSelector').on('change', function (_) {
-				updateVariants();
-				updateSingleTestSelector();
-			});
-			// refresh right now
-			updateSingleTestSelector();
-
             FAPI_UI.hideBusy();
 
-		}
-
-		function updateSingleTestSelector() {
-            if ($('#singleTestSelector').is(':checked')) {
-                // single test selected
-                $('#testSelector').show();
-                $('#planSelector').hide();
-                $('#createTestBtn').show();
-                $('#createPlanBtn').hide();
-            } else {
-                // multi test plan selected
-                $('#testSelector').hide();
-                $('#planSelector').show();
-                $('#createTestBtn').hide();
-                $('#createPlanBtn').show();
-            }
-            updateConfigFieldVisibility();
 		}
 
 		function updateConfigFieldVisibility() {
@@ -985,68 +855,37 @@
             $('#configForm').hide();
             $('#launchButtons').hide();
 
-            if ($('#singleTestSelector').is(':checked')) {
-            	   // single test selected
-				var testName = $('#testSelect').val();
+			// multi test plan selected
+			var planName = $('#planSelect').val();
 
-				// if the user hasn't picked anything, disable the create button
-				if (!testName || testName == 'select' || !FAPI_UI.availableTests[testName]) {
-					//console.log("No test selected");
-					var fieldsToShow = [];
-					$('#createTestBtn').prop('disabled', true);
-				} else {
-					var fieldsToShow = FAPI_UI.availableTests[testName].configurationFields;
-					var allVariantsSelected = true;
-					_.each(getSelectedVariant(), function(v) {
-						if (!v || v == 'select') {
-							allVariantsSelected = false;
-						}
-					});
-					$('#createTestBtn').prop('disabled', !allVariantsSelected);
-					if (allVariantsSelected) {
-					    $('#configForm').show();
-                        $('#launchButtons').show();
-                    }
+			// if the user hasn't picked anything, disable the create button
+			if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
+				var fieldsToShow = [];
+				$('#createPlanBtn').prop('disabled', true);
+			} else {
+				var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
+
+				// add in any fields from the associated modules
+				_.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
+					if (FAPI_UI.availableTests[module]) {
+						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+					}
+				});
+
+				var allVariantsSelected = true;
+				_.each(getSelectedVariant(), function(v, p) {
+					if (!v || v == 'select') {
+						allVariantsSelected = false;
+					} else {
+						// add in any fields from the selected variant
+						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[p][v].configurationFields));
+					}
+				});
+				$('#createPlanBtn').prop('disabled', !allVariantsSelected);
+				if (allVariantsSelected) {
+					$('#configForm').show();
+					$('#launchButtons').show();
 				}
-
-				if (!fieldsToShow) {
-					// the test hasn't defined anything, set a default
-					fieldsToShow = [];
-				}
-
-            } else {
-            	   // multi test plan selected
-            	   var planName = $('#planSelect').val();
-
-            	   // if the user hasn't picked anything, disable the create button
-            	   if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
-            		   var fieldsToShow = [];
-            		   $('#createPlanBtn').prop('disabled', true);
-            	   } else {
-            		   var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
-
-            		   // add in any fields from the associated modules
-        			   _.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
-                           if (FAPI_UI.availableTests[module]) {
-                               fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
-                           }
-        			   });
-
-						var allVariantsSelected = true;
-						_.each(getSelectedVariant(), function(v, p) {
-							if (!v || v == 'select') {
-								allVariantsSelected = false;
-							} else {
-								// add in any fields from the selected variant
-								fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[p][v].configurationFields));
-							}
-						});
-						$('#createPlanBtn').prop('disabled', !allVariantsSelected);
-                       if (allVariantsSelected) {
-                           $('#configForm').show();
-                           $('#launchButtons').show();
-                       }
-            	   }
             }
 
 			fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
@@ -1084,16 +923,8 @@
 		}
 
 		function updateVariants() {
-			if ($('#singleTestSelector').is(':checked')) {
-				// single test selected
-				var map = FAPI_UI.availableTests;
-				var itemSelected = $('#testSelect').val();
-
-			} else {
-				// multi test selected
-				var map = FAPI_UI.availablePlans;
-				var itemSelected = $('#planSelect').val();
-			}
+			var map = FAPI_UI.availablePlans;
+			var itemSelected = $('#planSelect').val();
 
 			$('#variantSelectors').empty();
 			if (map[itemSelected] && map[itemSelected].variants && Object.keys(map[itemSelected].variants).length > 0) {
