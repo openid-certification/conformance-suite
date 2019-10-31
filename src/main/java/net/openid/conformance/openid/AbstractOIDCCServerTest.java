@@ -42,13 +42,13 @@ import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractJWKsFromDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.condition.client.GenerateClientJWKs;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -117,7 +117,9 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_secret",
-	"client2.client_secret"
+	"client.jwks",
+	"client2.client_secret",
+	"client2.jwks"
 })
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
@@ -161,14 +163,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		public void evaluate() {
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart .class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration .class);
-		}
-	}
-
-	public static class ConfigureDynamicClientForPrivateKeyJwt extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
-			callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		}
 	}
 
@@ -221,7 +215,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
-		profileDynamicClientConfiguration = ConfigureDynamicClientForPrivateKeyJwt.class;
+		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
@@ -312,7 +306,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void createDynamicClientRegistrationRequest() {
 
-		callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
+		callAndStopOnFailure(GenerateClientJWKs.class);
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
@@ -330,6 +324,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
 		}
 
+		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
 		callAndStopOnFailure(AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment.class);
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
