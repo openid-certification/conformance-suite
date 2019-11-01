@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-
 @Controller
 @RequestMapping(value = "/api")
 public class TestPlanApi implements DataUtils {
@@ -85,8 +83,7 @@ public class TestPlanApi implements DataUtils {
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName, variant);
 
-		List<Plan.Module> testModuleNames;
-
+		List<String> testModuleNames;
 		if (variant != null) {
 			testModuleNames = holder.getTestModulesForVariant(variant);
 		} else {
@@ -97,12 +94,12 @@ public class TestPlanApi implements DataUtils {
 			throw new RuntimeException("No test modules in plan '" + planName + "' are applicable for specified variant");
 		}
 
-		planService.createTestPlan(id, planName, variant, config, description, testModuleNames, holder.info.summary(), publish);
+		planService.createTestPlan(id, planName, variant, config, description, testModuleNames.toArray(new String[testModuleNames.size()]), holder.info.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
 		map.put("id", id);
-		map.put("modules", testModuleNames.stream().map(p -> p.getTestModule()).collect(toList()));
+		map.put("modules", testModuleNames);
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
 	}

@@ -91,19 +91,18 @@
 		<div id="scheduleTestPage">
 
 			<!-- render available test launch options here -->
-            <div class="row">
-                <div class="col-md-9" id="planSelector">
-                    <div class="form-group row">
-                        <label for="planSelect" class="col-sm-1 col-form-label">Test Plan</label>
-                        <div class="col-sm-11">
-                            <select id="planSelect" class="form-control">
-                                <option value="select">--- Select A Test Plan ----</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
+			<div class="form-group row">
+				<label for="planSelect" class="col-md-1 col-form-label">Test Plan</label>
+				<div class="col-md-11">
+					<select id="planSelect" class="form-control">
+						<option value="select">--- Select A Test Plan ----</option>
+					</select>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
                     <form id="variantSelectors">
+						<!-- render variant selectors here -->
                     </form>
                 </div>
             </div>
@@ -392,6 +391,17 @@
 									</div>
 								</div>
 								<div class="row config-form-element-container">
+									<div class="col-md-2 key">client_name</div>
+									<div class="col-md-10">
+										<div class="input-group">
+											<div class="input-group-addon">
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client name"></span>
+											</div>
+											<input type="text" class="form-control config-form-element" data-json-target="client2.client_name"></input>
+										</div>
+									</div>
+								</div>
+								<div class="row config-form-element-container">
 									<div class="col-md-2 key">scope</div>
 									<div class="col-md-10">
 										<div class="input-group">
@@ -598,6 +608,8 @@
 				return loadScheduleTestPage();
 			}).then(function() {
 				return loadServerInfo();
+			}).always(function() {
+				FAPI_UI.activeTooltip();
 			});
 		});
 
@@ -855,6 +867,8 @@
             $('#configForm').hide();
             $('#launchButtons').hide();
 
+			var fieldsNotToShow = [];
+
 			// multi test plan selected
 			var planName = $('#planSelect').val();
 
@@ -863,22 +877,25 @@
 				var fieldsToShow = [];
 				$('#createPlanBtn').prop('disabled', true);
 			} else {
-				var fieldsToShow = FAPI_UI.availablePlans[planName].configurationFields;
+				var selectedPlan = FAPI_UI.availablePlans[planName];
+				var fieldsToShow = selectedPlan.configurationFields;
 
 				// add in any fields from the associated modules
-				_.each(FAPI_UI.availablePlans[planName].moduleNames, function(module) {
+				_.each(selectedPlan.moduleNames, function(module) {
 					if (FAPI_UI.availableTests[module]) {
 						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
 					}
 				});
 
+				var planVariants = selectedPlan.variants;
 				var allVariantsSelected = true;
 				_.each(getSelectedVariant(), function(v, p) {
 					if (!v || v == 'select') {
 						allVariantsSelected = false;
 					} else {
 						// add in any fields from the selected variant
-						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availablePlans[planName].variants[p][v].configurationFields));
+						fieldsToShow = _.uniqBy(fieldsToShow.concat(planVariants[p][v].configurationFields));
+						fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p][v].hidesConfigurationFields));
 					}
 				});
 				$('#createPlanBtn').prop('disabled', !allVariantsSelected);
@@ -888,6 +905,7 @@
 				}
             }
 
+			fieldsToShow = _.difference(fieldsToShow, fieldsNotToShow);
 			fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
 
             if ($('#configForm').css('display') !== 'none') {
@@ -934,8 +952,8 @@
 
 					var id = 'vp_' + parameter;
 					var selector = $('<div class="form-group row">' +
-							'<label for="' + id + '" class="col-sm-6 col-form-label">' + parameter + '</label>' +
-							'<div class="col-sm-6">' +
+							'<label for="' + id + '" class="col-md-1 col-form-label">' + parameter + '</label>' +
+							'<div class="col-md-11">' +
 							'<select class="form-control variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
 							'<option value="select">--- Select A Variant ----</option>' +
 							'</select></div></div>');

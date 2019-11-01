@@ -41,25 +41,19 @@ public class Plan {
 	public static class Module {
 
 		private String testModule;
-		private String testSummary;
 		private List<String> instances;
 
 		Module() {
 			// Load constructor
 		}
 
-		public Module(String module, String testSummary) {
+		public Module(String module) {
 			this.testModule = module;
-			this.testSummary = testSummary;
 			this.instances = Collections.emptyList();
 		}
 
 		public String getTestModule() {
 			return testModule;
-		}
-
-		public String getTestSummary() {
-			return testSummary;
 		}
 
 		public List<String> getInstances() {
@@ -78,7 +72,7 @@ public class Plan {
 			Instant started,
 			Map<String, String> owner,
 			String description,
-			List<Module> testModules,
+			String[] testModules,
 			String version,
 			String summary,
 			String publish) {
@@ -90,7 +84,9 @@ public class Plan {
 		this.started = started.toString();
 		this.owner = owner;
 		this.description = description;
-		this.modules = testModules;
+		this.modules = Arrays.stream(testModules)
+				.map(Module::new)
+				.collect(Collectors.toList());
 		this.version = version;
 		this.summary = summary;
 		this.publish = publish;

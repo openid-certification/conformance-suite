@@ -27,7 +27,6 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import net.openid.conformance.info.Plan;
 import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -236,11 +235,11 @@ public class VariantService {
 			return modules.stream().map(m -> m.info.testName()).collect(toList());
 		}
 
-		public List<Plan.Module> getTestModulesForVariant(VariantSelection variant) {
+		public List<String> getTestModulesForVariant(VariantSelection variant) {
 			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> v = typedVariant(variant);
 			return modules.stream()
 					.filter(m -> m.isApplicableForVariant(v))
-					.map(m -> new Plan.Module(m.info.testName(), m.info.summary()))
+					.map(m -> m.info.testName())
 					.collect(toList());
 		}
 

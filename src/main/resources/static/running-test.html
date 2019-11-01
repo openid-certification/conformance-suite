@@ -149,9 +149,7 @@
 				});
 
 				deferred.then(function() {
-					$('[data-toggle="tooltip"]').tooltip({
-						container: 'body'
-					});
+					FAPI_UI.activeTooltip();
 				});
 			});
 		}
@@ -179,6 +177,7 @@
                     data: {},
                     success: function(data) {
                         $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
+                        FAPI_UI.activeTooltip();
                     },
                     error: function(jqxhr, status, error) {
                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {

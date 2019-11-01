@@ -335,9 +335,6 @@
 	                        variant: FAPI_UI.formatVariant(data.variant)
 	                    }));
 
-	                    $('#logDetail .header [data-toggle="tooltip"]').tooltip({
-	                        container: 'body'
-	                    });
 
 	                    $('#downloadBtn').click(function(evt) {
 	                        evt.preventDefault();
@@ -523,7 +520,7 @@
 
 					// update the status and result regardless of whether we rendered the header in full
 				    $('#logDetail .header #testStatusAndResult').html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
-
+					FAPI_UI.activeTooltip();
 				},
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -589,6 +586,19 @@
 						$('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({
 							browser: data.browser
 						}));
+
+						// make the running test information section float/pin to the top of the window
+						// when the 'Visit' button was display
+						var $headerInfoDiv = $(`#logDetail .header [data-instance-id='${testId}']`);
+						var sticky = $headerInfoDiv.offset().top + $headerInfoDiv.height() + 20;
+						$('#runningTestInformation').css('width', $('#logDetail').width());
+
+						if ($(window).scrollTop() > sticky && $('#runningTestBrowser .visitBtn').length) {
+							$('#runningTestInformation').addClass('sticky');
+						} else {
+							$('#runningTestInformation').removeClass('sticky');
+						}
+
 						$('#runningTestBrowser .visitBtn').click(function(evt) {
 							evt.preventDefault();
 							var url = $(this).data('url');
@@ -721,10 +731,12 @@
 
 		function pinVisitSectionOnTopWindow() {
 			// make the running test information section float/pin to the top of the window
-			// when the user scroll down and the 'Visit' button was display
-			var sticky = $('.pageHeader').height() + $('.header').height();
-			$(window).scroll(function () {
-				if ($(this).scrollTop() > sticky && $('#runningTestInformation .visitBtn').length) {
+			// when the user scroll down and the 'Visit' button was enable
+			var sticky = $('#runningTestInformation').offset().top;
+			$('#runningTestInformation').css('width', $('#logDetail').width());
+
+			$(window).scroll(function() {
+				if ($(window).scrollTop() > sticky && $('#runningTestInformation .visitBtn').length) {
 					$('#runningTestInformation').addClass('sticky');
 				} else {
 					$('#runningTestInformation').removeClass('sticky');

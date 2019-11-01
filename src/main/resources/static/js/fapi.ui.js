@@ -284,13 +284,19 @@ var FAPI_UI = {
 			}).done(function(userInfo) {
 				this.currentUser = userInfo;
 				$('#userInfoHolder').html(FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo}));
-				$('[data-toggle="tooltip"]').tooltip();
+				FAPI_UI.activeTooltip();
 			}).fail(function() {
 				// User is not logged in; don't fill in the user info holder
 			}).always(function() {
 				done.resolve();
 			});
 			return done.promise();
+		},
+
+		activeTooltip : function() {
+			$('[data-toggle="tooltip"]').tooltip({
+				container: 'body'
+			});
 		},
 
 		getStatusHelp : function(value) {

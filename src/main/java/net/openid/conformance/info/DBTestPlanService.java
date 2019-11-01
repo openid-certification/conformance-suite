@@ -72,7 +72,7 @@ public class DBTestPlanService implements TestPlanService {
 	 * @see TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<Plan.Module> testModules, String summary, String publish) {
+	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String[] testModules, String summary, String publish) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
