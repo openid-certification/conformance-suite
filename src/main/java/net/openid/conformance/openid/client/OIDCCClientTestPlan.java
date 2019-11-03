@@ -10,7 +10,8 @@ import net.openid.conformance.plan.TestPlan;
 	testModules = {
 		OIDCCClientTest.class,
 		OIDCCClientTestNonceInvalid.class,
-		OIDCCClientTestClientSecretBasic.class
+		OIDCCClientTestClientSecretBasic.class,
+		OIDCCClientTestScopeUserInfoClaims.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {

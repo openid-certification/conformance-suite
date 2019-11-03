@@ -317,6 +317,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected JsonObject prepareUserinfoResponse() {
+		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		return user;
 	}
@@ -328,8 +329,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
-
-		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
 	}
 
