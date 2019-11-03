@@ -22,4 +22,3 @@ public class OIDCCSetDynamicClientPassword extends AbstractCondition
 		return env;
 	}
 }
-
