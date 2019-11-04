@@ -394,7 +394,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(registeredClient, HttpStatus.OK);
+		return new ResponseEntity<Object>(registeredClient, HttpStatus.CREATED);
 
 	}
 
