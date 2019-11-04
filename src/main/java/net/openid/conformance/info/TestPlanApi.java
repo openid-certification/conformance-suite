@@ -1,7 +1,11 @@
 package net.openid.conformance.info;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -130,16 +134,24 @@ public class TestPlanApi implements DataUtils {
 		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
-		Object testPlan = publicOnly
-				? planService.getPublicPlan(id)
-				: planService.getTestPlan(id);
+		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
 
-		if (testPlan != null) {
-			return new ResponseEntity<>(testPlan, HttpStatus.OK);
-		} else {
+		if (testPlan == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
+		JsonObject testPlanObj = new JsonParser().parse(new Gson().toJson(testPlan)).getAsJsonObject();
+
+		JsonElement modules = testPlanObj.get("modules");
+
+		if (modules != null && modules.isJsonArray()) {
+			((JsonArray) modules).forEach(m -> {
+				String testModuleName = OIDFJSON.getString(m.getAsJsonObject().get("testModule"));
+				m.getAsJsonObject().addProperty("testSummary", variantService.getTestModule(testModuleName).info.summary());
+			});
+		}
+
+		return new ResponseEntity<>(testPlanObj, HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/plan/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
