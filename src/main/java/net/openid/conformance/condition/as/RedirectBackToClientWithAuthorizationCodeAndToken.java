@@ -18,11 +18,20 @@ public class RedirectBackToClientWithAuthorizationCodeAndToken extends AbstractC
 		String state = env.getString("authorization_endpoint_request", "params.state");
 		String accessToken = env.getString("access_token");
 
-		String redirectTo = UriComponentsBuilder.fromHttpUrl(redirectUri)
-			.queryParam("state", state)
+		UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
 			.queryParam("code", code)
-			.queryParam("access_token", accessToken)
-			.toUriString();
+			.queryParam("access_token", accessToken);
+
+		if(state!=null) {
+			builder.queryParam("state", state);
+		}
+
+		String params = builder.toUriString();
+		if(params.startsWith("?")) {
+			params = params.substring(1);
+		}
+
+		String redirectTo = redirectUri + "#" + params;
 
 		logSuccess("Redirecting back to client", args("uri", redirectTo));
 

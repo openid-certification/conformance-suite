@@ -19,13 +19,16 @@ public class RedirectBackToClientWithAuthorizationCodeIdTokenAndToken extends Ab
 		String idToken = env.getString("id_token");
 		String accessToken = env.getString("access_token");
 
-		String params = UriComponentsBuilder.newInstance()
-			.queryParam("state", state)
+		UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
 			.queryParam("code", code)
 			.queryParam("id_token", idToken)
-			.queryParam("access_token", accessToken)
-			.toUriString();
+			.queryParam("access_token", accessToken);
 
+		if(state!=null) {
+			builder.queryParam("state", state);
+		}
+
+		String params = builder.toUriString();
 		if(params.startsWith("?")) {
 			params = params.substring(1);
 		}
