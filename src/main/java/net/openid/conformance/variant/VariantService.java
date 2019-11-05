@@ -1,10 +1,12 @@
 package net.openid.conformance.variant;
 
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.flatMapping;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -45,7 +47,6 @@ public class VariantService {
 	private static final String SEARCH_PACKAGE = "net.openid";
 
 	private final Map<Class<?>, ParameterHolder<? extends Enum<?>>> variantParametersByClass;
-	private final Map<String, ParameterHolder<? extends Enum<?>>> variantParametersByName;
 	private final Map<Class<?>, TestModuleHolder> testModulesByClass;
 	private final SortedMap<String, TestModuleHolder> testModulesByName;
 	private final SortedMap<String, TestPlanHolder> testPlansByName;
@@ -53,9 +54,6 @@ public class VariantService {
 	public VariantService() {
 		this.variantParametersByClass = inClassesWithAnnotation(VariantParameter.class)
 				.collect(toMap(identity(), c -> wrapParameter(c)));
-
-		this.variantParametersByName = variantParametersByClass.values().stream()
-				.collect(toMap(p -> p.name, identity()));
 
 		this.testModulesByClass = inClassesWithAnnotation(PublishTestModule.class)
 				.collect(toMap(identity(), c -> wrapModule(c)));
@@ -92,18 +90,13 @@ public class VariantService {
 		return p;
 	}
 
-	private ParameterHolder<? extends Enum<?>> parameter(String name) {
-		ParameterHolder<? extends Enum<?>> p = variantParametersByName.get(name);
-		if (p == null) {
-			throw new IllegalArgumentException("Not a variant parameter: " + name);
-		}
-		return p;
-	}
-
-	private Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant(VariantSelection variant) {
+	private Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant(VariantSelection variant,
+			Map<String, ParameterHolder<? extends Enum<?>>> variantParametersByName) {
+		// Ignore any unknown parameters
 		return variant.getVariant().entrySet().stream()
+				.filter(e -> variantParametersByName.containsKey(e.getKey()))
 				.map(e -> {
-					ParameterHolder<?> p = parameter(e.getKey());
+					ParameterHolder<?> p = variantParametersByName.get(e.getKey());
 					return Map.entry(p, p.valueOf(e.getValue()));
 				})
 				.collect(toOrderedMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -147,6 +140,18 @@ public class VariantService {
 		return Collector.of(LinkedHashMap::new,
 				(m, t) -> m.put(keyMapper.apply(t), valueMapper.apply(t)),
 				(m, r) -> { m.putAll(r); return m; });
+	}
+
+	private static <T extends ParameterHolder<? extends Enum<?>>> Collector<T, ?, T> toSingleParameter() {
+		return collectingAndThen(
+				reducing((p1, p2) -> {
+					if (p1 == p2) {
+						return p1;
+					} else {
+						throw new RuntimeException("Variant parameter declaration includes multiple parameters with name: " + p1.name);
+					}
+				}),
+				p -> p.get());
 	}
 
 	private static <T, K, U> Collector<T, ?, SortedMap<K, U>> toSortedMap(
@@ -214,6 +219,7 @@ public class VariantService {
 
 		final List<TestModuleHolder> modules;
 		final Class<? extends TestPlan> planClass;
+		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
 
 		TestPlanHolder(Class<? extends TestPlan> planClass) {
 			this.planClass = planClass;
@@ -229,6 +235,10 @@ public class VariantService {
 						return m;
 					})
 					.collect(toList());
+			this.parametersByName = modules.stream()
+					.flatMap(m -> m.parameters.stream())
+					.map(p -> p.parameter)
+					.collect(groupingBy(p -> p.name, toSingleParameter()));
 		}
 
 		public List<String> getTestModules() {
@@ -236,7 +246,7 @@ public class VariantService {
 		}
 
 		public List<String> getTestModulesForVariant(VariantSelection variant) {
-			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> v = typedVariant(variant);
+			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> v = typedVariant(variant, parametersByName);
 			return modules.stream()
 					.filter(m -> m.isApplicableForVariant(v))
 					.map(m -> m.info.testName())
@@ -293,6 +303,7 @@ public class VariantService {
 
 		final Class<? extends TestModule> moduleClass;
 		final Set<TestModuleVariantInfo<? extends Enum<?>>> parameters;
+		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
 
 		TestModuleHolder(Class<? extends TestModule> moduleClass) {
 			this.moduleClass = moduleClass;
@@ -351,10 +362,14 @@ public class VariantService {
 							allHidesConfigurationFields.getOrDefault(p, Map.of()),
 							allSetupMethods.getOrDefault(p, Map.of())))
 					.collect(toSet());
+
+			this.parametersByName = parameters.stream()
+					.map(p -> p.parameter)
+					.collect(groupingBy(p -> p.name, toSingleParameter()));
 		}
 
 		public boolean isApplicableForVariant(VariantSelection variant) {
-			return isApplicableForVariant(typedVariant(variant));
+			return isApplicableForVariant(typedVariant(variant, parametersByName));
 		}
 
 		boolean isApplicableForVariant(Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> variant) {
@@ -375,7 +390,7 @@ public class VariantService {
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
-			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant = typedVariant(variant);
+			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant = typedVariant(variant, parametersByName);
 
 			// Validate the supplied parameters
 
