@@ -84,7 +84,6 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenRespon
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractJWKsFromDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -97,6 +96,7 @@ import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.GetDynamicClient2Configuration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -150,6 +150,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -180,6 +181,10 @@ import javax.servlet.http.HttpSession;
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name",
 	"client2.client_name"
+})
+@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client.jwks",
+	"client2.jwks"
 })
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
@@ -391,7 +396,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	public void registerClient() {
 
-		callAndStopOnFailure(ExtractJWKsFromDynamicClientConfiguration.class);
+		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
