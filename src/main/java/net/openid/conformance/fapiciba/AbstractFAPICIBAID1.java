@@ -78,7 +78,7 @@ import net.openid.conformance.condition.client.EnsureMinimumAuthenticationReques
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
-import net.openid.conformance.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
+import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
 import net.openid.conformance.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
@@ -870,7 +870,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
-		callAndContinueOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
+		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 	}
 
 	protected void verifyNotificationCallback(JsonObject requestParts){
