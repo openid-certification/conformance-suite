@@ -12,7 +12,7 @@ import com.google.common.net.MediaType;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 
-public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractCondition {
+public class EnsureResourceResponseReturnedJsonContentType extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_headers")
@@ -27,22 +27,18 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8 extends AbstractConditi
 				Optional<Charset> charset = parsedType.charset();
 				if (charset.isPresent()) {
 					String charsetName = charset.get().name();
-					if (charsetName.equals("UTF-8")) {
-						logSuccess("Response charset is UTF-8", args("content_type", contentTypeStr));
-					} else {
-						throw error("Response charset is not UTF-8",
-							args("content_type", contentTypeStr,
-								"charset", charset.get().name()));
+					if (!charsetName.equals("UTF-8")) {
+						throw error("Response charset is not UTF-8", args("content_type", contentTypeStr, "charset", charset.get().name()));
 					}
-				} else {
-					throw error("Response charset not declared", (args("content_type", contentTypeStr)));
 				}
 
-				if (parsedType.is(MediaType.JSON_UTF_8)) {
+				if ("application".equals(parsedType.type()) && "json".equals(parsedType.subtype())) {
 					logSuccess("Response content type is JSON", args("content_type", contentTypeStr));
 					return env;
+				} else {
+					throw error("Response content type is not JSON", args("content_type", contentTypeStr));
 				}
-			} catch (InvalidMediaTypeException e) {
+			} catch (IllegalArgumentException e) {
 				throw error("Unable to parse content type", args("content_type", contentTypeStr));
 			}
 		}

@@ -18,7 +18,7 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
+public class EnsureResourceResponseReturnedJsonContentType_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -26,16 +26,16 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureResourceResponseContentTypeIsJsonUTF8 cond;
+	private EnsureResourceResponseReturnedJsonContentType cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureResourceResponseContentTypeIsJsonUTF8();
+		cond = new EnsureResourceResponseReturnedJsonContentType();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(Environment)}.
+	 * Test method for {@link EnsureResourceResponseReturnedJsonContentType#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -50,7 +50,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(Environment)}.
+	 * Test method for {@link EnsureResourceResponseReturnedJsonContentType#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidCharset() {
@@ -63,9 +63,9 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(Environment)}.
+	 * Test method for {@link EnsureResourceResponseReturnedJsonContentType#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingCharset() {
 
 		JsonObject headers = new JsonObject();
@@ -76,7 +76,7 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(Environment)}.
+	 * Test method for {@link EnsureResourceResponseReturnedJsonContentType#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidType() {
@@ -89,12 +89,25 @@ public class EnsureResourceResponseContentTypeIsJsonUTF8_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureResourceResponseContentTypeIsJsonUTF8#evaluate(Environment)}.
+	 * Test method for {@link EnsureResourceResponseReturnedJsonContentType#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingContentType() {
 
 		JsonObject headers = new JsonObject();
+		env.putObject("resource_endpoint_response_headers", headers);
+
+		cond.execute(env);
+	}
+
+	/**
+	 * Test method for {@link EnsureResourceResponseReturnedJsonContentType#evaluate(Environment)}.
+	 */
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_contentTypeCannotParse() {
+
+		JsonObject headers = new JsonObject();
+		headers.addProperty("content-type", "; charset=UTF-8");
 		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.execute(env);

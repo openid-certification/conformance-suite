@@ -37,7 +37,7 @@ import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
-import net.openid.conformance.condition.client.EnsureResourceResponseContentTypeIsJsonUTF8;
+import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -302,7 +302,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 
 		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
-		callAndStopOnFailure(EnsureResourceResponseContentTypeIsJsonUTF8.class, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
+		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, "FAPI-R-6.2.1-4");
 
