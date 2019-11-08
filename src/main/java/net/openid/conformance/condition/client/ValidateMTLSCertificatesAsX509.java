@@ -9,7 +9,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -32,7 +31,6 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.google.common.base.Strings;
 
@@ -54,7 +52,6 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 			throw error("Couldn't find TLS client certificate or key for MTLS");
 		}
 
-		Security.addProvider(new BouncyCastleProvider());
 		CertificateFactory certFactory = null;
 		try {
 			certFactory = CertificateFactory.getInstance("X.509", "BC");
