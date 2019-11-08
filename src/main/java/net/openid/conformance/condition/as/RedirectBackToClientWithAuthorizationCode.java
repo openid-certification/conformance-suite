@@ -18,11 +18,11 @@ public class RedirectBackToClientWithAuthorizationCode extends AbstractCondition
 		String code = env.getString("authorization_code");
 		String state = env.getString("authorization_endpoint_request", "params.state");
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(redirectUri).queryParam("code", code);
-
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(redirectUri);
 		if(state!=null) {
 			builder.queryParam("state", state);
 		}
+		builder.queryParam("code", code);
 
 		String redirectTo = builder.toUriString();
 

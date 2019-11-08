@@ -19,13 +19,14 @@ public class RedirectBackToClientWithAuthorizationCodeAndIdToken extends Abstrac
 		String redirectUri = env.getString("authorization_endpoint_request", "params.redirect_uri");
 
 
-		UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
-			.queryParam("code", code)
-			.queryParam("id_token", idToken);
+		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
 
 		if(state!=null) {
 			builder.queryParam("state", state);
 		}
+
+		builder.queryParam("code", code)
+				.queryParam("id_token", idToken);
 
 		String params = builder.toUriString();
 		if(params.startsWith("?")) {
