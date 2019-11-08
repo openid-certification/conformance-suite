@@ -75,6 +75,12 @@ def run_test_plan(test_plan, config_file):
             state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
+                # TODO branch here for OIDCC tests
+                # TODO set os.environ['VARIANT'] e.g. '{"client_auth_type":"client_secret_basic","request_type":"plain_http_request","response_type":"code","client_registration":"dynamic_client"}'
+                # TODO set os.environ['MODULE_NAME'] e.g. 'oidcc-client-test-client-secret-basic'
+                # TODO set os.environ['ISSUER'] to the issuer identifier value
+                # TODO: subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+
                 # If it's a client test, we need to run the client
                 if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
                     profile = variant['fapi_profile']
