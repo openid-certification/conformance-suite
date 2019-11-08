@@ -80,9 +80,18 @@ def run_test_plan(test_plan, config_file):
                 # TODO set os.environ['MODULE_NAME'] e.g. 'oidcc-client-test-client-secret-basic'
                 # TODO set os.environ['ISSUER'] to the issuer identifier value
                 # TODO: subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+                if re.match(r'(oidcc-client-.*)', module):
+                    print('Running OIDCC Client tests')
+                    print('VARIANT {}'.format(json.dumps(variant)))
+                    print('MODULE_NAME {}'.format(module))
+                    print('ISSUER {}'.format(os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]))
 
+                    os.putenv('VARIANT', json.dumps(variant))
+                    os.putenv('MODULE_NAME', module)
+                    os.putenv('ISSUER', os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"])
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
                 # If it's a client test, we need to run the client
-                if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
+                elif re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
