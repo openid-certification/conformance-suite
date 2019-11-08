@@ -785,7 +785,7 @@ if __name__ == '__main__':
 
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
-            if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) ):
+            if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m)  or re.match(r'(oidcc-client-.*)', m) ):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server':
