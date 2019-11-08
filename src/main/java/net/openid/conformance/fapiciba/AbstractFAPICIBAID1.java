@@ -19,6 +19,7 @@ import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToDyn
 import net.openid.conformance.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -96,6 +97,7 @@ import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.GetDynamicClient2Configuration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
@@ -184,7 +186,13 @@ import javax.servlet.http.HttpSession;
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",
-	"client2.jwks"
+	"mtls.cert",
+	"mtls.key",
+	"mtls.ca",
+	"client2.jwks",
+	"mtls2.cert",
+	"mtls2.key",
+	"mtls2.ca"
 })
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
@@ -336,6 +344,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(GetStaticClientConfiguration.class);
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+			callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 			break;
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("First client: registering client using dynamic client registration");
@@ -350,8 +360,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
-		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 		eventLog.endBlock();
 	}
@@ -368,6 +376,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(GetStaticClient2Configuration.class);
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 			break;
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
@@ -379,9 +389,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		callAndContinueOnFailure(ValidateClientSigningKeySize.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
-
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		// validate the secondary MTLS keys
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
@@ -397,6 +404,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	public void registerClient() {
 
 		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
+		callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
+		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
