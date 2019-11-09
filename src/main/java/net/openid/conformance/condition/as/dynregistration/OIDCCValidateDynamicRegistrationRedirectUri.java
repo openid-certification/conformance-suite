@@ -25,7 +25,7 @@ public class OIDCCValidateDynamicRegistrationRedirectUri extends AbstractConditi
 		try {
 			redirectUrisArray = dynRegRequest.getAsJsonArray("redirect_uris");
 			if(redirectUrisArray==null) {
-				throw error("At least one redirect_uri is required in dynamic client registration requests.");
+				throw error("redirect_uris in dynamic client registration request must contain an array.");
 			}
 
 			for(int i=0; i<redirectUrisArray.size(); i++) {
@@ -33,12 +33,13 @@ public class OIDCCValidateDynamicRegistrationRedirectUri extends AbstractConditi
 				URI uri = new URI(redirectUriString);
 				validUriCount++;
 			}
+		} catch (ClassCastException ex) {
+			throw error("redirect_uris is not an array", ex);
 		} catch (IllegalStateException ex) {
 			throw error("redirect_uris is not an array", ex);
-		}
-		catch (URISyntaxException e)
+		} catch (URISyntaxException e)
 		{
-			throw error("Invalid redirect uri ", e, args("invalid uri", redirectUriString));
+			throw error("Invalid redirect uri ", e, args("invalid_uri", redirectUriString));
 		}
 
 		if(validUriCount==0) {

@@ -25,10 +25,10 @@ public class ValidateClientIdAndSecret extends AbstractCondition {
 			logSuccess("Client id and secret match");
 			return env;
 		}
-		throw error("Client authentication failed", args("expected client id", expectedClientId,
-																	"received client id", clientIdFromRequest,
-																	"expected client secret", expectedClientSecret,
-																	"received client secret", clientSecretFromRequest
+		throw error("Client authentication failed", args("expected_client_id", expectedClientId,
+																	"received_client_id", clientIdFromRequest,
+																	"expected_client_secret", expectedClientSecret,
+																	"received_client_secret", clientSecretFromRequest
 			));
 	}
 }

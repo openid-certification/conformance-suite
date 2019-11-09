@@ -29,6 +29,7 @@ import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
+import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCode;
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndToken;
@@ -218,7 +219,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected void configureClientConfiguration() {
 		if(clientRegistrationType == ClientRegistration.STATIC_CLIENT) {
-			callAndStopOnFailure(GetStaticClientConfiguration.class);
+			callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
 		}
@@ -440,7 +441,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			}
 			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
-			skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
+			skipIfMissing(null, new String[] { "at_hash" }, Condition.ConditionResult.INFO,
 				AddAtHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 		}
 
@@ -516,11 +517,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 
-		if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
-			callAndStopOnFailure(EnsureValidRedirectUriForAuthorizationEndpointRequest.class);
-		} else {
-			callAndStopOnFailure(EnsureMatchingRedirectUri.class);
-		}
+		callAndStopOnFailure(EnsureValidRedirectUriForAuthorizationEndpointRequest.class);
 
 		endTestIfRequiredAuthorizationRequestParametersAreMissing();
 
@@ -612,9 +609,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 
-		setStatus(Status.WAITING);
-
 		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
 
 		return new RedirectView(redirectTo, false, false, false);
 

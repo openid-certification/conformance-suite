@@ -7,16 +7,15 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
-public class OIDCCSetDynamicClientPassword extends AbstractCondition
+public class OIDCCCreateClientSecretForDynamicClient extends AbstractCondition
 {
 
 	@Override
 	@PreEnvironment(required = { "client"})
 	public Environment evaluate(Environment env) {
 		JsonObject client = env.getObject("client");
-		String secret = "secret_" + RandomStringUtils.randomAlphanumeric(10);
+		String secret = "secret_" + RandomStringUtils.randomAlphanumeric(20);
 		client.addProperty("client_secret", secret);
-		//TODO add other properties?
 		env.putObject("client", client);
 		logSuccess("Set password for registered client", args("client_secret", secret));
 		return env;

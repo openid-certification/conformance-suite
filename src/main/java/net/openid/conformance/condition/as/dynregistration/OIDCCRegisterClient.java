@@ -21,7 +21,7 @@ public class OIDCCRegisterClient extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject client = env.getObject("dynamic_registration_request");
 
-		client.addProperty("client_id", "client_" + RandomStringUtils.randomAlphanumeric(10));
+		client.addProperty("client_id", "client_" + RandomStringUtils.randomAlphanumeric(20));
 		//TODO add other properties?
 		env.putObject("client", client);
 		logSuccess("Registered client", args("client", client));
