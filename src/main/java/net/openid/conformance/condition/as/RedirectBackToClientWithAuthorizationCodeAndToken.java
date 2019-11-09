@@ -17,10 +17,12 @@ public class RedirectBackToClientWithAuthorizationCodeAndToken extends AbstractC
 		String code = env.getString("authorization_code");
 		String state = env.getString("authorization_endpoint_request", "params.state");
 		String accessToken = env.getString("access_token");
+		String tokenType = env.getString("token_type");
 
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
 			.queryParam("code", code)
-			.queryParam("access_token", accessToken);
+			.queryParam("access_token", accessToken)
+			.queryParam("token_type", tokenType);
 
 		if(state!=null) {
 			builder.queryParam("state", state);
