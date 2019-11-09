@@ -82,13 +82,17 @@ def run_test_plan(test_plan, config_file):
                 # TODO: subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
                 if re.match(r'(oidcc-client-.*)', module):
                     print('Running OIDCC Client tests')
-                    print('VARIANT {}'.format(json.dumps(variant)))
-                    print('MODULE_NAME {}'.format(module))
-                    print('ISSUER {}'.format(os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]))
 
-                    os.putenv('VARIANT', json.dumps(variant))
+                    oidcc_variant_str = json.dumps(variant)
+                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
+
+                    print('VARIANT {}'.format(oidcc_variant_str))
+                    print('MODULE_NAME {}'.format(module))
+                    print('ISSUER {}'.format(oidcc_issuer_str))
+
+                    os.putenv('VARIANT', oidcc_variant_str)
                     os.putenv('MODULE_NAME', module)
-                    os.putenv('ISSUER', os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"])
+                    os.putenv('ISSUER', oidcc_issuer_str)
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
                 # If it's a client test, we need to run the client
                 elif re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
