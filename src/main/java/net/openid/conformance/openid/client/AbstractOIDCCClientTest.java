@@ -64,9 +64,11 @@ import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithNone;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithPrivateKeyJwt;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithNone;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -123,6 +125,9 @@ import javax.servlet.http.HttpSession;
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_secret",
 	"client.jwks"
+})
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "none", configurationFields = {
+	"client.client_secret"
 })
 public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected ResponseType responseType;
@@ -738,6 +743,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		} else {
 			throw new TestFailureException(getId(), "Unexpected response_type" + responseType.toString());
 		}
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "none")
+	public void setupClientAuthNone() {
+		addTokenEndpointAuthMethodSupported = null;
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithNone.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithNone.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
