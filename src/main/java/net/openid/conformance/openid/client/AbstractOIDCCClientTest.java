@@ -6,10 +6,11 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClientSecretBasicAuthnMethodToServerConfiguration;
+import net.openid.conformance.condition.as.AddClientSecretJWTAuthnMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddClientSecretPostAuthnMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddPrivateKeyJWTToServerConfiguration;
+import net.openid.conformance.condition.as.AddPrivateKeyJWTAuthnMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -35,12 +36,6 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
-import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCode;
-import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
-import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndToken;
-import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeIdTokenAndToken;
-import net.openid.conformance.condition.as.RedirectBackToClientWithIdToken;
-import net.openid.conformance.condition.as.RedirectBackToClientWithIdTokenAndToken;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SignIdToken;
@@ -67,6 +62,7 @@ import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithNone;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithPrivateKeyJwt;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretJWT;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithNone;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithPrivateKeyJWT;
@@ -754,7 +750,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
-		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
+		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTAuthnMethodToServerConfiguration.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithPrivateKeyJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithPrivateKeyJwt.class;
 	}
@@ -768,8 +764,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
-		addTokenEndpointAuthMethodSupported = AddClientSecretBasicAuthnMethodToServerConfiguration.class;
-		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretBasic.class;
+		addTokenEndpointAuthMethodSupported = AddClientSecretJWTAuthnMethodToServerConfiguration.class;
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
 	}
 

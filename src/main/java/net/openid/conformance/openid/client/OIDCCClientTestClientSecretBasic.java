@@ -1,12 +1,5 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.as.AddClientSecretBasicAuthnMethodToServerConfiguration;
-import net.openid.conformance.condition.as.AddClientSecretPostAuthnMethodToServerConfiguration;
-import net.openid.conformance.condition.as.AddPrivateKeyJWTToServerConfiguration;
-import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
-import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
-import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
-import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ResponseType;

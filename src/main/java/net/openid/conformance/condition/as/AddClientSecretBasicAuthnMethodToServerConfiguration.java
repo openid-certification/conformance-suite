@@ -20,7 +20,7 @@ public class AddClientSecretBasicAuthnMethodToServerConfiguration extends Abstra
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
 
-		logSuccess("Added client_secret_basic for token_endpoint_auth_methods_supported");
+		logSuccess("Added client_secret_basic to token_endpoint_auth_methods_supported");
 
 		return env;
 	}
