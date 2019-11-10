@@ -1,7 +1,8 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
+import net.openid.conformance.condition.as.AddUserinfoClaimsToIdTokenClaims;
 import net.openid.conformance.condition.as.EnsureScopeContainsAtLeastOneOfProfileEmailPhoneAddress;
+import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -22,5 +23,17 @@ public class OIDCCClientTestScopeUserInfoClaims extends AbstractOIDCCClientTest 
 	{
 		super.validateAuthorizationEndpointRequestParameters();
 		callAndStopOnFailure(EnsureScopeContainsAtLeastOneOfProfileEmailPhoneAddress.class, "FIXME");
+	}
+
+	@Override
+	protected void generateIdTokenClaims()
+	{
+		super.generateIdTokenClaims();
+		//when no Access Token is issued (which is the case for the response_type value id_token),
+		//the resulting Claims are returned in the ID Token.
+		if(responseType.includesIdToken() && !responseType.includesCode() && !responseType.includesToken()) {
+			callAndStopOnFailure(FilterUserInfoForScopes.class, "OIDCC-5.4");
+			callAndStopOnFailure(AddUserinfoClaimsToIdTokenClaims.class, "OIDCC-5.4");
+		}
 	}
 }
