@@ -9,7 +9,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class RedirectBackToClientWithAuthorizationCodeAndToken extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request", strings = {"authorization_code", "access_token"})
+	@PreEnvironment(required = "authorization_endpoint_request", strings = {"authorization_code", "access_token", "token_type"})
 	@PostEnvironment(strings = "authorization_endpoint_response_redirect")
 	public Environment evaluate(Environment env) {
 

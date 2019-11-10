@@ -1,15 +1,20 @@
 package net.openid.conformance.openid.client;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClientSecretBasicAuthnMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddClientSecretPostAuthnMethodToServerConfiguration;
+import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddPrivateKeyJWTToServerConfiguration;
+import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
+import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
@@ -36,6 +41,8 @@ import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorization
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeIdTokenAndToken;
 import net.openid.conformance.condition.as.RedirectBackToClientWithIdToken;
 import net.openid.conformance.condition.as.RedirectBackToClientWithIdTokenAndToken;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
@@ -68,6 +75,7 @@ import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ClientRequestType;
+import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -76,6 +84,7 @@ import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -86,6 +95,7 @@ import javax.servlet.http.HttpSession;
 @VariantParameters({
 	ClientAuthType.class,
 	ResponseType.class,
+	ResponseMode.class,
 	ClientRegistration.class,
 	ClientRequestType.class
 })
@@ -116,6 +126,7 @@ import javax.servlet.http.HttpSession;
 })
 public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected ResponseType responseType;
+	protected ResponseMode responseMode;
 	protected ClientRequestType clientRequestType;
 	protected ClientRegistration clientRegistrationType;
 
@@ -147,6 +158,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
+
+		responseMode = getVariant(ResponseMode.class);
 
 		clientRequestType = getVariant(ClientRequestType.class);
 
@@ -672,51 +685,59 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			createIdToken(false);
 		}
 
-		redirectFromAuthorizationEndpoint();
+		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		exposeEnvString("authorization_endpoint_response_redirect");
+		if(responseType.includesCode()) {
+			callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		}
+		if(responseType.includesIdToken()) {
+			callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		}
+		if(responseType.includesToken()) {
+			callAndStopOnFailure(AddTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		}
 
-		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 
-		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+		Object viewToReturn = null;
+		if(responseMode.isFormPost()) {
 
-		setStatus(Status.WAITING);
-
-		return new RedirectView(redirectTo, false, false, false);
-
-	}
-
-	protected void redirectFromAuthorizationEndpoint() {
-		if(responseType.includesCode() && responseType.includesIdToken() && responseType.includesToken()) {
-
-			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeIdTokenAndToken.class, "OIDCC-3.3.2.5");
-
-		} else if(responseType.includesCode() && responseType.includesIdToken()) {
-
-			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
-
-		} else if(responseType.includesCode() && responseType.includesToken()) {
-
-			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndToken.class, "OIDCC-3.3.2.5");
-
-		} else if(responseType.includesIdToken() && responseType.includesToken()) {
-
-			callAndStopOnFailure(RedirectBackToClientWithIdTokenAndToken.class, "OIDCC-3.3.2.5");
-
-		} else if(responseType.includesIdToken()) {
-
-			callAndStopOnFailure(RedirectBackToClientWithIdToken.class, "OIDCC-3.3.2.5");
-
-		} else if(responseType.includesCode()) {
-
-			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class, "OIDCC-3.3.2.5");
+			viewToReturn = generateFormPostResponse();
 
 		} else {
 
-			throw new TestFailureException(getId(), "Unexpected response_type" + responseType.toString());
+			redirectFromAuthorizationEndpoint();
 
+			exposeEnvString("authorization_endpoint_response_redirect");
+
+			String redirectTo = env.getString("authorization_endpoint_response_redirect");
+
+			viewToReturn = new RedirectView(redirectTo, false, false, false);
 		}
 
+		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+		setStatus(Status.WAITING);
+		return viewToReturn;
+	}
+
+	protected Object generateFormPostResponse() {
+		JsonObject responseParams = env.getObject("authorization_endpoint_response_params");
+		String formActionUrl = OIDFJSON.getString(responseParams.remove("redirect_uri"));
+
+		return new ModelAndView("formPostResponseMode",
+			ImmutableMap.of(
+				"formAction", formActionUrl,
+				"formParameters", responseParams
+			));
+	}
+
+	protected void redirectFromAuthorizationEndpoint() {
+		if(responseType.includesIdToken() || responseType.includesToken()) {
+			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
+		} else if(responseType.includesCode()) {
+			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.3.2.5");
+		} else {
+			throw new TestFailureException(getId(), "Unexpected response_type" + responseType.toString());
+		}
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
