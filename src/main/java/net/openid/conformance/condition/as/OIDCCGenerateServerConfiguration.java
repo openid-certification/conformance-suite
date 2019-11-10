@@ -51,6 +51,13 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 		clientAuthTypes.add("private_key_jwt");
 		server.add("token_endpoint_auth_methods_supported", clientAuthTypes);
 
+		JsonArray tokenEndpointAuthSigningAlgValuesSupported = new JsonArray();
+		tokenEndpointAuthSigningAlgValuesSupported.add("RS256");
+		tokenEndpointAuthSigningAlgValuesSupported.add("PS256");
+		tokenEndpointAuthSigningAlgValuesSupported.add("ES256");
+
+		server.add("token_endpoint_auth_signing_alg_values_supported", tokenEndpointAuthSigningAlgValuesSupported);
+
 		JsonArray grantTypes = new JsonArray();
 		grantTypes.add("authorization_code");
 		grantTypes.add("implicit");

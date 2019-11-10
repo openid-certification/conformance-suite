@@ -13,12 +13,12 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUri;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdTokenToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeToken;
+import net.openid.conformance.condition.as.EnsureResponseTypeIsIdToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsIdTokenToken;
 import net.openid.conformance.condition.as.EnsureValidRedirectUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
@@ -34,6 +34,8 @@ import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorization
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndToken;
 import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeIdTokenAndToken;
+import net.openid.conformance.condition.as.RedirectBackToClientWithIdToken;
+import net.openid.conformance.condition.as.RedirectBackToClientWithIdTokenAndToken;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
@@ -45,7 +47,6 @@ import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRe
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUri;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -56,6 +57,7 @@ import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithPrivateKeyJwt;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithPrivateKeyJWT;
@@ -117,6 +119,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected ClientRequestType clientRequestType;
 	protected ClientRegistration clientRegistrationType;
 
+	protected boolean receivedDiscoveryRequest;
+	protected boolean receivedJwksRequest;
+	protected boolean receivedRegistrationRequest;
+	protected boolean receivedAuthorizationRequest;
+	protected boolean receivedTokenRequest;
+	protected boolean receivedUserinfoRequest;
+
 	/**
 	 * for how long the test will wait for negative tests
 	 */
@@ -151,6 +160,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		onServerConfigurationCompleted();
 
 		configureServerJWKS();
+
+		setServerSigningAlgorithm();
 
 		configureUserInfo();
 
@@ -255,8 +266,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		return handleClientRequestForPath(requestId, path);
+		Object responseObject = handleClientRequestForPath(requestId, path);
 
+		finishTestIfAllRequestsAreReceived();
+
+		return responseObject;
 	}
 
 	protected void validateTlsForIncomingHttpRequest() {
@@ -266,19 +280,37 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
+
+			receivedAuthorizationRequest = true;
 			return handleAuthorizationEndpointRequest(requestId);
+
 		} else if (path.equals("token")) {
+
+			receivedTokenRequest = true;
 			return handleTokenEndpointRequest(requestId);
+
 		} else if (path.equals("jwks")) {
+
+			receivedJwksRequest = true;
 			return handleJwksEndpointRequest();
+
 		} else if (path.equals("userinfo")) {
+			receivedUserinfoRequest = true;
 			return handleUserinfoEndpointRequest(requestId);
+
 		} else if (path.equals("register") && clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
+			receivedRegistrationRequest = true;
 			return handleRegistrationEndpointRequest(requestId);
+
 		} else if (path.equals(".well-known/openid-configuration")) {
+
+			receivedDiscoveryRequest = true;
 			return handleDiscoveryEndpointRequest();
+
 		} else {
+
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+
 		}
 	}
 
@@ -307,14 +339,45 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		finishTestAfterUserInfoResponse();
-
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
 
-	protected void finishTestAfterUserInfoResponse() {
-		fireTestFinished();
+	protected void finishTestIfAllRequestsAreReceived() {
+		switch (responseType) {
+			case CODE:
+				if(receivedUserinfoRequest) {
+					fireTestFinished();
+				}
+				break;
+			case CODE_ID_TOKEN:
+				if(receivedUserinfoRequest) {
+					fireTestFinished();
+				}
+				break;
+			case ID_TOKEN:
+				//TODO test may never end if the client caches the jwks
+				if(receivedAuthorizationRequest && receivedJwksRequest) {
+					fireTestFinished();
+				}
+				break;
+			case CODE_TOKEN:
+				if(receivedUserinfoRequest) {
+					fireTestFinished();
+				}
+				break;
+			case CODE_ID_TOKEN_TOKEN:
+				if(receivedUserinfoRequest) {
+					fireTestFinished();
+				}
+				break;
+			case ID_TOKEN_TOKEN:
+				if(receivedUserinfoRequest) {
+					fireTestFinished();
+				}
+				break;
+		}
+
 	}
 
 	protected JsonObject prepareUserinfoResponse() {
@@ -439,7 +502,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			if (authorizationEndpointProfileSteps != null) {
 				call(sequence(authorizationEndpointProfileSteps));
 			}
-			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
+			skipIfMissing(null, new String[] { "c_hash" }, Condition.ConditionResult.INFO,
+				AddCHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 			skipIfMissing(null, new String[] { "at_hash" }, Condition.ConditionResult.INFO,
 				AddAtHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
@@ -488,10 +552,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void extractAuthorizationEndpointRequestParameters() {
 		if(clientRequestType == ClientRequestType.REQUEST_URI) {
+
 			fetchAndProcessRequestUri();
+
 		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
+
 			callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 			callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
+
 		} else {
 			//handle plain http request case
 		}
@@ -538,7 +606,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 				callAndStopOnFailure(EnsureResponseTypeIsCode.class);
 				break;
 			case ID_TOKEN:
-				callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class);
+				callAndStopOnFailure(EnsureResponseTypeIsIdToken.class);
 				break;
 			case CODE_ID_TOKEN:
 				callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class);
@@ -552,6 +620,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			case ID_TOKEN_TOKEN:
 				callAndStopOnFailure(EnsureResponseTypeIsIdTokenToken.class);
 				break;
+			default:
+				throw new TestFailureException(getId(), "Unexpected response_type" + responseType.toString());
 		}
 	}
 
@@ -565,7 +635,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void createAuthorizationCode() {
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 
-		setServerSigningAlgorithm();
 		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 
 		/*
@@ -619,20 +688,42 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected void redirectFromAuthorizationEndpoint() {
 		if(responseType.includesCode() && responseType.includesIdToken() && responseType.includesToken()) {
+
 			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeIdTokenAndToken.class, "OIDCC-3.3.2.5");
+
 		} else if(responseType.includesCode() && responseType.includesIdToken()) {
+
 			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
+
 		} else if(responseType.includesCode() && responseType.includesToken()) {
+
 			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndToken.class, "OIDCC-3.3.2.5");
-		} else {
+
+		} else if(responseType.includesIdToken() && responseType.includesToken()) {
+
+			callAndStopOnFailure(RedirectBackToClientWithIdTokenAndToken.class, "OIDCC-3.3.2.5");
+
+		} else if(responseType.includesIdToken()) {
+
+			callAndStopOnFailure(RedirectBackToClientWithIdToken.class, "OIDCC-3.3.2.5");
+
+		} else if(responseType.includesCode()) {
+
 			callAndStopOnFailure(RedirectBackToClientWithAuthorizationCode.class, "OIDCC-3.3.2.5");
+
+		} else {
+
+			throw new TestFailureException(getId(), "Unexpected response_type" + responseType.toString());
+
 		}
+
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTToServerConfiguration.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithPrivateKeyJWT.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithPrivateKeyJwt.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
