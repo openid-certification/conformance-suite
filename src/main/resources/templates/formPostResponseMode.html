@@ -9,7 +9,9 @@
 <body onload="submitform()">
     <div>
         <form th:action="${formAction}" method="post" enctype="application/x-www-form-urlencoded">
-            <input th:each="p : ${formParameters.keySet()}" type="hidden" th:name="${p}" th:value="${formParameters.get(p).getAsString()}">
+            <div th:each="p : ${formParameters.keySet()}">
+                <input type="hidden" th:name="${p}" th:value="${formParameters.get(p).getAsString()}">
+            </div>
             <input type="submit" value="Click to submit the form manually">
         </form>
     </div>
