@@ -220,7 +220,8 @@
 	                          success: function(data) {
 	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
 	                              $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
-	                          },
+                                  FAPI_UI.activeTooltip();
+                              },
 	                          error: function(jqxhr, status, error) {
 	                              if (jqxhr.status == 404) {
 	                                  // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
@@ -238,6 +239,7 @@
 						  // render an "UNKNOWN" field
                           $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: {}}));
                           $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''}));
+                          FAPI_UI.activeTooltip();
 					  }
 
 
@@ -316,6 +318,7 @@
 			}).then(function() {
 				return getPlan(planId, public); // Only once the user is loaded, then render the plan info
 			}).always(function() {
+				FAPI_UI.activeTooltip();
 				FAPI_UI.hideBusy();
 			});
 

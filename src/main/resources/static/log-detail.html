@@ -335,9 +335,6 @@
 	                        variant: FAPI_UI.formatVariant(data.variant)
 	                    }));
 
-	                    $('#logDetail .header [data-toggle="tooltip"]').tooltip({
-	                        container: 'body'
-	                    });
 
 	                    $('#downloadBtn').click(function(evt) {
 	                        evt.preventDefault();
@@ -370,9 +367,9 @@
                             $('#editConfigBtn').click(function(evt) {
                                 evt.preventDefault();
                                 if (data.planId) {
-                                    window.location.assign('/index.html?edit-plan=' + encodeURIComponent(data.planId));
+                                    window.location.assign('/schedule-test.html?edit-plan=' + encodeURIComponent(data.planId));
                                 } else {
-                                    window.location.assign('/index.html?edit-test=' + encodeURIComponent(data.testId));
+                                    window.location.assign('/schedule-test.html?edit-test=' + encodeURIComponent(data.testId));
                                 }
                             });
                             $('#editConfigBtn').show();
@@ -523,7 +520,7 @@
 
 					// update the status and result regardless of whether we rendered the header in full
 				    $('#logDetail .header #testStatusAndResult').html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
-
+					FAPI_UI.activeTooltip();
 				},
 				error: function(jqxhr, status, error) {
 					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -589,6 +586,19 @@
 						$('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({
 							browser: data.browser
 						}));
+
+						// make the running test information section float/pin to the top of the window
+						// when the 'Visit' button was display
+						var $headerInfoDiv = $(`#logDetail .header [data-instance-id='${testId}']`);
+						var sticky = $headerInfoDiv.offset().top + $headerInfoDiv.height() + 20;
+						$('#runningTestInformation').css('width', $('#logDetail').width());
+
+						if ($(window).scrollTop() > sticky && $('#runningTestBrowser .visitBtn').length) {
+							$('#runningTestInformation').addClass('sticky');
+						} else {
+							$('#runningTestInformation').removeClass('sticky');
+						}
+
 						$('#runningTestBrowser .visitBtn').click(function(evt) {
 							evt.preventDefault();
 							var url = $(this).data('url');
@@ -719,6 +729,21 @@
 			});
 		}
 
+		function pinVisitSectionOnTopWindow() {
+			// make the running test information section float/pin to the top of the window
+			// when the user scroll down and the 'Visit' button was enable
+			var sticky = $('#runningTestInformation').offset().top;
+			$('#runningTestInformation').css('width', $('#logDetail').width());
+
+			$(window).scroll(function() {
+				if ($(window).scrollTop() > sticky && $('#runningTestInformation .visitBtn').length) {
+					$('#runningTestInformation').addClass('sticky');
+				} else {
+					$('#runningTestInformation').removeClass('sticky');
+				}
+			});
+		}
+
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var testId = urlParams.get('log');
@@ -740,6 +765,8 @@
 				FAPI_UI.hideBusy();
 				if (!public)
 					startReloader(testId); // periodically reload the page as long as the test is active
+
+				pinVisitSectionOnTopWindow();
 			});
 
 			var clipboard = new ClipboardJS('.btn-clipboard');

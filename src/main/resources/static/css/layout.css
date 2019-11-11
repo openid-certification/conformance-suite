@@ -451,6 +451,12 @@ pre.prettyprint {
 	cursor: pointer;
 }
 
+.sticky {
+	position: fixed;
+	top: 0;
+	z-index:100;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px) {
 }

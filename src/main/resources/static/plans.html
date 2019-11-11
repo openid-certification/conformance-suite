@@ -253,10 +253,7 @@
 					});
 				},
 				drawCallback: function() {
-		            $('[data-toggle="tooltip"]').tooltip({
-		                container: 'body'
-		            });
-
+					FAPI_UI.activeTooltip();
 					fetchTestResults($('#plansListing').DataTable(), public);
 				},
 				order: [[5, "desc"]] // sort by the "date" column, descending, by default

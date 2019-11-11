@@ -55,7 +55,7 @@
                 <div class="col-md-2">
                     <% if (!public) { %>
                         <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
-                        <a href="index.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
+                        <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
                     <% } %>
                     <% if (!public || plan.publish == "everything") { %>
                         <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download All Logs</button>
