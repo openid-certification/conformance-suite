@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.AddCIBANotificationEndpointToDyna
 import net.openid.conformance.condition.client.AddCibaGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddCibaRequestSigningPS256ToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
@@ -415,9 +416,17 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
 		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
 
-		// TODO: for now this only works for 'ping'
-		callAndStopOnFailure(AddCibaTokenDeliveryModePingToDynamicRegistrationRequest.class);
-		callAndStopOnFailure(AddCIBANotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
+		switch (testType) {
+		case PING:
+			callAndStopOnFailure(AddCibaTokenDeliveryModePingToDynamicRegistrationRequest.class);
+			callAndStopOnFailure(AddCIBANotificationEndpointToDynamicRegistrationRequest.class, "CIBA-4");
+			break;
+		case POLL:
+			callAndStopOnFailure(AddCibaTokenDeliveryModePollToDynamicRegistrationRequest.class);
+			break;
+		default:
+			throw new RuntimeException("unknown testType");
+		}
 
 		callAndStopOnFailure(AddCibaRequestSigningPS256ToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest.class);
