@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.testmodule.DataUtils;
@@ -140,7 +141,8 @@ public class TestPlanApi implements DataUtils {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		JsonObject testPlanObj = new JsonParser().parse(new Gson().toJson(testPlan)).getAsJsonObject();
+		Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
+		JsonObject testPlanObj = new JsonParser().parse(gson.toJson(testPlan)).getAsJsonObject();
 
 		JsonElement modules = testPlanObj.get("modules");
 
