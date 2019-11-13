@@ -42,7 +42,7 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @param msg
 	 * @see EventLog#log(java.lang.String, java.lang.String, java.util.Map, java.lang.String)
 	 */
-	public void log(String source, String msg) {
+	public synchronized void log(String source, String msg) {
 		if (blockId != null) {
 			eventLog.log(testId, source, owner, Map.of("blockId", blockId, "msg", msg));
 		} else {
@@ -55,7 +55,7 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @param obj
 	 * @see EventLog#log(java.lang.String, java.lang.String, java.util.Map, com.google.gson.JsonObject)
 	 */
-	public void log(String source, JsonObject obj) {
+	public synchronized void log(String source, JsonObject obj) {
 		JsonObject logObj;
 		if (blockId != null) {
 			logObj = new JsonObject();
@@ -74,7 +74,7 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @param map
 	 * @see EventLog#log(java.lang.String, java.lang.String, java.util.Map, java.util.Map)
 	 */
-	public void log(String source, Map<String, Object> map) {
+	public synchronized void log(String source, Map<String, Object> map) {
 		Map<String, Object> logMap;
 		if (blockId != null) {
 			logMap = new HashMap<>(map);
@@ -100,7 +100,7 @@ public class TestInstanceEventLog implements DataUtils {
 	 *
 	 * @return
 	 */
-	public String startBlock(String message) {
+	public synchronized String startBlock(String message) {
 		String blockId = startBlock();
 
 		if (!Strings.isNullOrEmpty(message)) {
@@ -113,7 +113,7 @@ public class TestInstanceEventLog implements DataUtils {
 	/**
 	 * end a log block and return the previous block ID
 	 */
-	public String endBlock() {
+	public synchronized String endBlock() {
 		String oldBlock = blockId;
 		blockId = null;
 		return oldBlock;
