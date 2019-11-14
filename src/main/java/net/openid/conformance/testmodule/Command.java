@@ -52,6 +52,10 @@ public class Command implements TestExecutionUnit {
 		return this;
 	}
 
+	public void putInteger(String key, Integer value) {
+		envCommands.add(env -> env.putInteger(key, value));
+	}
+
 	/**
 	 * Start a new block in the event log, with the given message. Defaults to leaving the block state unchanged.
 	 *

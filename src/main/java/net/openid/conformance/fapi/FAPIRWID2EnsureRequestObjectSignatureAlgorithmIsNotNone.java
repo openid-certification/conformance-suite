@@ -1,17 +1,14 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
+import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -51,17 +48,14 @@ public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Abs
 
 		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+		super.createAuthorizationRedirect();
+	}
 
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	@Override
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		return super.makeCreateAuthorizationRedirectSteps()
+				.replace(SignRequestObject.class,
+						condition(SerializeRequestObjectWithNullAlgorithm.class));
 	}
 
 	@Override
