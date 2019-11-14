@@ -372,17 +372,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			eventLog.startBlock(builder.getStartBlock());
 		}
 
-		for (Map.Entry<String, String> e : builder.getMapKeys().entrySet()) {
-			env.mapKey(e.getKey(), e.getValue());
-		}
-
-		for (String e : builder.getUnmapKeys()) {
-			env.unmapKey(e);
-		}
-
-		for (String e : builder.getRemoveObjects()) {
-			env.removeObject(e);
-		}
+		builder.getEnvCommands().forEach(cmd -> cmd.accept(env));
 
 		if (builder.isEndBlock()) {
 			eventLog.endBlock();

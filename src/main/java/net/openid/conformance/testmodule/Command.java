@@ -1,9 +1,8 @@
 package net.openid.conformance.testmodule;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A builder class for test execution controls, such as mapping and unmapping keys in the environment,
@@ -11,9 +10,7 @@ import java.util.Map;
  * condition.
  */
 public class Command implements TestExecutionUnit {
-	private Map<String, String> mapKeys = new LinkedHashMap<>();
-	private List<String> unmapKeys = new ArrayList<>();
-	private List<String> removeObjects = new ArrayList<>();
+	private List<Consumer<Environment>> envCommands = new ArrayList<>();
 	private String startBlock = null;
 	private boolean endBlock = false;
 	private List<String> exposeStrings = new ArrayList<>();
@@ -29,7 +26,7 @@ public class Command implements TestExecutionUnit {
 	 * @return this builder
 	 */
 	public Command mapKey(String from, String to) {
-		mapKeys.put(from, to);
+		envCommands.add(env -> env.mapKey(from, to));
 		return this;
 	}
 
@@ -43,7 +40,7 @@ public class Command implements TestExecutionUnit {
 	 * @return this builder
 	 */
 	public Command unmapKey(String key) {
-		unmapKeys.add(key);
+		envCommands.add(env -> env.unmapKey(key));
 		return this;
 	}
 
@@ -51,7 +48,7 @@ public class Command implements TestExecutionUnit {
 	 * Remove an object from the environment. See Environment.removeObject(String)
 	 */
 	public Command removeObject(String key) {
-		removeObjects.add(key);
+		envCommands.add(env -> env.removeObject(key));
 		return this;
 	}
 
@@ -88,29 +85,8 @@ public class Command implements TestExecutionUnit {
 
 	// getters
 
-	/**
-	 * Get the set of keys to map in the Environment, in order of addition to this builder.
-	 *
-	 * @return A map of all keys to map in the environment as as "from -> to" sets.
-	 */
-	public Map<String, String> getMapKeys() {
-		return mapKeys;
-	}
-
-	/**
-	 * Get the list of keys to unmap in the Environment, in order of addition to this builder.
-	 *
-	 * @return A list of all keys to unmap.
-	 */
-	public List<String> getUnmapKeys() {
-		return unmapKeys;
-	}
-
-	/**
-	 * Get the list of objects to remove from the Environment.
-	 */
-	public List<String> getRemoveObjects() {
-		return removeObjects;
+	public List<Consumer<Environment>> getEnvCommands() {
+		return envCommands;
 	}
 
 	/**
