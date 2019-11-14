@@ -14,6 +14,8 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.SkippedCondition;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -399,6 +401,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call((ConditionSequence)builder);
 		} else if (builder instanceof ConditionSequenceCallBuilder) {
 			call((ConditionSequenceCallBuilder)builder);
+		} else if (builder instanceof SkippedCondition) {
+			eventLog.log(((SkippedCondition) builder).getSource(), args(
+					"msg", ((SkippedCondition) builder).getMessage()));
 		} else {
 			throw new TestFailureException(getId(), "Unknown class passed to call() function");
 		}
