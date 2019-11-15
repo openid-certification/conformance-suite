@@ -278,11 +278,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("client_request"));
 
-		setStatus(Status.WAITING);
-
 		Object responseObject = handleClientRequestForPath(requestId, path);
 
-		finishTestIfAllRequestsAreReceived();
+		if(!finishTestIfAllRequestsAreReceived()) {
+			setStatus(Status.WAITING);
+		}
 
 		return responseObject;
 	}
@@ -329,17 +329,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleDiscoveryEndpointRequest() {
-		setStatus(Status.RUNNING);
 		JsonObject serverConfiguration = env.getObject("server");
 
-		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
 
 	protected Object handleUserinfoEndpointRequest(String requestId) {
-
-		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Userinfo endpoint").mapKey("incoming_request", requestId));
 
@@ -351,47 +347,57 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		setStatus(Status.WAITING);
-
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
 	}
 
-	protected void finishTestIfAllRequestsAreReceived() {
+	/**
+	 * returns true if fireTestFinished is called
+	 *
+	 * @return
+	 */
+	protected boolean finishTestIfAllRequestsAreReceived() {
+		boolean fireTestFinishedCalled = false;
 		switch (responseType) {
 			case CODE:
 				if(receivedUserinfoRequest) {
 					fireTestFinished();
+					fireTestFinishedCalled = true;
 				}
 				break;
 			case CODE_ID_TOKEN:
 				if(receivedUserinfoRequest) {
 					fireTestFinished();
+					fireTestFinishedCalled = true;
 				}
 				break;
 			case ID_TOKEN:
 				//TODO test may never end if the client caches the jwks
 				if(receivedAuthorizationRequest && receivedJwksRequest) {
 					fireTestFinished();
+					fireTestFinishedCalled = true;
 				}
 				break;
 			case CODE_TOKEN:
 				if(receivedUserinfoRequest) {
 					fireTestFinished();
+					fireTestFinishedCalled = true;
 				}
 				break;
 			case CODE_ID_TOKEN_TOKEN:
 				if(receivedUserinfoRequest) {
 					fireTestFinished();
+					fireTestFinishedCalled = true;
 				}
 				break;
 			case ID_TOKEN_TOKEN:
 				if(receivedUserinfoRequest) {
 					fireTestFinished();
+					fireTestFinishedCalled = true;
 				}
 				break;
 		}
-
+		return fireTestFinishedCalled;
 	}
 
 	protected JsonObject prepareUserinfoResponse() {
@@ -412,17 +418,12 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected Object handleJwksEndpointRequest() {
 
-		setStatus(Status.RUNNING);
 		JsonObject jwks = env.getObject("server_public_jwks");
-
-		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
 	private Object handleTokenEndpointRequest(String requestId) {
-
-		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Token endpoint").mapKey("token_endpoint_request", requestId));
 
@@ -458,8 +459,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
 
-		setStatus(Status.RUNNING);
-
 		call(exec().startBlock("Registration endpoint").mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(OIDCCExtractDynamicRegistrationRequest.class);
@@ -469,8 +468,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		JsonObject registeredClient = registerClient();
 
 		call(exec().unmapKey("incoming_request").endBlock());
-
-		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(registeredClient, HttpStatus.CREATED);
 
@@ -540,10 +537,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
-		setStatus(Status.WAITING);
-
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-
 	}
 
 	protected void generateIdTokenClaims() {
@@ -666,8 +660,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	@UserFacing
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 
-		setStatus(Status.RUNNING);
-
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_request", requestId));
 
 		extractAuthorizationEndpointRequestParameters();
@@ -716,7 +708,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 
 		call(exec().unmapKey("authorization_endpoint_request").endBlock());
-		setStatus(Status.WAITING);
 		return viewToReturn;
 	}
 
