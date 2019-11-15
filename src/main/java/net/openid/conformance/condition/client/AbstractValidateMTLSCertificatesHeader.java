@@ -28,19 +28,19 @@ public abstract class AbstractValidateMTLSCertificatesHeader extends AbstractCon
 
 		List<String> certHeaderListExpect = ImmutableList.of("-----BEGIN CERTIFICATE-----", "-----BEGIN RSA CERTIFICATE-----");
 
-		List<String> keyHeaderListExpect = ImmutableList.of("-----BEGIN PRIVATE KEY-----", "-----BEGIN RSA PRIVATE KEY-----");
+		List<String> keyHeaderListExpect = ImmutableList.of("-----BEGIN PRIVATE KEY-----", "-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN EC PRIVATE KEY-----");
 
 		List<String> certHeaderList = PEMFormatter.extractPEMHeader(certString);
 		for (String certHeader : certHeaderList) {
 			if (!certHeaderListExpect.contains(certHeader)) {
-				throw error("You uploaded something that begins " + certHeader + ", but you need to provide a certificate which would begin with " + certHeaderListExpect.get(0) + " or " + certHeaderListExpect.get(1));
+				throw error("You uploaded something that begins " + certHeader + ", but you need to provide a certificate which would begin with " + String.join(", ", certHeaderListExpect));
 			}
 		}
 
 		List<String> keyHeaderList = PEMFormatter.extractPEMHeader(keyString);
 		for (String keyHeader : keyHeaderList) {
 			if (!keyHeaderListExpect.contains(keyHeader)){
-				throw error("You uploaded something that begins " + keyHeader + ", but you need to provide a private key which would begin with " + keyHeaderListExpect.get(0) + " or " + keyHeaderListExpect.get(1));
+				throw error("You uploaded something that begins " + keyHeader + ", but you need to provide a private key which would begin with " + String.join(", ", keyHeaderListExpect));
 			}
 		}
 
@@ -48,7 +48,7 @@ public abstract class AbstractValidateMTLSCertificatesHeader extends AbstractCon
 			List<String> caHeaderList = PEMFormatter.extractPEMHeader(caString);
 			for (String caHeader : caHeaderList) {
 				if (!certHeaderListExpect.contains(caHeader)) {
-					throw error("You uploaded something that begins " + caHeader + ", but you need to provide a certificate authority which would begin with " + certHeaderListExpect.get(0) + " or " + certHeaderListExpect.get(1));
+					throw error("You uploaded something that begins " + caHeader + ", but you need to provide a certificate authority which would begin with " + String.join(", ", certHeaderListExpect));
 				}
 			}
 		}
