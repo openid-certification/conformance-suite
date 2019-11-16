@@ -30,12 +30,13 @@ import net.openid.conformance.condition.as.EnsureValidRedirectUriForAuthorizatio
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
+import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
+import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SignIdToken;
@@ -175,6 +176,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		configureServerJWKS();
 
+		validateConfiguredServerJWKS();
+
 		setServerSigningAlgorithm();
 
 		configureUserInfo();
@@ -218,6 +221,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	}
 
+	protected void validateConfiguredServerJWKS() {
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+	}
+
 	/**
 	 * expected to add discoveryUrl and issuer to env
 	 */
@@ -230,12 +237,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	/**
-	 * TODO we should have a constant JWKS instead of asking the user to enter the JWKS in configuration
+	 * override to modify the generated jwks
 	 */
 	protected void configureServerJWKS() {
-		callAndStopOnFailure(LoadServerJWKs.class);
-
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(OIDCCGenerateServerJWKs.class);
 	}
 
 	protected void configureUserInfo() {
@@ -633,11 +638,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 	}
 
-	/**
-	 * TODO always returns RS256 for now
-	 */
 	protected void setServerSigningAlgorithm() {
-		env.putString("signing_algorithm", "RS256");
+		callAndStopOnFailure(ExtractServerSigningAlg.class);
 	}
 
 	protected void createAuthorizationCode() {
