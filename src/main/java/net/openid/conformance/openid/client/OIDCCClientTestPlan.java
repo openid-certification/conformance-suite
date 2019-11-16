@@ -13,7 +13,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestClientSecretBasic.class,
 		OIDCCClientTestScopeUserInfoClaims.class,
 		OIDCCClientTestKidAbsentSingleJwks.class,
-		OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks.class
+		OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks.class,
+		OIDCCClientTestMissingIatInIdToken.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {
