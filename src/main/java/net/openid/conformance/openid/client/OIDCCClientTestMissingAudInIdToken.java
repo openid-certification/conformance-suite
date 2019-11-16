@@ -1,0 +1,42 @@
+package net.openid.conformance.openid.client;
+
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.as.RemoveAudFromIdToken;
+import net.openid.conformance.condition.as.RemoveIatFromIdToken;
+import net.openid.conformance.testmodule.PublishTestModule;
+
+@PublishTestModule(
+	testName = "oidcc-client-missing-aud",
+	displayName = "OIDCC: Relying party test. Missing aud value in id token.",
+	summary = "The client must identify that the 'aud' value is missing and reject the ID Token after doing ID Token validation." +
+		" Corresponds to rp-id_token-aud test in the old test suite",
+	profile = "OIDCC",
+	configurationFields = {
+		"waitTimeoutSeconds"
+	}
+)
+public class OIDCCClientTestMissingAudInIdToken extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
+
+	@Override
+	protected void generateIdTokenClaims()
+	{
+		super.generateIdTokenClaims();
+		callAndStopOnFailure(RemoveAudFromIdToken.class);
+	}
+
+	@Override
+	protected Object authorizationCodeGrantType(String requestId) {
+		if(responseType.includesIdToken()) {
+			throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with no aud claim from the authorization_endpoint.");
+		} else {
+			startWaitingForTimeout();
+		}
+		return super.authorizationCodeGrantType(requestId);
+	}
+
+	@Override
+	protected Object handleUserinfoEndpointRequest(String requestId)
+	{
+		throw new ConditionError(getId(), "Client has incorrectly called userinfo_endpoint after receiving an id_token with no aud claim.");
+	}
+}
