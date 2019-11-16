@@ -16,7 +16,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks.class,
 		OIDCCClientTestMissingIatInIdToken.class,
 		OIDCCClientTestMissingAudInIdToken.class,
-		OIDCCClientTestInvalidAudInIdToken.class
+		OIDCCClientTestInvalidAudInIdToken.class,
+		OIDCCClientTestIdTokenSigAlgNone.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {
