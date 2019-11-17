@@ -592,8 +592,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		callAndContinueOnFailure(ExtractNonceFromAuthorizationRequest.class, Condition.ConditionResult.INFO, "OIDCC-3.1.2.1");
+		extractNonceFromAuthorizationEndpointRequestParameters();
+	}
 
+	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
+		callAndContinueOnFailure(ExtractNonceFromAuthorizationRequest.class, Condition.ConditionResult.INFO, "OIDCC-3.1.2.1");
 	}
 
 	/**
