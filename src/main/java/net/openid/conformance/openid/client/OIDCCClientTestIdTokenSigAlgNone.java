@@ -3,6 +3,9 @@ package net.openid.conformance.openid.client;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.SignIdTokenWithAlgNone;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgNone;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -30,10 +33,7 @@ public class OIDCCClientTestIdTokenSigAlgNone extends AbstractOIDCCClientTest {
 	}
 
 	@Override
-	protected JsonObject registerClient() {
-		JsonObject client = super.registerClient();
-		client.remove("id_token_signed_response_alg");
-		client.addProperty("id_token_signed_response_alg", "none");
-		return client;
+	protected Class<? extends ConditionSequence> getAdditionalClientRegistrationSteps() {
+		return OIDCCRegisterClientWithIdTokenSignedResponseAlgNone.class;
 	}
 }

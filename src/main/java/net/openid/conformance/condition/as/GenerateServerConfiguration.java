@@ -26,6 +26,16 @@ public class GenerateServerConfiguration extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
+		JsonObject server = createBaseConfiguration(env, baseUrl);
+
+		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl,
+							"discoveryUrl", server.get("discoveryUrl").getAsString()));
+
+		return env;
+
+	}
+
+	protected JsonObject createBaseConfiguration(Environment env, String baseUrl) {
 		// create a base server configuration object based on the base URL
 		JsonObject server = new JsonObject();
 
@@ -33,17 +43,11 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		server.addProperty("authorization_endpoint", baseUrl + "authorize");
 		server.addProperty("token_endpoint", baseUrl + "token");
 		server.addProperty("jwks_uri", baseUrl + "jwks");
-
 		// add this as the server configuration
 		env.putObject("server", server);
 
 		env.putString("issuer", baseUrl);
 		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
-
-		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl, "discoveryUrl", baseUrl + ".well-known/openid-configuration"));
-
-		return env;
-
+		return server;
 	}
-
 }

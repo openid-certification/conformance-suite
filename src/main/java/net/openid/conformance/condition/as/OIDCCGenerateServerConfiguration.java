@@ -15,12 +15,14 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
 	public Environment evaluate(Environment env) {
 		//TODO add other options and missing values
-		super.evaluate(env);
-		JsonObject server = env.getObject("server");
+
 		String baseUrl = env.getString("base_url");
 		if (!baseUrl.endsWith("/")) {
 			baseUrl = baseUrl + "/";
 		}
+
+		createBaseConfiguration(env, baseUrl);
+		JsonObject server = env.getObject("server");
 
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo");
 		server.addProperty("registration_endpoint", baseUrl + "register");
@@ -40,7 +42,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 
 		// add this as the server configuration
 		env.putObject("server", server);
-
+		logSuccess("Generated server configuration", args("server_configuration", server));
 		return env;
 	}
 

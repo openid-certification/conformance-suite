@@ -479,6 +479,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	/**
+	 * Override to add additional steps to be executed after the variant (client authentication)
+	 * steps are executed
+	 * @return
+	 */
+	protected Class<? extends ConditionSequence> getAdditionalClientRegistrationSteps() {
+		return null;
+	}
+
+	/**
 	 * clients are not persisted anywhere
 	 * they are only valid for the duration of the test
 	 * @return
@@ -486,6 +495,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected JsonObject registerClient() {
 		if(clientRegistrationSteps!=null) {
 			call(sequence(clientRegistrationSteps));
+		}
+		Class<? extends ConditionSequence> additionalSteps = getAdditionalClientRegistrationSteps();
+		if(additionalSteps!=null) {
+			call(sequence(additionalSteps));
 		}
 		JsonObject client = env.getObject("client");
 		return client;
@@ -580,9 +593,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
 		callAndContinueOnFailure(ExtractNonceFromAuthorizationRequest.class, Condition.ConditionResult.INFO, "OIDCC-3.1.2.1");
-
-		//TODO what to do with this?
-		//callAndStopOnFailure(ExtractServerSigningAlg.class);
 
 	}
 
