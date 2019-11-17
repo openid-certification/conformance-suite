@@ -27,7 +27,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestNonce.class,
 		OIDCCClientTestMissingCHashInIdToken.class,
 		OIDCCClientTestInvalidCHashInIdToken.class,
-		OIDCCClientTestInvalidAtHashInIdToken.class
+		OIDCCClientTestInvalidAtHashInIdToken.class,
+		OIDCCClientTestMissingAtHashInIdToken.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {
