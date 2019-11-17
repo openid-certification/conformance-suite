@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -665,13 +666,17 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void createAuthorizationCode() {
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 
-		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+		//c_hash, s_hash won't work when id_token_signed_response_alg is none
 
-		/*
-		skipIfElementMissing("authorization_request_object", "claims.state", Condition.ConditionResult.INFO,
-			CalculateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-		*/
+		if(!"none".equals(env.getString("signing_algorithm"))) {
+			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+			/*
+			skipIfElementMissing("authorization_request_object", "claims.state", Condition.ConditionResult.INFO,
+				CalculateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+			*/
+		}
 	}
+
 
 	protected void generateAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);

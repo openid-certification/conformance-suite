@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.SetServerSigningAlgToNone;
 import net.openid.conformance.condition.as.SignIdTokenWithAlgNone;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgNone;
@@ -21,6 +22,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {"code id_token", "code id_token token", "code token", "id_token", "id_token token"})
 public class OIDCCClientTestIdTokenSigAlgNone extends AbstractOIDCCClientTest {
+
+	@Override
+	protected void setServerSigningAlgorithm() {
+		callAndStopOnFailure(SetServerSigningAlgToNone.class);
+	}
 
 	@Override
 	protected void signIdToken() {
