@@ -11,15 +11,19 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 	protected Object handleAuthorizationEndpointRequest(String requestId)
 	{
 		Object returnValue = super.handleAuthorizationEndpointRequest(requestId);
-		if(responseType.includesIdToken()) {
+		if(isAuthorizationCodeRequestUnexpected()) {
 			startWaitingForTimeout();
 		}
 		return returnValue;
 	}
 
+	protected boolean isAuthorizationCodeRequestUnexpected() {
+		return responseType.includesIdToken();
+	}
+
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
-		if(responseType.includesIdToken()) {
+		if(isAuthorizationCodeRequestUnexpected()) {
 			throw new ConditionError(getId(), getAuthorizationCodeGrantTypeErrorMessage());
 		} else {
 			startWaitingForTimeout();

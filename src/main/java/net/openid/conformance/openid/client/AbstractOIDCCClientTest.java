@@ -514,9 +514,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(ValidateRedirectUri.class);
 		}
-
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
-
+		generateAccessToken();
 	}
 
 	protected void createIdToken(boolean isAuthorizationCodeGrantType) {
@@ -527,6 +525,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			if (authorizationCodeGrantTypeProfileSteps != null) {
 				call(sequence(authorizationCodeGrantTypeProfileSteps));
 			}
+			addAtHashToIdToken();
 		} else {
 			//authorization endpoint
 			if (authorizationEndpointProfileSteps != null) {
