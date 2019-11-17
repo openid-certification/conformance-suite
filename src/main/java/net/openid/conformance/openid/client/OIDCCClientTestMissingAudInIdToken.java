@@ -6,7 +6,7 @@ import net.openid.conformance.condition.as.RemoveIatFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc-client-missing-aud",
+	testName = "oidcc-client-test-missing-aud",
 	displayName = "OIDCC: Relying party test. Missing aud value in id token.",
 	summary = "The client must identify that the 'aud' value is missing and reject the ID Token after doing ID Token validation." +
 		" Corresponds to rp-id_token-aud test in the old test suite",

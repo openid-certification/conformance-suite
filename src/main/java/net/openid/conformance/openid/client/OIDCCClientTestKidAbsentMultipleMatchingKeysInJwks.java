@@ -4,7 +4,7 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKsMultipleSignin
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc-client-kid-absent-multiple-jwks",
+	testName = "oidcc-client-test-kid-absent-multiple-jwks",
 	displayName = "OIDCC: Relying party test. Server JWKS contains multiple possible keys but no 'kid's ",
 	summary = "Identify that the 'kid' value is missing from the JOSE header and that the Issuer publishes " +
 		"multiple keys in its JWK Set document (referenced by 'jwks_uri'). " +

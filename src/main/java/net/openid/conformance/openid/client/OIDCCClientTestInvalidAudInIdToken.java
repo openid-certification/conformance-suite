@@ -6,7 +6,7 @@ import net.openid.conformance.condition.as.RemoveAudFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc-client-invalid-aud",
+	testName = "oidcc-client-test-invalid-aud",
 	displayName = "OIDCC: Relying party test. Invalid aud value in id token.",
 	summary = "The client must identify that the 'aud' value is incorrect and reject the ID Token after doing ID Token validation." +
 		" Corresponds to rp-id_token-aud test in the old test suite",

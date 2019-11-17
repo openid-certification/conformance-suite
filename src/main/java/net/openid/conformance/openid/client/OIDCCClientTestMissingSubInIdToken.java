@@ -6,7 +6,7 @@ import net.openid.conformance.condition.as.RemoveSubFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc-client-missing-sub",
+	testName = "oidcc-client-test-missing-sub",
 	displayName = "OIDCC: Relying party test. No sub in id_token.",
 	summary = "The client must identify the missing 'sub' claim and must reject the ID Token." +
 		" Corresponds to rp-id_token-sub test in the old test suite",

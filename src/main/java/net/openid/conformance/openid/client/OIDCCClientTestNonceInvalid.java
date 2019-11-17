@@ -5,7 +5,7 @@ import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc-client-nonce-invalid",
+	testName = "oidcc-client-test-nonce-invalid",
 	displayName = "OIDCC: Relying party test. Invalid nonce in id token.",
 	summary = "The client must identify that the 'nonce' value in the ID Token is invalid and must reject the ID Token." +
 		" Corresponds to rp-nonce-invalid test in the old test suite",

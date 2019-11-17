@@ -10,7 +10,7 @@ import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedRe
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oidcc-client-invalid-sig-rs256",
+	testName = "oidcc-client-test-invalid-sig-rs256",
 	displayName = "OIDCC: Relying party test. Invalid id_token signature using RS256.",
 	summary = "The client must identify the invalid signature and reject the ID Token after doing ID Token validation." +
 		" Corresponds to rp-id_token-bad-sig-rs256 test in the old test suite",
