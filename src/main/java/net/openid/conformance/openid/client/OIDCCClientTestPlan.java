@@ -19,7 +19,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestInvalidAudInIdToken.class,
 		OIDCCClientTestIdTokenSigAlgNone.class,
 		OIDCCClientTestIdTokenSignedUsingRS256.class,
-		OIDCCClientTestMissingSubInIdToken.class
+		OIDCCClientTestMissingSubInIdToken.class,
+		OIDCCClientTestInvalidIdTokenSignatureWithRS256.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {
