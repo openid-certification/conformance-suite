@@ -531,11 +531,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			if (authorizationEndpointProfileSteps != null) {
 				call(sequence(authorizationEndpointProfileSteps));
 			}
-			skipIfMissing(null, new String[] { "c_hash" }, Condition.ConditionResult.INFO,
-				AddCHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-			skipIfMissing(null, new String[] { "at_hash" }, Condition.ConditionResult.INFO,
-				AddAtHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			addCHashToIdToken();
+			addAtHashToIdToken();
 		}
 
 		addCustomValuesToIdToken();
@@ -543,6 +540,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		signIdToken();
 
 		customizeIdTokenSignature();
+	}
+
+	protected void addAtHashToIdToken() {
+		skipIfMissing(null, new String[] { "at_hash" }, Condition.ConditionResult.INFO,
+			AddAtHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	protected void addCHashToIdToken() {
+		skipIfMissing(null, new String[] { "c_hash" }, Condition.ConditionResult.INFO,
+			AddCHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {

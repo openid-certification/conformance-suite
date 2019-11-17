@@ -22,9 +22,6 @@ public class OIDCCClientTestNonce extends AbstractOIDCCClientTest {
 	@Override
 	protected void validateResponseTypeAuthorizationRequestParameter() {
 		super.validateResponseTypeAuthorizationRequestParameter();
-		if(responseType == ResponseType.CODE) {
-			throw new TestFailureException(getId(), "This test is not applicable when using response_type 'code'");
-		}
 	}
 
 	@Override
