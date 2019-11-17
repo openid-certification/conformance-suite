@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"waitTimeoutSeconds"
 	}
 )
-public class OIDCCClientTestKidAbsentSingleJwks extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
+public class OIDCCClientTestKidAbsentSingleJwks extends AbstractOIDCCClientTest {
 
 	@Override
 	protected void configureServerJWKS() {

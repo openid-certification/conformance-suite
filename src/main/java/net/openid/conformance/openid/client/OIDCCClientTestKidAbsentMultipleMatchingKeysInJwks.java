@@ -17,11 +17,36 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"waitTimeoutSeconds"
 	}
 )
-public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
+public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends AbstractOIDCCClientTest {
 
 	@Override
 	protected void configureServerJWKS() {
 		callAndStopOnFailure(OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds.class);
 	}
 
+	/**
+	 * For this test the client may or may not respond.
+	 * @param requestId
+	 * @return
+	 */
+	@Override
+	protected Object handleAuthorizationEndpointRequest(String requestId) {
+		Object returnValue = super.handleAuthorizationEndpointRequest(requestId);
+		if(responseType.includesIdToken()) {
+			startWaitingForTimeout();
+		}
+		return returnValue;
+	}
+
+	/**
+	 * For this test the client may or may not respond.
+	 * @param requestId
+	 * @return
+	 */
+	@Override
+	protected Object authorizationCodeGrantType(String requestId) {
+		Object returnValue = super.authorizationCodeGrantType(requestId);
+		startWaitingForTimeout();
+		return returnValue;
+	}
 }

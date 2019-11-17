@@ -18,25 +18,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCClientTestMissingSubInIdToken extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
 
 	@Override
-	protected void generateIdTokenClaims()
-	{
+	protected void generateIdTokenClaims() {
 		super.generateIdTokenClaims();
 		callAndStopOnFailure(RemoveSubFromIdToken.class);
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-		if(responseType.includesIdToken()) {
-			throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token without a sub value from the authorization_endpoint.");
-		} else {
-			startWaitingForTimeout();
-		}
-		return super.authorizationCodeGrantType(requestId);
+	protected String getAuthorizationCodeGrantTypeErrorMessage() {
+		return "Client has incorrectly called token_endpoint after receiving an id_token without a sub value from the authorization_endpoint.";
 	}
 
 	@Override
-	protected Object handleUserinfoEndpointRequest(String requestId)
-	{
-		throw new ConditionError(getId(), "Client has incorrectly called userinfo_endpoint after receiving an id_token without a sub value.");
+	protected String getHandleUserinfoEndpointRequestErrorMessage() {
+		return "Client has incorrectly called userinfo_endpoint after receiving an id_token without a sub value.";
 	}
+
 }

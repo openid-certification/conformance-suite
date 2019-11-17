@@ -43,17 +43,13 @@ public class OIDCCClientTestInvalidIdTokenSignatureWithRS256 extends AbstractOID
 
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-		if(responseType.includesIdToken()) {
-			throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid signature from the authorization_endpoint.");
-		} else {
-			startWaitingForTimeout();
-		}
-		return super.authorizationCodeGrantType(requestId);
+	protected String getAuthorizationCodeGrantTypeErrorMessage() {
+		return "Client has incorrectly called token_endpoint after receiving an id_token with an invalid signature from the authorization_endpoint.";
 	}
 
 	@Override
-	protected Object handleUserinfoEndpointRequest(String requestId) {
-		throw new ConditionError(getId(), "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid signature.");
+	protected String getHandleUserinfoEndpointRequestErrorMessage() {
+		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid signature.";
 	}
+
 }
