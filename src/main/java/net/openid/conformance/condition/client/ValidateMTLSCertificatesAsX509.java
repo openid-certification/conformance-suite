@@ -2,10 +2,12 @@ package net.openid.conformance.condition.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.SignatureException;
@@ -24,6 +26,12 @@ import java.util.Collection;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.google.common.base.Strings;
@@ -56,7 +64,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 		X509Certificate certificate = generateCertificateFromMTLSCert(certString, certFactory);
 
-		validateMTLSKey(certString, keyString, caString, certificate);
+		validateMTLSKey(certString, keyString, certificate);
 
 		if (!Strings.isNullOrEmpty(caString)) {
 			validateMTLSCa(env, certFactory, caString);
@@ -84,7 +92,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		return certificate;
 	}
 
-	private void validateMTLSKey(String certString, String keyString, String caString, X509Certificate certificate) {
+	private void validateMTLSKey(String certString, String keyString, X509Certificate certificate) {
 		byte[] decodedKey;
 		try {
 			decodedKey = Base64.getDecoder().decode(keyString);
@@ -92,25 +100,69 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 			throw error("base64 decode of key failed", e, args("key", keyString));
 		}
 
-		KeyFactory kf;
-		try {
-			kf = KeyFactory.getInstance("RSA", "BC");
-		} catch (NoSuchProviderException | NoSuchAlgorithmException | IllegalArgumentException e) {
-			throw error("Couldn't get KeyFactory", e);
+		PublicKey publicKey = certificate.getPublicKey();
+
+		if ("RSA".equals(publicKey.getAlgorithm())) {
+			verifyRSAPrivateKey(certString, keyString, decodedKey, certificate);
+		} else if ("EC".equals(publicKey.getAlgorithm())) {
+			verifyECPrivateKey(certString, keyString, decodedKey, certificate);
+		} else {
+			throw error("The private key format does not support. You need to provide a private key which is RSA or EC");
 		}
 
+	}
+
+	private void verifyRSAPrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		RSAPrivateKey privateKey;
 		try {
 			KeySpec kspec = new PKCS8EncodedKeySpec(decodedKey);
-			privateKey = (RSAPrivateKey) kf.generatePrivate(kspec);
-		} catch (InvalidKeySpecException | IllegalArgumentException e) {
-			throw error("Couldn't validate private key", e, args("key", keyString));
+			privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA", "BC").generatePrivate(kspec);
+		} catch (InvalidKeySpecException | IllegalArgumentException | NoSuchAlgorithmException | NoSuchProviderException e) {
+			throw error("Couldn't generate private key", e, args("key", keyString));
 		}
 
 		// Check that the private key and the certificate match
-		RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
-		if (!(privateKey.getModulus().equals(publicKey.getModulus()))) {
-			throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+		RSAPublicKey rsaPublicKey = (RSAPublicKey) certificate.getPublicKey();
+		if (!(privateKey.getModulus().equals(rsaPublicKey.getModulus()))) {
+			throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString));
+		}
+	}
+
+	private void verifyECPrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
+		PrivateKey privateKey;
+		try {
+
+			// try to generate private key is PKCS8
+			KeySpec kspec = new PKCS8EncodedKeySpec(decodedKey);
+			privateKey = KeyFactory.getInstance("EC", "BC").generatePrivate(kspec);
+
+		} catch (InvalidKeySpecException e) {
+
+			try {
+				// try to generate private key isn't PKCS8
+				ASN1Sequence seq = ASN1Sequence.getInstance(decodedKey);
+
+				org.bouncycastle.asn1.sec.ECPrivateKey pKey = org.bouncycastle.asn1.sec.ECPrivateKey.getInstance(seq);
+
+				AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, pKey.getParameters());
+
+				byte[] server_pkcs8 = new PrivateKeyInfo(algId, pKey).getEncoded();
+
+				privateKey = KeyFactory.getInstance("EC", "BC").generatePrivate(new PKCS8EncodedKeySpec(server_pkcs8));
+
+			} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException ex) {
+				throw error("Couldn't generate private key", e, args("key", keyString));
+			}
+
+		} catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+			throw error("Provider or Algorithm of KeyFactory is invalid", e);
+		}
+
+		// TODO: Need to check that the private key and the certificate match
+		// This check isn't sure yet
+		ECPublicKey ecPublicKey = (ECPublicKey) certificate.getPublicKey();
+		if (!((ECPrivateKey) privateKey).getParameters().equals(ecPublicKey.getParameters())) {
+			throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString));
 		}
 	}
 

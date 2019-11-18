@@ -315,6 +315,63 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		assertThat(env.getString("mutual_tls_authentication", "key")).isEqualTo(key);
 	}
 
+	@Test
+	public void testEvaluate_valuePresentWithECPrivateKey() {
+
+		certPEM = "-----BEGIN CERTIFICATE-----\\n" +
+			"MIICLzCCAdWgAwIBAgIUWYIkBclGZQCwyreTWR3D14BqLy0wCgYIKoZIzj0EAwIw\\n" +
+			"bTELMAkGA1UEBhMCU0cxEjAQBgNVBAgMCVNpbmdhcG9yZTESMBAGA1UEBwwJU2lu\\n" +
+			"Z2Fwb3JlMQwwCgYDVQQKDANJQk0xFTATBgNVBAsMDElCTSBTZWN1cml0eTERMA8G\\n" +
+			"A1UEAwwIY2xpZW50SUQwHhcNMTkwOTA1MDI0MDEzWhcNMjAwOTA0MDI0MDEzWjBt\\n" +
+			"MQswCQYDVQQGEwJTRzESMBAGA1UECAwJU2luZ2Fwb3JlMRIwEAYDVQQHDAlTaW5n\\n" +
+			"YXBvcmUxDDAKBgNVBAoMA0lCTTEVMBMGA1UECwwMSUJNIFNlY3VyaXR5MREwDwYD\\n" +
+			"VQQDDAhjbGllbnRJRDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBd7gvT2TpWa\\n" +
+			"mrEHx74UoKgR3uqQPK6rHBpCOy7SaNZNd1AV6VwL85eK4szg36yl9M8Ff9gE2zxo\\n" +
+			"/a0BTuxQYjujUzBRMB0GA1UdDgQWBBT2XRZscOa9/Pry56Hc4yk9F1gyOzAfBgNV\\n" +
+			"HSMEGDAWgBT2XRZscOa9/Pry56Hc4yk9F1gyOzAPBgNVHRMBAf8EBTADAQH/MAoG\\n" +
+			"CCqGSM49BAMCA0gAMEUCIQCjOByf/u9L37iUZjgS6vb6ZEyRiRa/QCSys474QZYk\\n" +
+			"LgIgMEUcBk6O1CHK9Y93pfAQaK/WJDWDuNWOr0kbjOIYbq8=\\n" +
+			"-----END CERTIFICATE-----";
+
+		String certExpected = "MIICLzCCAdWgAwIBAgIUWYIkBclGZQCwyreTWR3D14BqLy0wCgYIKoZIzj0EAwIw" +
+			"bTELMAkGA1UEBhMCU0cxEjAQBgNVBAgMCVNpbmdhcG9yZTESMBAGA1UEBwwJU2lu" +
+			"Z2Fwb3JlMQwwCgYDVQQKDANJQk0xFTATBgNVBAsMDElCTSBTZWN1cml0eTERMA8G" +
+			"A1UEAwwIY2xpZW50SUQwHhcNMTkwOTA1MDI0MDEzWhcNMjAwOTA0MDI0MDEzWjBt" +
+			"MQswCQYDVQQGEwJTRzESMBAGA1UECAwJU2luZ2Fwb3JlMRIwEAYDVQQHDAlTaW5n" +
+			"YXBvcmUxDDAKBgNVBAoMA0lCTTEVMBMGA1UECwwMSUJNIFNlY3VyaXR5MREwDwYD" +
+			"VQQDDAhjbGllbnRJRDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBd7gvT2TpWa" +
+			"mrEHx74UoKgR3uqQPK6rHBpCOy7SaNZNd1AV6VwL85eK4szg36yl9M8Ff9gE2zxo" +
+			"/a0BTuxQYjujUzBRMB0GA1UdDgQWBBT2XRZscOa9/Pry56Hc4yk9F1gyOzAfBgNV" +
+			"HSMEGDAWgBT2XRZscOa9/Pry56Hc4yk9F1gyOzAPBgNVHRMBAf8EBTADAQH/MAoG" +
+			"CCqGSM49BAMCA0gAMEUCIQCjOByf/u9L37iUZjgS6vb6ZEyRiRa/QCSys474QZYk" +
+			"LgIgMEUcBk6O1CHK9Y93pfAQaK/WJDWDuNWOr0kbjOIYbq8=";
+
+		keyPEM = "-----BEGIN EC PRIVATE KEY-----\\n" +
+			"MHcCAQEEIGX6gV9MXWzpo5GdKD9wIhv7TN11nD7dXtUZJ0/VlXr1oAoGCCqGSM49\\n" +
+			"AwEHoUQDQgAEi7K42r0qe17OiEdDPcuKmS1z12THf4j3YukAQVeaz8kSQCsOv7JY\\n" +
+			"GxAkgOGuT89RCJmtgtWXpGCvMGmxXcynWg==\\n" +
+			"-----END EC PRIVATE KEY-----\\n";
+
+		String keyExpected = "MHcCAQEEIGX6gV9MXWzpo5GdKD9wIhv7TN11nD7dXtUZJ0/VlXr1oAoGCCqGSM49" +
+			"AwEHoUQDQgAEi7K42r0qe17OiEdDPcuKmS1z12THf4j3YukAQVeaz8kSQCsOv7JY" +
+			"GxAkgOGuT89RCJmtgtWXpGCvMGmxXcynWg==";
+
+		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+			+ "\"cert\":\"" + certPEM + "\","
+			+ "\"key\":\"" + keyPEM + "\""
+			+ "}}").getAsJsonObject();
+
+		env.putObject("config", config);
+
+		cond.execute(env);
+
+		verify(env, atLeastOnce()).getString("config", "mtls.cert");
+		verify(env, atLeastOnce()).getString("config", "mtls.key");
+
+		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(certExpected);
+		assertThat(env.getString("mutual_tls_authentication", "key")).isEqualTo(keyExpected);
+	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noKey() {
 
