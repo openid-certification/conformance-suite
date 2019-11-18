@@ -679,8 +679,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected void generateAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-
-		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+		if(!"none".equals(env.getString("signing_algorithm"))) {
+			callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+		}
 	}
 
 	@UserFacing

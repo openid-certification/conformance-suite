@@ -16,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	configurationFields = {
 	}
 )
-@VariantNotApplicable(parameter = ResponseType.class, values={"code"})
+@VariantNotApplicable(parameter = ResponseType.class, values={"code", "code token"})
 public class OIDCCClientTestNonce extends AbstractOIDCCClientTest {
 
 	@Override

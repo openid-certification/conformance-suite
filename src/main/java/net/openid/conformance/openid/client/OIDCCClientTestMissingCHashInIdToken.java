@@ -14,7 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = ResponseType.class, values={"code", "id_token", "id_token token"})
+@VariantNotApplicable(parameter = ResponseType.class, values={"code", "id_token", "id_token token", "code token"})
 public class OIDCCClientTestMissingCHashInIdToken extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
 
 	@Override
