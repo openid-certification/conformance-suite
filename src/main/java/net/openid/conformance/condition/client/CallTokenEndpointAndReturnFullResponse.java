@@ -72,7 +72,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 			String jsonString = null;
 
 			try {
-				final String tokenEndpointUri = env.getString("server", "token_endpoint");
+				final String tokenEndpointUri = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
 				restTemplate.setErrorHandler(new OurErrorHandler());
 

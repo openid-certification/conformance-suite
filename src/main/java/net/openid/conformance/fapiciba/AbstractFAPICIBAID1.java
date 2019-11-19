@@ -141,6 +141,7 @@ import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToToken
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -191,6 +192,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	private Class<? extends ConditionSequence> additionalProfileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> additionalProfileIdTokenValidationSteps;
+	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
 	protected CIBAMode testType;
@@ -284,6 +286,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		if (supportMTLSEndpointAliases != null) {
+			call(sequence(supportMTLSEndpointAliases));
+		}
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckCIBAServerConfiguration.class);
@@ -1031,6 +1037,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		addBackchannelClientAuthentication = () -> new AddMTLSClientAuthenticationToBackchannelRequest();
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")

@@ -2,10 +2,12 @@ package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateBadRedirectUri;
@@ -52,6 +54,10 @@ public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModul
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		if (getVariant(FapiRClientAuthType.class) == FapiRClientAuthType.MTLS) {
+			callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.INFO, "MTLS-5");
+		}
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);

@@ -20,7 +20,7 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 	public Environment evaluate(Environment env) {
 
 		String issuer = env.getString("client", "client_id");
-		String audience = env.getString("server", "token_endpoint");
+		String audience = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
 		if (Strings.isNullOrEmpty(issuer) || Strings.isNullOrEmpty(audience)) {
 			throw error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));

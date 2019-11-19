@@ -2,9 +2,11 @@ package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -51,6 +53,10 @@ public class RequirePKCE extends AbstractRedirectServerTestModule {
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		if (getVariant(FapiRClientAuthType.class) == FapiRClientAuthType.MTLS) {
+			callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.INFO, "MTLS-5");
+		}
 
 		// Make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);

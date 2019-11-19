@@ -18,7 +18,7 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 	public Environment evaluate(Environment env) {
 
 		try {
-			String authorizationEndpoint = env.getString("server", "authorization_endpoint");
+			String authorizationEndpoint = env.getString("authorization_endpoint") != null ? env.getString("authorization_endpoint") : env.getString("server", "authorization_endpoint");
 
 			JsonObject authorizationEndpointTls = null;
 			if (!Strings.isNullOrEmpty(authorizationEndpoint)) {
@@ -26,7 +26,7 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 				env.putObject("authorization_endpoint_tls", authorizationEndpointTls);
 			}
 
-			String tokenEndpoint = env.getString("server", "token_endpoint");
+			String tokenEndpoint = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 			if (Strings.isNullOrEmpty(tokenEndpoint)) {
 				throw error("Token endpoint not found");
 			}
@@ -34,14 +34,14 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 			JsonObject tokenEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(tokenEndpoint);
 			env.putObject("token_endpoint_tls", tokenEndpointTls);
 
-			String userInfoEndpoint = env.getString("server", "userinfo_endpoint");
+			String userInfoEndpoint = env.getString("userinfo_endpoint") != null ? env.getString("userinfo_endpoint") : env.getString("server", "userinfo_endpoint");
 			JsonObject userInfoEndpointTls = null;
 			if (!Strings.isNullOrEmpty(userInfoEndpoint)) {
 				userInfoEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(userInfoEndpoint);
 				env.putObject("userinfo_endpoint_tls", userInfoEndpointTls);
 			}
 
-			String registrationEndpoint = env.getString("server", "registration_endpoint");
+			String registrationEndpoint = env.getString("registration_endpoint") != null ? env.getString("registration_endpoint") : env.getString("server", "registration_endpoint");
 			JsonObject registrationEndpointTls = null;
 			if (!Strings.isNullOrEmpty(registrationEndpoint)) {
 				registrationEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(registrationEndpoint);

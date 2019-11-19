@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
@@ -106,6 +107,11 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
 		env.unmapKey("mutual_tls_authentication");
+	}
+
+	@Override
+	protected void supportMTLSEndpointAliases() {
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.INFO, "MTLS-5");
 	}
 
 	@Override

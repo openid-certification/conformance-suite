@@ -103,6 +103,7 @@ import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticati
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIProfile;
@@ -137,6 +138,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
+	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -177,6 +179,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		if (supportMTLSEndpointAliases != null) {
+			call(sequence(supportMTLSEndpointAliases));
+		}
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -603,6 +609,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
