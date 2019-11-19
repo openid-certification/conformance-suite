@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -173,8 +174,12 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
 				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
+			} else if ((e instanceof SocketException)
+				&& ((SocketException) e).getMessage().equals("Connection reset")) {
+				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
+				return env;
 			} else {
-				throw error("Failed to make TLS connection", e, args("host", tlsTestHost, "port", tlsTestPort));
+				throw error("Failed to make TLS connection, but in a different way than expected", e, args("host", tlsTestHost, "port", tlsTestPort));
 			}
 		}
 	}
