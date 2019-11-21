@@ -19,7 +19,7 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GenerateClientJWKs_UnitTest {
+public class GenerateRS256ClientJWKs_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -27,11 +27,11 @@ public class GenerateClientJWKs_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private GenerateClientJWKs cond;
+	private GenerateRS256ClientJWKs cond;
 
 	@Before
 	public void setup() {
-		cond = new GenerateClientJWKs();
+		cond = new GenerateRS256ClientJWKs();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 

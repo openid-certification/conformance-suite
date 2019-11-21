@@ -15,6 +15,10 @@ import com.google.gson.JsonParser;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
+import java.security.Security;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -211,6 +215,8 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+
+		Security.addProvider(new BouncyCastleProvider());
 
 		cond = new ValidateMTLSCertificatesAsX509();
 
