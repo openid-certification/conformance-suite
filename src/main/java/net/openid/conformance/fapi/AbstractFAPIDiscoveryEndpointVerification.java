@@ -17,6 +17,7 @@ import net.openid.conformance.condition.client.FAPIRWCheckTLSClientCertificateBo
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -31,6 +32,7 @@ import net.openid.conformance.variant.VariantSetup;
 })
 public abstract class AbstractFAPIDiscoveryEndpointVerification extends AbstractTestModule {
 	private Class<? extends ConditionSequence> variantAuthChecks;
+	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -57,6 +59,10 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 		env.putObject("config", config);
 
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		if (supportMTLSEndpointAliases != null) {
+			call(sequence(supportMTLSEndpointAliases));
+		}
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -112,6 +118,7 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		variantAuthChecks = MtlsChecks.class;
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")

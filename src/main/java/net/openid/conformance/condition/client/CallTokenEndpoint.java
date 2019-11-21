@@ -45,7 +45,9 @@ public class CallTokenEndpoint extends AbstractCondition {
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		if (env.getString("server", "token_endpoint") == null) {
+		String tokenEndpoint = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
+
+		if (Strings.isNullOrEmpty(tokenEndpoint)) {
 			throw error("Couldn't find token endpoint");
 		}
 
@@ -74,7 +76,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 			String jsonString = null;
 
 			try {
-				jsonString = restTemplate.postForObject(env.getString("server", "token_endpoint"), request, String.class);
+				jsonString = restTemplate.postForObject(tokenEndpoint, request, String.class);
 			} catch (RestClientResponseException e) {
 
 				throw error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));

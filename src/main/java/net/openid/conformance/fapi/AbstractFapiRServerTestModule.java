@@ -60,6 +60,8 @@ public abstract class AbstractFapiRServerTestModule extends AbstractRedirectServ
 		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
 		callAndContinueOnFailure(GetStaticServerConfiguration.class);
 
+		supportMTLSEndpointAliases();
+
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
@@ -86,6 +88,10 @@ public abstract class AbstractFapiRServerTestModule extends AbstractRedirectServ
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void supportMTLSEndpointAliases() {
+		// Support when client auth type is MTLS
 	}
 
 	protected abstract void setupClient();

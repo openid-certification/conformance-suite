@@ -46,7 +46,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 			throw error("Couldn't find request object claims");
 		}
 
-		String authorizationEndpoint = env.getString("server", "authorization_endpoint");
+		String authorizationEndpoint = env.getString("authorization_endpoint") != null ? env.getString("authorization_endpoint") : env.getString("server", "authorization_endpoint");
 		if (Strings.isNullOrEmpty(authorizationEndpoint)) {
 			throw error("Couldn't find authorization endpoint");
 		}

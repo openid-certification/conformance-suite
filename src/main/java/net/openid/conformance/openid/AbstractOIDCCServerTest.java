@@ -78,6 +78,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseType;
@@ -129,6 +130,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected Class<? extends ConditionSequence> profileDynamicClientConfiguration;
 	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	public static class ConfigureClientForClientSecretJwt extends AbstractConditionSequence {
 		@Override
@@ -226,6 +228,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(isSecondClient());
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
 	@Override
@@ -256,6 +259,10 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+
+		if (supportMTLSEndpointAliases != null) {
+			call(sequence(supportMTLSEndpointAliases));
+		}
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
