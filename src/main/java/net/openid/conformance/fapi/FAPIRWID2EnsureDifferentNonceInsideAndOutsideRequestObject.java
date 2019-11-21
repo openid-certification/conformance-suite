@@ -3,18 +3,14 @@ package net.openid.conformance.fapi;
 import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -50,20 +46,10 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(AddIncorrectNonceToAuthorizationEndpointRequest.class, "OIDCC-6.1");
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		return super.makeCreateAuthorizationRedirectSteps()
+				.insertBefore(BuildRequestObjectRedirectToAuthorizationEndpoint.class,
+						condition(AddIncorrectNonceToAuthorizationEndpointRequest.class));
 	}
 
 	@Override

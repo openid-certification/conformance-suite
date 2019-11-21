@@ -11,6 +11,7 @@ import net.openid.conformance.condition.client.ExpectResponseModeQueryErrorPage;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToQuery;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -46,11 +47,10 @@ public class FAPIRWID2EnsureResponseModeQuery extends AbstractFAPIRWID2Expecting
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 
-		super.createAuthorizationRequest();
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToQuery.class);
+		return super.makeCreateAuthorizationRequestSteps()
+				.then(condition(SetAuthorizationEndpointRequestResponseModeToQuery.class));
 	}
 
 	@Override

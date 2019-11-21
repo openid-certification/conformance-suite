@@ -49,6 +49,9 @@ public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIR
 
 	@Override
 	protected void createAuthorizationRedirect() {
+		// TODO: create Condition classes to fiddle with the scope,
+		// so that this can be converted to makeCreateAuthorizationRedirectSteps()
+
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(AddExpToRequestObject.class);

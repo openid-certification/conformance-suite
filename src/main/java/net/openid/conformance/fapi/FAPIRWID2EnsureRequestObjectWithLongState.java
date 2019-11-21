@@ -2,19 +2,14 @@ package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithLongStateErrorPage;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -49,27 +44,12 @@ public class FAPIRWID2EnsureRequestObjectWithLongState extends AbstractFAPIRWID2
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
-
-		performProfileAuthorizationEndpointSetup();
-
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		// Add long state with 384 bytes
-		env.putInteger("requested_state_length", 384);
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-
-		if (jarm) {
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
-		} else {
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-		}
+		Command cmd = new Command();
+		cmd.putInteger("requested_state_length", 384);
+		return super.makeCreateAuthorizationRequestSteps()
+				.insertBefore(CreateRandomStateValue.class, cmd);
 	}
 
 	@Override

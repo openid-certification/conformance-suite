@@ -1,12 +1,8 @@
 package net.openid.conformance.fapi;
 
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddIatToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
+import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddMultipleAudToRequestObject;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -35,20 +31,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		if (isSecondClient()) {
-			callAndStopOnFailure(AddIatToRequestObject.class);
-		}
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(AddMultipleAudToRequestObject.class, "RFC7519-4.1.3");
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		return super.makeCreateAuthorizationRedirectSteps()
+			.replace(AddAudToRequestObject.class,
+					condition(AddMultipleAudToRequestObject.class).requirement("RFC7519-4.1.3"));
 	}
 }

@@ -1,25 +1,14 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import net.openid.conformance.condition.client.CreateRandomNonceValue;
-import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingNonceErrorPage;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -55,42 +44,17 @@ public class FAPIRWID2EnsureRequestObjectWithoutNonceFails extends AbstractFAPIR
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
-
-		performProfileAuthorizationEndpointSetup();
-
-		env.putInteger("requested_state_length", null);
-
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
-
-		if (jarm) {
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
-		} else {
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-		}
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		return super.makeCreateAuthorizationRequestSteps()
+				.skip(AddNonceToAuthorizationEndpointRequest.class,
+						"NOT adding nonce to request object");
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		return super.makeCreateAuthorizationRedirectSteps()
+				.insertAfter(SignRequestObject.class,
+						condition(AddNonceToAuthorizationEndpointRequest.class));
 	}
 
 	@Override

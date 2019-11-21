@@ -291,54 +291,92 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		performRedirect();
 	}
 
-	protected void createAuthorizationRequest() {
+	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+		private boolean isSecondClient;
+		private boolean isJarm;
+		private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
-		performProfileAuthorizationEndpointSetup();
-
-		if (isSecondClient()) {
-			env.putInteger("requested_state_length", 128);
-		} else {
-			env.putInteger("requested_state_length", null);
+		public CreateAuthorizationRequestSteps(boolean isSecondClient,
+				boolean isJarm,
+				Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
+			this.isSecondClient = isSecondClient;
+			this.isJarm = isJarm;
+			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
 		}
 
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+			call(sequence(profileAuthorizationEndpointSetupSteps));
 
-		if (jarm) {
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
-		} else {
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+			if (isSecondClient) {
+				exec().putInteger("requested_state_length", 128);
+			} else {
+				exec().putInteger("requested_state_length", null);
+			}
+
+			callAndStopOnFailure(CreateRandomStateValue.class);
+			exec().exposeEnvironmentString("state");
+			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+			callAndStopOnFailure(CreateRandomNonceValue.class);
+			exec().exposeEnvironmentString("nonce");
+			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+
+			if (isJarm) {
+				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+			} else {
+				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
+			}
 		}
+
 	}
 
-	protected void performProfileAuthorizationEndpointSetup() {
-		call(sequence(profileAuthorizationEndpointSetupSteps));
+	protected void createAuthorizationRequest() {
+		call(makeCreateAuthorizationRequestSteps());
+	}
+
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, profileAuthorizationEndpointSetupSteps);
+	}
+
+	public static class CreateAuthorizationRedirectSteps extends AbstractConditionSequence {
+
+		private boolean isSecondClient;
+
+		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
+			this.isSecondClient = isSecondClient;
+		}
+
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+			if (isSecondClient) {
+				callAndStopOnFailure(AddIatToRequestObject.class);
+			}
+			callAndStopOnFailure(AddExpToRequestObject.class);
+
+			callAndStopOnFailure(AddAudToRequestObject.class);
+
+			callAndStopOnFailure(AddIssToRequestObject.class);
+
+			callAndStopOnFailure(SignRequestObject.class);
+
+			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		}
+
 	}
 
 	protected void createAuthorizationRedirect() {
+		call(makeCreateAuthorizationRedirectSteps());
+	}
 
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		if (isSecondClient()) {
-			callAndStopOnFailure(AddIatToRequestObject.class);
-		}
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		return new CreateAuthorizationRedirectSteps(isSecondClient());
 	}
 
 	protected void onAuthorizationCallbackResponse() {

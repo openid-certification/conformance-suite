@@ -12,6 +12,7 @@ import net.openid.conformance.condition.client.RemoveAuthorizationEndpointReques
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.common.ExpectResponseTypeErrorPage;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -47,11 +48,10 @@ public class FAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2Expec
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class, "FAPI-RW-5.2.2-2");
-		callAndStopOnFailure(RemoveAuthorizationEndpointRequestResponseMode.class);
-
-		super.createAuthorizationRedirect();
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		return super.makeCreateAuthorizationRedirectSteps()
+				.butFirst(condition(SetAuthorizationEndpointRequestResponseTypeToCode.class),
+						condition(RemoveAuthorizationEndpointRequestResponseMode.class));
 	}
 
 	@Override
