@@ -3,6 +3,7 @@ package net.openid.conformance.heart;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
@@ -94,6 +95,7 @@ public class NativeDelegatedClientAS extends AbstractRedirectServerTestModule {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.WARNING, "RFC7517-4.5");
 
 		// Set up the client configuration
 		callAndStopOnFailure(GetStaticClientConfiguration.class);

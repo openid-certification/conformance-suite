@@ -20,6 +20,7 @@ import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGran
 import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGrantTypeToImplicit;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckHeartServerConfiguration;
 import net.openid.conformance.condition.common.DisallowTLS10;
@@ -68,6 +69,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(CheckHeartServerJwksFields.class, "HEART-OAuth2-3.1.5");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.WARNING, "RFC7517-4.5");
 
 		// get the client configuration that we'll use to dynamically register
 		callAndStopOnFailure(GetDynamicClientConfiguration.class);
