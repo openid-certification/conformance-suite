@@ -69,7 +69,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 	private void verifyPrivatePart(JsonElement jwks, JsonObject keyObject) {
 		if (!keyObject.has("d")) {
-			throw error("The JWK supplied for the first client seems to be a public key (the 'd' key is missing)");
+			throw error("The JWK supplied for the first client seems to be a public key (the 'd' key is missing). You must supply a private key in the test configuration.");
 		}
 
 		verifyKeysIsBase64UrlEncoded(keyObject, "d");
@@ -110,7 +110,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 		Algorithm alg = jwk.getAlgorithm();
 		if (alg == null) {
-			throw error("key should contain an 'alg' entry", args("jwk", jwk.toJSONString()));
+			throw error("keys supplied in the test configuration must contain an 'alg' entry that indicates which algorithm will be used for the test (e.g. 'PS256')", args("jwk", jwk.toJSONString()));
 		}
 
 		JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
