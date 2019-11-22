@@ -71,6 +71,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
@@ -272,6 +273,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5");
 
 		// Set up the client configuration
 		configureClient();
