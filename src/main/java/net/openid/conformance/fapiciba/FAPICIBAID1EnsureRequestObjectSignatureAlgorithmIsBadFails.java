@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndp
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.condition.client.SignRequestObjectInvalid;
+import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -50,7 +50,7 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsBadFails extends 
 		callAndStopOnFailure(AddIssToRequestObject.class, "CIBA-7.1.1");
 		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
 
-		callAndStopOnFailure(SignRequestObjectInvalid.class, "CIBA-7.2");
+		callAndStopOnFailure(InvalidateRequestObjectSignature.class, "CIBA-7.2");
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 

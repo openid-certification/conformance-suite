@@ -1,18 +1,14 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingScopeErrorPage;
-import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.RemoveScopeFromRequestObject;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -48,26 +44,14 @@ public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIR
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		// TODO: create Condition classes to fiddle with the scope,
-		// so that this can be converted to makeCreateAuthorizationRedirectSteps()
-
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		String scope = OIDFJSON.getString(env.getObject("request_object_claims").get("scope"));
-		env.getObject("request_object_claims").remove("scope");
-
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
-
-		env.getObject("request_object_claims").addProperty("scope", scope);
-
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		// Note: BuildRequestObjectRedirectToAuthorizationEndpoint includes
+		// as URL parameters values in "authorization_endpoint_request"
+		// which differ or are missing from the request object.
+		// Here, scope is removed from the request object.
+		return super.makeCreateAuthorizationRedirectSteps()
+				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
+						condition(RemoveScopeFromRequestObject.class));
 	}
 
 	@Override

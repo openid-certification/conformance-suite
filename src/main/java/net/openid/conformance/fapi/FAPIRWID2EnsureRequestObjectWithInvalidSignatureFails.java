@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpo
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectInvalidSignatureErrorPage;
 import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.condition.client.SignRequestObjectInvalid;
+import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -47,7 +47,7 @@ public class FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails extends Abstr
 	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
 		return super.makeCreateAuthorizationRedirectSteps()
 				.insertAfter(SignRequestObject.class,
-						condition(SignRequestObjectInvalid.class));
+						condition(InvalidateRequestObjectSignature.class));
 	}
 
 	@Override
