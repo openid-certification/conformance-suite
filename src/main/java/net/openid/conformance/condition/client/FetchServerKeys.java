@@ -7,8 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.text.ParseException;
 
+import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -17,7 +17,6 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.jwk.JWKSet;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -57,22 +56,18 @@ public class FetchServerKeys extends AbstractCondition {
 
 					log("Found JWK set string", args("jwk_string", jwkString));
 
-					// parse the key to make sure it's really a JWK
-					JWKSet.parse(jwkString);
-
-					// since it parsed, we store it as a JSON object to grab it later on
 					JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
 					env.putObject("server_jwks", jwkSet);
 
-					logSuccess("Parsed server JWK", args("server_jwks", jwkSet));
+					logSuccess("Found server JWK set", args("server_jwks", jwkSet));
 					return env;
 
 				} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 					throw error("Error creating HTTP client", e);
 				} catch (RestClientException e) {
 					throw error("Exception while fetching server key", e);
-				} catch (ParseException e) {
-					throw error("Unable to parse jwk set", e);
+				} catch (JsonSyntaxException e) {
+					throw error("Server JWKs set string is not JSON", e);
 				}
 
 			} else {
