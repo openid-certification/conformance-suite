@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
@@ -47,8 +47,12 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+		// Note: BuildRequestObjectRedirectToAuthorizationEndpoint includes
+		// as URL parameters values in "authorization_endpoint_request"
+		// which differ or are missing from the request object.
+		// Here, an incorrect nonce is added as a parameter.
 		return super.makeCreateAuthorizationRedirectSteps()
-				.insertBefore(BuildRequestObjectRedirectToAuthorizationEndpoint.class,
+				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
 						condition(AddIncorrectNonceToAuthorizationEndpointRequest.class));
 	}
 

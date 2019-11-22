@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
 
-public class SignRequestObjectInvalid extends AbstractCondition {
+public class InvalidateRequestObjectSignature extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "request_object")
