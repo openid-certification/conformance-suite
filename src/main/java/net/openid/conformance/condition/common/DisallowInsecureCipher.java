@@ -1,18 +1,12 @@
 package net.openid.conformance.condition.common;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.net.Socket;
-import java.net.SocketException;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.Certificate;
@@ -31,14 +25,18 @@ import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Ints;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.PreEnvironment;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.net.Socket;
+import java.net.SocketException;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 public class DisallowInsecureCipher extends AbstractCondition {
 
@@ -168,7 +166,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				throw (ConditionError) e.getCause();
 			} else if ((e instanceof TlsFatalAlertReceived)
 				&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
-				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
+				logSuccess("The TLS handshake was rejected when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else if ((e instanceof TlsFatalAlert)
 				&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
@@ -176,7 +174,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 				return env;
 			} else if ((e instanceof SocketException)
 				&& ((SocketException) e).getMessage().equals("Connection reset")) {
-				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
+				logSuccess("The TCP connection was reset when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
 				throw error("Failed to make TLS connection, but in a different way than expected", e, args("host", tlsTestHost, "port", tlsTestPort));
