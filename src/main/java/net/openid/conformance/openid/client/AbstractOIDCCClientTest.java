@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -36,8 +35,8 @@ import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
-import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
+import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SignIdToken;
@@ -140,6 +139,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected boolean receivedTokenRequest;
 	protected boolean receivedUserinfoRequest;
 
+	protected boolean readyForRequestProcessing = false;
+
 	/**
 	 * for how long the test will wait for negative tests
 	 */
@@ -188,6 +189,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		onBeforeFireSetupDone();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+		readyForRequestProcessing = true;
 	}
 
 	/**
@@ -272,6 +274,17 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		try {
+			//why is this needed: generating new keys in configure takes some time (<1sec) and if
+			//requests are received before configure is completed framework throws an invalid state change error
+			int sleepCounter = 0;	//don't wait forever
+			while (!readyForRequestProcessing && sleepCounter<10) {
+				sleepCounter++;
+				Thread.sleep(500);
+			}
+		} catch (InterruptedException ex) {
+			//nothing
+		}
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
