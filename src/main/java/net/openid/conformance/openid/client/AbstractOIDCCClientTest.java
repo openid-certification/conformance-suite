@@ -116,10 +116,8 @@ import javax.servlet.http.HttpSession;
 	"client.redirect_uri",
 	"client.request_type"
 })
-@VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.client_name"
-})
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client.client_name",
 	"client.client_secret",
 	"client.jwks"
 })
