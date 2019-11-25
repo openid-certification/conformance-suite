@@ -3,6 +3,7 @@ package net.openid.conformance.fapi;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
+import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
@@ -68,6 +69,8 @@ public abstract class AbstractFapiRServerTestModule extends AbstractRedirectServ
 		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		callAndStopOnFailure(FetchServerKeys.class);
+
+		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 

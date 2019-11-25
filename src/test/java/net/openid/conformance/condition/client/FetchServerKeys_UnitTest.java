@@ -45,11 +45,26 @@ public class FetchServerKeys_UnitTest {
 		+ "}"
 		+ "]}";
 
+	private static String unsupportedJwksStr = "{"
+		+ "\"keys\":["
+		+ "{"
+		+ "\"crv\":\"secp256k1\","
+		+ "\"x\":\"lp8T17Y1LosMIOQmxWb7N62szWQeG-_bzb7R8e9clLI\","
+		+ "\"y\":\"mXYsyG_rC8w41f9oC9XPWknFtCCpRM9iHQP7GY24MD8\","
+		+ "\"kty\":\"EC\","
+		+ "\"use\":\"sig\","
+		+ "\"kid\":\"Rqu-16ARNH_Lgt4AtqFJDgsFlQLVOtUavMrg8Plj5U0\""
+		+ "}"
+		+ "]}";
+
 	@ClassRule
 	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
 		service("good.example.com")
 			.get("/jwks.json")
 			.willReturn(success(jwksStr, "application/json")),
+		service("good.example1.com")
+			.get("/jwks.json")
+			.willReturn(success(unsupportedJwksStr, "application/json")),
 		service("bad.example.com")
 			.get("/jwks.json")
 			.willReturn(success("This is not JSON!", "text/plain"))));
@@ -104,6 +119,22 @@ public class FetchServerKeys_UnitTest {
 		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com").get("/jwks.json"));
+
+		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
+	}
+
+	@Test
+	public void testEvaluate_dynamicWithUnsupportedServerJWKs() {
+
+		JsonObject jwks = new JsonParser().parse(unsupportedJwksStr).getAsJsonObject();
+
+		JsonObject server = new JsonObject();
+		server.addProperty("jwks_uri", "https://good.example1.com/jwks.json");
+		env.putObject("server", server);
+
+		cond.execute(env);
+
+		hoverfly.verify(service("good.example1.com").get("/jwks.json"));
 
 		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
 	}
