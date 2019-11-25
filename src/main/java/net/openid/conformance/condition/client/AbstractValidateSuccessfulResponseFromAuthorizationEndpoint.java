@@ -27,9 +27,9 @@ public abstract class AbstractValidateSuccessfulResponseFromAuthorizationEndpoin
 		});
 
 		if (unexpectedParams.size() == 0) {
-			logSuccess("response includes only expected successful parameters", callbackParams);
+			logSuccess("authorization endpoint response does not include unexpected parameters", callbackParams);
 		} else {
-			throw error("response includes unexpected parameters", unexpectedParams);
+			throw error("authorization endpoint response response includes unexpected parameters", unexpectedParams);
 		}
 
 		return env;

@@ -1,16 +1,16 @@
 package net.openid.conformance.condition.client;
 
-import java.util.Arrays;
-
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.Arrays;
 
 public class FAPIOBCheckDiscEndpointScopesSupported extends ValidateJsonArray {
 
 	private static final String environmentVariable = "scopes_supported";
 
-	private static final String[] SET_VALUES = new String[] { "openid", "accounts", "payments" };
-	private static final int minimumMatchesRequired = 3;
+	private static final String[] SET_VALUES = new String[] { "openid", "accounts" };
+	private static final int minimumMatchesRequired = 2;
 
 	private static final String errorMessageNotEnough = "The server does not support enough of the required scopes";
 

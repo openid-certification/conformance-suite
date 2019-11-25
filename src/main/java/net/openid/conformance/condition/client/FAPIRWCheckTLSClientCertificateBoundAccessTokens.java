@@ -14,7 +14,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens extends AbstractCo
 
 		JsonElement element = env.getElementFromObject("server", "tls_client_certificate_bound_access_tokens");
 		if (element == null || element.isJsonObject()) {
-			throw error("tls_client_certificate_bound_access_tokens in server was missing");
+			throw error("FAPI-RW requires that certificate bound access tokens are used, so tls_client_certificate_bound_access_tokens must be present in the discovery document and contain true");
 		}
 
 		if (!element.getAsJsonPrimitive().isBoolean()) {

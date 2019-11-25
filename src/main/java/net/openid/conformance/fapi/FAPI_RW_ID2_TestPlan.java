@@ -5,7 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-test-plan",
-	displayName = "FAPI-RW-ID2: Authorization server test (latest version)",
+	displayName = "FAPI-RW-ID2 (and OpenBankingUK): Authorization server test (latest version)",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
