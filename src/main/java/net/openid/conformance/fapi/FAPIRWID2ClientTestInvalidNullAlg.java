@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.SignIdTokenWithNullAlgorithm;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidNullAlgorithmError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -37,6 +38,11 @@ public class FAPIRWID2ClientTestInvalidNullAlg extends AbstractFAPIRWID2ClientEx
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with a null alg value from the authorization_endpoint.");
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidNullAlgorithmError.class, "OIDCC-3.1.3.7-7");
 	}
 
 }

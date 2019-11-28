@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithMissingCHashError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -30,6 +31,11 @@ public class OIDCCClientTestMissingCHashInIdToken extends AbstractOIDCCClientTes
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token without a c_hash value.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithMissingCHashError.class);
 	}
 
 }

@@ -32,6 +32,7 @@
 
 		var urlParams = new URLSearchParams(window.location.search);
 		var testId = urlParams.get('log');
+		var uploadType = urlParams.get('uploadType');
 
 		FAPI_UI.showBusy();
 
@@ -39,7 +40,14 @@
 		.then(function() {
 			return FAPI_UI.getUserInfo(); // then get the current user
 		}).then(function() {
-			return loadImagesForLog(testId); // load the existing and placeholder images and render the page
+
+			loadVisibleUploadSection(uploadType);
+
+			if (uploadType == 'image') {
+				return loadImagesForTestLog(testId); // load the existing and placeholder images and render the page
+			} else {
+				return loadLogContentForTestLog(testId); // load the existing and placeholder log file and render the page
+			}
 		}).then(function() {
 			return getHeader(testId); // render the header, which includes test info
 		}).always(function() {
@@ -48,67 +56,17 @@
 
 	});
 
-		// browse for a local file
-		$('#file').change(function(evt) {
-			var reader = new FileReader();
+	function loadVisibleUploadSection(uploadType) {
+		if (uploadType == 'image') {
+			$("#imageUploadSection").show();
+			$("#logFileUploadSection").hide();
+		} else {
+			$("#imageUploadSection").hide();
+			$("#logFileUploadSection").show();
+		}
+	};
 
-			reader.onload = function(evt) {
-				var content = evt.target.result;
-				//console.log(content);
-				$('#preview').prop('src', content);
-			};
-
-			reader.readAsDataURL($('#file').prop('files')[0]);
-		});
-
-		// paste an image
-		$('body').on('paste', function(e) {
-			var reader = new FileReader();
-
-			reader.onload = function(evt) {
-				var content = evt.target.result;
-				//console.log(content);
-				$('#preview').prop('src', content);
-			};
-
-			// loop through the clipboard to see if there's an image
-			_.each(e.originalEvent.clipboardData.items, function(item) {
-				if (item.type.startsWith('image/')) {
-					reader.readAsDataURL(item.getAsFile());
-				}
-			});
-
-		});
-
-		$('#upload').click(function(evt) {
-			evt.preventDefault();
-
-			var urlParams = new URLSearchParams(window.location.search);
-			var testId = urlParams.get('log');
-			var placeholder = urlParams.get('placeholder');
-
-			if (placeholder) {
-				var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(placeholder);
-			} else {
-				var url = "/api/log/" + encodeURIComponent(testId) + '/images'
-			}
-
-			$.ajax({
-				type: 'POST',
-				url: url,
-				data: $('#preview').prop('src'),
-				contentType: false,
-				processData: false,
-				success: function(data) {
-					$('#preview').prop('src', '');
-					$('#success a').prop('href', 'log-detail.html?log=' + encodeURIComponent(testId));
-					$('#success').show();
-				}
-			});
-
-		});
-
-	function loadImagesForLog(testId) {
+	function loadImagesForTestLog(testId) {
 		return $.ajax({
 			type: 'GET',
 			url: '/api/log/' + encodeURIComponent(testId) + '/images',
@@ -117,10 +75,10 @@
 					// check to see if it's an "upload required" or an existing image
 					if (item.upload) {
 						//console.log('Upload required: ' + item._id);
-						$('#imageBlocks').append(FAPI_UI.logTemplates.PENDING({item: item}));
+						$('#imageBlocks').append(FAPI_UI.logTemplates.PENDING_IMAGE({item: item}));
 					} else if (item.img) {
 						//console.log('Existing image: ' + item._id);
-						$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: item}));
+						$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING_IMAGE({item: item}));
 					} else {
 						FAPI_UI.showError({
 							error: 'Unhandled image entry from logs: ' + item._id
@@ -165,7 +123,7 @@
 							processData: false,
 							success: function(data) {
 								// on a successful upload, replace the old element with a new one
-								el.replaceWith(FAPI_UI.logTemplates.EXISTING({item: data}));
+								el.replaceWith(FAPI_UI.logTemplates.EXISTING_IMAGE({item: data}));
 							},
 							error: function(jqxhr, status, error) {
 								FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -179,16 +137,16 @@
 				});
 
 				// wire up the buttons on the "add a new image" panel
-				$('#additionalUploader [type="file"]').change(function(evt) {
+				$('#additionalImageUploader [type="file"]').change(function(evt) {
 					var reader = new FileReader();
 
 					reader.onload = function(evt) {
 						// once it's loaded from the file, preview it and enable the upload button
 
 						var content = evt.target.result;
-						$('#additionalUploader .imagePreview').prop('src', content);
+						$('#additionalImageUploader .imagePreview').prop('src', content);
 
-						$('#additionalUploader .uploadBtn')
+						$('#additionalImageUploader .uploadBtn')
 							.prop('disabled', false)
 							.removeClass('btn-default')
 							.addClass('btn-success');
@@ -199,32 +157,32 @@
 					reader.readAsDataURL($(this).prop('files')[0]);
 				});
 
-				$('#additionalUploader .uploadBtn').click(function(evt) {
+				$('#additionalImageUploader .uploadBtn').click(function(evt) {
 					evt.preventDefault();
 
-					var desc = $('#additionalUploader #uploadDescription').val();
+					var desc = $('#additionalImageUploader #uploadImageDescription').val();
 
 					var url = "/api/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
 
 					$.ajax({
 						type: 'POST',
 						url: url,
-						data: $('#additionalUploader .imagePreview').prop('src'),
+						data: $('#additionalImageUploader .imagePreview').prop('src'),
 						contentType: false,
 						processData: false,
 						success: function(data) {
 							// on a successful upload, append the new log entry to the display
-							$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: data}));
+							$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING_IMAGE({item: data}));
 
 							// reset the form
-							$('#additionalUploader .uploadBtn')
+							$('#additionalImageUploader .uploadBtn')
 								.prop('disabled', true)
 								.removeClass('btn-success')
 								.addClass('btn-default');
 
-							$('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
+							$('#additionalImageUploader .imagePreview').prop('src', '/images/placeholder.png');
 
-							$('#additionalUploader [type="file"]').val('');
+							$('#additionalImageUploader [type="file"]').val('');
 						},
 						error: function(jqxhr, status, error) {
 							FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -277,6 +235,154 @@
 		});
 
 	}
+
+    function loadLogContentForTestLog(testId) {
+        return $.ajax({
+            type: 'GET',
+            url: '/api/log/' + encodeURIComponent(testId) + '/logfile',
+            success: function(data) {
+                _.each(data, function(item) {
+                    // check to see if it's an "upload required" or an existing log file
+                    if (item.upload) {
+                        $('#logFileBlocks').append(FAPI_UI.logTemplates.PENDING_LOGFILE({item: item}));
+                    } else if (item.logContent) {
+                        $('#logFileBlocks').append(FAPI_UI.logTemplates.EXISTING_LOGFILE({item: item}));
+                    } else {
+                        FAPI_UI.showError({
+                            error: 'Unhandled log file entry from logs: ' + item._id
+                        });
+                    }
+                });
+
+                // wire up the buttons on all the image uploaders
+                $('[data-upload-id]').each(function() {
+                    var el = $(this);
+
+                    $('[type="file"]', el).change(function(evt) {
+                        var reader = new FileReader();
+
+                        reader.onload = function(evt) {
+                            // once it's loaded from the file, preview it and enable the upload button
+
+                            var content = evt.target.result;
+                            $('.content-log-file', el).val(content);
+
+                            $('.uploadLogFileBtn', el)
+                                .prop('disabled', false)
+                                .removeClass('btn-default')
+                                .addClass('btn-success');
+
+                        };
+
+                        // this reads the file data and triggers the 'onload' function above
+                        reader.readAsText($(this).prop('files')[0], "UTF-8");
+                    });
+
+                    $('.uploadLogFileBtn', el).click(function(evt) {
+                        evt.preventDefault();
+
+                        var url = "/api/log/" + encodeURIComponent(testId) + '/logfile/' + encodeURIComponent(el.data('uploadId'));
+
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: $('.content-log-file', el).val(),
+                            contentType: false,
+                            processData: false,
+                            success: function(data) {
+                                // on a successful upload, replace the old element with a new one
+                                el.replaceWith(FAPI_UI.logTemplates.EXISTING_LOGFILE({item: data}));
+                            },
+                            error: function(jqxhr, status, error) {
+                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                    code: jqxhr.status,
+                                    error: error
+                                });
+                            }
+                        });
+                    });
+
+                    $('.content-log-file', el).on('change keyup paste', function (e) {
+                        $('.uploadLogFileBtn', el)
+                            .prop('disabled', false)
+                            .removeClass('btn-default')
+                            .addClass('btn-success');
+                    });
+                });
+
+                // wire up the buttons on the "add a new log file" panel
+                $('#additionalLogFileUploader [type="file"]').change(function(evt) {
+                    var reader = new FileReader();
+
+                    reader.onload = function(evt) {
+                        // once it's loaded from the file, preview it and enable the upload button
+
+                        var content = evt.target.result;
+                        $('#additionalLogFileUploader .content-log-file').val(content);
+
+                        $('#additionalLogFileUploader .uploadLogFileBtn')
+                            .prop('disabled', false)
+                            .removeClass('btn-default')
+                            .addClass('btn-success');
+
+                    };
+
+                    // this reads the file data and triggers the 'onload' function above
+                    reader.readAsText($(this).prop('files')[0], "UTF-8");
+                });
+
+                $('#additionalLogFileUploader .uploadLogFileBtn').click(function(evt) {
+                    evt.preventDefault();
+
+                    var desc = $('#additionalLogFileUploader #uploadLogFileDescription').val();
+
+                    var url = "/api/log/" + encodeURIComponent(testId) + '/logfile' + (desc ? '?description=' + encodeURIComponent(desc) : '');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: $('#additionalLogFileUploader .content-log-file').val(),
+                        contentType: false,
+                        processData: false,
+                        success: function(data) {
+                            // on a successful upload, append the new log entry to the display
+                            $('#logFileBlocks').append(FAPI_UI.logTemplates.EXISTING_LOGFILE({item: data}));
+
+                            // reset the form
+                            $('#additionalLogFileUploader .uploadLogFileBtn')
+                                .prop('disabled', true)
+                                .removeClass('btn-success')
+                                .addClass('btn-default');
+
+                            $('#additionalLogFileUploader .content-log-file').val('');
+
+                            $('#additionalLogFileUploader [type="file"]').val('');
+                        },
+                        error: function(jqxhr, status, error) {
+                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                code: jqxhr.status,
+                                error: error
+                            });
+                        }
+                    });
+                });
+
+                $('#additionalLogFileUploader .content-log-file').on('change keyup paste', function (e) {
+                    $('#additionalLogFileUploader .uploadLogFileBtn')
+                        .prop('disabled', false)
+                        .removeClass('btn-default')
+                        .addClass('btn-success');
+                });
+            },
+            error: function(jqxhr, status, error) {
+                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                    code: jqxhr.status,
+                    error: error
+                });
+            }
+        });
+
+    }
 
 	function getHeader(testId) {
 		return $.ajax({
@@ -352,32 +458,54 @@
 		</div>
 
 		<div class="logContent container-fluid">
-			<div id="imageBlocks">
+            <div id="imageUploadSection">
+                <div id="imageBlocks">
 
-			</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 logItem" id="additionalImageUploader">
+                        <div class="row">
+                            <div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+                            <div class="col-md-3">
+                                <!-- image preview -->
+                                <img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
+                            </div>
+                            <div class="col-md-8">
+                                <p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
 
-			<div class="row">
-				<div class="col-md-12 logItem" id="additionalUploader">
-					<div class="row">
-						<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
-						<div class="col-md-3">
-							<!-- image preview -->
-							<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
-						</div>
-						<div class="col-md-8">
-							<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+                                <input type="text" class="form-control" placeholder="Description" id="uploadImageDescription" />
+                                <label class="btn btn-default">
+                                    <span class="glyphicon glyphicon-camera"></span> Select Image</input>
+                                    <input type="file" hidden>
+                                </label>
+                                <button class="btn btn-default uploadBtn" disabled>Upload</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="logFileUploadSection">
+                <div id="logFileBlocks">
 
-							<input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
-							<label class="btn btn-default">
-								<span class="glyphicon glyphicon-camera"></span> Select File</input>
-									<input type="file" hidden>
-							</label>
-							<button class="btn btn-default uploadBtn" disabled>Upload</button>
-						</div>
-					</div>
-				</div>
-			</div>
-
+                </div>
+                <div class="row">
+                    <div class="col-md-12 logItem" id="additionalLogFileUploader">
+                        <div class="row">
+                            <div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+                            <div class="col-md-11">
+                                <p class="log-message wrapLongStrings">Use this form to upload additional log file to the test log.</p>
+                                <textarea class="content-log-file" rows="1000"></textarea>
+                                <input type="text" class="form-control" placeholder="Description" id="uploadLogFileDescription" />
+                                <label class="btn btn-default">
+                                    <span class="glyphicon glyphicon-file"></span> Select File</input>
+                                    <input type="file" hidden>
+                                </label>
+                                <button class="btn btn-default uploadLogFileBtn" disabled>Upload</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 		</div>
 
 	</div>

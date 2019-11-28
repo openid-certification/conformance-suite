@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.ForceIdTokenToBeSignedWithRS256;
+import net.openid.conformance.condition.client.ExpectCallbackWithUnexpectedAlgorithmError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -37,6 +38,11 @@ public class FAPIRWID2ClientTestInvalidAlternateAlg extends AbstractFAPIRWID2Cli
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an alg value of RS256 (it was originally PS256) from the authorization_endpoint.");
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithUnexpectedAlgorithmError.class, "OIDCC-3.1.3.7-8");
 	}
 
 }

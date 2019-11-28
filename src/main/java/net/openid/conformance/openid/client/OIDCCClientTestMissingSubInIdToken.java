@@ -1,8 +1,7 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
 import net.openid.conformance.condition.as.RemoveSubFromIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithMissingSubInIdTokenError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -31,6 +30,11 @@ public class OIDCCClientTestMissingSubInIdToken extends AbstractOIDCCClientTestE
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token without a sub value.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithMissingSubInIdTokenError.class);
 	}
 
 }

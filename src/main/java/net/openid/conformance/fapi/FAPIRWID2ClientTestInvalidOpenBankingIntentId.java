@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidOpenBankingIntentIdError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIProfile;
@@ -34,6 +35,11 @@ public class FAPIRWID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPIR
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid openbanking_intent_id value from the authorization_endpoint.");
 
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidOpenBankingIntentIdError.class, "OBSP-3.3");
 	}
 
 }

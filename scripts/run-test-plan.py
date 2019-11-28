@@ -75,6 +75,7 @@ def run_test_plan(test_plan, config_file):
             state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
+                # If it's a client test, we need to run the client
                 if re.match(r'(oidcc-client-.*)', module):
                     print('Running OIDCC Client tests')
 
@@ -88,13 +89,27 @@ def run_test_plan(test_plan, config_file):
                     os.putenv('VARIANT', oidcc_variant_str)
                     os.putenv('MODULE_NAME', module)
                     os.putenv('ISSUER', oidcc_issuer_str)
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
-                # If it's a client test, we need to run the client
+                    process = subprocess.Popen(["npm", "run", "client"], cwd="./sample-openid-client-nodejs", stdout=subprocess.PIPE, universal_newlines=True)
+                    out = process.communicate()[0]
+                    print(out)
+
+                    state_placeholder = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+                    if state_placeholder == "WAITING":
+                        # If the status is waiting for an upload log content to an existing entry
+                        conformance.upload_log_file(module_id, out)
+
                 elif re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+                    process = subprocess.Popen(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs", stdout=subprocess.PIPE, universal_newlines=True)
+                    out = process.communicate()[0]
+                    print(out)
+
+                    state_placeholder = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+                    if state_placeholder == "WAITING":
+                        # If the status is waiting for an upload log content to an existing entry
+                        conformance.upload_log_file(module_id, out)
 
                 conformance.wait_for_state(module_id, ["FINISHED"])
 

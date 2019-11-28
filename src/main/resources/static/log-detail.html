@@ -290,13 +290,25 @@
 
                     var uploadCount = $('[data-image-required]').length;
                     if (uploadCount) {
-                        $('#uploadCount').html(uploadCount);
-                        $('#uploadBtn').addClass('btn-info');
-                        $('#uploadBtn').removeClass('btn-default');
+                        if (_.includes(FAPI_UI.testName, '-client-test')) {
+                            $('#uploadLogFilesCount').html(uploadCount);
+                            $('#uploadLogFilesCount').addClass('btn-info');
+                            $('#uploadLogFilesCount').removeClass('btn-default');
+                        } else {
+                            $('#uploadImagesCount').html(uploadCount);
+                            $('#uploadImagesCount').addClass('btn-info');
+                            $('#uploadImagesCount').removeClass('btn-default');
+                        }
                     } else {
-                        $('#uploadCount').html('');
-                        $('#uploadBtn').removeClass('btn-info');
-                        $('#uploadBtn').addClass('btn-default');
+                        if (_.includes(FAPI_UI.testName, '-client-test')) {
+                            $('#uploadLogFilesCount').html('');
+                            $('#uploadLogFilesCount').removeClass('btn-info');
+                            $('#uploadLogFilesCount').addClass('btn-default');
+                        } else {
+                            $('#uploadImagesCount').html('');
+                            $('#uploadImagesCount').removeClass('btn-info');
+                            $('#uploadImagesCount').addClass('btn-default');
+                        }
                     }
                  },
 				error: function(jqxhr, status, error) {
@@ -317,6 +329,9 @@
 				url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
 				data: {},
 				success: function(data) {
+
+					// save test name
+					FAPI_UI.testName = data.testName;
 
 					// save the status for the 'active' panel later
 					if (data.status) {
@@ -342,10 +357,15 @@
 	                        window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
 	                    });
 
-	                    $('#uploadBtn').click(function(evt) {
-	                        evt.preventDefault();
-	                        window.open('/upload.html?log=' + encodeURIComponent(testId));
-	                    });
+	                    $('#uploadImageBtn').click(function(evt) {
+                            evt.preventDefault();
+                            window.open('/upload.html?uploadType=image&log=' + encodeURIComponent(testId));
+                        });
+
+                        $('#uploadLogFileBtn').click(function(evt) {
+                            evt.preventDefault();
+                            window.open('/upload.html?uploadType=logfile&log=' + encodeURIComponent(testId));
+                        });
 
 	                    $('#reloadBtn').click(function(evt) {
 	                        evt.preventDefault();

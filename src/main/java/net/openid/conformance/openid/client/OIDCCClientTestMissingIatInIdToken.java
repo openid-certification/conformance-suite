@@ -1,9 +1,7 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
-import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.RemoveIatFromIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithMissingIatError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -32,6 +30,11 @@ public class OIDCCClientTestMissingIatInIdToken extends AbstractOIDCCClientTestE
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with no iat claim.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithMissingIatError.class);
 	}
 
 }

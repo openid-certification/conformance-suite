@@ -111,14 +111,21 @@ public class DBImageService implements ImageService {
 	}
 
 	@Override
-	public List<Document> getAllImagesForTestId(String testId, boolean assumeAdmin) {
+	public List<Document> getAllImagesOrLogFilesForTestId(String testId, String uploadType, boolean assumeAdmin) {
 		Criteria findTestId = Criteria.where("testId").is(testId);
 
-		Criteria anyImages =
-			new Criteria().orOperator(
+		Criteria anyImages = new Criteria();
+		if ("images".equals(uploadType)) {
+			anyImages.orOperator(
 				Criteria.where("img").exists(true),
 				Criteria.where("upload").exists(true)
 			);
+		} else {
+			anyImages.orOperator(
+				Criteria.where("logContent").exists(true),
+				Criteria.where("upload").exists(true)
+			);
+		}
 
 		// add in the security parameters
 		Criteria criteria = createCriteria(findTestId, anyImages, assumeAdmin);

@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.AddInvalidCHashValueToIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithInvalidCHashError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -32,6 +33,11 @@ public class OIDCCClientTestInvalidCHashInIdToken extends AbstractOIDCCClientTes
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid c_hash value.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithInvalidCHashError.class);
 	}
 
 }

@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgRS256Only;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKSWithRSASigningKeysOnlyAndRS256Alg;
 import net.openid.conformance.condition.as.SignIdTokenInvalid;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithInvalidIdTokenSignatureError;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -48,6 +49,11 @@ public class OIDCCClientTestInvalidIdTokenSignatureWithRS256 extends AbstractOID
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid signature.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithInvalidIdTokenSignatureError.class);
 	}
 
 }

@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds;
 import net.openid.conformance.condition.as.SetServerSigningAlgToRS256;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithKidAbsentMultipleMatchingKeysInJWKsError;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -49,7 +50,7 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 		Object returnValue = super.handleAuthorizationEndpointRequest(requestId);
 		if(responseType.includesIdToken()) {
-			startWaitingForTimeout();
+			waitForPlaceHolderToUploadLogFileOrScreenshot();
 		}
 		return returnValue;
 	}
@@ -62,7 +63,16 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 		Object returnValue = super.authorizationCodeGrantType(requestId);
-		startWaitingForTimeout();
+		if (responseType.includesIdToken()) {
+			startWaitingForTimeout();
+		} else {
+			waitForPlaceHolderToUploadLogFileOrScreenshot();
+		}
 		return returnValue;
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithKidAbsentMultipleMatchingKeysInJWKsError.class);
 	}
 }

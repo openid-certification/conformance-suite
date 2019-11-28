@@ -44,6 +44,8 @@
 
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-responsive center-block imagePreview">
+            <% } else if (key == 'logContent') { %>
+                <pre><%- value %></pre>
 			<% } else if (!_.isUndefined(value.verifiable_jws)) { %>
                 <% var tokenJWTSplit = jwtRe.exec(value.verifiable_jws);%>
 

@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.AddInvalidIssValueToIdToken;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidIssError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -31,6 +32,11 @@ public class FAPIRWID2ClientTestInvalidIss extends AbstractFAPIRWID2ClientExpect
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid iss value from the authorization_endpoint.");
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidIssError.class, "OIDCC-3.1.3.7-2");
 	}
 
 }

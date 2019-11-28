@@ -1,0 +1,25 @@
+		<div class="row">
+			<div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
+				<div class="row">
+					<div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+					<div class="col-md-11">
+
+                        <!-- test details and form controls -->
+                        <% if (item.src) { %>
+                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                        <% } %>
+                        <% if (item.msg) { %>
+                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                        <% } %>
+
+                        <p class="log-message wrapLongStrings">Please upload a log file or copy the content of log and paste to textarea.</p>
+                        <textarea class="content-log-file" rows="1000"></textarea>
+                        <label class="btn btn-default">
+                            <span class="glyphicon glyphicon-file"></span> Select File</input>
+                            <input type="file" hidden>
+                        </label>
+                        <button class="btn btn-default uploadLogFileBtn" disabled>Upload</button>
+					</div>
+				</div>
+			</div>
+		</div>

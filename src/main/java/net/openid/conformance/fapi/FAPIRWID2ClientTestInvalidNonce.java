@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidNonceError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -32,6 +33,11 @@ public class FAPIRWID2ClientTestInvalidNonce extends AbstractFAPIRWID2ClientExpe
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid nonce value from the authorization_endpoint.");
 
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidNonceError.class, "OIDCC-3.1.3.7-11");
 	}
 
 }

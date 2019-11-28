@@ -2,6 +2,7 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.AddInvalidSHashValueToIdToken;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidSHashError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -43,6 +44,11 @@ public class FAPIRWID2ClientTestInvalidSHash extends AbstractFAPIRWID2ClientExpe
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid s_hash value from the authorization_endpoint.");
 
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidSHashError.class, "FAPI-RW-5.2.3");
 	}
 
 }

@@ -1,8 +1,7 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.as.AddInvalidAudValueToIdToken;
 import net.openid.conformance.condition.as.AddInvalidIssValueToIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithInvalidIssError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -31,6 +30,11 @@ public class OIDCCClientTestInvalidIssuerInIdToken extends AbstractOIDCCClientTe
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid iss claim.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithInvalidIssError.class);
 	}
 
 }

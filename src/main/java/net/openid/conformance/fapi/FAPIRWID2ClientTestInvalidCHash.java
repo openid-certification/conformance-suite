@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.AddInvalidCHashValueToIdToken;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidCHashError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -31,6 +32,11 @@ public class FAPIRWID2ClientTestInvalidCHash extends AbstractFAPIRWID2ClientExpe
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid c_hash value from the authorization_endpoint.");
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidCHashError.class, "OIDCC-3.3.2-10");
 	}
 
 }

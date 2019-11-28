@@ -1,2 +1,5 @@
-
-<a class="btn btn-info btn-sm" href="/upload.html?log=<%- encodeURIComponent(item.testId) %>">Attach image to log file...</a>
+<% if (_.includes(FAPI_UI.testName, '-client-test')) { %>
+    <a class="btn btn-info btn-sm" href="/upload.html?uploadType=logfile&log=<%- encodeURIComponent(item.testId) %>">Attach log file to test log...</a>
+<% } else { %>
+    <a class="btn btn-info btn-sm" href="/upload.html?uploadType=image&log=<%- encodeURIComponent(item.testId) %>">Attach image to test log...</a>
+<% } %>

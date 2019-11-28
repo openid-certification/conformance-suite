@@ -2,6 +2,7 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.RemoveSHashFromIdToken;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidMissingSHashError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -43,6 +44,11 @@ public class FAPIRWID2ClientTestInvalidMissingSHash extends AbstractFAPIRWID2Cli
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with a missing s_hash value from the authorization_endpoint.");
 
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidMissingSHashError.class, "FAPI-RW-5.2.3");
 	}
 
 }

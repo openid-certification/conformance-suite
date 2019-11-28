@@ -99,3 +99,17 @@ class Conformance(object):
                 raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
 
             time.sleep(1)
+
+    def upload_log_file(self, module_id, content_log_file):
+        test_entry_logs = self.get_test_log(module_id)
+
+        if len(test_entry_logs):
+            for entry in test_entry_logs:
+                if 'upload' in entry:
+                    api_url = '{0}api/log/{1}/logfile/{2}'.format(self.api_url_base, module_id, entry['upload'])
+                    response = self.requests_session.post(api_url, data=content_log_file.encode('utf-8'))
+
+                    if response.status_code != 200:
+                        raise Exception("upload_log_file failed - HTTP {:d} {}".format(response.status_code, response.content))
+        else:
+            raise Exception("Upload log_file failed, test logs is not an array - {}".format(test_entry_logs))

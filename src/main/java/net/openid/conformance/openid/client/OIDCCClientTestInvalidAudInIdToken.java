@@ -1,8 +1,7 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidAudValueToIdToken;
-import net.openid.conformance.condition.as.RemoveAudFromIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithInvalidAudError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -31,6 +30,11 @@ public class OIDCCClientTestInvalidAudInIdToken extends AbstractOIDCCClientTestE
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid aud claim.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithInvalidAudError.class);
 	}
 
 }

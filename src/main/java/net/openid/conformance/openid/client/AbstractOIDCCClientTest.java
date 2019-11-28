@@ -1065,4 +1065,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		});
 	}
 
+	protected void waitForPlaceHolderToUploadLogFileOrScreenshot() {
+		setStatus(Status.WAITING);
+		createPlaceholder();
+		waitForPlaceholders();
+	}
+
+	protected void createPlaceholder() {
+		// Use for create new placeholder in subclass
+		fireTestFailure();
+		throw new TestFailureException(getId(), "Placeholder must be created for test " + getName());
+	}
+
 }

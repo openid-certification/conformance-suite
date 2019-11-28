@@ -53,15 +53,16 @@ public class ImageAPI {
 	@Autowired
 	private ImageService imageService;
 
-	@PostMapping(path = "/log/{id}/images")
-	@ApiOperation(value = "Upload image for a test log")
+	@PostMapping(path = "/log/{id}/{uploadType}")
+	@ApiOperation(value = "Upload image or log file for a test log")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Uploaded image successfully"),
-		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(code = 200, message = "Uploaded image or log file successfully"),
+		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner")
 	})
-	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
+	public ResponseEntity<Object> uploadImageOrLogFileToNewLogEntry(@RequestBody String encoded,
 		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
-		@ApiParam(value = "Description for image") @RequestParam(name = "description", required = false) String description) throws IOException {
+		@ApiParam(value = "Upload type of test (images or logfile)") @PathVariable(name = "uploadType") String uploadType,
+		@ApiParam(value = "Description for image or log file") @RequestParam(name = "description", required = false) String description) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -75,16 +76,22 @@ public class ImageAPI {
 				.append("_id", entryId)
 				.append("testId", testId)
 				.append("testOwner", testOwner)
-				.append("src", "_image-api")
 				.append("time", new Date().getTime())
-				.append("msg", Strings.emptyToNull(description))
-				.append("img", encoded);
+				.append("msg", Strings.emptyToNull(description));
+
+			if ("images".equals(uploadType)) {
+				document.append("src", "_image-api")
+					.append("img", encoded);
+			} else {
+				document.append("src", "_log-file-api")
+					.append("logContent", encoded);
+			}
 
 			mongoTemplate.insert(document, DBEventLog.COLLECTION);
 
 			Document updated = mongoTemplate.findById(entryId, Document.class, DBEventLog.COLLECTION);
 
-			// an image was uploaded, the test needs to be reviewed
+			// an image or log file was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 			return new ResponseEntity<>(updated, HttpStatus.OK);
 		} else {
@@ -93,15 +100,16 @@ public class ImageAPI {
 
 	}
 
-	@PostMapping(path = "/log/{id}/images/{placeholder}")
-	@ApiOperation(value = "Upload the image to existing log entry")
+	@PostMapping(path = "/log/{id}/{uploadType}/{placeholder}")
+	@ApiOperation(value = "Upload the image or log file to existing log entry")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Uploaded image successfully"),
-		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(code = 200, message = "Uploaded image or log file successfully"),
+		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner")
 	})
-	public ResponseEntity<Object> uploadImageToExistingLogEntry(
-		@ApiParam(value = "Image should be encoded as a string") @RequestBody String encoded,
+	public ResponseEntity<Object> uploadImageOrLogFileToExistingLogEntry(
+		@ApiParam(value = "Image or log file should be encoded as a string") @RequestBody String encoded,
 		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
+		@ApiParam(value = "Upload type of test (images or logfile)") @PathVariable(name = "uploadType") String uploadType,
 		@ApiParam(value = "Placeholder which created when the test run") @PathVariable(name = "placeholder") String placeholder) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
@@ -109,7 +117,13 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			Map<String, Object> update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
+			Map<String, Object> update;
+
+			if ("images".equals(uploadType)) {
+				update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
+			} else {
+				update = ImmutableMap.of("logContent", encoded, "updatedAt", new Date().getTime());
+			}
 
 			Document result = imageService.fillPlaceholder(testId, placeholder, update, false);
 
@@ -124,13 +138,15 @@ public class ImageAPI {
 
 	}
 
-	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get all the images for a test")
+	@GetMapping(path = "/log/{id}/{uploadType}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get all the images or log files for a test")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner")
 	})
-	public ResponseEntity<Object> getAllImages(@ApiParam(value = "ID of test") @PathVariable(name = "id") String testId) {
+	public ResponseEntity<Object> getAllImagesOrLogFiles(
+		@ApiParam(value = "ID of test") @PathVariable(name = "id") String testId,
+		@ApiParam(value = "Upload type of test (images or logfile)") @PathVariable(name = "uploadType") String uploadType) {
 
 		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
 
@@ -139,7 +155,7 @@ public class ImageAPI {
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
 
-			List<Document> images = imageService.getAllImagesForTestId(testId, false);
+			List<Document> images = imageService.getAllImagesOrLogFilesForTestId(testId, uploadType, false);
 
 			return new ResponseEntity<>(images, HttpStatus.OK);
 		} else {

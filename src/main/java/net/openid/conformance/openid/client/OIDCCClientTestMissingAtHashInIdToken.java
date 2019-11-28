@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.AddInvalidAtHashValueToIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithMissingAtHashError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -39,6 +38,11 @@ public class OIDCCClientTestMissingAtHashInIdToken extends AbstractOIDCCClientTe
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token without an at_hash value.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithMissingAtHashError.class);
 	}
 
 }

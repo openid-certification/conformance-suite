@@ -1,7 +1,7 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
+import net.openid.conformance.condition.client.ExpectOIDCCCallbackWithInvalidNonceError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -30,6 +30,11 @@ public class OIDCCClientTestNonceInvalid extends AbstractOIDCCClientTestExpectin
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
 		return "Client has incorrectly called userinfo_endpoint after receiving an id_token with an invalid nonce value.";
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectOIDCCCallbackWithInvalidNonceError.class);
 	}
 
 }

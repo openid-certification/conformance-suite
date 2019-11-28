@@ -12,7 +12,7 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 	{
 		Object returnValue = super.handleAuthorizationEndpointRequest(requestId);
 		if(isAuthorizationCodeRequestUnexpected()) {
-			startWaitingForTimeout();
+			waitForPlaceHolderToUploadLogFileOrScreenshot();
 		}
 		return returnValue;
 	}
@@ -26,7 +26,7 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 		if(isAuthorizationCodeRequestUnexpected()) {
 			throw new TestFailureException(getId(), getAuthorizationCodeGrantTypeErrorMessage());
 		} else {
-			startWaitingForTimeout();
+			waitForPlaceHolderToUploadLogFileOrScreenshot();
 		}
 		return super.authorizationCodeGrantType(requestId);
 	}

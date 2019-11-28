@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.as.SignIdTokenInvalid;
+import net.openid.conformance.condition.client.ExpectCallbackWithInvalidSignatureError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -37,6 +38,11 @@ public class FAPIRWID2ClientTestInvalidSignature extends AbstractFAPIRWID2Client
 
 		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid signature from the authorization_endpoint.");
 
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithInvalidSignatureError.class, "OIDCC-3.1.3.7-6");
 	}
 
 }

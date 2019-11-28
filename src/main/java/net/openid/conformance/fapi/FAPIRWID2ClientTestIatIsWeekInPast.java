@@ -3,6 +3,7 @@ package net.openid.conformance.fapi;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddIatValueIsWeekInPastToIdToken;
 import net.openid.conformance.condition.as.ClientContinuedAfterReceivingIdTokenIssuedInPast;
+import net.openid.conformance.condition.client.ExpectCallbackWithIatExpiredError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import org.springframework.http.HttpStatus;
@@ -40,4 +41,8 @@ public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientE
 		return new ResponseEntity<Object>("Client has incorrectly called token_endpoint after receiving an id_token with an iat value which is a week in the past from the authorization_endpoint.", HttpStatus.BAD_REQUEST);
 	}
 
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectCallbackWithIatExpiredError.class, "OIDCC-3.1.3.7-10");
+	}
 }

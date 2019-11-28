@@ -215,11 +215,19 @@ var FAPI_UI = {
 					}),
 
 					$.get('templates/pendingImageUploader.html', function(data) {
-						FAPI_UI.logTemplates.PENDING = _.template(data);
+						FAPI_UI.logTemplates.PENDING_IMAGE = _.template(data);
 					}),
 
 					$.get('templates/existingImage.html', function(data) {
-						FAPI_UI.logTemplates.EXISTING = _.template(data);
+						FAPI_UI.logTemplates.EXISTING_IMAGE = _.template(data);
+					}),
+
+					$.get('templates/pendingLogFileUploader.html', function(data) {
+						FAPI_UI.logTemplates.PENDING_LOGFILE = _.template(data);
+					}),
+
+					$.get('templates/existingLogFile.html', function(data) {
+						FAPI_UI.logTemplates.EXISTING_LOGFILE = _.template(data);
 					}),
 
 					$.get('templates/source.html', function(data) {
@@ -444,6 +452,8 @@ var FAPI_UI = {
 
 		testJSON : {},
 
-		selectedVariant: undefined
+		selectedVariant: undefined,
+
+		testName: '',
 
 };
