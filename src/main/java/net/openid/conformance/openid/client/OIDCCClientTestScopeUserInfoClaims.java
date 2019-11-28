@@ -22,7 +22,7 @@ public class OIDCCClientTestScopeUserInfoClaims extends AbstractOIDCCClientTest 
 	protected void validateAuthorizationEndpointRequestParameters()
 	{
 		super.validateAuthorizationEndpointRequestParameters();
-		callAndStopOnFailure(EnsureScopeContainsAtLeastOneOfProfileEmailPhoneAddress.class, "FIXME");
+		callAndStopOnFailure(EnsureScopeContainsAtLeastOneOfProfileEmailPhoneAddress.class);
 	}
 
 	@Override

@@ -8,20 +8,21 @@ import net.openid.conformance.testmodule.Environment;
 
 public class AddCodeToAuthorizationEndpointResponseParams extends AbstractCondition {
 
+	private static final String AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS = "authorization_endpoint_response_params";
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_response_params", strings = "authorization_code")
-	@PostEnvironment(required = "authorization_endpoint_response_params")
+	@PreEnvironment(required = AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS, strings = "authorization_code")
+	@PostEnvironment(required = AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS)
 	public Environment evaluate(Environment env) {
 
-		JsonObject params = env.getObject("authorization_endpoint_response_params");
+		JsonObject params = env.getObject(AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS);
 
 		String code = env.getString("authorization_code");
 
 		params.addProperty("code", code);
 
-		env.putObject("authorization_endpoint_response_params", params);
+		env.putObject(AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS, params);
 
-		logSuccess("Added code to authorization endpoint response params", args("authorization_endpoint_response_params", params));
+		logSuccess("Added code to authorization endpoint response params", args(AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS, params));
 
 		return env;
 

@@ -1,7 +1,5 @@
 package net.openid.conformance.openid.client;
 
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.as.AddOnlyRS256ToIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgRS256Only;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKSWithRSAKeysOnlyAndRS256Alg;
 import net.openid.conformance.sequence.ConditionSequence;

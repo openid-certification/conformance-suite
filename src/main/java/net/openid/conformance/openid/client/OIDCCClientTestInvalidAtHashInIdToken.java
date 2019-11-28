@@ -24,8 +24,7 @@ public class OIDCCClientTestInvalidAtHashInIdToken extends AbstractOIDCCClientTe
 
 	@Override
 	protected void addAtHashToIdToken() {
-		skipIfMissing(null, new String[] { "at_hash" }, Condition.ConditionResult.INFO,
-			AddInvalidAtHashValueToIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		callAndStopOnFailure(AddInvalidAtHashValueToIdToken.class, "OIDCC-3.3.2.11");
 	}
 
 	@Override

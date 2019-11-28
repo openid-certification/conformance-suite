@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class AddInvalidSubToUserInfoResponse extends AbstractCondition {
+public class ChangeSubInUserInfoResponseToBeInvalid extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "user_info_endpoint_response")

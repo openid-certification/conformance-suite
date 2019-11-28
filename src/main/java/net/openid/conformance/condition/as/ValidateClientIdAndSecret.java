@@ -18,7 +18,8 @@ public class ValidateClientIdAndSecret extends AbstractCondition {
 		String expectedClientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientIdFromRequest)) {
-			throw error("Couldn't find client id in request");
+			throw error("Couldn't find client id in request",
+						args("client_authentication", env.getObject("client_authentication")));
 		}
 
 		if(expectedClientId.equals(clientIdFromRequest) && expectedClientSecret.equals(clientSecretFromRequest)) {

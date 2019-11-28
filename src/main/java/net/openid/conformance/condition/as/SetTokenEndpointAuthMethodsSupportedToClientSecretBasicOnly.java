@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddClientSecretJWTAuthnMethodToServerConfiguration extends AbstractCondition {
+public class SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")
@@ -15,12 +15,12 @@ public class AddClientSecretJWTAuthnMethodToServerConfiguration extends Abstract
 	public Environment evaluate(Environment env) {
 
 		JsonArray data = new JsonArray();
-		data.add("client_secret_jwt");
+		data.add("client_secret_basic");
 
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
 
-		logSuccess("Added client_secret_jwt to token_endpoint_auth_methods_supported");
+		logSuccess("Added client_secret_basic to token_endpoint_auth_methods_supported");
 
 		return env;
 	}

@@ -1,8 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.as.AddInvalidSubToUserInfoResponse;
-import net.openid.conformance.condition.as.FilterUserInfoForScopes;
+import net.openid.conformance.condition.as.ChangeSubInUserInfoResponseToBeInvalid;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -25,7 +24,7 @@ public class OIDCCClientTestInvalidSubInUserinfoResponse extends AbstractOIDCCCl
 	@Override
 	protected JsonObject prepareUserinfoResponse() {
 		super.prepareUserinfoResponse();
-		callAndStopOnFailure(AddInvalidSubToUserInfoResponse.class);
+		callAndStopOnFailure(ChangeSubInUserInfoResponseToBeInvalid.class);
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		return user;
 	}

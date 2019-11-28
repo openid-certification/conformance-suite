@@ -6,6 +6,7 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
@@ -14,7 +15,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import java.text.ParseException;
 
-public class SignIdTokenWithAlgNone extends AbstractSignJWT {
+public class SignIdTokenWithAlgNone extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "id_token_claims"})
@@ -25,10 +26,6 @@ public class SignIdTokenWithAlgNone extends AbstractSignJWT {
 		logSuccess("Created id_token with alg none", args("id_token", jwt));
 		env.putString("id_token", jwt);
 		return env;
-	}
-
-	@Override
-	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
 	}
 
 }

@@ -10,8 +10,8 @@ public class OIDCCValidateClientAuthenticationWithClientSecretPost extends Abstr
 	@Override
 	public void evaluate() {
 
-		callAndStopOnFailure(ExtractClientCredentialsFromFormPost.class, "FIXME");
+		callAndStopOnFailure(ExtractClientCredentialsFromFormPost.class);
 
-		callAndStopOnFailure(ValidateClientIdAndSecret.class, "FIXME");
+		callAndStopOnFailure(ValidateClientIdAndSecret.class);
 	}
 }

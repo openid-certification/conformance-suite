@@ -20,20 +20,20 @@ public class ValidateRedirectUriForTokenEndpointRequest extends AbstractConditio
 		String actual = env.getString("token_endpoint_request", "params.redirect_uri");
 		JsonElement redirectUrisElement = env.getElementFromObject("client", "redirect_uris");
 		if(redirectUrisElement==null) {
-			throw error("redirect_uris is undefined for the client");
+			throw error("redirect_uris is undefined for the client. Client configuration or registration request must contain redirect_uris");
 		}
 		try {
 			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
 			for(int i=0;i<redirectUris.size();i++) {
 				String uri = OIDFJSON.getString(redirectUris.get(i));
 				if(actual.equals(uri)) {
-					logSuccess("redirect_uri is one of the allowed redirect uris");
+					logSuccess("redirect_uri is one of the allowed redirect uris", args("actual", actual, "expected", redirectUris));
 					return env;
 				}
 			}
 			throw error("redirect_uri is not one of the allowed ones", args("actual", actual, "expected", redirectUris));
 		} catch (IllegalStateException ex) {
-			throw error("redirect_uris is not an array", ex);
+			throw error("redirect_uris is not an array", ex, args("redirect_uris", redirectUrisElement));
 		}
 	}
 

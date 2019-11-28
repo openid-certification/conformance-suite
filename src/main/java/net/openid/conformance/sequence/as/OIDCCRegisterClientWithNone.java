@@ -7,6 +7,6 @@ public class OIDCCRegisterClientWithNone extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(OIDCCRegisterClient.class, "FIXME");
+		callAndStopOnFailure(OIDCCRegisterClient.class);
 	}
 }

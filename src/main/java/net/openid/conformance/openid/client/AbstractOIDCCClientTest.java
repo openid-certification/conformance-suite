@@ -5,12 +5,12 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddClientSecretBasicAuthnMethodToServerConfiguration;
-import net.openid.conformance.condition.as.AddClientSecretJWTAuthnMethodToServerConfiguration;
-import net.openid.conformance.condition.as.AddClientSecretPostAuthnMethodToServerConfiguration;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddPrivateKeyJWTAuthnMethodToServerConfiguration;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -109,7 +109,8 @@ import javax.servlet.http.HttpSession;
 	"client.client_secret_jwt_alg"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"client.jwks"
+	"client.jwks",
+	"client.jwks_uri"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
 	"client.client_id",
@@ -136,8 +137,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected boolean receivedAuthorizationRequest;
 	protected boolean receivedTokenRequest;
 	protected boolean receivedUserinfoRequest;
-
-	protected boolean readyForRequestProcessing = false;
 
 	/**
 	 * for how long the test will wait for negative tests
@@ -187,7 +186,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		onBeforeFireSetupDone();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
-		readyForRequestProcessing = true;
 	}
 
 	/**
@@ -272,17 +270,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		try {
-			//why is this needed: generating new keys in configure takes some time (<1sec) and if
-			//requests are received before configure is completed framework throws an invalid state change error
-			int sleepCounter = 0;	//don't wait forever
-			while (!readyForRequestProcessing && sleepCounter<10) {
-				sleepCounter++;
-				Thread.sleep(500);
-			}
-		} catch (InterruptedException ex) {
-			//nothing
-		}
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
@@ -305,8 +292,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateTlsForIncomingHttpRequest() {
-		//callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		//callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
 	}
 
 	protected Object handleClientRequestForPath(String requestId, String path){
@@ -779,28 +764,28 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
-		addTokenEndpointAuthMethodSupported = AddPrivateKeyJWTAuthnMethodToServerConfiguration.class;
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithPrivateKeyJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithPrivateKeyJwt.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
-		addTokenEndpointAuthMethodSupported = AddClientSecretBasicAuthnMethodToServerConfiguration.class;
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretBasic.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
-		addTokenEndpointAuthMethodSupported = AddClientSecretJWTAuthnMethodToServerConfiguration.class;
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
-		addTokenEndpointAuthMethodSupported = AddClientSecretPostAuthnMethodToServerConfiguration.class;
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretPost.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
 	}

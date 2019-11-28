@@ -14,7 +14,6 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
 	public Environment evaluate(Environment env) {
-		//TODO add other options and missing values
 
 		String baseUrl = env.getString("base_url");
 		if (!baseUrl.endsWith("/")) {

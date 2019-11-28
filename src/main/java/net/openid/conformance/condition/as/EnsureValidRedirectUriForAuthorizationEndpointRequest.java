@@ -17,7 +17,7 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 	@Override
 	@PreEnvironment(required = { "client", "authorization_endpoint_request" })
 	public Environment evaluate(Environment env) {
-		// get the client ID from the configuration
+
 		JsonElement redirectUrisElement = env.getElementFromObject("client", "redirect_uris");
 		if(redirectUrisElement==null) {
 			throw error("redirect_uris is undefined for the client");
@@ -25,10 +25,11 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 		try {
 			String actual = env.getString("authorization_endpoint_request", "params.redirect_uri");
 			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
-			for(int i=0;i<redirectUris.size();i++) {
-				String uri = OIDFJSON.getString(redirectUris.get(i));
+			for(JsonElement e : redirectUris) {
+				String uri = OIDFJSON.getString(e);
 				if(actual.equals(uri)) {
-					logSuccess("redirect_uri is one of the allowed redirect uris");
+					logSuccess("redirect_uri is one of the allowed redirect uris",
+								args("actual", actual, "expected", redirectUris));
 					return env;
 				}
 			}

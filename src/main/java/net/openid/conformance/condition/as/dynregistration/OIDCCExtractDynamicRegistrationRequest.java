@@ -9,8 +9,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
-public class OIDCCExtractDynamicRegistrationRequest extends AbstractCondition
-{
+public class OIDCCExtractDynamicRegistrationRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "incoming_request"})

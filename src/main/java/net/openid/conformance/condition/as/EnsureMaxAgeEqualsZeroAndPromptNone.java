@@ -18,7 +18,7 @@ public class EnsureMaxAgeEqualsZeroAndPromptNone extends AbstractCondition {
 			logSuccess("The client sent max_age=0 and prompt=none as expected");
 			return env;
 		} else {
-			throw error("Invalid paramaters. This test requires max_age=0 and prompt=none parameters",
+			throw error("Invalid parameters. This test requires max_age=0 and prompt=none parameters",
 						args("max_age", maxAge, "prompt", prompt));
 		}
 

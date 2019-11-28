@@ -12,8 +12,8 @@ public class OIDCCValidateClientAuthenticationWithClientSecretBasic extends Abst
 	@Override
 	public void evaluate() {
 
-		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class, "FIXME");
+		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
-		callAndStopOnFailure(ValidateClientIdAndSecret.class, "FIXME");
+		callAndStopOnFailure(ValidateClientIdAndSecret.class);
 	}
 }

@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddOnlyRS256ToIdTokenSigningAlgValuesSupported extends AbstractCondition {
+public class SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")
@@ -15,12 +15,12 @@ public class AddOnlyRS256ToIdTokenSigningAlgValuesSupported extends AbstractCond
 	public Environment evaluate(Environment env) {
 
 		JsonArray data = new JsonArray();
-		data.add("RS256");
+		data.add("private_key_jwt");
 
 		JsonObject server = env.getObject("server");
-		server.add("id_token_signing_alg_values_supported", data);
+		server.add("token_endpoint_auth_methods_supported", data);
 
-		logSuccess("Set id_token_signing_alg_values_supported to RS256 only");
+		logSuccess("Added private_key_jwt to token_endpoint_auth_methods_supported");
 
 		return env;
 	}
