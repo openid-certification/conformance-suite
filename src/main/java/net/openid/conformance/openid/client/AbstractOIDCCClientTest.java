@@ -569,11 +569,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(SignIdToken.class);
 	}
 
+	// request_uri support is not implemented yet
 	protected void fetchAndProcessRequestUri() {
 		//TODO implement request_uri support
 	}
 
 	/**
+	 * // Request object support is incomplete
 	 * TODO we need to extract variables from request objects and refactor all existing code
 	 * to support both request objects and plain http requests
 	 * for example CalculateSHash only works with
@@ -581,11 +583,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void extractAuthorizationEndpointRequestParameters() {
 		if(clientRequestType == ClientRequestType.REQUEST_URI) {
-
+			// request_uri support is not implemented yet
 			fetchAndProcessRequestUri();
 
 		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
-
+			// Request object support is incomplete
 			callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 			callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 
@@ -607,6 +609,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void validateAuthorizationEndpointRequestParameters() {
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
+			// Request object support is incomplete
 			extractAndValidateRequestObject();
 		}
 
@@ -622,6 +625,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	}
 
+	// Request object support is incomplete
 	protected void extractAndValidateRequestObject() {
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
 		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4");
@@ -665,6 +669,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		if(!"none".equals(env.getString("signing_algorithm"))) {
 			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+			// Request object support is incomplete
 			/*
 			skipIfElementMissing("authorization_request_object", "claims.state", Condition.ConditionResult.INFO,
 				CalculateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
