@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: form_post submission page</title>
+    <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+</head>
+<body onload="submitform()">
+    <div>
+        <form th:action="${formAction}" method="post" enctype="application/x-www-form-urlencoded">
+            <div th:each="p : ${formParameters.keySet()}">
+                <input type="hidden" th:name="${p}" th:value="${formParameters.get(p).getAsString()}">
+            </div>
+            <input type="submit" value="Click to submit the form manually">
+        </form>
+    </div>
+
+    <footer>
+        <div>OpenID Foundation conformance suite</div>
+    </footer>
+<script>
+    function submitform(){
+        document.forms[0].submit();
+    }
+</script>
+
+</body>
+</html>

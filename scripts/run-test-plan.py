@@ -75,8 +75,22 @@ def run_test_plan(test_plan, config_file):
             state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
+                if re.match(r'(oidcc-client-.*)', module):
+                    print('Running OIDCC Client tests')
+
+                    oidcc_variant_str = json.dumps(variant)
+                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
+
+                    print('VARIANT {}'.format(oidcc_variant_str))
+                    print('MODULE_NAME {}'.format(module))
+                    print('ISSUER {}'.format(oidcc_issuer_str))
+
+                    os.putenv('VARIANT', oidcc_variant_str)
+                    os.putenv('MODULE_NAME', module)
+                    os.putenv('ISSUER', oidcc_issuer_str)
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
                 # If it's a client test, we need to run the client
-                if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
+                elif re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
@@ -770,12 +784,12 @@ if __name__ == '__main__':
 
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
-            if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) ):
+            if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m)  or re.match(r'(oidcc-client-.*)', m) ):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server':
             # Only run server test, therefore ignore all client test
-            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m):
+            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ciba':
