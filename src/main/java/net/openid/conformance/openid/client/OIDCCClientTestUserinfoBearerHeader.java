@@ -15,5 +15,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token"})
 public class OIDCCClientTestUserinfoBearerHeader extends AbstractOIDCCClientTest {
-	//no specific checks?
+	/*
+	This test might seem unnecessary but there is a matching test in the old suite
+	and we need to have a matching test in the new one
+	until Mike and/or others agree that this can be removed
+	*/
 }
