@@ -412,6 +412,11 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
         else:
             block_msg = ''
 
+        if log_entry['src'] == 'TEST-RUNNER':
+            # Ignore failures from TEST-RUNNER, so we don't have to list the
+            # expected failure twice if the test is unable to continue.
+            continue
+
         log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
         if log_result in counts:
             counts[log_result] += 1
