@@ -25,7 +25,7 @@
 
 					  <% if (item.upload) { %>
                         <% if (_.includes(FAPI_UI.testName, '-client-test')) { %>
-                            <span class="label label-warning"><span class="glyphicon glyphicon-file"></span> LOG FILE REQUIRED</span>
+                            <span class="label label-warning"><span class="glyphicon glyphicon-file"></span> IMAGE OR LOG REQUIRED</span>
                         <% } else { %>
                             <span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>
                         <% } %>
@@ -34,6 +34,10 @@
 					  <% if (item.img) { %>
 						<span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
 					  <% } %>
+
+                      <% if (item.logContent) { %>
+                        <span class="label result-review"><span class="glyphicon glyphicon-file"></span> LOG CONTENT</span>
+                      <% } %>
                     </div>
 
                     <div class="col-md-9">

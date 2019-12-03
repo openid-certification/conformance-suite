@@ -286,28 +286,28 @@
 				    	   results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
 				    });
 				    $('#testResultSummary').html(results);
-                    // count up any "image required" items
 
+                    // count up any "image or log required" items
                     var uploadCount = $('[data-image-required]').length;
                     if (uploadCount) {
+                        $('#uploadImagesCount').html(uploadCount);
+                        $('#uploadImagesCount').addClass('btn-info');
+                        $('#uploadImagesCount').removeClass('btn-default');
+
                         if (_.includes(FAPI_UI.testName, '-client-test')) {
                             $('#uploadLogFilesCount').html(uploadCount);
                             $('#uploadLogFilesCount').addClass('btn-info');
                             $('#uploadLogFilesCount').removeClass('btn-default');
-                        } else {
-                            $('#uploadImagesCount').html(uploadCount);
-                            $('#uploadImagesCount').addClass('btn-info');
-                            $('#uploadImagesCount').removeClass('btn-default');
                         }
                     } else {
+                        $('#uploadImagesCount').html('');
+                        $('#uploadImagesCount').removeClass('btn-info');
+                        $('#uploadImagesCount').addClass('btn-default');
+
                         if (_.includes(FAPI_UI.testName, '-client-test')) {
                             $('#uploadLogFilesCount').html('');
                             $('#uploadLogFilesCount').removeClass('btn-info');
                             $('#uploadLogFilesCount').addClass('btn-default');
-                        } else {
-                            $('#uploadImagesCount').html('');
-                            $('#uploadImagesCount').removeClass('btn-info');
-                            $('#uploadImagesCount').addClass('btn-default');
                         }
                     }
                  },
