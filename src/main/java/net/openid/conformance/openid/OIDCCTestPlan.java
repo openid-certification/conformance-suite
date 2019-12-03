@@ -12,7 +12,10 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCRefreshToken.class,
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
 		OIDCCEnsureRegisteredRedirectUri.class,
-		OIDCCEnsureRequestObjectWithRedirectUri.class
+		OIDCCEnsureRequestObjectWithRedirectUri.class,
+		OIDCCUserInfoGet.class,
+		OIDCCUserInfoPostBody.class,
+		OIDCCUserInfoPostHeader.class
 	}
 )
 public class OIDCCTestPlan implements TestPlan {
