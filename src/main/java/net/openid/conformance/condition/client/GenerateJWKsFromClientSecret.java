@@ -20,7 +20,6 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 	@PreEnvironment(required = "client")
 	@PostEnvironment(required = "client_jwks")
 	public Environment evaluate(Environment env) {
-		String clientId = env.getString("client", "client_id");
 		String clientSecret = env.getString("client", "client_secret");
 
 		if (Strings.isNullOrEmpty(clientSecret)) {
