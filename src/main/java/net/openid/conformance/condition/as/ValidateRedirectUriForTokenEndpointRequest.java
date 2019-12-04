@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
@@ -24,8 +23,8 @@ public class ValidateRedirectUriForTokenEndpointRequest extends AbstractConditio
 		}
 		try {
 			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
-			for(int i=0;i<redirectUris.size();i++) {
-				String uri = OIDFJSON.getString(redirectUris.get(i));
+			for(JsonElement e : redirectUris) {
+				String uri = OIDFJSON.getString(e);
 				if(actual.equals(uri)) {
 					logSuccess("redirect_uri is one of the allowed redirect uris", args("actual", actual, "expected", redirectUris));
 					return env;
