@@ -17,6 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+/** The module is a general purpose module for collecting the result from the authorization endpoint
+ *
+ * TestModules using this class will receive the full result of the redirect in processCallback().
+ */
 public abstract class AbstractRedirectServerTestModule extends AbstractTestModule {
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
