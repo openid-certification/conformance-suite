@@ -1,15 +1,14 @@
 package net.openid.conformance.condition.as;
 
-import java.text.ParseException;
-
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.text.ParseException;
 
 public class EnsureMinimumKeyLength extends AbstractCondition {
 
@@ -17,20 +16,22 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 
 	private static final int MINIMUM_KEY_LENGTH_EC = 160;
 
+	private static final String JWKS_KEY = "server_jwks";
+
 	@Override
-	@PreEnvironment(required = "server_jwks")
+	@PreEnvironment(required = JWKS_KEY)
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.getObject("server_jwks");
+		JsonObject jwks = env.getObject(JWKS_KEY);
 		if (jwks == null) {
-			throw error("Couldn't find JWKs in environment");
+			throw error("Couldn't find "+JWKS_KEY+" in environment");
 		}
 
 		JWKSet jwkset;
 		try {
 			jwkset = JWKSet.parse(jwks.toString());
 		} catch (ParseException e) {
-			throw error("Failure parsing JWK Set", e);
+			throw error("Failure parsing "+JWKS_KEY, e);
 		}
 
 		for (JWK jwk : jwkset.getKeys()) {
@@ -48,11 +49,11 @@ public class EnsureMinimumKeyLength extends AbstractCondition {
 			}
 
 			if (keyLength < minimumLength) {
-				throw error("Key length too short", args("minimum", minimumLength, "actual", keyLength, "key", jwk));
+				throw error("Key found in "+JWKS_KEY+" has fewer bits (is shorter) than required", args("minimum", minimumLength, "actual", keyLength, "key", jwk));
 			}
 		}
 
-		logSuccess("Validated minimum key lengths", args("server_jwks", jwks));
+		logSuccess("Validated minimum key lengths for "+JWKS_KEY, args(JWKS_KEY, jwks));
 
 		return env;
 	}
