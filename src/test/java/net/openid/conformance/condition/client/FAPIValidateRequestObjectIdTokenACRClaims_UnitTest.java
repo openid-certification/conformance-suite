@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
@@ -120,6 +121,30 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 		invalidAcrValues = new JsonArray();
 		invalidAcrValues.add("invalid:psd2:sca");
 		invalidAcrValues.add("invalid:psd2:ca");
+
+		acrObject.remove("values");
+		acrObject.add("values", invalidAcrValues);
+
+		addRequestObject(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithAcrValueIsMissing() {
+
+		acrObject.remove("values");
+
+		addRequestObject(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithAcrValueIsNotArray() {
+
+		JsonObject invalidAcrValues = new JsonObject();
+		invalidAcrValues.addProperty("invalidAcr", "invalid:psd2:sca");
 
 		acrObject.remove("values");
 		acrObject.add("values", invalidAcrValues);
