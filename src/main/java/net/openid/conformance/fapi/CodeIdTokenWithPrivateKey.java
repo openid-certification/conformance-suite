@@ -2,7 +2,7 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.ValidateClientSigningKeySize;
+import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
@@ -92,7 +92,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 	protected void setupClient() {
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// get the second client and second JWKs Key
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
@@ -102,7 +102,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndContinueOnFailure(ValidateClientSigningKeySize.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();

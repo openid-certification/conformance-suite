@@ -3,7 +3,7 @@ package net.openid.conformance.condition.as;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateClientSigningKeySize extends AbstractEnsureMinimumKeyLength {
+public class FAPIEnsureMinimumClientKeyLength extends AbstractEnsureMinimumKeyLength {
 
 	private static final int MINIMUM_KEY_LENGTH_RSA = 2048;
 

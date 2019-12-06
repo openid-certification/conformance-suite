@@ -3,7 +3,7 @@ package net.openid.conformance.sequence.as;
 import net.openid.conformance.condition.as.EnsureClientAssertionTypeIsJwt;
 import net.openid.conformance.condition.as.ExtractClientAssertion;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
-import net.openid.conformance.condition.as.ValidateClientSigningKeySize;
+import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey extends AbstractConditionSequence {
@@ -17,6 +17,6 @@ public class ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey ext
 
 		callAndStopOnFailure(ValidateClientAssertionClaims.class, "RFC7523-3");
 
-		callAndStopOnFailure(ValidateClientSigningKeySize.class,"FAPI-R-5.2.2.5");
+		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI-R-5.2.2.5");
 	}
 }
