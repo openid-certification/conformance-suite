@@ -56,13 +56,11 @@ public class FAPIRWID2EnsureResponseModeQuery extends AbstractFAPIRWID2Expecting
 	@Override
 	protected void processCallback() {
 
-		// FAPI-RW always requires the hybrid flow, use the hash as the response
-		env.mapKey("authorization_endpoint_response", "callback_params");
-
 		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
-		// This call may map authorization_endpoint_response onto callback_query_params if appropriate
-		callAndContinueOnFailure(CheckAuthorizationResponseWhenResponseModeQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+		// This call will map authorization_endpoint_response onto callback_query_params or callback_params depending
+		// what response the server decided to return and where
+		callAndStopOnFailure(CheckAuthorizationResponseWhenResponseModeQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		JsonObject authorizationEndpointResponse = env.getObject("authorization_endpoint_response");
 

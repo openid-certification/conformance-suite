@@ -68,6 +68,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.RejectNonJarmResponsesInUrlQuery;
+import net.openid.conformance.condition.client.RejectStateInUrlQueryForHybridFlow;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
@@ -388,6 +389,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void onAuthorizationCallbackResponse() {
 
 		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+
+		callAndContinueOnFailure(RejectStateInUrlQueryForHybridFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 

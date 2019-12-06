@@ -12,7 +12,7 @@ public class AddRedirectUriQuerySuffix extends AbstractCondition {
 
 		env.putString("redirect_uri_suffix", redirectUriSuffix);
 
-		logSuccess("Created redirect URI query suffix", args("redirect_uri_suffix", redirectUriSuffix));
+		logSuccess("Created redirect URI query suffix to test that query sections in the registered redirect url are handled correctly. The redirect url, including this suffix, must be registered for the client as per http://openid.net/certification/fapi_op_testing/", args("redirect_uri_suffix", redirectUriSuffix));
 
 		return env;
 	}

@@ -220,8 +220,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals(ACCOUNTS_PATH)) {
-			return accountsEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPIProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
 		} else {
