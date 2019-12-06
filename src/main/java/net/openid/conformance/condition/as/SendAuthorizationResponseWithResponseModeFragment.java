@@ -31,6 +31,8 @@ public class SendAuthorizationResponseWithResponseModeFragment extends AbstractC
 
 		String redirectTo = redirectUri + "#" + paramsAsString;
 
+		logSuccess("Redirecting back to client", args("uri", redirectTo));
+
 		env.putString("authorization_endpoint_response_redirect", redirectTo);
 
 		return env;

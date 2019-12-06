@@ -7,6 +7,10 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
@@ -38,7 +42,6 @@ import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
-import net.openid.conformance.condition.as.RedirectBackToClientWithAuthorizationCodeAndIdToken;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
@@ -445,7 +448,13 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		addCustomSignatureOfIdToken();
 
-		callAndStopOnFailure(RedirectBackToClientWithAuthorizationCodeAndIdToken.class, "OIDCC-3.3.2.5");
+		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
+
+		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+
+		callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+
+		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
 
 		exposeEnvString("authorization_endpoint_response_redirect");
 
