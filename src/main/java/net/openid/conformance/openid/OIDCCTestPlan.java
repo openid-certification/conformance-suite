@@ -13,6 +13,11 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
 		OIDCCEnsureRegisteredRedirectUri.class,
 		OIDCCEnsureRequestObjectWithRedirectUri.class,
+		OIDCCScopeAddress.class,
+		OIDCCScopeAll.class,
+		OIDCCScopeEmail.class,
+		OIDCCScopePhone.class,
+		OIDCCScopeProfile.class,
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
 		OIDCCUserInfoPostHeader.class
