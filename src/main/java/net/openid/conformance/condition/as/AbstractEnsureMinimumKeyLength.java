@@ -38,7 +38,7 @@ public abstract class AbstractEnsureMinimumKeyLength extends AbstractCondition {
 			}
 
 			if (keyLength < minimumLength) {
-				throw error("Key found in "+ jwksKey +" has fewer bits (is shorter) than required", args("minimum", minimumLength, "actual", keyLength, "key", jwk));
+				throw error("Key found in "+ jwksKey +" has fewer bits (is shorter) than required", args("minimum", minimumLength, "actual", keyLength, "key", jwk.toJSONString()));
 			}
 		}
 
