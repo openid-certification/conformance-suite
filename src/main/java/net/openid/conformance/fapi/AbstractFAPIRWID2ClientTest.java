@@ -28,7 +28,7 @@ import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchReq
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUri;
-import net.openid.conformance.condition.as.EnsureMinimumKeyLength;
+import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
@@ -163,7 +163,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
-		callAndStopOnFailure(EnsureMinimumKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
+		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 

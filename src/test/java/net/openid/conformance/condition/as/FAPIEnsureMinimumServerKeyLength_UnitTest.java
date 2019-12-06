@@ -20,7 +20,7 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureMinimumKeyLength_UnitTest {
+public class FAPIEnsureMinimumServerKeyLength_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -28,7 +28,7 @@ public class EnsureMinimumKeyLength_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureMinimumKeyLength cond;
+	private FAPIEnsureMinimumServerKeyLength cond;
 
 	private String rsa1024 = "{" +
 		"\"kty\":\"RSA\"," +
@@ -62,7 +62,7 @@ public class EnsureMinimumKeyLength_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureMinimumKeyLength();
+		cond = new FAPIEnsureMinimumServerKeyLength();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
