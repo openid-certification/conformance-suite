@@ -1,12 +1,18 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddPromptLoginToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest;
 import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIProfile;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-user-rejects-authentication",
@@ -34,11 +40,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2MultipleClient {
 
 	@Override
-	protected void createAuthorizationRequest() {
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		// Add length state with 128
+		Command cmd = new Command();
+		cmd.putInteger("requested_state_length", 128);
 
-		env.putInteger("requested_state_length", 128);
+		ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
+			.insertBefore(CreateRandomStateValue.class, cmd);
 
-		super.createAuthorizationRequest();
+		if (getVariant(FAPIProfile.class) != FAPIProfile.OPENBANKING_UK) {
+			conditionSequence.insertAfter(AddNonceToAuthorizationEndpointRequest.class, condition(AddPromptLoginToAuthorizationEndpointRequest.class));
+		}
+
+		return conditionSequence;
 	}
 
 	@Override
