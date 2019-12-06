@@ -6,10 +6,7 @@ import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-/**
- * TODO extend ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey from this?
- */
-public class OIDCCValidateClientAuthenticationWithPrivateKeyJWT extends AbstractConditionSequence {
+public class ValidateClientAuthenticationWithPrivateKeyJWT extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {

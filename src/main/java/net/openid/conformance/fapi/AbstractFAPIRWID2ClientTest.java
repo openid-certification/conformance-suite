@@ -75,7 +75,7 @@ import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationC
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
 import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
-import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -564,7 +564,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWTAndMTLSHolderOfKey.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
 	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
