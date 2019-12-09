@@ -24,7 +24,7 @@ import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUri;
+import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
@@ -399,13 +399,13 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 
+		callAndStopOnFailure(EnsureMatchingRedirectUriInRequestObject.class);
+
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2.1");
 
 		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1");
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
-
-		callAndStopOnFailure(EnsureMatchingRedirectUri.class);
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
