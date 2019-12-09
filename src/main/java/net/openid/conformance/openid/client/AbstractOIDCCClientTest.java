@@ -66,7 +66,7 @@ import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithC
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretJWT;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithNone;
-import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithPrivateKeyJWT;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -770,7 +770,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithPrivateKeyJWT.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithPrivateKeyJwt.class;
 	}
 
