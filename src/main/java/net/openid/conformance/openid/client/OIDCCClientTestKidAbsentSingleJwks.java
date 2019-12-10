@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -20,4 +21,8 @@ public class OIDCCClientTestKidAbsentSingleJwks extends AbstractOIDCCClientTest 
 		callAndStopOnFailure(OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId.class);
 	}
 
+	@Override
+	protected void validateConfiguredServerJWKS() {
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+	}
 }

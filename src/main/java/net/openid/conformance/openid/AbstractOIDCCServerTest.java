@@ -72,6 +72,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
@@ -167,6 +168,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		public void evaluate() {
 			callAndStopOnFailure(ValidateClientJWKsPrivatePart .class, "RFC7517-1.1");
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration .class);
+			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		}
 	}
 
@@ -275,7 +277,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 
 		// Set up the client configuration
 		configureClient();
@@ -318,6 +320,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void createDynamicClientRegistrationRequest() {
 
 		callAndStopOnFailure(GenerateRS256ClientJWKs.class);
+
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);

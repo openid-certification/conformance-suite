@@ -28,9 +28,9 @@ public abstract class AbstractCheckDistinctKeyIdValueInJWKs extends AbstractCond
 				throw error("invalid key in JWKs, not a JSON object", args("key", key));
 			}
 
-			String keyId = OIDFJSON.getString(key.getAsJsonObject().get("kid"));
-			if (!keyIdSets.add(keyId)) {
-				throw error("'kid' value is used more than once in server JWKs", args("kid_duplicate", keyId, "keys", keys));
+			JsonElement keyIdElement = key.getAsJsonObject().get("kid");
+			if (keyIdElement != null && !keyIdSets.add(OIDFJSON.getString(keyIdElement))) {
+				throw error("'kid' value is used more than once in server JWKs", args("kid_duplicate", OIDFJSON.getString(keyIdElement), "keys", keys));
 			}
 		}
 

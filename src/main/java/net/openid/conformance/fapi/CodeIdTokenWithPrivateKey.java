@@ -62,6 +62,7 @@ import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateSHash;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
@@ -92,6 +93,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 	protected void setupClient() {
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
 		// get the second client and second JWKs Key
@@ -102,6 +104,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		env.mapKey("client_jwks", "client_jwks2");
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");

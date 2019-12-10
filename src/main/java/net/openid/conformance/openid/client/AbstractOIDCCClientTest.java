@@ -52,6 +52,8 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
@@ -222,6 +224,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected void validateConfiguredServerJWKS() {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 	}
 
 	/**
@@ -257,6 +260,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 			// for signing request objects
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		}
 	}
 
