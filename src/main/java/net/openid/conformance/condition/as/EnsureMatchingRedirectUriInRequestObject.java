@@ -6,14 +6,14 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EnsureMatchingRedirectUri extends AbstractCondition {
+public class EnsureMatchingRedirectUriInRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "client", "authorization_endpoint_request" })
+	@PreEnvironment(required = { "client", "authorization_request_object" })
 	public Environment evaluate(Environment env) {
 		// get the client ID from the configuration
 		String expected = env.getString("client", "redirect_uri");
-		String actual = env.getString("authorization_endpoint_request", "params.redirect_uri");
+		String actual = env.getString("authorization_request_object", "claims.redirect_uri");
 
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess("Redirect URI matched",
