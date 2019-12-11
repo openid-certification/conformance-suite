@@ -698,6 +698,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 		}
 
+		if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
+			// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
+			performFinalCleanup();
+		}
+
 		this.status = newStatus;
 		testInfo.updateTestStatus(getId(), newStatus);
 
@@ -775,6 +780,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			logFinalEnv();
 		}
 
+		// This might interrupt the current thread, so don't do any logging after this
+		getTestExecutionManager().clearBackgroundTasks();
+	}
+
+	protected void performFinalCleanup() {
 		if (!cleanupCalled) {
 			logger.info("Performing final clean-up");
 			try {
@@ -785,9 +795,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				cleanupCalled = true;
 			}
 		}
-
-		// This might interrupt the current thread, so don't do any logging after this
-		getTestExecutionManager().clearBackgroundTasks();
 	}
 
 	@Override
