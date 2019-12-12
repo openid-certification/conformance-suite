@@ -512,7 +512,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	public void unregisterClient() {
-		eventLog.startBlock("Unregister dynamically registered client");
+		eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
 
 		skipIfMissing(new String[] {"client"},
 			new String[] {"registration_client_uri", "registration_access_token"},
