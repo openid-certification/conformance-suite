@@ -19,7 +19,10 @@ public class CreateAuthorizationEndpointResponseParams extends AbstractCondition
 			redirectUri = env.getString("authorization_endpoint_request", "params.redirect_uri");
 		}
 
-		String state = env.getString("authorization_endpoint_request", "params.state");
+		String state = env.getString("authorization_request_object", "claims.state");
+		if (Strings.isNullOrEmpty(state)) {
+			state = env.getString("authorization_endpoint_request", "params.state");
+		}
 
 		JsonObject responseParams = new JsonObject();
 		responseParams.addProperty("redirect_uri", redirectUri);
