@@ -288,9 +288,17 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
+		// Perform any custom configuration
+		onConfigure(config, baseUrl);
+
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void onConfigure(JsonObject config, String baseUrl) {
+
+		// No custom configuration
 	}
 
 	protected void configureClient() {
@@ -376,18 +384,25 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		eventLog.endBlock();
 	}
 
+	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+
+			callAndStopOnFailure(CreateRandomStateValue.class);
+			exec().exposeEnvironmentString("state");
+			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+			callAndStopOnFailure(CreateRandomNonceValue.class);
+			exec().exposeEnvironmentString("nonce");
+			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
+		}
+	}
+
 	protected void createAuthorizationRequest() {
-		callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
-
-		callAndStopOnFailure(CreateRandomStateValue.class);
-		exposeEnvString("state");
-		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(CreateRandomNonceValue.class);
-		exposeEnvString("nonce");
-		callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
-
-		callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
+		call(new CreateAuthorizationRequestSteps());
 	}
 
 	protected void createAuthorizationRedirect() {

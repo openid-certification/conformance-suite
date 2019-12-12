@@ -219,7 +219,7 @@ def show_plan_results(plan_result, analyzed_result):
 
         status_coloured = info['status']
 
-        if info['status'] != 'FINISHED':
+        if info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
             status_coloured = redbg(status_coloured)
             incomplete += 1
 
@@ -323,7 +323,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
         if module in untested_test_modules:
             untested_test_modules.remove(module)
 
-        if info['status'] != 'FINISHED':
+        if info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
             incomplete += 1
         if 'result' not in info:
             info['result'] = 'UNKNOWN'
@@ -412,6 +412,11 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
         else:
             block_msg = ''
 
+        if log_entry['src'] == 'TEST-RUNNER':
+            # Ignore failures from TEST-RUNNER, so we don't have to list the
+            # expected failure twice if the test is unable to continue.
+            continue
+
         log_result = log_entry['result']  # contains WARNING/FAILURE/INFO/etc
         if log_result in counts:
             counts[log_result] += 1
@@ -468,7 +473,7 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
             counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
 
     for expected_skip_obj in test_expected_skips:
-        if test_result == 'SKIPPED':
+        if test_result == 'SKIPPED' or test_result == 'FAILED':
             expected_skip = True
             expected_skips_list.remove(expected_skip_obj)
         else:

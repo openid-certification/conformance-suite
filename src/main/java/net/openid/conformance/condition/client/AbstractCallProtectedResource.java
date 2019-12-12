@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -67,11 +68,23 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		return new HttpHeaders();
 	}
 
+	protected MediaType getMediaType(Environment env) {
+
+		return MediaType.APPLICATION_FORM_URLENCODED;
+	}
+
+	protected Object getBody(Environment env) {
+
+		return null;
+	}
+
 	protected Environment callProtectedResource(Environment env) {
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
+			String uri = getUri(env);
+			HttpMethod method = getMethod(env);
 			HttpHeaders headers = getHeaders(env);
 
 			if (headers.getAccept().isEmpty()) {
@@ -79,9 +92,13 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			}
 
-			HttpEntity<?> request = new HttpEntity<>(headers);
+			if (method == HttpMethod.POST) {
+				headers.setContentType(getMediaType(env));
+			}
 
-			ResponseEntity<String> response = restTemplate.exchange(getUri(env), getMethod(env), request, String.class);
+			HttpEntity<?> request = new HttpEntity<>(getBody(env), headers);
+
+			ResponseEntity<String> response = restTemplate.exchange(uri, method, request, String.class);
 			JsonObject responseCode = new JsonObject();
 			responseCode.addProperty("code", response.getStatusCodeValue());
 			String responseBody = response.getBody();
