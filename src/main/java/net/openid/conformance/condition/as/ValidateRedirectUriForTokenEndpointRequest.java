@@ -20,6 +20,13 @@ public class ValidateRedirectUriForTokenEndpointRequest extends AbstractConditio
 		String expected = env.getString("authorization_endpoint_request_redirect_uri");
 
 		if(Strings.isNullOrEmpty(actual)) {
+			/*
+			TODO: should we allow no redirect_uri case when there is only one registered redirect_uri
+			OIDC 3.1.3.2 says:
+			 If the redirect_uri parameter value is not present when there is only one registered redirect_uri value,
+			 the Authorization Server MAY return an error (since the Client should have included the parameter) or
+			 MAY proceed without an error (since OAuth 2.0 permits the parameter to be omitted in this case).
+			*/
 			throw error("redirect_uri is null or empty",
 						args("token_endpoint_request", env.getObject("token_endpoint_request")));
 		}
