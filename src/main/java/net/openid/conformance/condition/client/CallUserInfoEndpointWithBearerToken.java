@@ -1,7 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import org.springframework.web.client.RestClientResponseException;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
@@ -38,16 +36,5 @@ public class CallUserInfoEndpointWithBearerToken extends AbstractCallProtectedRe
 
 		logSuccess("Got a response from the userinfo endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
 		return env;
-	}
-
-	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
-		int code = e.getRawStatusCode();
-		if (code == 405) {
-			env.putInteger("userinfo_endpoint_response_code", code);
-			log("Userinfo endpoint returned a \"method not allowed\" error", args("code", code, "status", e.getStatusText()));
-			return env;
-		} else {
-			return super.handleClientResponseException(env, e);
-		}
 	}
 }

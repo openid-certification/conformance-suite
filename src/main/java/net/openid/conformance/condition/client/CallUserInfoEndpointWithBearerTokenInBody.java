@@ -4,6 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientResponseException;
 
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -37,4 +38,15 @@ public class CallUserInfoEndpointWithBearerTokenInBody extends CallUserInfoEndpo
 		return body;
 	}
 
+	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
+		int code = e.getRawStatusCode();
+		if (code == 405) {
+			// Allow the test to be skipped if the endpoint does not support token-in-body per RFC6750-2.2
+			env.putInteger("userinfo_endpoint_response_code", code);
+			log("Userinfo endpoint returned a \"method not allowed\" error", args("code", code, "status", e.getStatusText()));
+			return env;
+		} else {
+			return super.handleClientResponseException(env, e);
+		}
+	}
 }
