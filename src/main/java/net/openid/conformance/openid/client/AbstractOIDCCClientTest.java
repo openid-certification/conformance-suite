@@ -14,6 +14,9 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
+import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
+import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
@@ -27,6 +30,7 @@ import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
+import net.openid.conformance.condition.as.FetchClientKeys;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
@@ -46,6 +50,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
+import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUri;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
@@ -130,6 +135,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected ResponseMode responseMode;
 	protected ClientRequestType clientRequestType;
 	protected ClientRegistration clientRegistrationType;
+	protected ClientAuthType clientAuthType;
 
 	protected boolean receivedDiscoveryRequest;
 	protected boolean receivedJwksRequest;
@@ -165,6 +171,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		clientRequestType = getVariant(ClientRequestType.class);
 
 		clientRegistrationType = getVariant(ClientRegistration.class);
+
+		clientAuthType = getVariant(ClientAuthType.class);
 
 		configureServerConfiguration();
 
@@ -250,17 +258,57 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void configureClientConfiguration() {
 		if(clientRegistrationType == ClientRegistration.STATIC_CLIENT) {
 			callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
+			processAndValidateClientJwks();
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
+			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
 		}
 
-		if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
-			callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
-			// for signing request objects
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		}
 	}
+
+	//TODO may be incomplete or excessive
+	protected boolean isClientJwksNeeded() {
+		if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
+			return true;
+		}
+		//or clientAuthType == ClientAuthType.self_signed_tls_client_auth
+		if( clientAuthType == ClientAuthType.PRIVATE_KEY_JWT ) {
+			return true;
+		}
+
+		JsonObject client = env.getObject("client");
+		String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
+		if(requestObjectSigningAlg!=null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
+			return true;
+		}
+
+		//id_token_encrypted_response_alg
+		String idTokenEncRespAlg = OIDFJSON.getString(client.get("id_token_encrypted_response_alg"));
+		if(idTokenEncRespAlg!=null && idTokenEncRespAlg.matches("^(RSA|ECDH)")) {
+			return true;
+		}
+
+		//userinfo_encrypted_response_alg
+		String userinfoEncRespAlg = OIDFJSON.getString(client.get("userinfo_encrypted_response_alg"));
+		if(userinfoEncRespAlg!=null && userinfoEncRespAlg.matches("^(RSA|ECDH)")) {
+			return true;
+		}
+
+		//introspection_encrypted_response_alg
+		String introspectionEncRespAlg = OIDFJSON.getString(client.get("introspection_encrypted_response_alg"));
+		if(introspectionEncRespAlg!=null && introspectionEncRespAlg.matches("^(RSA|ECDH)")) {
+			return true;
+		}
+
+		//authorization_encrypted_response_alg
+		String authzEncRespAlg = OIDFJSON.getString(client.get("authorization_encrypted_response_alg"));
+		if(authzEncRespAlg!=null && authzEncRespAlg.matches("^(RSA|ECDH)")) {
+			return true;
+		}
+
+		return false;
+	}
+
 
 	@Override
 	public void start() {
@@ -498,6 +546,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * @return
 	 */
 	protected JsonObject registerClient() {
+		callAndStopOnFailure(OIDCCRegisterClient.class);
+
 		if(clientRegistrationSteps!=null) {
 			call(sequence(clientRegistrationSteps));
 		}
@@ -505,8 +555,49 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(additionalSteps!=null) {
 			call(sequence(additionalSteps));
 		}
+		processAndValidateClientJwks();
+
 		JsonObject client = env.getObject("client");
 		return client;
+	}
+
+	/**
+	 * - runs basic checks
+	 * - fetches jwks_uri if provided
+	 * - calls validateClientJwks()
+	 */
+	protected void processAndValidateClientJwks() {
+		boolean clientJwksNeeded = isClientJwksNeeded();
+		if(clientJwksNeeded) {
+			//initial validation
+			callAndStopOnFailure(EnsureClientHasJwksOrJwksUri.class);
+		}
+		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class);
+
+		//TODO should jwks_uri download be skipped if jwks won't be needed?
+		//fetch client jwks from jwks_uri, if a jwks_uri is found
+		fetchClientJwksFromJwksUri();
+
+		//at this point jwks has been downloaded from jwks_uri and added to client.jwks
+		if(clientJwksNeeded) {
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+			validateClientJwks();
+		}
+	}
+
+	protected void validateClientJwks() {
+		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
+		//TODO add requirements
+		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
+	}
+
+
+	protected void fetchClientJwksFromJwksUri() {
+		//TODO add requirements
+		skipIfElementMissing("client", "jwks_uri", Condition.ConditionResult.INFO, FetchClientKeys.class,
+			Condition.ConditionResult.FAILURE);
+
 	}
 
 	protected void validateAuthorizationCodeGrantType() {
@@ -621,11 +712,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 
-		callAndStopOnFailure(EnsureValidRedirectUriForAuthorizationEndpointRequest.class);
+		callAndStopOnFailure(EnsureValidRedirectUriForAuthorizationEndpointRequest.class, "OIDCC-3.1.2.1");
 
 		endTestIfRequiredAuthorizationRequestParametersAreMissing();
 
-		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI-R-5.2.3-7");
+		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "OIDCC-3.1.2.1");
 
 	}
 

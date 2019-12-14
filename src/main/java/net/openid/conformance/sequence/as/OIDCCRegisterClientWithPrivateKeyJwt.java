@@ -7,7 +7,7 @@ public class OIDCCRegisterClientWithPrivateKeyJwt extends AbstractConditionSeque
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(OIDCCRegisterClient.class);
-		//TODO will add checks listed at https://gitlab.com/openid/conformance-suite/merge_requests/779#note_250447328 in another MR
+		//AbstractOIDCCClientTest will perform jwks validation
+		//This method is still a stub/placeholder
 	}
 }
