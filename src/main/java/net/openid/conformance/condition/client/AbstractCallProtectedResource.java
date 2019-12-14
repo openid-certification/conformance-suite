@@ -93,6 +93,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			}
 
 			if (method == HttpMethod.POST) {
+				// See https://bitbucket.org/openid/connect/issues/1137/is-content-type-application-x-www-form
 				headers.setContentType(getMediaType(env));
 			}
 

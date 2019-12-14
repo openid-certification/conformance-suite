@@ -19,7 +19,6 @@ public class AbstractOIDCCRequestObjectServerTest extends AbstractOIDCCServerTes
 
 			callAndStopOnFailure(AddIssToRequestObject.class);
 
-			// TODO: this needs to be variant-based
 			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 
 			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);

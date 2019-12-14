@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerToken;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsSub;
 import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
+import net.openid.conformance.condition.client.ValidateUserInfoStandardClaims;
 
 public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest {
 
@@ -20,6 +21,7 @@ public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest 
 	}
 
 	protected void validateUserInfoResponse() {
+		callAndContinueOnFailure(ValidateUserInfoStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureUserInfoContainsSub.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
 	}
 
