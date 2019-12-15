@@ -22,23 +22,32 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantNotApplicable(parameter = ResponseType.class, values = {"id_token token", "id_token"})
 public class OIDCCClientTestClientSecretBasic extends AbstractOIDCCClientTest {
 
+	@Override
 	@VariantSetup(parameter = ClientAuthType.class, value = "none")
 	public void setupClientAuthNone() {
 		setupClientSecretBasic();
 	}
 
+	@Override
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		setupClientSecretBasic();
 	}
 
+	@Override
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
 		setupClientSecretBasic();
 	}
 
+	@Override
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		setupClientSecretBasic();
+	}
+
+	@Override
+	protected ClientAuthType getEffectiveClientAuthTypeVariant() {
+		return ClientAuthType.CLIENT_SECRET_BASIC;
 	}
 }

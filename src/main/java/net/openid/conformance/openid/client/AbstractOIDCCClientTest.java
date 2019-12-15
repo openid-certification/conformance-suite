@@ -155,6 +155,22 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
 	protected Class<? extends ConditionSequence> clientRegistrationSteps;
 
+	protected ResponseType getEffectiveResponseTypeVariant() {
+		return getVariant(ResponseType.class);
+	}
+	protected ResponseMode getEffectiveResponseModeVariant() {
+		return getVariant(ResponseMode.class);
+	}
+	protected ClientRequestType getEffectiveClientRequestTypeVariant() {
+		return getVariant(ClientRequestType.class);
+	}
+	protected ClientRegistration getEffectiveClientRegistrationVariant() {
+		return getVariant(ClientRegistration.class);
+	}
+	protected ClientAuthType getEffectiveClientAuthTypeVariant() {
+		return getVariant(ClientAuthType.class);
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -163,16 +179,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(config.has("waitTimeoutSeconds")) {
 			waitTimeoutSeconds = OIDFJSON.getInt(config.get("waitTimeoutSeconds"));
 		}
-		responseType = getVariant(ResponseType.class);
+		responseType = getEffectiveResponseTypeVariant();
 		env.putString("response_type", responseType.toString());
 
-		responseMode = getVariant(ResponseMode.class);
+		responseMode = getEffectiveResponseModeVariant();
 
-		clientRequestType = getVariant(ClientRequestType.class);
+		clientRequestType = getEffectiveClientRequestTypeVariant();
 
-		clientRegistrationType = getVariant(ClientRegistration.class);
+		clientRegistrationType = getEffectiveClientRegistrationVariant();
 
-		clientAuthType = getVariant(ClientAuthType.class);
+		clientAuthType = getEffectiveClientAuthTypeVariant();
 
 		configureServerConfiguration();
 
