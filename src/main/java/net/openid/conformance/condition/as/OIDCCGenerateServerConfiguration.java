@@ -35,10 +35,6 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 
 		addGrantTypes(server);
 
-		server.addProperty("request_parameter_supported", true);
-		server.addProperty("request_uri_parameter_supported", true);
-
-
 		// add this as the server configuration
 		env.putObject("server", server);
 		logSuccess("Generated server configuration", args("server_configuration", server));

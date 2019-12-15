@@ -7,18 +7,20 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
-import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
+import net.openid.conformance.condition.as.EnsureRequestDoesNotContainRequestObject;
+import net.openid.conformance.condition.as.EnsureRequestUriIsHttpsOrRequestObjectIsSigned;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdTokenToken;
@@ -31,14 +33,21 @@ import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FetchClientKeys;
+import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.OIDCCCalculateSHash;
+import net.openid.conformance.condition.as.OIDCCCreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestContainsOpenIDScope;
+import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
+import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
+import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly;
@@ -258,6 +267,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected void onServerConfigurationCompleted() {
 		//fapi would call callAndStopOnFailure(CheckServerConfiguration.class); here
+		switch(clientRequestType) {
+			case REQUEST_OBJECT:
+				callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.1");
+				break;
+			case REQUEST_URI:
+				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
+				break;
+		}
 	}
 
 	/**
@@ -483,7 +500,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateUserinfoRequest() {
 		extractBearerTokenFromUserinfoRequest();
 		callAndStopOnFailure(RequireBearerAccessToken.class);
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
+		//TODO is this necessary? (left over from the FAPI test)
+		callAndStopOnFailure(RequireOpenIDScope.class);
 	}
 
 	/**
@@ -648,6 +666,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			}
 			addCHashToIdToken();
 			addAtHashToIdToken();
+			addSHashToIdToken();
 		}
 
 		addCustomValuesToIdToken();
@@ -655,6 +674,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		signIdToken();
 
 		customizeIdTokenSignature();
+	}
+
+	//TODO is s_hash needed for core tests?
+	protected void addSHashToIdToken() {
+		skipIfElementMissing("authorization_endpoint_request", "params.state", Condition.ConditionResult.INFO,
+			OIDCCCalculateSHash.class, Condition.ConditionResult.FAILURE);
+		skipIfMissing(null, new String[] { "s_hash" }, Condition.ConditionResult.INFO,
+			AddSHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE);
 	}
 
 	protected void addAtHashToIdToken() {
@@ -688,30 +715,35 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(SignIdToken.class);
 	}
 
-	// request_uri support is not implemented yet
 	protected void fetchAndProcessRequestUri() {
-		//TODO implement request_uri support
+		callAndStopOnFailure(FetchRequestUriAndExtractRequestObject.class, "OIDCC-6.2");
+		callAndStopOnFailure(EnsureRequestUriIsHttpsOrRequestObjectIsSigned.class, "OIDCC-6.2");
 	}
 
 	/**
-	 * // Request object support is incomplete
-	 * TODO we need to extract variables from request objects and refactor all existing code
-	 * to support both request objects and plain http requests
-	 * for example CalculateSHash only works with
-	 * String state = env.getString("authorization_request_object", "claims.state");
+	 * note that we will ignore request or request_uri parameters
+	 * if ClientRequestType configuration does not match.
+	 * e.g if select plain_http_request but send a request_uri parameter then request_uri will be ignored
 	 */
 	protected void extractAuthorizationEndpointRequestParameters() {
 		if(clientRequestType == ClientRequestType.REQUEST_URI) {
-			// request_uri support is not implemented yet
 			fetchAndProcessRequestUri();
-
 		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
-			// Request object support is incomplete
-			callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
-			callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
-
+			callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
 		} else {
 			//handle plain http request case
+			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
+		}
+		//this must be before the env.mapKey call
+		callAndStopOnFailure(OIDCCEnsureAuthorizationRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
+
+		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
+			validateRequestObject();
+			callAndStopOnFailure(OIDCCEnsureAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
+
+			callAndStopOnFailure(OIDCCCreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
+			//from this point on authorization_endpoint_request does not point to the http request
+			env.mapKey("authorization_endpoint_request", "effective_authorization_endpoint_request");
 		}
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
@@ -727,10 +759,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * end the test here if required parameters are missing
 	 */
 	protected void validateAuthorizationEndpointRequestParameters() {
-		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
-			// Request object support is incomplete
-			extractAndValidateRequestObject();
-		}
 
 		validateResponseTypeAuthorizationRequestParameter();
 
@@ -744,12 +772,20 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	}
 
-	// Request object support is incomplete
-	protected void extractAndValidateRequestObject() {
-		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
+	protected void validateRequestObject() {
 		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2.1");
+		String alg = env.getString("authorization_request_object", "header.alg");
+		if(allowUnsignedRequestObjects() && "none".equals(alg)) {
+			//TODO TBD if we should do something
+		} else {
+			callAndStopOnFailure(ValidateRequestObjectSignature.class, "OIDCC-6.1");
+		}
+	}
+
+	//TODO implement checks and allow unsigned request objects when appropriate
+	protected boolean allowUnsignedRequestObjects() {
+		return true;
 	}
 
 	protected void validateResponseTypeAuthorizationRequestParameter() {
@@ -788,11 +824,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		if(!"none".equals(env.getString("signing_algorithm"))) {
 			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
-			// Request object support is incomplete
-			/*
-			skipIfElementMissing("authorization_request_object", "claims.state", Condition.ConditionResult.INFO,
-				CalculateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-			*/
 		}
 	}
 
