@@ -512,6 +512,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateAuthorizationCodeGrantType() {
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
+		callAndStopOnFailure(ValidateRedirectUriForTokenEndpointRequest.class);
+
 		generateAccessToken();
 	}
 

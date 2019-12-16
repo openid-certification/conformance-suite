@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -16,6 +17,7 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 
 	@Override
 	@PreEnvironment(required = { "client", "authorization_endpoint_request" })
+	@PostEnvironment(strings = {"authorization_endpoint_request_redirect_uri"})
 	public Environment evaluate(Environment env) {
 
 		JsonElement redirectUrisElement = env.getElementFromObject("client", "redirect_uris");
@@ -30,6 +32,7 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 				if(actual.equals(uri)) {
 					logSuccess("redirect_uri is one of the allowed redirect uris",
 								args("actual", actual, "expected", redirectUris));
+					env.putString("authorization_endpoint_request_redirect_uri", actual);
 					return env;
 				}
 			}

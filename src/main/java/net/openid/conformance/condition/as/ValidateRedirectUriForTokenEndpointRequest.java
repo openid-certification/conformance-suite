@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
@@ -8,32 +9,27 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * Typically used for dynamically registered clients
- * TODO extend this one and EnsureValidRedirectUriForAuthorizationEndpointRequest from a common base and probably rename
+ * compares the redirect_uri in token request with authorization_endpoint_request_redirect_uri
  */
 public class ValidateRedirectUriForTokenEndpointRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "client", "token_endpoint_request" })
+	@PreEnvironment(required = { "token_endpoint_request" }, strings = {"authorization_endpoint_request_redirect_uri"})
 	public Environment evaluate(Environment env) {
 		String actual = env.getString("token_endpoint_request", "body_form_params.redirect_uri");
-		JsonElement redirectUrisElement = env.getElementFromObject("client", "redirect_uris");
-		if(redirectUrisElement==null) {
-			throw error("redirect_uris is undefined for the client. Client configuration or registration request must contain redirect_uris");
+		String expected = env.getString("authorization_endpoint_request_redirect_uri");
+
+		if(Strings.isNullOrEmpty(actual)) {
+			throw error("redirect_uri is null or empty",
+						args("token_endpoint_request", env.getObject("token_endpoint_request")));
 		}
-		try {
-			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
-			for(JsonElement e : redirectUris) {
-				String uri = OIDFJSON.getString(e);
-				if(actual.equals(uri)) {
-					logSuccess("redirect_uri is one of the allowed redirect uris", args("actual", actual, "expected", redirectUris));
-					return env;
-				}
-			}
-			throw error("redirect_uri is not one of the allowed ones", args("actual", actual, "expected", redirectUris));
-		} catch (IllegalStateException ex) {
-			throw error("redirect_uris is not an array", ex, args("redirect_uris", redirectUrisElement));
+		if(actual.equals(expected)) {
+			logSuccess("redirect_uri is the same as the one used in the authorization request",
+						args("actual", actual));
+			return env;
 		}
+		throw error("redirect_uri is not equal to the one used in the authorization request",
+					args("actual", actual, "expected", expected));
 	}
 
 }
