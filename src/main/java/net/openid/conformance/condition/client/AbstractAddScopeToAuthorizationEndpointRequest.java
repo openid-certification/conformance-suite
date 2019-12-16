@@ -20,8 +20,7 @@ public abstract class AbstractAddScopeToAuthorizationEndpointRequest extends Abs
 		}
 		authorizationEndpointRequest.remove("scope");
 		authorizationEndpointRequest.addProperty("scope", newScope);
-		logSuccess(String.format("Added \"%s\" to authorization endpoint request scope", scope),
-				args("scope", newScope));
+		log(String.format("Added \"%s\" to authorization endpoint request scope", scope), args("scope", newScope));
 		return env;
 	}
 }
