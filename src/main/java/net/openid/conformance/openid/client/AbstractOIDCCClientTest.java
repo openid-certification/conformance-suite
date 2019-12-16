@@ -5,12 +5,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -39,9 +35,12 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
-import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectExp;
@@ -55,9 +54,8 @@ import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
-import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
-import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.LoadUserInfo;
+import net.openid.conformance.condition.rs.OIDCCExtractBearerAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -413,13 +411,19 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateUserinfoRequest() {
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI-R-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
-
+		extractBearerTokenFromUserinfoRequest();
 		callAndStopOnFailure(RequireBearerAccessToken.class);
-
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
+	}
 
+	/**
+	 * Support any of
+	 * - Authorization Request Header Field
+	 * - Form-Encoded Body Parameter
+	 * - URI Query Parameter
+	 */
+	protected void extractBearerTokenFromUserinfoRequest() {
+		callAndStopOnFailure(OIDCCExtractBearerAccessTokenFromRequest.class, "RFC6750-2");
 	}
 
 	protected Object handleJwksEndpointRequest() {
@@ -508,12 +512,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateAuthorizationCodeGrantType() {
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
-		//TODO this is not good. ValidateRedirectUri and ValidateRedirectUriForTokenEndpointRequest could be merged
-		if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
-			callAndStopOnFailure(ValidateRedirectUriForTokenEndpointRequest.class);
-		} else {
-			callAndStopOnFailure(ValidateRedirectUri.class);
-		}
 		generateAccessToken();
 	}
 

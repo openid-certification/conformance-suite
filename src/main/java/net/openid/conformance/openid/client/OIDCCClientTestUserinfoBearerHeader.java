@@ -1,5 +1,8 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
+import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.OIDCCExtractBearerAccessTokenFromRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -15,9 +18,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token"})
 public class OIDCCClientTestUserinfoBearerHeader extends AbstractOIDCCClientTest {
-	/*
-	This test might seem unnecessary but there is a matching test in the old suite
-	and we need to have a matching test in the new one
-	until Mike and/or others agree that this can be removed
-	*/
+
+	@Override
+	protected void extractBearerTokenFromUserinfoRequest() {
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC6750-2");
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "RFC6750-2");
+	}
 }
