@@ -12,7 +12,6 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameter
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
@@ -21,6 +20,7 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSign
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -69,11 +69,11 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		// Includes verify-id_token_signing-algorithm-is-supported assertion (OIDC test)
 		callAndContinueOnFailure(OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
-		call(condition(CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
+		call(condition(OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("FAPI-RW-8.6")
+			.requirement("OIDCD-3")
 			.dontStopOnFailure()
 		);
 
