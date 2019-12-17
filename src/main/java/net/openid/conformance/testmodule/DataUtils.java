@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
 import net.openid.conformance.condition.Condition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,9 +35,16 @@ public interface DataUtils {
 	public default JsonObject mapToJsonObject(MultiValueMap<String, String> params, boolean lowercase) {
 		JsonObject o = new JsonObject();
 		for (String key : params.keySet()) {
-			o.addProperty(
-				lowercase ? key.toLowerCase() : key,
-				params.getFirst(key));
+			List<String> values = params.get(key);
+			if (values != null && values.size() > 1) {
+				o.add(
+					lowercase ? key.toLowerCase() : key,
+					new Gson().toJsonTree(values));
+			} else {
+				o.addProperty(
+					lowercase ? key.toLowerCase() : key,
+					params.getFirst(key));
+			}
 		}
 		return o;
 	}
