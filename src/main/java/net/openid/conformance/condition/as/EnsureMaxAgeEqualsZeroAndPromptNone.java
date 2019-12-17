@@ -11,8 +11,8 @@ public class EnsureMaxAgeEqualsZeroAndPromptNone extends AbstractCondition {
 	@PreEnvironment(required = { "authorization_endpoint_request" })
 	public Environment evaluate(Environment env) {
 
-		String maxAge = env.getString("authorization_endpoint_request", "params.max_age");
-		String prompt = env.getString("authorization_endpoint_request", "params.prompt");
+		String maxAge = env.getString("authorization_endpoint_request", "query_string_params.max_age");
+		String prompt = env.getString("authorization_endpoint_request", "query_string_params.prompt");
 
 		if ("0".equals(maxAge) && "none".equals(prompt)) {
 			logSuccess("The client sent max_age=0 and prompt=none as expected");

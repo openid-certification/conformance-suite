@@ -11,7 +11,7 @@ public class EnsureNoClientAssertionSentToTokenEndpoint extends AbstractConditio
 	@PreEnvironment(required = "token_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		String clientAssertionString = env.getString("token_endpoint_request", "params.client_assertion");
+		String clientAssertionString = env.getString("token_endpoint_request", "body_form_params.client_assertion");
 		if (Strings.isNullOrEmpty(clientAssertionString)) {
 			logSuccess("Client did not send a client_assertion to token endpoint");
 			return env;

@@ -54,7 +54,7 @@ public class CheckRequiredAuthorizationParametersPresent_UnitTest {
 	private void addEndpointRequest(Environment env, JsonObject params) {
 
 		JsonObject request = new JsonObject();
-		request.add("params", params);
+		request.add("query_string_params", params);
 		env.putObject("authorization_endpoint_request", request);
 	}
 

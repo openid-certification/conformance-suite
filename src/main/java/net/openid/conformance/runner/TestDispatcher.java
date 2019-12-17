@@ -1,7 +1,9 @@
 package net.openid.conformance.runner;
 
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,6 +15,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
 import net.openid.conformance.testmodule.TestSkippedException;
 import net.openid.conformance.testmodule.UserFacing;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +25,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -61,7 +65,6 @@ public class TestDispatcher implements DataUtils {
 	public Object handle(
 		HttpServletRequest req, HttpServletResponse res,
 		HttpSession session,
-		@RequestParam MultiValueMap<String, String> params,
 		@RequestHeader MultiValueMap<String, String> headers,
 		@RequestBody(required = false) String body,
 		@RequestHeader(name = "Content-type", required = false) MediaType contentType) {
@@ -109,8 +112,8 @@ public class TestDispatcher implements DataUtils {
 
 			// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
 			JsonObject requestParts = new JsonObject();
-			requestParts.add("params", mapToJsonObject(params, false)); // don't change case of parameters
 			requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
+			requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(req.getQueryString()), false));
 			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 
 			if (body != null) {
@@ -122,7 +125,10 @@ public class TestDispatcher implements DataUtils {
 						// parse the body as json
 						requestParts.add("body_json", new JsonParser().parse(body));
 					}
-					// TODO: convert other data types?
+
+					if (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED)) {
+						requestParts.add("body_form_params", mapToJsonObject(convertQueryStringParamsToMap(body), false));
+					}
 				}
 			}
 
@@ -145,12 +151,23 @@ public class TestDispatcher implements DataUtils {
 		}
 	}
 
+	protected MultiValueMap<String, String> convertQueryStringParamsToMap(String queryString) {
+		List<NameValuePair> parameters = URLEncodedUtils.parse(queryString, Charset.defaultCharset());
+		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+
+		for (NameValuePair pair : parameters) {
+			queryParams.add(pair.getName(), pair.getValue());
+		}
+		return queryParams;
+	}
+
 	protected void logIncomingHttpRequest(TestModule test, String path, JsonObject requestParts) {
 		eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 			"msg", "Incoming HTTP request to test instance " + test.getId(),
 			"http", "incoming",
 			"incoming_path", path,
-			"incoming_params", requestParts.get("params"),
+			"incoming_query_string_params", requestParts.get("query_string_params"),
+			"incoming_body_form_params", requestParts.get("body_form_params"),
 			"incoming_method", requestParts.get("method"),
 			"incoming_headers", requestParts.get("headers"),
 			"incoming_body", requestParts.get("body"),

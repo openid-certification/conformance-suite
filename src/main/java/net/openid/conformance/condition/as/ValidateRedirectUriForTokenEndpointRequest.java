@@ -16,7 +16,7 @@ public class ValidateRedirectUriForTokenEndpointRequest extends AbstractConditio
 	@Override
 	@PreEnvironment(required = { "client", "token_endpoint_request" })
 	public Environment evaluate(Environment env) {
-		String actual = env.getString("token_endpoint_request", "params.redirect_uri");
+		String actual = env.getString("token_endpoint_request", "body_form_params.redirect_uri");
 		JsonElement redirectUrisElement = env.getElementFromObject("client", "redirect_uris");
 		if(redirectUrisElement==null) {
 			throw error("redirect_uris is undefined for the client. Client configuration or registration request must contain redirect_uris");

@@ -11,7 +11,7 @@ public class EnsureBearerAccessTokenNotInParams extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "incoming_request")
 	public Environment evaluate(Environment env) {
-		String incoming = env.getString("incoming_request", "params.access_token");
+		String incoming = env.getString("incoming_request", "query_string_params.access_token");
 
 		if (!Strings.isNullOrEmpty(incoming)) {
 			throw error("Client incorrectly supplied access token in query parameters or form body", args("access_token", incoming));

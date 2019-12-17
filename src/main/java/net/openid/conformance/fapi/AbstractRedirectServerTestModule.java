@@ -77,7 +77,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 		setStatus(Status.RUNNING);
 
-		env.putObject("callback_query_params", requestParts.get("params").getAsJsonObject());
+		env.putObject("callback_query_params", requestParts.get("query_string_params").getAsJsonObject());
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 

@@ -18,7 +18,7 @@ public class CreateIntrospectionResponse extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		// get the access token being introspected
-		String introspectedToken = env.getString("introspection_request", "params.token");
+		String introspectedToken = env.getString("introspection_request", "query_string_params.token");
 
 		if (Strings.isNullOrEmpty(introspectedToken)) {
 			throw error("Couldn't find token to introspect");

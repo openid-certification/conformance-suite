@@ -54,7 +54,7 @@ public class ExtractClientAssertion_UnitTest {
 		sampleParams.addProperty("client_assertion", clientAssertion);
 
 		tokenEndpointRequest = new JsonObject();
-		tokenEndpointRequest.add("params", sampleParams);
+		tokenEndpointRequest.add("body_form_params", sampleParams);
 	}
 
 	@Test
@@ -70,7 +70,7 @@ public class ExtractClientAssertion_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
-		tokenEndpointRequest.add("params", new JsonObject());
+		tokenEndpointRequest.add("body_form_params", new JsonObject());
 
 		env.putObject("token_endpoint_request", tokenEndpointRequest);
 

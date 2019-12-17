@@ -14,7 +14,7 @@ public class ExtractBearerAccessTokenFromParams extends AbstractCondition {
 	@PostEnvironment(strings = "incoming_access_token")
 	public Environment evaluate(Environment env) {
 
-		String incoming = env.getString("incoming_request", "params.access_token");
+		String incoming = env.getString("incoming_request", "body_form_params.access_token");
 
 		if (!Strings.isNullOrEmpty(incoming)) {
 			logSuccess("Found access token on incoming request", args("access_token", incoming));

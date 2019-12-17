@@ -13,7 +13,7 @@ public class ValidateRedirectUri extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String expected = env.getString("client", "redirect_uri");
-		String actual = env.getString("token_endpoint_request", "params.redirect_uri");
+		String actual = env.getString("token_endpoint_request", "body_form_params.redirect_uri");
 
 		if (Strings.isNullOrEmpty(expected)) {
 			throw error("Couldn't find redirect uri to compare");

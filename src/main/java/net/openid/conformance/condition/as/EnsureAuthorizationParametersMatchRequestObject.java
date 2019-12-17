@@ -13,7 +13,7 @@ public class EnsureAuthorizationParametersMatchRequestObject extends AbstractCon
 	@PreEnvironment(required = {"authorization_endpoint_request", "authorization_request_object"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject params = env.getElementFromObject("authorization_endpoint_request", "params").getAsJsonObject();
+		JsonObject params = env.getElementFromObject("authorization_endpoint_request", "query_string_params").getAsJsonObject();
 
 		for (String claim : params.keySet()) {
 			// make sure every claim in the "params" input is included in the request object
@@ -24,7 +24,7 @@ public class EnsureAuthorizationParametersMatchRequestObject extends AbstractCon
 			}
 
 			String requestObj = env.getString("authorization_request_object", "claims." + claim);
-			String param = env.getString("authorization_endpoint_request", "params." + claim);
+			String param = env.getString("authorization_endpoint_request", "query_string_params." + claim);
 
 			if (Strings.isNullOrEmpty(requestObj) || Strings.isNullOrEmpty(param)) {
 				throw error("Couldn't find required claim", args("claim", claim, "request_obj", requestObj, "param", param));

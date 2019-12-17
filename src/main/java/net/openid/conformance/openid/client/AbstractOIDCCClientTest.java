@@ -446,7 +446,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected Object handleTokenEndpointGrantType(String requestId){
 
 		// dispatch based on grant type
-		String grantType = env.getString("token_endpoint_request", "params.grant_type");
+		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
