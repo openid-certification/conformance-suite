@@ -30,11 +30,14 @@ public abstract class AbstractCheckDistinctKeyIdValueInJWKs extends AbstractCond
 
 			JsonElement keyIdElement = key.getAsJsonObject().get("kid");
 			if (keyIdElement != null && !keyIdSets.add(OIDFJSON.getString(keyIdElement))) {
-				throw error("'kid' value is used more than once in server JWKs", args("kid_duplicate", OIDFJSON.getString(keyIdElement), "keys", keys));
+				throw error("'kid' value is used more than once in "+envJWKsKey,
+					args("kid_duplicate", OIDFJSON.getString(keyIdElement),
+						"keys", keys,
+						"see", "https://bitbucket.org/openid/connect/issues/1127"));
 			}
 		}
 
-		logSuccess("Distinct 'kid' value in all keys of server JWKs");
+		logSuccess("Distinct 'kid' value in all keys of "+envJWKsKey, args("see", "https://bitbucket.org/openid/connect/issues/1127"));
 		return env;
 	}
 }
