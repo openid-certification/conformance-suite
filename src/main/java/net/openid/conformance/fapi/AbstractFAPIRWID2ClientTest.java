@@ -19,6 +19,7 @@ import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
@@ -388,13 +389,15 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Authorization endpoint")
-			.mapKey("authorization_endpoint_request", requestId));
+			.mapKey("authorization_endpoint_http_request", requestId));
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
 		endTestIfRequiredParametersAreMissing();
 
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
+
+		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
 
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
 
@@ -424,8 +427,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 
-		skipIfElementMissing("authorization_request_object", "claims.state", ConditionResult.INFO,
-			CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
+			ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
@@ -465,7 +468,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
 		return new RedirectView(redirectTo, false, false, false);
 

@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
+import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
@@ -37,8 +38,7 @@ import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObjec
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.OIDCCCalculateSHash;
-import net.openid.conformance.condition.as.OIDCCCreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
@@ -678,8 +678,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	//TODO is s_hash needed for core tests?
 	protected void addSHashToIdToken() {
-		skipIfElementMissing("authorization_endpoint_request", "params.state", Condition.ConditionResult.INFO,
-			OIDCCCalculateSHash.class, Condition.ConditionResult.FAILURE);
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, Condition.ConditionResult.INFO,
+			CalculateSHash.class, Condition.ConditionResult.FAILURE);
 		skipIfMissing(null, new String[] { "s_hash" }, Condition.ConditionResult.INFO,
 			AddSHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE);
 	}
@@ -740,11 +740,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			validateRequestObject();
 			callAndStopOnFailure(OIDCCEnsureAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
-
-			callAndStopOnFailure(OIDCCCreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
-			//from this point on authorization_endpoint_request does not point to the http request
-			env.mapKey("authorization_endpoint_request", "effective_authorization_endpoint_request");
 		}
+
+		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
 
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
@@ -838,7 +836,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	@UserFacing
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 
-		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_request", requestId));
+		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 
 		extractAuthorizationEndpointRequestParameters();
 
@@ -885,7 +883,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			viewToReturn = new RedirectView(redirectTo, false, false, false);
 		}
 
-		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 		return viewToReturn;
 	}
 

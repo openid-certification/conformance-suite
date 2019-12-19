@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
@@ -25,7 +24,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "client", "authorization_endpoint_request" })
+	@PreEnvironment(required = { "client", CreateEffectiveAuthorizationRequestParameters.ENV_KEY})
 	@PostEnvironment(strings = {"authorization_endpoint_request_redirect_uri"})
 	public Environment evaluate(Environment env) {
 
@@ -34,7 +33,7 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 			throw error("redirect_uris is undefined for the client");
 		}
 		try {
-			String actual = env.getString("authorization_endpoint_request", "query_string_params.redirect_uri");
+			String actual = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI);
 			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
 			for(JsonElement e : redirectUris) {
 				String uri = OIDFJSON.getString(e);

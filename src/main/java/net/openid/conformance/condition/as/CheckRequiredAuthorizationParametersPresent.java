@@ -9,17 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CheckRequiredAuthorizationParametersPresent extends AbstractCondition {
-
+	//TODO review before use. this class was not used when it was refactored to use CreateEffectiveAuthorizationRequestParameters.
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_request"})
+	@PreEnvironment(required = {CreateEffectiveAuthorizationRequestParameters.ENV_KEY})
 	public Environment evaluate(Environment env) {
 
 
 		List<String> responses = new ArrayList<>();
-		responses.add(env.getString("authorization_endpoint_request", "query_string_params.response_type"));
-		responses.add(env.getString("authorization_endpoint_request", "query_string_params.client_id"));
-		responses.add(env.getString("authorization_endpoint_request", "query_string_params.redirect_uri"));
-		responses.add(env.getString("authorization_endpoint_request", "query_string_params.scope"));
+		responses.add(env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE));
+		responses.add(env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CLIENT_ID));
+		responses.add(env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI));
+		responses.add(env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.SCOPE));
 
 		for (String singleResponse : responses) {
 			if (Strings.isNullOrEmpty(singleResponse)) {

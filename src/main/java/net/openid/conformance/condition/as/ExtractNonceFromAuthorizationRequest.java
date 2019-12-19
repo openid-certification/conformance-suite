@@ -10,11 +10,11 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractNonceFromAuthorizationRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request")
+	@PreEnvironment(required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
 	@PostEnvironment(strings = "nonce")
 	public Environment evaluate(Environment env) {
 
-		String nonce = env.getString("authorization_endpoint_request", "query_string_params.nonce");
+		String nonce = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.NONCE);
 
 		if (Strings.isNullOrEmpty(nonce)) {
 			throw error("Couldn't find 'nonce' in authorization endpoint parameters");

@@ -15,12 +15,12 @@ import java.util.regex.Pattern;
 public class CalculateSHash extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "signing_algorithm", required = "authorization_request_object")
+	@PreEnvironment(strings = "signing_algorithm", required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
 	@PostEnvironment(strings = "s_hash")
 	public Environment evaluate(Environment env) {
 
 		String algorithm = env.getString("signing_algorithm");
-		String state = env.getString("authorization_request_object", "claims.state");
+		String state = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE);
 
 
 		MessageDigest digester;

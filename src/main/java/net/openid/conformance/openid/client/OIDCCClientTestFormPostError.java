@@ -50,8 +50,8 @@ public class OIDCCClientTestFormPostError extends AbstractOIDCCClientTest {
 	protected Object generateFormPostResponse() {
 		callAndStopOnFailure(CreateLoginRequiredErrorResponse.class);
 
-		JsonObject errorResponseParams = env.getObject("error_response_params");
-		String formActionUrl = env.getString("error_response_url");
+		JsonObject errorResponseParams = env.getObject(CreateLoginRequiredErrorResponse.ERROR_RESPONSE_PARAMS);
+		String formActionUrl = env.getString(CreateLoginRequiredErrorResponse.ERROR_RESPONSE_URL);
 
 		return new ModelAndView("formPostResponseMode",
 			ImmutableMap.of(

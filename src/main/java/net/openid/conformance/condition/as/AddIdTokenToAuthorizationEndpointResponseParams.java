@@ -9,19 +9,19 @@ import net.openid.conformance.testmodule.Environment;
 public class AddIdTokenToAuthorizationEndpointResponseParams extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_response_params", strings = "id_token")
-	@PostEnvironment(required = "authorization_endpoint_response_params")
+	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY, strings = "id_token")
+	@PostEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
 	public Environment evaluate(Environment env) {
 
-		JsonObject params = env.getObject("authorization_endpoint_response_params");
+		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 
 		String idToken = env.getString("id_token");
 
 		params.addProperty("id_token", idToken);
 
-		env.putObject("authorization_endpoint_response_params", params);
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, params);
 
-		logSuccess("Added id_token to authorization endpoint response params", args("authorization_endpoint_response_params", params));
+		logSuccess("Added id_token to authorization endpoint response params", args(CreateAuthorizationEndpointResponseParams.ENV_KEY, params));
 
 		return env;
 

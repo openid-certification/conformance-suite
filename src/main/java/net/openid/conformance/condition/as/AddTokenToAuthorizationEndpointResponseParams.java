@@ -8,13 +8,13 @@ import net.openid.conformance.testmodule.Environment;
 
 public class AddTokenToAuthorizationEndpointResponseParams extends AbstractCondition {
 
-	private static final String AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS = "authorization_endpoint_response_params";
+
 	@Override
-	@PreEnvironment(required = AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS, strings = {"access_token", "token_type"})
-	@PostEnvironment(required = AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS)
+	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY, strings = {"access_token", "token_type"})
+	@PostEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
 	public Environment evaluate(Environment env) {
 
-		JsonObject params = env.getObject(AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS);
+		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 
 		String accessToken = env.getString("access_token");
 		String tokenType = env.getString("token_type");
@@ -22,9 +22,9 @@ public class AddTokenToAuthorizationEndpointResponseParams extends AbstractCondi
 		params.addProperty("access_token", accessToken);
 		params.addProperty("token_type", tokenType);
 
-		env.putObject(AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS, params);
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, params);
 
-		logSuccess("Added token and token_type to authorization endpoint response params", args(AUTHORIZATION_ENDPOINT_RESPONSE_PARAMS, params));
+		logSuccess("Added token and token_type to authorization endpoint response params", args(CreateAuthorizationEndpointResponseParams.ENV_KEY, params));
 
 		return env;
 

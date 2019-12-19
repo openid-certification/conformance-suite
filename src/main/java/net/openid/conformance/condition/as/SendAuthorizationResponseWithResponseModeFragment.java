@@ -11,11 +11,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class SendAuthorizationResponseWithResponseModeFragment extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_response_params")
+	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
 	@PostEnvironment(strings = "authorization_endpoint_response_redirect")
 	public Environment evaluate(Environment env) {
 
-		JsonObject params = env.getObject("authorization_endpoint_response_params");
+		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 		String redirectUri = OIDFJSON.getString(params.remove("redirect_uri"));
 
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();

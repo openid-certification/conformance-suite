@@ -9,10 +9,10 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractRequestedScopes extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request")
+	@PreEnvironment(required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
 	public Environment evaluate(Environment env) {
 
-		String scope = env.getString("authorization_endpoint_request", "query_string_params.scope");
+		String scope = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.SCOPE);
 
 		if (Strings.isNullOrEmpty(scope)) {
 			throw error("Missing scope parameter");

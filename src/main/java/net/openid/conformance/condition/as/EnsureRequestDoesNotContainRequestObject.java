@@ -11,9 +11,9 @@ import net.openid.conformance.testmodule.Environment;
 public class EnsureRequestDoesNotContainRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request" })
+	@PreEnvironment(required = { "authorization_endpoint_http_request" })
 	public Environment evaluate(Environment env) {
-		String requestParam = env.getString("authorization_endpoint_request", "params.request");
+		String requestParam = env.getString("authorization_endpoint_http_request", "params.request");
 
 		if (!Strings.isNullOrEmpty(requestParam)) {
 			throw error("request parameter is not allowed",
