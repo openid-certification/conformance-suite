@@ -30,7 +30,7 @@ public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest 
 			callAndContinueOnFailure(VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
 
 			if (responseType.includesCode()) {
-				callAndContinueOnFailure(VerifyUserInfoAndIdTokenInTokenEndpointSameSub.class, ConditionResult.FAILURE);
+				callAndContinueOnFailure(VerifyUserInfoAndIdTokenInTokenEndpointSameSub.class, ConditionResult.FAILURE,  "OIDCC-5.3.2");
 			}
 		}
 
