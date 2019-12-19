@@ -45,10 +45,10 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 		invalidParams.addProperty("client_assertion_type", invalidClientAssertionType);
 
 		tokenEndpointRequest = new JsonObject();
-		tokenEndpointRequest.add("params", sampleParams);
+		tokenEndpointRequest.add("body_form_params", sampleParams);
 
 		invalidTokenEndpointRequest = new JsonObject();
-		invalidTokenEndpointRequest.add("params", invalidParams);
+		invalidTokenEndpointRequest.add("body_form_params", invalidParams);
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 
 		cond.execute(env);
 
-		assertNotNull(env.getElementFromObject("token_endpoint_request", "params.client_assertion_type"));
+		assertNotNull(env.getElementFromObject("token_endpoint_request", "body_form_params.client_assertion_type"));
 	}
 
 	@Test(expected = ConditionError.class)

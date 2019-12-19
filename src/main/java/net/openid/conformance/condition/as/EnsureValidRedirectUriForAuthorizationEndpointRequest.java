@@ -23,7 +23,7 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 			throw error("redirect_uris is undefined for the client");
 		}
 		try {
-			String actual = env.getString("authorization_endpoint_request", "params.redirect_uri");
+			String actual = env.getString("authorization_endpoint_request", "query_string_params.redirect_uri");
 			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
 			for(JsonElement e : redirectUris) {
 				String uri = OIDFJSON.getString(e);

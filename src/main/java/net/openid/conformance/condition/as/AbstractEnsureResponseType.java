@@ -11,7 +11,7 @@ public abstract class AbstractEnsureResponseType extends AbstractCondition {
 
 	protected Environment ensureResponseTypeMatches(Environment env, String... types) {
 
-		String responseTypeString = env.getString("authorization_endpoint_request", "params.response_type");
+		String responseTypeString = env.getString("authorization_endpoint_request", "query_string_params.response_type");
 		if (Strings.isNullOrEmpty(responseTypeString)) {
 			throw error("Could not find response type in request");
 		}

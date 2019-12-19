@@ -19,8 +19,8 @@ public class ExtractClientCredentialsFromFormPost extends AbstractCondition {
 			throw error("Found existing client authentication");
 		}
 
-		String clientId = env.getString("token_endpoint_request", "params.client_id");
-		String clientSecret = env.getString("token_endpoint_request", "params.client_secret");
+		String clientId = env.getString("token_endpoint_request", "body_form_params.client_id");
+		String clientSecret = env.getString("token_endpoint_request", "body_form_params.client_secret");
 
 		if (Strings.isNullOrEmpty(clientId) || Strings.isNullOrEmpty(clientSecret)) {
 			throw error("Couldn't find client credentials in form post");

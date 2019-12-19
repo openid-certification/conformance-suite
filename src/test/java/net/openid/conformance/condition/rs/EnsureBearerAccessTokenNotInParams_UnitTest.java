@@ -45,11 +45,11 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		hasToken = new JsonParser().parse(
-			"{\"params\": " +
+			"{\"query_string_params\": " +
 				"{\"access_token\": \"foo123456\"}" +
 			"}").getAsJsonObject();
 		missingToken = new JsonParser().parse(
-			"{\"params\": " +
+			"{\"query_string_params\": " +
 				"{}" +
 			"}").getAsJsonObject();
 		missingParams = new JsonParser().parse(
@@ -76,7 +76,7 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("incoming_request", "params.access_token");
+		verify(env, atLeastOnce()).getString("incoming_request", "query_string_params.access_token");
 
 	}
 	@Test
@@ -86,7 +86,7 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("incoming_request", "params.access_token");
+		verify(env, atLeastOnce()).getString("incoming_request", "query_string_params.access_token");
 
 	}
 }

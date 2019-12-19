@@ -19,7 +19,7 @@ public class ExtractClientAssertion extends AbstractCondition {
 	@PostEnvironment(required = "client_assertion")
 	public Environment evaluate(Environment env) {
 
-		String clientAssertionString = env.getString("token_endpoint_request", "params.client_assertion");
+		String clientAssertionString = env.getString("token_endpoint_request", "body_form_params.client_assertion");
 
 		if (Strings.isNullOrEmpty(clientAssertionString)) {
 			throw error("Could not find client assertion in request parameters");

@@ -20,7 +20,7 @@ public class ExtractRequestObject extends AbstractCondition {
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
 
-		String requestObjectString = env.getString("authorization_endpoint_request", "params.request");
+		String requestObjectString = env.getString("authorization_endpoint_request", "query_string_params.request");
 
 		if (Strings.isNullOrEmpty(requestObjectString)) {
 			throw error("Could not find request object in request parameters");

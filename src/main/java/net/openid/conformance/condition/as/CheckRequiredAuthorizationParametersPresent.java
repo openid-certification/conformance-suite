@@ -16,10 +16,10 @@ public class CheckRequiredAuthorizationParametersPresent extends AbstractConditi
 
 
 		List<String> responses = new ArrayList<>();
-		responses.add(env.getString("authorization_endpoint_request", "params.response_type"));
-		responses.add(env.getString("authorization_endpoint_request", "params.client_id"));
-		responses.add(env.getString("authorization_endpoint_request", "params.redirect_uri"));
-		responses.add(env.getString("authorization_endpoint_request", "params.scope"));
+		responses.add(env.getString("authorization_endpoint_request", "query_string_params.response_type"));
+		responses.add(env.getString("authorization_endpoint_request", "query_string_params.client_id"));
+		responses.add(env.getString("authorization_endpoint_request", "query_string_params.redirect_uri"));
+		responses.add(env.getString("authorization_endpoint_request", "query_string_params.scope"));
 
 		for (String singleResponse : responses) {
 			if (Strings.isNullOrEmpty(singleResponse)) {

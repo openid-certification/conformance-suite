@@ -12,7 +12,7 @@ public class ExtractRequestedScopes extends AbstractCondition {
 	@PreEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		String scope = env.getString("authorization_endpoint_request", "params.scope");
+		String scope = env.getString("authorization_endpoint_request", "query_string_params.scope");
 
 		if (Strings.isNullOrEmpty(scope)) {
 			throw error("Missing scope parameter");

@@ -10,7 +10,7 @@ public class EnsureClientAssertionTypeIsJwt extends AbstractCondition {
 	@PreEnvironment(required = "token_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		String assertionType = env.getString("token_endpoint_request", "params.client_assertion_type");
+		String assertionType = env.getString("token_endpoint_request", "body_form_params.client_assertion_type");
 
 		String expected = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 

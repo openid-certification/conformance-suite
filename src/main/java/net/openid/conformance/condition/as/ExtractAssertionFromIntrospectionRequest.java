@@ -20,8 +20,8 @@ public class ExtractAssertionFromIntrospectionRequest extends AbstractCondition 
 	@PostEnvironment(required = "resource_assertion")
 	public Environment evaluate(Environment env) {
 
-		String assertion = env.getString("introspection_request", "params.client_assertion");
-		String assertionType = env.getString("introspection_request", "params.client_assertion_type");
+		String assertion = env.getString("introspection_request", "query_string_params.client_assertion");
+		String assertionType = env.getString("introspection_request", "query_string_params.client_assertion_type");
 
 		if (Strings.isNullOrEmpty(assertion) || Strings.isNullOrEmpty(assertionType)) {
 			throw error("Couldn't find assertion or assertion type in request");

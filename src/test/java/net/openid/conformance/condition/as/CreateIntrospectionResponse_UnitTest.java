@@ -67,14 +67,14 @@ public class CreateIntrospectionResponse_UnitTest {
 			"}").getAsJsonObject();
 
 		introspectionRequest = new JsonParser().parse("{\n" +
-			"  \"params\":\n" +
+			"  \"query_string_params\":\n" +
 			"  {\n" +
 			"	\"token\": \"" + accessTokenValue + "\"\n" +
 			"  }\n" +
 			"}").getAsJsonObject();
 
 		introspectionRequestBadToken = new JsonParser().parse("{\n" +
-			"  \"params\":\n" +
+			"  \"query_string_params\":\n" +
 			"  {\n" +
 			"	\"token\": \"" + RandomStringUtils.randomAlphanumeric(10) + "\"\n" +
 			"  }\n" +

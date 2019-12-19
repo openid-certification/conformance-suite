@@ -45,10 +45,10 @@ public class EnsureResponseTypeIsCode_UnitTest {
 		invalidParams.addProperty("response_type", invalidToken);
 
 		authorizationEndpointRequest = new JsonObject();
-		authorizationEndpointRequest.add("params", sampleParams);
+		authorizationEndpointRequest.add("query_string_params", sampleParams);
 
 		invalidAuthorizationEndpointRequest = new JsonObject();
-		invalidAuthorizationEndpointRequest.add("params", invalidParams);
+		invalidAuthorizationEndpointRequest.add("query_string_params", invalidParams);
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class EnsureResponseTypeIsCode_UnitTest {
 
 		cond.execute(env);
 
-		assertNotNull(env.getElementFromObject("authorization_endpoint_request", "params.response_type"));
+		assertNotNull(env.getElementFromObject("authorization_endpoint_request", "query_string_params.response_type"));
 	}
 
 	@Test(expected = ConditionError.class)

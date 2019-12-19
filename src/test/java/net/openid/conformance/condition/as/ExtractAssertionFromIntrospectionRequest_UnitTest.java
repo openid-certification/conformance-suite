@@ -85,7 +85,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"		\"client_assertion\": \"" + assertion + "\",\n" +
 			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
 			"	}\n" +
@@ -108,7 +108,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate_valueMissing() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"	}\n" +
 			"}").getAsJsonObject();
 
@@ -133,7 +133,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate_assertionMissing() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
 			"	}\n" +
 			"}").getAsJsonObject();
@@ -147,7 +147,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate_assertionEmpty() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"		\"client_assertion\": \"\",\n" +
 			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
 			"	}\n" +
@@ -162,7 +162,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate_typeMissing() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"		\"client_assertion\": \"" + assertion + "\"\n" +
 			"	}\n" +
 			"}").getAsJsonObject();
@@ -177,7 +177,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate_typeEmpty() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"		\"client_assertion\": \"" + assertion + "\",\n" +
 			"		\"client_assertion_type\": \"\"\n" +
 			"	}\n" +
@@ -193,7 +193,7 @@ public class ExtractAssertionFromIntrospectionRequest_UnitTest {
 	public void testEvaluate_assertionMalformed() {
 
 		request = new JsonParser().parse("{\n" +
-			"	\"params\": {\n" +
+			"	\"query_string_params\": {\n" +
 			"		\"client_assertion\": \"abcdef\",\n" +
 			"		\"client_assertion_type\": \"" + assertionType +"\"\n" +
 			"	}\n" +
