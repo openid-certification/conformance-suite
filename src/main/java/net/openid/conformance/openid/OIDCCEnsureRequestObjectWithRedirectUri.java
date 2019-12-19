@@ -12,9 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OIDCC",
 	configurationFields = {
 			"server.discoveryUrl",
-			"client.client_id",
 			"client.scope",
-			"client2.client_id",
 			"client2.scope",
 			"resource.resourceUrl"
 	}
