@@ -30,15 +30,34 @@ public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition 
 				tokenFromHeader = authHeader.substring("bearer ".length(), authHeader.length());
 			}
 		}
-		JsonElement accessTokenElementFromParams = env.getElementFromObject("incoming_request", "params.access_token");
-		if(accessTokenElementFromParams!=null) {
-			if(accessTokenElementFromParams.isJsonPrimitive()) {
-				tokenFromParams = OIDFJSON.getString(accessTokenElementFromParams);
+		//TODO this needs to be reviewed & fixed if necessary after #681 is closed.
+		JsonElement accessTokenElementFromForm = env.getElementFromObject("incoming_request", "body_form_params.access_token");
+		JsonElement accessTokenElementFromQuery = env.getElementFromObject("incoming_request", "query_string_params.access_token");
+
+		if(accessTokenElementFromForm!=null && accessTokenElementFromQuery!=null) {
+			throw error("Request contains access_token parameters in both query string and request body",
+				args("access_token_form_parameter", accessTokenElementFromForm,
+					"access_token_query_parameter", accessTokenElementFromQuery));
+		}
+
+		if(accessTokenElementFromForm!=null) {
+			if(accessTokenElementFromForm.isJsonPrimitive()) {
+				tokenFromParams = OIDFJSON.getString(accessTokenElementFromForm);
 			} else {
 				//unexpected type
-				throw error("Request contains multiple access_token parameters", args("access_token", accessTokenElementFromParams));
+				throw error("Request body contains multiple access_token parameters", args("access_token", accessTokenElementFromForm));
 			}
 		}
+
+		if(accessTokenElementFromQuery!=null) {
+			if(accessTokenElementFromQuery.isJsonPrimitive()) {
+				tokenFromParams = OIDFJSON.getString(accessTokenElementFromQuery);
+			} else {
+				//unexpected type
+				throw error("Request query string contains multiple access_token parameters", args("access_token", accessTokenElementFromQuery));
+			}
+		}
+
 		if(Strings.isNullOrEmpty(tokenFromHeader) && Strings.isNullOrEmpty(tokenFromParams)) {
 			throw error("Couldn't find a bearer token in request");
 		}
