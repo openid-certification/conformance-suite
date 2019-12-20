@@ -277,33 +277,39 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 
 		JsonObject client = env.getObject("client");
-		String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
-		if(requestObjectSigningAlg!=null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
-			return true;
+		if(client.has("request_object_signing_alg")) {
+			String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
+			if (requestObjectSigningAlg != null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
+				return true;
+			}
 		}
 
-		//id_token_encrypted_response_alg
-		String idTokenEncRespAlg = OIDFJSON.getString(client.get("id_token_encrypted_response_alg"));
-		if(idTokenEncRespAlg!=null && idTokenEncRespAlg.matches("^(RSA|ECDH)")) {
-			return true;
+		if(client.has("id_token_encrypted_response_alg")) {
+			String idTokenEncRespAlg = OIDFJSON.getString(client.get("id_token_encrypted_response_alg"));
+			if (idTokenEncRespAlg != null && idTokenEncRespAlg.matches("^(RSA|ECDH)")) {
+				return true;
+			}
 		}
 
-		//userinfo_encrypted_response_alg
-		String userinfoEncRespAlg = OIDFJSON.getString(client.get("userinfo_encrypted_response_alg"));
-		if(userinfoEncRespAlg!=null && userinfoEncRespAlg.matches("^(RSA|ECDH)")) {
-			return true;
+		if(client.has("userinfo_encrypted_response_alg")) {
+			String userinfoEncRespAlg = OIDFJSON.getString(client.get("userinfo_encrypted_response_alg"));
+			if (userinfoEncRespAlg != null && userinfoEncRespAlg.matches("^(RSA|ECDH)")) {
+				return true;
+			}
 		}
 
-		//introspection_encrypted_response_alg
-		String introspectionEncRespAlg = OIDFJSON.getString(client.get("introspection_encrypted_response_alg"));
-		if(introspectionEncRespAlg!=null && introspectionEncRespAlg.matches("^(RSA|ECDH)")) {
-			return true;
+		if(client.has("introspection_encrypted_response_alg")) {
+			String introspectionEncRespAlg = OIDFJSON.getString(client.get("introspection_encrypted_response_alg"));
+			if (introspectionEncRespAlg != null && introspectionEncRespAlg.matches("^(RSA|ECDH)")) {
+				return true;
+			}
 		}
 
-		//authorization_encrypted_response_alg
-		String authzEncRespAlg = OIDFJSON.getString(client.get("authorization_encrypted_response_alg"));
-		if(authzEncRespAlg!=null && authzEncRespAlg.matches("^(RSA|ECDH)")) {
-			return true;
+		if(client.has("authorization_encrypted_response_alg")) {
+			String authzEncRespAlg = OIDFJSON.getString(client.get("authorization_encrypted_response_alg"));
+			if (authzEncRespAlg != null && authzEncRespAlg.matches("^(RSA|ECDH)")) {
+				return true;
+			}
 		}
 
 		return false;
