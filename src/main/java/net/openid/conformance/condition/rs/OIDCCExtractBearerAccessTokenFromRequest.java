@@ -34,10 +34,9 @@ public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition 
 		JsonElement accessTokenElementFromForm = env.getElementFromObject("incoming_request", "body_form_params.access_token");
 		JsonElement accessTokenElementFromQuery = env.getElementFromObject("incoming_request", "query_string_params.access_token");
 
-		if(accessTokenElementFromForm!=null && accessTokenElementFromQuery!=null) {
-			throw error("Request contains access_token parameters in both query string and request body",
-				args("access_token_form_parameter", accessTokenElementFromForm,
-					"access_token_query_parameter", accessTokenElementFromQuery));
+		if(accessTokenElementFromQuery!=null) {
+			throw error("Request contains access_token parameter in query string",
+				args("access_token_query_parameter", accessTokenElementFromQuery));
 		}
 
 		if(accessTokenElementFromForm!=null) {
@@ -46,15 +45,6 @@ public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition 
 			} else {
 				//unexpected type
 				throw error("Request body contains multiple access_token parameters", args("access_token", accessTokenElementFromForm));
-			}
-		}
-
-		if(accessTokenElementFromQuery!=null) {
-			if(accessTokenElementFromQuery.isJsonPrimitive()) {
-				tokenFromParams = OIDFJSON.getString(accessTokenElementFromQuery);
-			} else {
-				//unexpected type
-				throw error("Request query string contains multiple access_token parameters", args("access_token", accessTokenElementFromQuery));
 			}
 		}
 

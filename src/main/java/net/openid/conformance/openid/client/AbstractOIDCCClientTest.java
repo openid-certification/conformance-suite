@@ -477,7 +477,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * - URI Query Parameter
 	 */
 	protected void extractBearerTokenFromUserinfoRequest() {
-		callAndStopOnFailure(OIDCCExtractBearerAccessTokenFromRequest.class, "RFC6750-2");
+		callAndStopOnFailure(OIDCCExtractBearerAccessTokenFromRequest.class, "RFC6750-2", "OIDCC-5.3.1");
 	}
 
 	protected Object handleJwksEndpointRequest() {
@@ -609,7 +609,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateAuthorizationCodeGrantType() {
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
-		callAndStopOnFailure(ValidateRedirectUriForTokenEndpointRequest.class);
+		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.2");
 
 		generateAccessToken();
 	}

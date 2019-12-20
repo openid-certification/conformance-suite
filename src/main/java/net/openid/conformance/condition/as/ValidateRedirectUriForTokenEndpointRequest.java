@@ -27,7 +27,7 @@ public class ValidateRedirectUriForTokenEndpointRequest extends AbstractConditio
 			 the Authorization Server MAY return an error (since the Client should have included the parameter) or
 			 MAY proceed without an error (since OAuth 2.0 permits the parameter to be omitted in this case).
 			*/
-			throw error("redirect_uri is null or empty",
+			throw error("redirect_uri is missing or empty",
 						args("token_endpoint_request", env.getObject("token_endpoint_request")));
 		}
 		if(actual.equals(expected)) {
