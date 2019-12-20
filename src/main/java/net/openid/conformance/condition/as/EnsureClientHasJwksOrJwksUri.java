@@ -14,7 +14,7 @@ public class EnsureClientHasJwksOrJwksUri extends AbstractCondition {
 
 		JsonObject client = env.getObject("client");
 
-		if (!client.has("jwks") && !client.has("jwks_uri")){
+		if (!client.has("jwks") && !client.has("jwks_uri")) {
 
 			throw error("Client must have either jwks or jwks_uri set. This is typically required " +
 				"when client auth is private_key_jwt " +

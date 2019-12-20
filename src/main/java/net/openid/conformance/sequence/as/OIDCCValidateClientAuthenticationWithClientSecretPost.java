@@ -9,7 +9,6 @@ public class OIDCCValidateClientAuthenticationWithClientSecretPost extends Abstr
 
 	@Override
 	public void evaluate() {
-		//TODO ensure the client secret was sent in the post body not query string. Depends on #666
 		callAndStopOnFailure(ExtractClientCredentialsFromFormPost.class);
 
 		callAndStopOnFailure(ValidateClientIdAndSecret.class);

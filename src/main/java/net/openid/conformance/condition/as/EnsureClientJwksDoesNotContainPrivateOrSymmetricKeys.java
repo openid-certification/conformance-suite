@@ -21,8 +21,7 @@ public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys extends Abstra
 		JsonObject client = env.getObject("client");
 		List<JWK> privateKeys = new LinkedList<>();
 		List<JWK> symmetricKeys = new LinkedList<>();
-		try
-		{
+		try {
 			JsonObject jwks = client.getAsJsonObject("jwks");
 			if(jwks==null) {
 				throw error("Client does not contain a jwks element", args("client", client));
@@ -36,13 +35,10 @@ public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys extends Abstra
 					privateKeys.add(jwk);
 				}
 			}
-		}
-		catch (ParseException e)
-		{
+		} catch (ParseException e) {
 			throw error("Invalid client jwks", args("client", client));
 		}
-		if(privateKeys.isEmpty() && symmetricKeys.isEmpty())
-		{
+		if(privateKeys.isEmpty() && symmetricKeys.isEmpty()) {
 			logSuccess("Client jwks does not any contain private or symmetric keys");
 			return env;
 		}

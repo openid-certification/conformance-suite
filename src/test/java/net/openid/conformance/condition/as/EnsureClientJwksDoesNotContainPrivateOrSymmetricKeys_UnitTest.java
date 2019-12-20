@@ -144,9 +144,9 @@ public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 	}
+
 	@Test
-	public void testEvaluate_noError()
-	{
+	public void testEvaluate_noError() {
 		JsonObject client = new JsonObject();
 		JsonObject publicJwks = new JsonParser().parse(GOOD_JWKS).getAsJsonObject();
 		client.add("jwks", publicJwks);
@@ -162,6 +162,7 @@ public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys_UnitTest {
 		env.putObject("client", client);
 		cond.execute(env);
 	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_symmetricKeys() {
 		JsonObject client = new JsonObject();
