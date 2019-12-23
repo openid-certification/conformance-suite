@@ -134,6 +134,11 @@ public class TestDispatcher implements DataUtils {
 
 			Object response;
 			logIncomingHttpRequest(test, restOfPath, requestParts);
+
+			if (TestModule.Status.CREATED.equals(test.getStatus())) {
+				throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+			}
+
 			if (path.startsWith(TEST_PATH)) {
 				response = test.handleHttp(restOfPath, req, res, session, requestParts);
 			} else if (path.startsWith(TEST_MTLS_PATH)) {
