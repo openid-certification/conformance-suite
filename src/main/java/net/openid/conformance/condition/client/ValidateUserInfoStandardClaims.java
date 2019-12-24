@@ -32,6 +32,11 @@ public class ValidateUserInfoStandardClaims extends AbstractCondition {
 		public boolean isValid(JsonElement elt) { return elt.isJsonPrimitive() && elt.getAsJsonPrimitive().isNumber(); }
 	};
 
+	private static ElementValidator VALIDATE_JSON_OBJECT = new ElementValidator() {
+		public String getDescription() { return "a JSON object"; }
+		public boolean isValid(JsonElement elt) { return elt.isJsonObject(); }
+	};
+
 	@SuppressWarnings("serial")
 	private final Map<String, ElementValidator> STANDARD_CLAIMS = new HashMap<>() {{
 		put("sub", VALIDATE_STRING);
@@ -54,10 +59,12 @@ public class ValidateUserInfoStandardClaims extends AbstractCondition {
 		put("phone_number_verified", VALIDATE_BOOLEAN);
 		put("address", new ObjectValidator("address", ADDRESS_CLAIMS));
 		put("updated_at", VALIDATE_NUMBER);
+		put("_claim_names", VALIDATE_JSON_OBJECT);
+		put("_claim_sources", VALIDATE_JSON_OBJECT);
 	}};
 
 	@SuppressWarnings("serial")
-	private final Map<String, ElementValidator> ADDRESS_CLAIMS = new HashMap<>() {{
+	private static final Map<String, ElementValidator> ADDRESS_CLAIMS = new HashMap<>() {{
 		put("formatted", VALIDATE_STRING);
 		put("street_address", VALIDATE_STRING);
 		put("locality", VALIDATE_STRING);
