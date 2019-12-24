@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenRespo
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oidcc-refresh-token",
@@ -24,6 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 
 	@Override

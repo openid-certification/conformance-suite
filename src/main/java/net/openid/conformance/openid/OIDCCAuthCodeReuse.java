@@ -10,6 +10,8 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromToken
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oidcc-codereuse",
@@ -23,6 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCAuthCodeReuse extends AbstractOIDCCMultipleClient {
 
 	@Override
