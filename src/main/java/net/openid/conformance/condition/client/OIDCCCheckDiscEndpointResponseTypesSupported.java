@@ -9,10 +9,10 @@ public class OIDCCCheckDiscEndpointResponseTypesSupported extends ValidateRespon
 
 	private static final String environmentVariable = "response_types_supported";
 
-	private static final String[] SET_VALUES = new String[]{"code", "id_token", "token id_token"};
+	private static final String[] SET_VALUES = new String[]{"code", "id_token", "token id_token"}; // from OIDCD-3
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
-	private static final String errorMessageNotEnough = "The server does not support enough of the required values.";
+	private static final String errorMessageNotEnough = "The server does not support all of the required response types.";
 
 	@Override
 	@PreEnvironment(required = "server")

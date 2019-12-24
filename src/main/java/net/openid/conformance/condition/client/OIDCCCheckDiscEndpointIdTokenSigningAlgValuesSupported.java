@@ -12,7 +12,7 @@ public class OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported extends Vali
 	private static final String[] SET_VALUES = new String[] { "RS256" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
-	private static final String errorMessageNotEnough = "The server does not support enough of the required claims.";
+	private static final String errorMessageNotEnough = "RS256 support is required, but the server does not list it in " + environmentVariable;
 
 	@Override
 	@PreEnvironment(required = "server")

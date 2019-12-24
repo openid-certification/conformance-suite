@@ -108,6 +108,7 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.INFO, "OIDCD-3");
 
 		// Includes providerinfo-has-claims_supported assertion (OIDC test)
+		// claims_supported is recommended to be present, but not required
 		callAndContinueOnFailure(OIDCCCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		call(condition(OIDCCCheckDiscEndpointGrantTypesSupported.class)
 				.skipIfElementMissing("server", "grant_types_supported")

@@ -12,7 +12,9 @@ public class OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported extends Val
 	private static final String[] SET_VALUES = new String[] {};
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
-	private static final String errorMessageNotEnough = "The server does not support enough of the required algorithms";
+	// There are no required values in this case ("none" MAY be included), so the "not enough"
+	// message will never be used. We do make use of the checks for being an array.
+	private static final String errorMessageNotEnough = null;
 
 	@Override
 	@PreEnvironment(required = "server")
