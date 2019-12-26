@@ -2,6 +2,8 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.AddPhoneScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 // Corresponds to OP-scope-phone
 @PublishTestModule(
@@ -16,6 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 			"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCScopePhone extends AbstractOIDCCServerTest {
 
 	@Override

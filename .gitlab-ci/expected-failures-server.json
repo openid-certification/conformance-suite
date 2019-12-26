@@ -283,11 +283,206 @@
     {
         "test-name": "oidcc-codereuse",
         "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
             "client_auth_type": "client_secret_post",
             "response_type": "code id_token",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
@@ -309,11 +504,11 @@
     {
         "test-name": "oidcc-codereuse",
         "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code",
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
             "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
@@ -322,11 +517,24 @@
     {
         "test-name": "oidcc-codereuse",
         "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-dcr.json",
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
         "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
@@ -348,6 +556,97 @@
     {
         "test-name": "oidcc-codereuse",
         "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "code",
             "client_registration": "dynamic_client"
@@ -359,6 +658,162 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
             "client_auth_type": "client_secret_post",
@@ -366,6 +821,84 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
         "current-block": "",
         "condition": "CallUserInfoEndpointWithBearerTokenInBody",
         "expected-result": "failure",
@@ -387,11 +920,11 @@
     {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code",
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
             "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
         "current-block": "",
         "condition": "CallUserInfoEndpointWithBearerTokenInBody",
         "expected-result": "failure",
@@ -400,11 +933,24 @@
     {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-dcr.json",
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
         "current-block": "",
         "condition": "CallUserInfoEndpointWithBearerTokenInBody",
         "expected-result": "failure",
@@ -426,8 +972,138 @@
     {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "code",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
