@@ -9,11 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
-import net.openid.conformance.testmodule.TestSkippedException;
 import net.openid.conformance.testmodule.UserFacing;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -199,68 +197,53 @@ public class TestDispatcher implements DataUtils {
 		}
 	}
 
+	private boolean exceptionCameFromUserFacingMethod(TestInterruptedException error) {
+		for (StackTraceElement ste : error.getCause().getStackTrace()) {
+			// look for the user-facing annotation in the stack
+			Class<?> clz = null;
+			try {
+				clz = Class.forName(ste.getClassName());
+			} catch (ClassNotFoundException e) {
+				logger.error("Unable to find class when parsing exception stack trace", e);
+				continue;
+			}
+
+			if (clz.equals(getClass())) {
+				// stop if we hit the dispatcher, no need to go further up the stack
+				break;
+			}
+
+			// check only the TestModule classes
+			if (!clz.equals(AbstractTestModule.class) && TestModule.class.isAssignableFrom(clz)) {
+				for (Method m : clz.getDeclaredMethods()) {
+					if (m.getName().equals(ste.getMethodName()) && m.isAnnotationPresent(UserFacing.class)) {
+						// if this is user-facing, return a user-facing view
+						return true;
+					}
+
+				}
+			}
+		}
+		return false;
+	}
+
 	// handle errors thrown by running tests
 	@ExceptionHandler(TestInterruptedException.class)
 	public Object testFailure(TestInterruptedException error) {
 		try {
-			TestModule test = support.getRunningTestById(error.getTestId());
-			if (test != null) {
-				logger.error("Caught an error in TestDispatcher while running the test, stopping the test: " + error.getMessage());
+			ResponseEntity<Object> response = TestRunner.handleTestInterruptedException(error, support,
+				"TestDispatcher.java exception handler");
 
-				if (error instanceof TestSkippedException) {
-					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(),
-							args(
-								"result", TestModule.Result.SKIPPED,
-								"msg", "The test was skipped: " + error.getMessage()));
-				} else {
-					test.setFinalError(error);
-
-					eventLog.log(test.getId(), "TEST-DISPATCHER", test.getOwner(), ex(error,
-							args(
-								"result", Condition.ConditionResult.FAILURE,
-								"msg", error.getCause() != null ? error.getCause().getMessage() : error.getMessage())
-						));
-					test.fireTestFailure();
-					test.stop();
-				}
-			} else {
-				logger.error("Caught an error from a test, but the test isn't running: " + error.getMessage());
+			if (exceptionCameFromUserFacingMethod(error)) {
+				return new RedirectView("/log-detail.html?log=" + error.getTestId());
 			}
 
-			for (StackTraceElement ste : error.getCause().getStackTrace()) {
-				// look for the user-facing annotation in the stack
-				Class<?> clz = Class.forName(ste.getClassName());
-
-				if (clz.equals(getClass())) {
-					// stop if we hit the dispatcher, no need to go further up the stack
-					break;
-				}
-
-				// check only the TestModule classes
-				if (!clz.equals(AbstractTestModule.class) && TestModule.class.isAssignableFrom(clz)) {
-					for (Method m : clz.getDeclaredMethods()) {
-						if (m.getName().equals(ste.getMethodName()) && m.isAnnotationPresent(UserFacing.class)) {
-							// if this is user-facing, return a user-facing view
-							//return new ModelAndView("testError", ImmutableMap.of("error", error));
-							return new RedirectView("/log-detail.html?log=" + error.getTestId());
-						}
-
-					}
-				}
-			}
-
-			// return a plain API view (no HTML)
-			JsonObject obj = new JsonObject();
-			obj.addProperty("error", error.getMessage());
-			obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
-			obj.addProperty("testId", error.getTestId());
-			return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
-
+			// otherwise the plain API view (no HTML)
+			return response;
 		} catch (Exception e) {
 			logger.error("Something terrible happened when handling an error, I give up", e);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
 
 }

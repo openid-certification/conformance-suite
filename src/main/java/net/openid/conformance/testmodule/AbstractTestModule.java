@@ -800,6 +800,38 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	public void handleException(TestInterruptedException error, String source) {
+		// The reason this is 'TEST-RUNNER' is because that's how it was historically, and run-test-plan.py
+		// explicitly looks for 'TEST-RUNNER' - I'm also not sure what would be a better name.
+		final String LOG_SOURCE = "TEST-RUNNER";
+
+		logger.error("Caught an error in '"+source+"' while running the test, stopping the test: " + error.getMessage());
+
+		if (error instanceof TestSkippedException) {
+			eventLog.log(LOG_SOURCE,
+				args(
+					"result", TestModule.Result.SKIPPED,
+					"msg", "The test was skipped: " + error.getMessage()));
+		} else {
+			Map<String, Object> event = new HashMap<>();
+			event.put("caught_at", source);
+			if (error.getCause() instanceof ConditionError) {
+				event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
+			}
+			eventLog.log(LOG_SOURCE, ex(error, event));
+
+			// Any exception except 'skipped' from a test counts as a failure
+			fireTestFailure();
+			stop();
+
+			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				setFinalError(error);
+			}
+		}
+	}
+
 	@Override
 	public void cleanup() {
 		// Nothing to do in general

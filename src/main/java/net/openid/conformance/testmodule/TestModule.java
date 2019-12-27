@@ -204,4 +204,8 @@ public interface TestModule {
 	 * Pass along the current variant configuration
 	 */
 	void setVariant(Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant);
+
+	/** Handle a fatal exception */
+	void handleException(TestInterruptedException error, String source);
+
 }
