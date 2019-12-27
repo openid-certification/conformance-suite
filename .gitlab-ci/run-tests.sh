@@ -40,21 +40,25 @@ function makeClientTest {
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
+
     # client_secret_post
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
+
     # client_secret_jwt
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
+
     # private_key_jwt
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
+
     # none
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
@@ -62,15 +66,17 @@ function makeClientTest {
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=id_token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
+
     # form_post tests are only run with client_secret_basic
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ token][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token\ token][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client] automated-oidcc-client-test.json"
+
     # request_object with client_secret_basic
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][request_type=request_object][client_registration=dynamic_client] automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ token][response_mode=default][request_type=request_object][client_registration=dynamic_client] automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token][response_mode=default][request_type=request_object][client_registration=dynamic_client] automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ token][response_mode=default][request_type=request_object][client_registration=dynamic_client] automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token][response_mode=default][request_type=request_object][client_registration=dynamic_client] automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token\ token][response_mode=default][request_type=request_object][client_registration=dynamic_client] automated-oidcc-client-test.json"
 
 }
