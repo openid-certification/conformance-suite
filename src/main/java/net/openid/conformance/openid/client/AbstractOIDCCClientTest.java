@@ -383,7 +383,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateTlsForIncomingHttpRequest() {
 	}
 
-	protected Object handleClientRequestForPath(String requestId, String path){
+	protected void setHttpRequestParamsSource(String requestId) {
 		String httpMethod = env.getString(requestId, "method");
 		if("POST".equals(httpMethod)) {
 			env.putString("http_request_params_source", "body_form_params");
@@ -391,8 +391,12 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			env.putString("http_request_params_source", "query_string_params");
 		} else {
 			//this should not happen?
-			throw new TestFailureException(getId(), "Got unexpected HTTP method to " + path);
+			throw new TestFailureException(getId(), "Got unexpected HTTP method: " + httpMethod);
 		}
+	}
+
+	protected Object handleClientRequestForPath(String requestId, String path){
+		setHttpRequestParamsSource(requestId);
 
 		if (path.equals("authorize")) {
 
