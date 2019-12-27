@@ -349,6 +349,32 @@ deployment_ciba_test_review:
     - set_up_for_running_test_plan
     - run_ciba_test_plan
 
+deployment_local_test_review:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  needs: ["build"]
+  dependencies: []
+  script:
+    - install_test_dependencies
+    - source node-client-setup.sh
+    - source node-core-client-setup.sh
+    - apk add docker-compose
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
+  after_script:
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs server > $CI_PROJECT_DIR/server.log
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
+  dependencies:
+    - build
+  artifacts:
+    when: always
+    paths:
+      - server.log
+
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
@@ -522,16 +548,20 @@ deployment_ciba_test_review:
     echo ""
   }
 
-  function set_up_for_running_test_plan() {
+  function install_test_dependencies() {
     echo "Installing extra dependencies"
     apk add -U openssh-client git
     apk add --update nodejs nodejs-npm
-    pip install requests
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
     cd ..
     GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:openid/conformance-suite-private.git
     cd conformance-suite-private
+  }
+
+  function set_up_for_running_test_plan() {
+    install_test_dependencies
+    pip install requests
     export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
     get_mongo_pod
     export CONFORMANCE_TOKEN=$(kubectl -n ${KUBE_NAMESPACE} exec ${MONGO_POD} -- mongo --quiet mongodb://localhost/test_suite --eval "db.API_TOKEN.findOne({ _id: \"ci_token\" }).token")

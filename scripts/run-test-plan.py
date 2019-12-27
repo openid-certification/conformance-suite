@@ -667,17 +667,21 @@ def parser_args_cli():
 if __name__ == '__main__':
     requests_session = requests.Session()
 
-    dev_mode = False
+    dev_mode = 'CONFORMANCE_DEV_MODE' in os.environ
+
     if 'CONFORMANCE_SERVER' in os.environ:
         api_url_base = os.environ['CONFORMANCE_SERVER']
-        token = os.environ['CONFORMANCE_TOKEN']
     else:
         # local development settings
-        api_url_base = 'https://localhost:8443/'
-        token = None
+        api_url_base = 'https://localhost.emobix.co.uk:8443/'
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
+
+    if dev_mode:
+        token = None
+    else:
+        token = os.environ['CONFORMANCE_TOKEN']
 
     if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
         # disable https certificate validation

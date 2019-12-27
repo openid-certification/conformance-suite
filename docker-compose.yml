@@ -16,7 +16,12 @@ services:
       context: ./server-dev
     volumes:
      - ./target/:/server/
-    command: java -jar /server/fapi-test-suite.jar --fintechlabs.devmode=true --fintechlabs.startredir=true
+    command: >
+      java
+      -jar /server/fapi-test-suite.jar
+      --fintechlabs.base_url=https://localhost.emobix.co.uk:8443
+      --fintechlabs.devmode=true
+      --fintechlabs.startredir=true
     links:
      - mongodb:mongodb
     depends_on:
