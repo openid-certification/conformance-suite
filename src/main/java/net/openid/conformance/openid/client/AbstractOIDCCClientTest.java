@@ -599,11 +599,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 
+	/**
+	 * from this point on the client will contain both jwks and jwks_uri
+	 */
 	protected void fetchClientJwksFromJwksUri() {
 		//TODO add requirements
 		skipIfElementMissing("client", "jwks_uri", Condition.ConditionResult.INFO, FetchClientKeys.class,
 			Condition.ConditionResult.FAILURE);
-
 	}
 
 	protected void validateAuthorizationCodeGrantType() {
