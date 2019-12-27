@@ -9,6 +9,7 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		OIDCCAuthCodeReuse.class,
+		OIDCCDiscoveryEndpointVerification.class,
 		OIDCCRefreshToken.class,
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
 		OIDCCEnsureRegisteredRedirectUri.class,

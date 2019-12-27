@@ -19,13 +19,17 @@ public class ValidateJsonArray extends AbstractCondition {
 
 		for (int viableIndex = 0; viableIndex < viableSize; viableIndex++) {
 			for (int serverIndex = 0; serverIndex < serverSize; serverIndex++) {
-				if (searchValues.get(viableIndex).equals(OIDFJSON.getString(searchSpace.get(serverIndex)))) {
+				if (elementsEqual(searchValues.get(viableIndex), OIDFJSON.getString(searchSpace.get(serverIndex)))) {
 					foundCount++;
 					break;
 				}
 			}
 		}
 		return foundCount;
+	}
+
+	protected boolean elementsEqual(String e1, String e2) {
+		return e1.equals(e2);
 	}
 
 	public Environment validate(Environment env, String environmentVariable,

@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointResponseTypesSupported extends ValidateJsonArray {
+public class FAPIRWCheckDiscEndpointResponseTypesSupported extends ValidateResponseTypesArray {
 
 	private static final String environmentVariable = "response_types_supported";
 

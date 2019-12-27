@@ -275,6 +275,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
+		// Includes verify-base64url and bare-keys assertions (OIDC test)
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
