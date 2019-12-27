@@ -24,11 +24,11 @@ import java.util.Map;
 public class OIDCCEnsureAuthorizationRequestParametersMatchRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_http_request", "authorization_request_object"})
+	@PreEnvironment(strings = {"http_request_params_source"}, required = {"authorization_endpoint_http_request", "authorization_request_object"})
 	public Environment evaluate(Environment env) {
-
-		String responseTypeFromHttp = env.getString("authorization_endpoint_http_request", "params.response_type");
-		String clientIdFromHttp = env.getString("authorization_endpoint_http_request", "params.client_id");
+		String paramsSource = env.getString("http_request_params_source");
+		String responseTypeFromHttp = env.getString("authorization_endpoint_http_request", paramsSource + ".response_type");
+		String clientIdFromHttp = env.getString("authorization_endpoint_http_request", paramsSource + ".client_id");
 
 		String responseTypeFromRequestObject = env.getString("authorization_request_object", "claims.response_type");
 		String clientIdFromRequestObject = env.getString("authorization_request_object", "claims.client_id");

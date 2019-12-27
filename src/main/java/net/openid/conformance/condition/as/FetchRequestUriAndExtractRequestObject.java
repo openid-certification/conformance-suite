@@ -25,10 +25,11 @@ import java.text.ParseException;
 public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_http_request")
+	@PreEnvironment(strings = {"http_request_params_source"}, required = "authorization_endpoint_http_request")
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
-		String requestUri = env.getString("authorization_endpoint_http_request", "params.request_uri");
+		String paramsSource = env.getString("http_request_params_source");
+		String requestUri = env.getString("authorization_endpoint_http_request", paramsSource + ".request_uri");
 		if (!Strings.isNullOrEmpty(requestUri)) {
 			log("Fetching request object from request_uri", args("request_uri", requestUri));
 			String requestObjectString = "";

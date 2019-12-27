@@ -28,11 +28,12 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 
 	//WARNING "authorization_request_object" is also used but it's not required
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_http_request"})
+	@PreEnvironment(strings = {"http_request_params_source"}, required = {"authorization_endpoint_http_request"})
 	@PostEnvironment(required = {ENV_KEY})
 	public Environment evaluate(Environment env) {
+		String paramsSource = env.getString("http_request_params_source");
 
-		JsonObject authzEndpointReqParams = env.getElementFromObject("authorization_endpoint_http_request", "params").getAsJsonObject();
+		JsonObject authzEndpointReqParams = env.getElementFromObject("authorization_endpoint_http_request", paramsSource).getAsJsonObject();
 		JsonObject effective = authzEndpointReqParams.deepCopy();
 
 		//override request parameters if authorization_request_object exists
@@ -48,8 +49,7 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 			effective.addProperty(MAX_AGE, OIDFJSON.getNumber(effective.get(MAX_AGE)).intValue());
 		}
 		env.putObject(ENV_KEY, effective);
-		logSuccess("Merged http request parameters with request object claims",
-					args(ENV_KEY, effective));
+		logSuccess("Merged http request parameters with request object claims", args(ENV_KEY, effective));
 		return env;
 	}
 

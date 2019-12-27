@@ -215,6 +215,15 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 
 	protected Object handleClientRequestForPath(String requestId, String path){
+		String httpMethod = env.getString(requestId, "method");
+		if("POST".equals(httpMethod)) {
+			env.putString("http_request_params_source", "body_form_params");
+		} else if("GET".equals(httpMethod)) {
+			env.putString("http_request_params_source", "query_string_params");
+		} else {
+			//this should not happen?
+			throw new TestFailureException(getId(), "Got unexpected HTTP method to " + path);
+		}
 
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestId);
