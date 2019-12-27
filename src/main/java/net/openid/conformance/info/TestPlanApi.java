@@ -149,7 +149,10 @@ public class TestPlanApi implements DataUtils {
 		if (modules != null && modules.isJsonArray()) {
 			((JsonArray) modules).forEach(m -> {
 				String testModuleName = OIDFJSON.getString(m.getAsJsonObject().get("testModule"));
-				m.getAsJsonObject().addProperty("testSummary", variantService.getTestModule(testModuleName).info.summary());
+				VariantService.TestModuleHolder testModule = variantService.getTestModule(testModuleName);
+				if (testModule != null) {
+					m.getAsJsonObject().addProperty("testSummary", testModule.info.summary());
+				}
 			});
 		}
 

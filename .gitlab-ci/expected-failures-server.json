@@ -697,6 +697,214 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckIfAuthorizationEndpointError",
+        "expected-result": "failure",
+        "comment": "Authlete does not provide unsigned ID tokens"
+    },
+    {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
             "client_auth_type": "client_secret_basic",

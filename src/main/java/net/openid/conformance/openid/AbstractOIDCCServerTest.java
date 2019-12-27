@@ -445,7 +445,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			// save the id_token returned from the authorisation endpoint
 			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
-			performIdTokenValidation();
+			performAuthorizationEndpointIdTokenValidation();
 		}
 		if (responseType.includesCode()) {
 			performAuthorizationCodeValidation();
@@ -456,10 +456,15 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		performPostAuthorizationFlow();
 	}
 
+	protected void performAuthorizationEndpointIdTokenValidation() {
+		performIdTokenValidation();
+	}
+
 	protected void performIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
 		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
+
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE);
@@ -479,8 +484,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			// call the token endpoint and complete the flow
 			createAuthorizationCodeRequest();
 			requestAuthorizationCode();
+			requestProtectedResource();
 		}
-		requestProtectedResource();
 		onPostAuthorizationFlowComplete();
 	}
 
