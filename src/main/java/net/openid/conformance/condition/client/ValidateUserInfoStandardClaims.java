@@ -87,7 +87,7 @@ public class ValidateUserInfoStandardClaims extends AbstractCondition {
 		}
 
 		public boolean isValid(JsonElement elt) {
-			if (!elt.isJsonObject()) {
+			if (!elt.isJsonObject() || elt.getAsJsonObject().size() == 0) {
 				return false;
 			}
 

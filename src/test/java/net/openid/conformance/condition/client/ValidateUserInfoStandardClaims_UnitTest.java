@@ -119,4 +119,11 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithAddressIsEmptyJsonObject() {
+		userInfo.add("address", new JsonObject());
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
 }
