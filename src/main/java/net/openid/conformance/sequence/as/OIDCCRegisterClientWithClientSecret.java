@@ -8,7 +8,6 @@ public class OIDCCRegisterClientWithClientSecret extends AbstractConditionSequen
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(OIDCCRegisterClient.class);
 		callAndStopOnFailure(OIDCCCreateClientSecretForDynamicClient.class);
 	}
 }
