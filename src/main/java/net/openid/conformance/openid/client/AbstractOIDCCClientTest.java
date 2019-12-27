@@ -733,7 +733,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	/**
 	 * note that we will ignore request or request_uri parameters
 	 * if ClientRequestType configuration does not match.
-	 * e.g if select plain_http_request but send a request_uri parameter then request_uri will be ignored
+	 * i.e when plain_http_request is selected, request or request_uri parameters will be ignored
 	 */
 	protected void extractAuthorizationEndpointRequestParameters() {
 		if(clientRequestType == ClientRequestType.REQUEST_URI) {
@@ -744,7 +744,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			//handle plain http request case
 			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
-		//this must be before the env.mapKey call
+
 		callAndStopOnFailure(OIDCCEnsureAuthorizationRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
 
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
