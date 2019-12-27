@@ -194,7 +194,7 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Create test")
+	@ApiOperation(value = "Create test - After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
 	@ApiResponses(value = {
 		@ApiResponse(code = 201, message = "Created test successfully"),
 		@ApiResponse(code = 400, message = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
