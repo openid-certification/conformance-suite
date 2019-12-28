@@ -530,7 +530,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				"result", Status.FINISHED.toString(),
 				"testmodule_result", getResult()));
 
-			// This might interrupt the current thread, so don't do any logging after this
+			// stop() might interrupt the current thread, so don't do any logging after this
 			stop();
 
 			return "done";
@@ -768,9 +768,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		return testNameSupplier.get();
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#stop()
-	 */
 	@Override
 	public void stop() {
 
@@ -818,11 +815,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			if (error.getCause() instanceof ConditionError) {
 				event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
 			}
-			eventLog.log(LOG_SOURCE, ex(error, event));
-
-			// Any exception except 'skipped' from a test counts as a failure
-			fireTestFailure();
-			stop();
 
 			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
@@ -831,6 +823,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to display with stacktrace
 				setFinalError(error);
 			}
+			eventLog.log(LOG_SOURCE, ex(error, event));
+
+			// Any exception except 'skipped' from a test counts as a failure
+			fireTestFailure();
+			// stop() might interrupt the current thread, so don't do any logging after this
+			stop();
 		}
 	}
 

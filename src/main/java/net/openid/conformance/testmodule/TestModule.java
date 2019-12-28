@@ -74,6 +74,9 @@ public interface TestModule {
 
 	/**
 	 * Called by the test runner to stop the test
+	 *
+	 * If called from a background execution unit, this may never return as background tasks may be aborted.
+	 * Callers should hence try to perform any other required operations before calling this method.
 	 */
 	void stop();
 
