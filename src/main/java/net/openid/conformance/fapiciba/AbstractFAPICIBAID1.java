@@ -150,7 +150,6 @@ import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
@@ -862,7 +861,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	}
 
-	@UserFacing
 	protected Object handlePingCallback(JsonObject requestParts) {
 		getTestExecutionManager().runInBackground(() -> {
 
