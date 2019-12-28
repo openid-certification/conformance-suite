@@ -1,6 +1,8 @@
 package net.openid.conformance.condition.as;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -46,11 +48,28 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 		}
 		//max_age special case
 		if(effective.has(MAX_AGE)) {
-			effective.addProperty(MAX_AGE, OIDFJSON.getNumber(effective.get(MAX_AGE)).intValue());
+			//We can't use OIDFJSON here because MAX_AGE comes as a string from http request parameters
+			int maxAgeAsInt = getParameterValueAsInt(MAX_AGE, effective.get(MAX_AGE));
+			effective.addProperty(MAX_AGE, maxAgeAsInt);
 		}
 		env.putObject(ENV_KEY, effective);
 		logSuccess("Merged http request parameters with request object claims", args(ENV_KEY, effective));
 		return env;
 	}
 
+	protected int getParameterValueAsInt(String parameterName, JsonElement jsonElement) {
+		if(jsonElement.isJsonPrimitive()) {
+			//not using gson's getAsNumber to avoid sonarqube issues
+			JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
+			if(primitive.isString()) {
+				String valueAsString = primitive.getAsString();
+				int valueAsInt = Integer.parseInt(valueAsString);
+				return valueAsInt;
+			} else {
+				return OIDFJSON.getNumber(jsonElement).intValue();
+			}
+		} else {
+			throw error("Unexpected "+parameterName+" parameter", args(parameterName, jsonElement));
+		}
+	}
 }
