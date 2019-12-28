@@ -39,7 +39,7 @@ public class ConditionError extends RuntimeException {
 	/**
 	 * @param testId
 	 * @param message
-	 * @param isPreOrPostError
+	 * @param isPreOrPostError Contravening a pre/post requirement is always a failure, even if failure of the condition would otherwise be a warning
 	 */
 	public ConditionError(String testId, String message, boolean isPreOrPostError) {
 		super(message);
@@ -50,7 +50,7 @@ public class ConditionError extends RuntimeException {
 	/**
 	 * @param testId
 	 * @param message
-	 * @param isPreOrPostError
+	 * @param isPreOrPostError Contravening a pre/post requirement is always a failure, even if failure of the condition would otherwise be a warning
 	 * @param cause
 	 */
 	public ConditionError(String testId, String message, boolean isPreOrPostError, Throwable cause) {
