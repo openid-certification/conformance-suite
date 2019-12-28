@@ -1,8 +1,8 @@
 package net.openid.conformance.fapi;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.SignIdTokenInvalid;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-invalid-signature",
@@ -35,7 +35,7 @@ public class FAPIRWID2ClientTestInvalidSignature extends AbstractFAPIRWID2Client
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 
-		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid signature from the authorization_endpoint.");
+		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid signature from the authorization_endpoint.");
 
 	}
 

@@ -1,6 +1,6 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.testmodule.TestFailureException;
 
 public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken extends AbstractOIDCCClientTest
 {
@@ -24,7 +24,7 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 		if(isAuthorizationCodeRequestUnexpected()) {
-			throw new ConditionError(getId(), getAuthorizationCodeGrantTypeErrorMessage());
+			throw new TestFailureException(getId(), getAuthorizationCodeGrantTypeErrorMessage());
 		} else {
 			startWaitingForTimeout();
 		}
@@ -33,6 +33,6 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 
 	@Override
 	protected Object handleUserinfoEndpointRequest(String requestId) {
-		throw new ConditionError(getId(), getHandleUserinfoEndpointRequestErrorMessage());
+		throw new TestFailureException(getId(), getHandleUserinfoEndpointRequestErrorMessage());
 	}
 }

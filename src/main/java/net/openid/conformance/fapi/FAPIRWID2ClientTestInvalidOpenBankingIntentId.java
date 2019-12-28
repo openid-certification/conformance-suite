@@ -1,8 +1,8 @@
 package net.openid.conformance.fapi;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -32,7 +32,7 @@ public class FAPIRWID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPIR
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 
-		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid openbanking_intent_id value from the authorization_endpoint.");
+		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid openbanking_intent_id value from the authorization_endpoint.");
 
 	}
 
