@@ -115,6 +115,6 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractRedirectSer
 
 	@Override
 	protected void processCallback() {
-		throw new TestFailureException(new ConditionError(getId(), "Couldn't ever got the callback response"));
+		throw new TestFailureException(getId(), "Couldn't ever got the callback response");
 	}
 }

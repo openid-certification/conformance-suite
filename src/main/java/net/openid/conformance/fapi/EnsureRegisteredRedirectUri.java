@@ -111,7 +111,6 @@ public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModul
 
 	@Override
 	protected void processCallback() {
-
-		throw new TestFailureException(new ConditionError(getId(), "The server incorrected returned a response to an unregistered redirect url."));
+		throw new TestFailureException(getId(), "The server incorrectly returned a response to an unregistered redirect url.");
 	}
 }
