@@ -4,11 +4,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantOverride;
 import net.openid.conformance.variant.VariantSetup;
 
-/**
- * applicable only when response type includes code
- */
 @PublishTestModule(
 	testName = "oidcc-client-test-client-secret-basic",
 	displayName = "OIDCC: Relying party test using client_secret_basic",
@@ -19,35 +17,16 @@ import net.openid.conformance.variant.VariantSetup;
 	configurationFields = {
 	}
 )
+/* applicable only when response type includes code */
 @VariantNotApplicable(parameter = ResponseType.class, values = {"id_token token", "id_token"})
+/* no need to run this test module if we're testing client_secret_basic for the whole test plan */
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"client_secret_basic"})
+/* this test module shows that the AS supports client_secret_basic, even if the test plan is for a different client
+ * authentication type */
+@VariantOverride(parameter = ClientAuthType.class, value = "client_secret_basic")
 public class OIDCCClientTestClientSecretBasic extends AbstractOIDCCClientTest {
 
-	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "none")
-	public void setupClientAuthNone() {
-		setupClientSecretBasic();
-	}
+	/* Just run the standard client test, but expecting the client to use client_secret_basic as per the
+	* @VariantOverride */
 
-	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
-	public void setupPrivateKeyJwt() {
-		setupClientSecretBasic();
-	}
-
-	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
-	public void setupClientSecretJWT() {
-		setupClientSecretBasic();
-	}
-
-	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
-	public void setupClientSecretPost() {
-		setupClientSecretBasic();
-	}
-
-	@Override
-	protected ClientAuthType getEffectiveClientAuthTypeVariant() {
-		return ClientAuthType.CLIENT_SECRET_BASIC;
-	}
 }

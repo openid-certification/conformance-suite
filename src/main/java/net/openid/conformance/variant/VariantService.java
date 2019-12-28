@@ -354,6 +354,8 @@ public class VariantService {
 							groupingBy(e -> e.getKey().value(),
 									mapping(e -> e.getValue(), toList()))));
 
+			// FIXME: gather overrides here
+
 			this.parameters = declaredParameters.stream()
 					.map(p -> new TestModuleVariantInfo<>(
 							p,
@@ -403,6 +405,8 @@ public class VariantService {
 			}
 
 			// Note: supplying extra variant parameters is not an error
+
+			// FIXME: process override here somewhere
 
 			parameters.forEach(p -> {
 				Object v = typedVariant.get(p.parameter);
