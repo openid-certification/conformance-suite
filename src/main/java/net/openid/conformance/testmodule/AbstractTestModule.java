@@ -826,7 +826,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-				// ConditionError will get handled by the logging system, no need to display with stacktrace
+				// ConditionError will already have been logged when created in AbstractCondition.java (and
+				// ConditionError should not be thrown from other places, see
+				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to display with stacktrace
 				setFinalError(error);
 			}
 		}
