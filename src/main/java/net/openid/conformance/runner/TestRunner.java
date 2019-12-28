@@ -160,7 +160,7 @@ public class TestRunner implements DataUtils {
 							conditionFailure(testException);
 						}
 					} else {
-						// TODO: Better handling if we get something we wern't expecting? But we don't have access to the test ID
+						// TODO: Better handling if we get something we weren't expecting? But we don't have access to the test ID
 						logger.error("Execution failure", e);
 					}
 
