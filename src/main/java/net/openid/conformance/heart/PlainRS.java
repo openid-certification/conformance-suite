@@ -138,7 +138,6 @@ public class PlainRS extends AbstractTestModule {
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		setStatus(Status.RUNNING);
 
-		fireTestSuccess();
 		setStatus(Status.FINISHED);
 	}
 

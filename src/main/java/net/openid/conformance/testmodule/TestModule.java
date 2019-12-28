@@ -167,11 +167,6 @@ public interface TestModule {
 	TestInterruptedException getFinalError();
 
 	/**
-	 * Mark the test as succeeded and finished.
-	 */
-	void fireTestSuccess();
-
-	/**
 	 * Mark the test as skipped (untestable). This method will throw a
 	 * TestSkippedException to skip any further conditions from running.
 	 * @param msg Reason for skipping the test

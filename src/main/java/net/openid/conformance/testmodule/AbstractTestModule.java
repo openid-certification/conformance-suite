@@ -538,8 +538,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
-	@Override
-	public void fireTestSuccess() {
+	private void fireTestSuccess() {
 		setResult(Result.PASSED);
 	}
 
