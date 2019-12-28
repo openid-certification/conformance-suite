@@ -402,11 +402,12 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 
+		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
+		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
+
 		endTestIfRequiredParametersAreMissing();
 
 		callAndStopOnFailure(EnsureAuthorizationParametersMatchRequestObject.class);
-
-		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
 
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
 
