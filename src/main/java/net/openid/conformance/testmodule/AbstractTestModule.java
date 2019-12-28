@@ -36,9 +36,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
-	// Set up Thread executor
-	//private ExecutorService executorService = Executors.newCachedThreadPool();
-
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
