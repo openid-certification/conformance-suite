@@ -695,7 +695,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		}
 
 		// we never moved out of pending and hence could not complete the test, test fails
-		fireTestFailure();
 		throw new TestFailureException(new ConditionError(getId(), "User did not authenticate before timeout"));
 	}
 

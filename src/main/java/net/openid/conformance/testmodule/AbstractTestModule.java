@@ -303,12 +303,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (ConditionError error) {
 			if (error.isPreOrPostError()) {
 				logger.info("[pre/post] Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
-				fireTestFailure();
 				throw new TestFailureException(error);
 			} else {
 				if (builder.isStopOnFailure()) {
 					logger.info("stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
-					fireTestFailure();
 					throw new TestFailureException(error);
 				} else {
 					logger.info("Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
@@ -318,16 +316,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
 			logger.error("Couldn't create condition object", e);
-			fireTestFailure();
 			throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
 		} catch (TestFailureException e) {
 			logger.error("Caught TestFailureException", e);
-			fireTestFailure();
 			throw e;
 		} catch (Exception e) {
 			logException(e);
 			logger.error("Generic error from underlying test framework", e);
-			fireTestFailure();
 			throw new TestFailureException(getId(), e);
 		}
 
@@ -418,7 +413,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
 			logger.error("Couldn't create condition sequence object", e);
-			fireTestFailure();
 			throw new TestFailureException(getId(), "Couldn't create required condition sequence: " + conditionSequenceClass.getSimpleName());
 		}
 	}
@@ -549,8 +543,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		setResult(Result.PASSED);
 	}
 
-	@Override
-	public void fireTestFailure() {
+	private void fireTestFailure() {
 		setResult(Result.FAILED);
 	}
 

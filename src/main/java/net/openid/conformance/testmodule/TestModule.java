@@ -167,11 +167,6 @@ public interface TestModule {
 	TestInterruptedException getFinalError();
 
 	/**
-	 * Mark the test as failed and finished.
-	 */
-	void fireTestFailure();
-
-	/**
 	 * Mark the test as succeeded and finished.
 	 */
 	void fireTestSuccess();

@@ -81,7 +81,6 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 			}
 		}
 
-		fireTestFailure();
 		throw new TestFailureException(new ConditionError(getId(), "User did not reject authentication before timeout"));
 	}
 
