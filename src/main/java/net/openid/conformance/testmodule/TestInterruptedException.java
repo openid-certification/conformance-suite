@@ -16,6 +16,12 @@ public class TestInterruptedException extends RuntimeException {
 		this.testId = testId;
 	}
 
+	public TestInterruptedException(String testId, String msg, Throwable cause) {
+		super(msg, cause);
+		this.testId = testId;
+	}
+
+
 	public String getTestId() {
 		return testId;
 	}

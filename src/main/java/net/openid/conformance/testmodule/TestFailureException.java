@@ -26,4 +26,9 @@ public class TestFailureException extends TestInterruptedException {
 	public TestFailureException(String testId, Throwable cause) {
 		super(testId, cause);
 	}
+
+	public TestFailureException(String testId, String msg, Throwable cause) {
+		super(testId, msg, cause);
+	}
+
 }

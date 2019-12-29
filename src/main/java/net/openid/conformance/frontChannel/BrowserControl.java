@@ -321,7 +321,11 @@ public class BrowserControl implements DataUtils {
 							"content_type", driver.getResponseContentType(), "result", Condition.ConditionResult.FAILURE)));
 				// note that this leaves us in the current list of runners for the executing test
 				this.lastException = e.getMessage();
-				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage());
+				if (e instanceof TestFailureException) {
+					// avoid wrapping a TestFailureException around a TestFailureException
+					throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage(), e.getCause());
+				}
+				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage(), e);
 			}
 		}
 
