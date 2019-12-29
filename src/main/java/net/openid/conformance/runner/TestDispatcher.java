@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
@@ -149,6 +150,11 @@ public class TestDispatcher implements DataUtils {
 
 		} catch (TestInterruptedException e) {
 			throw e;
+		} catch (ConditionError e) {
+			// we deliberately don't pass 'e' as the cause here, as doing so would make other parts of the
+			// suite believe log messages had already been added for this failure.
+			// see https://gitlab.com/openid/conformance-suite/issues/443
+			throw new TestFailureException(testId, "A ConditionError has been incorrectly thrown by a TestModule, this is a bug in the test module: " + e.getMessage());
 		} catch (Exception e) {
 			throw new TestFailureException(test.getId(), e);
 		}
