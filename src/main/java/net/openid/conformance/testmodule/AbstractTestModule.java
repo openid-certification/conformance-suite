@@ -814,9 +814,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			event.put("caught_at", source);
 			if (error.getCause() instanceof ConditionError) {
 				event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
-			}
-
-			if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
+			} else {
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
 				// ConditionError will already have been logged when created in AbstractCondition.java (and
 				// ConditionError should not be thrown from other places, see
