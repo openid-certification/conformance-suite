@@ -549,13 +549,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		Socket socket;
 		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
 
-			log("Creating socket through system HTTP proxy", args(
+			log("Creating socket through system HTTP proxy; this may cause incorrect test results", args(
 					"proxy_host", proxyHost,
 					"proxy_port", proxyPort,
 					"target_host", targetHost,
 					"target_port", targetPort,
 					"result", ConditionResult.WARNING
 				));
+			// Note that the above 'log' doesn't make the test result be a warning; it would be better if it did but
+			// that's not simple to achieve from here
 
 			Proxy proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
 			socket = new Socket(proxy);
