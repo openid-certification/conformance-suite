@@ -36,9 +36,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
-	// Set up Thread executor
-	//private ExecutorService executorService = Executors.newCachedThreadPool();
-
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
@@ -559,6 +556,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public void fireTestSkipped(String msg) throws TestSkippedException {
+		// There's some potential conflict here with other results; mainly that setting the result to SKIPPED will
+		// overwrite any prior WARNING result. It's debatable which result is more important, it seems like
+		// the fact that the test couldn't be completed is the more important.
+		//
+		// Overwriting 'REVIEW' is also potentially concerning but really we should never skip a test after a user
+		// has uploaded a screenshot.
 		if (getResult() != Result.FAILED) {
 			setResult(Result.SKIPPED);
 		}
