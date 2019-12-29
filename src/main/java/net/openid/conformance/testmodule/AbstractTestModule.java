@@ -525,7 +525,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				"testmodule_result", getResult()));
 
 			// stop() might interrupt the current thread, so don't do any logging after this
-			stop();
+			stop("Test has run to completion.");
 
 			return "done";
 		});
@@ -761,13 +761,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(String reason) {
 
 		if (!(getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED))) {
 			setStatus(Status.INTERRUPTED);
 			eventLog.log(getName(), args(
-				"msg", "Test was interrupted before it could complete",
+				"msg", "Test was interrupted before it could complete. "+reason,
 				"result", Status.INTERRUPTED.toString()));
+			// It's a bit weird that the above log() puts INTERRUPTED (a TestModule status value) into 'result' in the
+			// db, which normally contains a ConditionResult.
 
 			logFinalEnv();
 		}
@@ -802,23 +804,33 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					"result", TestModule.Result.SKIPPED,
 					"msg", "The test was skipped: " + error.getMessage()));
 		} else {
-			Map<String, Object> event = new HashMap<>();
-			event.put("caught_at", source);
+			/* must be a TestFailureException */
+			String failure;
 			if (error.getCause() instanceof ConditionError) {
-				event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
+				failure = error.getCause().getMessage();
 			} else {
+				failure = error.getMessage();
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				setFinalError(error);
+
 				// ConditionError will already have been logged when created in AbstractCondition.java (and
 				// ConditionError should not be thrown from other places, see
-				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to display with stacktrace
-				setFinalError(error);
+				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to log again
+				Map<String, Object> event = new HashMap<>();
+				event.put("caught_at", source);
+				if (error.getCause() == null) {
+					// this must be a message a TestModule has explicitly thrown, i.e. with
+					// throw new TestFailureException(getId(), "Client has incorrectly <...>");
+					// log that message rather than 'unexpected exception caught'
+					event.put("msg", failure);
+				}
+				eventLog.log(LOG_SOURCE, ex(error, event));
 			}
-			eventLog.log(LOG_SOURCE, ex(error, event));
 
 			// Any exception except 'skipped' from a test counts as a failure
 			fireTestFailure();
 			// stop() might interrupt the current thread, so don't do any logging after this
-			stop();
+			stop("The failure '"+failure+"' means the test cannot continue.");
 		}
 	}
 

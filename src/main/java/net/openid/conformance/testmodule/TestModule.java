@@ -77,8 +77,12 @@ public interface TestModule {
 	 *
 	 * If called from a background execution unit, this may never return as background tasks may be aborted.
 	 * Callers should hence try to perform any other required operations before calling this method.
+	 *
+	 * This will add an entry to the log, if the test is not already FINISHED/INTERRUPTED.
+	 *
+	 * @param reason Text describing why the test was stopped, to be used in any log entry.
 	 */
-	void stop();
+	void stop(String reason);
 
 	/**
 	 * Called after the test has been stopped (for any reason) to allow

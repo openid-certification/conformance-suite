@@ -341,7 +341,7 @@ public class TestRunner implements DataUtils {
 				}
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", message, "alias", alias, "new_test_id", id));
 
-				test.stop(); // stop the currently-running test
+				test.stop("Another test has been started that uses the same alias."); // stop the currently-running test
 			}
 		}
 
@@ -411,8 +411,7 @@ public class TestRunner implements DataUtils {
 
 			// stop the test
 			test.getTestExecutionManager().runInBackground(() -> {
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", "Stopping test from external request"));
-				test.stop();
+				test.stop("The test was requested to stop via the conformance suite API.");
 				return "stopped";
 			});
 
