@@ -206,8 +206,9 @@
 
 	                        if(item.startBlock) startBlock = item.msg + ': ';
 
-	                        if( (item.result === 'SKIPPED') ||
-	                            ((item.result === 'FAILURE' || item.result === 'WARNING') && item.src !== 'TEST-RUNNER')) {
+	                        if (item.result === 'SKIPPED' ||
+	                            item.result === 'FAILURE' ||
+	                            item.result === 'WARNING') {
 
                                 var failureDetailInfo = $(FAPI_UI.logTemplates.FAILURE_SUMMARY({
                                     item: item,

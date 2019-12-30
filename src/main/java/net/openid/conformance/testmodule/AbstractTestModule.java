@@ -792,14 +792,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	public void handleException(TestInterruptedException error, String source) {
-		// The reason this is 'TEST-RUNNER' is because that's how it was historically, and run-test-plan.py
-		// explicitly looks for 'TEST-RUNNER' - I'm also not sure what would be a better name.
-		final String LOG_SOURCE = "TEST-RUNNER";
-
 		logger.error("Caught an error in '"+source+"' while running the test, stopping the test: " + error.getMessage());
 
 		if (error instanceof TestSkippedException) {
-			eventLog.log(LOG_SOURCE,
+			eventLog.log(getName(),
 				args(
 					"result", TestModule.Result.SKIPPED,
 					"msg", "The test was skipped: " + error.getMessage()));
@@ -824,7 +820,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					// log that message rather than 'unexpected exception caught'
 					event.put("msg", failure);
 				}
-				eventLog.log(LOG_SOURCE, ex(error, event));
+				eventLog.log(getName(), ex(error, event));
 			}
 
 			// Any exception except 'skipped' from a test counts as a failure
