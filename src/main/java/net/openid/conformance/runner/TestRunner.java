@@ -156,6 +156,8 @@ public class TestRunner implements DataUtils {
 						if (test != null) {
 							// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
 							handleTestInterruptedException(testException, support, "TestRunner.java background task");
+						} else {
+							logger.error("Caught an exception for testId '"+testId+"' but it doesn't seem to be running", e);
 						}
 					} else {
 						// TODO: Better handling if we get something we weren't expecting? But we don't have access to the test ID
