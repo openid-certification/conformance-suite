@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AddExpValueIs70MinutesInFutureToRequestObject_UnitTest {
@@ -56,7 +57,7 @@ public class AddExpValueIs70MinutesInFutureToRequestObject_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(env.getLong("request_object_claims", "exp") - Instant.now().getEpochSecond()).isEqualTo(expExpect);
+		assertThat(env.getLong("request_object_claims", "exp") - Instant.now().getEpochSecond()).isCloseTo(expExpect, within(5L));
 
 	}
 
