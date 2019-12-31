@@ -1,12 +1,12 @@
 package net.openid.conformance.openid;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.client.AddAddressScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddEmailScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPhoneScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddProfileScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ResponseType;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 // Corresponds to OP-scope-all
 @PublishTestModule(
@@ -21,8 +21,15 @@ import net.openid.conformance.variant.VariantNotApplicable;
 			"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
-public class OIDCCScopeAll extends AbstractOIDCCServerTest {
+public class OIDCCScopeAll extends AbstractOIDCCScopesServerTest {
+
+	@Override
+	protected void skipTestIfScopesNotSupported() {
+		JsonObject expectedScopes = new JsonParser().parse("{\"expected_scopes\": [\"address\", \"email\", \"phone\", \"profile\"]}").getAsJsonObject();
+		env.putObject("expected_scopes", expectedScopes);
+
+		super.skipTestIfScopesNotSupported();
+	}
 
 	@Override
 	protected void createAuthorizationRequest() {
