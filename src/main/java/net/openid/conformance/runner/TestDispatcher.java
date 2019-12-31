@@ -216,13 +216,17 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	private boolean exceptionCameFromUserFacingMethod(TestInterruptedException error) {
-		for (StackTraceElement ste : error.getCause().getStackTrace()) {
+		Throwable throwable = error.getCause();
+		if (throwable == null) {
+			throwable = error;
+		}
+		for (StackTraceElement ste : throwable.getStackTrace()) {
 			// look for the user-facing annotation in the stack
 			Class<?> clz = null;
 			try {
 				clz = Class.forName(ste.getClassName());
 			} catch (ClassNotFoundException e) {
-				logger.error("Unable to find class when parsing exception stack trace", e);
+				logger.error("Unable to find class when parsing exception stack trace: " + e.toString(), error);
 				continue;
 			}
 

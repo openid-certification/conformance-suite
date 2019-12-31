@@ -160,8 +160,9 @@ public class TestRunner implements DataUtils {
 							logger.error("Caught an exception for testId '"+testId+"' but it doesn't seem to be running", e);
 						}
 					} else {
-						// TODO: Better handling if we get something we weren't expecting? But we don't have access to the test ID
-						logger.error("Execution failure", e);
+						// There's not much more we can do as there's no way to get the testId; TestExecutionManager's
+						// BackgroundTask does it's best to make sure we don't follow any of these paths.
+						logger.error("Unexpected exception from future.get(): "+e.getMessage(), e);
 					}
 
 				}
@@ -581,10 +582,10 @@ public class TestRunner implements DataUtils {
 			if (test != null) {
 				test.handleException(error, source);
 			} else {
-				logger.error("Caught an error in '"+source+"' from a test, but the test isn't running: " + error.getMessage());
+				logger.error("Caught an exception in '"+source+"' for test '"+error.getTestId()+"', but the test doesn't seem to be running: " + error.getMessage(), error);
 			}
 		} catch (Exception e) {
-			logger.error("Something terrible happened when handling an error caught in '"+source+"', I give up", e);
+			logger.error("Something terrible happened when handling an exception caught in '"+source+"', I give up", e);
 		}
 
 		JsonObject obj = new JsonObject();
