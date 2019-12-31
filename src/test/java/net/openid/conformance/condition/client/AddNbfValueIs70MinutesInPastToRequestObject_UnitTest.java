@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AddNbfValueIs70MinutesInPastToRequestObject_UnitTest {
@@ -56,7 +57,7 @@ public class AddNbfValueIs70MinutesInPastToRequestObject_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(Instant.now().getEpochSecond() - env.getLong("request_object_claims", "nbf")).isEqualTo(nbfExpect);
+		assertThat(Instant.now().getEpochSecond() - env.getLong("request_object_claims", "nbf")).isCloseTo(nbfExpect, within(5L));
 
 	}
 

@@ -1,5 +1,16 @@
 package net.openid.conformance.condition;
 
+/**
+ * Record a failure from a condition
+ *
+ * This should only be created from the error() methods in AbstractCondition.java, which will also add a log entry.
+ * Conditions should use the error() methods to create a ConditionError. TestModules should create
+ * TestFailureExceptions that contain something other than ConditionError as their cause - for example:
+ *
+ * throw new TestFailureException(getId(), "some error");
+ *
+ * see https://gitlab.com/openid/conformance-suite/issues/443
+ */
 public class ConditionError extends RuntimeException {
 
 	private static final long serialVersionUID = 6331346678545936565L;

@@ -1,8 +1,8 @@
 package net.openid.conformance.fapi;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidExpiredExpValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-invalid-expired-exp",
@@ -30,7 +30,7 @@ public class FAPIRWID2ClientTestInvalidExpiredExp extends AbstractFAPIRWID2Clien
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 
-		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with a expired exp value from the authorization_endpoint.");
+		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with a expired exp value from the authorization_endpoint.");
 	}
 
 }

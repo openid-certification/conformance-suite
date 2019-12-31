@@ -66,9 +66,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	}
 
 	protected void createPlaceholder() {
-
 		// Use for create new placeholder in subclass
-		fireTestFailure();
 		throw new TestFailureException(getId(), "Placeholder must be created for test " + getName());
 	}
 

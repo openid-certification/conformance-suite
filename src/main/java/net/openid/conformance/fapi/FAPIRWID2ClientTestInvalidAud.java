@@ -1,8 +1,8 @@
 package net.openid.conformance.fapi;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddInvalidAudValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-client-test-invalid-aud",
@@ -30,7 +30,7 @@ public class FAPIRWID2ClientTestInvalidAud extends AbstractFAPIRWID2ClientExpect
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 
-		throw new ConditionError(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid aud value from the authorization_endpoint.");
+		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid aud value from the authorization_endpoint.");
 	}
 
 }

@@ -303,12 +303,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (ConditionError error) {
 			if (error.isPreOrPostError()) {
 				logger.info("[pre/post] Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
-				fireTestFailure();
 				throw new TestFailureException(error);
 			} else {
 				if (builder.isStopOnFailure()) {
 					logger.info("stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
-					fireTestFailure();
 					throw new TestFailureException(error);
 				} else {
 					logger.info("Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
@@ -318,16 +316,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
 			logger.error("Couldn't create condition object", e);
-			fireTestFailure();
 			throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
 		} catch (TestFailureException e) {
 			logger.error("Caught TestFailureException", e);
-			fireTestFailure();
 			throw e;
 		} catch (Exception e) {
 			logException(e);
 			logger.error("Generic error from underlying test framework", e);
-			fireTestFailure();
 			throw new TestFailureException(getId(), e);
 		}
 
@@ -418,7 +413,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
 			logger.error("Couldn't create condition sequence object", e);
-			fireTestFailure();
 			throw new TestFailureException(getId(), "Couldn't create required condition sequence: " + conditionSequenceClass.getSimpleName());
 		}
 	}
@@ -530,8 +524,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				"result", Status.FINISHED.toString(),
 				"testmodule_result", getResult()));
 
-			// This might interrupt the current thread, so don't do any logging after this
-			stop();
+			// stop() might interrupt the current thread, so don't do any logging after this
+			stop("Test has run to completion.");
 
 			return "done";
 		});
@@ -544,13 +538,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
-	@Override
-	public void fireTestSuccess() {
+	private void fireTestSuccess() {
 		setResult(Result.PASSED);
 	}
 
-	@Override
-	public void fireTestFailure() {
+	private void fireTestFailure() {
 		setResult(Result.FAILED);
 	}
 
@@ -768,17 +760,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		return testNameSupplier.get();
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#stop()
-	 */
 	@Override
-	public void stop() {
+	public void stop(String reason) {
 
 		if (!(getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED))) {
 			setStatus(Status.INTERRUPTED);
 			eventLog.log(getName(), args(
-				"msg", "Test was interrupted before it could complete",
+				"msg", "Test was interrupted before it could complete. "+reason,
 				"result", Status.INTERRUPTED.toString()));
+			// It's a bit weird that the above log() puts INTERRUPTED (a TestModule status value) into 'result' in the
+			// db, which normally contains a ConditionResult.
 
 			logFinalEnv();
 		}
@@ -797,6 +788,45 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			} finally {
 				cleanupCalled = true;
 			}
+		}
+	}
+
+	public void handleException(TestInterruptedException error, String source) {
+		logger.error("Caught an error in '"+source+"' while running the test, stopping the test: " + error.getMessage());
+
+		if (error instanceof TestSkippedException) {
+			eventLog.log(getName(),
+				args(
+					"result", TestModule.Result.SKIPPED,
+					"msg", "The test was skipped: " + error.getMessage()));
+		} else {
+			/* must be a TestFailureException */
+			String failure;
+			if (error.getCause() instanceof ConditionError) {
+				failure = error.getCause().getMessage();
+			} else {
+				failure = error.getMessage();
+				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
+				setFinalError(error);
+
+				// ConditionError will already have been logged when created in AbstractCondition.java (and
+				// ConditionError should not be thrown from other places, see
+				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to log again
+				Map<String, Object> event = new HashMap<>();
+				event.put("caught_at", source);
+				if (error.getCause() == null) {
+					// this must be a message a TestModule has explicitly thrown, i.e. with
+					// throw new TestFailureException(getId(), "Client has incorrectly <...>");
+					// log that message rather than 'unexpected exception caught'
+					event.put("msg", failure);
+				}
+				eventLog.log(getName(), ex(error, event));
+			}
+
+			// Any exception except 'skipped' from a test counts as a failure
+			fireTestFailure();
+			// stop() might interrupt the current thread, so don't do any logging after this
+			stop("The failure '"+failure+"' means the test cannot continue.");
 		}
 	}
 

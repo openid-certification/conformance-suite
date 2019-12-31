@@ -74,8 +74,15 @@ public interface TestModule {
 
 	/**
 	 * Called by the test runner to stop the test
+	 *
+	 * If called from a background execution unit, this may never return as background tasks may be aborted.
+	 * Callers should hence try to perform any other required operations before calling this method.
+	 *
+	 * This will add an entry to the log, if the test is not already FINISHED/INTERRUPTED.
+	 *
+	 * @param reason Text describing why the test was stopped, to be used in any log entry.
 	 */
-	void stop();
+	void stop(String reason);
 
 	/**
 	 * Called after the test has been stopped (for any reason) to allow
@@ -164,16 +171,6 @@ public interface TestModule {
 	TestInterruptedException getFinalError();
 
 	/**
-	 * Mark the test as failed and finished.
-	 */
-	void fireTestFailure();
-
-	/**
-	 * Mark the test as succeeded and finished.
-	 */
-	void fireTestSuccess();
-
-	/**
 	 * Mark the test as skipped (untestable). This method will throw a
 	 * TestSkippedException to skip any further conditions from running.
 	 * @param msg Reason for skipping the test
@@ -204,4 +201,8 @@ public interface TestModule {
 	 * Pass along the current variant configuration
 	 */
 	void setVariant(Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant);
+
+	/** Handle a fatal exception */
+	void handleException(TestInterruptedException error, String source);
+
 }

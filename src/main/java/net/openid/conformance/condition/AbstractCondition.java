@@ -87,7 +87,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (pre != null) {
 				for (String req : pre.required()) {
 					if (!env.containsObject(req)) {
-						logger.info("[pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
+						logger.info("[pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
 						log.log(this.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
@@ -96,7 +96,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw error("[pre] Couldn't find key in environment: " + req, true);
+						throw alreadyLoggedPrePostError("[pre] Couldn't find object in environment: " + req);
 					}
 				}
 				for (String s : pre.strings()) {
@@ -109,7 +109,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw error("[pre] Couldn't find string in environment: " + s, true);
+						throw alreadyLoggedPrePostError("[pre] Couldn't find string in environment: " + s);
 					}
 				}
 			}
@@ -126,7 +126,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (post != null) {
 				for (String req : post.required()) {
 					if (!env.containsObject(req)) {
-						logger.info("[post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find key in environment: " + req);
+						logger.info("[post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
 						log.log(this.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
@@ -135,7 +135,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw error("[post] Couldn't find key in environment: " + req, true);
+						throw alreadyLoggedPrePostError("[post] Couldn't find object in environment: " + req);
 					}
 				}
 				for (String s : post.strings()) {
@@ -148,13 +148,17 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw error("[post] Couldn't find string in environment: " + s, true);
+						throw alreadyLoggedPrePostError("[post] Couldn't find string in environment: " + s);
 					}
 				}
 			}
 		} catch (NoSuchMethodException e) {
 			logger.error("Couldn't create condition object", e);
-			throw error("Couldn't create required condition: " + this.getClass().getSimpleName(), true, e);
+			log.log(this.getMessage(), args(
+				"msg", "Condition failure, couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'",
+				"result", ConditionResult.FAILURE
+			));
+			throw alreadyLoggedPrePostError("Couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'", e);
 		}
 	}
 
@@ -324,17 +328,19 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	 */
 
 	/**
-	 * Return a ConditionError to handle error incorrect the Pre/Post Environment annotations
+	 * Return a ConditionError for failures in the Pre/Post Environment annotations
 	 */
-	protected ConditionError error(String message, boolean isPreOrPostError, Throwable cause) {
-		return new ConditionError(testId, getMessage() + ": " + message, isPreOrPostError, cause);
+	private ConditionError alreadyLoggedPrePostError(String message, Throwable cause) {
+		// it is assumed the caller has already written an entry to the event log
+		return new ConditionError(testId, getMessage() + ": " + message, true, cause);
 	}
 
 	/**
-	 * Return a ConditionError to handle error incorrect the Pre/Post Environment annotations
+	 * Return a ConditionError for failures in the Pre/Post Environment annotations
 	 */
-	protected ConditionError error(String message, boolean isPreOrPostError) {
-		return new ConditionError(testId, getMessage() + ": " + message, isPreOrPostError);
+	private ConditionError alreadyLoggedPrePostError(String message) {
+		// it is assumed the caller has already written an entry to the event log
+		return new ConditionError(testId, getMessage() + ": " + message, true);
 	}
 
 	/**
@@ -543,13 +549,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		Socket socket;
 		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
 
-			log("Creating socket through system HTTP proxy", args(
+			log("Creating socket through system HTTP proxy; this may cause incorrect test results", args(
 					"proxy_host", proxyHost,
 					"proxy_port", proxyPort,
 					"target_host", targetHost,
 					"target_port", targetPort,
 					"result", ConditionResult.WARNING
 				));
+			// Note that the above 'log' doesn't make the test result be a warning; it would be better if it did but
+			// that's not simple to achieve from here
 
 			Proxy proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
 			socket = new Socket(proxy);

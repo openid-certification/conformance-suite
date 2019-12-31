@@ -20,12 +20,10 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.TestInterruptedException;
-import net.openid.conformance.testmodule.TestSkippedException;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -157,7 +155,9 @@ public class TestRunner implements DataUtils {
 						TestModule test = support.getRunningTestById(testId);
 						if (test != null) {
 							// We can't just throw it, the Exception Handler Annotation is only for HTTP requests
-							conditionFailure(testException);
+							handleTestInterruptedException(testException, support, "TestRunner.java background task");
+						} else {
+							logger.error("Caught an exception for testId '"+testId+"' but it doesn't seem to be running", e);
 						}
 					} else {
 						// TODO: Better handling if we get something we weren't expecting? But we don't have access to the test ID
@@ -343,7 +343,7 @@ public class TestRunner implements DataUtils {
 				}
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", message, "alias", alias, "new_test_id", id));
 
-				test.stop(); // stop the currently-running test
+				test.stop("Another test has been started that uses the same alias."); // stop the currently-running test
 			}
 		}
 
@@ -413,8 +413,7 @@ public class TestRunner implements DataUtils {
 
 			// stop the test
 			test.getTestExecutionManager().runInBackground(() -> {
-				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", "Stopping test from external request"));
-				test.stop();
+				test.stop("The test was requested to stop via the conformance suite API.");
 				return "stopped";
 			});
 
@@ -563,42 +562,29 @@ public class TestRunner implements DataUtils {
 	// handle errors thrown by running tests
 	@ExceptionHandler(TestInterruptedException.class)
 	public ResponseEntity<Object> conditionFailure(TestInterruptedException error) {
+		return handleTestInterruptedException(error, support, "TestRunner.java exception handler");
+	}
+
+	/**
+	 * Handle an exception originating from a test
+	 *
+	 * @param error Exception that has been caught
+	 * @param support The shared instance of TestRunnerSupport
+	 * @param source Text explaining where the exception was caught, used only for logging
+	 * @return An internal server error response containing JSON explaining the issue that occurred
+	 */
+	public static ResponseEntity<Object> handleTestInterruptedException(TestInterruptedException error,
+																		TestRunnerSupport support,
+																		String source) {
 		try {
 			TestModule test = support.getRunningTestById(error.getTestId());
 			if (test != null) {
-				logger.error("Caught an error in TestRunner while running the test, stopping the test: " + error.getMessage());
-
-				if (error.getCause() instanceof ConditionError) {
-					Map<String, Object> event = new HashMap<>();
-					event.put("msg", "The failure '"+error.getCause().getMessage()+"' means the test cannot continue. Stopping test.");
-					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error, event));
-				} else if (error instanceof TestSkippedException) {
-					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(),
-							args(
-								"result", TestModule.Result.SKIPPED,
-								"msg", "The test was skipped: " + error.getMessage()));
-				} else {
-					eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), ex(error));
-				}
-
-				if (error instanceof TestSkippedException) {
-					// We don't need to do anything here
-				} else {
-					// Any other exception from a test counts as a failure
-					test.fireTestFailure();
-					test.stop();
-
-					if (!(error.getCause() != null && error.getCause().getClass().equals(ConditionError.class))) {
-						// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-						// ConditionError will get handled by the logging system, no need to display with stacktrace
-						test.setFinalError(error);
-					}
-				}
+				test.handleException(error, source);
 			} else {
-				logger.error("Caught an error from a test, but the test isn't running: " + error.getMessage());
+				logger.error("Caught an error in '"+source+"' from a test, but the test isn't running: " + error.getMessage());
 			}
 		} catch (Exception e) {
-			logger.error("Something terrible happened when handling an error, I give up", e);
+			logger.error("Something terrible happened when handling an error caught in '"+source+"', I give up", e);
 		}
 
 		JsonObject obj = new JsonObject();
