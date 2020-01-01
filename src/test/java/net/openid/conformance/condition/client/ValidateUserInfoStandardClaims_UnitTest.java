@@ -91,6 +91,44 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test
+	public void testEvaluate_noError2() {
+
+		userInfo = new JsonParser().parse("{\n" +
+			"  \"sub\": \"foo\",\n" +
+			"  \"address\": {\n" +
+			"    \"country\": \"000\",\n" +
+			"    \"formatted\": \"000\",\n" +
+			"    \"locality\": \"000\",\n" +
+			"    \"postal_code\": \"000\",\n" +
+			"    \"region\": \"000\",\n" +
+			"    \"street_address\": \"000\"\n" +
+			"  },\n" +
+			"  \"email\": \"johndoe@example.com\",\n" +
+			"  \"email_verified\": false,\n" +
+			"  \"phone_number\": \"+49 000 000000\",\n" +
+			"  \"phone_number_verified\": false,\n" +
+			"  \"birthdate\": \"1987-10-16\",\n" +
+			"  \"family_name\": \"Doe\",\n" +
+			"  \"gender\": \"male\",\n" +
+			"  \"given_name\": \"John\",\n" +
+			"  \"locale\": \"en-US\",\n" +
+			"  \"middle_name\": \"Middle\",\n" +
+			"  \"name\": \"John Doe\",\n" +
+			"  \"nickname\": \"Johny\",\n" +
+			"  \"picture\": \"http://lorempixel.com/400/200/\",\n" +
+			"  \"preferred_username\": \"johnny\",\n" +
+			"  \"profile\": \"https://johnswebsite.com\",\n" +
+			"  \"updated_at\": 1454704946,\n" +
+			"  \"website\": \"http://example.com\",\n" +
+			"  \"zoneinfo\": \"Europe/Berlin\"\n" +
+			"}").getAsJsonObject();
+
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithEmailVerifiedIsNotBoolean() {
 		userInfo.addProperty("email_verified", "true");
