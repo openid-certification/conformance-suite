@@ -38,12 +38,15 @@ public class FAPICIBAID1PingNotificationEndpointReturns401AndRequireServerDoesNo
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
+
 		callAndContinueOnFailure(ExpectServerDoesNotCallNotificationEndpointTwice.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+
+		setStatus(Status.WAITING);
 
 		String calledTimes = env.getString("times_server_called_notification_endpoint");
 		if(Integer.valueOf(calledTimes) == 1) {
 
-			setStatus(Status.RUNNING);
 
 			getTestExecutionManager().runInBackground(() -> {
 
@@ -56,8 +59,6 @@ public class FAPICIBAID1PingNotificationEndpointReturns401AndRequireServerDoesNo
 
 				return "done";
 			});
-
-			setStatus(Status.WAITING);
 
 			return new ResponseEntity<Object>("CIBA Notification Endpoint returns a HTTP 401 Unauthorized response, even though the token is valid.", HttpStatus.UNAUTHORIZED);
 		} else {

@@ -77,10 +77,10 @@ public class FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessa
 
 		requestProtectedResource();
 
-		setStatus(Status.WAITING);
-
 		// ask the user to upload a screenshot/photo of the binding message being correctly displayed when the server authenticates successfully
 		callAndContinueOnFailure(ExpectBindingMessageCorrectDisplay.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+
+		setStatus(Status.WAITING);
 
 		waitForPlaceholders();
 	}
