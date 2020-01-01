@@ -56,9 +56,9 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 
-		setStatus(Status.WAITING);
-
 		createPlaceholder();
+
+		setStatus(Status.WAITING);
 
 		waitForPlaceholders();
 
