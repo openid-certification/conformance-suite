@@ -77,7 +77,7 @@ public class Command implements TestExecutionUnit {
 	}
 
 	/**
-	 * Expose a string from the environment.
+	 * Expose a string from the environment to the user (i.e. display it in the front end)
 	 *
 	 * @param key the environment string to expose
 	 * @return this builder
