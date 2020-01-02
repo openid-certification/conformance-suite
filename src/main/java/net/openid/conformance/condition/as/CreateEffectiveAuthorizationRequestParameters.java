@@ -29,12 +29,11 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 
 	//WARNING "authorization_request_object" is also used but it's not required
 	@Override
-	@PreEnvironment(strings = {"http_request_params_source"}, required = {"authorization_endpoint_http_request"})
+	@PreEnvironment(required = {"authorization_endpoint_http_request_params"})
 	@PostEnvironment(required = {ENV_KEY})
 	public Environment evaluate(Environment env) {
-		String paramsSource = env.getString("http_request_params_source");
 
-		JsonObject authzEndpointReqParams = env.getElementFromObject("authorization_endpoint_http_request", paramsSource).getAsJsonObject();
+		JsonObject authzEndpointReqParams = env.getObject("authorization_endpoint_http_request_params");
 		JsonObject effective = authzEndpointReqParams.deepCopy();
 
 		//override request parameters if authorization_request_object exists

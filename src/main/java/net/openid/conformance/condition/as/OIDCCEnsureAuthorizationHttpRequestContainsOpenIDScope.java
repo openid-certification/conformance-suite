@@ -20,14 +20,13 @@ import java.util.Map;
 public class OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"http_request_params_source"}, required = {"authorization_endpoint_http_request"})
+	@PreEnvironment(required = {"authorization_endpoint_http_request_params"})
 	public Environment evaluate(Environment env) {
-		String paramsSource = env.getString("http_request_params_source");
-		String scopeFromHttpRequest = env.getString("authorization_endpoint_http_request", paramsSource + ".scope");
+		String scopeFromHttpRequest = env.getString("authorization_endpoint_http_request_params", "scope");
 
 		if(Strings.isNullOrEmpty(scopeFromHttpRequest)) {
 			throw error("Http request parameters don't contain a scope parameter",
-						args("request_parameters", env.getElementFromObject("authorization_endpoint_http_request", paramsSource)));
+						args("request_parameters", env.getObject("authorization_endpoint_http_request_params")));
 		}
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scopeFromHttpRequest).iterator());
 

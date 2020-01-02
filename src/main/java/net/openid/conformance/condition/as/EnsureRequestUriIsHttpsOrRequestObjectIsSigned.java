@@ -20,10 +20,9 @@ import java.util.Locale;
 public class EnsureRequestUriIsHttpsOrRequestObjectIsSigned extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"http_request_params_source"}, required = { "authorization_request_object", "authorization_endpoint_http_request" })
+	@PreEnvironment(required = { "authorization_request_object", "authorization_endpoint_http_request_params" })
 	public Environment evaluate(Environment env) {
-		String paramsSource = env.getString("http_request_params_source");
-		String requestUri = env.getString("authorization_endpoint_http_request", paramsSource + ".request_uri");
+		String requestUri = env.getString("authorization_endpoint_http_request_params", "request_uri");
 		String alg = env.getString("authorization_request_object", "header.alg");
 
 		if(requestUri.toLowerCase().startsWith("https://")) {

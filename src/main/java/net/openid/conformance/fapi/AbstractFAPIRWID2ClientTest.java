@@ -215,16 +215,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 
 	protected Object handleClientRequestForPath(String requestId, String path){
-		String httpMethod = env.getString(requestId, "method");
-		if("POST".equals(httpMethod)) {
-			env.putString("http_request_params_source", "body_form_params");
-		} else if("GET".equals(httpMethod)) {
-			env.putString("http_request_params_source", "query_string_params");
-		} else {
-			//this should not happen?
-			throw new TestFailureException(getId(), "Got unexpected HTTP method to " + path);
-		}
-
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
@@ -392,6 +382,19 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 	}
 
+	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
+		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
+		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
+		if("POST".equals(httpMethod)) {
+			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
+		} else if("GET".equals(httpMethod)) {
+			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("query_string_params"));
+		} else {
+			//this should not happen?
+			throw new TestFailureException(getId(), "Got unexpected HTTP method to authorization endpoint");
+		}
+	}
+
 	@UserFacing
 	protected Object authorizationEndpoint(String requestId) {
 
@@ -399,6 +402,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		call(exec().startBlock("Authorization endpoint")
 			.mapKey("authorization_endpoint_http_request", requestId));
+		setAuthorizationEndpointRequestParamsForHttpMethod();
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
 

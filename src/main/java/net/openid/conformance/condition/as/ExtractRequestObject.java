@@ -16,11 +16,10 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"http_request_params_source"}, required = "authorization_endpoint_http_request")
+	@PreEnvironment(required = "authorization_endpoint_http_request_params")
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
-		String paramsSource = env.getString("http_request_params_source");
-		String requestObjectString = env.getString("authorization_endpoint_http_request", paramsSource + ".request");
+		String requestObjectString = env.getString("authorization_endpoint_http_request_params", "request");
 
 		if (Strings.isNullOrEmpty(requestObjectString)) {
 			throw error("Could not find request object in request parameters");

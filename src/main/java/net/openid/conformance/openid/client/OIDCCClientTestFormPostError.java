@@ -36,7 +36,7 @@ public class OIDCCClientTestFormPostError extends AbstractOIDCCClientTest {
 	@Override
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
-		setHttpRequestParamsSource(requestId);
+		setAuthorizationEndpointRequestParamsForHttpMethod();
 		extractAuthorizationEndpointRequestParameters();
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
