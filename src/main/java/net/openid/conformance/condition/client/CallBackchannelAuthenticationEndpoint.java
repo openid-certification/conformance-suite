@@ -36,15 +36,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
 
-	private class OurErrorHandler extends DefaultResponseErrorHandler {
-		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
-			// Treat nothing as an error, so spring never throws an exception due to the http status code
-			// meaning the rest of our code can handle http status codes how it likes
-			return false;
-		}
-	}
-
 	@Override
 	@PreEnvironment(required = { "server", "backchannel_authentication_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "backchannel_authentication_endpoint_response")
@@ -65,7 +56,14 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			restTemplate.setErrorHandler(new OurErrorHandler());
+			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+				@Override
+				public boolean hasError(ClientHttpResponse response) throws IOException {
+					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+					// status code meaning the rest of our code can handle http status codes how it likes
+					return false;
+				}
+			});
 
 			HttpHeaders headers = headersFromJson(env.getObject("backchannel_authentication_endpoint_request_headers"));
 
@@ -77,7 +75,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 			String jsonString = null;
 
 			try {
-				restTemplate.setErrorHandler(new OurErrorHandler());
 
 				ResponseEntity<String> response = restTemplate.postForEntity(bcAuthEndpoint, request, String.class);
 

@@ -36,15 +36,6 @@ import java.util.Collections;
 
 public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
-	private class OurErrorHandler extends DefaultResponseErrorHandler {
-		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
-			// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
-			// status code meaning the rest of our code can handle http status codes how it likes
-			return false;
-		}
-	}
-
 	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpointAndReturnFullResponse.class);
 
 	@Override
@@ -62,6 +53,15 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
+			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+				@Override
+				public boolean hasError(ClientHttpResponse response) throws IOException {
+					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+					// status code meaning the rest of our code can handle http status codes how it likes
+					return false;
+				}
+			});
+
 			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
 
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
@@ -73,8 +73,6 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 			try {
 				final String tokenEndpointUri = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
-
-				restTemplate.setErrorHandler(new OurErrorHandler());
 
 				ResponseEntity<String> response = restTemplate
 					.exchange(tokenEndpointUri, HttpMethod.POST, request, String.class);
