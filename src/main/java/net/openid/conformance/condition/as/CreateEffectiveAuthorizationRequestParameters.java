@@ -10,7 +10,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * Only to be used when a request object (request or request_uri) is used
  * Merges http request parameters and request object parameters
  * and creates effective_authorization_endpoint_request environment entry
  */

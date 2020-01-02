@@ -17,13 +17,13 @@ public class EnsureRequestObjectDoesNotContainRequestOrRequestUri extends Abstra
 		String requestClaim = env.getString("authorization_request_object", "claims.request");
 		String requestUriClaim = env.getString("authorization_request_object", "claims.request_uri");
 
-		if (!Strings.isNullOrEmpty(requestClaim) && !Strings.isNullOrEmpty(requestUriClaim)) {
+		if (requestClaim!=null && requestUriClaim!=null) {
 			throw error("request and request_uri parameters MUST NOT be included in Request Objects",
 					args("request", requestClaim, "request_uri", requestUriClaim));
-		} else if (!Strings.isNullOrEmpty(requestClaim)) {
+		} else if (requestClaim!=null) {
 			throw error("request parameter MUST NOT be included in Request Objects",
 				args("request", requestClaim));
-		} else if (!Strings.isNullOrEmpty(requestUriClaim)) {
+		} else if (requestUriClaim!=null) {
 			throw error("request_uri parameter MUST NOT be included in Request Objects",
 				args("request_uri", requestUriClaim));
 		} else {

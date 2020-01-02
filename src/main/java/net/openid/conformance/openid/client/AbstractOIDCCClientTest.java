@@ -39,7 +39,7 @@ import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
-import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestContainsOpenIDScope;
+import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
@@ -734,11 +734,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(EnsureRequestUriIsHttpsOrRequestObjectIsSigned.class, "OIDCC-6.2");
 	}
 
-	/**
-	 * note that we will ignore request or request_uri parameters
-	 * if ClientRequestType configuration does not match.
-	 * i.e when plain_http_request is selected, request or request_uri parameters will be ignored
-	 */
 	protected void extractAuthorizationEndpointRequestParameters() {
 		if(clientRequestType == ClientRequestType.REQUEST_URI) {
 			fetchAndProcessRequestUri();
@@ -749,7 +744,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
 
-		callAndStopOnFailure(OIDCCEnsureAuthorizationRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
+		callAndStopOnFailure(OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
 
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			validateRequestObject();

@@ -59,9 +59,9 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
 			} catch (RestClientException e) {
-				throw error("Exception while fetching client keys", e);
+				throw error("Exception while fetching request_uri", e);
 			} catch (JsonSyntaxException e) {
-				throw error("Client JWKs set string is not JSON", e);
+				throw error("Response is not JSON", e);
 			} catch (ParseException e) {
 				throw error("Couldn't parse request object", e, args("request", requestObjectString));
 			}
