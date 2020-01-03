@@ -97,7 +97,7 @@ public class TestRunner implements DataUtils {
 	@Value("${fintechlabs.external_url_override:}")
 	public String externalUrlOverride;
 
-	private static Logger logger = LoggerFactory.getLogger(TestRunner.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	@Autowired
 	private TestRunnerSupport support;

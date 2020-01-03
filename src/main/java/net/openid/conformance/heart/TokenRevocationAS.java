@@ -63,7 +63,7 @@ import javax.servlet.http.HttpSession;
 )
 public class TokenRevocationAS extends AbstractTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(TokenRevocationAS.class);
+	private static final Logger logger = LoggerFactory.getLogger(TokenRevocationAS.class);
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

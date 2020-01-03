@@ -80,7 +80,7 @@ public class BrowserControl implements DataUtils {
 	 then should trigger the redirect from the server.
 	 */
 
-	private static Logger logger = LoggerFactory.getLogger(BrowserControl.class);
+	private static final Logger logger = LoggerFactory.getLogger(BrowserControl.class);
 
 	private String testId;
 

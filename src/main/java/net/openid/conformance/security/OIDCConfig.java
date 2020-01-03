@@ -40,7 +40,7 @@ import com.google.common.collect.ImmutableSet;
 @EnableWebSecurity
 public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
-	private static Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
+	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;

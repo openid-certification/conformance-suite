@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
 )
 public class InBrowserDelegatedClientAS extends AbstractRedirectServerTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(InBrowserDelegatedClientAS.class);
+	private static final Logger logger = LoggerFactory.getLogger(InBrowserDelegatedClientAS.class);
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)

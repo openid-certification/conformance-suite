@@ -65,7 +65,7 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 )
 public class NativeDelegatedClientAS extends AbstractRedirectServerTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
+	public static final Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)

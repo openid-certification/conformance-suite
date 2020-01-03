@@ -64,7 +64,7 @@ import net.openid.conformance.testmodule.DataUtils;
 
 public abstract class AbstractCondition implements Condition, DataUtils {
 
-	private static Logger logger = LoggerFactory.getLogger(AbstractCondition.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractCondition.class);
 
 	private String testId;
 	private TestInstanceEventLog log;

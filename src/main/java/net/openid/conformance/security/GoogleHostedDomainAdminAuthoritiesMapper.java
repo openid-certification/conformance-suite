@@ -24,7 +24,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
  *
  */
 public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
-	private static Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
+	private static final Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
 
 	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
 	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
