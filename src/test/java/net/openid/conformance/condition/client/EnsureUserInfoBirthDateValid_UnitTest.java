@@ -83,6 +83,19 @@ public class EnsureUserInfoBirthDateValid_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateEmpty() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_birthDateInvalid() {
 
 		JsonObject userInfo = new JsonObject();
