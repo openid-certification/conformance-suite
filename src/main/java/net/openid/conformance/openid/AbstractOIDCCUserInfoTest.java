@@ -9,7 +9,10 @@ import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpoi
 import net.openid.conformance.condition.client.ValidateUserInfoStandardClaims;
 import net.openid.conformance.condition.client.VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub;
 import net.openid.conformance.condition.client.VerifyUserInfoAndIdTokenInTokenEndpointSameSub;
+import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = ResponseType.class, values={"id_token"})
 public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest {
 
 	@Override
