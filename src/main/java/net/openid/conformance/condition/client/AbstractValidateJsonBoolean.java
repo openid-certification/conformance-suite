@@ -6,9 +6,9 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ValidateJsonBoolean extends AbstractCondition {
+public abstract class AbstractValidateJsonBoolean extends AbstractCondition {
 
-	public Environment validate(Environment env, String environmentVariable, Boolean defaultValue, Boolean requiredValue) {
+	public Environment validate(Environment env, String environmentVariable, boolean defaultValue, boolean requiredValue) {
 
 		JsonElement parameterValue = env.getElementFromObject("server", environmentVariable);
 		String errorMessage = null;
@@ -36,12 +36,6 @@ public class ValidateJsonBoolean extends AbstractCondition {
 		logSuccess(environmentVariable + " has correct value", args(environmentVariable, parameterValue));
 
 		return env;
-	}
-
-	@Override
-	public Environment evaluate(Environment env) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }
