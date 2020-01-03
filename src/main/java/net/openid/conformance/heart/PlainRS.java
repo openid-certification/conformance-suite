@@ -135,6 +135,11 @@ public class PlainRS extends AbstractTestModule {
 		callAndStopOnFailure(CopyAccessTokenFromASToClient.class);
 
 		setStatus(Status.WAITING);
+		// CallProtectedResourceWithBearerToken is accessing the Environment, so can't be called thread safely unless
+		// the lock is held (which it isn't as the test status has been changed to WAITING). I'm presuming this test
+		// also won't work correctly if the lock is held as I presume other conditions in this test module need to run
+		// before the http call to the protected resource can return.
+		// see https://gitlab.com/openid/conformance-suite/merge_requests/822
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		setStatus(Status.RUNNING);
 

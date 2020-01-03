@@ -138,14 +138,23 @@ public class TestDispatcher implements DataUtils {
 				throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
 			}
 
-			if (path.startsWith(TEST_PATH)) {
-				response = test.handleHttp(restOfPath, req, res, session, requestParts);
-			} else if (path.startsWith(TEST_MTLS_PATH)) {
-				response = test.handleHttpMtls(restOfPath, req, res, session, requestParts);
-			} else {
-				throw new TestFailureException(test.getId(), "Failure to route to path " + path);
+			try {
+				if (path.startsWith(TEST_PATH)) {
+					response = test.handleHttp(restOfPath, req, res, session, requestParts);
+				} else if (path.startsWith(TEST_MTLS_PATH)) {
+					response = test.handleHttpMtls(restOfPath, req, res, session, requestParts);
+				} else {
+					throw new TestFailureException(test.getId(), "Failure to route to path " + path);
+				}
+
+				test.checkLockReleased();
+			} finally {
+				// release the lock, so other threads can still run
+				test.forceReleaseLock();
 			}
+
 			logOutgoingHttpResponse(test, restOfPath, response);
+
 			return response;
 
 		} catch (TestInterruptedException e) {

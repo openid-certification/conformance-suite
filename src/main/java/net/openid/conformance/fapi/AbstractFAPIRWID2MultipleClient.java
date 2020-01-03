@@ -50,7 +50,6 @@ public abstract class AbstractFAPIRWID2MultipleClient extends AbstractFAPIRWID2S
 
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "OB-6.2.1-2");
 
-		setStatus(Status.WAITING);
 		eventLog.endBlock();
 	}
 

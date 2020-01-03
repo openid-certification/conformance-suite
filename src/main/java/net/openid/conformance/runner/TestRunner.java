@@ -507,7 +507,7 @@ public class TestRunner implements DataUtils {
 
 			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
-			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade);
+			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade, support);
 			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
 
 			TestModule module;

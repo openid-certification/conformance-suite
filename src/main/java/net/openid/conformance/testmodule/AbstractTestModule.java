@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
 import net.openid.conformance.frontChannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
@@ -239,6 +240,31 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @param builder the fully configured condition call builder
 	 */
 	protected void call(ConditionCallBuilder builder) {
+
+		// We skip these checks for a condition that we deliberately call without the lock held so as not to block
+		// other threads; I suspect it means that this condition should have the ability to call setStatus or that
+		// their functionality should be in a method in AbstractTestModule instead
+		if (builder.getConditionClass() != SleepUntilAuthReqExpires.class) {
+			if (getStatus() != Status.CREATED) {
+				// We don't run this check for 'CREATED' as the lock is currently not held during 'configure'; see
+				// https://gitlab.com/openid/conformance-suite/issues/688
+				if (!env.getLock().isHeldByCurrentThread()) {
+					if (getStatus() != Status.RUNNING) {
+						// give a more helpful error message that tells the developer what they have most likely done
+						// wrong.
+						throw new TestFailureException(getId(), "Condition '" +
+							builder.getConditionClass().getSimpleName() + "' called when test status is '" +
+							getStatus() + "'. This is a bug in the test module and probably means that a call to " +
+							"setStatus(Status.RUNNING) is missing.");
+					}
+
+					// otherwise, it's still wrong to not have the lock held, we're just not able to tell the dev why
+					throw new TestFailureException(getId(), "Condition '" + builder.getConditionClass().getSimpleName()
+						+ "' called on a thread that does not hold lock (test status is '" + getStatus() + "'). This " +
+						"is a bug in the test module.");
+				}
+			}
+		}
 
 		try {
 
@@ -695,7 +721,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
 			// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
+			acquireLock();
 			performFinalCleanup();
+			clearLock();
 		}
 
 		this.status = newStatus;
@@ -931,4 +959,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		});
 	}
 
+	@Override
+	public void checkLockReleased() {
+		if (env.getLock().isHeldByCurrentThread()) {
+			throw new TestFailureException(getId(), "The test module has incorrectly left the lock held, this is a bug in the test module");
+		}
+	}
+
+	@Override
+	public void forceReleaseLock() {
+		clearLockIfHeld();
+	}
 }
