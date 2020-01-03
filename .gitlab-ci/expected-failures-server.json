@@ -960,6 +960,19 @@
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
             "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
             "response_type": "code id_token",
             "client_registration": "dynamic_client"
         },
@@ -1011,6 +1024,19 @@
     {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
             "client_auth_type": "client_secret_post",
             "response_type": "code",
             "client_registration": "static_client"
@@ -1064,6 +1090,19 @@
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
             "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-post.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
             "response_type": "code",
             "client_registration": "dynamic_client"
         },
@@ -1104,6 +1143,19 @@
         "variant": {
             "client_auth_type": "client_secret_post",
             "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
@@ -1168,6 +1220,19 @@
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
             "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-jwt.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
             "response_type": "code",
             "client_registration": "dynamic_client"
         },
@@ -1219,6 +1284,19 @@
     {
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "code",
             "client_registration": "static_client"
@@ -1272,6 +1350,19 @@
         "test-name": "oidcc-userinfo-post-body",
         "variant": {
             "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-privatekey.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
             "response_type": "code",
             "client_registration": "dynamic_client"
         },
@@ -1312,6 +1403,19 @@
         "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "CallUserInfoEndpointWithBearerTokenInBody",
+        "expected-result": "failure",
+        "comment": "Authlete disallows POST with access token in body"
+    },
+    {
+        "test-name": "oidcc-userinfo-post-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",

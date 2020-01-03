@@ -2,8 +2,6 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerTokenInBody;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ResponseType;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 // Corresponds to OP-UserInfo-Body
 @PublishTestModule(
@@ -18,7 +16,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCUserInfoPostBody extends AbstractOIDCCUserInfoTest {
 
 	protected void callUserInfoEndpoint() {
