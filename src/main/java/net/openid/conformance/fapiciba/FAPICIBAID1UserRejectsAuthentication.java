@@ -51,8 +51,7 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 			return;
 		}
 
-		int attempts = 0;
-		while (attempts++ < 20) {
+		for (int attempts = 0; attempts < 20; attempts++) {
 			setStatus(TestModule.Status.WAITING);
 			try {
 				Thread.sleep(delaySeconds * 1000);
