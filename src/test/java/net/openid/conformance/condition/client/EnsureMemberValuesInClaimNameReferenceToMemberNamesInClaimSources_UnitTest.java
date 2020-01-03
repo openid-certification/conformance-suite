@@ -56,15 +56,17 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 		cond.execute(env);
 	}
 
-	@Test
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingClaimNames() {
+		// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
 		userInfo.remove("_claim_names");
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
 	}
 
-	@Test
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingClaimSources() {
+		// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
 		userInfo.remove("_claim_sources");
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
