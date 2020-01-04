@@ -19,7 +19,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 			"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCEnsureRequestObjectWithRedirectUri extends AbstractOIDCCRequestObjectServerTest {
 
 	@Override
