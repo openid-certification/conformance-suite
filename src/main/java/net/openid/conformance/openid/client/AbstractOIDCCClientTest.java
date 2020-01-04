@@ -667,7 +667,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			}
 			addCHashToIdToken();
 			addAtHashToIdToken();
-			addSHashToIdToken();
+			//s_hash is not applicable to core tests. Commenting out just in case it's needed in the future
+			//addSHashToIdToken();
 		}
 
 		addCustomValuesToIdToken();
@@ -676,15 +677,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		customizeIdTokenSignature();
 	}
-
-	//TODO is s_hash needed for core tests?
+/*
+	//s_hash is not applicable to core tests. Commenting out just in case it's needed in the future
 	protected void addSHashToIdToken() {
 		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, Condition.ConditionResult.INFO,
 			CalculateSHash.class, Condition.ConditionResult.FAILURE);
 		skipIfMissing(null, new String[] { "s_hash" }, Condition.ConditionResult.INFO,
 			AddSHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE);
 	}
-
+*/
 	protected void addAtHashToIdToken() {
 		skipIfMissing(null, new String[] { "at_hash" }, Condition.ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
