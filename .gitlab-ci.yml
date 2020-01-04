@@ -395,6 +395,21 @@ deployment_ciba_test_review:
       replicas="$new_replicas"
     fi
 
+    node_selector=""
+
+    if [[ "$CI_COMMIT_BRANCH" == "production" ]]; then
+      node_selector="--set nodeSelector.environment=production \
+        --set tolerations[0].effect=NoSchedule \
+        --set tolerations[0].key=dedicated \
+        --set tolerations[0].operator=Equal \
+        --set tolerations[0].value=production \
+        --set mongodb.nodeSelector.environment=production \
+        --set mongodb.tolerations[0].effect=NoSchedule \
+        --set mongodb.tolerations[0].key=dedicated \
+        --set mongodb.tolerations[0].operator=Equal \
+        --set mongodb.tolerations[0].value=production"
+    fi
+
     # Create OIDC credentials secrets
     kubectl delete secret oidc-gitlab-credentials \
       --namespace="$KUBE_NAMESPACE" \
@@ -423,6 +438,7 @@ deployment_ciba_test_review:
       --set application.track="$track" \
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
+      $node_selector \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       "$name" \

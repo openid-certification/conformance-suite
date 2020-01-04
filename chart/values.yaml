@@ -11,6 +11,8 @@ application:
   tier: web
   env_slug: ""
   path_slug: ""
+nodeSelector: {}
+tolerations: {}
 service:
   enabled: true
   name: web
