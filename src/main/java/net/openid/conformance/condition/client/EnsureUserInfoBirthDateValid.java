@@ -8,6 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class EnsureUserInfoBirthDateValid extends AbstractCondition {
 
@@ -42,7 +43,8 @@ public class EnsureUserInfoBirthDateValid extends AbstractCondition {
 	}
 
 	private boolean isValidDateWithFormat(String value, String dateFormat) {
-		DateFormat sdf = new SimpleDateFormat(dateFormat);
+		// US used as per https://developer.android.com/reference/java/util/Locale.html#be-wary-of-the-default-locale
+		DateFormat sdf = new SimpleDateFormat(dateFormat, Locale.US);
 		sdf.setLenient(false);
 		try {
 			sdf.parse(value);
