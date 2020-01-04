@@ -47,6 +47,29 @@ public class OIDCCEnsureAuthorizationRequestParametersMatchRequestObject extends
 			}
 		}
 
+		//we loop over all parameters and add a log entry if they are not equal
+		JsonObject authzEndpointReqParams = env.getObject("authorization_endpoint_http_request_params");
+		JsonObject requestObjectClaims = env.getElementFromObject("authorization_request_object", "claims").getAsJsonObject();
+
+		for (String paramName : requestObjectClaims.keySet()) {
+			if("response_type".equals(paramName) || "client_id".equals(paramName)) {
+				//these are already checked. checking again would cause duplicate logs
+				continue;
+			}
+			if(authzEndpointReqParams.has(paramName)) {
+				if(!authzEndpointReqParams.get(paramName).equals(requestObjectClaims.get(paramName))) {
+					//TODO this should be logged as a warning
+					log("Parameter value mismatch. This is allowed by the spec but may cause interoperability issues. " +
+							"You should check if the difference is intentional.",
+						args("parameter", paramName,
+							"http_request", authzEndpointReqParams.get(paramName),
+							"request_object", requestObjectClaims.get(paramName)
+						)
+					);
+				}
+			}
+		}
+
 		if(argsForLog.isEmpty()) {
 			logSuccess("Http request parameters and request object claims match",
 						args("response_type", responseTypeFromRequestObject,
