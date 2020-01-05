@@ -82,7 +82,6 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 			}
 		}
 		//Also see CreateEffectiveAuthorizationRequestParameters for max_age processing
-		//we can't use env.getLong because it would return null both when max_age does not exist and when it is json null
 		JsonElement maxAgeElement  = env.getElementFromObject("authorization_request_object", "claims.max_age");
 		if (maxAgeElement == null) {
 			log("Request object does not contain a max_age claim");
