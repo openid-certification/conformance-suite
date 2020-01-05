@@ -15,8 +15,8 @@ public class CreateJwksUri extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String baseUrl = env.getString("base_url");
 
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw error("Base URL was null or empty");
+		if (baseUrl.isEmpty()) {
+			throw error("Base URL is empty");
 		}
 
 		// calculate the redirect URI based on our given base URL

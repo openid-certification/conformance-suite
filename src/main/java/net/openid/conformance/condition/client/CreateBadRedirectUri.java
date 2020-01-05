@@ -17,8 +17,8 @@ public class CreateBadRedirectUri extends AbstractCondition {
 	public Environment evaluate(Environment in) {
 		String baseUrl = in.getString("base_url");
 
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw error("Base URL was null or empty");
+		if (baseUrl.isEmpty()) {
+			throw error("Base URL is empty");
 		}
 
 		// create a random redirect URI which shouldn't be registered with the server

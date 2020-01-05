@@ -18,8 +18,8 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 
 		String baseUrl = env.getString("base_url");
 
-		if (Strings.isNullOrEmpty(baseUrl)) {
-			throw error("Couldn't find a base URL");
+		if (baseUrl.isEmpty()) {
+			throw error("Base URL is empty");
 		}
 
 		// set off the URLs below with a slash, if needed
