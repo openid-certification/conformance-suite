@@ -18,10 +18,12 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources e
 		JsonElement claimNames = env.getElementFromObject("userinfo", "_claim_names");
 		JsonElement claimSources = env.getElementFromObject("userinfo", "_claim_sources");
 
-		if (claimNames == null) {
-			log("User info is not contains '_claim_names'");
+		if (claimNames == null && claimSources == null) {
+			log("userinfo response does not contain '_claim_names' nor _claim_sources'");
+		} else if (claimNames == null) {
+			throw error("userinfo response contains '_claim_sources' but not _claim_names'");
 		} else if (claimSources == null) {
-			log("User info is not contains '_claim_sources'");
+			throw error("userinfo response contains '_claim_names' but not _claim_sources'");
 		} else {
 
 			Set<String> memberValuesInClaimNames = new HashSet<>();
@@ -32,11 +34,11 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources e
 
 			for (String keyClaimSource : claimSources.getAsJsonObject().keySet()) {
 				if (!memberValuesInClaimNames.contains(keyClaimSource)) {
-					throw error("Member name '" + keyClaimSource + "' in '_claim_sources' is not referenced by member values in '_claim_names'", args("_claim_names", claimNames, "_claim_sources", claimSources));
+					throw error("Member name '" + keyClaimSource + "' in userinfo response '_claim_sources' is not referenced by member values in '_claim_names'", args("_claim_names", claimNames, "_claim_sources", claimSources));
 				}
  			}
 
-			logSuccess("Member names in '_claim_sources' are referenced by member values in '_claim_names'", args("_claim_names", claimNames, "_claim_sources", claimSources));
+			logSuccess("userinfo response member names in '_claim_sources' are all referenced by member values in '_claim_names'", args("_claim_names", claimNames, "_claim_sources", claimSources));
 		}
 
 		return env;

@@ -57,14 +57,65 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 	}
 
 	@Test
-	public void testEvaluate_missingClaimNames() {
-		userInfo.remove("_claim_names");
+	public void testEvaluateAggregatedClaims_noError() {
+		// example from https://openid.net/specs/openid-connect-core-1_0.html#AggregatedExample
+		userInfo = new JsonParser().parse("{\n" +
+			"   \"name\": \"Jane Doe\",\n" +
+			"   \"given_name\": \"Jane\",\n" +
+			"   \"family_name\": \"Doe\",\n" +
+			"   \"birthdate\": \"0000-03-22\",\n" +
+			"   \"eye_color\": \"blue\",\n" +
+			"   \"email\": \"janedoe@example.com\",\n" +
+			"   \"_claim_names\": {\n" +
+			"     \"address\": \"src1\",\n" +
+			"     \"phone_number\": \"src1\"\n" +
+			"   },\n" +
+			"   \"_claim_sources\": {\n" +
+			"     \"src1\": {\"JWT\": \"jwt_header.jwt_part2.jwt_part3\"}\n" +
+			"   }\n" +
+			"  }").getAsJsonObject();
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
 	}
 
 	@Test
+	public void testEvaluateDistributedClaims_noError() {
+		// example from https://openid.net/specs/openid-connect-core-1_0.html#DistributedExample
+		userInfo = new JsonParser().parse("{\n" +
+			"   \"name\": \"Jane Doe\",\n" +
+			"   \"given_name\": \"Jane\",\n" +
+			"   \"family_name\": \"Doe\",\n" +
+			"   \"email\": \"janedoe@example.com\",\n" +
+			"   \"birthdate\": \"0000-03-22\",\n" +
+			"   \"eye_color\": \"blue\",\n" +
+			"   \"_claim_names\": {\n" +
+			"     \"payment_info\": \"src1\",\n" +
+			"     \"shipping_address\": \"src1\",\n" +
+			"     \"credit_score\": \"src2\"\n" +
+			"    },\n" +
+			"   \"_claim_sources\": {\n" +
+			"     \"src1\": {\"endpoint\":\n" +
+			"                \"https://bank.example.com/claim_source\"},\n" +
+			"     \"src2\": {\"endpoint\":\n" +
+			"                \"https://creditagency.example.com/claims_here\",\n" +
+			"              \"access_token\": \"ksj3n283dke\"}\n" +
+			"   }\n" +
+			"  }").getAsJsonObject();
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_missingClaimNames() {
+		// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
+		userInfo.remove("_claim_names");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingClaimSources() {
+		// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
 		userInfo.remove("_claim_sources");
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);

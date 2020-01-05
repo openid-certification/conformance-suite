@@ -57,7 +57,7 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 			}
 			out.add(ROLE_USER);
 		} catch (ParseException e) {
-			logger.error("Unable to parse ID Token inside of authorities mapper");
+			logger.error("Unable to parse ID Token inside of authorities mapper", e);
 		}
 		return out;
 	}

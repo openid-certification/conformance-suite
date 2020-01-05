@@ -159,7 +159,7 @@ public class TestDispatcher implements DataUtils {
 
 		} catch (TestInterruptedException e) {
 			if (e.getTestId() == null || !e.getTestId().equals(testId)) {
-				throw new TestFailureException(testId, "A TestFailureException has been caught that does not contain the test id for the current test, this is a bug in the test module", e);
+				throw new TestFailureException(testId, "A TestInterruptedException has been caught that does not contain the test id for the current test, this is a bug in the test module", e);
 			}
 			throw e;
 		} catch (ConditionError e) {
@@ -216,13 +216,17 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	private boolean exceptionCameFromUserFacingMethod(TestInterruptedException error) {
-		for (StackTraceElement ste : error.getCause().getStackTrace()) {
+		Throwable throwable = error.getCause();
+		if (throwable == null) {
+			throwable = error;
+		}
+		for (StackTraceElement ste : throwable.getStackTrace()) {
 			// look for the user-facing annotation in the stack
 			Class<?> clz = null;
 			try {
 				clz = Class.forName(ste.getClassName());
 			} catch (ClassNotFoundException e) {
-				logger.error("Unable to find class when parsing exception stack trace", e);
+				logger.error("Unable to find class when parsing exception stack trace: " + e.toString(), error);
 				continue;
 			}
 

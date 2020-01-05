@@ -751,7 +751,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	/**
-	 * Add a key/value pair to the exposed values
+	 * Add a key/value pair to the exposed values that the user will see in the frontend
 	 *
 	 * @param key
 	 * @param val
@@ -761,7 +761,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	/**
-	 * Expose a value from the environment
+	 * Expose a value from the environment so the user sees it in the frontend
 	 *
 	 * @param key
 	 */

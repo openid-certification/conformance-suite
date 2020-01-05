@@ -17,15 +17,15 @@ public class EnsureUserInfoBirthDateValid extends AbstractCondition {
 
 		String birthDate = env.getString("userinfo", "birthdate");
 
-		if (Strings.isNullOrEmpty(birthDate)) {
-			log("User info is not contains 'birthdate'");
+		if (birthDate == null) {
+			log("userinfo response does not contain 'birthdate'");
 		} else {
 
 			if (!isValidBirthDate(birthDate)) {
-				throw error("Format of 'birthdate' in User info is invalid", args("birthdate", birthDate));
+				throw error("Format of 'birthdate' in userinfo response is invalid", args("birthdate", birthDate));
 			}
 
-			logSuccess("Format of 'birthdate' in User info is valid", args("birthdate", birthDate));
+			logSuccess("Format of 'birthdate' in userinfo response is valid", args("birthdate", birthDate));
 		}
 
 		return env;

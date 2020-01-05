@@ -51,7 +51,7 @@ public class TestExecutionManager {
 				}
 			} catch (TestInterruptedException e) {
 				if (e.getTestId() == null || !e.getTestId().equals(testId)) {
-					throw new TestFailureException(testId, "A TestFailureException has been caught that does not contain the test id for the current test, this is a bug in the test module", e);
+					throw new TestFailureException(testId, "A TestInterruptedException has been caught that does not contain the test id for the current test, this is a bug in the test module", e);
 				}
 				throw e;
 			} catch (ConditionError e) {

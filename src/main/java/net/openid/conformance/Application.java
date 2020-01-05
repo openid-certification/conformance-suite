@@ -64,8 +64,7 @@ public class Application {
 						// redir immediately forks into a daemon so there's no need to read it's I/O streams
 						process.waitFor();
 					} catch (Exception err) {
-						logger.error("launching redir process failed");
-						err.printStackTrace();
+						logger.error("launching redir process failed", err);
 					}
 				}
 			}

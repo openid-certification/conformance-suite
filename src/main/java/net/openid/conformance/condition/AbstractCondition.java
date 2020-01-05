@@ -549,7 +549,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		Socket socket;
 		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
 
-			log("Creating socket through system HTTP proxy; this may cause incorrect test results", args(
+			// see https://gitlab.com/openid/conformance-suite/merge_requests/218#note_74098367
+			log("Creating socket through system HTTPS proxy; this may cause incorrect test results", args(
 					"proxy_host", proxyHost,
 					"proxy_port", proxyPort,
 					"target_host", targetHost,

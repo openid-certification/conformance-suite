@@ -115,6 +115,6 @@ public class EnsureRedirectUriInAuthorizationRequest extends AbstractRedirectSer
 
 	@Override
 	protected void processCallback() {
-		throw new TestFailureException(getId(), "Couldn't ever got the callback response");
+		throw new TestFailureException(getId(), "The authorization server called the redirect uri. This should not have happened as the client did not provide a redirect_uri in the request.");
 	}
 }
