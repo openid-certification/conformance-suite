@@ -30,7 +30,7 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders) {
 
-		throw error("Got a successful response from the resource endpoint", args("body", responseBody));
+		throw error("Got a successful response from the resource endpoint. An access denied error was expected, as the access token was supplied only in the URL query. Servers are not permitted to accept this for security reasons.", args("body", responseBody));
 	}
 
 	@Override

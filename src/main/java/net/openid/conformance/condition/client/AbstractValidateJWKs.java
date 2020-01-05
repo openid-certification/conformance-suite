@@ -69,7 +69,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 	private void verifyPrivatePart(JsonElement jwks, JsonObject keyObject) {
 		if (!keyObject.has("d")) {
-			throw error("The JWK supplied for the first client seems to be a public key (the 'd' key is missing). You must supply a private key in the test configuration.");
+			throw error("The JWK supplied in the configuration seems to be a public key (the 'd' key is missing). You must supply a private key in the test configuration.", args("jwk", keyObject));
 		}
 
 		verifyKeysIsBase64UrlEncoded(keyObject, "d");
@@ -94,7 +94,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
 			}
 		} catch (JOSEException | ParseException e) {
-			throw error("Error validating JWKs", e);
+			throw error("Error validating JWKS", ex(e, args("jwks", jwks)));
 		}
 	}
 
@@ -138,20 +138,20 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
 
 			if (!jwt.verify(verifier)) {
-				throw error("Invalid JWKs. Private and public exponent don't match");
+				throw error("Invalid JWKs supplied in configuration. Private and public exponent don't match (test JWS could not be verified)", args("jws", jwt.toString(), "jwks", jwkSet.toString()));
 			}
 		}
 	}
 
 	private void checkValidStructureInJwks(JsonElement jwks) {
 		if (jwks == null) {
-			throw error("Couldn't find JWKs in client configuration");
+			throw error("Couldn't find JWKs in configuration");
 		} else if (!(jwks instanceof JsonObject)) {
-			throw error("Invalid JWKs in client configuration - JSON decode failed");
+			throw error("Invalid JWKs in configuration - not a JSON object");
 		}
 
 		if (!jwks.getAsJsonObject().has("keys") || !jwks.getAsJsonObject().get("keys").isJsonArray()) {
-			throw error("Keys array not found in JWKs");
+			throw error("Keys array not found in JWKs", args("jwks", jwks));
 		}
 	}
 
@@ -161,7 +161,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			String regex = "[a-zA-Z0-9_-]";
 			for (char character : value.toCharArray()) {
 				if (!Pattern.matches(regex, String.valueOf(character))) {
-					throw error(String.format("Value of key %s is invalid because it contains the character %s that is not permitted in unpadded base64url", key, character));
+					throw error(String.format("Value of key %s is invalid because it contains the character %s that is not permitted in unpadded base64url", key, character), args("jwk", keyObject));
 				}
 			}
 		}
@@ -170,7 +170,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 	private void checkMissingKey(JsonObject jsonObject, String... keys) {
 		for (String key : keys) {
 			if (!jsonObject.has(key)) {
-				throw error("Key missing required field", args("missing key", key));
+				throw error("Key missing required field", args("jwk", jsonObject, "missing", key));
 			}
 		}
 	}
