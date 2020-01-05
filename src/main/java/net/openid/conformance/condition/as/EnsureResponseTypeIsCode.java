@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 public class EnsureResponseTypeIsCode extends AbstractEnsureResponseType {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request")
+	@PreEnvironment(required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
 	public Environment evaluate(Environment env) {
 
 		return ensureResponseTypeMatches(env, "code");

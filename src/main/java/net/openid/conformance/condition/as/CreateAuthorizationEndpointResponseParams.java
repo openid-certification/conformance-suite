@@ -9,30 +9,28 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CreateAuthorizationEndpointResponseParams extends AbstractCondition {
 
+	public static final String ENV_KEY = "authorization_endpoint_response_params";
+	public static final String REDIRECT_URI = "redirect_uri";
+	public static final String STATE = "state";
+
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request")
-	@PostEnvironment(required = "authorization_endpoint_response_params")
+	@PreEnvironment(required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
+	@PostEnvironment(required = ENV_KEY)
 	public Environment evaluate(Environment env) {
 
-		String redirectUri = env.getString("authorization_request_object", "claims.redirect_uri");
-		if (Strings.isNullOrEmpty(redirectUri)) {
-			redirectUri = env.getString("authorization_endpoint_request", "query_string_params.redirect_uri");
-		}
+		String redirectUri = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI);
 
-		String state = env.getString("authorization_request_object", "claims.state");
-		if (Strings.isNullOrEmpty(state)) {
-			state = env.getString("authorization_endpoint_request", "query_string_params.state");
-		}
+		String state = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE);
 
 		JsonObject responseParams = new JsonObject();
-		responseParams.addProperty("redirect_uri", redirectUri);
+		responseParams.addProperty(REDIRECT_URI, redirectUri);
 		if(state!=null) {
-			responseParams.addProperty("state", state);
+			responseParams.addProperty(STATE, state);
 		}
 
-		logSuccess("Added authorization_endpoint_response_params to environment", args("params", responseParams));
+		logSuccess("Added "+ENV_KEY+" to environment", args("params", responseParams));
 
-		env.putObject("authorization_endpoint_response_params", responseParams);
+		env.putObject(ENV_KEY, responseParams);
 
 		return env;
 

@@ -9,12 +9,12 @@ import net.openid.conformance.testmodule.Environment;
 public class EnsureMatchingClientId extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "client", "authorization_endpoint_request" })
+	@PreEnvironment(required = { "client", CreateEffectiveAuthorizationRequestParameters.ENV_KEY})
 	public Environment evaluate(Environment env) {
 
 		// get the client ID from the configuration
 		String expected = env.getString("client", "client_id");
-		String actual = env.getString("authorization_endpoint_request", "query_string_params.client_id");
+		String actual = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CLIENT_ID);
 
 		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
 			logSuccess("Client ID matched",

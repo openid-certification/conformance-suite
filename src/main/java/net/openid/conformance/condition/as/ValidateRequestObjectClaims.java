@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import net.openid.conformance.condition.AbstractCondition;
@@ -79,6 +80,19 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 				// this is just something to log, it doesn't make the token invalid
 				log("Token has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
+		}
+		//Also see CreateEffectiveAuthorizationRequestParameters for max_age processing
+		//we can't use env.getLong because it would return null both when max_age does not exist and when it is json null
+		JsonElement maxAgeElement  = env.getElementFromObject("authorization_request_object", "claims.max_age");
+		if (maxAgeElement == null) {
+			log("Request object does not contain a max_age claim");
+		} else if(maxAgeElement.isJsonNull()) {
+			log("max_age claim is null. As per https://openid.net/specs/openid-connect-core-1_0.html#JSONSerialization, " +
+				"omitted parameters and parameters with no value " +
+				"SHOULD be omitted from the request object and not represented by a JSON null value.");
+		} else {
+			Number maxAge = OIDFJSON.getNumber(maxAgeElement);
+			log("max_age is correctly encoded as a number", args("max_age", maxAge));
 		}
 
 		logSuccess("Request object claims passed all validation checks");

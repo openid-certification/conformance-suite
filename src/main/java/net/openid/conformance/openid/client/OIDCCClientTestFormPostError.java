@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateLoginRequiredErrorResponse;
 import net.openid.conformance.condition.as.EnsureMaxAgeEqualsZeroAndPromptNone;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -34,11 +35,13 @@ public class OIDCCClientTestFormPostError extends AbstractOIDCCClientTest {
 
 	@Override
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
-		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_request", requestId));
+		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
+		setAuthorizationEndpointRequestParamsForHttpMethod();
+		extractAuthorizationEndpointRequestParameters();
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		Object view = generateFormPostResponse();
-		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 		return view;
 	}
 
@@ -50,8 +53,8 @@ public class OIDCCClientTestFormPostError extends AbstractOIDCCClientTest {
 	protected Object generateFormPostResponse() {
 		callAndStopOnFailure(CreateLoginRequiredErrorResponse.class);
 
-		JsonObject errorResponseParams = env.getObject("error_response_params");
-		String formActionUrl = env.getString("error_response_url");
+		JsonObject errorResponseParams = env.getObject(CreateLoginRequiredErrorResponse.ERROR_RESPONSE_PARAMS);
+		String formActionUrl = env.getString(CreateLoginRequiredErrorResponse.ERROR_RESPONSE_URL);
 
 		return new ModelAndView("formPostResponseMode",
 			ImmutableMap.of(

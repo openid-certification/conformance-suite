@@ -46,15 +46,9 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		hasNonce = new JsonParser().parse("{\"query_string_params\": " +
-			"{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}" +
-			"}").getAsJsonObject();
-		noNonce = new JsonParser().parse("{\"query_string_params\": " +
-			"{\"state\": \"843192\"}" +
-			"}").getAsJsonObject();
-		onlyNonce = new JsonParser().parse("{\"query_string_params\": " +
-			"{\"nonce\": \"" + nonce + "\"}" +
-			"}").getAsJsonObject();
+		hasNonce = new JsonParser().parse("{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}").getAsJsonObject();
+		noNonce = new JsonParser().parse("{\"state\": \"843192\"}").getAsJsonObject();
+		onlyNonce = new JsonParser().parse("{\"nonce\": \"" + nonce + "\"}").getAsJsonObject();
 		noParams = new JsonParser().parse("{}").getAsJsonObject();
 
 	}
@@ -62,10 +56,10 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	@Test
 	public void test_good() {
 
-		env.putObject("authorization_endpoint_request", hasNonce);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, hasNonce);
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
+		verify(env, atLeastOnce()).getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY);
 		verify(env, times(1)).putString("nonce", nonce);
 
 		assertEquals(env.getString("nonce"), nonce);
@@ -74,10 +68,10 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	@Test
 	public void test_only() {
 
-		env.putObject("authorization_endpoint_request", onlyNonce);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, onlyNonce);
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getObject("authorization_endpoint_request");
+		verify(env, atLeastOnce()).getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY);
 		verify(env, times(1)).putString("nonce", nonce);
 
 		assertEquals(env.getString("nonce"), nonce);
@@ -87,14 +81,14 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void test_bad() {
 
-		env.putObject("authorization_endpoint_request", noNonce);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, noNonce);
 		cond.execute(env);
 
 	}
 	@Test(expected = ConditionError.class)
 	public void test_missing() {
 
-		env.putObject("authorization_endpoint_request", noParams);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, noParams);
 		cond.execute(env);
 
 	}

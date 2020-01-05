@@ -8,11 +8,11 @@ import net.openid.conformance.testmodule.Environment;
 public class EnsureMaxAgeEqualsZeroAndPromptNone extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request" })
+	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	public Environment evaluate(Environment env) {
 
-		String maxAge = env.getString("authorization_endpoint_request", "query_string_params.max_age");
-		String prompt = env.getString("authorization_endpoint_request", "query_string_params.prompt");
+		String maxAge = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.MAX_AGE);
+		String prompt = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.PROMPT);
 
 		if ("0".equals(maxAge) && "none".equals(prompt)) {
 			logSuccess("The client sent max_age=0 and prompt=none as expected");

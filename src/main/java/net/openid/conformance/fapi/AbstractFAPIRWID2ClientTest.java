@@ -19,6 +19,7 @@ import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
@@ -214,7 +215,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 
 	protected Object handleClientRequestForPath(String requestId, String path){
-
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
@@ -382,15 +382,32 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 	}
 
+	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
+		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
+		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
+		if("POST".equals(httpMethod)) {
+			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
+		} else if("GET".equals(httpMethod)) {
+			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("query_string_params"));
+		} else {
+			//this should not happen?
+			throw new TestFailureException(getId(), "Got unexpected HTTP method to authorization endpoint");
+		}
+	}
+
 	@UserFacing
 	protected Object authorizationEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Authorization endpoint")
-			.mapKey("authorization_endpoint_request", requestId));
+			.mapKey("authorization_endpoint_http_request", requestId));
+		setAuthorizationEndpointRequestParamsForHttpMethod();
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
+
+		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
+		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
 
 		endTestIfRequiredParametersAreMissing();
 
@@ -424,8 +441,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 
-		skipIfElementMissing("authorization_request_object", "claims.state", ConditionResult.INFO,
-			CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
+			ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
@@ -465,7 +482,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		call(exec().unmapKey("authorization_endpoint_request").endBlock());
+		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
 		return new RedirectView(redirectTo, false, false, false);
 

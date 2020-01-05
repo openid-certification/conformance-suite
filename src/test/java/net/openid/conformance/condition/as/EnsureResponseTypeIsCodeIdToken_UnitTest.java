@@ -39,32 +39,31 @@ public class EnsureResponseTypeIsCodeIdToken_UnitTest {
 		String invalidToken = "invalidToken";
 
 		JsonObject sampleParams = new JsonObject();
-		sampleParams.addProperty("response_type", token);
+		sampleParams.addProperty(CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE, token);
 
 		JsonObject invalidParams = new JsonObject();
-		invalidParams.addProperty("response_type", invalidToken);
+		invalidParams.addProperty(CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE, invalidToken);
 
-		authorizationEndpointRequest = new JsonObject();
-		authorizationEndpointRequest.add("query_string_params", sampleParams);
 
-		invalidAuthorizationEndpointRequest = new JsonObject();
-		invalidAuthorizationEndpointRequest.add("query_string_params", invalidParams);
+		authorizationEndpointRequest = sampleParams;
+
+		invalidAuthorizationEndpointRequest = invalidParams;
 	}
 
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authorizationEndpointRequest);
 
 		cond.execute(env);
 
-		assertNotNull(env.getElementFromObject("authorization_endpoint_request", "query_string_params.response_type"));
+		assertNotNull(env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE));
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMismatch() {
 
-		env.putObject("authorization_endpoint_request", invalidAuthorizationEndpointRequest);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, invalidAuthorizationEndpointRequest);
 
 		cond.execute(env);
 	}
