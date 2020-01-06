@@ -667,8 +667,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void waitForPollingAuthenticationToComplete(long delaySeconds) {
-		int attempts = 0;
-		while (attempts++ < 20) {
+		for (int attempts = 0; attempts < 20; attempts++) {
 			// poll the token endpoint
 
 			setStatus(Status.WAITING);
@@ -938,8 +937,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void multipleCallToTokenEndpointAndVerifyResponse(){
-		int attempts = 0;
-		while (attempts++ < 20) {
+		for (int attempts = 0; attempts < 20; attempts++) {
 			eventLog.startBlock(currentClientString() + "Calling token endpoint expecting one of errors of authorization_pending, slow_down, invalid_request, or 503 error");
 			callTokenEndpointForCibaGrant();
 			eventLog.endBlock();

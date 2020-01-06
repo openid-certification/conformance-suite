@@ -45,7 +45,7 @@ import net.openid.conformance.testmodule.TestModule;
 @Controller
 public class TestDispatcher implements DataUtils {
 
-	private static Logger logger = LoggerFactory.getLogger(TestDispatcher.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestDispatcher.class);
 
 	public static final String TEST_PATH = "/test/"; // path for incoming test requests
 	public static final String TEST_MTLS_PATH = "/test-mtls/"; // path for incoming MTLS requests

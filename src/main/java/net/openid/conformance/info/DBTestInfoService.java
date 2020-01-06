@@ -33,7 +33,7 @@ public class DBTestInfoService implements TestInfoService {
 
 	public static final String COLLECTION = "TEST_INFO";
 
-	private static Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
+	private static final Logger logger = LoggerFactory.getLogger(DBTestInfoService.class);
 
 	@Value("${fintechlabs.version}")
 	private String version;

@@ -23,7 +23,6 @@ public class TestExecutionManager {
 		private Callable<?> myCallable;
 		private Authentication savedAuthentication;
 		private TestRunnerSupport testRunnerSupport;
-		protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 		public BackgroundTask(String testId, Callable<?> callable, TestRunnerSupport testRunnerSupport) {
 			this.testId = testId;
@@ -79,6 +78,8 @@ public class TestExecutionManager {
 	private ExecutorCompletionService<Object> executorCompletionService;
 
 	private AuthenticationFacade authenticationFacade;
+
+	private static final Logger logger = LoggerFactory.getLogger(TestExecutionManager.class);
 
 	private TestRunnerSupport testRunnerSupport;
 

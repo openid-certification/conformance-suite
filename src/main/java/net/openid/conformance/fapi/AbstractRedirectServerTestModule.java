@@ -22,7 +22,7 @@ import javax.servlet.http.HttpSession;
  * TestModules using this class will receive the full result of the redirect in processCallback().
  */
 public abstract class AbstractRedirectServerTestModule extends AbstractTestModule {
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractRedirectServerTestModule.class);
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {

@@ -3,7 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscEndpointClaimsParameterSupported extends ValidateJsonBoolean {
+public class CheckDiscEndpointClaimsParameterSupported extends AbstractValidateJsonBoolean {
 
 	private static final String environmentVariable = "claims_parameter_supported";
 	private static final boolean requiredValue = true;

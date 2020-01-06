@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
 
-	private static Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String id = null; // unique identifier for the test, set from the outside
 	private Status status = Status.UNKNOWN; // current status of the test

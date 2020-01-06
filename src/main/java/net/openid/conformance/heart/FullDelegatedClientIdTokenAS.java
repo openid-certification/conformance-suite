@@ -77,7 +77,7 @@ import javax.servlet.http.HttpSession;
 )
 public class FullDelegatedClientIdTokenAS extends AbstractRedirectServerTestModule {
 
-	public static Logger logger = LoggerFactory.getLogger(FullDelegatedClientIdTokenAS.class);
+	private static final Logger logger = LoggerFactory.getLogger(FullDelegatedClientIdTokenAS.class);
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
