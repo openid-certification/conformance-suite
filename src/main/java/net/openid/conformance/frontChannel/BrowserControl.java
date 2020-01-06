@@ -420,8 +420,11 @@ public class BrowserControl implements DataUtils {
 					String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
 					String action = command.size() >= 6 ? OIDFJSON.getString(command.get(5)) : null;
 					boolean updateImagePlaceHolder = false;
+					boolean updateImagePlaceHolderOptional = false;
 					if (!Strings.isNullOrEmpty(action)) {
-						if (action.equals("update-image-placeholder")) {
+						if (action.equals("update-image-placeholder-optional")) {
+							updateImagePlaceHolderOptional = true;
+						} else if (action.equals("update-image-placeholder")) {
 							updateImagePlaceHolder = true;
 						} else {
 							this.lastException = "Invalid action: " + action;
@@ -451,9 +454,9 @@ public class BrowserControl implements DataUtils {
 						} else if (!Strings.isNullOrEmpty(regexp)) {
 							Pattern pattern = Pattern.compile(regexp);
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
-							if (updateImagePlaceHolder) {
+							if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 								// make a snapshot of the page available to the test log
-								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType());
+								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), updateImagePlaceHolderOptional);
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
@@ -572,13 +575,17 @@ public class BrowserControl implements DataUtils {
 	 * @param pageSource the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
-	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType) {
+	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, boolean optional) {
 		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
 
 		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
 		if (document == null) {
+			if (optional) {
+				eventLog.log("BROWSER", args("msg", "Skipping optional placeholder update as placeholder not found.", "placeholder", placeholder));
+				return;
+			}
 			throw new TestFailureException(testId, "Couldn't find matched placeholder for uploading error screenshot.");
 		}
 
