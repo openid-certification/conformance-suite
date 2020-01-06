@@ -60,7 +60,7 @@ public class CreateInvalidCIBANotificationEndpointUri_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_valueNull() {
+	public void testEvaluate_valueMissing() {
 
 		cond.execute(env);
 
