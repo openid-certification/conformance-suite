@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
+import com.gargoylesoftware.htmlunit.CookieManager;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -94,6 +95,8 @@ public class BrowserControl implements DataUtils {
 	private ImageService imageService;
 
 	private TestInstanceEventLog eventLog;
+
+	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
 
 	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
@@ -524,6 +527,12 @@ public class BrowserControl implements DataUtils {
 		@Override
 		protected WebClient modifyWebClient(WebClient client) {
 			client.setPageCreator(new BrowserControlPageCreator());
+			// use same cookie manager for all instances within this testmodule instance
+			// (cookie manager seems to be thread safe)
+			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
+			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
+			// are set/read might differ between test runs.
+			client.setCookieManager(cookieManager);
 			return client;
 		}
 	}
