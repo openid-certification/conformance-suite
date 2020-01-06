@@ -18,6 +18,7 @@ import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.bson.Document;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
@@ -369,7 +370,7 @@ public class BrowserControl implements DataUtils {
 
 					logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
 				} else if (commandString.equalsIgnoreCase("text")) {
-					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
+					// ["text", "id" or "name", "id_or_name", "text_to_enter", "optional"]
 
 					String value = OIDFJSON.getString(command.get(3));
 
@@ -384,10 +385,29 @@ public class BrowserControl implements DataUtils {
 						"result", Condition.ConditionResult.INFO
 						));
 
-					WebElement entryBox = driver.findElement(getSelector(elementType, target));
+					try {
+						WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
-					entryBox.sendKeys(value);
-					logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
+						entryBox.sendKeys(value);
+						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
+					}
+					catch (NoSuchElementException e) {
+						String optional = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
+						if (optional != null && optional.equals("optional")) {
+							eventLog.log("WebRunner", args(
+								"msg", "Element not found, skipping as 'text' command is marked 'optional'",
+								"url", driver.getCurrentUrl(),
+								"browser", commandString,
+								"task", taskName,
+								"element_type", elementType,
+								"target", target,
+								"value", value,
+								"result", Condition.ConditionResult.INFO
+							));
+						} else {
+							throw e;
+						}
+					}
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
 					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
