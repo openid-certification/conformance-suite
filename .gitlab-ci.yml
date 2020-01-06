@@ -67,7 +67,7 @@ build:
   stage: build
   script:
     # Don't compile the tests yet
-    - mvn -B -Dmaven.test.skip clean package
+    - mvn -B -Dmaven.test.skip -Dpmd.skip clean package
   artifacts:
     paths:
       - target/
@@ -117,7 +117,7 @@ sonarqube_scanner:
   script:
     # Don't compile anything or run tests
     - |
-      mvn -B -Dmaven.main.skip -Dmaven.test.skip \
+      mvn -B -Dmaven.main.skip -Dmaven.test.skip -Dpmd.skip \
         verify sonar:sonar \
         -Dsonar.host.url=$SONAR_URL \
         -Dsonar.login=$SONAR_LOGIN \
