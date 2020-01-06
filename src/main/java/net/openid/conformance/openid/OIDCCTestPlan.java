@@ -23,6 +23,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCScopePhone.class,
 		OIDCCScopeProfile.class,
 		OIDCCServerTest.class,
+		OIDCCPromptLogin.class,
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
 		OIDCCUserInfoPostHeader.class
