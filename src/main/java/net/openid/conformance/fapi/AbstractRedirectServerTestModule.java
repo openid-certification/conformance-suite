@@ -82,7 +82,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 		setStatus(Status.WAITING);
 
 		String submissionUrl = env.getString("implicit_submit", "fullUrl");
-		logger.info("Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
+		logger.info(getId() + ": Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
 
 		return new ModelAndView("implicitCallback",
 			ImmutableMap.of(
@@ -110,11 +110,11 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 			if (body != null) {
 				String hash = OIDFJSON.getString(body);
 
-				logger.info("URL fragment (hash): " + hash);
+				logger.info(getId() + ": URL fragment (hash): " + hash);
 
 				env.putString("implicit_hash", hash);
 			} else {
-				logger.warn("No hash/URL fragment submitted");
+				logger.warn(getId()+": No hash/URL fragment submitted");
 
 				env.putString("implicit_hash", ""); // Clear any old value
 			}

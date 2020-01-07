@@ -21,10 +21,6 @@ public class ValidateIdToken extends AbstractCondition {
 	@PreEnvironment(required = { "id_token", "server", "client" } )
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObject("id_token")) {
-			throw error("Couldn't find parsed ID token");
-		}
-
 		String clientId = env.getString("client", "client_id"); // to check the audience
 		String issuer = env.getString("server", "issuer"); // to validate the issuer
 		Instant now = Instant.now(); // to check timestamps
@@ -85,7 +81,7 @@ public class ValidateIdToken extends AbstractCondition {
 			}
 		}
 
-		logSuccess("ID token claims passed all validation checks");
+		logSuccess("ID token iss, aud, exp, iat & nbf claims passed validation checks");
 		return env;
 
 	}

@@ -116,7 +116,7 @@ public interface DataUtils {
 		copy.add("stacktrace", stack);
 		copy.addProperty("result", Condition.ConditionResult.FAILURE.toString());
 		if (!copy.has("msg")) {
-			copy.addProperty("msg", "unexpected exception caught");
+			copy.addProperty("msg", "unexpected exception caught: "+exception.getMessage());
 		}
 
 		return copy;
@@ -149,7 +149,7 @@ public interface DataUtils {
 		event.put("stacktrace", stack);
 		event.put("result", Condition.ConditionResult.FAILURE);
 		if (!in.containsKey("msg")) {
-			event.put("msg", "unexpected exception caught");
+			event.put("msg", "unexpected exception caught: "+exception.getMessage());
 		}
 
 		return event;

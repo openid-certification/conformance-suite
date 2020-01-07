@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import com.google.common.base.Strings;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
@@ -33,6 +34,12 @@ public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 	protected void createDynamicClientRegistrationRequest() {
 		super.createDynamicClientRegistrationRequest();
 		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
+	}
+
+	@Override
+	protected void createAuthorizationRequest() {
+		call(new CreateAuthorizationRequestSteps()
+			.then(condition(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class).requirement("OIDCC-11")));
 	}
 
 	@Override
