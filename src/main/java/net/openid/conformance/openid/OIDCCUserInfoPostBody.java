@@ -1,7 +1,11 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerTokenInBody;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerTokenInBodyAllowingFailure;
+import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
+import net.openid.conformance.condition.client.UserInfoEndpointWithAccessTokenInBodyNotSupported;
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.springframework.http.HttpStatus;
 
 // Corresponds to OP-UserInfo-Body
 @PublishTestModule(
@@ -18,11 +22,24 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OIDCCUserInfoPostBody extends AbstractOIDCCUserInfoTest {
 
-	protected void callUserInfoEndpoint() {
-		callAndStopOnFailure(CallUserInfoEndpointWithBearerTokenInBody.class, "OIDCC-5.3.1");
-		if (env.getInteger("userinfo_endpoint_response_code") == 405) {
-			fireTestSkipped("Userinfo endpoint does not support POST; this cannot be tested");
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+
+		callUserInfoEndpoint();
+
+		int statusCode = env.getInteger("userinfo_endpoint_response_code");
+		if (!HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
+			callAndContinueOnFailure(UserInfoEndpointWithAccessTokenInBodyNotSupported.class, Condition.ConditionResult.WARNING);
+		} else {
+			callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
+			validateUserInfoResponse();
 		}
+
+		fireTestFinished();
+	}
+
+	protected void callUserInfoEndpoint() {
+		callAndStopOnFailure(CallUserInfoEndpointWithBearerTokenInBodyAllowingFailure.class, "OIDCC-5.3.1");
 	}
 
 }

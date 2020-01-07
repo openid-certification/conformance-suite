@@ -1,5 +1,6 @@
 package net.openid.conformance.openid;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerToken;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -21,10 +22,7 @@ public class OIDCCUserInfoPostHeader extends AbstractOIDCCUserInfoTest {
 
 	protected void callUserInfoEndpoint() {
 		callAndStopOnFailure(SetResourceMethodToPost.class);
-		callAndStopOnFailure(CallUserInfoEndpointWithBearerToken.class, "OIDCC-5.3.1");
-		if (env.getInteger("userinfo_endpoint_response_code") == 405) {
-			fireTestSkipped("Userinfo endpoint does not support POST; this cannot be tested");
-		}
+		callAndStopOnFailure(CallUserInfoEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.1");
 	}
 
 }
