@@ -274,12 +274,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					.newInstance();
 			condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
 
-			logger.info((builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
+			logger.info(getId() + ": " + (builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
 
 			// check the environment to see if we need to skip this call
 			for (String req : builder.getSkipIfObjectsMissing()) {
 				if (!env.containsObject(req)) {
-					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find key in environment: " + req);
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find key in environment: " + req);
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required object: " + req,
 						"expected", req,
@@ -294,7 +294,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			}
 			for (String s : builder.getSkipIfStringsMissing()) {
 				if (env.getString(s) == null) {
-					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find string in environment: " + s);
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find string in environment: " + s);
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required string: " + s,
 						"expected", s,
@@ -309,7 +309,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			for (Pair<String, String> idx : builder.getSkipIfElementsMissing()) {
 				JsonElement el = env.getElementFromObject(idx.getLeft(), idx.getRight());
 				if (el == null) {
-					logger.info("[skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
 					eventLog.log(condition.getMessage(), args(
 						"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
 						"object", idx.getLeft(),
@@ -328,27 +328,27 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		} catch (ConditionError error) {
 			if (error.isPreOrPostError()) {
-				logger.info("[pre/post] Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+				logger.info(getId() + ": [pre/post] Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 				throw new TestFailureException(error);
 			} else {
 				if (builder.isStopOnFailure()) {
-					logger.info("stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+					logger.info(getId() + ": stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 					throw new TestFailureException(error);
 				} else {
-					logger.info("Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+					logger.info(getId() + ": Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
 					updateResultFromConditionFailure(builder.getOnFail());
 				}
 			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
-			logger.error("Couldn't create condition object", e);
+			logger.error(getId() + ": Couldn't create condition object", e);
 			throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
 		} catch (TestFailureException e) {
-			logger.error("Caught TestFailureException", e);
+			logger.error(getId() + ": Caught TestFailureException", e);
 			throw e;
 		} catch (Exception e) {
 			logException(e);
-			logger.error("Generic error from underlying test framework", e);
+			logger.error(getId() + ": Generic error from underlying test framework", e);
 			throw new TestFailureException(getId(), e);
 		}
 
@@ -438,7 +438,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
-			logger.error("Couldn't create condition sequence object", e);
+			logger.error(getId() + ": Couldn't create condition sequence object", e);
 			throw new TestFailureException(getId(), "Couldn't create required condition sequence: " + conditionSequenceClass.getSimpleName());
 		}
 	}
@@ -466,7 +466,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void call(ConditionSequence sequence) {
-		logger.info("   Starting sequence " + sequence.getClass().getSimpleName());
+		logger.info(getId() + ":   Starting sequence " + sequence.getClass().getSimpleName());
 
 		// execute the sequence
 		sequence.evaluate();
@@ -475,7 +475,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		sequence.getTestExecutionUnits()
 			.forEach(this::call);
 
-		logger.info("   End of sequence " + sequence.getClass().getSimpleName());
+		logger.info(getId() + ":   End of sequence " + sequence.getClass().getSimpleName());
 	}
 
 	@Override
@@ -489,7 +489,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void logFinalEnv() {
-		logger.info("Final environment: " + env);
+		logger.info(getId() + ": Final environment: " + env);
 	}
 
 	@Override
@@ -636,7 +636,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected void setStatus(Status newStatus) {
 		Status oldStatus = getStatus();
 
-		logger.info("setStatus("+newStatus.toString()+"): current status = "+oldStatus.toString());
+		logger.info(getId() + ": setStatus("+newStatus.toString()+"): current status = "+oldStatus.toString());
 
 		if (newStatus == oldStatus) {
 			// nothing to change
@@ -808,7 +808,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	protected void performFinalCleanup() {
 		if (!cleanupCalled) {
-			logger.info("Performing final clean-up");
+			logger.info(getId() + ": Performing final clean-up");
 			try {
 				cleanup();
 			} catch (TestFailureException e) {
@@ -820,7 +820,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	public void handleException(TestInterruptedException error, String source) {
-		logger.error("Caught an error in '"+source+"' while running the test, stopping the test: " + error.getMessage());
+		logger.error(getId() + ": Caught an error in '"+source+"' while running the test, stopping the test: " + error.getMessage());
 
 		if (error instanceof TestSkippedException) {
 			eventLog.log(getName(),

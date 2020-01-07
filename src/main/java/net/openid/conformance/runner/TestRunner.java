@@ -244,7 +244,7 @@ public class TestRunner implements DataUtils {
 			return new ResponseEntity<>(stringMap("error", "createTestModule failed"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		logger.info("Created: " + testName);
+		logger.info(id + ": Created: " + testName);
 
 		// logger.info("Status of " + testName + ": " + test.getStatus());
 
@@ -498,7 +498,7 @@ public class TestRunner implements DataUtils {
 		VariantService.TestModuleHolder holder = variantService.getTestModule(testName);
 
 		if (holder == null) {
-			logger.warn("Couldn't find a test module for " + testName);
+			logger.warn(id + ": Couldn't find a test module for " + testName);
 			return null;
 		}
 
@@ -532,7 +532,7 @@ public class TestRunner implements DataUtils {
 
 		} catch (IllegalArgumentException | SecurityException e) {
 
-			logger.warn("Couldn't create test module", e);
+			logger.warn(id + ": Couldn't create test module", e);
 
 			return null;
 		}

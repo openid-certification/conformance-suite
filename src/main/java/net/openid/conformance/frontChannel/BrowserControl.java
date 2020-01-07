@@ -111,7 +111,7 @@ public class BrowserControl implements DataUtils {
 		for (int bc = 0; bc < browserCommands.size(); bc++) {
 			JsonObject current = browserCommands.get(bc).getAsJsonObject();
 			String urlMatcher = OIDFJSON.getString(current.get("match"));
-			logger.debug("Found URL MATCHER: " + urlMatcher);
+			logger.debug(testId + ": Found URL MATCHER: " + urlMatcher);
 			tasksForUrls.put(urlMatcher, current.getAsJsonArray("tasks"));
 		}
 
@@ -145,14 +145,14 @@ public class BrowserControl implements DataUtils {
 			if (PatternMatchUtils.simpleMatch(urlPattern, url)) {
 				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern), placeholder);
 				executionManager.runInBackground(wr);
-				logger.debug("WebRunner submitted to task executor for: " + url);
+				logger.debug(testId + ": WebRunner submitted to task executor for: " + url);
 
 				runners.add(wr);
 
 				return;
 			}
 		}
-		logger.debug("Could not find a match for url: " + url);
+		logger.debug(testId + ": Could not find a match for url: " + url);
 		// if we couldn't find a command for this URL, leave it up to the user to do something with it
 		urls.add(url);
 	}
@@ -163,7 +163,7 @@ public class BrowserControl implements DataUtils {
 	 * @param url the url that has been visited
 	 */
 	public void urlVisited(String url) {
-		logger.info("Browser went to: " + url);
+		logger.info(testId + ": Browser went to: " + url);
 
 		urls.remove(url);
 		visited.add(url);
@@ -200,7 +200,7 @@ public class BrowserControl implements DataUtils {
 		@Override
 		public String call() {
 			try {
-				logger.info("Sending BrowserControl to: " + url);
+				logger.info(testId + ": Sending BrowserControl to: " + url);
 
 				eventLog.log("WebRunner", args(
 					"msg", "Scripted browser HTTP request",
@@ -238,8 +238,8 @@ public class BrowserControl implements DataUtils {
 
 					this.currentTask = taskName;
 
-					logger.debug("Performing: " + taskName);
-					logger.debug("WebRunner current url:" + driver.getCurrentUrl());
+					logger.debug(testId + ": Performing: " + taskName);
+					logger.debug(testId + ": WebRunner current url:" + driver.getCurrentUrl());
 					// check if current URL matches the 'matcher' for the task
 
 					String expectedUrlMatcher = "*"; // default to matching any URL
@@ -293,7 +293,7 @@ public class BrowserControl implements DataUtils {
 						// Check the server response (Completing all browser command tasks should result in a submit/new page.)
 
 						responseCode = driver.getResponseCode();
-						logger.debug("\tResponse Code: " + responseCode);
+						logger.debug(testId + ":     Response Code: " + responseCode);
 
 						eventLog.log("WebRunner", args(
 							"msg", "Completed processing of webpage",
@@ -307,14 +307,14 @@ public class BrowserControl implements DataUtils {
 						));
 					} // if we don't run the commands, just go straight to the next one
 				}
-				logger.debug("Completed Browser Commands");
+				logger.debug(testId + ": Completed Browser Commands");
 				// if we've successfully completed the command set, consider this URL visited
 				runners.remove(this);
 				urlVisited(url);
 
 				return "web runner exited";
 			} catch (Exception e) {
-				logger.error("WebRunner caught exception", e);
+				logger.error(testId + ": WebRunner caught exception", e);
 				eventLog.log("WebRunner",
 					ex(e,
 						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
@@ -364,7 +364,7 @@ public class BrowserControl implements DataUtils {
 
 					driver.findElement(getSelector(elementType, target)).click();
 
-					logger.debug("Clicked: " + target + " (" + elementType + ")");
+					logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
 				} else if (commandString.equalsIgnoreCase("text")) {
 					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
 
@@ -384,7 +384,7 @@ public class BrowserControl implements DataUtils {
 					WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
 					entryBox.sendKeys(value);
-					logger.debug("\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
+					logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
 					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
@@ -436,7 +436,7 @@ public class BrowserControl implements DataUtils {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
 
-						logger.debug("\t\tDone waiting: " + commandString);
+						logger.debug(testId + ":\t\tDone waiting: " + commandString);
 
 					} catch (TimeoutException timeoutException) {
 						this.lastException = timeoutException.getMessage();

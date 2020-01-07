@@ -87,7 +87,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (pre != null) {
 				for (String req : pre.required()) {
 					if (!env.containsObject(req)) {
-						logger.info("[pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
+						logger.info(testId + ": [pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
 						log.log(this.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
@@ -101,7 +101,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				}
 				for (String s : pre.strings()) {
 					if (env.getString(s) == null) {
-						logger.info("[pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
+						logger.info(testId + ": [pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						log.log(this.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
 							"expected", s,
@@ -126,7 +126,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (post != null) {
 				for (String req : post.required()) {
 					if (!env.containsObject(req)) {
-						logger.info("[post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
+						logger.info(testId + ": [post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
 						log.log(this.getMessage(), args(
 							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
@@ -140,7 +140,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				}
 				for (String s : post.strings()) {
 					if (env.getString(s) == null) {
-						logger.info("[post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
+						logger.info(testId + ": [post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						log.log(this.getMessage(), args(
 							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
 							"expected", s,
@@ -153,7 +153,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				}
 			}
 		} catch (NoSuchMethodException e) {
-			logger.error("Couldn't create condition object", e);
+			logger.error(testId + ": Couldn't create condition object", e);
 			log.log(this.getMessage(), args(
 				"msg", "Condition failure, couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'",
 				"result", ConditionResult.FAILURE
