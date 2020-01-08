@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateErrorDescriptionFromTokenEndpointResponseError_UnitTest {
+public class CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,13 +22,13 @@ public class ValidateErrorDescriptionFromTokenEndpointResponseError_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateErrorDescriptionFromTokenEndpointResponseError cond;
+	private CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB cond;
 
 	private JsonObject tokenEndpointResponse;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new ValidateErrorDescriptionFromTokenEndpointResponseError();
+		cond = new CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		tokenEndpointResponse = new JsonParser().parse("{"
 			+ "\"error_description\":\"[A200308] The end-user has not been authenticated yet.\","
@@ -38,32 +38,25 @@ public class ValidateErrorDescriptionFromTokenEndpointResponseError_UnitTest {
 		env.putObject("token_endpoint_response", tokenEndpointResponse);
 	}
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_ErrorDescriptionFieldInvalid() {
-		tokenEndpointResponse.addProperty("error_description", "[A200308] \"The end-user has not been authenticated yet.");
-		cond.execute(env);
-	}
-
 	@Test
 	public void testEvaluate_ErrorDescriptionFieldValid() {
-		tokenEndpointResponse.addProperty("error_description", "[A200308] The end-user has not been authenticated yet.");
 		cond.execute(env);
 	}
 
-	@Test
-	public void testEvaluate_ErrorDescriptionFieldValidWithTab() {
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_ErrorDescriptionFieldInvalidWithTab() {
 		tokenEndpointResponse.addProperty("error_description", "[A200308] The end-user has not been \t authenticated yet.");
 		cond.execute(env);
 	}
 
-	@Test
-	public void testEvaluate_ErrorDescriptionFieldValidWithCR() {
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_ErrorDescriptionFieldInvalidWithCR() {
 		tokenEndpointResponse.addProperty("error_description", "[A200308] The end-user has not been \n authenticated yet.");
 		cond.execute(env);
 	}
 
-	@Test
-	public void testEvaluate_ErrorDescriptionFieldValidWithLF() {
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_ErrorDescriptionFieldInvalidWithLF() {
 		tokenEndpointResponse.addProperty("error_description", "[A200308] The end-user has not been \r authenticated yet.");
 		cond.execute(env);
 	}
