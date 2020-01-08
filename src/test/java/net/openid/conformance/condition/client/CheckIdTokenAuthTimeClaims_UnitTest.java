@@ -67,6 +67,7 @@ public class CheckIdTokenAuthTimeClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test
 	public void testEvaluate_onlyFirstAuthTime() {
 		env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
 		env.putObject("id_token", createToken("{ }"));
@@ -74,6 +75,7 @@ public class CheckIdTokenAuthTimeClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test
 	public void testEvaluate_onlySecondAuthTime() {
 		env.putObject("first_id_token", createToken("{ }"));
 		env.putObject("id_token", createToken("{ \"auth_time\": 16 }"));
