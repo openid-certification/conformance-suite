@@ -7,11 +7,9 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
-import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
@@ -40,7 +38,8 @@ import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope;
-import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
@@ -736,7 +735,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			validateRequestObject();
-			callAndStopOnFailure(OIDCCEnsureAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
+			callAndStopOnFailure(OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
+			callAndContinueOnFailure(OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject.class,
+										Condition.ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
 		}
 
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
