@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
+import com.gargoylesoftware.htmlunit.CookieManager;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -17,6 +18,7 @@ import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.bson.Document;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
@@ -94,6 +96,8 @@ public class BrowserControl implements DataUtils {
 	private ImageService imageService;
 
 	private TestInstanceEventLog eventLog;
+
+	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
 
 	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
@@ -366,7 +370,7 @@ public class BrowserControl implements DataUtils {
 
 					logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
 				} else if (commandString.equalsIgnoreCase("text")) {
-					// ["text", "id" or "name", "id_or_name", "text_to_enter"]
+					// ["text", "id" or "name", "id_or_name", "text_to_enter", "optional"]
 
 					String value = OIDFJSON.getString(command.get(3));
 
@@ -381,10 +385,29 @@ public class BrowserControl implements DataUtils {
 						"result", Condition.ConditionResult.INFO
 						));
 
-					WebElement entryBox = driver.findElement(getSelector(elementType, target));
+					try {
+						WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
-					entryBox.sendKeys(value);
-					logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
+						entryBox.sendKeys(value);
+						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
+					}
+					catch (NoSuchElementException e) {
+						String optional = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
+						if (optional != null && optional.equals("optional")) {
+							eventLog.log("WebRunner", args(
+								"msg", "Element not found, skipping as 'text' command is marked 'optional'",
+								"url", driver.getCurrentUrl(),
+								"browser", commandString,
+								"task", taskName,
+								"element_type", elementType,
+								"target", target,
+								"value", value,
+								"result", Condition.ConditionResult.INFO
+							));
+						} else {
+							throw e;
+						}
+					}
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
 					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
@@ -397,8 +420,11 @@ public class BrowserControl implements DataUtils {
 					String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
 					String action = command.size() >= 6 ? OIDFJSON.getString(command.get(5)) : null;
 					boolean updateImagePlaceHolder = false;
+					boolean updateImagePlaceHolderOptional = false;
 					if (!Strings.isNullOrEmpty(action)) {
-						if (action.equals("update-image-placeholder")) {
+						if (action.equals("update-image-placeholder-optional")) {
+							updateImagePlaceHolderOptional = true;
+						} else if (action.equals("update-image-placeholder")) {
 							updateImagePlaceHolder = true;
 						} else {
 							this.lastException = "Invalid action: " + action;
@@ -428,9 +454,9 @@ public class BrowserControl implements DataUtils {
 						} else if (!Strings.isNullOrEmpty(regexp)) {
 							Pattern pattern = Pattern.compile(regexp);
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
-							if (updateImagePlaceHolder) {
+							if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 								// make a snapshot of the page available to the test log
-								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType());
+								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), updateImagePlaceHolderOptional);
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
@@ -524,6 +550,12 @@ public class BrowserControl implements DataUtils {
 		@Override
 		protected WebClient modifyWebClient(WebClient client) {
 			client.setPageCreator(new BrowserControlPageCreator());
+			// use same cookie manager for all instances within this testmodule instance
+			// (cookie manager seems to be thread safe)
+			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
+			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
+			// are set/read might differ between test runs.
+			client.setCookieManager(cookieManager);
 			return client;
 		}
 	}
@@ -543,13 +575,17 @@ public class BrowserControl implements DataUtils {
 	 * @param pageSource the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
-	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType) {
+	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, boolean optional) {
 		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
 
 		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
 		if (document == null) {
+			if (optional) {
+				eventLog.log("BROWSER", args("msg", "Skipping optional placeholder update as placeholder not found.", "placeholder", placeholder));
+				return;
+			}
 			throw new TestFailureException(testId, "Couldn't find matched placeholder for uploading error screenshot.");
 		}
 
