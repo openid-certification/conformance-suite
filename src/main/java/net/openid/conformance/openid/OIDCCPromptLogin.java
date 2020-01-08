@@ -74,7 +74,7 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 
 	@Override
 	public void cleanup() {
-		firstTime = false; // to avoid any blocks created in cleanup being prefixed in currentClientString()
+		firstTime = true; // to avoid any blocks created in cleanup being prefixed in currentClientString()
 		super.cleanup();
 	}
 }
