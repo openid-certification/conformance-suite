@@ -35,8 +35,8 @@ public class CheckServerKeysIsValid_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	@Test
-	public void testEvaluate_noError() {
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithUnsupportedServerJWKs() {
 
 		JsonObject serverJWKs = new JsonParser().parse("{"
 			+ "\"keys\":["
@@ -55,8 +55,8 @@ public class CheckServerKeysIsValid_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_errorWithUnsupportedServerJWKs() {
+	@Test
+	public void testEvaluate_noError() {
 
 		JsonObject serverJWKs = new JsonParser().parse("{"
 			+ "\"keys\":["
