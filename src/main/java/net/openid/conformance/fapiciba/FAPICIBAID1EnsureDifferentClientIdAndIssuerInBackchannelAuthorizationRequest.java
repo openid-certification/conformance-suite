@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthentic
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus401;
+import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidClient;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -91,6 +92,8 @@ public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizati
 		callAndContinueOnFailure(ValidateErrorResponseFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 
 		callAndContinueOnFailure(ValidateErrorUriFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+
+		callAndContinueOnFailure(CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 
 		callAndContinueOnFailure(ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 

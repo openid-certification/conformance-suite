@@ -46,6 +46,8 @@ import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullRes
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus400;
+import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB;
+import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -580,6 +582,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(ValidateErrorUriFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 
+		callAndContinueOnFailure(CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
+
 		callAndContinueOnFailure(ValidateErrorDescriptionFromBackchannelAuthenticationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 
 		callAndContinueOnFailure(CheckBackchannelAuthenticationEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "CIBA-13");
@@ -761,6 +765,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	protected void validateErrorFromTokenEndpointResponse() {
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class,"RFC6749-5.2");
 		callAndStopOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class,"RFC6749-5.2");
 	}
