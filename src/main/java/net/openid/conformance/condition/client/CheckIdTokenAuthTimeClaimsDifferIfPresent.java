@@ -1,22 +1,17 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Check auth_time changes when the user re-logins in due to prompt=login in the request
  *
  * Equivalent of https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#multiple_sign_on
  */
-public class CheckIdTokenAuthTimeClaims extends AbstractCondition {
+public class CheckIdTokenAuthTimeClaimsDifferIfPresent extends AbstractCondition {
 	private static final String CLAIM_AUTH_TIME = "auth_time";
 
 	@Override

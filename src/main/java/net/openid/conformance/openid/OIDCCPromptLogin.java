@@ -2,7 +2,7 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptLoginToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CheckIdTokenAuthTimeClaims;
+import net.openid.conformance.condition.client.CheckIdTokenAuthTimeClaimsDifferIfPresent;
 import net.openid.conformance.condition.client.ExpectSecondLoginPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -65,7 +65,7 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 			// do the process again, but with prompt=login this time
 			performAuthorizationFlow();
 		} else {
-			callAndContinueOnFailure(CheckIdTokenAuthTimeClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+			callAndContinueOnFailure(CheckIdTokenAuthTimeClaimsDifferIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 
 			setStatus(Status.WAITING);
 			waitForPlaceholders();
