@@ -1,9 +1,6 @@
 package net.openid.conformance.openid;
 
-import java.util.function.Supplier;
-
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
@@ -49,8 +46,8 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
+import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
@@ -72,6 +69,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
@@ -85,10 +83,12 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseType;
-import net.openid.conformance.variant.VariantParameters;
-import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
+
+import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -480,7 +480,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "OIDCC-2");
 	}
 
 	protected void performAuthorizationCodeValidation() {
@@ -525,7 +525,12 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		// save the id_token returned from the token endpoint
 		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
+
 		performIdTokenValidation();
+
+		if (responseType.includesIdToken()) {
+			callAndContinueOnFailure(VerifyIdTokenSubConsistentHybridFlow.class, ConditionResult.FAILURE, "OIDCC-2");
+		}
 	}
 
 	protected void requestProtectedResource() {
