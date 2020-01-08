@@ -86,12 +86,15 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 		if (maxAgeElement == null) {
 			log("Request object does not contain a max_age claim");
 		} else if(maxAgeElement.isJsonNull()) {
-			log("max_age claim is null. As per https://openid.net/specs/openid-connect-core-1_0.html#JSONSerialization, " +
-				"omitted parameters and parameters with no value " +
-				"SHOULD be omitted from the request object and not represented by a JSON null value.");
+			//EnsureNumericRequestObjectClaimsAreNotNull handles the JsonNull case
+			//Additionally, CreateEffectiveAuthorizationRequestParameters completely ignores max_age when it is json null
 		} else {
-			Number maxAge = OIDFJSON.getNumber(maxAgeElement);
-			log("max_age is correctly encoded as a number", args("max_age", maxAge));
+			try {
+				Number maxAge = OIDFJSON.getNumber(maxAgeElement);
+				log("max_age is correctly encoded as a number", args("max_age", maxAge));
+			} catch (Exception ex) {
+				throw error("max_age is not encoded as a number", args("max_age", maxAgeElement));
+			}
 		}
 
 		logSuccess("Request object claims passed all validation checks");

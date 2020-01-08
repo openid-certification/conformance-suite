@@ -29,7 +29,7 @@ public class ExtractRequestObject extends AbstractCondition {
 			JWT jwt = JWTParser.parse(requestObjectString);
 
 			JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
-			JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject(true).toJSONString()).getAsJsonObject();
 
 			JsonObject o = new JsonObject();
 			o.addProperty("value", requestObjectString); // save the original string to allow for crypto operations

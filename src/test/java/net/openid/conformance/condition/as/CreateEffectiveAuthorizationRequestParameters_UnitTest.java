@@ -47,7 +47,7 @@ public class CreateEffectiveAuthorizationRequestParameters_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_maxAgeNullInRequestObject() {
 		JsonObject httpReqParams = new JsonObject();
 		httpReqParams.addProperty("p1", "123");
@@ -62,6 +62,10 @@ public class CreateEffectiveAuthorizationRequestParameters_UnitTest {
 		requestObject.add("claims", requestObjectClaims);
 		env.putObject("authorization_request_object", requestObject);
 		cond.execute(env);
+
+		JsonObject result = env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY);
+		//when max_age is null, CreateEffectiveAuthorizationRequestParameters will ignore/remove it
+		assertEquals(httpReqParams, result);
 	}
 
 	@Test

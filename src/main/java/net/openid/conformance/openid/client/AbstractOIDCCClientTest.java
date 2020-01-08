@@ -17,6 +17,7 @@ import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwk
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
+import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureRequestDoesNotContainRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttpsOrRequestObjectIsSigned;
@@ -770,6 +771,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected void validateRequestObject() {
 		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4");
+		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		String alg = env.getString("authorization_request_object", "header.alg");
 		if(allowUnsignedRequestObjects() && "none".equals(alg)) {
