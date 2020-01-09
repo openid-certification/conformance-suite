@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
-public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
+public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -64,7 +64,7 @@ public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAP
 
 		eventLog.endBlock();
 
-		performRedirectAndWaitForErrorCallback();
+		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
 	@Override

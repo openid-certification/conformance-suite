@@ -104,7 +104,7 @@ public class RejectPlainPKCE extends AbstractRedirectServerTestModule {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		performRedirectAndWaitForErrorCallback();
+		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
 	@Override

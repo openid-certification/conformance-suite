@@ -1,6 +1,6 @@
 package net.openid.conformance.fapi;
 
-public abstract class AbstractFAPIRWID2ExpectingAuthorizationFailure extends AbstractFAPIRWID2ServerTestModule {
+public abstract class AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
 	protected void performAuthorizationFlow() {
@@ -8,6 +8,6 @@ public abstract class AbstractFAPIRWID2ExpectingAuthorizationFailure extends Abs
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
-		performRedirectAndWaitForErrorCallback();
+		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 }

@@ -7,7 +7,7 @@ public class AbstractOIDCCRequestObjectServerTestExpectingAuthorizationFailure e
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
-		performRedirectAndWaitForErrorCallback();
+		performRedirectAndWaitForPlaceholdersOrCallback();
 		eventLog.endBlock();
 	}
 

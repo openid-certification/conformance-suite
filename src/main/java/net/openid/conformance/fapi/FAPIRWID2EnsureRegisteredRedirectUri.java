@@ -30,7 +30,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
+public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 			"resource.resourceUrl"
 	}
 )
-public class OIDCCEnsureRegisteredRedirectUri extends AbstractOIDCCServerTestExpectingAuthorizationFailure {
+public class OIDCCEnsureRegisteredRedirectUri extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
