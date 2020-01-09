@@ -18,7 +18,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-refresh-token",
 	displayName = "OIDCC: test refresh token behaviours",
-	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
+	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token works and is correctly bound to the client. Support for refresh tokens is optional and the test will be skipped if the token endpoint response does not return refresh tokens.",
 	profile = "OIDCC",
 	configurationFields = {
 		"server.discoveryUrl",
