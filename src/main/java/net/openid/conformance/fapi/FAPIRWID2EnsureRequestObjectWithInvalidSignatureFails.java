@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectInvalidSignatureErrorPage;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
-import net.openid.conformance.condition.client.ValidateErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -54,7 +54,7 @@ public class FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails extends Abstr
 	protected void onAuthorizationCallbackResponse() {
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(ValidateErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		fireTestFinished();
 	}

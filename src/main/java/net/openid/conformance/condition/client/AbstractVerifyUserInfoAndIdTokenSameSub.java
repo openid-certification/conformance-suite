@@ -15,18 +15,18 @@ public abstract class AbstractVerifyUserInfoAndIdTokenSameSub extends AbstractCo
 		String subIdToken = env.getString(getIdTokenKey(), "claims.sub");
 
 		if (Strings.isNullOrEmpty(subUserInfo)) {
-			throw error("Not found \"sub\" in UserInfo response ");
+			throw error("\"sub\" not found in UserInfo response ");
 		}
 
 		if (Strings.isNullOrEmpty(subIdToken)) {
-			throw error("Not found \"sub\" in " + getIdTokenKey());
+			throw error("\"sub\" not found in " + getIdTokenKey());
 		}
 
 		if (!subUserInfo.equals(subIdToken)) {
-			throw error("\"sub\" in UserInfo isn't match with \"sub\" in " + getIdTokenKey(), args("sub_user_info", subUserInfo, "sub_id_token", subIdToken));
+			throw error("\"sub\" in user info response doesn't match with \"sub\" in " + getIdTokenKey(), args("sub_user_info", subUserInfo, "sub_id_token", subIdToken));
 		}
 
-		logSuccess("UserInfo and IdToken same sub", args("sub_user_info", subUserInfo, "sub_id_token", subIdToken));
+		logSuccess("userinfo response and id_token sub are the same", args("sub_user_info", subUserInfo, "sub_id_token", subIdToken));
 		return env;
 	}
 

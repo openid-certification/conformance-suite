@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -138,7 +139,9 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
 
 			if (!jwt.verify(verifier)) {
-				throw error("Invalid JWKs supplied in configuration. Private and public exponent don't match (test JWS could not be verified)", args("jws", jwt.toString(), "jwks", jwkSet.toString()));
+				throw error("Invalid JWKs supplied in configuration. Private and public exponent don't match (test JWS could not be verified)",
+					args("jws", jwt.serialize(),
+						"jwks", new JsonParser().parse(jwkSet.toJSONObject(false).toString()).getAsJsonObject()));
 			}
 		}
 	}

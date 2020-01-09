@@ -82,4 +82,24 @@ public class CheckForSubjectInIdToken_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_nonprintable() {
+
+		JsonObject badToken = goodToken;
+		badToken.get("claims").getAsJsonObject().addProperty("sub", "fo\to");
+		env.putObject("id_token", badToken);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_nonascii() {
+
+		JsonObject badToken = goodToken;
+		badToken.get("claims").getAsJsonObject().addProperty("sub", "\u007f");
+		env.putObject("id_token", badToken);
+
+		cond.execute(env);
+	}
+
 }

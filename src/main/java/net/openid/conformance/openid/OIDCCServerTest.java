@@ -1,6 +1,8 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
+import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ValidateAtHash;
@@ -38,5 +40,14 @@ public class OIDCCServerTest extends AbstractOIDCCServerTest {
 				"OIDCC-3.3.2.11");
 		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO ,
 				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	@Override
+	protected void performAuthorizationCodeValidation() {
+		super.performAuthorizationCodeValidation();
+
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
+
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 	}
 }

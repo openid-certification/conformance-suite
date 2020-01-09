@@ -1,0 +1,50 @@
+package net.openid.conformance.openid;
+
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddPromptNoneToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
+import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointIsOneThatRequiredAUserInterface;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
+import net.openid.conformance.testmodule.PublishTestModule;
+
+// Corresponds to https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-prompt-none-NotLoggedIn.json
+@PublishTestModule(
+	testName = "oidcc-prompt-none-not-logged-in",
+	displayName = "OIDCC: prompt=none when not logged in",
+	summary = "This test calls the authorization endpoint with prompt=none, expecting that no recent enough authentication is present to enable a silent login and hence the OP will redirect back with an error as per section 3.1.2.6 of OpenID Connect. Please remove any cookies you may have received from the OpenID Provider before proceeding.",
+	profile = "OIDCC",
+	configurationFields = {
+			"server.discoveryUrl",
+			"client.scope",
+			"client2.scope",
+			"resource.resourceUrl"
+	}
+)
+public class OIDCCPromptNoneNotLoggedIn extends AbstractOIDCCServerTest {
+
+	@Override
+	protected void createAuthorizationRequest() {
+		// use a longer state value to check OP doesn't corrupt it in the error response
+		env.putInteger("requested_state_length", 128);
+
+		call(new CreateAuthorizationRequestSteps()
+			.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
+
+	}
+
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointIsOneThatRequiredAUserInterface.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2.1");
+		callAndContinueOnFailure(ValidateErrorDescriptionFromAuthorizationEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-4.1.2.1");
+		callAndContinueOnFailure(ValidateErrorUriFromAuthorizationEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-4.1.2.1");
+		fireTestFinished();
+	}
+}

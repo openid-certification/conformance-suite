@@ -14,9 +14,9 @@ public abstract class AbstractCheckErrorDescriptionContainsCRLFTAB extends Abstr
 			return env;
 		}
 		if (isExistCRLFTAB(errorDescription)) {
-			throw error("'error_description' field include characters CR, LF or TAB", args("error_description", errorDescription));
+			throw error("'error_description' field includes characters CR, LF or TAB, these are not recommended to include", args("error_description", errorDescription, "see", "https://bitbucket.org/openid/connect/issues/1147/certification-rfc6749-must-for"));
 		}
-		logSuccess(endpointResponseKey + " error returned valid 'error_description' field", args("error_description", errorDescription));
+		logSuccess(endpointResponseKey + " 'error_description' field does not include CR/LF/TAB", args("error_description", errorDescription));
 		return env;
 	}
 

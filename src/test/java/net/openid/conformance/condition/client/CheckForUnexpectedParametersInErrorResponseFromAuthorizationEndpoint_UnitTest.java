@@ -14,14 +14,14 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
+public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	@Mock
 	private TestInstanceEventLog eventLog;
-	private ValidateErrorResponseFromAuthorizationEndpoint cond;
+	private CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint cond;
 
 	private String errorNoneNoOptionalFields = "{\"error\":\"access_denied\",\"state\":\"oObb8SUBuC\",\"session_state\":\"4912fd505631d79b1d39f1e537679d1931558c5347707e04ae6483dda4d8fc85.cE2Jqk7V6cv_jLcoWXa3yQ\"}";
 	private String errorNoneAllOptionalFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"state\":\"oObb8SUBuC\", \"error_uri\":\"http://anerror.com\",\"session_state\":\"4912fd505631d79b1d39f1e537679d1931558c5347707e04ae6483dda4d8fc85.cE2Jqk7V6cv_jLcoWXa3yQ\"}";
@@ -35,7 +35,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new ValidateErrorResponseFromAuthorizationEndpoint();
+		cond = new CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -51,7 +51,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
+	 * {@link CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrorNoOptionalFieldsGoodState() {
@@ -61,7 +61,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
+	 * {@link CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrorAllOptionalFieldsGoodState() {
@@ -71,7 +71,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
+	 * {@link CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorMissing() {
@@ -80,7 +80,7 @@ public class ValidateErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	/**
 	 * Test method for
-	 * {@link ValidateErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
+	 * {@link CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorTooManyFields() {
