@@ -28,7 +28,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 
 	private JsonObject serverObj;
 
-	private JsonObject expectedScopes;
+	private JsonObject clientObj;
 
 	@Before
 	public void setUp() throws Exception {
@@ -50,21 +50,15 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 				"}")
 			.getAsJsonObject();
 
-		expectedScopes = new JsonParser().parse(
-			"{"
-				+ "\"expected_scopes\": ["
-					+ "\"address\","
-					+ "\"phone\","
-					+ "\"email\","
-					+ "\"profile\""
-				+ "]}")
+		clientObj = new JsonParser().parse(
+			"{\"scope\": \"email profile phone address\"}")
 			.getAsJsonObject();
 	}
 
 	@Test
 	public void testEvaluate_noError() {
 		env.putObject("server", serverObj);
-		env.putObject("expected_scopes", expectedScopes);
+		env.putObject("client", clientObj);
 
 		cond.execute(env);
 	}
@@ -74,7 +68,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 		serverObj.remove("scopes_supported");
 		env.putObject("server", serverObj);
 
-		env.putObject("expected_scopes", expectedScopes);
+		env.putObject("client", clientObj);
 		cond.execute(env);
 
 		assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
@@ -85,7 +79,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 		serverObj.addProperty("scopes_supported", "is not JsonArray");
 		env.putObject("server", serverObj);
 
-		env.putObject("expected_scopes", expectedScopes);
+		env.putObject("client", clientObj);
 
 		cond.execute(env);
 
@@ -96,9 +90,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 	public void testEvaluate_scopesSupportedIsNotEnough() {
 		serverObj.getAsJsonArray("scopes_supported").remove(0);
 		env.putObject("server", serverObj);
-
-		expectedScopes.getAsJsonArray("expected_scopes").remove(0);
-		env.putObject("expected_scopes", expectedScopes);
+		env.putObject("client", clientObj);
 
 		cond.execute(env);
 

@@ -1427,418 +1427,15 @@
         "comment": "Authlete doesn't support POST with access token in body"
     },
     {
-        "test-name": "oidcc-scope-address",
+        "test-name": "oidcc-scope-all",
         "variant": {
             "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token",
+            "response_type": "code",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-address",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -1850,8 +1447,21 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -1863,8 +1473,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -1889,8 +1499,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -1902,47 +1512,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -1950,51 +1521,12 @@
         "test-name": "oidcc-scope-all",
         "variant": {
             "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
+            "response_type": "code",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2006,47 +1538,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2054,64 +1547,12 @@
         "test-name": "oidcc-scope-all",
         "variant": {
             "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
+            "response_type": "code token",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2123,60 +1564,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2198,63 +1587,24 @@
         "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
             "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-all",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2266,8 +1616,21 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2279,8 +1642,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2305,8 +1668,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2318,47 +1681,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2366,51 +1690,12 @@
         "test-name": "oidcc-scope-email",
         "variant": {
             "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
+            "response_type": "code",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2422,47 +1707,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2470,64 +1716,12 @@
         "test-name": "oidcc-scope-email",
         "variant": {
             "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
+            "response_type": "code token",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2539,60 +1733,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2614,63 +1756,24 @@
         "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
             "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-email",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2682,8 +1785,21 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2695,8 +1811,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2721,8 +1837,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2734,47 +1850,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2782,51 +1859,12 @@
         "test-name": "oidcc-scope-phone",
         "variant": {
             "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
+            "response_type": "code",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2838,47 +1876,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2886,64 +1885,12 @@
         "test-name": "oidcc-scope-phone",
         "variant": {
             "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
+            "response_type": "code token",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -2955,60 +1902,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3030,63 +1925,24 @@
         "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
             "client_registration": "static_client"
         },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-phone",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3098,8 +1954,21 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": ""
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "authlete-oidcc-secret-basic.json",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3111,8 +1980,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3137,8 +2006,8 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-basic.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3150,47 +2019,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_basic",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3198,51 +2028,12 @@
         "test-name": "oidcc-scope-profile",
         "variant": {
             "client_auth_type": "client_secret_post",
-            "response_type": "code id_token",
+            "response_type": "code",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-post.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3254,47 +2045,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_post",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3302,64 +2054,12 @@
         "test-name": "oidcc-scope-profile",
         "variant": {
             "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
+            "response_type": "code token",
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-secret-jwt.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3371,60 +2071,8 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     },
@@ -3446,63 +2094,11 @@
         "variant": {
             "client_auth_type": "private_key_jwt",
             "response_type": "id_token token",
-            "client_registration": "static_client"
-        },
-        "configuration-filename": "authlete-oidcc-privatekey.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
-        "expected-result": "warning",
-        "comment": ""
-    },
-    {
-        "test-name": "oidcc-scope-profile",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "authlete-oidcc-dcr.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "current-block": "",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
         "expected-result": "warning",
         "comment": ""
     }

@@ -264,8 +264,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
-		skipTestIfScopesNotSupported();
-
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
 		}
@@ -284,6 +282,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		// Set up the client configuration
 		configureClient();
+
+		skipTestIfScopesNotSupported();
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -453,8 +453,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
 			performAuthorizationEndpointIdTokenValidation();
-
-			verifyScopesReturnedInIdToken();
 		}
 		if (responseType.includesCode()) {
 			performAuthorizationCodeValidation();
@@ -463,10 +461,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			requestProtectedResource();
 		}
 		performPostAuthorizationFlow();
-	}
-
-	protected void verifyScopesReturnedInIdToken() {
-		// Just apply for scope tests
 	}
 
 	protected void performAuthorizationEndpointIdTokenValidation() {
