@@ -56,7 +56,8 @@
         },
         "configuration-filename": "authlete-fapi-rw-id2-ob-mtls.json",
         "current-block": "Verify authorization endpoint response",
-        "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "comment": "authlete's test server does not support OB intent ids fully",
         "expected-result": "warning"
     },
     {
@@ -128,7 +129,8 @@
         },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Verify authorization endpoint response",
-        "condition": "ValidateErrorResponseFromAuthorizationEndpoint",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "comment": "authlete's test server does not support OB intent ids fully",
         "expected-result": "warning"
     },
     {
