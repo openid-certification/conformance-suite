@@ -8,8 +8,9 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = "OpenID Connect Core: Authorization server test (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
-		OIDCCAuthCodeReuse.class,
 		OIDCCDiscoveryEndpointVerification.class,
+		OIDCCServerTest.class,
+		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class,
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
 		OIDCCEnsureRegisteredRedirectUri.class,
@@ -22,7 +23,6 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCScopeEmail.class,
 		OIDCCScopePhone.class,
 		OIDCCScopeProfile.class,
-		OIDCCServerTest.class,
 		OIDCCPromptLogin.class,
 		OIDCCPromptNoneLoggedIn.class,
 		OIDCCPromptNoneNotLoggedIn.class,
