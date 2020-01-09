@@ -34,7 +34,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.institution_id"
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWID2ExpectingAuthorizationFailure {
+public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

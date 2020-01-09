@@ -3,7 +3,6 @@ package net.openid.conformance.fapi;
 import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -99,7 +98,7 @@ public class EnsureRegisteredRedirectUri extends AbstractRedirectServerTestModul
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		performRedirectAndWaitForErrorCallback();
+		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
 	@Override

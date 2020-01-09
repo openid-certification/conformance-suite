@@ -22,7 +22,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class OIDCCEnsureRedirectUriInAuthorizationRequest extends AbstractOIDCCServerTestExpectingAuthorizationFailure {
+public class OIDCCEnsureRedirectUriInAuthorizationRequest extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

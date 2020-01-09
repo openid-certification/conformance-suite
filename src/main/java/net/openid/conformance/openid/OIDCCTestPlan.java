@@ -12,9 +12,6 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCServerTest.class,
 		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class,
-		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
-		OIDCCEnsureRegisteredRedirectUri.class,
-		OIDCCEnsureRequestObjectWithRedirectUri.class,
 		OIDCCIdTokenRS256.class,
 		OIDCCIdTokenSignature.class,
 		OIDCCIdTokenUnsigned.class,
@@ -28,7 +25,13 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCPromptNoneNotLoggedIn.class,
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
-		OIDCCUserInfoPostHeader.class
+		OIDCCUserInfoPostHeader.class,
+
+		// negative tests
+		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
+		OIDCCEnsureRegisteredRedirectUri.class,
+		OIDCCEnsureRequestObjectWithRedirectUri.class,
+		OIDCCResponseTypeMissing.class,
 	}
 )
 public class OIDCCTestPlan implements TestPlan {

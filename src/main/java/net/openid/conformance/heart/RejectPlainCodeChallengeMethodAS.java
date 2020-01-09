@@ -124,7 +124,7 @@ public class RejectPlainCodeChallengeMethodAS extends AbstractRedirectServerTest
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 
-		performRedirectAndWaitForErrorCallback();
+		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
 	@Override
