@@ -56,9 +56,6 @@ public class CheckForSubjectInIdToken_UnitTest {
 		goodToken.add("claims", goodClaims);
 	}
 
-	/**
-	 * Test method for {@link CheckForSubjectInIdToken#evaluate(Environment)}.
-	 */
 	@Test
 	public void testEvaluate_valuePresent() {
 
@@ -69,9 +66,6 @@ public class CheckForSubjectInIdToken_UnitTest {
 		verify(env, atLeastOnce()).getString("id_token", "claims.sub");
 	}
 
-	/**
-	 * Test method for {@link CheckForSubjectInIdToken#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
@@ -98,6 +92,25 @@ public class CheckForSubjectInIdToken_UnitTest {
 		JsonObject badToken = goodToken;
 		badToken.get("claims").getAsJsonObject().addProperty("sub", "\u007f");
 		env.putObject("id_token", badToken);
+		cond.execute(env);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testEvaluate_valueNull() {
+
+		JsonObject nullClaims = new JsonParser().parse("{\n" +
+			" \"iss\": \"http://server.example.com\",\n" +
+			" \"sub\": null,\n" +
+			" \"aud\": \"s6BhdRkqt3\",\n" +
+			" \"nonce\": \"n-0S6_WzA2Mj\",\n" +
+			" \"exp\": 1311281970,\n" +
+			" \"iat\": 1311280970\n" +
+			"}").getAsJsonObject();
+
+		var tokenWithNull = new JsonObject();
+		tokenWithNull.add("claims", nullClaims);
+
+		env.putObject("id_token", tokenWithNull);
 
 		cond.execute(env);
 	}

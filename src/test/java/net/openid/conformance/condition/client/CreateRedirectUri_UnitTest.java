@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.TestFailureException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,10 +74,17 @@ public class CreateRedirectUri_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testEvaluate_valueNull() {
 
 		env.putString("base_url", null);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_valueMissing() {
 
 		cond.execute(env);
 

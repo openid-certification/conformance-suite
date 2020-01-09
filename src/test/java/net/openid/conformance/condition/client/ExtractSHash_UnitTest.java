@@ -42,10 +42,15 @@ public class ExtractSHash_UnitTest {
 	private void addIdToken(Environment env, String alg, String stateHash) {
 
 		JsonObject header = new JsonObject();
-		header.addProperty("alg", alg);
+
+		if (alg != null) {
+			header.addProperty("alg", alg);
+		}
 
 		JsonObject claims = new JsonObject();
-		claims.addProperty("s_hash", stateHash);
+		if (stateHash != null) {
+			claims.addProperty("s_hash", stateHash);
+		}
 
 		JsonObject idToken = new JsonObject();
 		idToken.add("header", header);

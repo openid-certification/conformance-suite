@@ -79,7 +79,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testEvaluate_nullAssertionType() {
 
 		resourceAssertion.add("assertion_type", JsonNull.INSTANCE);

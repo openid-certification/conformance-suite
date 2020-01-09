@@ -206,9 +206,6 @@ public class Environment {
 				} else {
 					throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
 				}
-			} else if (e.isJsonNull()) {
-				// if it's a literal null, return that
-				return null;
 			} else {
 				// it wasn't a primitive
 				throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
@@ -242,9 +239,6 @@ public class Environment {
 				} else {
 					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 				}
-			} else if (e.isJsonNull()) {
-				// if it's a literal null, return that
-				return null;
 			} else {
 				// it wasn't a primitive
 				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
@@ -279,9 +273,6 @@ public class Environment {
 				} else {
 					throw new IllegalArgumentException("Found non-boolean value for " + key + " / " + path);
 				}
-			} else if (e.isJsonNull()) {
-				// if it's a literal null, return that
-				return null;
 			} else {
 				// it wasn't a primitive
 				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
@@ -316,9 +307,6 @@ public class Environment {
 				} else {
 					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
 				}
-			} else if (e.isJsonNull()) {
-				// if it's a literal null, return that
-				return null;
 			} else {
 				// it wasn't a primitive
 				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);

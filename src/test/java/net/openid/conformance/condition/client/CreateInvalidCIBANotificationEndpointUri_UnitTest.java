@@ -60,9 +60,7 @@ public class CreateInvalidCIBANotificationEndpointUri_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_valueNull() {
-
-		env.putString("base_url", null);
+	public void testEvaluate_valueMissing() {
 
 		cond.execute(env);
 
