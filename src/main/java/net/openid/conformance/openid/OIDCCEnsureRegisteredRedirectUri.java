@@ -1,10 +1,10 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.client.CreateBadRedirectUri;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 // Corresponds to OP-redirect_uri-NotReg
 @PublishTestModule(
@@ -36,5 +36,10 @@ public class OIDCCEnsureRegisteredRedirectUri extends AbstractOIDCCServerTestExp
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OIDCC-3.1.2.1");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+	}
+
+	@Override
+	protected void processCallback() {
+		throw new TestFailureException(getId(), "The authorization server called the registered redirect uri. This should not have happened as the client provided a bad redirect_uri in the request.");
 	}
 }
