@@ -60,7 +60,6 @@ public class CheckBackchannelAuthenticationEndpointContentType_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notFoundContentType() {
-		setHeader(env, null);
 		cond.execute(env);
 	}
 

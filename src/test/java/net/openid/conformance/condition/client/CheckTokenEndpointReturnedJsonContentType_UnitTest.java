@@ -35,7 +35,9 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 	private void setHeader(Environment env, String value) {
 
 		JsonObject headers = new JsonObject();
-		headers.addProperty("content-type", value);
+		if (value != null) {
+			headers.addProperty("content-type", value);
+		}
 		env.putObject("token_endpoint_response_headers", headers);
 
 	}
