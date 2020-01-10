@@ -24,11 +24,19 @@ public final class OIDFJSON {
 		return json.getAsNumber();
 	}
 
+	/**
+	 * Uses JsonElement.getAsNumber() which will automatically convert to number
+	 * as long as it is not JsonNull.
+	 * Unlike getNumber, it will not throw an error if it's a json string
+	 * @param json
+	 * @return
+	 * @throws ValueIsJsonNullException
+	 */
 	public static Number getNumberIfNotJsonNull(JsonElement json) throws ValueIsJsonNullException {
 		if(json.isJsonNull()) {
 			throw new ValueIsJsonNullException("Element has a JsonNull value");
 		}
-		return OIDFJSON.getNumber(json);
+		return json.getAsNumber();
 	}
 
 	public static byte getByte(JsonElement json) {
