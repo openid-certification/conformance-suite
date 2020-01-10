@@ -92,7 +92,7 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 			try {
 				Number maxAge = OIDFJSON.getNumber(maxAgeElement);
 				log("max_age is correctly encoded as a number", args("max_age", maxAge));
-			} catch (Exception ex) {
+			} catch (OIDFJSON.UnexpectedJsonTypeException ex) {
 				throw error("max_age is not encoded as a number", args("max_age", maxAgeElement));
 			}
 		}
