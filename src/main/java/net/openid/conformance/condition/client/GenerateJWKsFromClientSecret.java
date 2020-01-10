@@ -2,7 +2,6 @@ package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -13,6 +12,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
 
 public class GenerateJWKsFromClientSecret extends AbstractCondition {
 
@@ -40,7 +40,7 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 
 		JWKSet jwks = new JWKSet(jwk);
 
-		JsonObject reparsed = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
+		JsonObject reparsed = JWKUtil.getPrivateJwksAsJsonObject(jwks);
 
 		env.putObject("client_jwks", reparsed);
 

@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -16,6 +15,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -70,13 +70,13 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			}
 
 			JWKSet publicJwkSet = new JWKSet(allGeneratedKeys);
-			JsonObject publicJwks = new JsonParser().parse(publicJwkSet.toJSONObject(true).toJSONString()).getAsJsonObject();
+			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(publicJwkSet);
 
 			JWKSet privateJwkSet = new JWKSet(signingKeyToBeUsed);
-			JsonObject jwks = new JsonParser().parse(privateJwkSet.toJSONObject(false).toJSONString()).getAsJsonObject();
+			JsonObject jwks = JWKUtil.getPrivateJwksAsJsonObject(privateJwkSet);
 
 			JWKSet encJwkSet = new JWKSet(encryptionKeysToBeUsed);
-			JsonObject encJwks = new JsonParser().parse(encJwkSet.toJSONObject(false).toJSONString()).getAsJsonObject();
+			JsonObject encJwks = JWKUtil.getPrivateJwksAsJsonObject(encJwkSet);
 
 			env.putObject("server_public_jwks", publicJwks);
 			env.putObject("server_jwks", jwks);
