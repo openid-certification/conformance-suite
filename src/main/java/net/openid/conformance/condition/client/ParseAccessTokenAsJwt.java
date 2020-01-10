@@ -12,6 +12,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWTUtil;
 
 public class ParseAccessTokenAsJwt extends AbstractCondition {
 
@@ -26,11 +27,10 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 		}
 
 		try {
-			JWT jwt = JWTParser.parse(accessToken);
+			JWT jwt = JWTUtil.parseJWT(accessToken);
 
-			// Note: we need to round-trip this to get to GSON objects because the JWT library uses a different parser
-			JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
-			JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(jwt);
+			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, false);
 
 			JsonObject o = new JsonObject();
 			o.addProperty("value", accessToken); // save the original string to allow for crypto operations

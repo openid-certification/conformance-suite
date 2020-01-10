@@ -10,6 +10,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWTUtil;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,10 +40,10 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 				log("Downloaded request object", args("request_object", requestObjectString));
 
-				JWT jwt = JWTParser.parse(requestObjectString);
+				JWT jwt = JWTUtil.parseJWT(requestObjectString);
 
-				JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
-				JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+				JsonObject header = JWTUtil.jwtHeaderAsJsonObject(jwt);
+				JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, true);
 
 				JsonObject o = new JsonObject();
 				o.addProperty("value", requestObjectString); // save the original string to allow for crypto operations

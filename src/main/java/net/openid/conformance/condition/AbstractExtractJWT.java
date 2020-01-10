@@ -10,6 +10,7 @@ import com.nimbusds.jwt.JWTParser;
 
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
 
 public abstract class AbstractExtractJWT extends AbstractCondition {
 
@@ -26,11 +27,10 @@ public abstract class AbstractExtractJWT extends AbstractCondition {
 		String tokenString = OIDFJSON.getString(tokenElement);
 
 		try {
-			JWT token = JWTParser.parse(tokenString);
+			JWT token = JWTUtil.parseJWT(tokenString);
 
-			// Note: we need to round-trip this to get to GSON objects because the JWT library uses a different parser
-			JsonObject header = new JsonParser().parse(token.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
-			JsonObject claims = new JsonParser().parse(token.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
+			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token, true);
 
 			JsonObject o = new JsonObject();
 			o.addProperty("value", tokenString); // save the original string to allow for crypto operations

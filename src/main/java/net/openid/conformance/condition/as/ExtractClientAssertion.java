@@ -9,6 +9,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
 
@@ -26,10 +27,10 @@ public class ExtractClientAssertion extends AbstractCondition {
 		}
 
 		try {
-			JWT jwt = JWTParser.parse(clientAssertionString);
+			JWT jwt = JWTUtil.parseJWT(clientAssertionString);
 
-			JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
-			JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(jwt);
+			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, false);
 
 			JsonObject o = new JsonObject();
 			o.addProperty("value", clientAssertionString); // save the original string to allow for crypto operations
