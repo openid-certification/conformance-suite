@@ -1,0 +1,63 @@
+version: '3'
+services:
+  oidcc-provider:
+    image: panvafs/oidc-provider-oidc-core-sample
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./.gitlab-ci/local-provider-oidcc.json:/home/node/app/config.json"
+      - "./.gitlab-ci/local-provider.key:/home/node/app/server.key"
+      - "./.gitlab-ci/local-provider-oidcc.crt:/home/node/app/server.crt"
+      - "./:/conformance-suite/"
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "docker-entrypoint.sh plan > /conformance-suite/.gitlab-ci/local-provider-oidcc.plan && exec docker-entrypoint.sh server"
+  mongodb:
+    image: mongo
+    volumes:
+     - ./mongo/data:/data/db
+  httpd:
+    build:
+      context: ./httpd
+    ports:
+     - "8443:8443"
+    depends_on:
+     - server
+  server:
+    build:
+      context: ./server-dev
+    volumes:
+     - ./target/:/server/
+    command: >
+      java
+      -jar /server/fapi-test-suite.jar
+      --fintechlabs.base_url=https://httpd:8443
+      --fintechlabs.devmode=true
+      --fintechlabs.startredir=true
+    links:
+     - mongodb:mongodb
+    depends_on:
+     - mongodb
+     - oidcc-provider
+    logging:
+      # limit logs retained on host
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "5"
+  test:
+    depends_on:
+      - httpd
+    build:
+      context: ./test
+    environment:
+      CONFORMANCE_SERVER: https://httpd:8443/
+      CONFORMANCE_DEV_MODE: 1
+    volumes:
+      - "../conformance-suite-private:/conformance-suite-private/"
+      - "./:/conformance-suite/"
+    working_dir: "/conformance-suite-private"
+    entrypoint:
+      - "../conformance-suite/.gitlab-ci/run-tests.sh"
+      - "--local-provider-tests"

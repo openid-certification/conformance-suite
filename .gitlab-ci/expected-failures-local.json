@@ -1,0 +1,2550 @@
+[
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckTokenEndpointHttpStatus400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-codereuse",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-ensure-redirect-uri-in-authorization-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-response-type-missing",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "oidcc-response-type-missing",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_post",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "",
+        "condition": "CallDynamicRegistrationEndpoint",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-email",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-phone",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "id_token token",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "VerifyScopesReturnedInAuthorizationEndpointIdToken",
+        "expected-result": "warning",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    }
+]
