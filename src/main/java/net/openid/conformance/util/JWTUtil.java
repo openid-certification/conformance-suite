@@ -21,14 +21,47 @@ public class JWTUtil {
 		return jwt;
 	}
 
-	public static JsonObject jwtClaimsSetAsJsonObject(JWT jwt, boolean includeNullValues) throws ParseException {
+	/**
+	 * Also see jwtStringToJsonObjectForEnvironment
+	 * @param jwt
+	 * @return
+	 * @throws ParseException
+	 */
+	public static JsonObject jwtClaimsSetAsJsonObject(JWT jwt) throws ParseException {
+		//added this variable to make it obvious
+		boolean includeNullValues = true;
 		JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject(includeNullValues).toJSONString()).getAsJsonObject();
 		return claims;
 	}
 
+	/**
+	 * Also see jwtStringToJsonObjectForEnvironment
+	 * Note: Nimbusds will always remove null values from JWT headers
+	 * @param jwt
+	 * @return
+	 */
 	public static JsonObject jwtHeaderAsJsonObject(JWT jwt) {
 		JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
 		return header;
+	}
+
+	/**
+	 * Parses the JWT and returns a JsonObject with value, header and claims entries
+	 * @param jwtAsString
+	 * @return
+	 * @throws ParseException
+	 */
+	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString) throws ParseException {
+		JWT token = JWTUtil.parseJWT(jwtAsString);
+
+		JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
+		JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token);
+
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("value", jwtAsString); // save the original string to allow for crypto operations
+		jsonObject.add("header", header);
+		jsonObject.add("claims", claims);
+		return jsonObject;
 	}
 
 }

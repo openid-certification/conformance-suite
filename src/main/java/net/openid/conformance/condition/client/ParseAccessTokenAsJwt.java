@@ -27,19 +27,11 @@ public class ParseAccessTokenAsJwt extends AbstractCondition {
 		}
 
 		try {
-			JWT jwt = JWTUtil.parseJWT(accessToken);
+			JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(accessToken);
 
-			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(jwt);
-			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, false);
+			env.putObject("access_token_jwt", jsonObjectForJwt);
 
-			JsonObject o = new JsonObject();
-			o.addProperty("value", accessToken); // save the original string to allow for crypto operations
-			o.add("header", header);
-			o.add("claims", claims);
-
-			env.putObject("access_token_jwt", o);
-
-			logSuccess("Extracted access token as a JWT", o);
+			logSuccess("Extracted access token as a JWT", jsonObjectForJwt);
 
 			return env;
 

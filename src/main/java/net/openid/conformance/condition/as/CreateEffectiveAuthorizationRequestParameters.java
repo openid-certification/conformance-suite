@@ -2,7 +2,6 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -50,10 +49,11 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 			if(effective.has(claimName)) {
 				JsonElement claimJsonElement = effective.get(claimName);
 				try {
-					Number claimAsNumber = OIDFJSON.getNumberIfNotJsonNull(claimJsonElement);
+					Number claimAsNumber = OIDFJSON.forceConversionToNumber(claimJsonElement);
 					effective.addProperty(claimName, claimAsNumber);
 				} catch (OIDFJSON.ValueIsJsonNullException ex) {
 					//value is json null. remove the entry from effective to prevent errors
+					//EnsureNumericRequestObjectClaimsAreNotNull should be called to log a warning
 					effective.remove(claimName);
 					log(claimName + " has a json null value. Not including "+claimName+" in effective authorization endpoint request");
 				} catch (OIDFJSON.UnexpectedJsonTypeException ex) {

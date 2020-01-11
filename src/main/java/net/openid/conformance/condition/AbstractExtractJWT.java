@@ -27,20 +27,12 @@ public abstract class AbstractExtractJWT extends AbstractCondition {
 		String tokenString = OIDFJSON.getString(tokenElement);
 
 		try {
-			JWT token = JWTUtil.parseJWT(tokenString);
-
-			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
-			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token, true);
-
-			JsonObject o = new JsonObject();
-			o.addProperty("value", tokenString); // save the original string to allow for crypto operations
-			o.add("header", header);
-			o.add("claims", claims);
+			JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(tokenString);
 
 			// save the parsed token
-			env.putObject(dstPath, o);
+			env.putObject(dstPath, jwtAsJsonObject);
 
-			logSuccess("Found and parsed the "+dstPath+" from "+key, o);
+			logSuccess("Found and parsed the "+dstPath+" from "+key, jwtAsJsonObject);
 
 			return env;
 

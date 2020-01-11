@@ -24,19 +24,11 @@ public class ExtractRequestObject extends AbstractCondition {
 		}
 
 		try {
-			JWT jwt = JWTUtil.parseJWT(requestObjectString);
+			JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObjectString);
 
-			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(jwt);
-			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, true);
+			env.putObject("authorization_request_object", jsonObjectForJwt);
 
-			JsonObject o = new JsonObject();
-			o.addProperty("value", requestObjectString); // save the original string to allow for crypto operations
-			o.add("header", header);
-			o.add("claims", claims);
-
-			env.putObject("authorization_request_object", o);
-
-			logSuccess("Parsed request object", args("request_object", o));
+			logSuccess("Parsed request object", args("request_object", jsonObjectForJwt));
 
 			return env;
 

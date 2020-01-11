@@ -32,7 +32,7 @@ public final class OIDFJSON {
 	 * @return
 	 * @throws ValueIsJsonNullException
 	 */
-	public static Number getNumberIfNotJsonNull(JsonElement json) throws ValueIsJsonNullException {
+	public static Number forceConversionToNumber(JsonElement json) throws ValueIsJsonNullException {
 		if(json.isJsonNull()) {
 			throw new ValueIsJsonNullException("Element has a JsonNull value");
 		}

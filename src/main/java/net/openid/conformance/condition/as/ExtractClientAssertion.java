@@ -27,19 +27,11 @@ public class ExtractClientAssertion extends AbstractCondition {
 		}
 
 		try {
-			JWT jwt = JWTUtil.parseJWT(clientAssertionString);
+			JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(clientAssertionString);
 
-			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(jwt);
-			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, false);
+			env.putObject("client_assertion", jsonObjectForJwt);
 
-			JsonObject o = new JsonObject();
-			o.addProperty("value", clientAssertionString); // save the original string to allow for crypto operations
-			o.add("header", header);
-			o.add("claims", claims);
-
-			env.putObject("client_assertion", o);
-
-			logSuccess("Parsed client assertion", args("client_assertion", o));
+			logSuccess("Parsed client assertion", args("client_assertion", jsonObjectForJwt));
 
 			return env;
 

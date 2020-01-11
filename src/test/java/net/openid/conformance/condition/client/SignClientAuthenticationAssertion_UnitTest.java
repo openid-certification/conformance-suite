@@ -108,7 +108,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 			SignedJWT jwt = SignedJWT.parse(clientAssertion);
 
 			// get out the claims as a JsonObject
-			JsonObject foundClaims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, false);
+			JsonObject foundClaims = JWTUtil.jwtClaimsSetAsJsonObject(jwt);
 
 			assertThat(foundClaims).isEqualTo(claims);
 
@@ -135,7 +135,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 			SignedJWT jwt = SignedJWT.parse(clientAssertion);
 
 			// get out the claims as a JsonObject
-			JsonObject foundClaims = JWTUtil.jwtClaimsSetAsJsonObject(jwt, false);
+			JsonObject foundClaims = JWTUtil.jwtClaimsSetAsJsonObject(jwt);
 
 			assertThat(foundClaims).isEqualTo(claims);
 
