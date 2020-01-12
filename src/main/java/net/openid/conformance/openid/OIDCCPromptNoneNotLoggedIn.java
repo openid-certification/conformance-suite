@@ -2,13 +2,7 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptNoneToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointIsOneThatRequiredAUserInterface;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-prompt-none-NotLoggedIn.json
@@ -38,13 +32,11 @@ public class OIDCCPromptNoneNotLoggedIn extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void onAuthorizationCallbackResponse() {
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+		performGenericAuthorizationEndpointErrorResponseValidation();
+
 		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointIsOneThatRequiredAUserInterface.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2.1");
-		callAndContinueOnFailure(ValidateErrorDescriptionFromAuthorizationEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-4.1.2.1");
-		callAndContinueOnFailure(ValidateErrorUriFromAuthorizationEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-4.1.2.1");
+
 		fireTestFinished();
 	}
+
 }
