@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
 
+import net.openid.conformance.util.JWTUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,7 +108,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 			SignedJWT jwt = SignedJWT.parse(clientAssertion);
 
 			// get out the claims as a JsonObject
-			JsonObject foundClaims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject foundClaims = JWTUtil.jwtClaimsSetAsJsonObject(jwt);
 
 			assertThat(foundClaims).isEqualTo(claims);
 
@@ -134,7 +135,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 			SignedJWT jwt = SignedJWT.parse(clientAssertion);
 
 			// get out the claims as a JsonObject
-			JsonObject foundClaims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			JsonObject foundClaims = JWTUtil.jwtClaimsSetAsJsonObject(jwt);
 
 			assertThat(foundClaims).isEqualTo(claims);
 

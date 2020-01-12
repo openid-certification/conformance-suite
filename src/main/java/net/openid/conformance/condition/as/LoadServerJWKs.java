@@ -4,13 +4,13 @@ import java.text.ParseException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWKSet;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
 
 public class LoadServerJWKs extends AbstractCondition {
 
@@ -27,10 +27,10 @@ public class LoadServerJWKs extends AbstractCondition {
 
 		// parse the JWKS to make sure it's valid
 		try {
-			JWKSet jwks = JWKSet.parse(configured.toString());
+			JWKSet jwks = JWKUtil.parseJWKSet(configured.toString());
 
-			JsonObject publicJwks = new JsonParser().parse(jwks.toJSONObject(true).toJSONString()).getAsJsonObject();
-			JsonObject privateJwks = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
+			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(jwks);
+			JsonObject privateJwks = JWKUtil.getPrivateJwksAsJsonObject(jwks);
 
 			env.putObject("server_public_jwks", publicJwks);
 			env.putObject("server_jwks", privateJwks);

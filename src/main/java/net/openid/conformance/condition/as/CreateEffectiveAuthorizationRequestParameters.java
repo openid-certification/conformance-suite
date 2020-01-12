@@ -2,7 +2,6 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -41,33 +40,30 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 			JsonObject requestObjectClaims = env.getElementFromObject("authorization_request_object", "claims").getAsJsonObject();
 
 			for (String paramName : requestObjectClaims.keySet()) {
+				//TODO do JsonNull values require special handling?
 				effective.add(paramName, requestObjectClaims.get(paramName));
 			}
 		}
-		//max_age special case
-		if(effective.has(MAX_AGE)) {
-			//We can't use OIDFJSON here because MAX_AGE comes as a string from http request parameters
-			int maxAgeAsInt = getParameterValueAsInt(MAX_AGE, effective.get(MAX_AGE));
-			effective.addProperty(MAX_AGE, maxAgeAsInt);
+		//numeric values handling. (for now only max_age)
+		for(String claimName : EnsureNumericRequestObjectClaimsAreNotNull.numericClaimNames) {
+			if(effective.has(claimName)) {
+				JsonElement claimJsonElement = effective.get(claimName);
+				try {
+					Number claimAsNumber = OIDFJSON.forceConversionToNumber(claimJsonElement);
+					effective.addProperty(claimName, claimAsNumber);
+				} catch (OIDFJSON.ValueIsJsonNullException ex) {
+					//value is json null. remove the entry from effective to prevent errors
+					//EnsureNumericRequestObjectClaimsAreNotNull should be called to log a warning
+					effective.remove(claimName);
+					log(claimName + " has a json null value. Not including "+claimName+" in effective authorization endpoint request");
+				} catch (OIDFJSON.UnexpectedJsonTypeException ex) {
+					throw error("Unexpected parameter value. Value is not encoded as a number.", args(claimName, claimJsonElement));
+				}
+			}
 		}
 		env.putObject(ENV_KEY, effective);
 		logSuccess("Merged http request parameters with request object claims", args(ENV_KEY, effective));
 		return env;
 	}
 
-	protected int getParameterValueAsInt(String parameterName, JsonElement jsonElement) {
-		if(jsonElement.isJsonPrimitive()) {
-			//not using gson's getAsNumber to avoid sonarqube issues
-			JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
-			if(primitive.isString()) {
-				String valueAsString = primitive.getAsString();
-				int valueAsInt = Integer.parseInt(valueAsString);
-				return valueAsInt;
-			} else {
-				return OIDFJSON.getNumber(jsonElement).intValue();
-			}
-		} else {
-			throw error("Unexpected "+parameterName+" parameter", args(parameterName, jsonElement));
-		}
-	}
 }

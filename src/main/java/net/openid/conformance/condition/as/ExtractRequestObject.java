@@ -1,17 +1,15 @@
 package net.openid.conformance.condition.as;
 
-import java.text.ParseException;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWTUtil;
+
+import java.text.ParseException;
 
 public class ExtractRequestObject extends AbstractCondition {
 
@@ -26,19 +24,11 @@ public class ExtractRequestObject extends AbstractCondition {
 		}
 
 		try {
-			JWT jwt = JWTParser.parse(requestObjectString);
+			JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObjectString);
 
-			JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
-			JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject().toJSONString()).getAsJsonObject();
+			env.putObject("authorization_request_object", jsonObjectForJwt);
 
-			JsonObject o = new JsonObject();
-			o.addProperty("value", requestObjectString); // save the original string to allow for crypto operations
-			o.add("header", header);
-			o.add("claims", claims);
-
-			env.putObject("authorization_request_object", o);
-
-			logSuccess("Parsed request object", args("request_object", o));
+			logSuccess("Parsed request object", args("request_object", jsonObjectForJwt));
 
 			return env;
 
