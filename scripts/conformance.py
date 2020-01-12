@@ -98,4 +98,4 @@ class Conformance(object):
             if status == 'INTERRUPTED':
                 raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
 
-            time.sleep(2)
+            time.sleep(1)

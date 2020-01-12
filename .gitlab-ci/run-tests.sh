@@ -14,8 +14,6 @@ echo -e "\n\n`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh starting\n\n"
 # 3. do "source demo-environ.sh" (or whichever environment you want to run against)
 # (to run against your local deployment, just don't do the 'source' command)
 
-source node-client-setup.sh
-source node-core-client-setup.sh
 export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
 export OIDCC_TEST_CONFIG_ALIAS='test/a/openidfoundationinternal-clienttest/'
 export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
@@ -26,6 +24,9 @@ EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
 function makeClientTest {
+    source node-client-setup.sh
+    source node-core-client-setup.sh
+
     # client FAPI-RW-ID2
     TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi] automated-ob-client-test.json"
     TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi] automated-ob-client-test.json"

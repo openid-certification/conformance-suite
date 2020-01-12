@@ -358,8 +358,6 @@ deployment_local_test_review:
   dependencies: []
   script:
     - install_test_dependencies
-    - source node-client-setup.sh
-    - source node-core-client-setup.sh
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
