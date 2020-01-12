@@ -56,6 +56,7 @@ import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
@@ -548,6 +549,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void performGenericAuthorizationEndpointErrorResponseValidation() {
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(RejectAuthCodeInAuthorizationEndpointResponse.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB.class, ConditionResult.WARNING, "RFC6749-4.1.2.1");
 		callAndContinueOnFailure(ValidateErrorDescriptionFromAuthorizationEndpointResponseError.class, ConditionResult.FAILURE,"RFC6749-4.1.2.1");
