@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddRedirectUriToDynamicRegistrationRequest extends AbstractCondition {
+public class AddMultipleRedirectUriToDynamicRegistrationRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "dynamic_registration_request", strings = "redirect_uri")
@@ -28,6 +28,7 @@ public class AddRedirectUriToDynamicRegistrationRequest extends AbstractConditio
 
 		JsonArray redirectUris = new JsonArray();
 		redirectUris.add(redirectUri);
+		redirectUris.add("https://example.org/redirect");
 		dynamicRegistrationRequest.add("redirect_uris", redirectUris);
 
 		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
