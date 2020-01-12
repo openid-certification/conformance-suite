@@ -1,8 +1,6 @@
 package net.openid.conformance.openid;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import net.openid.conformance.condition.client.AddProfileScopeToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddProfileScopeToClientConfiguration;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to OP-scope-profile
@@ -22,16 +20,8 @@ public class OIDCCScopeProfile extends AbstractOIDCCScopesServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
-		JsonObject expectedScopes = new JsonParser().parse("{\"expected_scopes\": [\"profile\"]}").getAsJsonObject();
-		env.putObject("expected_scopes", expectedScopes);
-
+		callAndStopOnFailure(AddProfileScopeToClientConfiguration.class);
 		super.skipTestIfScopesNotSupported();
-	}
-
-	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
-				.then(condition(AddProfileScopeToAuthorizationEndpointRequest.class)));
 	}
 
 }
