@@ -1,6 +1,6 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.AddProfileScopeToClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to OP-scope-profile
@@ -19,7 +19,7 @@ public class OIDCCScopeProfile extends AbstractOIDCCScopesServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
-		callAndStopOnFailure(AddProfileScopeToClientConfiguration.class);
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdProfile.class);
 		super.skipTestIfScopesNotSupported();
 	}
 

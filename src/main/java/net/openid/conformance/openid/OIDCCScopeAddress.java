@@ -1,6 +1,6 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.AddAddressScopeToClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdAddress;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to OP-scope-address
@@ -19,7 +19,7 @@ public class OIDCCScopeAddress extends AbstractOIDCCScopesServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
-		callAndStopOnFailure(AddAddressScopeToClientConfiguration.class);
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdAddress.class);
 		super.skipTestIfScopesNotSupported();
 	}
 

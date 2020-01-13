@@ -1,6 +1,6 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.AddEmailPhoneAddressProfileScopeToClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdEmailPhoneAddressProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to OP-scope-all
@@ -19,7 +19,7 @@ public class OIDCCScopeAll extends AbstractOIDCCScopesServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
-		callAndStopOnFailure(AddEmailPhoneAddressProfileScopeToClientConfiguration.class);
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdEmailPhoneAddressProfile.class);
 		super.skipTestIfScopesNotSupported();
 	}
 
