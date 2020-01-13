@@ -24,9 +24,7 @@ import net.openid.conformance.variant.VariantSetup;
 	summary = "This test uses two different OAuth clients, authenticates the user twice (using different variations on registered redirect uri etc), and tries reusing an authorization code.",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})

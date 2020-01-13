@@ -12,9 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This tests makes an authenticated POST request to the UserInfo endpoint with the access token in a header and validates the response",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 public class OIDCCUserInfoPostHeader extends AbstractOIDCCUserInfoTest {

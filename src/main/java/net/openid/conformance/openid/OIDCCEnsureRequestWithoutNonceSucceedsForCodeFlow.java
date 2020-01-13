@@ -12,9 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test should end with the authorisation server issuing an authorization code, even though a nonce was not supplied.",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {

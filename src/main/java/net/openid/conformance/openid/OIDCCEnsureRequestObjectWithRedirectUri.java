@@ -11,9 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test includes two redirect URIs, one in the request object and one as a request parameter. The server should use the value in the request object.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCEnsureRequestObjectWithRedirectUri extends AbstractOIDCCRequestObjectServerTest {
