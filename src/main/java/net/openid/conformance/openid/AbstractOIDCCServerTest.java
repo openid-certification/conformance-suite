@@ -47,7 +47,6 @@ import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
@@ -295,8 +294,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
