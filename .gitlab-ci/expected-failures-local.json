@@ -156,45 +156,6 @@
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
         "test-name": "oidcc-response-type-missing",
         "variant": {
             "client_auth_type": "client_secret_jwt",
@@ -205,45 +166,6 @@
         "current-block": "",
         "condition": "oidcc-response-type-missing",
         "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
@@ -260,45 +182,6 @@
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
         "test-name": "oidcc-response-type-missing",
         "variant": {
             "client_auth_type": "client_secret_jwt",
@@ -309,45 +192,6 @@
         "current-block": "",
         "condition": "oidcc-response-type-missing",
         "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "client_secret_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
@@ -390,45 +234,6 @@
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
         "test-name": "oidcc-response-type-missing",
         "variant": {
             "client_auth_type": "private_key_jwt",
@@ -439,45 +244,6 @@
         "current-block": "",
         "condition": "oidcc-response-type-missing",
         "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
@@ -494,45 +260,6 @@
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
         "test-name": "oidcc-response-type-missing",
         "variant": {
             "client_auth_type": "private_key_jwt",
@@ -543,45 +270,6 @@
         "current-block": "",
         "condition": "oidcc-response-type-missing",
         "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckTokenEndpointHttpStatus400",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CheckErrorFromTokenEndpointResponseErrorInvalidGrant",
-        "expected-result": "failure",
-        "comment": "**CHANGE ME** explain why this failure occurs"
-    },
-    {
-        "test-name": "oidcc-codereuse",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "response_type": "code id_token token",
-            "client_registration": "dynamic_client"
-        },
-        "configuration-filename": "../conformance-suite/.gitlab-ci/local-provider-oidcc.plan",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
         "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {

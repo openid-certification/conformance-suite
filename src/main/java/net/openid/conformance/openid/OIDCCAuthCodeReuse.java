@@ -10,9 +10,13 @@ import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonCon
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "oidcc-codereuse",
@@ -29,6 +33,22 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCAuthCodeReuse extends AbstractOIDCCMultipleClient {
 
+	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
+
+	@Override
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
+	public void setupClientSecretJwt() {
+		super.setupClientSecretJwt();
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	}
+
+	@Override
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+		generateNewClientAssertionSteps = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+	}
+
 	@Override
 	protected void performSecondClientTests() {
 		if (responseType.includesCode()) {
@@ -38,6 +58,11 @@ public class OIDCCAuthCodeReuse extends AbstractOIDCCMultipleClient {
 
 	private void testReuseOfAuthorizationCode() {
 		eventLog.startBlock("Attempting reuse of client2's authorisation code & testing if access token is revoked");
+
+		if (generateNewClientAssertionSteps != null) {
+			call(sequence(generateNewClientAssertionSteps));
+		}
+
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
