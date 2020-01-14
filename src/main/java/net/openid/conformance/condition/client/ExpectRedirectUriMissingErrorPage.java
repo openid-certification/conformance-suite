@@ -10,7 +10,7 @@ public class ExpectRedirectUriMissingErrorPage extends AbstractCondition {
 	@PostEnvironment(strings = "redirect_uri_missing_error")
 	public Environment evaluate(Environment env) {
 
-		String placeholder = createBrowserInteractionPlaceholder("Show redirect URI error page");
+		String placeholder = createBrowserInteractionPlaceholder("Show an error page saying the redirect uri is missing from the request.");
 		env.putString("redirect_uri_missing_error", placeholder);
 
 		return env;

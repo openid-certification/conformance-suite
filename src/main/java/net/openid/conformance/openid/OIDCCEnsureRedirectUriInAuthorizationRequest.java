@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-ensure-redirect-uri-in-authorization-request",
 	displayName = "OIDCC: ensure redirect URI in authorization request",
-	summary = "This test register a client that has two redirect uris and send a request without redirect_uri to authorization server - should result in the authorization server showing an error page (a screenshot of which should be uploaded).",
+	summary = "This test registers a client that has two redirect uris and sends a request without redirect_uri to authorization server - this must result in the authorization server showing an error page (a screenshot of which should be uploaded).",
 	profile = "OIDCC",
 	configurationFields = {
 		"server.discoveryUrl",

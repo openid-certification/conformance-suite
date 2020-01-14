@@ -55,9 +55,8 @@ services:
       CONFORMANCE_SERVER: https://httpd:8443/
       CONFORMANCE_DEV_MODE: 1
     volumes:
-      - "../conformance-suite-private:/conformance-suite-private/"
       - "./:/conformance-suite/"
-    working_dir: "/conformance-suite-private"
+    working_dir: "/conformance-suite"
     entrypoint:
       - "../conformance-suite/.gitlab-ci/run-tests.sh"
       - "--local-provider-tests"

@@ -1,7 +1,6 @@
 package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Wrappers around the GSON getAsXXXX methods
@@ -13,6 +12,9 @@ import com.google.gson.JsonPrimitive;
  *
  * The 'getAs' methods should never be directly used in our code, these wrappers should always be used.
  *
+ * 'get' (or 'getAs') methods in this class must NEVER do any type conversion; if type conversion is necessary call
+ * the method 'forceConversionTo...'
+ *
  * See https://gitlab.com/openid/conformance-suite/issues/398
  */
 public final class OIDFJSON {
@@ -20,21 +22,6 @@ public final class OIDFJSON {
 	public static Number getNumber(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
 			throw new UnexpectedJsonTypeException("getNumber called on something that is not a number: " + json);
-		}
-		return json.getAsNumber();
-	}
-
-	/**
-	 * Uses JsonElement.getAsNumber() which will automatically convert to number
-	 * as long as it is not JsonNull.
-	 * Unlike getNumber, it will not throw an error if it's a json string
-	 * @param json
-	 * @return
-	 * @throws ValueIsJsonNullException
-	 */
-	public static Number forceConversionToNumber(JsonElement json) throws ValueIsJsonNullException {
-		if(json.isJsonNull()) {
-			throw new ValueIsJsonNullException("Element has a JsonNull value");
 		}
 		return json.getAsNumber();
 	}
@@ -103,8 +90,31 @@ public final class OIDFJSON {
 	}
 
 	public static String forceConversionToString(JsonElement json) {
+		if (!json.isJsonPrimitive() || (!json.getAsJsonPrimitive().isNumber() && !json.getAsJsonPrimitive().isString())) {
+			// I'm not 100% sure if bool/object conversions should be blocked; I suspect if we ever find a reason to
+			// allow them then it's fine to do so, it's just not a path the current code uses.
+			throw new UnexpectedJsonTypeException("forceConversionToNumber called on something that is neither a number nor a string: " + json);
+		}
 
 		return json.getAsString();
+	}
+
+	/**
+	 * Uses JsonElement.getAsNumber() which will automatically convert to number
+	 * as long as it is not JsonNull.
+	 * Unlike getNumber, it will not throw an error if it's a json string
+	 * @param json
+	 * @return
+	 * @throws ValueIsJsonNullException
+	 */
+	public static Number forceConversionToNumber(JsonElement json) throws ValueIsJsonNullException {
+		if(json.isJsonNull()) {
+			throw new ValueIsJsonNullException("Element has a JsonNull value");
+		}
+		if (!json.isJsonPrimitive() || (!json.getAsJsonPrimitive().isNumber() && !json.getAsJsonPrimitive().isString())) {
+			throw new UnexpectedJsonTypeException("forceConversionToNumber called on something that is neither a number nor a string: " + json);
+		}
+		return json.getAsNumber();
 	}
 
 	/**
