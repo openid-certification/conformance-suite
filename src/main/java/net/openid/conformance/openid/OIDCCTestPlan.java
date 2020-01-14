@@ -12,6 +12,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCServerTest.class,
 		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class,
+		OIDCCEnsureRequestWithoutNonceSucceedsForCodeFlow.class,
 		OIDCCIdTokenRS256.class,
 		OIDCCIdTokenSignature.class,
 		OIDCCIdTokenUnsigned.class,
@@ -31,6 +32,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
 		OIDCCEnsureRegisteredRedirectUri.class,
 		OIDCCEnsureRequestObjectWithRedirectUri.class,
+		OIDCCEnsureRequestWithoutNonceFails.class,
 		OIDCCResponseTypeMissing.class,
 	}
 )
