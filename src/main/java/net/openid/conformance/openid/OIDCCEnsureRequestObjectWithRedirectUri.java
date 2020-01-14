@@ -3,8 +3,6 @@ package net.openid.conformance.openid;
 import net.openid.conformance.condition.client.AddInvalidRedirectUriToAuthorizationRequest;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ResponseType;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 // This does not correspond to a particular OIDC python test
 @PublishTestModule(
@@ -15,8 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	configurationFields = {
 			"server.discoveryUrl",
 			"client.scope",
-			"client2.scope",
-			"resource.resourceUrl"
+			"client2.scope"
 	}
 )
 public class OIDCCEnsureRequestObjectWithRedirectUri extends AbstractOIDCCRequestObjectServerTest {

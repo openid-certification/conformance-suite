@@ -15,8 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 			"server.discoveryUrl",
 			"client.scope",
-			"client2.scope",
-			"resource.resourceUrl"
+			"client2.scope"
 	}
 )
 public class OIDCCPromptLogin extends AbstractOIDCCServerTest {

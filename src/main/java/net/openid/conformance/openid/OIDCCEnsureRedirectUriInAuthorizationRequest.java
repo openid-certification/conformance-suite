@@ -18,8 +18,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",
-		"client2.scope",
-		"resource.resourceUrl"
+		"client2.scope"
 	}
 )
 

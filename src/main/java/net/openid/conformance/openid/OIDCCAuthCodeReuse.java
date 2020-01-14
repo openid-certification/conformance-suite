@@ -26,8 +26,7 @@ import net.openid.conformance.variant.VariantSetup;
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",
-		"client2.scope",
-		"resource.resourceUrl"
+		"client2.scope"
 	}
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
