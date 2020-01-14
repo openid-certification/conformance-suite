@@ -41,7 +41,6 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 
 	private JsonArray invalidAcrValues;
 
-
 	@Before
 	public void setUp() throws Exception {
 
@@ -74,20 +73,47 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 	}
 
 
+	/**
+	 * Test for case:
+	 *     acr: { essential: true, values: ['urn:openbanking:psd2:sca', 'urn:openbanking:psd2:ca'] }
+	 */
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_noErrorWithAcrValues() {
 
 		addRequestObject(env, claims);
 
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getElementFromObject("authorization_request_object", "claims.claims.id_token.acr.values");
-		verify(env, atLeastOnce()).getElementFromObject("authorization_request_object", "claims.claims.id_token.acr.essential");
+		verify(env, atLeastOnce()).getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
 
 		assertThat(env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr.values")).isEqualTo(acrObject.get("values"));
 
 	}
 
+	/**
+	 * Test for case:
+	 *     acr: { essential: true, value: 'urn:openbanking:psd2:sca' }
+	 */
+	@Test
+	public void testEvaluate_noErrorWithAcrValue() {
+
+		acrObject.remove("values");
+		acrObject.addProperty("value", "urn:openbanking:psd2:sca");
+
+		addRequestObject(env, claims);
+
+		cond.execute(env);
+
+		verify(env, atLeastOnce()).getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
+
+		assertThat(env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr.value")).isEqualTo(acrObject.get("value"));
+
+	}
+
+	/**
+	 * Test for case:
+	 *     acr: { essential: true, values: ['invalid:psd2:sca', 'urn:openbanking:psd2:ca'] }
+	 */
 	@Test
 	public void testEvaluate_successWithValidAndInvalidAcrValues() {
 
@@ -115,8 +141,12 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	/**
+	 * Test for case:
+	 *     acr: { essential: true, values: ['invalid:psd2:sca', 'invalid:psd2:ca'] }
+	 */
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_invalidAcrValue() {
+	public void testEvaluate_invalidAcrValues() {
 
 		invalidAcrValues = new JsonArray();
 		invalidAcrValues.add("invalid:psd2:sca");
@@ -130,8 +160,23 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	/**
+	 * Test for case:
+	 *     acr: { essential: true, value: 'invalid:psd2:sca' }
+	 */
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_errorWithAcrValueIsMissing() {
+	public void testEvaluate_invalidAcrValue() {
+
+		acrObject.remove("values");
+		acrObject.addProperty("value", "invalid:psd2:sca");
+
+		addRequestObject(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_missingBothAcrValueAndValues() {
 
 		acrObject.remove("values");
 
@@ -141,13 +186,23 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_errorWithAcrValueIsNotArray() {
+	public void testEvaluate_errorWithAcrValuesIsNotArray() {
 
 		JsonObject invalidAcrValues = new JsonObject();
 		invalidAcrValues.addProperty("invalidAcr", "invalid:psd2:sca");
 
 		acrObject.remove("values");
 		acrObject.add("values", invalidAcrValues);
+
+		addRequestObject(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_missingAcrClaim() {
+
+		acrName.remove("acr");
 
 		addRequestObject(env, claims);
 

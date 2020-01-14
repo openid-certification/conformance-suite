@@ -416,7 +416,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI-RW-8.6");
 
-		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5");
+		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5", "OIDCC-5.5.1.1");
 
 		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
 
