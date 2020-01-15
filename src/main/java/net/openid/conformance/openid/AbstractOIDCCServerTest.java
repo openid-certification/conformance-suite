@@ -477,7 +477,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void performIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE);
+
+		// Equivalent of https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#verify_nonce
+		// and https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#check_idtoken_nonce
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
+
 		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE);
