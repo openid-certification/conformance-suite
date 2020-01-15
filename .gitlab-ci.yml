@@ -364,7 +364,7 @@ deployment_local_test_review:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
   after_script:
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs server > $CI_PROJECT_DIR/server.log
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server.log
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
   dependencies:
     - build
