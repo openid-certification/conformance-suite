@@ -1,12 +1,20 @@
 #!/bin/sh
 
 set -e
-function cleanup {
-    echo -e "\n\n`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh exiting\n\n"
+cleanup() {
+    echo
+    echo
+    echo "`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh exiting"
+    echo
+    echo
 }
 trap cleanup EXIT
 
-echo -e "\n\n`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh starting\n\n"
+echo
+echo
+echo "`date '+%Y-%m-%d %H:%M:%S'`: run-tests.sh starting"
+echo
+echo
 
 # to run tests against a cloud environment, you need to:
 # 1. create an API token
@@ -23,9 +31,9 @@ TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
-function makeClientTest {
-    source node-client-setup.sh
-    source node-core-client-setup.sh
+makeClientTest() {
+    . node-client-setup.sh
+    . node-core-client-setup.sh
 
     # client FAPI-RW-ID2
     TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi] automated-ob-client-test.json"
@@ -82,7 +90,7 @@ function makeClientTest {
 
 }
 
-function makeServerTest {
+makeServerTest() {
     # OIDCC
     # commented out tests removed as they don't test something significantly different, in order to keep the test time down
     # client_secret_basic - static client
@@ -169,7 +177,7 @@ function makeServerTest {
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi-rw-id2-privatekey-for-instructions.json"
 }
 
-function makeCIBATest {
+makeCIBATest() {
     # ciba
     TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
     TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
@@ -193,7 +201,7 @@ function makeCIBATest {
     #TESTS="${TESTS} fapi-ciba-id1-push-with-mtls-test-plan authlete-fapi-ciba-id1-mtls-push.json"
 }
 
-function makeLocalProviderTests {
+makeLocalProviderTests() {
     # OIDCC
     # client_secret_basic - dynamic client
     TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_basic][response_type=code][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc.plan"
@@ -236,7 +244,7 @@ if [ "$#" -eq 0 ]; then
     makeServerTest
     makeCIBATest
     makeClientTest
-elif [[ "$#" -eq 1 -a "$1" = "--client-tests-only" ]]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-client.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-client.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
@@ -244,7 +252,7 @@ elif [[ "$#" -eq 1 -a "$1" = "--client-tests-only" ]]; then
     TESTS="${TESTS} --show-untested-test-modules client"
     echo "Run client tests"
     makeClientTest
-elif [[ "$#" -eq 1 -a "$1" = "--server-tests-only" ]]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
@@ -252,7 +260,7 @@ elif [[ "$#" -eq 1 -a "$1" = "--server-tests-only" ]]; then
     TESTS="${TESTS} --show-untested-test-modules server"
     echo "Run server tests"
     makeServerTest
-elif [[ "$#" -eq 1 -a "$1" = "--ciba-tests-only" ]]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ciba.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ciba.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
@@ -260,7 +268,7 @@ elif [[ "$#" -eq 1 -a "$1" = "--ciba-tests-only" ]]; then
     TESTS="${TESTS} --show-untested-test-modules ciba"
     echo "Run ciba tests"
     makeCIBATest
-elif [[ "$#" -eq 1 -a "$1" = "--local-provider-tests" ]]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-local.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
