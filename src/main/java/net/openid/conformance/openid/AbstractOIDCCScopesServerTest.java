@@ -21,7 +21,7 @@ public class AbstractOIDCCScopesServerTest extends AbstractOIDCCServerTest {
 
 		Boolean scopesSupportedFlag = env.getBoolean("scopes_not_supported_flag");
 		if (scopesSupportedFlag != null && scopesSupportedFlag) {
-			fireTestSkipped("The discovery endpoint scopes_supported doesn't contain expected scope test; this cannot be tested");
+			fireTestSkipped("scopes_supported from the discovery endpoint indicates the server doesn't support the scopes required for this test; so the test has been skipped");
 		}
 	}
 

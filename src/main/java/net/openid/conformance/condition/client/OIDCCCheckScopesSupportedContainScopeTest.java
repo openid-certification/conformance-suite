@@ -20,9 +20,9 @@ public class OIDCCCheckScopesSupportedContainScopeTest extends AbstractCondition
 		String errorMessage = null;
 
 		if (scopesSupported == null) {
-			errorMessage = "'scope_supported' is null";
+			errorMessage = "'scopes_support' is missing from discovery document";
 		} else if(!scopesSupported.isJsonArray()) {
-			errorMessage = "'scope_supported' is not a array";
+			errorMessage = "'scopes_support' in discovery document is not a array";
 		} else {
 
 			// convert JsonArray scopesSupported to list string
@@ -34,7 +34,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest extends AbstractCondition
 			String [] expectedScopes = expectedScopeStr.split(" ");
 			for (String expectedScope : expectedScopes) {
 				if (!scopesSupportedList.contains(expectedScope)) {
-					errorMessage = "'scope_supported' doesn't contain expected scopes";
+					errorMessage = "'scopes_support' in discovery document doesn't contain expected scopes";
 				}
 			}
 		}
@@ -45,7 +45,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest extends AbstractCondition
 			throw error(errorMessage, args("expected", expectedScopeStr, "actual", scopesSupported));
 		}
 
-		logSuccess("'scopes_supported' contain expected scopes", args("expected", expectedScopeStr, "actual", scopesSupported));
+		logSuccess("'scopes_supported' in discovery document contain expected scopes", args("expected", expectedScopeStr, "actual", scopesSupported));
 
 		return env;
 	}
