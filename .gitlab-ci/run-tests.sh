@@ -110,16 +110,16 @@ makeServerTest() {
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_basic][response_type=id_token\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
 
     # client_secret_post - static client
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code][client_registration=static_client] authlete-oidcc-secret-post.json"
-    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=static_client] authlete-oidcc-secret-post.json"
+    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code][client_registration=static_client] authlete-oidcc-secret-post.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=static_client] authlete-oidcc-secret-post.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ token][client_registration=static_client] authlete-oidcc-secret-post.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token\ token][client_registration=static_client] authlete-oidcc-secret-post.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=id_token][client_registration=static_client] authlete-oidcc-secret-post.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=id_token\ token][client_registration=static_client] authlete-oidcc-secret-post.json"
 
     # client_secret_post - dynamic client
-    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=code\ id_token\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_post][response_type=id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
@@ -128,16 +128,16 @@ makeServerTest() {
     # client_secret_jwt - static client
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code][client_registration=static_client] authlete-oidcc-secret-jwt.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
-    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
+    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=id_token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=id_token\ token][client_registration=static_client] authlete-oidcc-secret-jwt.json"
 
     # client_secret_jwt - dynamic client
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
-    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
-    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=id_token\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
 

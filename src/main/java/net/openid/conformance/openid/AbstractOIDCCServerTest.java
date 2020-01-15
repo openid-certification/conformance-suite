@@ -285,6 +285,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 
+		skipTestIfSigningAlgorithmNotSupported();
+
 		// Set up the client configuration
 		configureClient();
 
@@ -299,6 +301,10 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void skipTestIfSigningAlgorithmNotSupported() {
+		// Just apply for 'oidcc-idtoken-unsigned' test
 	}
 
 	protected void skipTestIfScopesNotSupported() {
