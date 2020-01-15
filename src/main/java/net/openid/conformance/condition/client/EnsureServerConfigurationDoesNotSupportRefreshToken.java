@@ -32,7 +32,7 @@ public class EnsureServerConfigurationDoesNotSupportRefreshToken extends Abstrac
 
 		for (JsonElement grantType : supportedGrantTypes) {
 			if (OIDFJSON.getString(grantType).equals("refresh_token")) {
-				throw error("The server supports refresh tokens, but did not issue one. This is acceptable if the server has a policy of issuing refresh tokens to some clients, but not to FAPI-RW clients. If the server requires scope=offline_access to issue a refresh token please add that to the scope listed in the test configuration.", args("supported_grant_types", supportedGrantTypes));
+				throw error("The server supports refresh tokens, but did not issue one. This is acceptable if the server has a policy of issuing refresh tokens to some clients, but not to openid clients.", args("supported_grant_types", supportedGrantTypes));
 			}
 		}
 
