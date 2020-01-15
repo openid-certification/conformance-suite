@@ -47,20 +47,18 @@ import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -293,10 +291,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		skipTestIfScopesNotSupported();
 
 		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);

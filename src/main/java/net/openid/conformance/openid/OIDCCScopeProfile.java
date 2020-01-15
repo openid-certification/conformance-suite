@@ -10,10 +10,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test requests authorization with profile scope.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope",
-			"resource.resourceUrl"
+		"server.discoveryUrl",
+		"client.scope",
+		"client2.scope"
 	}
 )
 public class OIDCCScopeProfile extends AbstractOIDCCScopesServerTest {
