@@ -1,13 +1,12 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
-import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
+import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
@@ -71,7 +70,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if (Strings.isNullOrEmpty(env.getString("refresh_token"))) {
-			callAndContinueOnFailure(EnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
+			callAndContinueOnFailure(FAPIEnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 			// This throws an exception: the test will stop here
 			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
 		}

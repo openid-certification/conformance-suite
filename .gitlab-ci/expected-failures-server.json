@@ -154,7 +154,7 @@
         },
         "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
         "current-block": "Second client: Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
+        "condition": "FAPIEnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
