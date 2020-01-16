@@ -22,7 +22,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = { "static_client" })
-@VariantNotApplicable(parameter = ResponseType.class, values = { "code", "code token" })
 public class OIDCCIdTokenSignature extends AbstractOIDCCServerTest {
 
 	@Override
