@@ -29,7 +29,7 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckHeartServerConfiguration;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12;
+import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -65,7 +65,7 @@ public class DirectAccessClientAS extends AbstractTestModule {
 		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
-		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
+		callAndStopOnFailure(EnsureTLS12WithFAPICiphers.class, "HEART-OAuth2-6");
 		callAndContinueOnFailure(DisallowTLS10.class, "HEART-OAuth2-6");
 		callAndContinueOnFailure(DisallowTLS11.class, "HEART-OAuth2-6");
 

@@ -68,7 +68,7 @@ import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12;
+import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FapiRClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -121,34 +121,34 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 
 		eventLog.startBlock("Authorization endpoint TLS test");
 		env.mapKey("tls", "authorization_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, ConditionResult.INFO, DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");

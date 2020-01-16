@@ -1,51 +1,23 @@
 package net.openid.conformance.condition.common;
 
+import com.google.common.base.Strings;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.FAPITLSClient;
+import org.bouncycastle.crypto.tls.AlertDescription;
+import org.bouncycastle.crypto.tls.ProtocolVersion;
+import org.bouncycastle.crypto.tls.TlsClient;
+import org.bouncycastle.crypto.tls.TlsClientProtocol;
+import org.bouncycastle.crypto.tls.TlsFatalAlert;
+import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.SecureRandom;
-import java.util.Hashtable;
-import java.util.Vector;
-
-import net.openid.conformance.testmodule.Environment;
-import org.bouncycastle.crypto.tls.AlertDescription;
-import org.bouncycastle.crypto.tls.Certificate;
-import org.bouncycastle.crypto.tls.CertificateRequest;
-import org.bouncycastle.crypto.tls.DefaultTlsClient;
-import org.bouncycastle.crypto.tls.NameType;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
-import org.bouncycastle.crypto.tls.ServerName;
-import org.bouncycastle.crypto.tls.ServerNameList;
-import org.bouncycastle.crypto.tls.TlsAuthentication;
-import org.bouncycastle.crypto.tls.TlsClient;
-import org.bouncycastle.crypto.tls.TlsClientProtocol;
-import org.bouncycastle.crypto.tls.TlsCredentials;
-import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
-import org.bouncycastle.crypto.tls.TlsFatalAlert;
-import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
-
-import com.google.common.base.Strings;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 
 public class DisallowTLS10 extends AbstractCondition {
-
-	// Signals that the connection was aborted after discovering the server version
-	@SuppressWarnings("serial")
-	private static class ServerHelloReceived extends IOException {
-
-		private ProtocolVersion serverVersion;
-
-		public ServerHelloReceived(ProtocolVersion serverVersion) {
-			this.serverVersion = serverVersion;
-		}
-
-		public ProtocolVersion getServerVersion() {
-			return serverVersion;
-		}
-
-	}
 
 	@Override
 	@PreEnvironment(required = "tls")
@@ -69,52 +41,7 @@ public class DisallowTLS10 extends AbstractCondition {
 
 				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream(), new SecureRandom());
 
-				TlsClient client = new DefaultTlsClient() {
-
-					@Override
-					public TlsAuthentication getAuthentication() {
-						return new TlsAuthentication() {
-
-							@Override
-							public TlsCredentials getClientCredentials(CertificateRequest certificateRequest) throws IOException {
-								return null;
-							}
-
-							@Override
-							public void notifyServerCertificate(Certificate serverCertificate) throws IOException {
-								// even though we make a TLS connection we ignore the server cert validation here
-							}
-						};
-					}
-
-					@Override
-					public ProtocolVersion getMinimumVersion() {
-						// Disallow anything earlier than TLS 1.0
-						return ProtocolVersion.TLSv10;
-					}
-
-					@Override
-					public ProtocolVersion getClientVersion() {
-						// Try to connect with TLS 1.0
-						return ProtocolVersion.TLSv10;
-					}
-
-					@Override
-					@SuppressWarnings("rawtypes") // fit with the API
-					public Hashtable getClientExtensions() throws IOException {
-						Hashtable clientExtensions = super.getClientExtensions();
-						Vector<ServerName> serverNameList = new Vector<>();
-						serverNameList.addElement(new ServerName(NameType.host_name, tlsTestHost));
-						TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
-						return clientExtensions;
-					}
-
-					@Override
-					public void notifyServerVersion(ProtocolVersion serverVersion) throws IOException {
-						// don't need to proceed further
-						throw new ServerHelloReceived(serverVersion);
-					}
-				};
+				TlsClient client = new FAPITLSClient(tlsTestHost, false, ProtocolVersion.TLSv10);
 
 				protocol.connect(client);
 
@@ -128,7 +55,7 @@ public class DisallowTLS10 extends AbstractCondition {
 					// Don't care
 				}
 			}
-		} catch (ServerHelloReceived e) {
+		} catch (FAPITLSClient.ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
 			if (serverVersion == ProtocolVersion.TLSv10) {
 				throw error("The server accepted a TLS 1.0 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));

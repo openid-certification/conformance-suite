@@ -18,7 +18,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12;
+import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
@@ -85,7 +85,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 	}
 
 	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");

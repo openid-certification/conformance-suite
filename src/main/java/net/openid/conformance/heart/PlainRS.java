@@ -27,7 +27,7 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12;
+import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -64,7 +64,7 @@ public class PlainRS extends AbstractTestModule {
 		env.putObject("config", config);
 
 		callAndStopOnFailure(SetTLSTestHostFromConfig.class);
-		callAndStopOnFailure(EnsureTLS12.class, "HEART-OAuth2-6");
+		callAndStopOnFailure(EnsureTLS12WithFAPICiphers.class, "HEART-OAuth2-6");
 		callAndContinueOnFailure(DisallowTLS10.class, "HEART-OAuth2-6");
 		callAndContinueOnFailure(DisallowTLS11.class, "HEART-OAuth2-6");
 
@@ -119,7 +119,7 @@ public class PlainRS extends AbstractTestModule {
 
 		eventLog.startBlock("Resource Endpoint TLS test");
 		env.mapKey("tls", "resource_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE);
