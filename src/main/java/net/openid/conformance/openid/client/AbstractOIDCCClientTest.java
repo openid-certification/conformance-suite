@@ -61,7 +61,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
-import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUri;
+import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -562,7 +562,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * http request is mapped to "dynamic_registration_request" before this call
 	 */
 	protected void validateRegistrationRequest() {
-		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUri.class);
+		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUris.class);
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
