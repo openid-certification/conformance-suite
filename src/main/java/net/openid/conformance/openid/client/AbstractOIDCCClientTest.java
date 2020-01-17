@@ -308,7 +308,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		JsonObject client = env.getObject("client");
 
-		if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
+		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			if(client.has("request_object_signing_alg")) {
 				String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
 				if (requestObjectSigningAlg != null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
