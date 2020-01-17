@@ -19,7 +19,8 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureTLS12_UnitTest {
+public class EnsureTLS12_WithFAPICiphers_UnitTest
+{
 
 	@Spy
 	private Environment env = new Environment();
@@ -27,19 +28,19 @@ public class EnsureTLS12_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureTLS12 cond;
+	private EnsureTLS12WithFAPICiphers cond;
 
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new EnsureTLS12();
+		cond = new EnsureTLS12WithFAPICiphers();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link EnsureTLS12#evaluate(Environment)}.
+	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError() {
@@ -64,7 +65,7 @@ public class EnsureTLS12_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureTLS12#evaluate(Environment)}.
+	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notTls() {
@@ -80,7 +81,7 @@ public class EnsureTLS12_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureTLS12#evaluate(Environment)}.
+	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingHost() {
@@ -95,7 +96,7 @@ public class EnsureTLS12_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureTLS12#evaluate(Environment)}.
+	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingPort() {
@@ -110,7 +111,7 @@ public class EnsureTLS12_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link EnsureTLS12#evaluate(Environment)}.
+	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingConfig() {
