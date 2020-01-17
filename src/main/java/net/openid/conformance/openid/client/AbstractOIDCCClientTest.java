@@ -42,9 +42,11 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.OIDCCExtractServerSigningAlg;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
+import net.openid.conformance.condition.as.OIDCCSignIdToken;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
@@ -62,6 +64,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
+import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -211,7 +214,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		validateConfiguredServerJWKS();
 
-		setServerSigningAlgorithm();
+		if(clientRegistrationType==ClientRegistration.STATIC_CLIENT) {
+			setServerSigningAlgorithm();
+		}
 
 		configureUserInfo();
 
@@ -296,6 +301,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
 			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
+			//signing_algorithm will be also set after registration
 		}
 
 	}
@@ -607,6 +613,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 		processAndValidateClientJwks();
 
+		//set signing_algorithm after registration
+		setServerSigningAlgorithm();
+		//set id_token_signed_response_alg to the actual server signing algorithm
+		callAndStopOnFailure(SetClientIdTokenSignedResponseAlgToServerSigningAlg.class);
+
 		JsonObject client = env.getObject("client");
 		return client;
 	}
@@ -723,7 +734,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(SignIdToken.class);
+		callAndStopOnFailure(OIDCCSignIdToken.class);
 	}
 
 	protected void fetchAndProcessRequestUri() {
@@ -835,7 +846,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void setServerSigningAlgorithm() {
-		callAndStopOnFailure(ExtractServerSigningAlg.class);
+		callAndStopOnFailure(OIDCCExtractServerSigningAlg.class);
 	}
 
 	protected void createAuthorizationCode() {

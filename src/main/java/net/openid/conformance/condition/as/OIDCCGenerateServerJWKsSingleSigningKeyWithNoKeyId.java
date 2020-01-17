@@ -27,8 +27,10 @@ public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGen
 	@Override
 	protected void setupParameters()
 	{
-		this.setSigningKeyTypeToUse(KeyTypeToUse.RSA);
 		this.setGenerateKids(false);
-		this.setNumberOfRSASigningKeys(1);
+		this.setNumberOfEdSigningKeys(0);
+		this.setNumberOfESSigningKeys(0);
+		this.setNumberOfPSSigningKeys(0);
+		this.setNumberOfRSSigningKeys(1);
 	}
 }

@@ -6,7 +6,9 @@ public class OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds extends OIDC
 	protected void setupParameters()
 	{
 		this.setGenerateKids(false);
-		this.setSigningKeyTypeToUse(KeyTypeToUse.RSA);
-		this.setNumberOfRSASigningKeys(3);
+		this.setNumberOfRSSigningKeys(3);
+		this.setNumberOfESSigningKeys(3);
+		this.setNumberOfPSSigningKeys(3);
+		this.setNumberOfEdSigningKeys(3);
 	}
 }

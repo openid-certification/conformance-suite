@@ -10,9 +10,10 @@ public class OIDCCGenerateServerJWKSWithRSAKeysOnlyAndRS256Alg extends OIDCCGene
 	@Override
 	protected void setupParameters()
 	{
-		this.setSigningKeyTypeToUse(KeyTypeToUse.RSA);
 		this.setNumberOfECEncKeys(0);
-		this.setNumberOfECSigningKeys(0);
-		this.setSigningAlgorithmForRSAKeys(JWSAlgorithm.RS256);
+		this.setNumberOfESSigningKeys(0);
+		this.setNumberOfEdSigningKeys(0);
+		this.setNumberOfPSSigningKeys(0);
+		this.setRsSigningAlgorithm(JWSAlgorithm.RS256);
 	}
 }

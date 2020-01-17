@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgRS256Only;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKSWithRSAKeysOnlyAndRS256Alg;
+import net.openid.conformance.condition.as.SetServerSigningAlgToRS256;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -19,6 +20,11 @@ public class OIDCCClientTestIdTokenSignedUsingRS256 extends AbstractOIDCCClientT
 	@Override
 	protected void configureServerJWKS() {
 		callAndStopOnFailure(OIDCCGenerateServerJWKSWithRSAKeysOnlyAndRS256Alg.class);
+	}
+
+	@Override
+	protected void setServerSigningAlgorithm() {
+		callAndStopOnFailure(SetServerSigningAlgToRS256.class);
 	}
 
 	@Override

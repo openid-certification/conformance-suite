@@ -16,7 +16,8 @@ public class OIDCCCreateClientSecretForDynamicClient extends AbstractCondition
 	@PreEnvironment(required = { "client"})
 	public Environment evaluate(Environment env) {
 		JsonObject client = env.getObject("client");
-		String randomStr = RFC6749AppendixASyntaxUtils.generateVSChar(15, 5, 5);
+		//HS256 requires at least 64 characters
+		String randomStr = RFC6749AppendixASyntaxUtils.generateVSChar(50, 10, 5);
 		String secret = "secret_" + randomStr;
 		client.addProperty("client_secret", secret);
 		env.putObject("client", client);
