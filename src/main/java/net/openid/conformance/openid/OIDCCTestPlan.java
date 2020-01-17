@@ -9,6 +9,11 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		OIDCCDiscoveryEndpointVerification.class,
+
+		// Dynamic registration tests
+		OIDCCRegistrationDynamic.class,
+
+		// Positive tests
 		OIDCCServerTest.class,
 		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class,
