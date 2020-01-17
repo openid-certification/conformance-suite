@@ -41,11 +41,11 @@ services:
      - mongodb
      - oidcc-provider
     logging:
-      # limit logs retained on host
+      # make sure we keep a reasonable amount of logs, as there's no other way to see results on the CI
       driver: "json-file"
       options:
-        max-size: "500k"
-        max-file: "5"
+        max-size: "500m"
+        max-file: "1"
   test:
     depends_on:
       - httpd

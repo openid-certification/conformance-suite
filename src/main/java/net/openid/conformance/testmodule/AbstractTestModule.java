@@ -516,14 +516,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				Thread.sleep(100); // sleep before we check again
 			}
 
-			// if we weren't interrupted already, then we're finished
-			if (!getStatus().equals(Status.INTERRUPTED)) {
-				setStatus(Status.FINISHED);
-
-				// log the environment here in case "stop" doesn't get it it
-				logFinalEnv();
-			}
-
 			if (getResult() == Result.UNKNOWN) {
 				List<?> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
 				if (filledPlaceholders.size() > 0) {
@@ -549,6 +541,18 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				"msg", "Test has run to completion",
 				"result", Status.FINISHED.toString(),
 				"testmodule_result", getResult()));
+
+			// if we weren't interrupted already, then we're finished
+			if (!getStatus().equals(Status.INTERRUPTED)) {
+
+				// this must be pretty much the last thing we do, we must NEVER mark the test as finished until
+				// everything has happen, as 'FINISHED' is the cue for run-test-plan.py to fetch the results, start
+				// the next test, etc.
+				setStatus(Status.FINISHED);
+
+				// log the environment here in case "stop" doesn't get it it
+				logFinalEnv();
+			}
 
 			// stop() might interrupt the current thread, so don't do any logging after this
 			stop("Test has run to completion.");
@@ -724,6 +728,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			acquireLock();
 			performFinalCleanup();
 			clearLock();
+		}
+
+		if (Status.FINISHED.equals(newStatus) && getResult() == Result.UNKNOWN) {
+			throw new TestFailureException(getId(), "Illegal test state; tried to move from " + oldStatus + " -> " + newStatus + " but 'result' is UNKNOWN");
 		}
 
 		this.status = newStatus;

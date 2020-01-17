@@ -37,7 +37,8 @@ config_ignore = [
 ]
 
 extensions_no_tabs = [
-    'py'
+    'py',
+    'yml'
 ]
 
 

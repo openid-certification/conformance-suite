@@ -475,9 +475,23 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
             expected_skip_did_not_happen = True
             counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
 
-    if (test_result == 'SKIPPED' and not expected_skip):
+    if test_result == 'SKIPPED' and not expected_skip:
         unexpected_skip = True
         counts_unexpected['UNEXPECTED_SKIPS'] += 1
+
+    # currently the ob intent id match fails for authlete and we don't list it as a 'skip', so we can't check this
+    # this shouldn't matter much as all failed test results should have a 'FAILURE' log entry.
+    #if test_result == 'FAILED' and not expected_skip:
+    #    print(failure("Test result is FAILED: "+module_id))
+    #    counts_unexpected['UNEXPECTED_FAILURES'] += 1
+
+    if test_result != 'PASSED' and \
+        test_result != 'WARNING' and \
+        test_result != 'REVIEW' and \
+        test_result != 'SKIPPED' and \
+        test_result != 'FAILED':
+        print(failure("Test result is an unexpected value, "+test_result+" for: "+module_id))
+        counts_unexpected['UNEXPECTED_FAILURES'] += 1
 
     return {
         'expected_failures': expected_failures,
