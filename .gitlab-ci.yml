@@ -357,7 +357,6 @@ deployment_local_test_review:
   needs: ["build"]
   dependencies: []
   script:
-    - install_test_dependencies
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
