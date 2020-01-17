@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -775,6 +776,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "OIDCC-3.1.2.1");
 
+		disallowMaxAge0AndPromptNone();
+	}
+
+	/**
+	 * To be overridden in OIDCCClientTestFormPostError
+	 * or any similar classes that want to trigger an error
+	 * by allowing max_age=0 and prompt=none
+	 */
+	protected void disallowMaxAge0AndPromptNone() {
+		callAndStopOnFailure(DisallowMaxAgeEqualsZeroAndPromptNone.class);
 	}
 
 	protected void validateRequestObject() {

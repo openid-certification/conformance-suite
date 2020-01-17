@@ -1,13 +1,12 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EnsureMaxAgeEqualsZeroAndPromptNone extends AbstractCondition {
+public class DisallowMaxAgeEqualsZeroAndPromptNone extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
@@ -18,11 +17,10 @@ public class EnsureMaxAgeEqualsZeroAndPromptNone extends AbstractCondition {
 		String prompt = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.PROMPT);
 
 		if (maxAgeZero.equals(maxAge) && "none".equals(prompt)) {
-			logSuccess("The client sent max_age=0 and prompt=none as expected");
-			return env;
+			throw error("Login required. Request contains max_age=0 and prompt=none parameters");
 		} else {
-			throw error("Invalid parameters. This test requires max_age=0 and prompt=none parameters",
-						args("max_age", maxAge, "prompt", prompt));
+			logSuccess("The client did not send max_age=0 and prompt=none parameters as expected");
+			return env;
 		}
 
 	}
