@@ -24,6 +24,7 @@ import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
+import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
@@ -179,6 +180,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		// for signing request objects
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
+		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI-R-5.2.2.5");
 
 		setStatus(Status.CONFIGURED);
