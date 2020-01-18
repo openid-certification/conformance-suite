@@ -30,7 +30,6 @@ import net.openid.conformance.condition.client.CheckMatchingStateParameter;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
-import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -60,6 +59,7 @@ import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -375,13 +375,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		createDynamicClientRegistrationRequest();
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-
-		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
-		// copy it across.
-		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
 	}
 
 	protected void completeClientConfiguration() {
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+
 		if (profileCompleteClientConfiguration != null) {
 			call(sequence(profileCompleteClientConfiguration));
 		}

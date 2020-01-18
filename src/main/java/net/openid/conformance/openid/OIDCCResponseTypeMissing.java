@@ -13,9 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test sends an authorization request that is missing the response_type parameter. The authorization server should display an error saying the response type is missing, a screenshot of which should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {

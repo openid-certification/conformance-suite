@@ -1,6 +1,6 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.AddEmailScopeToClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdEmail;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to OP-scope-email
@@ -10,16 +10,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test requests authorization with email scope.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCScopeEmail extends AbstractOIDCCScopesServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
-		callAndStopOnFailure(AddEmailScopeToClientConfiguration.class);
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdEmail.class);
 		super.skipTestIfScopesNotSupported();
 	}
 

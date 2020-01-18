@@ -13,9 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=login, so that the authorization server is required to ask the user to login a second time. A screenshot of the second authorization should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCPromptLogin extends AbstractOIDCCServerTest {

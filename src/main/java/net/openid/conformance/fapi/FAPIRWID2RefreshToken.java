@@ -1,14 +1,13 @@
 package net.openid.conformance.fapi;
 
 import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
-import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
+import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
@@ -58,7 +57,7 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
-			callAndContinueOnFailure(EnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
+			callAndContinueOnFailure(FAPIEnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 			// This throws an exception: the test will stop here
 			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
 		}

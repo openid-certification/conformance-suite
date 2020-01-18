@@ -12,9 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test calls the authorization endpoint with prompt=none, expecting that no recent enough authentication is present to enable a silent login and hence the OP will redirect back with an error as per section 3.1.2.6 of OpenID Connect. Please remove any cookies you may have received from the OpenID Provider before proceeding.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCPromptNoneNotLoggedIn extends AbstractOIDCCServerTest {

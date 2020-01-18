@@ -13,9 +13,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCEnsureRegisteredRedirectUri extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {

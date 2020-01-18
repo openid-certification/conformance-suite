@@ -15,9 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Tests primarily 'happy' flows",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 public class OIDCCServerTest extends AbstractOIDCCServerTest {

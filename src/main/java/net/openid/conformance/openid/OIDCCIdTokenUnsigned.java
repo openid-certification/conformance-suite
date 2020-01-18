@@ -16,9 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test requests an ID token signed with \"none\".",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = { "static_client" })

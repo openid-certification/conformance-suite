@@ -165,7 +165,7 @@
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
+        "condition": "FAPIEnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
@@ -179,7 +179,7 @@
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
-        "condition": "EnsureServerConfigurationDoesNotSupportRefreshToken",
+        "condition": "FAPIEnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     }

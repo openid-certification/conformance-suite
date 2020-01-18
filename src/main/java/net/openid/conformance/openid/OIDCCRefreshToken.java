@@ -1,7 +1,6 @@
 package net.openid.conformance.openid;
 
 import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
@@ -9,6 +8,8 @@ import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowed
 import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsOfflineAccess;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -21,13 +22,21 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token works and is correctly bound to the client. Support for refresh tokens is optional and the test will be skipped if the token endpoint response does not return refresh tokens.",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
+
+	@Override
+	protected void completeClientConfiguration() {
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsOfflineAccess.class);
+
+		if (profileCompleteClientConfiguration != null) {
+			call(sequence(profileCompleteClientConfiguration));
+		}
+	}
 
 	@Override
 	protected void createDynamicClientRegistrationRequest() {

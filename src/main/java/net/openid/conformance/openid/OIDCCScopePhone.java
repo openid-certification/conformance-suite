@@ -1,6 +1,6 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.AddPhoneScopeToClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdPhone;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to OP-scope-phone
@@ -10,16 +10,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test requests authorization with phone scope.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCScopePhone extends AbstractOIDCCScopesServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
-		callAndStopOnFailure(AddPhoneScopeToClientConfiguration.class);
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdPhone.class);
 		super.skipTestIfScopesNotSupported();
 	}
 

@@ -13,9 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=none, and that authorization server must not request that the user logs in.",
 	profile = "OIDCC",
 	configurationFields = {
-			"server.discoveryUrl",
-			"client.scope",
-			"client2.scope"
+			"server.discoveryUrl"
 	}
 )
 public class OIDCCPromptNoneLoggedIn extends AbstractOIDCCServerTest {

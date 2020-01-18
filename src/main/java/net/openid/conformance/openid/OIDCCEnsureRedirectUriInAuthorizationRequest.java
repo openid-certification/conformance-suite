@@ -16,9 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test registers a client that has two redirect uris and sends a request without redirect_uri to authorization server - this must result in the authorization server showing an error page (a screenshot of which should be uploaded).",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client2.scope"
+		"server.discoveryUrl"
 	}
 )
 
