@@ -5,7 +5,6 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.client.MongoCollection;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +16,11 @@ public class DBEventLog implements EventLog {
 
 	public static final String COLLECTION = "EVENT_LOG";
 
-	@Autowired
-	private MongoTemplate mongoTemplate;
+	private final MongoTemplate mongoTemplate;
+
+	public DBEventLog(MongoTemplate mongoTemplate) {
+		this.mongoTemplate = mongoTemplate;
+	}
 
 	/* (non-Javadoc)
 	 * @see EventLog#log(java.lang.String)
