@@ -1,28 +1,21 @@
 package net.openid.conformance.logging;
 
-import java.util.Date;
-import java.util.Map;
-
+import com.google.gson.JsonObject;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.client.MongoCollection;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.client.MongoCollection;
-
-import net.openid.conformance.info.TestInfoService;
+import java.util.Date;
+import java.util.Map;
 
 @Component
 public class DBEventLog implements EventLog {
 
 	public static final String COLLECTION = "EVENT_LOG";
-
-	@Autowired
-	@SuppressWarnings("unused")
-	private TestInfoService testInfoService;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
