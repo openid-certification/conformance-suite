@@ -97,9 +97,16 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 
 		callAndStopOnFailure(GetDynamicClientConfiguration.class);
 
+		// Perform any custom configuration
+		onConfigure(config, baseUrl);
+
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		// No custom configuration
 	}
 
 	@Override
@@ -156,6 +163,9 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		eventLog.log(getName(), "Received a callback from the authorization endpoint. It is not necessary to complete login for this test.");
+
+		// We need to release the test lock, but we're still waiting for the placeholder to be filled.
+		setStatus(Status.WAITING);
 	}
 
 	@Override
