@@ -1,6 +1,10 @@
 package net.openid.conformance.variant;
 
-@VariantParameter("fapir_client_auth_type")
+@VariantParameter(
+	name = "fapir_client_auth_type",
+	displayName = "FAPI-R Client Authentication Type",
+	description = "Client Authentication methods that are used by Clients to authenticate to the Authorization Server."
+)
 public enum FapiRClientAuthType {
 
 	NONE,

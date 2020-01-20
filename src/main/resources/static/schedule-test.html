@@ -92,11 +92,16 @@
 
 			<!-- render available test launch options here -->
 			<div class="form-group row">
-				<label for="planSelect" class="col-md-1 col-form-label">Test Plan</label>
-				<div class="col-md-11">
-					<select id="planSelect" class="form-control">
-						<option value="select">--- Select A Test Plan ----</option>
-					</select>
+				<label for="planSelect" class="col-md-2 col-form-label">Test Plan</label>
+				<div class="col-md-10">
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Test plan name"></span>
+                        </div>
+                        <select id="planSelect" class="form-control">
+						    <option value="select">--- Select A Test Plan ----</option>
+					    </select>
+                    </div>
 				</div>
 			</div>
 			<div class="row">
@@ -895,8 +900,8 @@
 						allVariantsSelected = false;
 					} else {
 						// add in any fields from the selected variant
-						fieldsToShow = _.uniqBy(fieldsToShow.concat(planVariants[p][v].configurationFields));
-						fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p][v].hidesConfigurationFields));
+						fieldsToShow = _.uniqBy(fieldsToShow.concat(planVariants[p]["variantValues"][v].configurationFields));
+						fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p]["variantValues"][v].hidesConfigurationFields));
 					}
 				});
 				$('#createPlanBtn').prop('disabled', !allVariantsSelected);
@@ -953,13 +958,17 @@
 
 					var id = 'vp_' + parameter;
 					var selector = $('<div class="form-group row">' +
-							'<label for="' + id + '" class="col-md-1 col-form-label">' + parameter + '</label>' +
-							'<div class="col-md-11">' +
-							'<select class="form-control variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
+							'<label for="' + id + '" class="col-md-2 col-form-label">' + values.variantInfo.displayName + '</label>' +
+							'<div class="col-md-10">' +
+                            '<div class="input-group">\n' +
+                            '<div class="input-group-addon">' +
+                            '<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="' + values.variantInfo.description + '" aria-describedby="tooltip1553"></span>' +
+							'</div>' +
+                            '<select class="form-control variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
 							'<option value="select">--- Select A Variant ----</option>' +
-							'</select></div></div>');
+							'</select></div></div></div>');
 					$('#variantSelectors').append(selector);
-					_.each(values, function(info, value) {
+					_.each(values.variantValues, function(info, value) {
 						$('#' + id).append(FAPI_UI.logTemplates.TEST_OPTION({
 							val: value,
 							display: value
@@ -973,6 +982,7 @@
 				// don't show the variant if there's none to show
 				$('#variantSelectors').hide();
 			}
+			FAPI_UI.activeTooltip();
 		}
 
 		function getSelectedVariant() {

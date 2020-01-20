@@ -1,8 +1,10 @@
 package net.openid.conformance.variant;
 
-import java.util.List;
-
-@VariantParameter("response_mode")
+@VariantParameter(
+	name = "response_mode",
+	displayName = "Response Mode",
+	description = "The Response Mode request parameter response_mode informs the Authorization Server of the mechanism to be used for returning Authorization Response parameters from the Authorization Endpoint."
+)
 public enum ResponseMode
 {
 	/**

@@ -2,7 +2,11 @@ package net.openid.conformance.variant;
 
 import java.util.List;
 
-@VariantParameter("response_type")
+@VariantParameter(
+	name = "response_type",
+	displayName = "Response Type",
+	description = "The Response Type request parameter response_type informs the Authorization Server of the desired authorization processing flow."
+)
 public enum ResponseType {
 
 	CODE("code"),

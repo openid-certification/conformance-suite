@@ -1,6 +1,10 @@
 package net.openid.conformance.variant;
 
-@VariantParameter("fapi_profile")
+@VariantParameter(
+	name = "fapi_profile",
+	displayName = "FAPI Profile",
+	description = ""
+)
 public enum FAPIProfile {
 
 	PLAIN_FAPI,

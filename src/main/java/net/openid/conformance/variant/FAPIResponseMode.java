@@ -1,6 +1,10 @@
 package net.openid.conformance.variant;
 
-@VariantParameter("fapi_response_mode")
+@VariantParameter(
+	name = "fapi_response_mode",
+	displayName = "FAPI Response Mode",
+	description = "The response mode that will be used. 'Plain response' is required for FAPI certification. JARM responses are not currently part of the certification program."
+)
 public enum FAPIResponseMode {
 
 	PLAIN_RESPONSE,

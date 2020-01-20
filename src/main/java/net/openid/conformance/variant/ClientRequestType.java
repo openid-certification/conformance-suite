@@ -2,7 +2,11 @@ package net.openid.conformance.variant;
 
 import java.util.Locale;
 
-@VariantParameter("request_type")
+@VariantParameter(
+	name = "request_type",
+	displayName = "Request Type",
+	description = ""
+)
 public enum ClientRequestType {
 
 	PLAIN_HTTP_REQUEST,

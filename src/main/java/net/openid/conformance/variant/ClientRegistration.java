@@ -1,6 +1,10 @@
 package net.openid.conformance.variant;
 
-@VariantParameter("client_registration")
+@VariantParameter(
+	name = "client_registration",
+	displayName = "Client Registration Type",
+	description = "Client registration types that are used to register static/dynamic clients."
+)
 public enum ClientRegistration {
 
 	STATIC_CLIENT,
