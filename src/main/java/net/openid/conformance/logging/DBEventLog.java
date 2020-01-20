@@ -22,6 +22,10 @@ public class DBEventLog implements EventLog {
 		this.mongoTemplate = mongoTemplate;
 	}
 
+	protected <T> void insert(T objectToSave) {
+		mongoTemplate.insert(objectToSave, COLLECTION);
+	}
+
 	/* (non-Javadoc)
 	 * @see EventLog#log(java.lang.String)
 	 */
@@ -36,7 +40,7 @@ public class DBEventLog implements EventLog {
 			.append("time", new Date().getTime())
 			.append("msg", msg);
 
-		mongoTemplate.insert(document, COLLECTION);
+		insert(document);
 	}
 
 	/* (non-Javadoc)
@@ -52,7 +56,7 @@ public class DBEventLog implements EventLog {
 		dbObject.append("testOwner", owner);
 		dbObject.append("time", new Date().getTime());
 
-		mongoTemplate.insert(dbObject, COLLECTION);
+		insert(dbObject);
 	}
 
 	/* (non-Javadoc)
@@ -68,7 +72,7 @@ public class DBEventLog implements EventLog {
 			.add("testOwner", owner)
 			.add("time", new Date().getTime());
 
-		mongoTemplate.insert(documentBuilder.get(), COLLECTION);
+		insert(documentBuilder.get());
 	}
 
 	@Override
