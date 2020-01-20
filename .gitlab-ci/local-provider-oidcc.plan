@@ -25,6 +25,14 @@
                     "match": "https://oidcc-provider:3000/interaction*",
                     "commands": [
                         [
+                            "wait",
+                            "xpath",
+                            "//*",
+                            10,
+                            "Sign-in",
+                            "update-image-placeholder-optional"
+                        ],
+                        [
                             "text",
                             "name",
                             "login",
