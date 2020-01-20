@@ -28,107 +28,24 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
-public class OIDCCSignIdToken extends AbstractSignJWT {
+public class OIDCCSignIdToken extends AbstractOIDCCSignJWT {
 
 	@Override
-	@PreEnvironment(required = { "id_token_claims", "server_jwks", "client" }, strings = "signing_algorithm")
+	@PreEnvironment(required = { "id_token_claims", "server_jwks", "client"}, strings = {"signing_algorithm" })
 	@PostEnvironment(strings = "id_token")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("id_token_claims");
 		JsonObject jwks = env.getObject("server_jwks");
-		String signingAlg = env.getString("signing_algorithm");
-
-		JWK selectedKey = null;
-		if(signingAlg.startsWith("HS")) {
-			//if using MAC based alg, create a jwk from client secret
-			String clientSecret = env.getString("client", "client_secret");
-			selectedKey = new OctetSequenceKey(Base64URL.encode(clientSecret), KeyUse.SIGNATURE, null, JWSAlgorithm.parse(signingAlg), UUID.randomUUID().toString(), null, null, null, null, null);
-		} else {
-			try {
-				JWKSet jwkSet = JWKSet.parse(jwks.toString());
-				if(jwkSet!=null) {
-					List<JWK> keys = jwkSet.getKeys();
-					for(JWK key : keys) {
-						if(signingAlg.startsWith("ES") && key.getKeyType().equals(KeyType.EC)
-							&& key.getKeyUse().equals(KeyUse.SIGNATURE) && key.getAlgorithm().getName().startsWith("ES")) {
-							selectedKey = key;
-							break;
-						} else if(signingAlg.startsWith("Ed") && key.getKeyType().equals(KeyType.EC)
-							&& key.getKeyUse().equals(KeyUse.SIGNATURE) && key.getAlgorithm().getName().startsWith("Ed")) {
-							selectedKey = key;
-							break;
-						} else if(signingAlg.startsWith("PS") && key.getKeyType().equals(KeyType.RSA)
-							&& key.getKeyUse().equals(KeyUse.SIGNATURE) && key.getAlgorithm().getName().startsWith("PS")) {
-							selectedKey = key;
-							break;
-						} else if(signingAlg.startsWith("RS") && key.getKeyType().equals(KeyType.RSA)
-							&& key.getKeyUse().equals(KeyUse.SIGNATURE) && key.getAlgorithm().getName().startsWith("RS")) {
-							selectedKey = key;
-							break;
-						}
-					}
-				}
-			} catch (ParseException e) {
-				throw error("Could not parse server jwks. Failed to find a signing key.", e, args("server_jwks", jwks));
-			}
+		String signingAlg = env.getString("client", "id_token_signed_response_alg");
+		if(signingAlg==null || signingAlg.isEmpty()) {
+			//use the default
+			signingAlg = env.getString("signing_algorithm");
 		}
-		//throw an error if a key that will satisfy client id_token_signed_response_alg cannot be found
-		if(selectedKey == null) {
-			throw error("Could not find an id token signing key", args("signing_algorithm", signingAlg));
-		}
-		return signJWTUsingKey(env, claims, selectedKey);
-	}
+		JsonObject client = env.getObject("client");
 
-	protected Environment signJWTUsingKey(Environment env, JsonObject claims, JWK jwk) {
-
-		if (claims == null) {
-			throw error("Couldn't find claims");
-		}
-
-		if (jwk == null) {
-			throw error("A JWK is required for signing");
-		}
-
-		try {
-			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
-
-			JWSSigner signer = null;
-			if (jwk.getKeyType().equals(KeyType.RSA)) {
-				signer = new RSASSASigner((RSAKey) jwk);
-			} else if (jwk.getKeyType().equals(KeyType.EC)) {
-				signer = new ECDSASigner((ECKey) jwk);
-			} else if (jwk.getKeyType().equals(KeyType.OCT)) {
-				signer = new MACSigner((OctetSequenceKey) jwk);
-			}
-
-			if (signer == null) {
-				throw error("Couldn't create signer from key; kty must be one of 'oct', 'rsa', 'ec'", args("jwk", jwk.toJSONString()));
-			}
-
-			Algorithm alg = jwk.getAlgorithm();
-			if (alg == null) {
-				//unlikely to happen but just in case
-				throw error("No 'alg' field specified in key", args("jwk", jwk.toJSONString()));
-			}
-
-			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
-
-			String jws = performSigning(header, claims, signer);
-
-			String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
-			JsonObject verifiableObj = new JsonObject();
-			verifiableObj.addProperty("verifiable_jws", jws);
-			verifiableObj.addProperty("public_jwk", publicKeySetString);
-
-			logSuccessByJWTType(env, claimSet, jwk, header, jws, verifiableObj);
-
-			return env;
-
-		} catch (ParseException e) {
-			throw error(e);
-		} catch (JOSEException e) {
-			throw error("Unable to sign ID token; check provided key has correct 'kty' for it's 'alg': " + e.getCause(), e);
-		}
+		JWK selectedKey = selectOrCreateKey(jwks, signingAlg, client);
+		signJWTUsingKey(env, claims, selectedKey);
+		return env;
 	}
 
 	@Override

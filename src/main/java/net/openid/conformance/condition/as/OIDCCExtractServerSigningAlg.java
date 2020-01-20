@@ -37,7 +37,7 @@ public class OIDCCExtractServerSigningAlg extends AbstractCondition {
 		String configuredAlg = env.getString("client", "id_token_signed_response_alg");
 		if(configuredAlg==null) {
 			try {
-				//use the alg from the first key
+				//use the alg from the first key in server jwks
 				JWKSet jwkSet = JWKSet.parse(jwks.toString());
 				JWK jwk = jwkSet.getKeys().iterator().next();
 				Algorithm alg = jwk.getAlgorithm();
@@ -46,7 +46,7 @@ public class OIDCCExtractServerSigningAlg extends AbstractCondition {
 					throw error("No algorithm specified for the first key in server_jwks", args("jwk", jwk.toJSONString()));
 				} else {
 					env.putString("signing_algorithm", alg.toString());
-					logSuccess("Successfully extracted algorithm", args("signing_algorithm", alg.toString()));
+					logSuccess("Using the algorithm for the first key in server jwks", args("signing_algorithm", alg.toString()));
 					return env;
 				}
 			} catch (ParseException e) {
