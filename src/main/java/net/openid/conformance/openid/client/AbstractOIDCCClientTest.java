@@ -14,6 +14,7 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
+import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -696,7 +697,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		signIdToken();
 
 		customizeIdTokenSignature();
+
+		encryptIdTokenIfNecessary();
 	}
+
+	protected void encryptIdTokenIfNecessary() {
+		skipIfElementMissing("client", "id_token_encrypted_response_alg", Condition.ConditionResult.INFO,
+			EncryptIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-10.2");
+	}
+
 /*
 	//s_hash is not applicable to core tests. Commenting out just in case it's needed in the future
 	protected void addSHashToIdToken() {
