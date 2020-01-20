@@ -1,0 +1,193 @@
+{
+    "alias": "local-oidcc",
+    "description": "oidc-provider OIDC",
+    "server": {
+        "discoveryUrl": "https://oidcc-provider:3000/.well-known/openid-configuration"
+    },
+    "client": {
+        "client_name": "first-openid-client",
+        "scope": "openid address email phone profile offline_access"
+    },
+    "client2": {
+        "client_name": "first-openid-client",
+        "scope": "openid address email phone profile offline_access"
+    },
+    "resource": {
+        "resourceUrl": "https://oidcc-provider:3000/me"
+    },
+    "browser": [
+        {
+            "match": "https://oidcc-provider:3000/auth*",
+            "tasks": [
+                {
+                    "task": "Login",
+                    "optional": true,
+                    "match": "https://oidcc-provider:3000/interaction*",
+                    "commands": [
+                        [
+                            "text",
+                            "name",
+                            "login",
+                            "foo",
+                            "optional"
+                        ],
+                        [
+                            "text",
+                            "name",
+                            "password",
+                            "bar",
+                            "optional"
+                        ],
+                        [
+                            "click",
+                            "class",
+                            "login-submit"
+                        ]
+                    ]
+                },
+                {
+                    "task": "Consent",
+                    "optional": true,
+                    "match": "https://oidcc-provider:3000/interaction*",
+                    "commands": [
+                        [
+                            "click",
+                            "class",
+                            "login-submit"
+                        ]
+                    ]
+                },
+                {
+                    "task": "Verify Complete",
+                    "match": "*/test/a/local-oidcc/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        }
+    ],
+    "override": {
+        "oidcc-prompt-login": {
+            "browser": [
+                {
+                    "comment": "updates placeholder during the second authorization",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Login",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "Sign-in",
+                                    "update-image-placeholder-optional"
+                                ],
+                                [
+                                    "text",
+                                    "name",
+                                    "login",
+                                    "foo",
+                                    "optional"
+                                ],
+                                [
+                                    "text",
+                                    "name",
+                                    "password",
+                                    "bar",
+                                    "optional"
+                                ],
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Consent",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Verify Complete",
+                            "match": "*/test/a/local-oidcc/callback*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "id",
+                                    "submission_complete",
+                                    10
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-ensure-registered-redirect-uri": {
+            "browser": [
+                {
+                    "comment": "expect an immediate error page",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect redirect uri mismatch error page",
+                            "match": "https://oidcc-provider:3000/auth*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "oops! something went wrong",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-ensure-redirect-uri-in-authorization-request": {
+            "browser": [
+                {
+                    "comment": "expect an immediate error page",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect redirect uri mismatch error page",
+                            "match": "https://oidcc-provider:3000/auth*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "oops! something went wrong",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
