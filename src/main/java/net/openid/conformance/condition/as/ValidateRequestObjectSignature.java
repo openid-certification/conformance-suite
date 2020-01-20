@@ -59,7 +59,7 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 			JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
 			JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
-
+			//TODO signature verification should be changed to use kids
 			List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
 			for (Key key : keys) {
 				JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
@@ -68,7 +68,10 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 				if (jwt.verify(verifier)) {
 					String alg = jwt.getHeader().getAlgorithm().getName();
 					env.putString("request_object_signing_alg", alg);
-					logSuccess("Request object signature validated", args("algorithm", alg));
+					logSuccess("Request object signature validated using a key in the client's JWKS " +
+										"and using the client's registered request_object_signing_alg",
+									args("request_object_signing_alg", alg,
+											"jwk", key.toString(), "request_object", requestObject));
 					return env;
 				} else {
 					// failed to verify with this key, moving on
