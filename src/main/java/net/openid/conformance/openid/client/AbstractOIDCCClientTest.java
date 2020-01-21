@@ -301,19 +301,27 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	//TODO may be incomplete or excessive
 	protected boolean isClientJwksNeeded() {
-		if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
-			return true;
-		}
 		//or clientAuthType == ClientAuthType.self_signed_tls_client_auth
 		if( clientAuthType == ClientAuthType.PRIVATE_KEY_JWT ) {
 			return true;
 		}
 
 		JsonObject client = env.getObject("client");
-		if(client.has("request_object_signing_alg")) {
-			String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
-			if (requestObjectSigningAlg != null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
-				return true;
+
+		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
+			if(client.has("request_object_signing_alg")) {
+				String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
+				if (requestObjectSigningAlg != null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
+					return true;
+				}
+			} else {
+				/*
+					request_object_signing_alg
+					OPTIONAL. JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request Objects sent to the OP.
+					...The default, if omitted, is that any algorithm supported by the OP and the RP MAY be used...
+				 */
+				//as per the above, jwks may or may not be needed, we can't know this until we process a request_object
+				//this may lead to a failure due to missing client_public_jwks
 			}
 		}
 
@@ -770,14 +778,18 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObject() {
-		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4");
+		callAndContinueOnFailure(ValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
-		callAndStopOnFailure(ValidateRequestObjectClaims.class);
+		callAndContinueOnFailure(ValidateRequestObjectClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-6");
 		String alg = env.getString("authorization_request_object", "header.alg");
 		if(allowUnsignedRequestObjects() && "none".equals(alg)) {
-			//TODO TBD if we should do something
+			//Nimbusds will throw an exception if a request object with alg:none contains a signature
 		} else {
-			callAndStopOnFailure(ValidateRequestObjectSignature.class, "OIDCC-6.1");
+			//This may happen when the client does not contain both request_object_signing_alg and jwks/jwks_uri
+			//and a signed request object is received. We can't validate the signature.
+			//Using skipIfMissing to avoid an ugly missing required environment entry error thrown by the framework
+			skipIfMissing(new String[]{"client_public_jwks"}, null, Condition.ConditionResult.FAILURE,
+				ValidateRequestObjectSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
 		}
 	}
 

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -22,11 +23,12 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ValidateRequestObjectSignature extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "authorization_request_object", "client_public_jwks" })
+	@PreEnvironment(required = { "authorization_request_object", "client_public_jwks", "client" })
 	@PostEnvironment(strings = "request_object_signing_alg")
 	public Environment evaluate(Environment env) {
 
@@ -38,12 +40,26 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 			SignedJWT jwt = SignedJWT.parse(requestObject);
 			JWKSet jwkSet = JWKSet.parse(clientJwks.toString());
 
+			JsonObject client = env.getObject("client");
+			if(client.has("request_object_signing_alg")) {
+				//https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
+				//request_object_signing_alg
+				//All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
+				//The default, if omitted, is that any algorithm supported by the OP and the RP MAY be used
+				String expectedAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
+				JWSAlgorithm jwsAlgorithm = jwt.getHeader().getAlgorithm();
+				if(!jwsAlgorithm.getName().equals(expectedAlg)) {
+					throw error("Algorithm in JWT header does not match client request_object_signing_alg.",
+						args("actual", jwsAlgorithm.getName(), "expected", expectedAlg));
+				}
+			}
+
 			SecurityContext context = new SimpleSecurityContext();
 
 			JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
 			JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
-
+			//TODO signature verification should be changed to use kids
 			List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
 			for (Key key : keys) {
 				JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
@@ -52,7 +68,10 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 				if (jwt.verify(verifier)) {
 					String alg = jwt.getHeader().getAlgorithm().getName();
 					env.putString("request_object_signing_alg", alg);
-					logSuccess("Request object signature validated", args("algorithm", alg));
+					logSuccess("Request object signature validated using a key in the client's JWKS " +
+										"and using the client's registered request_object_signing_alg",
+									args("request_object_signing_alg", alg,
+											"jwk", key.toString(), "request_object", requestObject));
 					return env;
 				} else {
 					// failed to verify with this key, moving on
