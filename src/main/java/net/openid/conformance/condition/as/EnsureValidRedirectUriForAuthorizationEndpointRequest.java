@@ -8,6 +8,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
  * Checks if the requested redirect_uri is ONE of the redirect_uris
  * Typically used for dynamically registered clients which may have multiple redirect_uris
@@ -34,6 +37,14 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 		}
 		try {
 			String actual = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI);
+			try {
+				URI uri = new URI(actual);
+				if(uri.getFragment()!=null) {
+					throw error("Invalid redirect_uri. redirect_uri includes a fragment component.", args("redirect_uri", actual));
+				}
+			} catch (URISyntaxException e) {
+				throw error("Invalid redirect_uri", args("redirect_uri", actual));
+			}
 			JsonArray redirectUris = redirectUrisElement.getAsJsonArray();
 			for(JsonElement e : redirectUris) {
 				String uri = OIDFJSON.getString(e);

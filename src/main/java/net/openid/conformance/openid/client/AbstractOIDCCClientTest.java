@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -60,7 +61,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
-import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUri;
+import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -561,7 +562,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * http request is mapped to "dynamic_registration_request" before this call
 	 */
 	protected void validateRegistrationRequest() {
-		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUri.class);
+		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUris.class);
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
@@ -775,6 +776,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "OIDCC-3.1.2.1");
 
+		disallowMaxAge0AndPromptNone();
+	}
+
+	/**
+	 * To be overridden in OIDCCClientTestFormPostError
+	 * or any similar classes that want to trigger an error
+	 * by allowing max_age=0 and prompt=none
+	 */
+	protected void disallowMaxAge0AndPromptNone() {
+		callAndStopOnFailure(DisallowMaxAgeEqualsZeroAndPromptNone.class);
 	}
 
 	protected void validateRequestObject() {

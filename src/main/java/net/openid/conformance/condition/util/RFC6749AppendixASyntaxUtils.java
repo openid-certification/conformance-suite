@@ -24,7 +24,7 @@ public class RFC6749AppendixASyntaxUtils {
 		if(numberCount>0) {
 			numbers = new RandomStringGenerator.Builder().
 				withinRange(48, 57).    //0 to 9
-				build().generate(punctuationCount);
+				build().generate(numberCount);
 		}
 		String alphas = "";
 		if(alphaCount>0) {
@@ -33,7 +33,7 @@ public class RFC6749AppendixASyntaxUtils {
 				{'A', 'Z'}
 			};
 			alphas = new RandomStringGenerator.Builder().
-				withinRange(pairs).build().generate(punctuationCount);
+				withinRange(pairs).build().generate(alphaCount);
 		}
 		return alphas + numbers + puncts;
 	}

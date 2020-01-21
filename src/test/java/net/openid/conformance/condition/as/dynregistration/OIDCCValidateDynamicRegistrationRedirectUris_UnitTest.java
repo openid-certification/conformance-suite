@@ -2,10 +2,8 @@ package net.openid.conformance.condition.as.dynregistration;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.as.ValidateRequestObjectExp;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
@@ -15,14 +13,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Date;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OIDCCValidateDynamicRegistrationRedirectUri_UnitTest
+public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
 {
 
 	@Spy
@@ -31,14 +25,14 @@ public class OIDCCValidateDynamicRegistrationRedirectUri_UnitTest
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private OIDCCValidateDynamicRegistrationRedirectUri cond;
+	private OIDCCValidateDynamicRegistrationRedirectUris cond;
 
 
 
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new OIDCCValidateDynamicRegistrationRedirectUri();
+		cond = new OIDCCValidateDynamicRegistrationRedirectUris();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 

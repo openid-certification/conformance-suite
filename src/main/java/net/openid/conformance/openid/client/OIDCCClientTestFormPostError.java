@@ -34,6 +34,11 @@ public class OIDCCClientTestFormPostError extends AbstractOIDCCClientTest {
 	}
 
 	@Override
+	protected void disallowMaxAge0AndPromptNone() {
+		//do nothing. we want to allow them for this test
+	}
+
+	@Override
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
