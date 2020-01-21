@@ -26,6 +26,11 @@ public class OIDCCEnsureRequestWithAcrValuesSucceeds extends AbstractOIDCCServer
 	@Override
 	protected void performIdTokenValidation() {
 		super.performIdTokenValidation();
-		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstAcrValuesRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.1", "OIDCC-15.1");
+		// just a warning; the minimum required behaviour in the spec is not to fail:
+		// "OPs MUST support requests for specific Authentication Context Class Reference values via the acr_values
+		// parameter, as defined in Section 3.1.2. (Note that the minimum level of support required for this parameter
+		// is simply to have its use not result in an error.)"
+
+		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstAcrValuesRequest.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.1", "OIDCC-15.1");
 	}
 }
