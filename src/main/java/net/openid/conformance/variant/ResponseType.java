@@ -5,7 +5,7 @@ import java.util.List;
 @VariantParameter(
 	name = "response_type",
 	displayName = "Response Type",
-	description = "The Response Type request parameter response_type informs the Authorization Server of the desired authorization processing flow."
+	description = "The Response Type to be used in testing. A separate test plan should be run for each response type that needs to be tested."
 )
 public enum ResponseType {
 

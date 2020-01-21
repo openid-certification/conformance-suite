@@ -3,7 +3,7 @@ package net.openid.conformance.variant;
 @VariantParameter(
 	name = "ciba_mode",
 	displayName = "CIBA Mode",
-	description = "This configuration allows the client to get authentication result in three 3 ways: poll, ping & push (This mode is not currently part of the certification program)."
+	description = "The CIBA notification mode you want to test. If you server supports more than one, run create separate test plans for each one."
 )
 public enum CIBAMode {
 

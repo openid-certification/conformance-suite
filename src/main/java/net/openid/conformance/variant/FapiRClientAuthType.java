@@ -2,8 +2,8 @@ package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "fapir_client_auth_type",
-	displayName = "FAPI-R Client Authentication Type",
-	description = "Client Authentication methods that are used by Clients to authenticate to the Authorization Server."
+	displayName = "Client Authentication",
+	description = "The type of client authentication your server supports. If you support multiple types of client authentication test each one, one at a time."
 )
 public enum FapiRClientAuthType {
 

@@ -3,7 +3,7 @@ package net.openid.conformance.variant;
 @VariantParameter(
 	name = "response_mode",
 	displayName = "Response Mode",
-	description = "The Response Mode request parameter response_mode informs the Authorization Server of the mechanism to be used for returning Authorization Response parameters from the Authorization Endpoint."
+	description = "The response mode that will be tested. 'default' is required for certification, 'form_post' is optional."
 )
 public enum ResponseMode
 {
