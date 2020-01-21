@@ -14,6 +14,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCRegistrationDynamic.class,
 		OIDCCRegistrationLogoUri.class,
 		OIDCCRegistrationPolicyUri.class,
+		OIDCCRegistrationTosUri.class,
 
 		// Positive tests
 		OIDCCServerTest.class,
