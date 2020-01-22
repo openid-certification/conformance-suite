@@ -1,9 +1,7 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgRS256Only;
-import net.openid.conformance.condition.as.OIDCCGenerateServerJWKSWithRSAKeysOnlyAndRS256Alg;
-import net.openid.conformance.condition.as.RemoveSubFromIdToken;
+import net.openid.conformance.condition.as.OIDCCGenerateServerJWKSWithRSASigningKeysOnlyAndRS256Alg;
 import net.openid.conformance.condition.as.SignIdTokenInvalid;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgRS256;
@@ -28,7 +26,7 @@ public class OIDCCClientTestInvalidIdTokenSignatureWithRS256 extends AbstractOID
 
 	@Override
 	protected void configureServerJWKS() {
-		callAndStopOnFailure(OIDCCGenerateServerJWKSWithRSAKeysOnlyAndRS256Alg.class);
+		callAndStopOnFailure(OIDCCGenerateServerJWKSWithRSASigningKeysOnlyAndRS256Alg.class);
 	}
 
 	@Override

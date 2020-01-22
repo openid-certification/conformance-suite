@@ -74,7 +74,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			createKeys(numberOfEdSigningKeys, KeyType.EC, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA);
 
 			createKeys(numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys);
-			createKeys(numberOfECEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys);
+			createKeys(numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys);
 
 			JWKSet publicJwkSet = new JWKSet(allGeneratedKeys);
 			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(publicJwkSet);
