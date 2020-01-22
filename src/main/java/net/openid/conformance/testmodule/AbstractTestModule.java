@@ -38,7 +38,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.UNKNOWN; // current status of the test
+	private Status status = Status.NOT_YET_CREATED; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
@@ -635,7 +635,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *                         \     ^--v      ^              ^
 	 *                          \-> WAITING --/--------------/
 	 *
-	 * Any state can go to "UNKNOWN"
 	 */
 	protected void setStatus(Status newStatus) {
 		Status oldStatus = getStatus();
@@ -657,6 +656,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 
 		switch (oldStatus) {
+			case NOT_YET_CREATED:
+				switch (newStatus) {
+					case CREATED:
+						break;
+					default:
+						clearLockIfHeld();
+						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+				}
+				break;
 			case CREATED:
 				switch (newStatus) {
 					case CONFIGURED:
@@ -712,16 +720,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			case FINISHED:
 				clearLockIfHeld();
 				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-			case UNKNOWN:
-				// we can go from unknown to anything
-				switch (newStatus) {
-					case RUNNING:
-						break;
-					default:
-						clearLockIfHeld();
-						break;
-				}
-				break;
 			default:
 				clearLockIfHeld();
 				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);

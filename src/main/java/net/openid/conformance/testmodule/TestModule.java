@@ -18,13 +18,13 @@ import net.openid.conformance.runner.TestExecutionManager;
 public interface TestModule {
 
 	public static enum Status {
+		NOT_YET_CREATED, // object just created, not yet setup
 		CREATED, // test has been instantiated
 		CONFIGURED, // configuration files have been sent and set up
 		RUNNING, // test is executing
 		WAITING, // test is waiting for external input
 		INTERRUPTED, // test has been stopped before completion
 		FINISHED, // test has completed
-		UNKNOWN // test status is unknown, probably an error
 	}
 
 	public static enum Result {
