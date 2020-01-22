@@ -670,7 +670,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					case WAITING:
 						break;
 					default:
-						clearLock();
+						clearLockIfHeld();
 						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
 				}
 				break;
