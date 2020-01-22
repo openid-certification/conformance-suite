@@ -1,8 +1,13 @@
 package net.openid.conformance.condition.client;
 
-import java.util.Date;
-
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,17 +16,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import java.util.Date;
 
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ValidateIdToken_UnitTest {
@@ -113,6 +111,7 @@ public class ValidateIdToken_UnitTest {
 	public void testEvaluate_missingClientId() {
 
 		env.putObject("server", server);
+		env.putObject("client", new JsonObject());
 		addIdToken(env, claims);
 
 		cond.execute(env);
@@ -284,6 +283,21 @@ public class ValidateIdToken_UnitTest {
 
 	}
 
+	// this doesn't error as per comment in implementation
+	@Test
+	public void testEvaluate_invalidNbf() {
+
+		claims.remove("nbf");
+		claims.addProperty("nbf", nowSeconds + (60 * 60));
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+
+	}
+
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
@@ -351,6 +365,49 @@ public class ValidateIdToken_UnitTest {
 
 	}
 
+	public void testEvaluate_authTime() {
+		claims.addProperty("auth_time", nowSeconds - 3600);
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_invalidAuthTimeFuture() {
+		claims.addProperty("auth_time", nowSeconds + 3600);
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_invalidAuthTimePast() {
+		claims.addProperty("auth_time", nowSeconds - 2 * 365 * 24 * 60 * 60);
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testEvaluate_invalidAuthTimeString() {
+		claims.addProperty("auth_time", String.valueOf(nowSeconds-3600));
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testEvaluate_invalidExpString() {
 
@@ -363,6 +420,38 @@ public class ValidateIdToken_UnitTest {
 
 		cond.execute(env);
 
+	}
+
+	public void testEvaluate_acr() {
+		claims.addProperty("acr", "0");
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_acrEmpty() {
+		claims.addProperty("acr", "");
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testEvaluate_acrArray() {
+		claims.add("acr", new JsonParser().parse("[ \"foo\" ]"));
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
 	}
 
 }
