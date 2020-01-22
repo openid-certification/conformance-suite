@@ -178,7 +178,9 @@ public interface TestModule {
 	void fireTestSkipped(String msg) throws TestSkippedException;
 
 	/**
-	 * Mark the test as finished without setting a result.
+	 * Mark the test as finished, setting it to PASSED or REVIEW if appropriate.
+	 *
+	 * This should always be called with the test status set to 'RUNNING'.
 	 */
 	void fireTestFinished();
 

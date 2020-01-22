@@ -573,8 +573,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
 		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
 
-		setStatus(Status.WAITING);
-
 		// at this point we can assume the test is fully done
 		fireTestFinished();
 
