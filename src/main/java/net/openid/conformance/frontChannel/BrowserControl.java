@@ -388,6 +388,7 @@ public class BrowserControl implements DataUtils {
 					try {
 						WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
+						entryBox.clear();
 						entryBox.sendKeys(value);
 						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
 					}
