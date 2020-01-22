@@ -637,119 +637,116 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *
 	 */
 	protected void setStatus(Status newStatus) {
-		boolean releaseLockBeforeReturning = false;
+		try {
+			boolean releaseLockBeforeReturning = false;
 
-		logger.info(getId() + ": setStatus("+newStatus.toString()+"): current status = "+getStatus().toString());
+			logger.info(getId() + ": setStatus(" + newStatus.toString() + "): current status = " + getStatus().toString());
 
-		if (newStatus == Status.RUNNING) {
-			if (env.getLock().isHeldByCurrentThread()) {
-				// RUNNING->RUNNING isn't good, and moved /to/ RUNNING when we already hold the lock probably isn't right either?
-				throw new TestFailureException(getId(), "Illegal test state change by thread that holds lock: " + getStatus() + " -> " + newStatus);
-			}
-			// in all other cases [where it is a valid state transition] we want to take the lock before moving to running; do so
-			acquireLock();
-		}
-		else if (newStatus == getStatus()) {
-			// nothing to change
-			clearLockIfHeld(); // probably the current thread can't be holding the lock, but just to be sure
-			throw new TestFailureException(getId(), "setStatus() called but status is the same: " + getStatus() + " -> " + newStatus);
-		}
-
-		// must be after lock acquired, or the status might've changed by the time we wake up
-		Status oldStatus = getStatus();
-
-		switch (oldStatus) {
-			case NOT_YET_CREATED:
-				switch (newStatus) {
-					case CREATED:
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+			if (newStatus == Status.RUNNING) {
+				if (env.getLock().isHeldByCurrentThread()) {
+					// RUNNING->RUNNING isn't good, and moved /to/ RUNNING when we already hold the lock probably isn't right either?
+					throw new TestFailureException(getId(), "Illegal test state change by thread that holds lock: " + getStatus() + " -> " + newStatus);
 				}
-				break;
-			case CREATED:
-				switch (newStatus) {
-					case CONFIGURED:
-					case WAITING:
-					case INTERRUPTED:
-					case FINISHED:
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case CONFIGURED:
-				switch (newStatus) {
-					case RUNNING:
-					case INTERRUPTED:
-					case FINISHED:
-					case WAITING:
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case RUNNING:  // We should have the lock when we're running
-				switch (newStatus) {
-					case INTERRUPTED:
-						clearLockIfHeld();
-						break;
-					case FINISHED:
-					case WAITING:
-						releaseLockBeforeReturning = true;
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case WAITING:  // we shouldn't have the lock if we're waiting.
-				switch (newStatus) {
-					case RUNNING:
-					case INTERRUPTED:
-					case FINISHED:
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case INTERRUPTED:
-				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-			case FINISHED:
-				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-			default:
-				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-		}
-
-		if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
-			// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
-			if (!releaseLockBeforeReturning) {
+				// in all other cases [where it is a valid state transition] we want to take the lock before moving to running; do so
 				acquireLock();
-				releaseLockBeforeReturning = true;
+			} else if (newStatus == getStatus()) {
+				// nothing to change
+				throw new TestFailureException(getId(), "setStatus() called but status is the same: " + getStatus() + " -> " + newStatus);
 			}
-			performFinalCleanup();
-		}
 
-		if (Status.FINISHED.equals(newStatus) && getResult() == Result.UNKNOWN) {
-			throw new TestFailureException(getId(), "Illegal test state; tried to move from " + oldStatus + " -> " + newStatus + " but 'result' is UNKNOWN");
-		}
+			// must be after lock acquired, or the status might've changed by the time we wake up
+			Status oldStatus = getStatus();
 
-		this.status = newStatus;
-		testInfo.updateTestStatus(getId(), newStatus);
+			switch (oldStatus) {
+				case NOT_YET_CREATED:
+					switch (newStatus) {
+						case CREATED:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case CREATED:
+					switch (newStatus) {
+						case CONFIGURED:
+						case WAITING:
+						case INTERRUPTED:
+						case FINISHED:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case CONFIGURED:
+					switch (newStatus) {
+						case RUNNING:
+						case INTERRUPTED:
+						case FINISHED:
+						case WAITING:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case RUNNING:  // We should have the lock when we're running
+					switch (newStatus) {
+						case INTERRUPTED:
+							clearLockIfHeld();
+							break;
+						case FINISHED:
+						case WAITING:
+							releaseLockBeforeReturning = true;
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case WAITING:  // we shouldn't have the lock if we're waiting.
+					switch (newStatus) {
+						case RUNNING:
+						case INTERRUPTED:
+						case FINISHED:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case INTERRUPTED:
+					throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+				case FINISHED:
+					throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+				default:
+					throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+			}
 
-		this.statusUpdated = Instant.now();
+			if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
+				// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
+				if (!releaseLockBeforeReturning) {
+					acquireLock();
+					releaseLockBeforeReturning = true;
+				}
+				performFinalCleanup();
+			}
 
-		if (releaseLockBeforeReturning) {
-			// don't release the lock till the very final step; this ensure other threads won't start reading the
-			// test status until after it's been updated, etc.
-			clearLock();
+			if (Status.FINISHED.equals(newStatus) && getResult() == Result.UNKNOWN) {
+				throw new TestFailureException(getId(), "Illegal test state; tried to move from " + oldStatus + " -> " + newStatus + " but 'result' is UNKNOWN");
+			}
+
+			this.status = newStatus;
+			testInfo.updateTestStatus(getId(), newStatus);
+
+			this.statusUpdated = Instant.now();
+
+			if (releaseLockBeforeReturning) {
+				// don't release the lock till the very final step; this ensure other threads won't start reading the
+				// test status until after it's been updated, etc.
+				clearLock();
+			}
+		} catch (Exception e) {
+			// It's really best if we don't exit with the lock held, ensuring any other threads trying to take the
+			// lock won't end up blocked forever.
+			clearLockIfHeld();
+			throw e;
 		}
 	}
 
