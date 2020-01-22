@@ -540,7 +540,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void requestProtectedResource() {
-		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
+		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		eventLog.endBlock();
 	}
