@@ -652,7 +652,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 		else if (newStatus == oldStatus) {
 			// nothing to change
-			return;
+			clearLockIfHeld(); // probably the current thread can't be holding the lock, but just to be sure
+			throw new TestFailureException(getId(), "setStatus() called but status is the same: " + oldStatus + " -> " + newStatus);
 		}
 
 		switch (oldStatus) {
