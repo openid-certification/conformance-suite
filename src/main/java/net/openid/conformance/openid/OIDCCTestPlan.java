@@ -26,6 +26,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCPromptNoneNotLoggedIn.class,
 		OIDCCClaimsLocales.class,
 		OIDCCIdTokenHint.class,
+		OIDCCLoginHint.class,
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
 		OIDCCUserInfoPostHeader.class,
