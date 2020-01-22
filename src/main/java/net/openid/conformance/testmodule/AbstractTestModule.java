@@ -642,7 +642,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		logger.info(getId() + ": setStatus("+newStatus.toString()+"): current status = "+oldStatus.toString());
 
-		if (newStatus == oldStatus) {
+		if (newStatus == Status.RUNNING) {
+			if (env.getLock().isHeldByCurrentThread()) {
+				// RUNNING->RUNNING isn't good, and moved /to/ RUNNING when we already hold the lock probably isn't right either?
+				throw new TestFailureException(getId(), "Illegal test state change by thread that holds lock: " + oldStatus + " -> " + newStatus);
+			}
+			// in all other cases [where it is a valid state transition] we want to take the lock before moving to running; do so
+			acquireLock();
+		}
+		else if (newStatus == oldStatus) {
 			// nothing to change
 			return;
 		}
@@ -663,8 +671,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			case CONFIGURED:
 				switch (newStatus) {
 					case RUNNING:
-						acquireLock();
-						break;
 					case INTERRUPTED:
 					case FINISHED:
 					case WAITING:
@@ -691,8 +697,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			case WAITING:  // we shouldn't have the lock if we're waiting.
 				switch (newStatus) {
 					case RUNNING:
-						acquireLock();  // we want to grab the lock whenever we start running
-						break;
 					case INTERRUPTED:
 					case FINISHED:
 						break;
@@ -711,7 +715,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// we can go from unknown to anything
 				switch (newStatus) {
 					case RUNNING:
-						acquireLock();  // we want to grab the lock whenever we start running
 						break;
 					default:
 						clearLockIfHeld();
