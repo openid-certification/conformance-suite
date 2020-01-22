@@ -19,7 +19,7 @@ public class AddPromptNoneToAuthorizationEndpointRequest extends AbstractConditi
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added prompt=\"none\" to authorization endpoint request", authorizationEndpointRequest);
+		logSuccess("Added prompt=none to authorization endpoint request", authorizationEndpointRequest);
 
 		return env;
 
