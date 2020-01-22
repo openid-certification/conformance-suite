@@ -1,8 +1,10 @@
 package net.openid.conformance.variant;
 
-import java.util.List;
-
-@VariantParameter("response_mode")
+@VariantParameter(
+	name = "response_mode",
+	displayName = "Response Mode",
+	description = "The response mode that will be tested. 'default' is required for certification, 'form_post' is optional."
+)
 public enum ResponseMode
 {
 	/**

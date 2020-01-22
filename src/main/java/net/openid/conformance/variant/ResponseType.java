@@ -2,7 +2,11 @@ package net.openid.conformance.variant;
 
 import java.util.List;
 
-@VariantParameter("response_type")
+@VariantParameter(
+	name = "response_type",
+	displayName = "Response Type",
+	description = "The Response Type to be used in testing. A separate test plan should be run for each response type that needs to be tested."
+)
 public enum ResponseType {
 
 	CODE("code"),

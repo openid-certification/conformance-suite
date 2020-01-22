@@ -148,7 +148,7 @@ public class VariantService {
 					if (p1 == p2) {
 						return p1;
 					} else {
-						throw new RuntimeException("Variant parameter declaration includes multiple parameters with name: " + p1.name);
+						throw new RuntimeException("Variant parameter declaration includes multiple parameters with name: " + p1.variantParameter.name());
 					}
 				}),
 				p -> p.get());
@@ -187,14 +187,14 @@ public class VariantService {
 
 	public static class ParameterHolder<T extends Enum<T>> {
 
-		public final String name;
+		public final VariantParameter variantParameter;
 
 		final Class<T> parameterClass;
 		final Map<String, T> valuesByString;
 
 		ParameterHolder(Class<T> parameterClass) {
 			this.parameterClass = parameterClass;
-			this.name = parameterClass.getAnnotation(VariantParameter.class).value();
+			this.variantParameter = parameterClass.getAnnotation(VariantParameter.class);
 			this.valuesByString = values().stream().collect(toMap(T::toString, identity()));
 		}
 
@@ -202,7 +202,7 @@ public class VariantService {
 		T valueOf(String s) {
 			T v = valuesByString.get(s);
 			if (v == null) {
-				throw new IllegalArgumentException(String.format("Illegal value for variant parameter %s: \"%s\"", name, s));
+				throw new IllegalArgumentException(String.format("Illegal value for variant parameter %s: \"%s\"", variantParameter.name(), s));
 			}
 			return v;
 		}
@@ -238,7 +238,7 @@ public class VariantService {
 			this.parametersByName = modules.stream()
 					.flatMap(m -> m.parameters.stream())
 					.map(p -> p.parameter)
-					.collect(groupingBy(p -> p.name, toSingleParameter()));
+					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
 		}
 
 		public List<String> getTestModules() {
@@ -280,18 +280,22 @@ public class VariantService {
 															toSet()))))));
 
 			return values.entrySet().stream()
-					.collect(toMap(e -> e.getKey().name,
+					.collect(toMap(e -> e.getKey().variantParameter.name(),
 							e -> {
 								ParameterHolder<?> p = e.getKey();
 								Set<String> allowed = e.getValue();
 								Map<String, Set<String>> pf = fields.getOrDefault(e.getKey(), Map.of());
 								Map<String, Set<String>> phf = hideFields.getOrDefault(e.getKey(), Map.of());
-								return p.values().stream()
-										.map(v -> v.toString())
-										.filter(v -> allowed.contains(v))
-										.collect(toOrderedMap(identity(),
-												v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()),
-														"hidesConfigurationFields", phf.getOrDefault(v, Set.of()))));
+								return Map.of(
+									"variantInfo", Map.of("displayName", p.variantParameter.displayName(),
+															"description", p.variantParameter.description()),
+									"variantValues", p.values().stream()
+														.map(v -> v.toString())
+														.filter(v -> allowed.contains(v))
+														.collect(toOrderedMap(identity(),
+															v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()),
+																"hidesConfigurationFields", phf.getOrDefault(v, Set.of()))))
+								);
 							}));
 		}
 
@@ -365,7 +369,7 @@ public class VariantService {
 
 			this.parametersByName = parameters.stream()
 					.map(p -> p.parameter)
-					.collect(groupingBy(p -> p.name, toSingleParameter()));
+					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
 		}
 
 		public boolean isApplicableForVariant(VariantSelection variant) {
@@ -382,11 +386,17 @@ public class VariantService {
 
 		public Object getVariantSummary() {
 			return parameters.stream()
-					.collect(toMap(p -> p.parameter.name,
-							p -> p.allowedValues.stream()
-									.collect(toOrderedMap(v -> v.toString(),
-											v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()),
-													"hidesConfigurationFields", p.hidesConfigurationFields.getOrDefault(v, List.of()))))));
+					.collect(toMap(p -> p.parameter.variantParameter.name(),
+							p -> {
+								return Map.of(
+									"variantInfo", Map.of("displayName", p.parameter.variantParameter.displayName(),
+															"description", p.parameter.variantParameter.description()),
+									"variantValues", p.allowedValues.stream()
+															.collect(toOrderedMap(v -> v.toString(),
+																v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()),
+																	"hidesConfigurationFields", p.hidesConfigurationFields.getOrDefault(v, List.of()))))
+								);
+							}));
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
@@ -399,7 +409,7 @@ public class VariantService {
 			Set<ParameterHolder<?>> missingParameters = Sets.difference(declaredParameters, typedVariant.keySet());
 			if (!missingParameters.isEmpty()) {
 				throw new IllegalArgumentException("Missing values for required variant parameters: " +
-						missingParameters.stream().map(p -> p.name).collect(joining(", ")));
+						missingParameters.stream().map(p -> p.variantParameter.name()).collect(joining(", ")));
 			}
 
 			// Note: supplying extra variant parameters is not an error
@@ -408,7 +418,7 @@ public class VariantService {
 				Object v = typedVariant.get(p.parameter);
 				if (!p.allowedValues.contains(v)) {
 					throw new RuntimeException(String.format("Not an allowed value for variant parameter %s: %s",
-							p.parameter.name,
+							p.parameter.variantParameter.name(),
 							v));
 				}
 			});

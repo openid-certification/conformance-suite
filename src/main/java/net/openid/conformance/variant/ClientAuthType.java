@@ -1,6 +1,10 @@
 package net.openid.conformance.variant;
 
-@VariantParameter("client_auth_type")
+@VariantParameter(
+	name = "client_auth_type",
+	displayName = "Client Authentication Type",
+	description = "The type of client authentication your software supports. If you support multiple types of client authentication test each one, one at a time."
+)
 public enum ClientAuthType {
 
 	NONE,

@@ -9,6 +9,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface VariantParameter {
 
-	String value();
+	String name();
+
+	String displayName();
+
+	String description() default "";
 
 }
