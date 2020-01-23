@@ -505,8 +505,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		// then this happens in the background so that we can check the state of the browser controller
 
-		getTestExecutionManager().runInBackground(() -> {
-
+		getTestExecutionManager().runFinalisationTaskInBackground(() -> {
 
 			// wait for web runners to wrap up first
 

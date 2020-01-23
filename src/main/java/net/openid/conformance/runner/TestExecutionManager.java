@@ -1,11 +1,5 @@
 package net.openid.conformance.runner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
-
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -14,6 +8,13 @@ import net.openid.conformance.testmodule.TestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestExecutionManager {
 
@@ -75,6 +76,8 @@ public class TestExecutionManager {
 
 	private List<Future<?>> futures = new ArrayList<>();
 
+	private AtomicBoolean finalisationStarted = new AtomicBoolean(false);
+
 	private ExecutorCompletionService<Object> executorCompletionService;
 
 	private AuthenticationFacade authenticationFacade;
@@ -112,5 +115,18 @@ public class TestExecutionManager {
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
 	}
 
+	/**
+	 * Run a finalisation task
+	 *
+	 * This is just like a normal task, except there can only ever be one of them.
+	 */
+	public void runFinalisationTaskInBackground(Callable<?> callable) {
+		// use an AtomicBoolean.getAndSet to avoid any race conditions as it is possible for the main test thread
+		// and the placeholder watcher to try and run the finalisation block at the same time
+		boolean oldValue = finalisationStarted.getAndSet(true);
+		if (!oldValue) {
+			futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
+		}
+	}
 
 }
