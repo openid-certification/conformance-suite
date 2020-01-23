@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddPromptNoneToAuthorizationEndpointRequest extends AbstractCondition {
+public class AddClaimsLocalesSeToAuthorizationEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
@@ -15,11 +15,11 @@ public class AddPromptNoneToAuthorizationEndpointRequest extends AbstractConditi
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		authorizationEndpointRequest.addProperty("prompt", "none");
+		authorizationEndpointRequest.addProperty("claims_locales", "se");
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added prompt=none to authorization endpoint request", authorizationEndpointRequest);
+		logSuccess("Added claims_locales=se to authorization endpoint request", authorizationEndpointRequest);
 
 		return env;
 
