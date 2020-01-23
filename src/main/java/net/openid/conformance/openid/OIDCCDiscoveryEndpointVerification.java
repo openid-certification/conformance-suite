@@ -86,6 +86,8 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			.onSkip(Condition.ConditionResult.INFO)
 			.requirement("OIDCD-3")
 			.dontStopOnFailure());
+
+		// Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#verify_op_has_registration_endpoint
 		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
 			.skipIfElementMissing("server", "registration_endpoint")
 			.onFail(Condition.ConditionResult.FAILURE)

@@ -134,6 +134,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 	}
 
 	protected void createDynamicClientRegistrationRequest() {
+		// Includes AddPublicJwksToDynamicRegistrationRequest, which corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Registration_jwks
 		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
 	}
 
